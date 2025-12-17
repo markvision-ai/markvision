@@ -1,7 +1,7 @@
-import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import AnalyticsPlatform from '@/components/AnalyticsPlatform';
 
 const Index = () => {
-  return <AnalyticsDashboard />;
+  return <AnalyticsPlatform />;
 };
 
 export default Index;
