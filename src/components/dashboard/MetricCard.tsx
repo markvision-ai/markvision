@@ -1,0 +1,60 @@
+import { TrendingUp, TrendingDown } from 'lucide-react';
+
+interface MetricCardProps {
+  label: string;
+  value: string;
+  subValue?: string;
+  trend?: { value: number; isPositive: boolean };
+  icon?: React.ReactNode;
+  variant?: 'default' | 'success' | 'warning' | 'danger' | 'primary';
+}
+
+export const MetricCard = ({ 
+  label, 
+  value, 
+  subValue,
+  trend,
+  icon,
+  variant = 'default' 
+}: MetricCardProps) => {
+  const variantStyles = {
+    default: 'border-border',
+    success: 'border-success/30 bg-success/5',
+    warning: 'border-warning/30 bg-warning/5',
+    danger: 'border-destructive/30 bg-destructive/5',
+    primary: 'border-primary/30 bg-primary/5',
+  };
+
+  const valueStyles = {
+    default: 'text-foreground',
+    success: 'text-success',
+    warning: 'text-warning',
+    danger: 'text-destructive',
+    primary: 'text-primary',
+  };
+
+  return (
+    <div className={`bg-card border rounded-xl p-5 transition-all hover:shadow-md ${variantStyles[variant]}`}>
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-sm text-muted-foreground">{label}</p>
+        {icon && (
+          <div className={`p-2 rounded-lg ${variant === 'default' ? 'bg-secondary' : variantStyles[variant]}`}>
+            {icon}
+          </div>
+        )}
+      </div>
+      
+      <p className={`text-2xl font-bold ${valueStyles[variant]}`}>{value}</p>
+      
+      <div className="flex items-center justify-between mt-2">
+        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
+        {trend && (
+          <div className={`flex items-center gap-1 text-xs ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
+            {trend.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+            <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
