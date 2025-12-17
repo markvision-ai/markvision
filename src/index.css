@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;900&family=JetBrains+Mono:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,54 +6,41 @@
 
 @layer base {
   :root {
-    /* Cyberpunk Dark Theme */
-    --background: 0 0% 2%;
-    --foreground: 180 100% 95%;
+    --background: 0 0% 100%;
+    --foreground: 220 14% 10%;
 
-    --card: 0 0% 5%;
-    --card-foreground: 180 100% 95%;
+    --card: 0 0% 100%;
+    --card-foreground: 220 14% 10%;
 
-    --popover: 0 0% 5%;
-    --popover-foreground: 180 100% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 14% 10%;
 
-    --primary: 186 100% 50%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 220 90% 56%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 135 100% 50%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 14% 10%;
 
-    --muted: 220 10% 15%;
-    --muted-foreground: 180 20% 60%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 10% 46%;
 
-    --accent: 325 100% 50%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 220 14% 10%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 186 100% 30%;
-    --input: 220 10% 15%;
-    --ring: 186 100% 50%;
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
 
-    --radius: 0.25rem;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
 
-    /* Custom Cyberpunk Colors */
-    --neon-cyan: 186 100% 50%;
-    --neon-green: 135 100% 50%;
-    --neon-pink: 325 100% 50%;
-    --neon-purple: 280 100% 60%;
-    --neon-yellow: 55 100% 50%;
-    
-    /* Glow intensities */
-    --glow-sm: 0 0 10px;
-    --glow-md: 0 0 20px;
-    --glow-lg: 0 0 40px;
-    --glow-xl: 0 0 60px;
-  }
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 220 90% 56%;
 
-  .dark {
-    --background: 0 0% 2%;
-    --foreground: 180 100% 95%;
+    --radius: 0.5rem;
   }
 }
 
@@ -64,166 +51,17 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Inter', sans-serif;
   }
 }
 
-@layer utilities {
-  /* Neon Glow Effects */
-  .glow-cyan {
-    box-shadow: 
-      0 0 5px hsl(var(--neon-cyan)),
-      0 0 10px hsl(var(--neon-cyan)),
-      0 0 20px hsl(var(--neon-cyan) / 0.5),
-      0 0 40px hsl(var(--neon-cyan) / 0.3);
-  }
+/* Clean table styles */
+.data-table input[type="number"] {
+  -moz-appearance: textfield;
+}
 
-  .glow-green {
-    box-shadow: 
-      0 0 5px hsl(var(--neon-green)),
-      0 0 10px hsl(var(--neon-green)),
-      0 0 20px hsl(var(--neon-green) / 0.5),
-      0 0 40px hsl(var(--neon-green) / 0.3);
-  }
-
-  .glow-pink {
-    box-shadow: 
-      0 0 5px hsl(var(--neon-pink)),
-      0 0 10px hsl(var(--neon-pink)),
-      0 0 20px hsl(var(--neon-pink) / 0.5),
-      0 0 40px hsl(var(--neon-pink) / 0.3);
-  }
-
-  .text-glow-cyan {
-    text-shadow: 
-      0 0 5px hsl(var(--neon-cyan)),
-      0 0 10px hsl(var(--neon-cyan)),
-      0 0 20px hsl(var(--neon-cyan) / 0.5);
-  }
-
-  .text-glow-green {
-    text-shadow: 
-      0 0 5px hsl(var(--neon-green)),
-      0 0 10px hsl(var(--neon-green)),
-      0 0 20px hsl(var(--neon-green) / 0.5);
-  }
-
-  .text-glow-pink {
-    text-shadow: 
-      0 0 5px hsl(var(--neon-pink)),
-      0 0 10px hsl(var(--neon-pink)),
-      0 0 20px hsl(var(--neon-pink) / 0.5);
-  }
-
-  /* Glassmorphism */
-  .glass {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--card) / 0.8) 0%,
-      hsl(var(--card) / 0.4) 100%
-    );
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-  }
-
-  .glass-border {
-    border: 1px solid hsl(var(--neon-cyan) / 0.3);
-  }
-
-  /* Scanline effect */
-  .scanlines::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 2px,
-      hsl(var(--neon-cyan) / 0.03) 2px,
-      hsl(var(--neon-cyan) / 0.03) 4px
-    );
-    pointer-events: none;
-    z-index: 10;
-  }
-
-  /* Grid pattern */
-  .cyber-grid {
-    background-image: 
-      linear-gradient(hsl(var(--neon-cyan) / 0.05) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(var(--neon-cyan) / 0.05) 1px, transparent 1px);
-    background-size: 50px 50px;
-  }
-
-  /* Glitch animation */
-  @keyframes glitch {
-    0%, 100% { transform: translate(0); }
-    20% { transform: translate(-2px, 2px); }
-    40% { transform: translate(-2px, -2px); }
-    60% { transform: translate(2px, 2px); }
-    80% { transform: translate(2px, -2px); }
-  }
-
-  .glitch-hover:hover {
-    animation: glitch 0.3s ease-in-out;
-  }
-
-  /* Pulse glow animation */
-  @keyframes pulse-glow {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  /* Data stream animation */
-  @keyframes data-stream {
-    0% { background-position: 0% 0%; }
-    100% { background-position: 0% 100%; }
-  }
-
-  .data-stream {
-    background: linear-gradient(
-      180deg,
-      transparent 0%,
-      hsl(var(--neon-cyan) / 0.1) 50%,
-      transparent 100%
-    );
-    background-size: 100% 200%;
-    animation: data-stream 3s linear infinite;
-  }
-
-  /* Corner accents */
-  .corner-accent::before,
-  .corner-accent::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    border-color: hsl(var(--neon-cyan));
-    border-style: solid;
-  }
-
-  .corner-accent::before {
-    top: -1px;
-    left: -1px;
-    border-width: 2px 0 0 2px;
-  }
-
-  .corner-accent::after {
-    bottom: -1px;
-    right: -1px;
-    border-width: 0 2px 2px 0;
-  }
-
-  /* Number counter animation */
-  @keyframes count-up {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  .animate-count {
-    animation: count-up 0.5s ease-out forwards;
-  }
+.data-table input[type="number"]::-webkit-outer-spin-button,
+.data-table input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
 }
