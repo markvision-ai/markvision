@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -6,12 +7,18 @@ import {
   Users,
   TrendingUp,
   FileSpreadsheet,
-  HelpCircle
+  HelpCircle,
+  ChevronDown,
+  Plus,
+  Folder
 } from 'lucide-react';
 
 interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
+  currentProject?: string;
+  projects?: { id: string; name: string }[];
+  onProjectChange?: (projectId: string) => void;
 }
 
 const menuItems = [
@@ -28,7 +35,17 @@ const bottomItems = [
   { id: 'help', label: 'Помощь', icon: HelpCircle },
 ];
 
-export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
+export const Sidebar = ({ 
+  activeTab, 
+  onTabChange, 
+  currentProject = 'default',
+  projects = [{ id: 'default', name: 'Основной проект' }],
+  onProjectChange 
+}: SidebarProps) => {
+  const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
+  
+  const currentProjectData = projects.find(p => p.id === currentProject) || projects[0];
+
   return (
     <aside className="w-64 bg-sidebar text-sidebar-foreground flex flex-col h-screen fixed left-0 top-0">
       {/* Logo */}
@@ -44,8 +61,53 @@ export const Sidebar = ({ activeTab, onTabChange }: SidebarProps) => {
         </div>
       </div>
 
+      {/* Project Selector */}
+      <div className="p-4 border-b border-sidebar-muted">
+        <div className="relative">
+          <button
+            onClick={() => setIsProjectDropdownOpen(!isProjectDropdownOpen)}
+            className="w-full flex items-center gap-3 px-3 py-2.5 bg-sidebar-muted rounded-lg hover:bg-sidebar-muted/80 transition-colors"
+          >
+            <Folder className="w-4 h-4 text-primary" />
+            <span className="flex-1 text-left text-sm font-medium truncate">
+              {currentProjectData.name}
+            </span>
+            <ChevronDown className={`w-4 h-4 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isProjectDropdownOpen && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-sidebar-muted rounded-lg shadow-lg overflow-hidden z-50">
+              {projects.map((project) => (
+                <button
+                  key={project.id}
+                  onClick={() => {
+                    onProjectChange?.(project.id);
+                    setIsProjectDropdownOpen(false);
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                    currentProject === project.id 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'hover:bg-sidebar-foreground/10'
+                  }`}
+                >
+                  <Folder className="w-4 h-4" />
+                  <span className="truncate">{project.name}</span>
+                </button>
+              ))}
+              <button
+                onClick={() => setIsProjectDropdownOpen(false)}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-primary hover:bg-sidebar-foreground/10 border-t border-sidebar-foreground/10"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Создать проект</span>
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Main Navigation */}
-      <nav className="flex-1 p-4">
+      <nav className="flex-1 p-4 overflow-y-auto">
         <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3">Меню</p>
         <ul className="space-y-1">
           {menuItems.map((item) => {
