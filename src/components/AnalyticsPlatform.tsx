@@ -21,6 +21,7 @@ import { FunnelChart } from './dashboard/FunnelChart';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
+import { ConversionStats } from './dashboard/ConversionStats';
 import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 
@@ -280,10 +281,10 @@ export const AnalyticsPlatform = () => {
                 />
               </div>
 
-              {/* Charts */}
+              {/* Charts Row */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-                <FunnelChart steps={funnelSteps} />
+                <ConversionStats steps={funnelSteps} />
               </div>
 
               {/* Comparison */}
