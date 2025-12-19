@@ -21,6 +21,8 @@ import { FunnelChart } from './dashboard/FunnelChart';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
+import { TeamManagement } from './team/TeamManagement';
+import { ReportGenerator } from './reports/ReportGenerator';
 
 interface DailyData {
   date: string;
@@ -374,17 +376,19 @@ export const AnalyticsPlatform = () => {
           )}
 
           {activeTab === 'reports' && (
-            <div className="bg-card border rounded-xl p-6">
-              <h3 className="font-semibold mb-4">Отчёты</h3>
-              <p className="text-muted-foreground">Генерация отчётов будет доступна после подключения базы данных.</p>
-            </div>
+            <ReportGenerator 
+              data={{
+                projectName: projects.find(p => p.id === currentProject)?.name || 'Проект',
+                dateRange,
+                totals,
+                metrics: { cpl, cac, aov, romi, roas },
+                funnelSteps,
+              }}
+            />
           )}
 
           {activeTab === 'team' && (
-            <div className="bg-card border rounded-xl p-6">
-              <h3 className="font-semibold mb-4">Команда</h3>
-              <p className="text-muted-foreground">Управление командой будет доступно после подключения авторизации.</p>
-            </div>
+            <TeamManagement projects={projects} />
           )}
 
           {activeTab === 'settings' && (
