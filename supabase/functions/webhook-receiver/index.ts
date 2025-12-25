@@ -1,25 +1,66 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-token',
 };
 
-interface WebhookPayload {
-  [key: string]: any;
-}
+// Validation constants
+const MAX_STRING_LENGTH = 255;
+const MAX_PAYLOAD_SIZE = 100000; // 100KB
+const MAX_DEAL_AMOUNT = 1000000000;
+
+// Validation schema for extracted fields
+const extractedFieldsSchema = z.object({
+  utm_source: z.string().max(MAX_STRING_LENGTH).nullable(),
+  utm_medium: z.string().max(MAX_STRING_LENGTH).nullable(),
+  utm_campaign: z.string().max(MAX_STRING_LENGTH).nullable(),
+  utm_content: z.string().max(MAX_STRING_LENGTH).nullable(),
+  utm_term: z.string().max(MAX_STRING_LENGTH).nullable(),
+  external_lead_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  name: z.string().max(MAX_STRING_LENGTH).nullable(),
+  email: z.string().max(MAX_STRING_LENGTH).nullable(),
+  phone: z.string().max(50).nullable(),
+  visit_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  client_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  deal_amount: z.number().min(0).max(MAX_DEAL_AMOUNT),
+});
 
 // Extract value from nested JSON path like "lead_info.name"
 function extractJsonPath(data: any, path: string): any {
+  if (!path || typeof path !== 'string') return null;
+  
   const parts = path.split('.');
   let result = data;
   
   for (const part of parts) {
     if (result === null || result === undefined) return null;
+    if (typeof result !== 'object') return null;
     result = result[part];
   }
   
   return result;
+}
+
+// Sanitize and truncate string values
+function sanitizeString(value: any, maxLength: number = MAX_STRING_LENGTH): string | null {
+  if (value === null || value === undefined) return null;
+  const str = String(value).trim();
+  if (str === '') return null;
+  return str.substring(0, maxLength);
+}
+
+// Parse and validate deal amount
+function parseAndValidateDealAmount(value: any): number {
+  if (value === null || value === undefined) return 0;
+  
+  const num = Number(value);
+  if (isNaN(num) || !isFinite(num)) return 0;
+  if (num < 0) return 0;
+  if (num > MAX_DEAL_AMOUNT) return MAX_DEAL_AMOUNT;
+  
+  return num;
 }
 
 Deno.serve(async (req) => {
@@ -63,9 +104,34 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Parse incoming payload
-    const payload: WebhookPayload = await req.json();
-    console.log('Received webhook payload:', JSON.stringify(payload));
+    // Get raw body text for size check
+    const bodyText = await req.text();
+    
+    // Check payload size limit
+    if (bodyText.length > MAX_PAYLOAD_SIZE) {
+      console.log('Payload too large:', bodyText.length, 'bytes');
+      return new Response(
+        JSON.stringify({ error: 'Payload too large', max_size: MAX_PAYLOAD_SIZE }),
+        { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Parse JSON payload with error handling
+    let payload: Record<string, any>;
+    try {
+      payload = JSON.parse(bodyText);
+      if (typeof payload !== 'object' || payload === null || Array.isArray(payload)) {
+        throw new Error('Payload must be a JSON object');
+      }
+    } catch (parseError) {
+      console.log('Invalid JSON payload:', parseError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid JSON payload' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Received webhook payload:', JSON.stringify(payload).substring(0, 500));
 
     // Get IP address from headers
     const ipAddress = req.headers.get('x-forwarded-for') || 
@@ -80,7 +146,7 @@ Deno.serve(async (req) => {
         webhook_config_id: webhookConfig.id,
         raw_payload: payload,
         headers: Object.fromEntries(req.headers.entries()),
-        ip_address: ipAddress,
+        ip_address: sanitizeString(ipAddress, 45),
         status: 'received'
       })
       .select()
@@ -90,25 +156,49 @@ Deno.serve(async (req) => {
       console.error('Failed to log webhook:', logError);
     }
 
-    // Extract fields using mapping
+    // Extract fields using mapping with sanitization
     const fieldMapping = webhookConfig.field_mapping;
     
-    const extractedData = {
-      utm_source: extractJsonPath(payload, fieldMapping.utm_source) || null,
-      utm_medium: extractJsonPath(payload, fieldMapping.utm_medium) || null,
-      utm_campaign: extractJsonPath(payload, fieldMapping.utm_campaign) || null,
-      utm_content: extractJsonPath(payload, fieldMapping.utm_content) || null,
-      utm_term: extractJsonPath(payload, fieldMapping.utm_term) || null,
-      external_lead_id: extractJsonPath(payload, fieldMapping.lead_id) || null,
-      name: extractJsonPath(payload, fieldMapping.name) || null,
-      email: extractJsonPath(payload, fieldMapping.email) || null,
-      phone: extractJsonPath(payload, fieldMapping.phone) || null,
-      visit_id: extractJsonPath(payload, fieldMapping.visit_id) || null,
-      client_id: extractJsonPath(payload, fieldMapping.client_id) || null,
-      deal_amount: extractJsonPath(payload, fieldMapping.deal_amount) || 0,
+    const rawExtractedData = {
+      utm_source: sanitizeString(extractJsonPath(payload, fieldMapping.utm_source)),
+      utm_medium: sanitizeString(extractJsonPath(payload, fieldMapping.utm_medium)),
+      utm_campaign: sanitizeString(extractJsonPath(payload, fieldMapping.utm_campaign)),
+      utm_content: sanitizeString(extractJsonPath(payload, fieldMapping.utm_content)),
+      utm_term: sanitizeString(extractJsonPath(payload, fieldMapping.utm_term)),
+      external_lead_id: sanitizeString(extractJsonPath(payload, fieldMapping.lead_id)),
+      name: sanitizeString(extractJsonPath(payload, fieldMapping.name)),
+      email: sanitizeString(extractJsonPath(payload, fieldMapping.email)),
+      phone: sanitizeString(extractJsonPath(payload, fieldMapping.phone), 50),
+      visit_id: sanitizeString(extractJsonPath(payload, fieldMapping.visit_id)),
+      client_id: sanitizeString(extractJsonPath(payload, fieldMapping.client_id)),
+      deal_amount: parseAndValidateDealAmount(extractJsonPath(payload, fieldMapping.deal_amount)),
     };
 
-    console.log('Extracted data:', JSON.stringify(extractedData));
+    // Validate extracted data against schema
+    const validationResult = extractedFieldsSchema.safeParse(rawExtractedData);
+    
+    if (!validationResult.success) {
+      console.error('Extracted data validation failed:', validationResult.error);
+      
+      // Update webhook log with validation error
+      if (webhookLog) {
+        await supabase
+          .from('webhook_logs')
+          .update({ 
+            status: 'error',
+            error_message: 'Validation failed: ' + validationResult.error.message 
+          })
+          .eq('id', webhookLog.id);
+      }
+      
+      return new Response(
+        JSON.stringify({ error: 'Data validation failed', details: validationResult.error.flatten() }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const extractedData = validationResult.data;
+    console.log('Validated extracted data:', JSON.stringify(extractedData));
 
     // Try to find existing visit by client_id or visit_id to get UTM if missing
     let visitUtm: any = null;
@@ -252,7 +342,7 @@ Deno.serve(async (req) => {
     console.error('Webhook processing error:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
-      JSON.stringify({ error: 'Internal server error', details: errorMessage }),
+      JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
