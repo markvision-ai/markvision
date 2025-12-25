@@ -397,7 +397,7 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'e2e-analytics' && (
-        <E2EAnalytics totals={totals} />
+        <E2EAnalytics totals={totals} projectId={currentProjectId} />
       )}
 
       {activeTab === 'growth' && (
