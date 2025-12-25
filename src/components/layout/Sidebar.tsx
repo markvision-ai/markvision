@@ -11,7 +11,9 @@ import {
   ChevronDown,
   Plus,
   Folder,
-  X
+  X,
+  Zap,
+  Target
 } from 'lucide-react';
 import {
   Dialog,
@@ -37,6 +39,8 @@ const menuItems = [
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
   { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
   { id: 'funnel', label: 'Воронка', icon: TrendingUp },
+  { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
+  { id: 'growth', label: 'Точки роста', icon: Target },
 ];
 
 const bottomItems = [
