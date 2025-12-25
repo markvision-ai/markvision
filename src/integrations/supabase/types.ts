@@ -203,6 +203,90 @@ export type Database = {
           },
         ]
       }
+      leads: {
+        Row: {
+          client_id: string | null
+          created_at: string
+          deal_amount: number | null
+          email: string | null
+          external_lead_id: string | null
+          extra_data: Json | null
+          id: string
+          name: string | null
+          phone: string | null
+          project_id: string
+          status: string | null
+          touchpoint_chain_id: string | null
+          updated_at: string
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visit_id: string | null
+          webhook_log_id: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          created_at?: string
+          deal_amount?: number | null
+          email?: string | null
+          external_lead_id?: string | null
+          extra_data?: Json | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          project_id: string
+          status?: string | null
+          touchpoint_chain_id?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visit_id?: string | null
+          webhook_log_id?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          created_at?: string
+          deal_amount?: number | null
+          email?: string | null
+          external_lead_id?: string | null
+          extra_data?: Json | null
+          id?: string
+          name?: string | null
+          phone?: string | null
+          project_id?: string
+          status?: string | null
+          touchpoint_chain_id?: string | null
+          updated_at?: string
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visit_id?: string | null
+          webhook_log_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_webhook_log_id_fkey"
+            columns: ["webhook_log_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       plan_data: {
         Row: {
           clicks: number
@@ -530,11 +614,104 @@ export type Database = {
           },
         ]
       }
+      webhook_configs: {
+        Row: {
+          created_at: string
+          field_mapping: Json
+          id: string
+          is_active: boolean | null
+          name: string
+          project_id: string
+          updated_at: string
+          webhook_token: string
+        }
+        Insert: {
+          created_at?: string
+          field_mapping?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          project_id: string
+          updated_at?: string
+          webhook_token?: string
+        }
+        Update: {
+          created_at?: string
+          field_mapping?: Json
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          project_id?: string
+          updated_at?: string
+          webhook_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_configs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_logs: {
+        Row: {
+          error_message: string | null
+          headers: Json | null
+          id: string
+          ip_address: string | null
+          project_id: string
+          raw_payload: Json
+          received_at: string
+          status: string
+          webhook_config_id: string | null
+        }
+        Insert: {
+          error_message?: string | null
+          headers?: Json | null
+          id?: string
+          ip_address?: string | null
+          project_id: string
+          raw_payload: Json
+          received_at?: string
+          status?: string
+          webhook_config_id?: string | null
+        }
+        Update: {
+          error_message?: string | null
+          headers?: Json | null
+          id?: string
+          ip_address?: string | null
+          project_id?: string
+          raw_payload?: Json
+          received_at?: string
+          status?: string
+          webhook_config_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "webhook_logs_webhook_config_id_fkey"
+            columns: ["webhook_config_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      extract_json_path: { Args: { data: Json; path: string }; Returns: string }
       has_project_access: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean
