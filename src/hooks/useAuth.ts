@@ -51,6 +51,12 @@ export const useAuth = () => {
     return () => subscription.unsubscribe();
   }, []);
 
+  /**
+   * NOTE: The isAdmin flag is for UI/UX purposes only (e.g., showing/hiding admin controls).
+   * All actual security enforcement happens server-side via RLS policies using the 
+   * has_role() SECURITY DEFINER function. Never rely solely on this client-side flag
+   * for security-critical operations.
+   */
   const checkAdminRole = async (userId: string) => {
     try {
       const { data } = await supabase

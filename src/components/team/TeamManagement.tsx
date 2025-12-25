@@ -4,18 +4,19 @@ import {
   UserPlus, 
   Mail, 
   Shield, 
-  Check, 
-  X, 
   Copy,
   MoreVertical,
   Trash2,
   Edit,
   Eye,
-  EyeOff
+  EyeOff,
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
   Dialog,
   DialogContent,
@@ -39,16 +40,8 @@ import {
 } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
-
-interface TeamMember {
-  id: string;
-  name: string;
-  email: string;
-  role: 'admin' | 'manager';
-  status: 'active' | 'pending' | 'inactive';
-  projectAccess: string[];
-  createdAt: string;
-}
+import { useTeamMembers } from '@/hooks/useTeamMembers';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Project {
   id: string;
@@ -88,8 +81,14 @@ const generateLogin = (name: string) => {
 };
 
 export const TeamManagement = ({ projects }: TeamManagementProps) => {
+  const { isAdmin } = useAuth();
+  const { teamMembers, loading, updateMemberRole, updateProjectAccess, deleteMember } = useTeamMembers();
+  
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [editingMember, setEditingMember] = useState<string | null>(null);
+  const [editProjectAccess, setEditProjectAccess] = useState<string[]>([]);
+  
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
@@ -100,36 +99,6 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     login: '',
     password: '',
   });
-
-  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
-    {
-      id: '1',
-      name: 'Алексей Иванов',
-      email: 'alexey@company.kz',
-      role: 'admin',
-      status: 'active',
-      projectAccess: ['project1', 'project2', 'project3'],
-      createdAt: '2025-01-15',
-    },
-    {
-      id: '2',
-      name: 'Мария Петрова',
-      email: 'maria@company.kz',
-      role: 'manager',
-      status: 'active',
-      projectAccess: ['project1'],
-      createdAt: '2025-02-20',
-    },
-    {
-      id: '3',
-      name: 'Сергей Козлов',
-      email: 'sergey@company.kz',
-      role: 'manager',
-      status: 'pending',
-      projectAccess: ['project2'],
-      createdAt: '2025-03-10',
-    },
-  ]);
 
   const handleNameChange = (name: string) => {
     setNewMember(prev => ({ ...prev, name }));
@@ -150,34 +119,42 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     }));
   };
 
+  const handleEditProjectToggle = (projectId: string) => {
+    setEditProjectAccess(prev =>
+      prev.includes(projectId)
+        ? prev.filter(id => id !== projectId)
+        : [...prev, projectId]
+    );
+  };
+
   const handleInvite = () => {
     if (!newMember.name || !newMember.email) {
       toast.error('Заполните имя и email');
       return;
     }
 
-    const member: TeamMember = {
-      id: Date.now().toString(),
-      name: newMember.name,
-      email: newMember.email,
-      role: newMember.role,
-      status: 'pending',
-      projectAccess: newMember.role === 'admin' ? projects.map(p => p.id) : newMember.projectAccess,
-      createdAt: new Date().toISOString().split('T')[0],
-    };
-
-    setTeamMembers(prev => [...prev, member]);
-    toast.success('Приглашение отправлено', {
-      description: `Логин: ${generatedCredentials.login}, Пароль: ${generatedCredentials.password}`,
+    // Note: Actual user creation requires Supabase Auth Admin API
+    // For now, show instructions to the admin
+    toast.info('Функция приглашения', {
+      description: 'Для создания нового пользователя используйте панель управления Lovable Cloud или отправьте ссылку для регистрации.',
     });
+    
     setIsInviteOpen(false);
     setNewMember({ name: '', email: '', role: 'manager', projectAccess: [] });
     setGeneratedCredentials({ login: '', password: '' });
   };
 
-  const handleDeleteMember = (id: string) => {
-    setTeamMembers(prev => prev.filter(m => m.id !== id));
-    toast.success('Сотрудник удалён');
+  const handleDeleteMember = async (userId: string) => {
+    await deleteMember(userId);
+  };
+
+  const handleSaveProjectAccess = async (userId: string) => {
+    await updateProjectAccess(userId, editProjectAccess);
+    setEditingMember(null);
+  };
+
+  const handleRoleChange = async (userId: string, role: 'admin' | 'manager') => {
+    await updateMemberRole(userId, role);
   };
 
   const copyToClipboard = (text: string, label: string) => {
@@ -202,139 +179,170 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     }
   };
 
+  // Filter out inactive members for display
+  const activeMembers = teamMembers.filter(m => m.status !== 'inactive');
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
+      {/* Admin-only notice */}
+      {!isAdmin && (
+        <Alert>
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Ограниченный доступ</AlertTitle>
+          <AlertDescription>
+            Только администраторы могут управлять командой. Вы можете просматривать список сотрудников.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Управление командой</h2>
           <p className="text-sm text-muted-foreground">
-            {teamMembers.length} сотрудников
+            {activeMembers.length} сотрудников
           </p>
         </div>
         
-        <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <UserPlus className="w-4 h-4 mr-2" />
-              Пригласить
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Пригласить сотрудника</DialogTitle>
-            </DialogHeader>
-            
-            <div className="space-y-4 py-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Имя</label>
-                <Input
-                  placeholder="Иван Петров"
-                  value={newMember.name}
-                  onChange={(e) => handleNameChange(e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email</label>
-                <Input
-                  type="email"
-                  placeholder="email@company.kz"
-                  value={newMember.email}
-                  onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Роль</label>
-                <Select 
-                  value={newMember.role} 
-                  onValueChange={(value: 'admin' | 'manager') => setNewMember(prev => ({ ...prev, role: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="admin">Админ (полный доступ)</SelectItem>
-                    <SelectItem value="manager">Менеджер (ограниченный)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {newMember.role === 'manager' && (
+        {isAdmin && (
+          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <UserPlus className="w-4 h-4 mr-2" />
+                Пригласить
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Пригласить сотрудника</DialogTitle>
+              </DialogHeader>
+              
+              <Alert className="my-2">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  Для создания учётных записей используйте регистрацию через форму авторизации. После регистрации назначьте права доступа здесь.
+                </AlertDescription>
+              </Alert>
+              
+              <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Доступ к проектам</label>
-                  <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-                    {projects.map(project => (
-                      <label key={project.id} className="flex items-center gap-2 cursor-pointer">
-                        <Checkbox
-                          checked={newMember.projectAccess.includes(project.id)}
-                          onCheckedChange={() => handleProjectToggle(project.id)}
-                        />
-                        <span className="text-sm">{project.name}</span>
-                      </label>
-                    ))}
-                  </div>
+                  <label className="text-sm font-medium">Имя</label>
+                  <Input
+                    placeholder="Иван Петров"
+                    value={newMember.name}
+                    onChange={(e) => handleNameChange(e.target.value)}
+                  />
                 </div>
-              )}
 
-              {generatedCredentials.login && (
-                <div className="space-y-3 p-4 bg-secondary rounded-lg">
-                  <p className="text-sm font-medium text-muted-foreground">Автоматически сгенерированные данные:</p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Логин</p>
-                      <p className="font-mono">{generatedCredentials.login}</p>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Email</label>
+                  <Input
+                    type="email"
+                    placeholder="email@company.kz"
+                    value={newMember.email}
+                    onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Роль</label>
+                  <Select 
+                    value={newMember.role} 
+                    onValueChange={(value: 'admin' | 'manager') => setNewMember(prev => ({ ...prev, role: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="admin">Админ (полный доступ)</SelectItem>
+                      <SelectItem value="manager">Менеджер (ограниченный)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {newMember.role === 'manager' && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Доступ к проектам</label>
+                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                      {projects.map(project => (
+                        <label key={project.id} className="flex items-center gap-2 cursor-pointer">
+                          <Checkbox
+                            checked={newMember.projectAccess.includes(project.id)}
+                            onCheckedChange={() => handleProjectToggle(project.id)}
+                          />
+                          <span className="text-sm">{project.name}</span>
+                        </label>
+                      ))}
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => copyToClipboard(generatedCredentials.login, 'Логин')}
-                    >
-                      <Copy className="w-4 h-4" />
-                    </Button>
                   </div>
+                )}
 
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-muted-foreground">Пароль</p>
-                      <p className="font-mono">
-                        {showPassword ? generatedCredentials.password : '••••••••••••'}
-                      </p>
-                    </div>
-                    <div className="flex gap-1">
+                {generatedCredentials.login && (
+                  <div className="space-y-3 p-4 bg-secondary rounded-lg">
+                    <p className="text-sm font-medium text-muted-foreground">Предварительные данные:</p>
+                    
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Логин</p>
+                        <p className="font-mono">{generatedCredentials.login}</p>
+                      </div>
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => setShowPassword(!showPassword)}
-                      >
-                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => copyToClipboard(generatedCredentials.password, 'Пароль')}
+                        onClick={() => copyToClipboard(generatedCredentials.login, 'Логин')}
                       >
                         <Copy className="w-4 h-4" />
                       </Button>
                     </div>
-                  </div>
-                </div>
-              )}
-            </div>
 
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
-                Отмена
-              </Button>
-              <Button onClick={handleInvite}>
-                <Mail className="w-4 h-4 mr-2" />
-                Отправить приглашение
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Пароль</p>
+                        <p className="font-mono">
+                          {showPassword ? generatedCredentials.password : '••••••••••••'}
+                        </p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => copyToClipboard(generatedCredentials.password, 'Пароль')}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
+                  Отмена
+                </Button>
+                <Button onClick={handleInvite}>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Готово
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       {/* Team Table */}
@@ -347,77 +355,131 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
               <th className="text-left p-4 text-sm font-medium text-muted-foreground">Статус</th>
               <th className="text-left p-4 text-sm font-medium text-muted-foreground">Проекты</th>
               <th className="text-left p-4 text-sm font-medium text-muted-foreground">Добавлен</th>
-              <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
+              {isAdmin && <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>}
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {teamMembers.map(member => (
-              <tr key={member.id} className="hover:bg-secondary/50 transition-colors">
-                <td className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <span className="text-sm font-medium text-primary">
-                        {member.name.split(' ').map(n => n[0]).join('')}
-                      </span>
-                    </div>
-                    <div>
-                      <p className="font-medium">{member.name}</p>
-                      <p className="text-sm text-muted-foreground">{member.email}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="p-4">{getRoleBadge(member.role)}</td>
-                <td className="p-4">{getStatusBadge(member.status)}</td>
-                <td className="p-4">
-                  <div className="flex flex-wrap gap-1">
-                    {member.role === 'admin' ? (
-                      <Badge variant="outline" className="text-xs">Все проекты</Badge>
-                    ) : (
-                      member.projectAccess.slice(0, 2).map(projectId => {
-                        const project = projects.find(p => p.id === projectId);
-                        return project ? (
-                          <Badge key={projectId} variant="outline" className="text-xs">
-                            {project.name.slice(0, 15)}...
-                          </Badge>
-                        ) : null;
-                      })
-                    )}
-                    {member.projectAccess.length > 2 && (
-                      <Badge variant="outline" className="text-xs">
-                        +{member.projectAccess.length - 2}
-                      </Badge>
-                    )}
-                  </div>
-                </td>
-                <td className="p-4 text-sm text-muted-foreground">{member.createdAt}</td>
-                <td className="p-4 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon">
-                        <MoreVertical className="w-4 h-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Edit className="w-4 h-4 mr-2" />
-                        Редактировать
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <Shield className="w-4 h-4 mr-2" />
-                        Изменить права
-                      </DropdownMenuItem>
-                      <DropdownMenuItem 
-                        className="text-destructive"
-                        onClick={() => handleDeleteMember(member.id)}
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Удалить
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+            {activeMembers.length === 0 ? (
+              <tr>
+                <td colSpan={isAdmin ? 6 : 5} className="p-8 text-center text-muted-foreground">
+                  Нет зарегистрированных сотрудников
                 </td>
               </tr>
-            ))}
+            ) : (
+              activeMembers.map(member => (
+                <tr key={member.id} className="hover:bg-secondary/50 transition-colors">
+                  <td className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                        <span className="text-sm font-medium text-primary">
+                          {(member.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium">{member.name || 'Без имени'}</p>
+                        <p className="text-sm text-muted-foreground">{member.email || 'Нет email'}</p>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="p-4">
+                    {isAdmin ? (
+                      <Select 
+                        value={member.role} 
+                        onValueChange={(value: 'admin' | 'manager') => handleRoleChange(member.user_id, value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Админ</SelectItem>
+                          <SelectItem value="manager">Менеджер</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    ) : (
+                      getRoleBadge(member.role)
+                    )}
+                  </td>
+                  <td className="p-4">{getStatusBadge(member.status)}</td>
+                  <td className="p-4">
+                    {editingMember === member.user_id ? (
+                      <div className="space-y-2">
+                        <div className="max-h-24 overflow-y-auto space-y-1">
+                          {projects.map(project => (
+                            <label key={project.id} className="flex items-center gap-2 cursor-pointer text-sm">
+                              <Checkbox
+                                checked={editProjectAccess.includes(project.id)}
+                                onCheckedChange={() => handleEditProjectToggle(project.id)}
+                              />
+                              <span>{project.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="flex gap-1">
+                          <Button size="sm" onClick={() => handleSaveProjectAccess(member.user_id)}>
+                            Сохранить
+                          </Button>
+                          <Button size="sm" variant="ghost" onClick={() => setEditingMember(null)}>
+                            Отмена
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="flex flex-wrap gap-1">
+                        {member.role === 'admin' ? (
+                          <Badge variant="outline" className="text-xs">Все проекты</Badge>
+                        ) : member.projectAccess.length === 0 ? (
+                          <span className="text-sm text-muted-foreground">Нет доступа</span>
+                        ) : (
+                          <>
+                            {member.projectAccess.slice(0, 2).map(projectId => {
+                              const project = projects.find(p => p.id === projectId);
+                              return project ? (
+                                <Badge key={projectId} variant="outline" className="text-xs">
+                                  {project.name.length > 15 ? project.name.slice(0, 15) + '...' : project.name}
+                                </Badge>
+                              ) : null;
+                            })}
+                            {member.projectAccess.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{member.projectAccess.length - 2}
+                              </Badge>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </td>
+                  <td className="p-4 text-sm text-muted-foreground">{member.createdAt}</td>
+                  {isAdmin && (
+                    <td className="p-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setEditingMember(member.user_id);
+                            setEditProjectAccess(member.projectAccess);
+                          }}>
+                            <Shield className="w-4 h-4 mr-2" />
+                            Изменить доступ
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-destructive"
+                            onClick={() => handleDeleteMember(member.user_id)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Деактивировать
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  )}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
