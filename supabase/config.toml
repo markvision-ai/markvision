@@ -2,3 +2,6 @@ project_id = "grzqykegqgglekcxdtsu"
 
 [functions.webhook-receiver]
 verify_jwt = false
+
+[functions.generate-ai-report]
+verify_jwt = true
