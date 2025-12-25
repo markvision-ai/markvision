@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
@@ -12,6 +12,7 @@ import {
   Calculator,
   Loader2
 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 import { Sidebar } from './layout/Sidebar';
 import { Header } from './layout/Header';
@@ -33,6 +34,8 @@ import { WebhookSettings } from './settings/WebhookSettings';
 import { ClientsManagement } from './clients/ClientsManagement';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
+import { PullToRefresh } from './mobile/PullToRefresh';
+import { MobileBottomNav } from './mobile/MobileBottomNav';
 
 interface DailyData {
   date: string;
@@ -73,9 +76,14 @@ const formatNumber = (value: number): string => {
 export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject } = useProjects();
-  const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData } = useProjectData(currentProjectId);
+  const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
+
+  const handleRefresh = useCallback(async () => {
+    await refetch();
+  }, [refetch]);
 
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),
@@ -189,6 +197,260 @@ export const AnalyticsPlatform = () => {
 
   const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
 
+  const mainContent = (
+    <main className="p-3 md:p-6 pb-20 md:pb-6">
+      {activeTab === 'dashboard' && (
+        <div className="space-y-6">
+          {/* Main Metrics with Plan/Fact */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <PlanFactCard
+              label="Расходы"
+              value={formatCurrency(totals.spend)}
+              plan={planData.spend}
+              fact={totals.spend}
+              icon={<DollarSign className="w-5 h-5 text-destructive" />}
+              format="currency"
+            />
+            <PlanFactCard
+              label="Показы"
+              value={formatNumber(totals.impressions)}
+              plan={planData.impressions}
+              fact={totals.impressions}
+              icon={<Eye className="w-5 h-5 text-primary" />}
+              format="number"
+            />
+            <PlanFactCard
+              label="Лиды"
+              value={formatNumber(totals.leads)}
+              plan={planData.leads}
+              fact={totals.leads}
+              icon={<Users className="w-5 h-5 text-accent" />}
+              format="number"
+            />
+            <PlanFactCard
+              label="Диагностики"
+              value={formatNumber(totals.diagnostics)}
+              plan={planData.diagnostics}
+              fact={totals.diagnostics}
+              icon={<Target className="w-5 h-5 text-warning" />}
+              format="number"
+            />
+            <PlanFactCard
+              label="Продажи"
+              value={formatNumber(totals.sales)}
+              plan={planData.sales}
+              fact={totals.sales}
+              icon={<ShoppingCart className="w-5 h-5 text-success" />}
+              format="number"
+            />
+            <PlanFactCard
+              label="Выручка"
+              value={formatCurrency(totals.revenue)}
+              plan={planData.revenue}
+              fact={totals.revenue}
+              icon={<Wallet className="w-5 h-5 text-success" />}
+              format="currency"
+            />
+          </div>
+
+          {/* Computed Metrics */}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <MetricCard
+              label="Средний чек (AOV)"
+              value={formatCurrency(aov)}
+              subValue="Выручка / Продажи"
+              icon={<Calculator className="w-5 h-5 text-primary" />}
+              variant="primary"
+            />
+            <MetricCard
+              label="Цена лида (CPL)"
+              value={formatCurrency(cpl)}
+              subValue="Расходы / Лиды"
+              variant={cpl > 5000 ? 'danger' : 'default'}
+            />
+            <MetricCard
+              label="Цена клиента (CAC)"
+              value={formatCurrency(cac)}
+              subValue="Расходы / Продажи"
+            />
+            <MetricCard
+              label="ROMI"
+              value={`${romi.toFixed(1)}%`}
+              subValue="(Выручка - Расход) / Расход"
+              variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
+              icon={<TrendingUp className="w-5 h-5" />}
+            />
+            <MetricCard
+              label="ROAS"
+              value={`${roas.toFixed(2)}x`}
+              subValue={`₸1 → ₸${roas.toFixed(2)}`}
+              variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
+            />
+          </div>
+
+          {/* Charts Row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <RevenueChart data={dailyData} daysInMonth={daysInRange} />
+            <ConversionStats steps={funnelSteps} />
+            <AIAssistant 
+              context={{
+                ...totals,
+                cpl,
+                cac,
+                aov,
+                romi,
+              }}
+            />
+          </div>
+
+          {/* Comparison */}
+          <QuickStats stats={comparisonStats} />
+        </div>
+      )}
+
+      {activeTab === 'table' && (
+        <DataTable 
+          dailyData={dailyData} 
+          onDataChange={handleDataChange}
+          planData={planData}
+          onPlanChange={handlePlanChange}
+        />
+      )}
+
+      {activeTab === 'clients' && (
+        <ClientsManagement projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'analytics' && (
+        <div className="space-y-6">
+          {/* Efficiency Metrics */}
+          <div className="bg-card border rounded-xl p-6">
+            <h3 className="font-semibold mb-4">Метрики эффективности</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="p-4 bg-secondary rounded-lg">
+                <div className="text-sm text-muted-foreground">CPL (Цена лида)</div>
+                <div className="text-2xl font-bold text-primary">{formatCurrency(cpl)}</div>
+                <div className="text-xs text-muted-foreground mt-1">Расход / Лиды</div>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <div className="text-sm text-muted-foreground">CAC (Цена клиента)</div>
+                <div className="text-2xl font-bold">{formatCurrency(cac)}</div>
+                <div className="text-xs text-muted-foreground mt-1">Расход / Продажи</div>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <div className="text-sm text-muted-foreground">AOV (Средний чек)</div>
+                <div className="text-2xl font-bold text-success">{formatCurrency(aov)}</div>
+                <div className="text-xs text-muted-foreground mt-1">Выручка / Продажи</div>
+              </div>
+              <div className="p-4 bg-secondary rounded-lg">
+                <div className="text-sm text-muted-foreground">ROMI</div>
+                <div className={`text-2xl font-bold ${romi >= 100 ? 'text-success' : romi >= 0 ? 'text-warning' : 'text-destructive'}`}>
+                  {romi.toFixed(1)}%
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">(Выручка - Расход) / Расход × 100%</div>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <RevenueChart data={dailyData} daysInMonth={daysInRange} />
+            <QuickStats stats={comparisonStats} />
+          </div>
+
+          <FunnelChart steps={funnelSteps} />
+        </div>
+      )}
+
+      {activeTab === 'funnel' && (
+        <div className="space-y-6">
+          <FunnelChart steps={funnelSteps} />
+          
+          <div className="bg-card border rounded-xl p-6">
+            <h3 className="font-semibold mb-4">Конверсии между этапами</h3>
+            <div className="space-y-4">
+              {funnelSteps.slice(0, -1).map((step, index) => {
+                const nextStep = funnelSteps[index + 1];
+                const conversion = step.value > 0 ? (nextStep.value / step.value) * 100 : 0;
+                
+                return (
+                  <div key={step.label} className="flex items-center gap-4">
+                    <div className="w-32 text-sm font-medium">{step.label}</div>
+                    <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
+                      <div 
+                        className="h-full rounded-full transition-all"
+                        style={{ 
+                          width: `${conversion}%`,
+                          backgroundColor: nextStep.color 
+                        }}
+                      />
+                    </div>
+                    <div className="w-20 text-right">
+                      <span className="font-bold">{conversion.toFixed(1)}%</span>
+                    </div>
+                    <div className="w-32 text-sm text-muted-foreground">→ {nextStep.label}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'e2e-analytics' && (
+        <E2EAnalytics totals={totals} />
+      )}
+
+      {activeTab === 'growth' && (
+        <GrowthPoints totals={totals} planData={planData} />
+      )}
+
+      {activeTab === 'multichannel' && (
+        <MultichannelAnalytics projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'utm-analytics' && (
+        <UTMAnalytics projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'reports' && (
+        <ReportGenerator 
+          data={{
+            projectName: currentProject?.name || 'Проект',
+            dateRange: dateRange,
+            totals,
+            funnelSteps,
+            metrics: { aov, cpl, cac, romi, roas }
+          }}
+        />
+      )}
+
+      {activeTab === 'team' && (
+        <TeamManagement projects={projectsList} />
+      )}
+
+      {activeTab === 'settings' && currentProject && (
+        <WebhookSettings projectId={currentProject.id} />
+      )}
+      
+      {activeTab === 'settings' && !currentProject && (
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="font-semibold mb-4">Настройки</h3>
+          <p className="text-muted-foreground">Выберите проект для просмотра настроек.</p>
+        </div>
+      )}
+
+      {!['dashboard', 'table', 'clients', 'analytics', 'funnel', 'e2e-analytics', 'multichannel', 'utm-analytics', 'growth', 'reports', 'team', 'settings'].includes(activeTab) && (
+        <div className="bg-card border rounded-xl p-12 text-center">
+          <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-muted-foreground" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">Раздел в разработке</h3>
+          <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
+        </div>
+      )}
+    </main>
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar 
@@ -212,282 +474,17 @@ export const AnalyticsPlatform = () => {
           onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        <main className="p-3 md:p-6">
-          {activeTab === 'dashboard' && (
-            <div className="space-y-6">
-              {/* Main Metrics with Plan/Fact */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                <PlanFactCard
-                  label="Расходы"
-                  value={formatCurrency(totals.spend)}
-                  plan={planData.spend}
-                  fact={totals.spend}
-                  icon={<DollarSign className="w-5 h-5 text-destructive" />}
-                  format="currency"
-                />
-                <PlanFactCard
-                  label="Показы"
-                  value={formatNumber(totals.impressions)}
-                  plan={planData.impressions}
-                  fact={totals.impressions}
-                  icon={<Eye className="w-5 h-5 text-primary" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Лиды"
-                  value={formatNumber(totals.leads)}
-                  plan={planData.leads}
-                  fact={totals.leads}
-                  icon={<Users className="w-5 h-5 text-accent" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Диагностики"
-                  value={formatNumber(totals.diagnostics)}
-                  plan={planData.diagnostics}
-                  fact={totals.diagnostics}
-                  icon={<Target className="w-5 h-5 text-warning" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Продажи"
-                  value={formatNumber(totals.sales)}
-                  plan={planData.sales}
-                  fact={totals.sales}
-                  icon={<ShoppingCart className="w-5 h-5 text-success" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Выручка"
-                  value={formatCurrency(totals.revenue)}
-                  plan={planData.revenue}
-                  fact={totals.revenue}
-                  icon={<Wallet className="w-5 h-5 text-success" />}
-                  format="currency"
-                />
-              </div>
-
-              {/* Computed Metrics */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <MetricCard
-                  label="Средний чек (AOV)"
-                  value={formatCurrency(aov)}
-                  subValue="Выручка / Продажи"
-                  icon={<Calculator className="w-5 h-5 text-primary" />}
-                  variant="primary"
-                />
-                <MetricCard
-                  label="Цена лида (CPL)"
-                  value={formatCurrency(cpl)}
-                  subValue="Расходы / Лиды"
-                  variant={cpl > 5000 ? 'danger' : 'default'}
-                />
-                <MetricCard
-                  label="Цена клиента (CAC)"
-                  value={formatCurrency(cac)}
-                  subValue="Расходы / Продажи"
-                />
-                <MetricCard
-                  label="ROMI"
-                  value={`${romi.toFixed(1)}%`}
-                  subValue="(Выручка - Расход) / Расход"
-                  variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                />
-                <MetricCard
-                  label="ROAS"
-                  value={`${roas.toFixed(2)}x`}
-                  subValue={`₸1 → ₸${roas.toFixed(2)}`}
-                  variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
-                />
-              </div>
-
-              {/* Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-                <ConversionStats steps={funnelSteps} />
-                <AIAssistant 
-                  context={{
-                    ...totals,
-                    cpl,
-                    cac,
-                    aov,
-                    romi,
-                  }}
-                />
-              </div>
-
-              {/* Comparison */}
-              <QuickStats stats={comparisonStats} />
-            </div>
-          )}
-
-          {activeTab === 'table' && (
-            <DataTable 
-              dailyData={dailyData} 
-              onDataChange={handleDataChange}
-              planData={planData}
-              onPlanChange={handlePlanChange}
-            />
-          )}
-
-          {activeTab === 'clients' && (
-            <ClientsManagement projectId={currentProjectId} />
-          )}
-
-          {activeTab === 'analytics' && (
-            <div className="space-y-6">
-              {/* Efficiency Metrics */}
-              <div className="bg-card border rounded-xl p-6">
-                <h3 className="font-semibold mb-4">Метрики эффективности</h3>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">CPL (Цена лида)</div>
-                    <div className="text-2xl font-bold text-primary">{formatCurrency(cpl)}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Расход / Лиды</div>
-                  </div>
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">CAC (Цена клиента)</div>
-                    <div className="text-2xl font-bold">{formatCurrency(cac)}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Расход / Продажи</div>
-                  </div>
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">AOV (Средний чек)</div>
-                    <div className="text-2xl font-bold text-success">{formatCurrency(aov)}</div>
-                    <div className="text-xs text-muted-foreground mt-1">Выручка / Продажи</div>
-                  </div>
-                  <div className="p-4 bg-secondary rounded-lg">
-                    <div className="text-sm text-muted-foreground">ROMI</div>
-                    <div className={`text-2xl font-bold ${romi >= 100 ? 'text-success' : romi >= 0 ? 'text-warning' : 'text-destructive'}`}>
-                      {romi.toFixed(1)}%
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">(Выручка - Расход) / Расход × 100%</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-                <QuickStats stats={comparisonStats} />
-              </div>
-
-              <FunnelChart steps={funnelSteps} />
-            </div>
-          )}
-
-          {activeTab === 'funnel' && (
-            <div className="space-y-6">
-              <FunnelChart steps={funnelSteps} />
-              
-              <div className="bg-card border rounded-xl p-6">
-                <h3 className="font-semibold mb-4">Конверсии между этапами</h3>
-                <div className="space-y-4">
-                  {funnelSteps.slice(0, -1).map((step, index) => {
-                    const nextStep = funnelSteps[index + 1];
-                    const conversion = step.value > 0 ? (nextStep.value / step.value) * 100 : 0;
-                    
-                    return (
-                      <div key={step.label} className="flex items-center gap-4">
-                        <div className="w-32 text-sm font-medium">{step.label}</div>
-                        <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                          <div 
-                            className="h-full rounded-full transition-all"
-                            style={{ 
-                              width: `${conversion}%`,
-                              backgroundColor: nextStep.color 
-                            }}
-                          />
-                        </div>
-                        <div className="w-20 text-right">
-                          <span className="font-bold">{conversion.toFixed(1)}%</span>
-                        </div>
-                        <div className="w-32 text-sm text-muted-foreground">→ {nextStep.label}</div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {activeTab === 'e2e-analytics' && (
-            <E2EAnalytics totals={totals} />
-          )}
-
-          {activeTab === 'growth' && (
-            <GrowthPoints totals={totals} planData={planData} />
-          )}
-
-          {activeTab === 'multichannel' && (
-            <MultichannelAnalytics projectId={currentProjectId} />
-          )}
-
-          {activeTab === 'utm-analytics' && (
-            <UTMAnalytics projectId={currentProjectId} />
-          )}
-
-          {activeTab === 'reports' && (
-            <ReportGenerator 
-              data={{
-                projectName: currentProject?.name || 'Проект',
-                dateRange,
-                totals,
-                metrics: { cpl, cac, aov, romi, roas },
-                funnelSteps,
-              }}
-            />
-          )}
-
-          {activeTab === 'team' && (
-            <TeamManagement projects={projectsList} />
-          )}
-
-          {activeTab === 'settings' && currentProject && (
-            <div className="space-y-6">
-              <div className="bg-card border rounded-xl p-6">
-                <h3 className="font-semibold mb-4">Настройки проекта</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm text-muted-foreground">Название проекта</label>
-                    <p className="font-medium">{currentProject.name}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm text-muted-foreground">ID проекта</label>
-                    <p className="font-mono text-xs bg-secondary px-2 py-1 rounded inline-block">{currentProjectId}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <WebhookSettings projectId={currentProjectId} />
-              
-              <div className="bg-card border rounded-xl p-6">
-                <h3 className="font-semibold mb-4">База данных</h3>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
-                  <span className="text-sm text-muted-foreground">Подключена</span>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {activeTab === 'settings' && !currentProject && (
-            <div className="bg-card border rounded-xl p-6">
-              <h3 className="font-semibold mb-4">Настройки</h3>
-              <p className="text-muted-foreground">Выберите проект для просмотра настроек.</p>
-            </div>
-          )}
-
-          {!['dashboard', 'table', 'clients', 'analytics', 'funnel', 'e2e-analytics', 'multichannel', 'utm-analytics', 'growth', 'reports', 'team', 'settings'].includes(activeTab) && (
-            <div className="bg-card border rounded-xl p-12 text-center">
-              <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-                <Target className="w-8 h-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-lg font-semibold mb-2">Раздел в разработке</h3>
-              <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
-            </div>
-          )}
-        </main>
+        {isMobile ? (
+          <PullToRefresh onRefresh={handleRefresh}>
+            {mainContent}
+          </PullToRefresh>
+        ) : (
+          mainContent
+        )}
       </div>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
     </div>
   );
 };
