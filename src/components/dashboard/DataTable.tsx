@@ -254,7 +254,26 @@ export const DataTable = ({ dailyData, onDataChange, planData, onPlanChange }: D
                   </tr>
                 );
               })}
-              {/* Totals Row */}
+              {/* Plan Totals Row */}
+              {planData && (
+                <tr className="bg-primary/10 font-semibold border-t-2 border-primary/30">
+                  <td className="p-4 sticky left-0 bg-primary/10">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="text-primary">Итого ПЛАН</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-right text-primary">{formatCurrency(planData.spend)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.impressions)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.clicks)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.leads)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.diagnostics)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.sales)}</td>
+                  <td className="p-4 text-right text-primary">{formatCurrency(planData.revenue)}</td>
+                </tr>
+              )}
+
+              {/* Fact Totals Row */}
               <tr className="bg-secondary font-semibold">
                 <td className="p-4 sticky left-0 bg-secondary">Итого ФАКТ</td>
                 <td className="p-4 text-right">{formatCurrency(totals.spend)}</td>
