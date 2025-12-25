@@ -54,10 +54,13 @@ export default function Auth() {
         });
 
         if (error) {
+          console.error('Login error:', error.code || error.message);
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Неверный email или пароль');
+          } else if (error.message.includes('Email not confirmed')) {
+            toast.error('Email не подтверждён');
           } else {
-            toast.error(error.message);
+            toast.error('Ошибка авторизации. Попробуйте позже.');
           }
           return;
         }
@@ -76,10 +79,13 @@ export default function Auth() {
         });
 
         if (error) {
+          console.error('Signup error:', error.code || error.message);
           if (error.message.includes('already registered')) {
             toast.error('Этот email уже зарегистрирован');
+          } else if (error.message.includes('Password')) {
+            toast.error('Пароль не соответствует требованиям');
           } else {
-            toast.error(error.message);
+            toast.error('Ошибка регистрации. Попробуйте позже.');
           }
           return;
         }
