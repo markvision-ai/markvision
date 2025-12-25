@@ -13,7 +13,8 @@ import {
   Folder,
   X,
   Zap,
-  Target
+  Target,
+  UserCheck
 } from 'lucide-react';
 import {
   Dialog,
@@ -37,6 +38,7 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
+  { id: 'clients', label: 'Клиенты', icon: UserCheck },
   { id: 'analytics', label: 'Аналитика', icon: BarChart3 },
   { id: 'funnel', label: 'Воронка', icon: TrendingUp },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
