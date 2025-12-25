@@ -23,9 +23,10 @@ import {
   GitCompare,
   ArrowUpRight,
   ArrowDownRight,
-  Minus
+  Minus,
+  LineChart
 } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, differenceInDays, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,12 +39,24 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useAIReport } from '@/hooks/useAIReport';
 import { supabase } from '@/integrations/supabase/client';
+
+interface DailyDataPoint {
+  date: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  leads: number;
+  diagnostics: number;
+  sales: number;
+  revenue: number;
+}
 
 interface ReportTemplate {
   id: string;
@@ -148,8 +161,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   });
   const [comparisonData, setComparisonData] = useState<{
     totals: typeof data.totals;
+    dailyData: DailyDataPoint[];
     isLoading: boolean;
-  }>({ totals: { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }, isLoading: false });
+  }>({ totals: { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }, dailyData: [], isLoading: false });
 
   // Local date range state for reports
   const [reportDateRange, setReportDateRange] = useState<DateRange>(() => ({
@@ -160,8 +174,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   // Fetch data for selected date range
   const [reportData, setReportData] = useState<{
     totals: typeof data.totals;
+    dailyData: DailyDataPoint[];
     isLoading: boolean;
-  }>({ totals: data.totals, isLoading: false });
+  }>({ totals: data.totals, dailyData: [], isLoading: false });
 
   // Load templates
   useEffect(() => {
@@ -204,12 +219,13 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       const fromDate = format(comparisonDateRange.from, 'yyyy-MM-dd');
       const toDate = format(comparisonDateRange.to, 'yyyy-MM-dd');
 
-      const { data: dailyData, error } = await supabase
+      const { data: dailyDataResult, error } = await supabase
         .from('daily_data')
         .select('*')
         .eq('project_id', data.projectId)
         .gte('date', fromDate)
-        .lte('date', toDate);
+        .lte('date', toDate)
+        .order('date', { ascending: true });
 
       if (error) {
         console.error('Error fetching comparison data:', error);
@@ -217,20 +233,31 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         return;
       }
 
-      const totals = (dailyData || []).reduce(
+      const dailyData: DailyDataPoint[] = (dailyDataResult || []).map(day => ({
+        date: day.date,
+        spend: Number(day.spend) || 0,
+        impressions: day.impressions || 0,
+        clicks: day.clicks || 0,
+        leads: day.leads || 0,
+        diagnostics: day.diagnostics || 0,
+        sales: day.sales || 0,
+        revenue: Number(day.revenue) || 0,
+      }));
+
+      const totals = dailyData.reduce(
         (acc, day) => ({
-          spend: acc.spend + (Number(day.spend) || 0),
-          impressions: acc.impressions + (day.impressions || 0),
-          clicks: acc.clicks + (day.clicks || 0),
-          leads: acc.leads + (day.leads || 0),
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
-          sales: acc.sales + (day.sales || 0),
-          revenue: acc.revenue + (Number(day.revenue) || 0),
+          spend: acc.spend + day.spend,
+          impressions: acc.impressions + day.impressions,
+          clicks: acc.clicks + day.clicks,
+          leads: acc.leads + day.leads,
+          diagnostics: acc.diagnostics + day.diagnostics,
+          sales: acc.sales + day.sales,
+          revenue: acc.revenue + day.revenue,
         }),
         { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
       );
 
-      setComparisonData({ totals, isLoading: false });
+      setComparisonData({ totals, dailyData, isLoading: false });
     };
 
     fetchComparisonData();
@@ -240,7 +267,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   useEffect(() => {
     const fetchReportData = async () => {
       if (!data.projectId) {
-        setReportData({ totals: data.totals, isLoading: false });
+        setReportData({ totals: data.totals, dailyData: [], isLoading: false });
         return;
       }
 
@@ -249,37 +276,74 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       const fromDate = format(reportDateRange.from, 'yyyy-MM-dd');
       const toDate = format(reportDateRange.to, 'yyyy-MM-dd');
 
-      const { data: dailyData, error } = await supabase
+      const { data: dailyDataResult, error } = await supabase
         .from('daily_data')
         .select('*')
         .eq('project_id', data.projectId)
         .gte('date', fromDate)
-        .lte('date', toDate);
+        .lte('date', toDate)
+        .order('date', { ascending: true });
 
       if (error) {
         console.error('Error fetching report data:', error);
-        setReportData({ totals: data.totals, isLoading: false });
+        setReportData({ totals: data.totals, dailyData: [], isLoading: false });
         return;
       }
 
-      const totals = (dailyData || []).reduce(
+      const dailyData: DailyDataPoint[] = (dailyDataResult || []).map(day => ({
+        date: day.date,
+        spend: Number(day.spend) || 0,
+        impressions: day.impressions || 0,
+        clicks: day.clicks || 0,
+        leads: day.leads || 0,
+        diagnostics: day.diagnostics || 0,
+        sales: day.sales || 0,
+        revenue: Number(day.revenue) || 0,
+      }));
+
+      const totals = dailyData.reduce(
         (acc, day) => ({
-          spend: acc.spend + (Number(day.spend) || 0),
-          impressions: acc.impressions + (day.impressions || 0),
-          clicks: acc.clicks + (day.clicks || 0),
-          leads: acc.leads + (day.leads || 0),
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
-          sales: acc.sales + (day.sales || 0),
-          revenue: acc.revenue + (Number(day.revenue) || 0),
+          spend: acc.spend + day.spend,
+          impressions: acc.impressions + day.impressions,
+          clicks: acc.clicks + day.clicks,
+          leads: acc.leads + day.leads,
+          diagnostics: acc.diagnostics + day.diagnostics,
+          sales: acc.sales + day.sales,
+          revenue: acc.revenue + day.revenue,
         }),
         { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
       );
 
-      setReportData({ totals, isLoading: false });
+      setReportData({ totals, dailyData, isLoading: false });
     };
 
     fetchReportData();
   }, [reportDateRange, data.projectId, data.totals]);
+
+  // Prepare chart data
+  const chartData = useMemo(() => {
+    if (reportData.dailyData.length === 0) return [];
+
+    const periodDays = differenceInDays(reportDateRange.to, reportDateRange.from) + 1;
+    
+    return reportData.dailyData.map((day, index) => {
+      const comparisonDay = isComparisonEnabled && comparisonData.dailyData[index];
+      const dayLabel = format(new Date(day.date), 'd MMM', { locale: ru });
+      
+      return {
+        name: dayLabel,
+        dayIndex: index + 1,
+        revenue: day.revenue,
+        spend: day.spend,
+        leads: day.leads,
+        sales: day.sales,
+        comparisonRevenue: comparisonDay ? comparisonDay.revenue : undefined,
+        comparisonSpend: comparisonDay ? comparisonDay.spend : undefined,
+        comparisonLeads: comparisonDay ? comparisonDay.leads : undefined,
+        comparisonSales: comparisonDay ? comparisonDay.sales : undefined,
+      };
+    });
+  }, [reportData.dailyData, comparisonData.dailyData, isComparisonEnabled, reportDateRange]);
 
   // Computed metrics based on report data
   const computedMetrics = useMemo(() => {
@@ -987,6 +1051,155 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
                   </div>
                 </div>
               </div>
+
+              {/* Metrics Dynamics Chart */}
+              {chartData.length > 0 && (
+                <div className="mb-8">
+                  <h2 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
+                    <LineChart className="w-5 h-5 text-blue-600" />
+                    Динамика метрик
+                    {isComparisonEnabled && (
+                      <span className="text-sm font-normal text-gray-500 ml-2">
+                        (сплошная — текущий период, пунктир — сравнение)
+                      </span>
+                    )}
+                  </h2>
+                  <div className="h-64 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <RechartsLineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis 
+                          dataKey="name" 
+                          tick={{ fontSize: 10, fill: '#6b7280' }}
+                          tickLine={{ stroke: '#e5e7eb' }}
+                        />
+                        <YAxis 
+                          yAxisId="left"
+                          tick={{ fontSize: 10, fill: '#6b7280' }}
+                          tickLine={{ stroke: '#e5e7eb' }}
+                          tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
+                        />
+                        <YAxis 
+                          yAxisId="right" 
+                          orientation="right"
+                          tick={{ fontSize: 10, fill: '#6b7280' }}
+                          tickLine={{ stroke: '#e5e7eb' }}
+                        />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'white', 
+                            border: '1px solid #e5e7eb',
+                            borderRadius: '8px',
+                            fontSize: '12px'
+                          }}
+                          formatter={(value: number, name: string) => {
+                            const label = name.includes('Revenue') || name.includes('Выручка') ? formatCurrency(value) :
+                                         name.includes('Spend') || name.includes('Расход') ? formatCurrency(value) :
+                                         formatNumber(value);
+                            return [label, name];
+                          }}
+                        />
+                        <Legend 
+                          wrapperStyle={{ fontSize: '11px' }}
+                          formatter={(value) => {
+                            const labels: Record<string, string> = {
+                              revenue: 'Выручка',
+                              spend: 'Расход',
+                              leads: 'Лиды',
+                              sales: 'Продажи',
+                              comparisonRevenue: 'Выручка (сравн.)',
+                              comparisonSpend: 'Расход (сравн.)',
+                              comparisonLeads: 'Лиды (сравн.)',
+                              comparisonSales: 'Продажи (сравн.)',
+                            };
+                            return labels[value] || value;
+                          }}
+                        />
+                        
+                        {/* Current period lines */}
+                        <Line 
+                          yAxisId="left"
+                          type="monotone" 
+                          dataKey="revenue" 
+                          stroke="#22c55e" 
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line 
+                          yAxisId="left"
+                          type="monotone" 
+                          dataKey="spend" 
+                          stroke="#ef4444" 
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line 
+                          yAxisId="right"
+                          type="monotone" 
+                          dataKey="leads" 
+                          stroke="#8b5cf6" 
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        <Line 
+                          yAxisId="right"
+                          type="monotone" 
+                          dataKey="sales" 
+                          stroke="#f59e0b" 
+                          strokeWidth={2}
+                          dot={{ r: 3 }}
+                          activeDot={{ r: 5 }}
+                        />
+                        
+                        {/* Comparison period lines (dashed) */}
+                        {isComparisonEnabled && (
+                          <>
+                            <Line 
+                              yAxisId="left"
+                              type="monotone" 
+                              dataKey="comparisonRevenue" 
+                              stroke="#22c55e" 
+                              strokeWidth={2}
+                              strokeDasharray="5 5"
+                              dot={false}
+                            />
+                            <Line 
+                              yAxisId="left"
+                              type="monotone" 
+                              dataKey="comparisonSpend" 
+                              stroke="#ef4444" 
+                              strokeWidth={2}
+                              strokeDasharray="5 5"
+                              dot={false}
+                            />
+                            <Line 
+                              yAxisId="right"
+                              type="monotone" 
+                              dataKey="comparisonLeads" 
+                              stroke="#8b5cf6" 
+                              strokeWidth={2}
+                              strokeDasharray="5 5"
+                              dot={false}
+                            />
+                            <Line 
+                              yAxisId="right"
+                              type="monotone" 
+                              dataKey="comparisonSales" 
+                              stroke="#f59e0b" 
+                              strokeWidth={2}
+                              strokeDasharray="5 5"
+                              dot={false}
+                            />
+                          </>
+                        )}
+                      </RechartsLineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              )}
 
               {/* Funnel */}
               <div className="mb-8">
