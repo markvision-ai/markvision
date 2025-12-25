@@ -1,6 +1,7 @@
-import { Search, Bell, Moon, Sun, Menu } from 'lucide-react';
+import { Search, Moon, Sun, Menu } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 
 interface DateRange {
   from: Date;
@@ -79,10 +80,7 @@ export const Header = ({
         </button>
 
         {/* Notifications */}
-        <button className="relative p-2 hover:bg-secondary rounded-lg transition-colors">
-          <Bell className="w-4 h-4 md:w-5 md:h-5" />
-          <span className="absolute top-1 right-1 w-2 h-2 bg-destructive rounded-full"></span>
-        </button>
+        <NotificationsDropdown />
       </div>
     </header>
   );
