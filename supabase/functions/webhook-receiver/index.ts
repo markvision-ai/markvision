@@ -12,6 +12,59 @@ const MAX_PAYLOAD_SIZE = 100000; // 100KB
 const MAX_DEAL_AMOUNT = 1000000000;
 const MAX_PATH_DEPTH = 5;
 
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 100; // 100 requests per minute per token
+
+// In-memory rate limiter (per token)
+interface RateLimitEntry {
+  count: number;
+  windowStart: number;
+}
+
+const rateLimitMap = new Map<string, RateLimitEntry>();
+
+// Clean up old entries periodically (every 5 minutes)
+const CLEANUP_INTERVAL_MS = 300000;
+let lastCleanup = Date.now();
+
+function cleanupRateLimitMap() {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL_MS) return;
+  
+  lastCleanup = now;
+  const expiredTime = now - RATE_LIMIT_WINDOW_MS;
+  
+  for (const [key, entry] of rateLimitMap.entries()) {
+    if (entry.windowStart < expiredTime) {
+      rateLimitMap.delete(key);
+    }
+  }
+}
+
+function checkRateLimit(token: string): { allowed: boolean; remaining: number; resetIn: number } {
+  cleanupRateLimitMap();
+  
+  const now = Date.now();
+  const entry = rateLimitMap.get(token);
+  
+  if (!entry || now - entry.windowStart >= RATE_LIMIT_WINDOW_MS) {
+    // New window
+    rateLimitMap.set(token, { count: 1, windowStart: now });
+    return { allowed: true, remaining: RATE_LIMIT_MAX_REQUESTS - 1, resetIn: RATE_LIMIT_WINDOW_MS };
+  }
+  
+  if (entry.count >= RATE_LIMIT_MAX_REQUESTS) {
+    const resetIn = RATE_LIMIT_WINDOW_MS - (now - entry.windowStart);
+    return { allowed: false, remaining: 0, resetIn };
+  }
+  
+  entry.count++;
+  const remaining = RATE_LIMIT_MAX_REQUESTS - entry.count;
+  const resetIn = RATE_LIMIT_WINDOW_MS - (now - entry.windowStart);
+  return { allowed: true, remaining, resetIn };
+}
+
 // Path validation regex - only allow alphanumeric, underscores, and dots
 const VALID_PATH_PATTERN = /^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$/;
 
@@ -128,6 +181,29 @@ Deno.serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Missing webhook token. Provide via X-Webhook-Token header or ?token= query param' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check rate limit for this token
+    const rateLimit = checkRateLimit(token);
+    if (!rateLimit.allowed) {
+      console.log('Rate limit exceeded for token');
+      return new Response(
+        JSON.stringify({ 
+          error: 'Rate limit exceeded',
+          retry_after_seconds: Math.ceil(rateLimit.resetIn / 1000)
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'Retry-After': String(Math.ceil(rateLimit.resetIn / 1000)),
+            'X-RateLimit-Limit': String(RATE_LIMIT_MAX_REQUESTS),
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': String(Math.ceil((Date.now() + rateLimit.resetIn) / 1000))
+          } 
+        }
       );
     }
 
