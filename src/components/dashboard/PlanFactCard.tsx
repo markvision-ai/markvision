@@ -37,13 +37,13 @@ export const PlanFactCard = ({
       : 'bg-destructive';
 
   return (
-    <div className="bg-card border rounded-xl p-4">
+    <div className="bg-card border rounded-xl p-3 md:p-4">
       <div className="flex items-center justify-between mb-2">
-        <span className="text-sm text-muted-foreground">{label}</span>
-        {icon}
+        <span className="text-xs md:text-sm text-muted-foreground">{label}</span>
+        <div className="hidden sm:block">{icon}</div>
       </div>
       
-      <div className="text-2xl font-bold mb-2">{value}</div>
+      <div className="text-lg md:text-2xl font-bold mb-2">{value}</div>
       
       {plan !== undefined && fact !== undefined && (
         <>

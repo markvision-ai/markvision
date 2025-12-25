@@ -72,6 +72,7 @@ const formatNumber = (value: number): string => {
 
 export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData } = useProjectData(currentProjectId);
@@ -197,18 +198,21 @@ export const AnalyticsPlatform = () => {
         projects={projectsList}
         onProjectChange={setCurrentProjectId}
         onCreateProject={createProject}
+        isMobileOpen={isMobileSidebarOpen}
+        onMobileClose={() => setIsMobileSidebarOpen(false)}
       />
       
-      <div className="ml-64">
+      <div className="md:ml-64">
         <Header 
           title={getTabTitle()} 
           subtitle={currentProject?.name}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           showDatePicker={['dashboard', 'analytics'].includes(activeTab)}
+          onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        <main className="p-6">
+        <main className="p-3 md:p-6">
           {activeTab === 'dashboard' && (
             <div className="space-y-6">
               {/* Main Metrics with Plan/Fact */}

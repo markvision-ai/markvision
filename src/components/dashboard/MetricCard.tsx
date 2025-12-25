@@ -34,17 +34,17 @@ export const MetricCard = ({
   };
 
   return (
-    <div className={`bg-card border rounded-xl p-5 transition-all hover:shadow-md ${variantStyles[variant]}`}>
-      <div className="flex items-start justify-between mb-3">
-        <p className="text-sm text-muted-foreground">{label}</p>
+    <div className={`bg-card border rounded-xl p-3 md:p-5 transition-all hover:shadow-md ${variantStyles[variant]}`}>
+      <div className="flex items-start justify-between mb-2 md:mb-3">
+        <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
         {icon && (
-          <div className={`p-2 rounded-lg ${variant === 'default' ? 'bg-secondary' : variantStyles[variant]}`}>
+          <div className={`hidden sm:block p-2 rounded-lg ${variant === 'default' ? 'bg-secondary' : variantStyles[variant]}`}>
             {icon}
           </div>
         )}
       </div>
       
-      <p className={`text-2xl font-bold ${valueStyles[variant]}`}>{value}</p>
+      <p className={`text-lg md:text-2xl font-bold ${valueStyles[variant]}`}>{value}</p>
       
       <div className="flex items-center justify-between mt-2">
         {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
