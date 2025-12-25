@@ -26,7 +26,6 @@ import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { AIAssistant } from './analytics/AIAssistant';
-import { MultichannelAnalytics } from './multichannel/MultichannelAnalytics';
 import { UTMAnalytics } from './utm/UTMAnalytics';
 import { WebhookSettings } from './settings/WebhookSettings';
 import { ClientsManagement } from './clients/ClientsManagement';
@@ -320,9 +319,6 @@ export const AnalyticsPlatform = () => {
         <E2EAnalytics totals={totals} projectId={currentProjectId} />
       )}
 
-      {activeTab === 'multichannel' && (
-        <MultichannelAnalytics projectId={currentProjectId} />
-      )}
 
       {activeTab === 'utm-analytics' && (
         <UTMAnalytics projectId={currentProjectId} />
@@ -355,7 +351,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'clients', 'e2e-analytics', 'multichannel', 'utm-analytics', 'reports', 'team', 'settings'].includes(activeTab) && (
+      {!['dashboard', 'table', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'settings'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />

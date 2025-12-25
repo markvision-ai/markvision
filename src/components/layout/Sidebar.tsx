@@ -44,7 +44,6 @@ const menuItems = [
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
   { id: 'clients', label: 'Клиенты', icon: UserCheck },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
-  { id: 'multichannel', label: 'Мультиканальная', icon: TrendingUp },
   { id: 'utm-analytics', label: 'UTM-аналитика', icon: Target },
 ];
 
