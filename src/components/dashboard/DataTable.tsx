@@ -172,32 +172,26 @@ export const DataTable = ({
               </tr>
             </thead>
             <tbody>
-              {/* Plan Row */}
-              {planData && onPlanChange}
+              {/* Plan Row - at top */}
+              {planData && (
+                <tr className="bg-primary/10 font-semibold border-b-2 border-primary/20">
+                  <td className="p-4 sticky left-0 bg-primary/10 flex items-center gap-2">
+                    <Target className="w-4 h-4 text-primary" />
+                    <span>ПЛАН</span>
+                  </td>
+                  <td className="p-4 text-right">{formatCurrency(planData.spend)}</td>
+                  <td className="p-4 text-right">{formatNumber(planData.impressions)}</td>
+                  <td className="p-4 text-right">{formatNumber(planData.clicks)}</td>
+                  <td className="p-4 text-right">{formatNumber(planData.leads)}</td>
+                  <td className="p-4 text-right">{formatNumber(planData.diagnostics)}</td>
+                  <td className="p-4 text-right">{formatNumber(planData.sales)}</td>
+                  <td className="p-4 text-right">{formatCurrency(planData.revenue)}</td>
+                </tr>
+              )}
 
-              {daysInMonth.map(day => {
-              const dateKey = format(day, 'yyyy-MM-dd');
-              const weekDay = getWeekDay(day);
-              const isWeekend = weekDay >= 5;
-              const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-              return <tr key={dateKey} className={`border-b hover:bg-secondary/30 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'bg-primary/5' : ''}`}>
-                    <td className={`p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded font-medium ${isWeekend ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
-                          {WEEKDAYS[weekDay]}
-                        </span>
-                        <span className={`font-medium ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</span>
-                        {isToday && <span className="text-xs text-primary">(сегодня)</span>}
-                      </div>
-                    </td>
-                    {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => <td key={field} className="p-2">
-                        <input type="number" placeholder="0" value={getInputValue(dateKey, field)} onChange={e => handleInputChange(dateKey, field, e.target.value)} className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-3 py-2 transition-all" />
-                      </td>)}
-                  </tr>;
-            })}
-              {/* Totals Row */}
+              {/* Fact Totals Row - second */}
               <tr className="bg-secondary font-semibold">
-                <td className="p-4 sticky left-0 bg-secondary">Итого ФАКТ</td>
+                <td className="p-4 sticky left-0 bg-secondary">ФАКТ</td>
                 <td className="p-4 text-right">{formatCurrency(totals.spend)}</td>
                 <td className="p-4 text-right">{formatNumber(totals.impressions)}</td>
                 <td className="p-4 text-right">{formatNumber(totals.clicks)}</td>
@@ -207,19 +201,55 @@ export const DataTable = ({
                 <td className="p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
               </tr>
 
-              {/* Plan vs Fact Comparison */}
-              {planData && <tr className="bg-muted/50">
+              {/* Percentage Row - third */}
+              {planData && (
+                <tr className="bg-muted/50 border-b-2 border-border">
                   <td className="p-4 sticky left-0 bg-muted/50 text-muted-foreground">% выполнения</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
-                const fact = totals[field];
-                const plan = planData[field];
-                const percent = plan > 0 ? fact / plan * 100 : 0;
-                const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
-                return <td key={field} className={`p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
+                    const fact = totals[field];
+                    const plan = planData[field];
+                    const percent = plan > 0 ? fact / plan * 100 : 0;
+                    const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
+                    return (
+                      <td key={field} className={`p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
                         {percent.toFixed(0)}%
-                      </td>;
+                      </td>
+                    );
+                  })}
+                </tr>
+              )}
+
+              {/* Daily data rows */}
+              {daysInMonth.map(day => {
+                const dateKey = format(day, 'yyyy-MM-dd');
+                const weekDay = getWeekDay(day);
+                const isWeekend = weekDay >= 5;
+                const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                return (
+                  <tr key={dateKey} className={`border-b hover:bg-secondary/30 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'bg-primary/5' : ''}`}>
+                    <td className={`p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xs px-2 py-1 rounded font-medium ${isWeekend ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
+                          {WEEKDAYS[weekDay]}
+                        </span>
+                        <span className={`font-medium ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</span>
+                        {isToday && <span className="text-xs text-primary">(сегодня)</span>}
+                      </div>
+                    </td>
+                    {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                      <td key={field} className="p-2">
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={getInputValue(dateKey, field)}
+                          onChange={e => handleInputChange(dateKey, field, e.target.value)}
+                          className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-3 py-2 transition-all"
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                );
               })}
-                </tr>}
             </tbody>
           </table>
         </div>
