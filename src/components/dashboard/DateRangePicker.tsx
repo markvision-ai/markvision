@@ -81,24 +81,24 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="gap-2 min-w-[220px] justify-start">
-          <Calendar className="w-4 h-4" />
-          <span>
-            {format(dateRange.from, 'd MMM', { locale: ru })} — {format(dateRange.to, 'd MMM yyyy', { locale: ru })}
+        <Button variant="outline" className="gap-1 md:gap-2 min-w-0 md:min-w-[220px] justify-start text-xs md:text-sm px-2 md:px-4">
+          <Calendar className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          <span className="truncate">
+            {format(dateRange.from, 'd MMM', { locale: ru })} — {format(dateRange.to, 'd MMM', { locale: ru })}
           </span>
-          <ChevronDown className="w-4 h-4 ml-auto opacity-50" />
+          <ChevronDown className="w-3.5 h-3.5 md:w-4 md:h-4 ml-auto opacity-50 shrink-0" />
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0 bg-popover" align="start">
-        <div className="flex">
+        <div className="flex flex-col md:flex-row">
           {/* Presets */}
-          <div className="border-r p-2 space-y-1">
+          <div className="border-b md:border-b-0 md:border-r p-2 flex md:flex-col gap-1 overflow-x-auto md:overflow-visible">
             {presets.map((preset) => (
               <button
                 key={preset.key}
                 onClick={() => handlePresetClick(preset.key)}
                 className={cn(
-                  "w-full text-left px-3 py-2 rounded-lg text-sm transition-colors",
+                  "whitespace-nowrap text-left px-3 py-2 rounded-lg text-xs md:text-sm transition-colors",
                   activePreset === preset.key
                     ? "bg-primary text-primary-foreground"
                     : "hover:bg-secondary"
@@ -115,7 +115,7 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange }: DateRangePicke
               mode="range"
               selected={{ from: dateRange.from, to: dateRange.to }}
               onSelect={handleCalendarSelect}
-              numberOfMonths={2}
+              numberOfMonths={1}
               locale={ru}
               className="pointer-events-auto"
             />

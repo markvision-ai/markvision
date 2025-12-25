@@ -136,3 +136,31 @@
   -webkit-appearance: none;
   margin: 0;
 }
+
+/* Mobile improvements */
+@media (max-width: 768px) {
+  /* Prevent horizontal overflow on mobile */
+  html, body {
+    overflow-x: hidden;
+  }
+  
+  /* Improve touch targets */
+  button, a, input, select {
+    min-height: 44px;
+  }
+  
+  /* Better scrolling on mobile */
+  .overflow-x-auto {
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Hide scrollbar on mobile but keep functionality */
+  .scrollbar-thin::-webkit-scrollbar {
+    height: 4px;
+  }
+}
+
+/* Tap highlight removal for iOS */
+* {
+  -webkit-tap-highlight-color: transparent;
+}

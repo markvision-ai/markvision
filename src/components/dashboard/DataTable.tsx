@@ -112,106 +112,106 @@ export const DataTable = ({
     link.download = `analytics_${format(currentMonth, 'yyyy-MM')}.csv`;
     link.click();
   };
-  return <div className="space-y-4">
+  return <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-card border rounded-xl p-4">
-          <div className="text-sm text-muted-foreground">CPL (Цена лида)</div>
-          <div className="text-xl font-bold text-primary">{formatCurrency(cpl)}</div>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-xs md:text-sm text-muted-foreground">CPL (Цена лида)</div>
+          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(cpl)}</div>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="text-sm text-muted-foreground">CPC (Цена клика)</div>
-          <div className="text-xl font-bold">{formatCurrency(cpc)}</div>
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-xs md:text-sm text-muted-foreground">CPC (Цена клика)</div>
+          <div className="text-base md:text-xl font-bold">{formatCurrency(cpc)}</div>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="text-sm text-muted-foreground">CTR</div>
-          <div className="text-xl font-bold">{formatPercent(ctr)}</div>
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-xs md:text-sm text-muted-foreground">CTR</div>
+          <div className="text-base md:text-xl font-bold">{formatPercent(ctr)}</div>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="text-sm text-muted-foreground">CPM</div>
-          <div className="text-xl font-bold">{formatCurrency(cpm)}</div>
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-xs md:text-sm text-muted-foreground">CPM</div>
+          <div className="text-base md:text-xl font-bold">{formatCurrency(cpm)}</div>
         </div>
       </div>
 
       <div className="bg-card border rounded-xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b">
-          <div className="flex items-center gap-2">
-            <button onClick={() => setCurrentMonth(prev => subMonths(prev, 1))} className="p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronLeft className="w-5 h-5" />
+        <div className="flex items-center justify-between p-3 md:p-4 border-b gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
+            <button onClick={() => setCurrentMonth(prev => subMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
+              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
-            <h2 className="text-lg font-semibold capitalize min-w-[180px] text-center">
+            <h2 className="text-sm md:text-lg font-semibold capitalize min-w-[120px] md:min-w-[180px] text-center">
               {format(currentMonth, 'LLLL yyyy', {
               locale: ru
             })}
             </h2>
-            <button onClick={() => setCurrentMonth(prev => addMonths(prev, 1))} className="p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronRight className="w-5 h-5" />
+            <button onClick={() => setCurrentMonth(prev => addMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
+              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
             </button>
           </div>
           
-          <button onClick={exportToCSV} className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors">
-            <Download className="w-4 h-4" />
-            <span>Экспорт CSV</span>
+          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm">
+            <Download className="w-3 h-3 md:w-4 md:h-4" />
+            <span className="hidden sm:inline">Экспорт CSV</span>
           </button>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto data-table scrollbar-thin">
-          <table className="w-full text-sm">
+        <div className="overflow-x-auto data-table scrollbar-thin -mx-px">
+          <table className="w-full text-xs md:text-sm">
             <thead>
               <tr className="border-b bg-secondary/50">
-                <th className="text-left p-3 font-medium text-muted-foreground sticky left-0 bg-secondary/50 min-w-[120px]">Дата</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[110px]">Расходы (₸)</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[100px]">Показы</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[80px]">Клики</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[80px]">Лиды</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[100px]">Диагностики</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[80px]">Продажи</th>
-                <th className="text-right p-3 font-medium text-muted-foreground min-w-[120px]">Выручка (₸)</th>
+                <th className="text-left p-2 md:p-3 font-medium text-muted-foreground sticky left-0 bg-secondary/50 min-w-[90px] md:min-w-[120px]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[80px] md:min-w-[100px]">Диагностики</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
               {/* Plan Row - at top */}
               {planData && (
                 <tr className="bg-primary/10 font-semibold border-b-2 border-primary/20">
-                  <td className="p-4 sticky left-0 bg-primary/10 flex items-center gap-2">
-                    <Target className="w-4 h-4 text-primary" />
+                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 flex items-center gap-1 md:gap-2">
+                    <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                     <span>ПЛАН</span>
                   </td>
-                  <td className="p-4 text-right">{formatCurrency(planData.spend)}</td>
-                  <td className="p-4 text-right">{formatNumber(planData.impressions)}</td>
-                  <td className="p-4 text-right">{formatNumber(planData.clicks)}</td>
-                  <td className="p-4 text-right">{formatNumber(planData.leads)}</td>
-                  <td className="p-4 text-right">{formatNumber(planData.diagnostics)}</td>
-                  <td className="p-4 text-right">{formatNumber(planData.sales)}</td>
-                  <td className="p-4 text-right">{formatCurrency(planData.revenue)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatCurrency(planData.spend)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.impressions)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.clicks)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.leads)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.diagnostics)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.sales)}</td>
+                  <td className="p-2 md:p-4 text-right">{formatCurrency(planData.revenue)}</td>
                 </tr>
               )}
 
               {/* Fact Totals Row - second */}
               <tr className="bg-secondary font-semibold">
-                <td className="p-4 sticky left-0 bg-secondary">ФАКТ</td>
-                <td className="p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.diagnostics)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
+                <td className="p-2 md:p-4 sticky left-0 bg-secondary">ФАКТ</td>
+                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
               {planData && (
                 <tr className="bg-muted/50 border-b-2 border-border">
-                  <td className="p-4 sticky left-0 bg-muted/50 text-muted-foreground">% выполнения</td>
+                  <td className="p-2 md:p-4 sticky left-0 bg-muted/50 text-muted-foreground text-xs md:text-sm">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = planData[field];
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
                     return (
-                      <td key={field} className={`p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
+                      <td key={field} className={`p-2 md:p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
                         {percent.toFixed(0)}%
                       </td>
                     );
@@ -227,23 +227,23 @@ export const DataTable = ({
                 const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
                 return (
                   <tr key={dateKey} className={`border-b hover:bg-secondary/30 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'bg-primary/5' : ''}`}>
-                    <td className={`p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
-                      <div className="flex items-center gap-2">
-                        <span className={`text-xs px-2 py-1 rounded font-medium ${isWeekend ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
+                    <td className={`p-2 md:p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <span className={`text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded font-medium ${isWeekend ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
                           {WEEKDAYS[weekDay]}
                         </span>
                         <span className={`font-medium ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</span>
-                        {isToday && <span className="text-xs text-primary">(сегодня)</span>}
+                        {isToday && <span className="text-[10px] md:text-xs text-primary hidden sm:inline">(сегодня)</span>}
                       </div>
                     </td>
                     {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
-                      <td key={field} className="p-2">
+                      <td key={field} className="p-1 md:p-2">
                         <input
                           type="number"
                           placeholder="0"
                           value={getInputValue(dateKey, field)}
                           onChange={e => handleInputChange(dateKey, field, e.target.value)}
-                          className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-3 py-2 transition-all"
+                          className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm"
                         />
                       </td>
                     ))}
