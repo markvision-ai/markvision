@@ -195,13 +195,63 @@ export const DataTable = ({ dailyData, onDataChange, planData, onPlanChange }: D
               </tr>
             </thead>
             <tbody>
-              {/* Plan Row */}
+              {/* Plan Totals Row */}
+              {planData && (
+                <tr className="bg-primary/10 font-semibold border-b-2 border-primary/30">
+                  <td className="p-4 sticky left-0 bg-primary/10">
+                    <div className="flex items-center gap-2">
+                      <Target className="w-4 h-4 text-primary" />
+                      <span className="text-primary">Итого ПЛАН</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-right text-primary">{formatCurrency(planData.spend)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.impressions)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.clicks)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.leads)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.diagnostics)}</td>
+                  <td className="p-4 text-right text-primary">{formatNumber(planData.sales)}</td>
+                  <td className="p-4 text-right text-primary">{formatCurrency(planData.revenue)}</td>
+                </tr>
+              )}
+
+              {/* Fact Totals Row */}
+              <tr className="bg-secondary font-semibold">
+                <td className="p-4 sticky left-0 bg-secondary">Итого ФАКТ</td>
+                <td className="p-4 text-right">{formatCurrency(totals.spend)}</td>
+                <td className="p-4 text-right">{formatNumber(totals.impressions)}</td>
+                <td className="p-4 text-right">{formatNumber(totals.clicks)}</td>
+                <td className="p-4 text-right">{formatNumber(totals.leads)}</td>
+                <td className="p-4 text-right">{formatNumber(totals.diagnostics)}</td>
+                <td className="p-4 text-right">{formatNumber(totals.sales)}</td>
+                <td className="p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
+              </tr>
+
+              {/* Plan vs Fact Comparison */}
+              {planData && (
+                <tr className="bg-muted/50 border-b-2">
+                  <td className="p-4 sticky left-0 bg-muted/50 text-muted-foreground">% выполнения</td>
+                  {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map((field) => {
+                    const fact = totals[field];
+                    const plan = planData[field];
+                    const percent = plan > 0 ? (fact / plan) * 100 : 0;
+                    const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
+                    
+                    return (
+                      <td key={field} className={`p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
+                        {percent.toFixed(0)}%
+                      </td>
+                    );
+                  })}
+                </tr>
+              )}
+
+              {/* Plan Input Row */}
               {planData && onPlanChange && (
                 <tr className="border-b bg-primary/5">
                   <td className="p-3 sticky left-0 bg-primary/5">
                     <div className="flex items-center gap-2">
                       <Target className="w-4 h-4 text-primary" />
-                      <span className="font-semibold text-primary">ПЛАН</span>
+                      <span className="font-semibold text-primary">Ввод ПЛАН</span>
                     </div>
                   </td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map((field) => (
@@ -254,55 +304,6 @@ export const DataTable = ({ dailyData, onDataChange, planData, onPlanChange }: D
                   </tr>
                 );
               })}
-              {/* Plan Totals Row */}
-              {planData && (
-                <tr className="bg-primary/10 font-semibold border-t-2 border-primary/30">
-                  <td className="p-4 sticky left-0 bg-primary/10">
-                    <div className="flex items-center gap-2">
-                      <Target className="w-4 h-4 text-primary" />
-                      <span className="text-primary">Итого ПЛАН</span>
-                    </div>
-                  </td>
-                  <td className="p-4 text-right text-primary">{formatCurrency(planData.spend)}</td>
-                  <td className="p-4 text-right text-primary">{formatNumber(planData.impressions)}</td>
-                  <td className="p-4 text-right text-primary">{formatNumber(planData.clicks)}</td>
-                  <td className="p-4 text-right text-primary">{formatNumber(planData.leads)}</td>
-                  <td className="p-4 text-right text-primary">{formatNumber(planData.diagnostics)}</td>
-                  <td className="p-4 text-right text-primary">{formatNumber(planData.sales)}</td>
-                  <td className="p-4 text-right text-primary">{formatCurrency(planData.revenue)}</td>
-                </tr>
-              )}
-
-              {/* Fact Totals Row */}
-              <tr className="bg-secondary font-semibold">
-                <td className="p-4 sticky left-0 bg-secondary">Итого ФАКТ</td>
-                <td className="p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.diagnostics)}</td>
-                <td className="p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
-              </tr>
-
-              {/* Plan vs Fact Comparison */}
-              {planData && (
-                <tr className="bg-muted/50">
-                  <td className="p-4 sticky left-0 bg-muted/50 text-muted-foreground">% выполнения</td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map((field) => {
-                    const fact = totals[field];
-                    const plan = planData[field];
-                    const percent = plan > 0 ? (fact / plan) * 100 : 0;
-                    const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
-                    
-                    return (
-                      <td key={field} className={`p-4 text-right font-medium ${isGood ? 'text-success' : 'text-destructive'}`}>
-                        {percent.toFixed(0)}%
-                      </td>
-                    );
-                  })}
-                </tr>
-              )}
             </tbody>
           </table>
         </div>
