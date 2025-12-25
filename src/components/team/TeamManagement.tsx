@@ -8,8 +8,6 @@ import {
   MoreVertical,
   Trash2,
   Edit,
-  Eye,
-  EyeOff,
   AlertCircle,
   Loader2
 } from 'lucide-react';
@@ -52,40 +50,13 @@ interface TeamManagementProps {
   projects: Project[];
 }
 
-const generatePassword = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
-  let password = '';
-  for (let i = 0; i < 12; i++) {
-    password += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return password;
-};
-
-const generateLogin = (name: string) => {
-  const translitMap: Record<string, string> = {
-    'а': 'a', 'б': 'b', 'в': 'v', 'г': 'g', 'д': 'd', 'е': 'e', 'ё': 'e',
-    'ж': 'zh', 'з': 'z', 'и': 'i', 'й': 'y', 'к': 'k', 'л': 'l', 'м': 'm',
-    'н': 'n', 'о': 'o', 'п': 'p', 'р': 'r', 'с': 's', 'т': 't', 'у': 'u',
-    'ф': 'f', 'х': 'h', 'ц': 'ts', 'ч': 'ch', 'ш': 'sh', 'щ': 'sch', 'ъ': '',
-    'ы': 'y', 'ь': '', 'э': 'e', 'ю': 'yu', 'я': 'ya'
-  };
-  
-  const login = name.toLowerCase()
-    .split('')
-    .map(char => translitMap[char] || char)
-    .join('')
-    .replace(/[^a-z0-9]/g, '')
-    .slice(0, 10);
-  
-  return login + Math.floor(Math.random() * 100);
-};
+// Password generation removed - users should register through the standard auth flow
 
 export const TeamManagement = ({ projects }: TeamManagementProps) => {
   const { isAdmin } = useAuth();
   const { teamMembers, loading, updateMemberRole, updateProjectAccess, deleteMember } = useTeamMembers();
   
   const [isInviteOpen, setIsInviteOpen] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [editProjectAccess, setEditProjectAccess] = useState<string[]>([]);
   
@@ -95,19 +66,9 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     role: 'manager' as 'admin' | 'manager',
     projectAccess: [] as string[],
   });
-  const [generatedCredentials, setGeneratedCredentials] = useState({
-    login: '',
-    password: '',
-  });
 
   const handleNameChange = (name: string) => {
     setNewMember(prev => ({ ...prev, name }));
-    if (name.length >= 2) {
-      setGeneratedCredentials({
-        login: generateLogin(name),
-        password: generatePassword(),
-      });
-    }
   };
 
   const handleProjectToggle = (projectId: string) => {
@@ -141,7 +102,6 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     
     setIsInviteOpen(false);
     setNewMember({ name: '', email: '', role: 'manager', projectAccess: [] });
-    setGeneratedCredentials({ login: '', password: '' });
   };
 
   const handleDeleteMember = async (userId: string) => {
@@ -285,50 +245,6 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                   </div>
                 )}
 
-                {generatedCredentials.login && (
-                  <div className="space-y-3 p-4 bg-secondary rounded-lg">
-                    <p className="text-sm font-medium text-muted-foreground">Предварительные данные:</p>
-                    
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Логин</p>
-                        <p className="font-mono">{generatedCredentials.login}</p>
-                      </div>
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => copyToClipboard(generatedCredentials.login, 'Логин')}
-                      >
-                        <Copy className="w-4 h-4" />
-                      </Button>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-xs text-muted-foreground">Пароль</p>
-                        <p className="font-mono">
-                          {showPassword ? generatedCredentials.password : '••••••••••••'}
-                        </p>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => setShowPassword(!showPassword)}
-                        >
-                          {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="icon"
-                          onClick={() => copyToClipboard(generatedCredentials.password, 'Пароль')}
-                        >
-                          <Copy className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                )}
               </div>
 
               <DialogFooter>

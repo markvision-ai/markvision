@@ -10,6 +10,10 @@ const corsHeaders = {
 const MAX_STRING_LENGTH = 255;
 const MAX_PAYLOAD_SIZE = 100000; // 100KB
 const MAX_DEAL_AMOUNT = 1000000000;
+const MAX_PATH_DEPTH = 5;
+
+// Path validation regex - only allow alphanumeric, underscores, and dots
+const VALID_PATH_PATTERN = /^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$/;
 
 // Validation schema for extracted fields
 const extractedFieldsSchema = z.object({
@@ -27,9 +31,33 @@ const extractedFieldsSchema = z.object({
   deal_amount: z.number().min(0).max(MAX_DEAL_AMOUNT),
 });
 
+// Validate field mapping path for security
+function isValidPath(path: string): boolean {
+  if (!path || typeof path !== 'string') return false;
+  if (path.length > 100) return false; // Limit path length
+  if (!VALID_PATH_PATTERN.test(path)) return false;
+  
+  const parts = path.split('.');
+  if (parts.length > MAX_PATH_DEPTH) return false;
+  
+  // Check for prototype pollution attempts
+  const dangerousKeys = ['__proto__', 'constructor', 'prototype'];
+  if (parts.some(part => dangerousKeys.includes(part.toLowerCase()))) {
+    return false;
+  }
+  
+  return true;
+}
+
 // Extract value from nested JSON path like "lead_info.name"
 function extractJsonPath(data: any, path: string): any {
   if (!path || typeof path !== 'string') return null;
+  
+  // Validate path before using it
+  if (!isValidPath(path)) {
+    console.log('Invalid path rejected:', path.substring(0, 50));
+    return null;
+  }
   
   const parts = path.split('.');
   let result = data;
@@ -37,6 +65,8 @@ function extractJsonPath(data: any, path: string): any {
   for (const part of parts) {
     if (result === null || result === undefined) return null;
     if (typeof result !== 'object') return null;
+    // Additional safety: use Object.hasOwn to avoid prototype chain access
+    if (!Object.prototype.hasOwnProperty.call(result, part)) return null;
     result = result[part];
   }
   
@@ -61,6 +91,19 @@ function parseAndValidateDealAmount(value: any): number {
   if (num > MAX_DEAL_AMOUNT) return MAX_DEAL_AMOUNT;
   
   return num;
+}
+
+// Validate entire field mapping object
+function validateFieldMapping(fieldMapping: Record<string, string>): boolean {
+  if (!fieldMapping || typeof fieldMapping !== 'object') return false;
+  
+  for (const [key, path] of Object.entries(fieldMapping)) {
+    if (path && typeof path === 'string' && !isValidPath(path)) {
+      console.log('Invalid field mapping path for key:', key);
+      return false;
+    }
+  }
+  return true;
 }
 
 Deno.serve(async (req) => {
@@ -109,7 +152,7 @@ Deno.serve(async (req) => {
     
     // Check payload size limit
     if (bodyText.length > MAX_PAYLOAD_SIZE) {
-      console.log('Payload too large:', bodyText.length, 'bytes');
+      console.log('Payload size exceeded limit');
       return new Response(
         JSON.stringify({ error: 'Payload too large', max_size: MAX_PAYLOAD_SIZE }),
         { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -124,19 +167,29 @@ Deno.serve(async (req) => {
         throw new Error('Payload must be a JSON object');
       }
     } catch (parseError) {
-      console.log('Invalid JSON payload:', parseError);
+      console.log('Invalid JSON payload received');
       return new Response(
         JSON.stringify({ error: 'Invalid JSON payload' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Received webhook payload:', JSON.stringify(payload).substring(0, 500));
+    console.log('Webhook received for project:', webhookConfig.project_id);
 
     // Get IP address from headers
     const ipAddress = req.headers.get('x-forwarded-for') || 
                       req.headers.get('x-real-ip') || 
                       'unknown';
+
+    // Validate field mapping before using it
+    const fieldMapping = webhookConfig.field_mapping;
+    if (!validateFieldMapping(fieldMapping)) {
+      console.log('Invalid field mapping configuration');
+      return new Response(
+        JSON.stringify({ error: 'Invalid webhook configuration' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Log the raw webhook
     const { data: webhookLog, error: logError } = await supabase
@@ -153,12 +206,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (logError) {
-      console.error('Failed to log webhook:', logError);
+      console.error('Failed to log webhook');
     }
 
     // Extract fields using mapping with sanitization
-    const fieldMapping = webhookConfig.field_mapping;
-    
     const rawExtractedData = {
       utm_source: sanitizeString(extractJsonPath(payload, fieldMapping.utm_source)),
       utm_medium: sanitizeString(extractJsonPath(payload, fieldMapping.utm_medium)),
@@ -178,7 +229,7 @@ Deno.serve(async (req) => {
     const validationResult = extractedFieldsSchema.safeParse(rawExtractedData);
     
     if (!validationResult.success) {
-      console.error('Extracted data validation failed:', validationResult.error);
+      console.error('Extracted data validation failed');
       
       // Update webhook log with validation error
       if (webhookLog) {
@@ -186,19 +237,19 @@ Deno.serve(async (req) => {
           .from('webhook_logs')
           .update({ 
             status: 'error',
-            error_message: 'Validation failed: ' + validationResult.error.message 
+            error_message: 'Validation failed' 
           })
           .eq('id', webhookLog.id);
       }
       
       return new Response(
-        JSON.stringify({ error: 'Data validation failed', details: validationResult.error.flatten() }),
+        JSON.stringify({ error: 'Data validation failed' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const extractedData = validationResult.data;
-    console.log('Validated extracted data:', JSON.stringify(extractedData));
+    console.log('Data extracted successfully for webhook:', webhookLog?.id);
 
     // Try to find existing visit by client_id or visit_id to get UTM if missing
     let visitUtm: any = null;
@@ -218,7 +269,7 @@ Deno.serve(async (req) => {
       
       if (visits && visits.length > 0) {
         visitUtm = visits[0];
-        console.log('Found matching visit:', visitUtm.id);
+        console.log('Found matching visit');
       }
     }
 
@@ -252,7 +303,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (leadError) {
-      console.error('Failed to create lead:', leadError);
+      console.error('Failed to create lead');
       
       // Update webhook log with error
       if (webhookLog) {
@@ -260,18 +311,18 @@ Deno.serve(async (req) => {
           .from('webhook_logs')
           .update({ 
             status: 'error',
-            error_message: leadError.message 
+            error_message: 'Failed to create lead' 
           })
           .eq('id', webhookLog.id);
       }
       
       return new Response(
-        JSON.stringify({ error: 'Failed to process lead', details: leadError.message }),
+        JSON.stringify({ error: 'Failed to process lead' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Lead created successfully:', lead.id);
+    console.log('Lead created successfully');
 
     // Update webhook log with success
     if (webhookLog) {
@@ -323,7 +374,7 @@ Deno.serve(async (req) => {
         });
 
       if (touchpointError) {
-        console.error('Failed to create touchpoint:', touchpointError);
+        console.error('Failed to create touchpoint');
       } else {
         console.log('Touchpoint created for lead');
       }
@@ -339,8 +390,7 @@ Deno.serve(async (req) => {
     );
 
   } catch (error: unknown) {
-    console.error('Webhook processing error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    console.error('Webhook processing error');
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
