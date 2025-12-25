@@ -38,7 +38,7 @@ serve(async (req) => {
       });
     }
 
-    const { message, context, projectId } = await req.json();
+    const { message, context, projectId, history = [], stream = false } = await req.json();
 
     // Verify project access if projectId is provided
     if (projectId) {
@@ -59,13 +59,13 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '');
+    console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '', stream ? '(streaming)' : '');
 
     const systemPrompt = `Ты — AI-аналитик маркетинга для платформы AdMetrics. Твоя задача — помогать пользователям анализировать их маркетинговые данные и давать конкретные рекомендации.
 
 КОНТЕКСТ ДАННЫХ ПОЛЬЗОВАТЕЛЯ:
 ${context ? `
-Текущие показатели:
+📊 **Текущие показатели:**
 - Расходы: ${context.spend?.toLocaleString('ru-RU') || 0} ₸
 - Показы: ${context.impressions?.toLocaleString('ru-RU') || 0}
 - Клики: ${context.clicks?.toLocaleString('ru-RU') || 0}
@@ -74,7 +74,7 @@ ${context ? `
 - Продажи: ${context.sales?.toLocaleString('ru-RU') || 0}
 - Выручка: ${context.revenue?.toLocaleString('ru-RU') || 0} ₸
 
-Метрики эффективности:
+📈 **Метрики эффективности:**
 - CTR: ${context.impressions > 0 ? ((context.clicks / context.impressions) * 100).toFixed(2) : 0}%
 - CPL: ${context.cpl?.toLocaleString('ru-RU') || 0} ₸
 - CAC: ${context.cac?.toLocaleString('ru-RU') || 0} ₸
@@ -84,19 +84,29 @@ ${context ? `
 ` : 'Данные не загружены'}
 
 ПРАВИЛА ОТВЕТОВ:
-1. Отвечай кратко и по существу (2-4 предложения на простые вопросы)
-2. Используй конкретные цифры из данных пользователя
-3. Давай actionable рекомендации
-4. Если данных недостаточно — запроси уточнение
-5. Сравнивай с бенчмарками индустрии где уместно
-6. Используй форматирование для читаемости (списки, выделение)
+1. Отвечай структурированно, используй **жирный текст** для важного
+2. Используй списки и эмодзи для читаемости
+3. Давай конкретные actionable рекомендации с цифрами
+4. Сравнивай с бенчмарками индустрии
+5. Если данных мало — запроси уточнение
+6. Будь лаконичен, но информативен
 
 БЕНЧМАРКИ ДЛЯ СРАВНЕНИЯ:
-- CTR хороший: > 2%, отличный: > 4%
-- Конверсия лид→продажа хорошая: > 10%, отличная: > 20%
-- ROMI положительный: > 0%, хороший: > 100%, отличный: > 300%
+- CTR: < 1% плохо, 1-2% норма, > 2% хорошо, > 4% отлично
+- Конверсия лид→продажа: < 5% плохо, 5-10% норма, > 10% хорошо, > 20% отлично  
+- ROMI: < 0% убыток, 0-100% норма, > 100% хорошо, > 300% отлично
 
 Отвечай на русском языке.`;
+
+    // Build messages array with history
+    const apiMessages = [
+      { role: 'system', content: systemPrompt },
+      ...history.map((h: { role: string; content: string }) => ({
+        role: h.role,
+        content: h.content
+      })),
+      { role: 'user', content: message }
+    ];
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -106,16 +116,14 @@ ${context ? `
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: message }
-        ],
+        messages: apiMessages,
+        stream: stream,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status);
+      console.error('AI gateway error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Превышен лимит запросов. Попробуйте позже.' }), {
@@ -133,6 +141,15 @@ ${context ? `
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
+    // If streaming, pass through the response
+    if (stream) {
+      console.log('Streaming response for user:', user.id);
+      return new Response(response.body, {
+        headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
+      });
+    }
+
+    // Non-streaming response
     const data = await response.json();
     const reply = data.choices?.[0]?.message?.content;
 

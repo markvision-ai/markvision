@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Trash2, Sparkles, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Trash2, Sparkles, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 import { cn } from '@/lib/utils';
+import ReactMarkdown from 'react-markdown';
 
 interface AIAssistantProps {
   context?: {
@@ -24,21 +25,24 @@ interface AIAssistantProps {
 }
 
 const suggestedQuestions = [
-  'Как улучшить конверсию?',
-  'Какие метрики требуют внимания?',
-  'Оптимален ли мой CPL?',
-  'Как снизить CAC?',
+  { text: 'Проанализируй текущие показатели', icon: TrendingUp },
+  { text: 'Как улучшить конверсию?', icon: Target },
+  { text: 'Какие метрики требуют внимания?', icon: Lightbulb },
+  { text: 'Оптимален ли мой CPL и CAC?', icon: MessageSquare },
 ];
 
 export const AIAssistant = ({ context }: AIAssistantProps) => {
   const [input, setInput] = useState('');
-  const { messages, isLoading, sendMessage, clearChat } = useAIChat();
+  const { messages, isLoading, sendMessage, clearChat, stopGeneration } = useAIChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      const scrollElement = scrollRef.current.querySelector('[data-radix-scroll-area-viewport]');
+      if (scrollElement) {
+        scrollElement.scrollTop = scrollElement.scrollHeight;
+      }
     }
   }, [messages]);
 
@@ -62,22 +66,31 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
     sendMessage(question, context);
   };
 
+  const hasContext = context && (context.spend || context.revenue || context.leads);
+
   return (
-    <Card className="flex flex-col h-[500px]">
-      <CardHeader className="flex-shrink-0 pb-3">
+    <Card className="flex flex-col h-[600px] bg-gradient-to-b from-card to-card/95">
+      <CardHeader className="flex-shrink-0 pb-3 border-b">
         <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <div className="p-1.5 rounded-lg bg-primary/10">
-              <Sparkles className="w-4 h-4 text-primary" />
+          <CardTitle className="flex items-center gap-3 text-lg">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
-            AI-помощник
+            <div>
+              <span>AI-помощник</span>
+              {hasContext && (
+                <p className="text-xs font-normal text-muted-foreground mt-0.5">
+                  Анализирует ваши данные
+                </p>
+              )}
+            </div>
           </CardTitle>
           {messages.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={clearChat}
-              className="text-muted-foreground hover:text-destructive"
+              className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
             >
               <Trash2 className="w-4 h-4" />
             </Button>
@@ -85,29 +98,40 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col min-h-0 pt-0">
+      <CardContent className="flex-1 flex flex-col min-h-0 pt-4">
         <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
           {messages.length === 0 ? (
-            <div className="space-y-4 py-4">
-              <div className="text-center text-muted-foreground text-sm">
-                <Bot className="w-10 h-10 mx-auto mb-3 text-primary/40" />
-                <p className="mb-4">
-                  Задайте вопрос о ваших маркетинговых данных
+            <div className="space-y-6 py-4">
+              <div className="text-center">
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mx-auto mb-4 flex items-center justify-center ring-1 ring-primary/10">
+                  <Bot className="w-8 h-8 text-primary" />
+                </div>
+                <h3 className="font-medium mb-1">Привет! Я ваш AI-аналитик</h3>
+                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                  {hasContext 
+                    ? 'Я вижу ваши данные и готов помочь с анализом'
+                    : 'Загрузите данные, чтобы получить персонализированный анализ'
+                  }
                 </p>
               </div>
-              <div className="grid grid-cols-2 gap-2">
-                {suggestedQuestions.map((question) => (
-                  <Button
-                    key={question}
-                    variant="outline"
-                    size="sm"
-                    className="h-auto py-2 px-3 text-xs text-left justify-start"
-                    onClick={() => handleSuggestion(question)}
-                    disabled={isLoading}
-                  >
-                    {question}
-                  </Button>
-                ))}
+              
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground text-center mb-3">Попробуйте спросить:</p>
+                <div className="grid gap-2">
+                  {suggestedQuestions.map(({ text, icon: Icon }) => (
+                    <Button
+                      key={text}
+                      variant="outline"
+                      size="sm"
+                      className="h-auto py-2.5 px-4 text-sm text-left justify-start gap-3 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                      onClick={() => handleSuggestion(text)}
+                      disabled={isLoading}
+                    >
+                      <Icon className="w-4 h-4 text-primary/70 flex-shrink-0" />
+                      <span>{text}</span>
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : (
@@ -115,37 +139,39 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} />
               ))}
-              {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  Анализирую...
-                </div>
-              )}
             </div>
           )}
         </ScrollArea>
 
-        <div className="flex gap-2 pt-3 border-t mt-3">
+        <div className="flex gap-2 pt-4 border-t mt-3">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Задайте вопрос..."
+            placeholder="Задайте вопрос о ваших данных..."
             disabled={isLoading}
-            className="flex-1"
+            className="flex-1 bg-secondary/50"
           />
-          <Button
-            onClick={handleSend}
-            disabled={!input.trim() || isLoading}
-            size="icon"
-          >
-            {isLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
+          {isLoading ? (
+            <Button
+              onClick={stopGeneration}
+              size="icon"
+              variant="destructive"
+              className="flex-shrink-0"
+            >
+              <Square className="w-4 h-4" />
+            </Button>
+          ) : (
+            <Button
+              onClick={handleSend}
+              disabled={!input.trim()}
+              size="icon"
+              className="flex-shrink-0"
+            >
               <Send className="w-4 h-4" />
-            )}
-          </Button>
+            </Button>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -156,24 +182,46 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
   const isUser = message.role === 'user';
 
   return (
-    <div className={cn('flex gap-2', isUser && 'flex-row-reverse')}>
+    <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
       <div
         className={cn(
-          'w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0',
-          isUser ? 'bg-primary text-primary-foreground' : 'bg-muted'
+          'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ring-1',
+          isUser 
+            ? 'bg-primary text-primary-foreground ring-primary/20' 
+            : 'bg-gradient-to-br from-secondary to-secondary/50 ring-border'
         )}
       >
         {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
       </div>
       <div
         className={cn(
-          'rounded-xl px-3 py-2 max-w-[85%] text-sm',
+          'rounded-2xl px-4 py-3 max-w-[85%] text-sm',
           isUser
             ? 'bg-primary text-primary-foreground'
-            : 'bg-muted'
+            : 'bg-secondary/70'
         )}
       >
-        <p className="whitespace-pre-wrap">{message.content}</p>
+        {isUser ? (
+          <p className="whitespace-pre-wrap">{message.content}</p>
+        ) : (
+          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2">
+            <ReactMarkdown
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
+                li: ({ children }) => <li className="mb-0.5">{children}</li>,
+                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
+                code: ({ children }) => <code className="bg-background/50 px-1 py-0.5 rounded text-xs">{children}</code>,
+              }}
+            >
+              {message.content || ''}
+            </ReactMarkdown>
+            {message.isStreaming && (
+              <span className="inline-block w-2 h-4 bg-primary/50 animate-pulse ml-0.5" />
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
