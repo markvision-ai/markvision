@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Users, 
   Phone, 
@@ -12,7 +12,10 @@ import {
   Loader2,
   RefreshCw,
   Download,
-  DollarSign
+  DollarSign,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -144,6 +147,9 @@ const getSourceCategory = (utm_source: string | null): string => {
   return 'other';
 };
 
+type SortField = 'name' | 'phone' | 'created_at' | 'utm_source' | 'deal_amount' | 'status';
+type SortDirection = 'asc' | 'desc';
+
 export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +158,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
   const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('created_at');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const fetchLeads = async () => {
     if (!projectId) {
@@ -237,6 +245,25 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     );
   };
 
+  // Сортировка
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="w-3.5 h-3.5 ml-1 opacity-50" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="w-3.5 h-3.5 ml-1 text-primary" />
+      : <ArrowDown className="w-3.5 h-3.5 ml-1 text-primary" />;
+  };
+
   const filteredLeads = leads.filter(lead => {
     const matchesSearch = !searchQuery || 
       lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -251,7 +278,46 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     return matchesSearch && matchesStatus && matchesSource;
   });
 
-  // Экспорт в CSV
+  const sortedLeads = useMemo(() => {
+    return [...filteredLeads].sort((a, b) => {
+      let aVal: any;
+      let bVal: any;
+
+      switch (sortField) {
+        case 'name':
+          aVal = a.name?.toLowerCase() || '';
+          bVal = b.name?.toLowerCase() || '';
+          break;
+        case 'phone':
+          aVal = a.phone || '';
+          bVal = b.phone || '';
+          break;
+        case 'created_at':
+          aVal = new Date(a.created_at).getTime();
+          bVal = new Date(b.created_at).getTime();
+          break;
+        case 'utm_source':
+          aVal = a.utm_source?.toLowerCase() || '';
+          bVal = b.utm_source?.toLowerCase() || '';
+          break;
+        case 'deal_amount':
+          aVal = a.deal_amount || 0;
+          bVal = b.deal_amount || 0;
+          break;
+        case 'status':
+          const statusOrder = STATUS_OPTIONS.map(s => s.value);
+          aVal = statusOrder.indexOf(a.status || 'new');
+          bVal = statusOrder.indexOf(b.status || 'new');
+          break;
+        default:
+          return 0;
+      }
+
+      if (aVal < bVal) return sortDirection === 'asc' ? -1 : 1;
+      if (aVal > bVal) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }, [filteredLeads, sortField, sortDirection]);
   const exportToCSV = () => {
     const headers = ['Имя', 'Телефон', 'Email', 'Дата заявки', 'UTM Source', 'UTM Medium', 'UTM Campaign', 'Статус', 'Сумма сделки'];
     const statusLabels: Record<string, string> = {
@@ -287,7 +353,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     link.download = `clients_${format(new Date(), 'yyyy-MM-dd')}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-    toast.success(`Экспортировано ${filteredLeads.length} клиентов`);
+    toast.success(`Экспортировано ${sortedLeads.length} клиентов`);
   };
 
   const formatCurrency = (value: number | null) => {
@@ -324,7 +390,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={exportToCSV} disabled={filteredLeads.length === 0}>
+          <Button variant="outline" size="sm" onClick={exportToCSV} disabled={sortedLeads.length === 0}>
             <Download className="w-4 h-4 mr-2" />
             Экспорт CSV
           </Button>
@@ -380,18 +446,66 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
           <table className="w-full">
             <thead className="bg-secondary">
               <tr>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Имя</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Телефон</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Дата заявки</th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center">
+                    Имя
+                    <SortIcon field="name" />
+                  </div>
+                </th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('phone')}
+                >
+                  <div className="flex items-center">
+                    Телефон
+                    <SortIcon field="phone" />
+                  </div>
+                </th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center">
+                    Дата заявки
+                    <SortIcon field="created_at" />
+                  </div>
+                </th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">UTM</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Источник</th>
-                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Сумма</th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Статус</th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('utm_source')}
+                >
+                  <div className="flex items-center">
+                    Источник
+                    <SortIcon field="utm_source" />
+                  </div>
+                </th>
+                <th 
+                  className="text-right p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('deal_amount')}
+                >
+                  <div className="flex items-center justify-end">
+                    Сумма
+                    <SortIcon field="deal_amount" />
+                  </div>
+                </th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center">
+                    Статус
+                    <SortIcon field="status" />
+                  </div>
+                </th>
                 <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filteredLeads.length === 0 ? (
+              {sortedLeads.length === 0 ? (
                 <tr>
                   <td colSpan={8} className="p-8 text-center text-muted-foreground">
                     {searchQuery || statusFilter !== 'all' || sourceFilter !== 'all'
@@ -401,7 +515,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                   </td>
                 </tr>
               ) : (
-                filteredLeads.map(lead => (
+                sortedLeads.map(lead => (
                   <tr key={lead.id} className="hover:bg-secondary/50 transition-colors">
                     {/* Имя */}
                     <td className="p-4">
