@@ -18,7 +18,6 @@ import { Sidebar } from './layout/Sidebar';
 import { Header } from './layout/Header';
 import { MetricCard } from './dashboard/MetricCard';
 import { PlanFactCard } from './dashboard/PlanFactCard';
-import { FunnelChart } from './dashboard/FunnelChart';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
@@ -26,7 +25,6 @@ import { ConversionStats } from './dashboard/ConversionStats';
 import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
-import { GrowthPoints } from './analytics/GrowthPoints';
 import { AIAssistant } from './analytics/AIAssistant';
 import { MultichannelAnalytics } from './multichannel/MultichannelAnalytics';
 import { UTMAnalytics } from './utm/UTMAnalytics';
@@ -174,12 +172,9 @@ export const AnalyticsPlatform = () => {
       case 'dashboard': return 'Дашборд';
       case 'table': return 'Таблица данных';
       case 'clients': return 'Клиенты';
-      case 'analytics': return 'Аналитика';
-      case 'funnel': return 'Воронка продаж';
       case 'e2e-analytics': return 'Сквозная аналитика';
       case 'multichannel': return 'Мультиканальная аналитика';
       case 'utm-analytics': return 'UTM-аналитика';
-      case 'growth': return 'Точки роста';
       case 'reports': return 'Отчёты';
       case 'team': return 'Команда';
       case 'settings': return 'Настройки';
@@ -321,87 +316,8 @@ export const AnalyticsPlatform = () => {
         <ClientsManagement projectId={currentProjectId} />
       )}
 
-      {activeTab === 'analytics' && (
-        <div className="space-y-6">
-          {/* Efficiency Metrics */}
-          <div className="bg-card border rounded-xl p-6">
-            <h3 className="font-semibold mb-4">Метрики эффективности</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="p-4 bg-secondary rounded-lg">
-                <div className="text-sm text-muted-foreground">CPL (Цена лида)</div>
-                <div className="text-2xl font-bold text-primary">{formatCurrency(cpl)}</div>
-                <div className="text-xs text-muted-foreground mt-1">Расход / Лиды</div>
-              </div>
-              <div className="p-4 bg-secondary rounded-lg">
-                <div className="text-sm text-muted-foreground">CAC (Цена клиента)</div>
-                <div className="text-2xl font-bold">{formatCurrency(cac)}</div>
-                <div className="text-xs text-muted-foreground mt-1">Расход / Продажи</div>
-              </div>
-              <div className="p-4 bg-secondary rounded-lg">
-                <div className="text-sm text-muted-foreground">AOV (Средний чек)</div>
-                <div className="text-2xl font-bold text-success">{formatCurrency(aov)}</div>
-                <div className="text-xs text-muted-foreground mt-1">Выручка / Продажи</div>
-              </div>
-              <div className="p-4 bg-secondary rounded-lg">
-                <div className="text-sm text-muted-foreground">ROMI</div>
-                <div className={`text-2xl font-bold ${romi >= 100 ? 'text-success' : romi >= 0 ? 'text-warning' : 'text-destructive'}`}>
-                  {romi.toFixed(1)}%
-                </div>
-                <div className="text-xs text-muted-foreground mt-1">(Выручка - Расход) / Расход × 100%</div>
-              </div>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-            <QuickStats stats={comparisonStats} />
-          </div>
-
-          <FunnelChart steps={funnelSteps} />
-        </div>
-      )}
-
-      {activeTab === 'funnel' && (
-        <div className="space-y-6">
-          <FunnelChart steps={funnelSteps} />
-          
-          <div className="bg-card border rounded-xl p-6">
-            <h3 className="font-semibold mb-4">Конверсии между этапами</h3>
-            <div className="space-y-4">
-              {funnelSteps.slice(0, -1).map((step, index) => {
-                const nextStep = funnelSteps[index + 1];
-                const conversion = step.value > 0 ? (nextStep.value / step.value) * 100 : 0;
-                
-                return (
-                  <div key={step.label} className="flex items-center gap-4">
-                    <div className="w-32 text-sm font-medium">{step.label}</div>
-                    <div className="flex-1 h-2 bg-secondary rounded-full overflow-hidden">
-                      <div 
-                        className="h-full rounded-full transition-all"
-                        style={{ 
-                          width: `${conversion}%`,
-                          backgroundColor: nextStep.color 
-                        }}
-                      />
-                    </div>
-                    <div className="w-20 text-right">
-                      <span className="font-bold">{conversion.toFixed(1)}%</span>
-                    </div>
-                    <div className="w-32 text-sm text-muted-foreground">→ {nextStep.label}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
-
       {activeTab === 'e2e-analytics' && (
         <E2EAnalytics totals={totals} projectId={currentProjectId} />
-      )}
-
-      {activeTab === 'growth' && (
-        <GrowthPoints totals={totals} planData={planData} />
       )}
 
       {activeTab === 'multichannel' && (
@@ -439,7 +355,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'clients', 'analytics', 'funnel', 'e2e-analytics', 'multichannel', 'utm-analytics', 'growth', 'reports', 'team', 'settings'].includes(activeTab) && (
+      {!['dashboard', 'table', 'clients', 'e2e-analytics', 'multichannel', 'utm-analytics', 'reports', 'team', 'settings'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
@@ -470,7 +386,7 @@ export const AnalyticsPlatform = () => {
           subtitle={currentProject?.name}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
-          showDatePicker={['dashboard', 'analytics'].includes(activeTab)}
+          showDatePicker={activeTab === 'dashboard'}
           onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
