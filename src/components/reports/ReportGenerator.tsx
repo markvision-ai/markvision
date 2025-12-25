@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import { 
   FileText, 
   Download, 
@@ -15,9 +15,10 @@ import {
   TrendingUp,
   TrendingDown,
   Target,
-  AlertCircle
+  AlertCircle,
+  CalendarIcon
 } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, subWeeks } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -26,6 +27,9 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
@@ -85,6 +89,17 @@ const getPlanFactStatus = (fact: number, plan: number) => {
   };
 };
 
+type DateRange = { from: Date; to: Date };
+
+type PresetKey = 'week' | 'lastWeek' | 'month' | 'lastMonth' | 'custom';
+
+const presets: { key: PresetKey; label: string }[] = [
+  { key: 'week', label: 'Эта неделя' },
+  { key: 'lastWeek', label: 'Прошлая неделя' },
+  { key: 'month', label: 'Этот месяц' },
+  { key: 'lastMonth', label: 'Прошлый месяц' },
+];
+
 export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -93,8 +108,126 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [isAutoReportEnabled, setIsAutoReportEnabled] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
   const [isSendingTest, setIsSendingTest] = useState(false);
+  const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
+  const [activePreset, setActivePreset] = useState<PresetKey>('month');
   const reportRef = useRef<HTMLDivElement>(null);
   const { isGenerating: isGeneratingAI, aiAnalysis, generateAIReport } = useAIReport();
+
+  // Local date range state for reports
+  const [reportDateRange, setReportDateRange] = useState<DateRange>(() => ({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
+  }));
+
+  // Fetch data for selected date range
+  const [reportData, setReportData] = useState<{
+    totals: typeof data.totals;
+    isLoading: boolean;
+  }>({ totals: data.totals, isLoading: false });
+
+  // Fetch data when date range changes
+  useEffect(() => {
+    const fetchReportData = async () => {
+      if (!data.projectId) {
+        setReportData({ totals: data.totals, isLoading: false });
+        return;
+      }
+
+      setReportData(prev => ({ ...prev, isLoading: true }));
+
+      const fromDate = format(reportDateRange.from, 'yyyy-MM-dd');
+      const toDate = format(reportDateRange.to, 'yyyy-MM-dd');
+
+      const { data: dailyData, error } = await supabase
+        .from('daily_data')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .gte('date', fromDate)
+        .lte('date', toDate);
+
+      if (error) {
+        console.error('Error fetching report data:', error);
+        setReportData({ totals: data.totals, isLoading: false });
+        return;
+      }
+
+      const totals = (dailyData || []).reduce(
+        (acc, day) => ({
+          spend: acc.spend + (Number(day.spend) || 0),
+          impressions: acc.impressions + (day.impressions || 0),
+          clicks: acc.clicks + (day.clicks || 0),
+          leads: acc.leads + (day.leads || 0),
+          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          sales: acc.sales + (day.sales || 0),
+          revenue: acc.revenue + (Number(day.revenue) || 0),
+        }),
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      );
+
+      setReportData({ totals, isLoading: false });
+    };
+
+    fetchReportData();
+  }, [reportDateRange, data.projectId, data.totals]);
+
+  // Computed metrics based on report data
+  const computedMetrics = useMemo(() => {
+    const t = reportData.totals;
+    return {
+      cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
+      cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
+      aov: t.sales > 0 ? Math.round(t.revenue / t.sales) : 0,
+      romi: t.spend > 0 ? ((t.revenue - t.spend) / t.spend) * 100 : 0,
+      roas: t.spend > 0 ? t.revenue / t.spend : 0,
+    };
+  }, [reportData.totals]);
+
+  const funnelSteps = useMemo(() => [
+    { label: 'Показы', value: reportData.totals.impressions, color: 'hsl(220, 90%, 56%)' },
+    { label: 'Клики', value: reportData.totals.clicks, color: 'hsl(200, 80%, 50%)' },
+    { label: 'Лиды', value: reportData.totals.leads, color: 'hsl(262, 83%, 58%)' },
+    { label: 'Диагностики', value: reportData.totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Продажи', value: reportData.totals.sales, color: 'hsl(142, 76%, 36%)' },
+  ], [reportData.totals]);
+
+  // Handle preset click
+  const handlePresetClick = (preset: PresetKey) => {
+    const now = new Date();
+    let newRange: DateRange;
+
+    switch (preset) {
+      case 'week':
+        newRange = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+        break;
+      case 'lastWeek':
+        const lastWeek = subWeeks(now, 1);
+        newRange = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
+        break;
+      case 'month':
+        newRange = { from: startOfMonth(now), to: endOfMonth(now) };
+        break;
+      case 'lastMonth':
+        const lastMonth = subMonths(now, 1);
+        newRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+        break;
+      default:
+        return;
+    }
+
+    setReportDateRange(newRange);
+    setActivePreset(preset);
+  };
+
+  // Handle calendar selection
+  const handleCalendarSelect = (range: { from?: Date; to?: Date } | undefined) => {
+    if (range?.from) {
+      setReportDateRange({
+        from: range.from,
+        to: range.to || range.from,
+      });
+      setActivePreset('custom');
+    }
+  };
 
   // Load project settings
   useEffect(() => {
@@ -116,12 +249,19 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     loadSettings();
   }, [data.projectId]);
 
-  const defaultSummary = `За отчётный период реклама показала ${data.metrics.romi > 0 ? 'положительной' : 'отрицательной'} окупаемость с ROMI ${data.metrics.romi.toFixed(1)}%. 
-Получено ${formatNumber(data.totals.leads)} лидов по цене ${formatCurrency(data.metrics.cpl)} за лид. 
-Совершено ${data.totals.sales} продаж на общую сумму ${formatCurrency(data.totals.revenue)}.
-${data.metrics.romi > 100 ? 'Рекомендуется увеличить рекламный бюджет для масштабирования.' : 'Рекомендуется оптимизировать воронку для повышения конверсии.'}`;
+  const defaultSummary = `За отчётный период реклама показала ${computedMetrics.romi > 0 ? 'положительную' : 'отрицательную'} окупаемость с ROMI ${computedMetrics.romi.toFixed(1)}%. 
+Получено ${formatNumber(reportData.totals.leads)} лидов по цене ${formatCurrency(computedMetrics.cpl)} за лид. 
+Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}.
+${computedMetrics.romi > 100 ? 'Рекомендуется увеличить рекламный бюджет для масштабирования.' : 'Рекомендуется оптимизировать воронку для повышения конверсии.'}`;
 
   const [summary, setSummary] = useState(defaultSummary);
+
+  // Update summary when data changes
+  useEffect(() => {
+    if (!aiAnalysis) {
+      setSummary(defaultSummary);
+    }
+  }, [reportData.totals, computedMetrics, aiAnalysis]);
 
   useEffect(() => {
     if (aiAnalysis) {
@@ -130,7 +270,13 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
   }, [aiAnalysis]);
 
   const handleGenerateAI = async () => {
-    await generateAIReport(data);
+    await generateAIReport({
+      projectId: data.projectId,
+      projectName: data.projectName,
+      dateRange: reportDateRange,
+      totals: reportData.totals,
+      metrics: computedMetrics,
+    });
   };
 
   const handleSaveSettings = async () => {
@@ -199,7 +345,7 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
       
       pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
       
-      const fileName = `report_${format(data.dateRange.from, 'yyyy-MM-dd')}_${format(data.dateRange.to, 'yyyy-MM-dd')}.pdf`;
+      const fileName = `report_${format(reportDateRange.from, 'yyyy-MM-dd')}_${format(reportDateRange.to, 'yyyy-MM-dd')}.pdf`;
       pdf.save(fileName);
       
       toast.success('Отчёт скачан', { description: fileName });
@@ -212,23 +358,23 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
   };
 
   // Calculate plan/fact for display
-  const planData = data.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+  const planDataValues = data.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
 
   const metrics = [
-    { label: 'Расход', value: data.totals.spend, plan: planData.spend, format: 'currency', inverse: true },
-    { label: 'Показы', value: data.totals.impressions, plan: planData.impressions, format: 'number' },
-    { label: 'Клики', value: data.totals.clicks, plan: planData.clicks, format: 'number' },
-    { label: 'Лиды', value: data.totals.leads, plan: planData.leads, format: 'number' },
-    { label: 'Диагностики', value: data.totals.diagnostics, plan: planData.diagnostics, format: 'number' },
-    { label: 'Продажи', value: data.totals.sales, plan: planData.sales, format: 'number' },
-    { label: 'Выручка', value: data.totals.revenue, plan: planData.revenue, format: 'currency' },
+    { label: 'Расход', value: reportData.totals.spend, plan: planDataValues.spend, format: 'currency', inverse: true },
+    { label: 'Показы', value: reportData.totals.impressions, plan: planDataValues.impressions, format: 'number' },
+    { label: 'Клики', value: reportData.totals.clicks, plan: planDataValues.clicks, format: 'number' },
+    { label: 'Лиды', value: reportData.totals.leads, plan: planDataValues.leads, format: 'number' },
+    { label: 'Диагностики', value: reportData.totals.diagnostics, plan: planDataValues.diagnostics, format: 'number' },
+    { label: 'Продажи', value: reportData.totals.sales, plan: planDataValues.sales, format: 'number' },
+    { label: 'Выручка', value: reportData.totals.revenue, plan: planDataValues.revenue, format: 'currency' },
   ];
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border rounded-2xl p-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <FileText className="w-6 h-6 text-primary" />
@@ -238,10 +384,54 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
               Генерируйте PDF-отчёты с AI-аналитикой и настраивайте автоматическую отправку в Telegram
             </p>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            {format(data.dateRange.from, 'd MMM', { locale: ru })} — {format(data.dateRange.to, 'd MMM', { locale: ru })}
-          </Badge>
+          
+          {/* Date Range Picker */}
+          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "justify-start text-left font-normal min-w-[240px]",
+                  !reportDateRange && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {format(reportDateRange.from, 'd MMM', { locale: ru })} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <div className="p-3 border-b">
+                <div className="flex flex-wrap gap-2">
+                  {presets.map((preset) => (
+                    <Button
+                      key={preset.key}
+                      variant={activePreset === preset.key ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => handlePresetClick(preset.key)}
+                    >
+                      {preset.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+              <CalendarComponent
+                mode="range"
+                selected={{ from: reportDateRange.from, to: reportDateRange.to }}
+                onSelect={handleCalendarSelect}
+                numberOfMonths={2}
+                locale={ru}
+                className={cn("p-3 pointer-events-auto")}
+              />
+            </PopoverContent>
+          </Popover>
         </div>
+        
+        {reportData.isLoading && (
+          <div className="flex items-center gap-2 mt-4 text-muted-foreground">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Загрузка данных за период...</span>
+          </div>
+        )}
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -313,7 +503,7 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
               {/* Report Info */}
               <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
                 <Calendar className="w-4 h-4" />
-                <span>Период: {format(data.dateRange.from, 'd MMMM', { locale: ru })} — {format(data.dateRange.to, 'd MMMM yyyy', { locale: ru })}</span>
+                <span>Период: {format(reportDateRange.from, 'd MMMM', { locale: ru })} — {format(reportDateRange.to, 'd MMMM yyyy', { locale: ru })}</span>
                 <span className="text-gray-300 mx-2">|</span>
                 <FileText className="w-4 h-4" />
                 <span>Дата формирования: {format(new Date(), 'd MMMM yyyy', { locale: ru })}</span>
@@ -365,26 +555,26 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
                 <div className="grid grid-cols-5 gap-4">
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">CPL</p>
-                    <p className="text-lg font-bold text-blue-600">{formatCurrency(data.metrics.cpl)}</p>
+                    <p className="text-lg font-bold text-blue-600">{formatCurrency(computedMetrics.cpl)}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">CAC</p>
-                    <p className="text-lg font-bold">{formatCurrency(data.metrics.cac)}</p>
+                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.cac)}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">AOV</p>
-                    <p className="text-lg font-bold text-green-600">{formatCurrency(data.metrics.aov)}</p>
+                    <p className="text-lg font-bold text-green-600">{formatCurrency(computedMetrics.aov)}</p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">ROMI</p>
-                    <p className={`text-lg font-bold ${data.metrics.romi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {data.metrics.romi.toFixed(1)}%
+                    <p className={`text-lg font-bold ${computedMetrics.romi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      {computedMetrics.romi.toFixed(1)}%
                     </p>
                   </div>
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">ROAS</p>
-                    <p className={`text-lg font-bold ${data.metrics.roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
-                      {data.metrics.roas.toFixed(2)}x
+                    <p className={`text-lg font-bold ${computedMetrics.roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
+                      {computedMetrics.roas.toFixed(2)}x
                     </p>
                   </div>
                 </div>
@@ -394,10 +584,10 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
               <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4 text-gray-900">🎯 Воронка продаж</h2>
                 <div className="space-y-3">
-                  {data.funnelSteps.map((step, index) => {
-                    const maxValue = data.funnelSteps[0].value;
+                  {funnelSteps.map((step, index) => {
+                    const maxValue = funnelSteps[0].value;
                     const percentage = maxValue > 0 ? (step.value / maxValue) * 100 : 0;
-                    const nextStep = data.funnelSteps[index + 1];
+                    const nextStep = funnelSteps[index + 1];
                     const conversion = nextStep && step.value > 0 
                       ? ((nextStep.value / step.value) * 100).toFixed(1) 
                       : null;
