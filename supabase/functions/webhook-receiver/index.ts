@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-token',
 };
 
 interface WebhookPayload {
@@ -33,14 +33,16 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get webhook token from URL params
+    // Get webhook token from header (preferred) or URL params (fallback)
     const url = new URL(req.url);
-    const token = url.searchParams.get('token');
+    const token = req.headers.get('X-Webhook-Token') || 
+                  req.headers.get('Authorization')?.replace('Bearer ', '') ||
+                  url.searchParams.get('token');
     
     if (!token) {
-      console.error('Missing webhook token');
+      console.log('Auth failed: Missing webhook token');
       return new Response(
-        JSON.stringify({ error: 'Missing webhook token' }),
+        JSON.stringify({ error: 'Missing webhook token. Provide via X-Webhook-Token header or ?token= query param' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -54,7 +56,7 @@ Deno.serve(async (req) => {
       .maybeSingle();
 
     if (configError || !webhookConfig) {
-      console.error('Invalid webhook token or inactive config:', configError);
+      console.log('Auth failed: Invalid webhook token');
       return new Response(
         JSON.stringify({ error: 'Invalid or inactive webhook' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
