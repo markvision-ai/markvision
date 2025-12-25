@@ -1,22 +1,28 @@
+import { useState, useEffect, useMemo } from 'react';
 import { 
   Zap, 
   TrendingUp, 
+  TrendingDown,
   FileBarChart, 
   Globe, 
   ArrowRight,
-  Facebook,
-  Play,
-  Search,
   BarChart3,
   Target,
   MousePointer,
   Users,
   DollarSign,
   ShoppingCart,
-  ChevronRight
+  ChevronRight,
+  Loader2,
+  Percent,
+  Clock,
+  Award,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Progress } from '@/components/ui/progress';
+import { supabase } from '@/integrations/supabase/client';
 
 interface E2EAnalyticsProps {
   totals: {
@@ -28,6 +34,29 @@ interface E2EAnalyticsProps {
     sales: number;
     revenue: number;
   };
+  projectId?: string | null;
+}
+
+interface SourceStats {
+  source: string;
+  sourceLabel: string;
+  icon: string;
+  color: string;
+  leads: number;
+  sales: number;
+  revenue: number;
+  spend: number;
+  cpl: number;
+  romi: number;
+  conversionRate: number;
+}
+
+interface StatusStats {
+  status: string;
+  label: string;
+  count: number;
+  percentage: number;
+  color: string;
 }
 
 const formatCurrency = (value: number): string => {
@@ -43,7 +72,196 @@ const formatNumber = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-export const E2EAnalytics = ({ totals }: E2EAnalyticsProps) => {
+const STATUS_CONFIG: Record<string, { label: string; color: string; order: number }> = {
+  new: { label: 'Новый', color: 'bg-blue-500', order: 1 },
+  contacted: { label: 'Связались', color: 'bg-purple-500', order: 2 },
+  diagnostic: { label: 'На диагностике', color: 'bg-yellow-500', order: 3 },
+  qualified: { label: 'Квалифицирован', color: 'bg-cyan-500', order: 4 },
+  proposal: { label: 'Предложение', color: 'bg-orange-500', order: 5 },
+  purchased: { label: 'Купил', color: 'bg-green-500', order: 6 },
+  rejected: { label: 'Отказ', color: 'bg-red-500', order: 7 },
+};
+
+const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  google: { label: 'Google Ads', icon: '🔍', color: 'bg-red-500' },
+  facebook: { label: 'Facebook', icon: '📘', color: 'bg-blue-600' },
+  instagram: { label: 'Instagram', icon: '📷', color: 'bg-pink-500' },
+  tiktok: { label: 'TikTok', icon: '🎵', color: 'bg-slate-800' },
+  youtube: { label: 'YouTube', icon: '▶️', color: 'bg-red-600' },
+  yandex: { label: 'Яндекс', icon: '🟡', color: 'bg-yellow-500' },
+  vk: { label: 'VK', icon: '💬', color: 'bg-blue-500' },
+  telegram: { label: 'Telegram', icon: '✈️', color: 'bg-sky-500' },
+  direct: { label: 'Прямой трафик', icon: '🔗', color: 'bg-gray-500' },
+  other: { label: 'Другое', icon: '📊', color: 'bg-gray-400' },
+};
+
+const getSourceCategory = (utm_source: string | null): string => {
+  if (!utm_source) return 'direct';
+  const s = utm_source.toLowerCase();
+  if (s.includes('google') || s.includes('gclid')) return 'google';
+  if (s.includes('facebook') || s.includes('fb') || s.includes('meta')) return 'facebook';
+  if (s.includes('instagram') || s.includes('ig')) return 'instagram';
+  if (s.includes('tiktok') || s.includes('tt')) return 'tiktok';
+  if (s.includes('youtube') || s.includes('yt')) return 'youtube';
+  if (s.includes('yandex') || s.includes('ya')) return 'yandex';
+  if (s.includes('vk') || s.includes('vkontakte')) return 'vk';
+  if (s.includes('telegram') || s.includes('tg')) return 'telegram';
+  return 'other';
+};
+
+export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
+  const [leads, setLeads] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLeads = async () => {
+      if (!projectId) {
+        setLeads([]);
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from('leads')
+          .select('*')
+          .eq('project_id', projectId);
+
+        if (error) throw error;
+        setLeads(data || []);
+      } catch (error) {
+        console.error('Error fetching leads for analytics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLeads();
+  }, [projectId]);
+
+  // Calculate source statistics
+  const sourceStats = useMemo((): SourceStats[] => {
+    const grouped: Record<string, { leads: number; sales: number; revenue: number }> = {};
+
+    leads.forEach(lead => {
+      const source = getSourceCategory(lead.utm_source);
+      if (!grouped[source]) {
+        grouped[source] = { leads: 0, sales: 0, revenue: 0 };
+      }
+      grouped[source].leads++;
+      if (lead.status === 'purchased') {
+        grouped[source].sales++;
+        grouped[source].revenue += lead.deal_amount || 0;
+      }
+    });
+
+    // Distribute spend proportionally based on leads
+    const totalLeadsFromData = leads.length || 1;
+    
+    return Object.entries(grouped)
+      .map(([source, data]) => {
+        const config = SOURCE_CONFIG[source] || SOURCE_CONFIG.other;
+        const proportionalSpend = (data.leads / totalLeadsFromData) * totals.spend;
+        const profit = data.revenue - proportionalSpend;
+        const romi = proportionalSpend > 0 ? (profit / proportionalSpend) * 100 : 0;
+        const cpl = data.leads > 0 ? proportionalSpend / data.leads : 0;
+        const conversionRate = data.leads > 0 ? (data.sales / data.leads) * 100 : 0;
+
+        return {
+          source,
+          sourceLabel: config.label,
+          icon: config.icon,
+          color: config.color,
+          leads: data.leads,
+          sales: data.sales,
+          revenue: data.revenue,
+          spend: proportionalSpend,
+          cpl,
+          romi,
+          conversionRate
+        };
+      })
+      .sort((a, b) => b.leads - a.leads);
+  }, [leads, totals.spend]);
+
+  // Calculate status funnel stats
+  const statusStats = useMemo((): StatusStats[] => {
+    const totalLeads = leads.length || 1;
+    const statusCounts: Record<string, number> = {};
+
+    leads.forEach(lead => {
+      const status = lead.status || 'new';
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+
+    return Object.entries(STATUS_CONFIG)
+      .map(([status, config]) => ({
+        status,
+        label: config.label,
+        count: statusCounts[status] || 0,
+        percentage: ((statusCounts[status] || 0) / totalLeads) * 100,
+        color: config.color,
+        order: config.order
+      }))
+      .sort((a, b) => a.order - b.order);
+  }, [leads]);
+
+  // Calculate sales team metrics
+  const salesMetrics = useMemo(() => {
+    const totalLeads = leads.length;
+    const salesCount = leads.filter(l => l.status === 'purchased').length;
+    const rejectedCount = leads.filter(l => l.status === 'rejected').length;
+    const contactedCount = leads.filter(l => l.status !== 'new').length;
+    const diagCount = leads.filter(l => ['diagnostic', 'qualified', 'proposal', 'purchased'].includes(l.status || '')).length;
+    
+    const totalRevenue = leads
+      .filter(l => l.status === 'purchased')
+      .reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+    
+    const avgDeal = salesCount > 0 ? totalRevenue / salesCount : 0;
+    
+    return {
+      totalLeads,
+      salesCount,
+      rejectedCount,
+      contactedCount,
+      diagCount,
+      totalRevenue,
+      avgDeal,
+      contactRate: totalLeads > 0 ? (contactedCount / totalLeads) * 100 : 0,
+      diagRate: contactedCount > 0 ? (diagCount / contactedCount) * 100 : 0,
+      closeRate: totalLeads > 0 ? (salesCount / totalLeads) * 100 : 0,
+      rejectRate: totalLeads > 0 ? (rejectedCount / totalLeads) * 100 : 0,
+    };
+  }, [leads]);
+
+  // Top campaigns by revenue
+  const topCampaigns = useMemo(() => {
+    const campaigns: Record<string, { leads: number; sales: number; revenue: number }> = {};
+
+    leads.forEach(lead => {
+      const campaign = lead.utm_campaign || 'Без кампании';
+      if (!campaigns[campaign]) {
+        campaigns[campaign] = { leads: 0, sales: 0, revenue: 0 };
+      }
+      campaigns[campaign].leads++;
+      if (lead.status === 'purchased') {
+        campaigns[campaign].sales++;
+        campaigns[campaign].revenue += lead.deal_amount || 0;
+      }
+    });
+
+    return Object.entries(campaigns)
+      .map(([name, data]) => ({
+        name,
+        ...data,
+        conversionRate: data.leads > 0 ? (data.sales / data.leads) * 100 : 0
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+  }, [leads]);
+
   const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   const leadConv = totals.clicks > 0 ? (totals.leads / totals.clicks) * 100 : 0;
   const saleConv = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
@@ -106,33 +324,6 @@ export const E2EAnalytics = ({ totals }: E2EAnalyticsProps) => {
     },
   ];
 
-  const channels = [
-    { 
-      name: 'Facebook Ads', 
-      icon: Facebook, 
-      spend: totals.spend * 0.4, 
-      revenue: totals.revenue * 0.35,
-      color: 'bg-blue-600',
-      leads: Math.round(totals.leads * 0.4)
-    },
-    { 
-      name: 'TikTok Ads', 
-      icon: Play, 
-      spend: totals.spend * 0.35, 
-      revenue: totals.revenue * 0.4,
-      color: 'bg-pink-500',
-      leads: Math.round(totals.leads * 0.35)
-    },
-    { 
-      name: 'Google Ads', 
-      icon: Search, 
-      spend: totals.spend * 0.25, 
-      revenue: totals.revenue * 0.25,
-      color: 'bg-amber-500',
-      leads: Math.round(totals.leads * 0.25)
-    },
-  ];
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -144,7 +335,7 @@ export const E2EAnalytics = ({ totals }: E2EAnalyticsProps) => {
               <h2 className="text-2xl font-bold">Сквозная аналитика</h2>
             </div>
             <p className="text-muted-foreground max-w-xl">
-              Анализируйте эффективность рекламы от показа до прибыли, чтобы привлекать больше клиентов без увеличения расходов
+              Анализируйте эффективность рекламы от показа до прибыли
             </p>
           </div>
           <Badge variant="secondary" className="text-xs">
@@ -188,110 +379,195 @@ export const E2EAnalytics = ({ totals }: E2EAnalyticsProps) => {
         </div>
       </div>
 
-      {/* Features Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Profit Analysis */}
-        <div className="bg-card border rounded-xl p-5 hover:border-primary/50 transition-colors group">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4 group-hover:bg-primary/20 transition-colors">
-            <TrendingUp className="w-6 h-6 text-primary" />
-          </div>
-          <h4 className="font-semibold mb-2">Анализ рекламы по прибыли</h4>
-          <p className="text-sm text-muted-foreground mb-4">
-            Сквозная аналитика от показа до прибыли по каналам, кампаниям, объявлениям и ключевым словам
-          </p>
-          <Button variant="ghost" size="sm" className="group-hover:text-primary">
-            Подробнее <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-
-        {/* Quick Reports */}
-        <div className="bg-card border rounded-xl p-5 hover:border-primary/50 transition-colors group">
-          <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center mb-4 group-hover:bg-accent/20 transition-colors">
-            <FileBarChart className="w-6 h-6 text-accent-foreground" />
-          </div>
-          <h4 className="font-semibold mb-2">Любые отчёты в пару кликов</h4>
-          <p className="text-sm text-muted-foreground mb-4">
-            Отчёты по рекламе, товарам, страницам, регионам, устройствам и другие отчёты за пару минут
-          </p>
-          <Button variant="ghost" size="sm" className="group-hover:text-primary">
-            Подробнее <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-
-        {/* All Sources */}
-        <div className="bg-card border rounded-xl p-5 hover:border-primary/50 transition-colors group">
-          <div className="w-12 h-12 rounded-xl bg-success/10 flex items-center justify-center mb-4 group-hover:bg-success/20 transition-colors">
-            <Globe className="w-6 h-6 text-success" />
-          </div>
-          <h4 className="font-semibold mb-2">Все источники в одном окне</h4>
-          <p className="text-sm text-muted-foreground mb-4">
-            Автоматический сбор данных по Facebook, TikTok, Google Ads в едином отчёте
-          </p>
-          <Button variant="ghost" size="sm" className="group-hover:text-primary">
-            Подключить <ArrowRight className="w-4 h-4 ml-1" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Channels Overview */}
+      {/* Source Performance Table */}
       <div className="bg-card border rounded-xl p-6">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Globe className="w-5 h-5 text-primary" />
-          Эффективность по каналам
+          Эффективность по источникам
         </h3>
         
-        <div className="space-y-4">
-          {channels.map((channel) => {
-            const Icon = channel.icon;
-            const channelRomi = channel.spend > 0 ? ((channel.revenue - channel.spend) / channel.spend) * 100 : 0;
-            const channelProfit = channel.revenue - channel.spend;
-            
-            return (
-              <div key={channel.name} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl hover:bg-secondary transition-colors">
-                <div className={`w-10 h-10 rounded-lg ${channel.color} flex items-center justify-center`}>
-                  <Icon className="w-5 h-5 text-white" />
-                </div>
-                
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{channel.name}</p>
-                  <p className="text-sm text-muted-foreground">{channel.leads} лидов</p>
-                </div>
-                
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Расход</p>
-                  <p className="font-semibold">{formatCurrency(channel.spend)}</p>
-                </div>
-                
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Выручка</p>
-                  <p className="font-semibold text-success">{formatCurrency(channel.revenue)}</p>
-                </div>
-                
-                <div className="text-right min-w-[80px]">
-                  <p className="text-sm text-muted-foreground">ROMI</p>
-                  <Badge className={channelRomi >= 100 ? 'bg-success/20 text-success' : channelRomi >= 0 ? 'bg-warning/20 text-warning' : 'bg-destructive/20 text-destructive'}>
-                    {channelRomi.toFixed(0)}%
-                  </Badge>
-                </div>
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          </div>
+        ) : sourceStats.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>Нет данных по источникам</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-secondary/50">
+                <tr>
+                  <th className="text-left p-3 text-sm font-medium text-muted-foreground">Источник</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Расход</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">CPL</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Продажи</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Конверсия</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Выручка</th>
+                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">ROMI</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {sourceStats.map((source) => (
+                  <tr key={source.source} className="hover:bg-secondary/30 transition-colors">
+                    <td className="p-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-lg ${source.color} flex items-center justify-center`}>
+                          <span className="text-sm">{source.icon}</span>
+                        </div>
+                        <span className="font-medium">{source.sourceLabel}</span>
+                      </div>
+                    </td>
+                    <td className="p-3 text-right font-medium">{source.leads}</td>
+                    <td className="p-3 text-right">{formatCurrency(source.spend)}</td>
+                    <td className="p-3 text-right">{formatCurrency(source.cpl)}</td>
+                    <td className="p-3 text-right font-medium text-green-500">{source.sales}</td>
+                    <td className="p-3 text-right">
+                      <Badge variant="outline">{source.conversionRate.toFixed(1)}%</Badge>
+                    </td>
+                    <td className="p-3 text-right font-medium text-green-500">{formatCurrency(source.revenue)}</td>
+                    <td className="p-3 text-right">
+                      <Badge className={source.romi >= 100 ? 'bg-green-500/20 text-green-500' : source.romi >= 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-500'}>
+                        {source.romi.toFixed(0)}%
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* Sales Team Efficiency */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Sales Metrics */}
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Award className="w-5 h-5 text-primary" />
+            Эффективность отдела продаж
+          </h3>
+          
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Всего лидов</p>
+                <p className="text-2xl font-bold">{salesMetrics.totalLeads}</p>
               </div>
-            );
-          })}
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Продаж</p>
+                <p className="text-2xl font-bold text-green-500">{salesMetrics.salesCount}</p>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Средний чек</p>
+                <p className="text-2xl font-bold">{formatCurrency(salesMetrics.avgDeal)}</p>
+              </div>
+              <div className="bg-secondary/50 rounded-lg p-4">
+                <p className="text-sm text-muted-foreground mb-1">Выручка</p>
+                <p className="text-2xl font-bold text-green-500">{formatCurrency(salesMetrics.totalRevenue)}</p>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4">
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Конверсия в контакт</span>
+                  <span className="font-medium">{salesMetrics.contactRate.toFixed(1)}%</span>
+                </div>
+                <Progress value={salesMetrics.contactRate} className="h-2" />
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground">Конверсия в диагностику</span>
+                  <span className="font-medium">{salesMetrics.diagRate.toFixed(1)}%</span>
+                </div>
+                <Progress value={salesMetrics.diagRate} className="h-2" />
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <TrendingUp className="w-3 h-3 text-green-500" />
+                    Конверсия в продажу
+                  </span>
+                  <span className="font-medium text-green-500">{salesMetrics.closeRate.toFixed(1)}%</span>
+                </div>
+                <Progress value={salesMetrics.closeRate} className="h-2 [&>div]:bg-green-500" />
+              </div>
+              <div>
+                <div className="flex justify-between text-sm mb-1">
+                  <span className="text-muted-foreground flex items-center gap-1">
+                    <TrendingDown className="w-3 h-3 text-red-500" />
+                    Процент отказов
+                  </span>
+                  <span className="font-medium text-red-500">{salesMetrics.rejectRate.toFixed(1)}%</span>
+                </div>
+                <Progress value={salesMetrics.rejectRate} className="h-2 [&>div]:bg-red-500" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Status Distribution */}
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <Percent className="w-5 h-5 text-primary" />
+            Распределение по статусам
+          </h3>
+          
+          <div className="space-y-3">
+            {statusStats.map((stat) => (
+              <div key={stat.status} className="flex items-center gap-3">
+                <div className={`w-3 h-3 rounded-full ${stat.color}`} />
+                <span className="flex-1 text-sm">{stat.label}</span>
+                <span className="text-sm font-medium w-12 text-right">{stat.count}</span>
+                <div className="w-24">
+                  <Progress value={stat.percentage} className="h-2" />
+                </div>
+                <span className="text-sm text-muted-foreground w-12 text-right">{stat.percentage.toFixed(0)}%</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Coming Soon Banner */}
-      <div className="bg-gradient-to-r from-primary/5 via-primary/10 to-accent/5 border border-primary/20 rounded-xl p-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h4 className="font-semibold mb-1">Подключите рекламные кабинеты</h4>
-            <p className="text-sm text-muted-foreground">
-              Свяжите Facebook, TikTok и Google Ads для автоматического сбора данных
-            </p>
+      {/* Top Campaigns */}
+      <div className="bg-card border rounded-xl p-6">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Target className="w-5 h-5 text-primary" />
+          Топ кампании по выручке
+        </h3>
+        
+        {topCampaigns.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <FileBarChart className="w-8 h-8 mx-auto mb-2 opacity-50" />
+            <p>Нет данных по кампаниям</p>
           </div>
-          <Button>
-            Подключить источники
-          </Button>
-        </div>
+        ) : (
+          <div className="space-y-3">
+            {topCampaigns.map((campaign, index) => (
+              <div key={campaign.name} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl hover:bg-secondary transition-colors">
+                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center font-bold text-primary">
+                  {index + 1}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium truncate">{campaign.name}</p>
+                  <p className="text-sm text-muted-foreground">{campaign.leads} лидов → {campaign.sales} продаж</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm text-muted-foreground">Конверсия</p>
+                  <Badge variant="outline">{campaign.conversionRate.toFixed(1)}%</Badge>
+                </div>
+                <div className="text-right min-w-[100px]">
+                  <p className="text-sm text-muted-foreground">Выручка</p>
+                  <p className="font-semibold text-green-500">{formatCurrency(campaign.revenue)}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
