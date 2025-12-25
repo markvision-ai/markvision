@@ -11,13 +11,16 @@ import {
   X,
   ChevronDown,
   Loader2,
-  ExternalLink
+  ExternalLink,
+  BarChart3,
+  TableIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select, 
   SelectContent, 
@@ -41,6 +44,7 @@ import {
 } from '@/components/ui/table';
 import { useLeads, Lead, LeadFilter } from '@/hooks/useLeads';
 import { LeadDetailCard } from './LeadDetailCard';
+import { UTMFunnelChart } from './UTMFunnelChart';
 
 interface UTMAnalyticsProps {
   projectId: string | null;
@@ -212,9 +216,27 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
         </div>
       )}
 
-      {/* Leads Table */}
-      <div className="bg-card border rounded-xl overflow-hidden">
-        <Table>
+      {/* Tabs */}
+      <Tabs defaultValue="funnel" className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="funnel" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Воронка
+          </TabsTrigger>
+          <TabsTrigger value="table" className="flex items-center gap-2">
+            <TableIcon className="w-4 h-4" />
+            Таблица
+          </TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="funnel" className="mt-6">
+          <UTMFunnelChart leads={leads} />
+        </TabsContent>
+        
+        <TabsContent value="table" className="mt-6">
+          {/* Leads Table */}
+          <div className="bg-card border rounded-xl overflow-hidden">
+            <Table>
           <TableHeader>
             <TableRow>
               <TableHead className="w-[100px]">ID</TableHead>
@@ -309,7 +331,9 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
             )}
           </TableBody>
         </Table>
-      </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Lead Detail Dialog */}
       <Dialog open={!!selectedLead} onOpenChange={() => setSelectedLead(null)}>
