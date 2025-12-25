@@ -160,7 +160,8 @@ export function useWebhookConfig(projectId: string | null) {
 
   const getWebhookUrl = () => {
     if (!config) return null;
-    return `https://grzqykegqgglekcxdtsu.supabase.co/functions/v1/webhook-receiver?token=${config.webhook_token}`;
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    return `${supabaseUrl}/functions/v1/webhook-receiver?token=${config.webhook_token}`;
   };
 
   return {
