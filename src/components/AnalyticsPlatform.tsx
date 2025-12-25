@@ -66,7 +66,7 @@ const formatNumber = (value: number): string => {
 export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   
-  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData } = useProjectData(currentProjectId);
 
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
@@ -184,6 +184,7 @@ export const AnalyticsPlatform = () => {
         currentProject={currentProjectId || undefined}
         projects={projectsList}
         onProjectChange={setCurrentProjectId}
+        onCreateProject={createProject}
       />
       
       <div className="ml-64">
