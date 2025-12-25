@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.generate-ai-report]
 verify_jwt = true
+
+[functions.ai-analytics-chat]
+verify_jwt = true
