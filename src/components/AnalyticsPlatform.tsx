@@ -30,6 +30,7 @@ import { AIAssistant } from './analytics/AIAssistant';
 import { MultichannelAnalytics } from './multichannel/MultichannelAnalytics';
 import { UTMAnalytics } from './utm/UTMAnalytics';
 import { WebhookSettings } from './settings/WebhookSettings';
+import { ClientsManagement } from './clients/ClientsManagement';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 
@@ -163,6 +164,7 @@ export const AnalyticsPlatform = () => {
     switch (activeTab) {
       case 'dashboard': return 'Дашборд';
       case 'table': return 'Таблица данных';
+      case 'clients': return 'Клиенты';
       case 'analytics': return 'Аналитика';
       case 'funnel': return 'Воронка продаж';
       case 'e2e-analytics': return 'Сквозная аналитика';
@@ -325,6 +327,10 @@ export const AnalyticsPlatform = () => {
             />
           )}
 
+          {activeTab === 'clients' && (
+            <ClientsManagement projectId={currentProjectId} />
+          )}
+
           {activeTab === 'analytics' && (
             <div className="space-y-6">
               {/* Efficiency Metrics */}
@@ -467,7 +473,7 @@ export const AnalyticsPlatform = () => {
             </div>
           )}
 
-          {!['dashboard', 'table', 'analytics', 'funnel', 'reports', 'team', 'settings'].includes(activeTab) && (
+          {!['dashboard', 'table', 'clients', 'analytics', 'funnel', 'e2e-analytics', 'multichannel', 'utm-analytics', 'growth', 'reports', 'team', 'settings'].includes(activeTab) && (
             <div className="bg-card border rounded-xl p-12 text-center">
               <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
                 <Target className="w-8 h-8 text-muted-foreground" />
