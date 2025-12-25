@@ -24,6 +24,8 @@ import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
+import { E2EAnalytics } from './analytics/E2EAnalytics';
+import { GrowthPoints } from './analytics/GrowthPoints';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 
@@ -159,6 +161,8 @@ export const AnalyticsPlatform = () => {
       case 'table': return 'Таблица данных';
       case 'analytics': return 'Аналитика';
       case 'funnel': return 'Воронка продаж';
+      case 'e2e-analytics': return 'Сквозная аналитика';
+      case 'growth': return 'Точки роста';
       case 'reports': return 'Отчёты';
       case 'team': return 'Команда';
       case 'settings': return 'Настройки';
@@ -379,6 +383,14 @@ export const AnalyticsPlatform = () => {
                 </div>
               </div>
             </div>
+          )}
+
+          {activeTab === 'e2e-analytics' && (
+            <E2EAnalytics totals={totals} />
+          )}
+
+          {activeTab === 'growth' && (
+            <GrowthPoints totals={totals} planData={planData} />
           )}
 
           {activeTab === 'reports' && (
