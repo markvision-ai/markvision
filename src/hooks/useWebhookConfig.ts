@@ -28,6 +28,40 @@ export interface WebhookConfig {
   updated_at: string;
 }
 
+// Path validation constants - must match server-side validation
+const MAX_PATH_DEPTH = 5;
+const VALID_PATH_PATTERN = /^[a-zA-Z0-9_]+(\.[a-zA-Z0-9_]+)*$/;
+const DANGEROUS_KEYS = ['__proto__', 'constructor', 'prototype'];
+
+// Validate field mapping path for security
+function isValidPath(path: string): boolean {
+  if (!path || typeof path !== 'string') return true; // Empty paths are allowed
+  if (path.length > 100) return false;
+  if (!VALID_PATH_PATTERN.test(path)) return false;
+  
+  const parts = path.split('.');
+  if (parts.length > MAX_PATH_DEPTH) return false;
+  
+  if (parts.some(part => DANGEROUS_KEYS.includes(part.toLowerCase()))) {
+    return false;
+  }
+  
+  return true;
+}
+
+// Validate entire field mapping object
+function validateFieldMapping(fieldMapping: FieldMapping): { valid: boolean; error?: string } {
+  for (const [key, path] of Object.entries(fieldMapping)) {
+    if (path && !isValidPath(path)) {
+      return { 
+        valid: false, 
+        error: `Недопустимый путь для поля "${key}": используйте только буквы, цифры, точки и подчёркивания (макс. 5 уровней)` 
+      };
+    }
+  }
+  return { valid: true };
+}
+
 const defaultFieldMapping: FieldMapping = {
   name: 'lead_info.name',
   email: 'lead_info.email',
@@ -117,6 +151,13 @@ export function useWebhookConfig(projectId: string | null) {
 
   const updateFieldMapping = async (fieldMapping: FieldMapping) => {
     if (!config) return false;
+
+    // Validate field mapping before sending to server
+    const validation = validateFieldMapping(fieldMapping);
+    if (!validation.valid) {
+      toast.error(validation.error || 'Недопустимый формат маппинга полей');
+      return false;
+    }
 
     try {
       const { error } = await supabase
