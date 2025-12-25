@@ -17,12 +17,16 @@ import {
   Percent,
   Clock,
   Award,
-  AlertCircle
+  AlertCircle,
+  LineChart as LineChartIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { format, parseISO, startOfDay } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface E2EAnalyticsProps {
   totals: {
@@ -262,6 +266,30 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       .slice(0, 5);
   }, [leads]);
 
+  // Calculate daily dynamics for leads and sales
+  const dailyDynamics = useMemo(() => {
+    const dailyData: Record<string, { date: string; leads: number; sales: number; revenue: number }> = {};
+
+    leads.forEach(lead => {
+      const dateKey = format(startOfDay(parseISO(lead.created_at)), 'yyyy-MM-dd');
+      if (!dailyData[dateKey]) {
+        dailyData[dateKey] = { date: dateKey, leads: 0, sales: 0, revenue: 0 };
+      }
+      dailyData[dateKey].leads++;
+      if (lead.status === 'purchased') {
+        dailyData[dateKey].sales++;
+        dailyData[dateKey].revenue += lead.deal_amount || 0;
+      }
+    });
+
+    return Object.values(dailyData)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .map(day => ({
+        ...day,
+        dateLabel: format(parseISO(day.date), 'd MMM', { locale: ru })
+      }));
+  }, [leads]);
+
   const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   const leadConv = totals.clicks > 0 ? (totals.leads / totals.clicks) * 100 : 0;
   const saleConv = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
@@ -376,6 +404,136 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      {/* Daily Dynamics Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Leads Dynamics Chart */}
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <LineChartIcon className="w-5 h-5 text-primary" />
+            Динамика лидов по дням
+          </h3>
+          
+          {loading ? (
+            <div className="flex items-center justify-center h-[250px]">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : dailyDynamics.length === 0 ? (
+            <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+              <div className="text-center">
+                <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Нет данных для отображения</p>
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={dailyDynamics}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  stroke="hsl(var(--border))"
+                />
+                <YAxis 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  stroke="hsl(var(--border))"
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="leads" 
+                  stroke="hsl(221.2 83.2% 53.3%)" 
+                  strokeWidth={2}
+                  dot={{ fill: 'hsl(221.2 83.2% 53.3%)', r: 4 }}
+                  name="Лиды"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
+        </div>
+
+        {/* Sales & Revenue Dynamics Chart */}
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="font-semibold mb-4 flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-green-500" />
+            Динамика продаж по дням
+          </h3>
+          
+          {loading ? (
+            <div className="flex items-center justify-center h-[250px]">
+              <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            </div>
+          ) : dailyDynamics.length === 0 ? (
+            <div className="flex items-center justify-center h-[250px] text-muted-foreground">
+              <div className="text-center">
+                <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p>Нет данных для отображения</p>
+              </div>
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={dailyDynamics}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                <XAxis 
+                  dataKey="dateLabel" 
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  stroke="hsl(var(--border))"
+                />
+                <YAxis 
+                  yAxisId="left"
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  stroke="hsl(var(--border))"
+                />
+                <YAxis 
+                  yAxisId="right"
+                  orientation="right"
+                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                  stroke="hsl(var(--border))"
+                  tickFormatter={(value) => `${Math.round(value / 1000)}K`}
+                />
+                <Tooltip 
+                  contentStyle={{ 
+                    backgroundColor: 'hsl(var(--card))', 
+                    border: '1px solid hsl(var(--border))',
+                    borderRadius: '8px'
+                  }}
+                  labelStyle={{ color: 'hsl(var(--foreground))' }}
+                  formatter={(value: number, name: string) => {
+                    if (name === 'Выручка') return [formatCurrency(value), name];
+                    return [value, name];
+                  }}
+                />
+                <Legend />
+                <Line 
+                  type="monotone" 
+                  dataKey="sales" 
+                  stroke="hsl(142.1 76.2% 36.3%)" 
+                  strokeWidth={2}
+                  dot={{ fill: 'hsl(142.1 76.2% 36.3%)', r: 4 }}
+                  name="Продажи"
+                  yAxisId="left"
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="hsl(262.1 83.3% 57.8%)" 
+                  strokeWidth={2}
+                  dot={{ fill: 'hsl(262.1 83.3% 57.8%)', r: 4 }}
+                  name="Выручка"
+                  yAxisId="right"
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          )}
         </div>
       </div>
 
