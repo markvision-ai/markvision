@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, isWithinInterval } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   DollarSign, 
@@ -10,7 +10,7 @@ import {
   Wallet,
   TrendingUp,
   Calculator,
-  MousePointer
+  Loader2
 } from 'lucide-react';
 
 import { Sidebar } from './layout/Sidebar';
@@ -24,6 +24,8 @@ import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useProjects } from '@/hooks/useProjects';
 
 interface DailyData {
   date: string;
@@ -51,49 +53,26 @@ interface DateRange {
   to: Date;
 }
 
+// Форматирование без копеек
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
+  const rounded = Math.round(value);
+  return new Intl.NumberFormat('ru-RU').format(rounded) + ' ₸';
 };
 
 const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('ru-RU').format(value);
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
 export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [currentProject, setCurrentProject] = useState('project1');
   
-  const projects = [
-    { id: 'project1', name: 'Стоматология "Улыбка"' },
-    { id: 'project2', name: 'Автосервис "Мотор"' },
-    { id: 'project3', name: 'Фитнес клуб "Энергия"' },
-  ];
+  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading } = useProjects();
+  const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData } = useProjectData(currentProjectId);
 
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   }));
-
-  const [dailyData, setDailyData] = useState<Record<string, DailyData>>({
-    '2025-12-01': { date: '2025-12-01', spend: 45000, impressions: 120000, clicks: 3600, leads: 35, diagnostics: 12, sales: 4, revenue: 180000 },
-    '2025-12-02': { date: '2025-12-02', spend: 52000, impressions: 145000, clicks: 4350, leads: 42, diagnostics: 15, sales: 5, revenue: 225000 },
-    '2025-12-03': { date: '2025-12-03', spend: 38000, impressions: 98000, clicks: 2940, leads: 28, diagnostics: 9, sales: 3, revenue: 135000 },
-    '2025-12-04': { date: '2025-12-04', spend: 61000, impressions: 167000, clicks: 5010, leads: 55, diagnostics: 18, sales: 6, revenue: 270000 },
-    '2025-12-05': { date: '2025-12-05', spend: 47000, impressions: 132000, clicks: 3960, leads: 38, diagnostics: 14, sales: 5, revenue: 225000 },
-    '2025-12-06': { date: '2025-12-06', spend: 55000, impressions: 155000, clicks: 4650, leads: 48, diagnostics: 16, sales: 6, revenue: 280000 },
-    '2025-12-07': { date: '2025-12-07', spend: 42000, impressions: 110000, clicks: 3300, leads: 32, diagnostics: 11, sales: 4, revenue: 190000 },
-    '2025-12-08': { date: '2025-12-08', spend: 58000, impressions: 160000, clicks: 4800, leads: 50, diagnostics: 17, sales: 7, revenue: 320000 },
-  });
-
-  const [planData, setPlanData] = useState<PlanData>({
-    spend: 1500000,
-    impressions: 5000000,
-    clicks: 150000,
-    leads: 1200,
-    diagnostics: 400,
-    sales: 150,
-    revenue: 7000000,
-  });
 
   const daysInRange = useMemo(() => {
     return eachDayOfInterval({ start: dateRange.from, end: dateRange.to });
@@ -117,31 +96,45 @@ export const AnalyticsPlatform = () => {
     );
   }, [dailyData, daysInRange]);
 
-  // Computed metrics
-  const aov = totals.sales > 0 ? totals.revenue / totals.sales : 0;
-  const cpl = totals.leads > 0 ? totals.spend / totals.leads : 0;
-  const cac = totals.sales > 0 ? totals.spend / totals.sales : 0;
+  // Данные за прошлую неделю для сравнения
+  const previousWeekTotals = useMemo(() => {
+    const weekAgoStart = subWeeks(dateRange.from, 1);
+    const weekAgoEnd = subWeeks(dateRange.to, 1);
+    const prevDays = eachDayOfInterval({ start: weekAgoStart, end: weekAgoEnd });
+    const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
+    const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
+
+    return prevData.reduce(
+      (acc, day) => ({
+        spend: acc.spend + (day.spend || 0),
+        impressions: acc.impressions + (day.impressions || 0),
+        clicks: acc.clicks + (day.clicks || 0),
+        leads: acc.leads + (day.leads || 0),
+        diagnostics: acc.diagnostics + (day.diagnostics || 0),
+        sales: acc.sales + (day.sales || 0),
+        revenue: acc.revenue + (day.revenue || 0),
+      }),
+      { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+    );
+  }, [dailyData, dateRange]);
+
+  // Computed metrics (округляем)
+  const aov = totals.sales > 0 ? Math.round(totals.revenue / totals.sales) : 0;
+  const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
+  const cac = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0;
   const conversionRate = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
-  const roi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
-  const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
+  const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+
+  const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
+  const prevRomi = previousWeekTotals.spend > 0 ? ((previousWeekTotals.revenue - previousWeekTotals.spend) / previousWeekTotals.spend) * 100 : 0;
 
   const handleDataChange = (date: string, field: keyof DailyData, value: number) => {
-    setDailyData(prev => ({
-      ...prev,
-      [date]: {
-        ...prev[date],
-        date,
-        [field]: value,
-      },
-    }));
+    updateDailyData(date, field, value);
   };
 
   const handlePlanChange = (field: keyof PlanData, value: number) => {
-    setPlanData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+    updatePlanData(field, value);
   };
 
   const funnelSteps = [
@@ -152,11 +145,12 @@ export const AnalyticsPlatform = () => {
     { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
   ];
 
+  // Сравнение с прошлой неделей
   const comparisonStats = [
-    { label: 'Выручка', current: totals.revenue, previous: totals.revenue * 0.85, format: 'currency' as const },
-    { label: 'Лиды', current: totals.leads, previous: totals.leads * 0.92, format: 'number' as const },
-    { label: 'Конверсия', current: conversionRate, previous: conversionRate * 0.88, format: 'percent' as const },
-    { label: 'ROMI', current: romi, previous: romi * 0.78, format: 'percent' as const },
+    { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
+    { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
+    { label: 'Конверсия', current: conversionRate, previous: prevConversionRate, format: 'percent' as const },
+    { label: 'ROMI', current: romi, previous: prevRomi, format: 'percent' as const },
   ];
 
   const getTabTitle = () => {
@@ -172,20 +166,30 @@ export const AnalyticsPlatform = () => {
     }
   };
 
+  if (projectsLoading || dataLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
+
   return (
     <div className="min-h-screen bg-background">
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
-        currentProject={currentProject}
-        projects={projects}
-        onProjectChange={setCurrentProject}
+        currentProject={currentProjectId || undefined}
+        projects={projectsList}
+        onProjectChange={setCurrentProjectId}
       />
       
       <div className="ml-64">
         <Header 
           title={getTabTitle()} 
-          subtitle={projects.find(p => p.id === currentProject)?.name}
+          subtitle={currentProject?.name}
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
           showDatePicker={['dashboard', 'analytics'].includes(activeTab)}
@@ -379,7 +383,7 @@ export const AnalyticsPlatform = () => {
           {activeTab === 'reports' && (
             <ReportGenerator 
               data={{
-                projectName: projects.find(p => p.id === currentProject)?.name || 'Проект',
+                projectName: currentProject?.name || 'Проект',
                 dateRange,
                 totals,
                 metrics: { cpl, cac, aov, romi, roas },
@@ -389,13 +393,39 @@ export const AnalyticsPlatform = () => {
           )}
 
           {activeTab === 'team' && (
-            <TeamManagement projects={projects} />
+            <TeamManagement projects={projectsList} />
           )}
 
-          {activeTab === 'settings' && (
+          {activeTab === 'settings' && currentProject && (
+            <div className="space-y-6">
+              <div className="bg-card border rounded-xl p-6">
+                <h3 className="font-semibold mb-4">Настройки проекта</h3>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm text-muted-foreground">Название проекта</label>
+                    <p className="font-medium">{currentProject.name}</p>
+                  </div>
+                  <div>
+                    <label className="text-sm text-muted-foreground">ID проекта</label>
+                    <p className="font-mono text-xs bg-secondary px-2 py-1 rounded inline-block">{currentProjectId}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-card border rounded-xl p-6">
+                <h3 className="font-semibold mb-4">База данных</h3>
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-success animate-pulse" />
+                  <span className="text-sm text-muted-foreground">Подключена</span>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {activeTab === 'settings' && !currentProject && (
             <div className="bg-card border rounded-xl p-6">
               <h3 className="font-semibold mb-4">Настройки</h3>
-              <p className="text-muted-foreground">Настройки проекта будут доступны после подключения базы данных.</p>
+              <p className="text-muted-foreground">Выберите проект для просмотра настроек.</p>
             </div>
           )}
 
