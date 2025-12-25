@@ -72,7 +72,8 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
   const [isInviteOpen, setIsInviteOpen] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [sendEmailOnCreate, setSendEmailOnCreate] = useState(true);
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string; emailSent?: boolean } | null>(null);
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [editProjectAccess, setEditProjectAccess] = useState<string[]>([]);
   
@@ -132,7 +133,8 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
           password: newMember.password,
           name: newMember.name,
           role: newMember.role,
-          projectAccess: newMember.projectAccess
+          projectAccess: newMember.projectAccess,
+          sendEmail: sendEmailOnCreate
         }
       });
 
@@ -147,10 +149,17 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
       // Show credentials
       setCreatedCredentials({
         email: newMember.email,
-        password: newMember.password
+        password: newMember.password,
+        emailSent: response.data.emailSent
       });
 
-      toast.success('Пользователь создан!');
+      if (response.data.emailSent) {
+        toast.success('Пользователь создан и данные отправлены на email!');
+      } else if (sendEmailOnCreate && response.data.emailError) {
+        toast.warning(`Пользователь создан, но email не отправлен: ${response.data.emailError}`);
+      } else {
+        toast.success('Пользователь создан!');
+      }
       refetch();
       
     } catch (error: any) {
@@ -166,6 +175,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     setCreatedCredentials(null);
     setNewMember({ name: '', email: '', password: '', role: 'manager', projectAccess: [] });
     setShowPassword(false);
+    setSendEmailOnCreate(true);
   };
 
   const handleDeleteMember = async (userId: string) => {
@@ -297,9 +307,16 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                     </AlertDescription>
                   </Alert>
                   
-                  <p className="text-sm text-muted-foreground text-center">
-                    Сохраните эти данные и передайте сотруднику
-                  </p>
+                  {createdCredentials.emailSent ? (
+                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 justify-center">
+                      <Mail className="w-4 h-4" />
+                      Данные отправлены на email сотрудника
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center">
+                      Сохраните эти данные и передайте сотруднику
+                    </p>
+                  )}
                   
                   <DialogFooter>
                     <Button onClick={handleCloseDialog} className="w-full">
@@ -387,6 +404,17 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                         </div>
                       </div>
                     )}
+
+                    <div className="flex items-center gap-2 pt-2 border-t">
+                      <Checkbox
+                        id="sendEmail"
+                        checked={sendEmailOnCreate}
+                        onCheckedChange={(checked) => setSendEmailOnCreate(checked === true)}
+                      />
+                      <label htmlFor="sendEmail" className="text-sm cursor-pointer">
+                        Отправить данные для входа на email
+                      </label>
+                    </div>
                   </div>
 
                   <DialogFooter>
