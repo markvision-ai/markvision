@@ -26,6 +26,7 @@ import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { GrowthPoints } from './analytics/GrowthPoints';
+import { AIAssistant } from './analytics/AIAssistant';
 import { MultichannelAnalytics } from './multichannel/MultichannelAnalytics';
 import { UTMAnalytics } from './utm/UTMAnalytics';
 import { WebhookSettings } from './settings/WebhookSettings';
@@ -296,9 +297,18 @@ export const AnalyticsPlatform = () => {
               </div>
 
               {/* Charts Row */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <RevenueChart data={dailyData} daysInMonth={daysInRange} />
                 <ConversionStats steps={funnelSteps} />
+                <AIAssistant 
+                  context={{
+                    ...totals,
+                    cpl,
+                    cac,
+                    aov,
+                    romi,
+                  }}
+                />
               </div>
 
               {/* Comparison */}
