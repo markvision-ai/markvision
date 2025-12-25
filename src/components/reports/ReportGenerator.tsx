@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { 
   FileText, 
   Download, 
@@ -6,7 +6,8 @@ import {
   Edit3, 
   Check,
   BarChart3,
-  Loader2
+  Loader2,
+  Sparkles
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -15,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
+import { useAIReport } from '@/hooks/useAIReport';
 
 interface ReportData {
   projectName: string;
@@ -51,22 +53,32 @@ const formatNumber = (value: number): string => {
 };
 
 export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const reportRef = useRef<HTMLDivElement>(null);
+  const { isGenerating: isGeneratingAI, aiAnalysis, generateAIReport } = useAIReport();
 
-  const [summary, setSummary] = useState(() => {
-    const roi = data.metrics.romi > 0 ? 'положительной' : 'отрицательной';
-    return `За отчётный период реклама показала ${roi} окупаемость с ROMI ${data.metrics.romi.toFixed(1)}%. 
+  const defaultSummary = `За отчётный период реклама показала ${data.metrics.romi > 0 ? 'положительной' : 'отрицательной'} окупаемость с ROMI ${data.metrics.romi.toFixed(1)}%. 
 Получено ${formatNumber(data.totals.leads)} лидов по цене ${formatCurrency(data.metrics.cpl)} за лид. 
 Совершено ${data.totals.sales} продаж на общую сумму ${formatCurrency(data.totals.revenue)}.
 ${data.metrics.romi > 100 ? 'Рекомендуется увеличить рекламный бюджет для масштабирования.' : 'Рекомендуется оптимизировать воронку для повышения конверсии.'}`;
-  });
+
+  const [summary, setSummary] = useState(defaultSummary);
+
+  useEffect(() => {
+    if (aiAnalysis) {
+      setSummary(aiAnalysis);
+    }
+  }, [aiAnalysis]);
+
+  const handleGenerateAI = async () => {
+    await generateAIReport(data);
+  };
 
   const handleDownloadPDF = async () => {
     if (!reportRef.current) return;
 
-    setIsGenerating(true);
+    setIsGeneratingPDF(true);
     try {
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
@@ -94,7 +106,7 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
       toast.error('Ошибка генерации PDF');
       console.error(error);
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingPDF(false);
     }
   };
 
@@ -111,13 +123,25 @@ ${data.metrics.romi > 100 ? 'Рекомендуется увеличить ре�
         <div className="flex gap-2">
           <Button 
             variant="outline" 
+            onClick={handleGenerateAI}
+            disabled={isGeneratingAI}
+          >
+            {isGeneratingAI ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Sparkles className="w-4 h-4 mr-2" />
+            )}
+            AI-анализ
+          </Button>
+          <Button 
+            variant="outline" 
             onClick={() => setIsEditing(!isEditing)}
           >
             {isEditing ? <Check className="w-4 h-4 mr-2" /> : <Edit3 className="w-4 h-4 mr-2" />}
             {isEditing ? 'Сохранить' : 'Редактировать'}
           </Button>
-          <Button onClick={handleDownloadPDF} disabled={isGenerating}>
-            {isGenerating ? (
+          <Button onClick={handleDownloadPDF} disabled={isGeneratingPDF}>
+            {isGeneratingPDF ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             ) : (
               <Download className="w-4 h-4 mr-2" />
