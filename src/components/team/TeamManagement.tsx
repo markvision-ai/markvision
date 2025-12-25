@@ -9,7 +9,11 @@ import {
   Trash2,
   Edit,
   AlertCircle,
-  Loader2
+  Loader2,
+  Eye,
+  EyeOff,
+  Lock,
+  CheckCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -40,6 +44,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { toast } from 'sonner';
 import { useTeamMembers } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Project {
   id: string;
@@ -50,25 +55,42 @@ interface TeamManagementProps {
   projects: Project[];
 }
 
-// Password generation removed - users should register through the standard auth flow
+// Generate random password
+const generatePassword = () => {
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
+};
 
 export const TeamManagement = ({ projects }: TeamManagementProps) => {
   const { isAdmin } = useAuth();
-  const { teamMembers, loading, updateMemberRole, updateProjectAccess, deleteMember } = useTeamMembers();
+  const { teamMembers, loading, updateMemberRole, updateProjectAccess, deleteMember, refetch } = useTeamMembers();
   
   const [isInviteOpen, setIsInviteOpen] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [createdCredentials, setCreatedCredentials] = useState<{ email: string; password: string } | null>(null);
   const [editingMember, setEditingMember] = useState<string | null>(null);
   const [editProjectAccess, setEditProjectAccess] = useState<string[]>([]);
   
   const [newMember, setNewMember] = useState({
     name: '',
     email: '',
+    password: '',
     role: 'manager' as 'admin' | 'manager',
     projectAccess: [] as string[],
   });
 
   const handleNameChange = (name: string) => {
     setNewMember(prev => ({ ...prev, name }));
+  };
+
+  const handleGeneratePassword = () => {
+    const password = generatePassword();
+    setNewMember(prev => ({ ...prev, password }));
   };
 
   const handleProjectToggle = (projectId: string) => {
@@ -88,20 +110,62 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     );
   };
 
-  const handleInvite = () => {
-    if (!newMember.name || !newMember.email) {
-      toast.error('Заполните имя и email');
+  const handleCreateUser = async () => {
+    if (!newMember.name || !newMember.email || !newMember.password) {
+      toast.error('Заполните все поля');
       return;
     }
 
-    // Note: Actual user creation requires Supabase Auth Admin API
-    // For now, show instructions to the admin
-    toast.info('Функция приглашения', {
-      description: 'Для создания нового пользователя используйте панель управления Lovable Cloud или отправьте ссылку для регистрации.',
-    });
-    
+    if (newMember.password.length < 6) {
+      toast.error('Пароль должен быть минимум 6 символов');
+      return;
+    }
+
+    setIsCreating(true);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      const response = await supabase.functions.invoke('admin-create-user', {
+        body: {
+          email: newMember.email,
+          password: newMember.password,
+          name: newMember.name,
+          role: newMember.role,
+          projectAccess: newMember.projectAccess
+        }
+      });
+
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+
+      if (!response.data.success) {
+        throw new Error(response.data.error);
+      }
+
+      // Show credentials
+      setCreatedCredentials({
+        email: newMember.email,
+        password: newMember.password
+      });
+
+      toast.success('Пользователь создан!');
+      refetch();
+      
+    } catch (error: any) {
+      console.error('Error creating user:', error);
+      toast.error(error.message || 'Ошибка создания пользователя');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleCloseDialog = () => {
     setIsInviteOpen(false);
-    setNewMember({ name: '', email: '', role: 'manager', projectAccess: [] });
+    setCreatedCredentials(null);
+    setNewMember({ name: '', email: '', password: '', role: 'manager', projectAccess: [] });
+    setShowPassword(false);
   };
 
   const handleDeleteMember = async (userId: string) => {
@@ -173,89 +237,173 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
         </div>
         
         {isAdmin && (
-          <Dialog open={isInviteOpen} onOpenChange={setIsInviteOpen}>
+          <Dialog open={isInviteOpen} onOpenChange={(open) => {
+            if (!open) handleCloseDialog();
+            else setIsInviteOpen(true);
+          }}>
             <DialogTrigger asChild>
               <Button>
                 <UserPlus className="w-4 h-4 mr-2" />
-                Пригласить
+                Добавить сотрудника
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
               <DialogHeader>
-                <DialogTitle>Пригласить сотрудника</DialogTitle>
+                <DialogTitle>
+                  {createdCredentials ? 'Сотрудник создан' : 'Добавить сотрудника'}
+                </DialogTitle>
               </DialogHeader>
               
-              <Alert className="my-2">
-                <AlertCircle className="h-4 w-4" />
-                <AlertDescription className="text-xs">
-                  Для создания учётных записей используйте регистрацию через форму авторизации. После регистрации назначьте права доступа здесь.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Имя</label>
-                  <Input
-                    placeholder="Иван Петров"
-                    value={newMember.name}
-                    onChange={(e) => handleNameChange(e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Email</label>
-                  <Input
-                    type="email"
-                    placeholder="email@company.kz"
-                    value={newMember.email}
-                    onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Роль</label>
-                  <Select 
-                    value={newMember.role} 
-                    onValueChange={(value: 'admin' | 'manager') => setNewMember(prev => ({ ...prev, role: value }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="admin">Админ (полный доступ)</SelectItem>
-                      <SelectItem value="manager">Менеджер (ограниченный)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {newMember.role === 'manager' && (
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Доступ к проектам</label>
-                    <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
-                      {projects.map(project => (
-                        <label key={project.id} className="flex items-center gap-2 cursor-pointer">
-                          <Checkbox
-                            checked={newMember.projectAccess.includes(project.id)}
-                            onCheckedChange={() => handleProjectToggle(project.id)}
-                          />
-                          <span className="text-sm">{project.name}</span>
-                        </label>
-                      ))}
+              {createdCredentials ? (
+                <div className="space-y-4 py-4">
+                  <div className="flex items-center justify-center">
+                    <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
                     </div>
                   </div>
-                )}
+                  
+                  <Alert className="bg-secondary">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertTitle>Данные для входа</AlertTitle>
+                    <AlertDescription className="mt-2 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Email:</span>
+                        <div className="flex items-center gap-2">
+                          <code className="bg-background px-2 py-1 rounded text-sm">{createdCredentials.email}</code>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(createdCredentials.email, 'Email')}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm">Пароль:</span>
+                        <div className="flex items-center gap-2">
+                          <code className="bg-background px-2 py-1 rounded text-sm">{createdCredentials.password}</code>
+                          <Button 
+                            size="icon" 
+                            variant="ghost" 
+                            className="h-6 w-6"
+                            onClick={() => copyToClipboard(createdCredentials.password, 'Пароль')}
+                          >
+                            <Copy className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </AlertDescription>
+                  </Alert>
+                  
+                  <p className="text-sm text-muted-foreground text-center">
+                    Сохраните эти данные и передайте сотруднику
+                  </p>
+                  
+                  <DialogFooter>
+                    <Button onClick={handleCloseDialog} className="w-full">
+                      Готово
+                    </Button>
+                  </DialogFooter>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-4 py-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Имя</label>
+                      <Input
+                        placeholder="Иван Петров"
+                        value={newMember.name}
+                        onChange={(e) => handleNameChange(e.target.value)}
+                      />
+                    </div>
 
-              </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Email</label>
+                      <Input
+                        type="email"
+                        placeholder="email@company.kz"
+                        value={newMember.email}
+                        onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
+                      />
+                    </div>
 
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsInviteOpen(false)}>
-                  Отмена
-                </Button>
-                <Button onClick={handleInvite}>
-                  <Mail className="w-4 h-4 mr-2" />
-                  Готово
-                </Button>
-              </DialogFooter>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Пароль</label>
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                          <Input
+                            type={showPassword ? 'text' : 'password'}
+                            placeholder="Минимум 6 символов"
+                            value={newMember.password}
+                            onChange={(e) => setNewMember(prev => ({ ...prev, password: e.target.value }))}
+                            className="pl-10 pr-10"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                        <Button type="button" variant="outline" onClick={handleGeneratePassword}>
+                          Сгенерировать
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Роль</label>
+                      <Select 
+                        value={newMember.role} 
+                        onValueChange={(value: 'admin' | 'manager') => setNewMember(prev => ({ ...prev, role: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="admin">Админ (полный доступ)</SelectItem>
+                          <SelectItem value="manager">Менеджер (ограниченный)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {newMember.role === 'manager' && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium">Доступ к проектам</label>
+                        <div className="space-y-2 max-h-40 overflow-y-auto border rounded-lg p-3">
+                          {projects.map(project => (
+                            <label key={project.id} className="flex items-center gap-2 cursor-pointer">
+                              <Checkbox
+                                checked={newMember.projectAccess.includes(project.id)}
+                                onCheckedChange={() => handleProjectToggle(project.id)}
+                              />
+                              <span className="text-sm">{project.name}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <DialogFooter>
+                    <Button variant="outline" onClick={handleCloseDialog}>
+                      Отмена
+                    </Button>
+                    <Button onClick={handleCreateUser} disabled={isCreating}>
+                      {isCreating ? (
+                        <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      ) : (
+                        <UserPlus className="w-4 h-4 mr-2" />
+                      )}
+                      Создать
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
             </DialogContent>
           </Dialog>
         )}
