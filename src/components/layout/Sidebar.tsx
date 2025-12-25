@@ -41,6 +41,7 @@ const menuItems = [
   { id: 'funnel', label: 'Воронка', icon: TrendingUp },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
   { id: 'multichannel', label: 'Мультиканальная', icon: TrendingUp },
+  { id: 'utm-analytics', label: 'UTM-аналитика', icon: Target },
   { id: 'growth', label: 'Точки роста', icon: Target },
 ];
 
