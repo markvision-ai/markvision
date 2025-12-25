@@ -10,7 +10,9 @@ import {
   ExternalLink,
   ChevronDown,
   Loader2,
-  RefreshCw
+  RefreshCw,
+  Download,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -114,11 +116,40 @@ const SourceBadge = ({ source }: { source: string }) => {
   );
 };
 
+// Опции фильтра по источнику
+const SOURCE_FILTER_OPTIONS = [
+  { value: 'all', label: 'Все источники' },
+  { value: 'google', label: '🔍 Google' },
+  { value: 'facebook', label: '📘 Facebook' },
+  { value: 'instagram', label: '📷 Instagram' },
+  { value: 'tiktok', label: '🎵 TikTok' },
+  { value: 'youtube', label: '▶️ YouTube' },
+  { value: 'yandex', label: '🟡 Яндекс' },
+  { value: 'vk', label: '💬 VK' },
+  { value: 'telegram', label: '✈️ Telegram' },
+  { value: 'direct', label: '🔗 Прямой' },
+];
+
+const getSourceCategory = (utm_source: string | null): string => {
+  if (!utm_source) return 'direct';
+  const s = utm_source.toLowerCase();
+  if (s.includes('google') || s.includes('gclid')) return 'google';
+  if (s.includes('facebook') || s.includes('fb') || s.includes('meta')) return 'facebook';
+  if (s.includes('instagram') || s.includes('ig')) return 'instagram';
+  if (s.includes('tiktok') || s.includes('tt')) return 'tiktok';
+  if (s.includes('youtube') || s.includes('yt')) return 'youtube';
+  if (s.includes('yandex') || s.includes('ya')) return 'yandex';
+  if (s.includes('vk') || s.includes('vkontakte')) return 'vk';
+  if (s.includes('telegram') || s.includes('tg')) return 'telegram';
+  return 'other';
+};
+
 export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [sourceFilter, setSourceFilter] = useState<string>('all');
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
 
@@ -214,8 +245,50 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
     
-    return matchesSearch && matchesStatus;
+    const leadSourceCategory = getSourceCategory(lead.utm_source);
+    const matchesSource = sourceFilter === 'all' || leadSourceCategory === sourceFilter;
+    
+    return matchesSearch && matchesStatus && matchesSource;
   });
+
+  // Экспорт в CSV
+  const exportToCSV = () => {
+    const headers = ['Имя', 'Телефон', 'Email', 'Дата заявки', 'UTM Source', 'UTM Medium', 'UTM Campaign', 'Статус', 'Сумма сделки'];
+    const statusLabels: Record<string, string> = {
+      new: 'Новый',
+      contacted: 'Связались',
+      diagnostic: 'На диагностике',
+      qualified: 'Квалифицирован',
+      proposal: 'Предложение',
+      purchased: 'Купил',
+      rejected: 'Отказ'
+    };
+    
+    const rows = filteredLeads.map(lead => [
+      lead.name || '',
+      lead.phone || '',
+      lead.email || '',
+      format(new Date(lead.created_at), 'dd.MM.yyyy HH:mm'),
+      lead.utm_source || '',
+      lead.utm_medium || '',
+      lead.utm_campaign || '',
+      statusLabels[lead.status || 'new'] || lead.status || '',
+      lead.deal_amount ? lead.deal_amount.toString() : ''
+    ]);
+    
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map(row => row.map(cell => `"${cell}"`).join(';'))
+    ].join('\n');
+    
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `clients_${format(new Date(), 'yyyy-MM-dd')}.csv`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    toast.success(`Экспортировано ${filteredLeads.length} клиентов`);
+  };
 
   const formatCurrency = (value: number | null) => {
     if (!value) return '—';
@@ -250,15 +323,21 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
             {leads.length} клиентов из вебхуков
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchLeads}>
-          <RefreshCw className="w-4 h-4 mr-2" />
-          Обновить
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={exportToCSV} disabled={filteredLeads.length === 0}>
+            <Download className="w-4 h-4 mr-2" />
+            Экспорт CSV
+          </Button>
+          <Button variant="outline" size="sm" onClick={fetchLeads}>
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Обновить
+          </Button>
+        </div>
       </div>
 
       {/* Filters */}
-      <div className="flex gap-4">
-        <div className="relative flex-1 max-w-md">
+      <div className="flex flex-wrap gap-4">
+        <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input 
             placeholder="Поиск по имени, телефону, email..."
@@ -268,7 +347,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-48">
+          <SelectTrigger className="w-44">
             <Filter className="w-4 h-4 mr-2" />
             <SelectValue placeholder="Все статусы" />
           </SelectTrigger>
@@ -277,6 +356,18 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
             {STATUS_OPTIONS.map(status => (
               <SelectItem key={status.value} value={status.value}>
                 {status.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={sourceFilter} onValueChange={setSourceFilter}>
+          <SelectTrigger className="w-44">
+            <SelectValue placeholder="Все источники" />
+          </SelectTrigger>
+          <SelectContent>
+            {SOURCE_FILTER_OPTIONS.map(source => (
+              <SelectItem key={source.value} value={source.value}>
+                {source.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -294,6 +385,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Дата заявки</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">UTM</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Источник</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Сумма</th>
                 <th className="text-left p-4 text-sm font-medium text-muted-foreground">Статус</th>
                 <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
               </tr>
@@ -301,8 +393,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
             <tbody className="divide-y divide-border">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                    {searchQuery || statusFilter !== 'all' 
+                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                    {searchQuery || statusFilter !== 'all' || sourceFilter !== 'all'
                       ? 'Клиенты не найдены по заданным фильтрам'
                       : 'Клиенты появятся здесь после получения данных через вебхук'
                     }
@@ -389,6 +481,19 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                         <Badge variant="secondary" className="text-xs">
                           Прямой
                         </Badge>
+                      )}
+                    </td>
+                    {/* Сумма сделки */}
+                    <td className="p-4 text-right">
+                      {lead.deal_amount ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <DollarSign className="w-4 h-4 text-green-500" />
+                          <span className="font-semibold text-green-500">
+                            {formatCurrency(lead.deal_amount)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </td>
                     {/* Статус */}
