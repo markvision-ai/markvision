@@ -69,6 +69,51 @@ const STATUS_OPTIONS = [
   { value: 'rejected', label: 'Отказ', color: 'bg-red-500/20 text-red-500 border-red-500/30' },
 ];
 
+// Определение источника по utm_source
+const getSourceInfo = (source: string): { label: string; color: string; icon: string } => {
+  const s = source.toLowerCase();
+  
+  if (s.includes('google') || s.includes('gclid')) {
+    return { label: 'Google', color: 'bg-red-500/20 text-red-500 border-red-500/30', icon: '🔍' };
+  }
+  if (s.includes('facebook') || s.includes('fb') || s.includes('meta')) {
+    return { label: 'Facebook', color: 'bg-blue-600/20 text-blue-600 border-blue-600/30', icon: '📘' };
+  }
+  if (s.includes('instagram') || s.includes('ig')) {
+    return { label: 'Instagram', color: 'bg-pink-500/20 text-pink-500 border-pink-500/30', icon: '📷' };
+  }
+  if (s.includes('tiktok') || s.includes('tt')) {
+    return { label: 'TikTok', color: 'bg-slate-800/20 text-slate-300 border-slate-500/30', icon: '🎵' };
+  }
+  if (s.includes('youtube') || s.includes('yt')) {
+    return { label: 'YouTube', color: 'bg-red-600/20 text-red-600 border-red-600/30', icon: '▶️' };
+  }
+  if (s.includes('yandex') || s.includes('ya')) {
+    return { label: 'Яндекс', color: 'bg-yellow-500/20 text-yellow-600 border-yellow-500/30', icon: '🟡' };
+  }
+  if (s.includes('vk') || s.includes('vkontakte')) {
+    return { label: 'VK', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30', icon: '💬' };
+  }
+  if (s.includes('telegram') || s.includes('tg')) {
+    return { label: 'Telegram', color: 'bg-sky-500/20 text-sky-500 border-sky-500/30', icon: '✈️' };
+  }
+  if (s.includes('email') || s.includes('mail')) {
+    return { label: 'Email', color: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30', icon: '✉️' };
+  }
+  
+  return { label: source, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: '🔗' };
+};
+
+const SourceBadge = ({ source }: { source: string }) => {
+  const info = getSourceInfo(source);
+  return (
+    <Badge className={`${info.color} gap-1.5 font-medium`}>
+      <span>{info.icon}</span>
+      {info.label}
+    </Badge>
+  );
+};
+
 export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
@@ -240,137 +285,173 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       {/* Table */}
       <div className="bg-card border rounded-xl overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-secondary">
-            <tr>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">Клиент</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">Телефон</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">Статус</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">UTM Source</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">Сумма</th>
-              <th className="text-left p-4 text-sm font-medium text-muted-foreground">Дата</th>
-              <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {filteredLeads.length === 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-secondary">
               <tr>
-                <td colSpan={7} className="p-8 text-center text-muted-foreground">
-                  {searchQuery || statusFilter !== 'all' 
-                    ? 'Клиенты не найдены по заданным фильтрам'
-                    : 'Клиенты появятся здесь после получения данных через вебхук'
-                  }
-                </td>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Имя</th>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Телефон</th>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Дата заявки</th>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">UTM</th>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Источник</th>
+                <th className="text-left p-4 text-sm font-medium text-muted-foreground">Статус</th>
+                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
               </tr>
-            ) : (
-              filteredLeads.map(lead => (
-                <tr key={lead.id} className="hover:bg-secondary/50 transition-colors">
-                  <td className="p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="text-sm font-medium text-primary">
-                          {(lead.name || 'К').charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <p className="font-medium">{lead.name || 'Без имени'}</p>
-                        {lead.email && (
-                          <p className="text-sm text-muted-foreground">{lead.email}</p>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    {lead.phone ? (
-                      <a 
-                        href={`tel:${lead.phone}`}
-                        className="flex items-center gap-2 text-primary hover:underline"
-                      >
-                        <Phone className="w-4 h-4" />
-                        {lead.phone}
-                      </a>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="p-4">
-                    <Select 
-                      value={lead.status || 'new'} 
-                      onValueChange={(value) => updateLeadStatus(lead.id, value)}
-                    >
-                      <SelectTrigger className="w-40 h-8">
-                        <SelectValue>
-                          {getStatusBadge(lead.status)}
-                        </SelectValue>
-                      </SelectTrigger>
-                      <SelectContent>
-                        {STATUS_OPTIONS.map(status => (
-                          <SelectItem key={status.value} value={status.value}>
-                            <Badge className={status.color}>{status.label}</Badge>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </td>
-                  <td className="p-4">
-                    {lead.utm_source ? (
-                      <div className="space-y-1">
-                        <Badge variant="outline" className="text-xs">
-                          {lead.utm_source}
-                        </Badge>
-                        {lead.utm_medium && (
-                          <p className="text-xs text-muted-foreground">{lead.utm_medium}</p>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="p-4 font-medium">
-                    {formatCurrency(lead.deal_amount)}
-                  </td>
-                  <td className="p-4 text-sm text-muted-foreground">
-                    {format(new Date(lead.created_at), 'dd MMM yyyy, HH:mm', { locale: ru })}
-                  </td>
-                  <td className="p-4 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreVertical className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => {
-                          setSelectedLead(lead);
-                          setIsDetailOpen(true);
-                        }}>
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Подробнее
-                        </DropdownMenuItem>
-                        {lead.phone && (
-                          <DropdownMenuItem asChild>
-                            <a href={`tel:${lead.phone}`}>
-                              <Phone className="w-4 h-4 mr-2" />
-                              Позвонить
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                        {lead.email && (
-                          <DropdownMenuItem asChild>
-                            <a href={`mailto:${lead.email}`}>
-                              <Mail className="w-4 h-4 mr-2" />
-                              Написать
-                            </a>
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {filteredLeads.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                    {searchQuery || statusFilter !== 'all' 
+                      ? 'Клиенты не найдены по заданным фильтрам'
+                      : 'Клиенты появятся здесь после получения данных через вебхук'
+                    }
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredLeads.map(lead => (
+                  <tr key={lead.id} className="hover:bg-secondary/50 transition-colors">
+                    {/* Имя */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
+                          <span className="text-sm font-medium text-primary">
+                            {(lead.name || 'К').charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div className="min-w-0">
+                          <p className="font-medium truncate">{lead.name || 'Без имени'}</p>
+                          {lead.email && (
+                            <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    {/* Телефон */}
+                    <td className="p-4">
+                      {lead.phone ? (
+                        <a 
+                          href={`tel:${lead.phone}`}
+                          className="flex items-center gap-2 text-primary hover:underline whitespace-nowrap"
+                        >
+                          <Phone className="w-4 h-4 flex-shrink-0" />
+                          {lead.phone}
+                        </a>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    {/* Дата заявки */}
+                    <td className="p-4">
+                      <div className="flex items-center gap-2 text-sm whitespace-nowrap">
+                        <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                        <span>{format(new Date(lead.created_at), 'dd.MM.yyyy')}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {format(new Date(lead.created_at), 'HH:mm')}
+                      </p>
+                    </td>
+                    {/* UTM (source, medium, content) */}
+                    <td className="p-4">
+                      <div className="space-y-1 text-xs">
+                        {lead.utm_source && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground w-12">source:</span>
+                            <Badge variant="outline" className="font-mono text-xs px-1.5 py-0">
+                              {lead.utm_source}
+                            </Badge>
+                          </div>
+                        )}
+                        {lead.utm_medium && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground w-12">medium:</span>
+                            <span className="font-mono text-foreground">{lead.utm_medium}</span>
+                          </div>
+                        )}
+                        {lead.utm_content && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-muted-foreground w-12">content:</span>
+                            <span className="font-mono text-foreground truncate max-w-[120px]" title={lead.utm_content}>
+                              {lead.utm_content}
+                            </span>
+                          </div>
+                        )}
+                        {!lead.utm_source && !lead.utm_medium && !lead.utm_content && (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </div>
+                    </td>
+                    {/* Источник (Google, TikTok, Facebook и т.д.) */}
+                    <td className="p-4">
+                      {lead.utm_source ? (
+                        <SourceBadge source={lead.utm_source} />
+                      ) : (
+                        <Badge variant="secondary" className="text-xs">
+                          Прямой
+                        </Badge>
+                      )}
+                    </td>
+                    {/* Статус */}
+                    <td className="p-4">
+                      <Select 
+                        value={lead.status || 'new'} 
+                        onValueChange={(value) => updateLeadStatus(lead.id, value)}
+                      >
+                        <SelectTrigger className="w-36 h-8">
+                          <SelectValue>
+                            {getStatusBadge(lead.status)}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {STATUS_OPTIONS.map(status => (
+                            <SelectItem key={status.value} value={status.value}>
+                              <Badge className={status.color}>{status.label}</Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </td>
+                    {/* Действия */}
+                    <td className="p-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedLead(lead);
+                            setIsDetailOpen(true);
+                          }}>
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Подробнее
+                          </DropdownMenuItem>
+                          {lead.phone && (
+                            <DropdownMenuItem asChild>
+                              <a href={`tel:${lead.phone}`}>
+                                <Phone className="w-4 h-4 mr-2" />
+                                Позвонить
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                          {lead.email && (
+                            <DropdownMenuItem asChild>
+                              <a href={`mailto:${lead.email}`}>
+                                <Mail className="w-4 h-4 mr-2" />
+                                Написать
+                              </a>
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Stats */}
