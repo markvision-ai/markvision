@@ -426,6 +426,53 @@ export type Database = {
         }
         Relationships: []
       }
+      report_templates: {
+        Row: {
+          comparison_preset: string | null
+          created_at: string
+          custom_days: number | null
+          id: string
+          include_comparison: boolean | null
+          name: string
+          period_preset: string | null
+          project_id: string
+          selected_metrics: Json | null
+          updated_at: string
+        }
+        Insert: {
+          comparison_preset?: string | null
+          created_at?: string
+          custom_days?: number | null
+          id?: string
+          include_comparison?: boolean | null
+          name: string
+          period_preset?: string | null
+          project_id: string
+          selected_metrics?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          comparison_preset?: string | null
+          created_at?: string
+          custom_days?: number | null
+          id?: string
+          include_comparison?: boolean | null
+          name?: string
+          period_preset?: string | null
+          project_id?: string
+          selected_metrics?: Json | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       touchpoints: {
         Row: {
           campaign_name: string | null

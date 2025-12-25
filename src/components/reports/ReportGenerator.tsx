@@ -16,7 +16,14 @@ import {
   TrendingDown,
   Target,
   AlertCircle,
-  CalendarIcon
+  CalendarIcon,
+  Save,
+  FolderOpen,
+  Trash2,
+  GitCompare,
+  ArrowUpRight,
+  ArrowDownRight,
+  Minus
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, eachDayOfInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -29,12 +36,24 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useAIReport } from '@/hooks/useAIReport';
 import { supabase } from '@/integrations/supabase/client';
+
+interface ReportTemplate {
+  id: string;
+  name: string;
+  period_preset: string | null;
+  custom_days: number | null;
+  include_comparison: boolean;
+  comparison_preset: string | null;
+  selected_metrics: string[];
+}
 
 interface ReportData {
   projectId?: string;
@@ -113,6 +132,25 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const reportRef = useRef<HTMLDivElement>(null);
   const { isGenerating: isGeneratingAI, aiAnalysis, generateAIReport } = useAIReport();
 
+  // Templates state
+  const [templates, setTemplates] = useState<ReportTemplate[]>([]);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(false);
+  const [isSaveTemplateOpen, setIsSaveTemplateOpen] = useState(false);
+  const [newTemplateName, setNewTemplateName] = useState('');
+  const [isSavingTemplate, setIsSavingTemplate] = useState(false);
+
+  // Comparison state
+  const [isComparisonEnabled, setIsComparisonEnabled] = useState(false);
+  const [comparisonPreset, setComparisonPreset] = useState<PresetKey>('lastMonth');
+  const [comparisonDateRange, setComparisonDateRange] = useState<DateRange>(() => {
+    const lastMonth = subMonths(new Date(), 1);
+    return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+  });
+  const [comparisonData, setComparisonData] = useState<{
+    totals: typeof data.totals;
+    isLoading: boolean;
+  }>({ totals: { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }, isLoading: false });
+
   // Local date range state for reports
   const [reportDateRange, setReportDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),
@@ -124,6 +162,79 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     totals: typeof data.totals;
     isLoading: boolean;
   }>({ totals: data.totals, isLoading: false });
+
+  // Load templates
+  useEffect(() => {
+    const loadTemplates = async () => {
+      if (!data.projectId) return;
+      
+      setIsLoadingTemplates(true);
+      const { data: templatesData, error } = await supabase
+        .from('report_templates')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .order('created_at', { ascending: false });
+      
+      if (!error && templatesData) {
+        setTemplates(templatesData.map(t => ({
+          id: t.id,
+          name: t.name,
+          period_preset: t.period_preset,
+          custom_days: t.custom_days,
+          include_comparison: t.include_comparison || false,
+          comparison_preset: t.comparison_preset,
+          selected_metrics: (t.selected_metrics as string[]) || [],
+        })));
+      }
+      setIsLoadingTemplates(false);
+    };
+    
+    loadTemplates();
+  }, [data.projectId]);
+
+  // Fetch comparison data when enabled
+  useEffect(() => {
+    const fetchComparisonData = async () => {
+      if (!data.projectId || !isComparisonEnabled) {
+        return;
+      }
+
+      setComparisonData(prev => ({ ...prev, isLoading: true }));
+
+      const fromDate = format(comparisonDateRange.from, 'yyyy-MM-dd');
+      const toDate = format(comparisonDateRange.to, 'yyyy-MM-dd');
+
+      const { data: dailyData, error } = await supabase
+        .from('daily_data')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .gte('date', fromDate)
+        .lte('date', toDate);
+
+      if (error) {
+        console.error('Error fetching comparison data:', error);
+        setComparisonData(prev => ({ ...prev, isLoading: false }));
+        return;
+      }
+
+      const totals = (dailyData || []).reduce(
+        (acc, day) => ({
+          spend: acc.spend + (Number(day.spend) || 0),
+          impressions: acc.impressions + (day.impressions || 0),
+          clicks: acc.clicks + (day.clicks || 0),
+          leads: acc.leads + (day.leads || 0),
+          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          sales: acc.sales + (day.sales || 0),
+          revenue: acc.revenue + (Number(day.revenue) || 0),
+        }),
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      );
+
+      setComparisonData({ totals, isLoading: false });
+    };
+
+    fetchComparisonData();
+  }, [comparisonDateRange, data.projectId, isComparisonEnabled]);
 
   // Fetch data when date range changes
   useEffect(() => {
@@ -226,6 +337,132 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         to: range.to || range.from,
       });
       setActivePreset('custom');
+    }
+  };
+
+  // Handle comparison preset
+  const handleComparisonPresetChange = (preset: PresetKey) => {
+    const now = new Date();
+    let newRange: DateRange;
+
+    switch (preset) {
+      case 'week':
+        newRange = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+        break;
+      case 'lastWeek':
+        const lastWeek = subWeeks(now, 1);
+        newRange = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
+        break;
+      case 'month':
+        newRange = { from: startOfMonth(now), to: endOfMonth(now) };
+        break;
+      case 'lastMonth':
+        const lastMonth = subMonths(now, 1);
+        newRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+        break;
+      default:
+        return;
+    }
+
+    setComparisonDateRange(newRange);
+    setComparisonPreset(preset);
+  };
+
+  // Comparison metrics
+  const comparisonMetrics = useMemo(() => {
+    const t = comparisonData.totals;
+    return {
+      cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
+      cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
+      aov: t.sales > 0 ? Math.round(t.revenue / t.sales) : 0,
+      romi: t.spend > 0 ? ((t.revenue - t.spend) / t.spend) * 100 : 0,
+      roas: t.spend > 0 ? t.revenue / t.spend : 0,
+    };
+  }, [comparisonData.totals]);
+
+  // Calculate change percentage
+  const getChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  // Save template
+  const handleSaveTemplate = async () => {
+    if (!data.projectId || !newTemplateName.trim()) {
+      toast.error('Введите название шаблона');
+      return;
+    }
+
+    setIsSavingTemplate(true);
+    try {
+      const { error } = await supabase.from('report_templates').insert({
+        project_id: data.projectId,
+        name: newTemplateName.trim(),
+        period_preset: activePreset,
+        include_comparison: isComparisonEnabled,
+        comparison_preset: comparisonPreset,
+        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'cpl', 'romi'],
+      });
+
+      if (error) throw error;
+
+      toast.success('Шаблон сохранён');
+      setNewTemplateName('');
+      setIsSaveTemplateOpen(false);
+
+      // Reload templates
+      const { data: templatesData } = await supabase
+        .from('report_templates')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .order('created_at', { ascending: false });
+
+      if (templatesData) {
+        setTemplates(templatesData.map(t => ({
+          id: t.id,
+          name: t.name,
+          period_preset: t.period_preset,
+          custom_days: t.custom_days,
+          include_comparison: t.include_comparison || false,
+          comparison_preset: t.comparison_preset,
+          selected_metrics: (t.selected_metrics as string[]) || [],
+        })));
+      }
+    } catch (error) {
+      toast.error('Ошибка сохранения шаблона');
+      console.error(error);
+    } finally {
+      setIsSavingTemplate(false);
+    }
+  };
+
+  // Load template
+  const handleLoadTemplate = (template: ReportTemplate) => {
+    if (template.period_preset && template.period_preset !== 'custom') {
+      handlePresetClick(template.period_preset as PresetKey);
+    }
+    setIsComparisonEnabled(template.include_comparison);
+    if (template.comparison_preset) {
+      handleComparisonPresetChange(template.comparison_preset as PresetKey);
+    }
+    toast.success(`Шаблон "${template.name}" загружен`);
+  };
+
+  // Delete template
+  const handleDeleteTemplate = async (templateId: string) => {
+    try {
+      const { error } = await supabase
+        .from('report_templates')
+        .delete()
+        .eq('id', templateId);
+
+      if (error) throw error;
+
+      setTemplates(prev => prev.filter(t => t.id !== templateId));
+      toast.success('Шаблон удалён');
+    } catch (error) {
+      toast.error('Ошибка удаления шаблона');
+      console.error(error);
     }
   };
 
@@ -374,65 +611,236 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border rounded-2xl p-6">
-        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-2">
-              <FileText className="w-6 h-6 text-primary" />
-              <h2 className="text-2xl font-bold">Отчёты</h2>
-            </div>
-            <p className="text-muted-foreground max-w-xl">
-              Генерируйте PDF-отчёты с AI-аналитикой и настраивайте автоматическую отправку в Telegram
-            </p>
-          </div>
-          
-          {/* Date Range Picker */}
-          <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-            <PopoverTrigger asChild>
-              <Button
-                variant="outline"
-                className={cn(
-                  "justify-start text-left font-normal min-w-[240px]",
-                  !reportDateRange && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {format(reportDateRange.from, 'd MMM', { locale: ru })} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="end">
-              <div className="p-3 border-b">
-                <div className="flex flex-wrap gap-2">
-                  {presets.map((preset) => (
-                    <Button
-                      key={preset.key}
-                      variant={activePreset === preset.key ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handlePresetClick(preset.key)}
-                    >
-                      {preset.label}
-                    </Button>
-                  ))}
-                </div>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <FileText className="w-6 h-6 text-primary" />
+                <h2 className="text-2xl font-bold">Отчёты</h2>
               </div>
-              <CalendarComponent
-                mode="range"
-                selected={{ from: reportDateRange.from, to: reportDateRange.to }}
-                onSelect={handleCalendarSelect}
-                numberOfMonths={2}
-                locale={ru}
-                className={cn("p-3 pointer-events-auto")}
-              />
-            </PopoverContent>
-          </Popover>
+              <p className="text-muted-foreground max-w-xl">
+                Генерируйте PDF-отчёты с AI-аналитикой и настраивайте автоматическую отправку в Telegram
+              </p>
+            </div>
+            
+            {/* Templates */}
+            <div className="flex gap-2">
+              {templates.length > 0 && (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <FolderOpen className="w-4 h-4 mr-2" />
+                      Шаблоны ({templates.length})
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-64" align="end">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium mb-3">Сохранённые шаблоны</p>
+                      {templates.map((template) => (
+                        <div key={template.id} className="flex items-center justify-between gap-2 p-2 rounded-lg hover:bg-muted">
+                          <button
+                            onClick={() => handleLoadTemplate(template)}
+                            className="flex-1 text-left text-sm hover:text-primary"
+                          >
+                            {template.name}
+                          </button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-6 w-6 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteTemplate(template.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              )}
+              
+              <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    <Save className="w-4 h-4 mr-2" />
+                    Сохранить шаблон
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Сохранить шаблон отчёта</DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-4 pt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="template-name">Название шаблона</Label>
+                      <Input
+                        id="template-name"
+                        placeholder="Например: Еженедельный отчёт"
+                        value={newTemplateName}
+                        onChange={(e) => setNewTemplateName(e.target.value)}
+                      />
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Будет сохранено:</p>
+                      <ul className="list-disc list-inside mt-2 space-y-1">
+                        <li>Период: {presets.find(p => p.key === activePreset)?.label || 'Произвольный'}</li>
+                        <li>Сравнение: {isComparisonEnabled ? 'Включено' : 'Выключено'}</li>
+                      </ul>
+                    </div>
+                    <Button 
+                      onClick={handleSaveTemplate} 
+                      disabled={isSavingTemplate || !newTemplateName.trim()}
+                      className="w-full"
+                    >
+                      {isSavingTemplate ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <Save className="w-4 h-4 mr-2" />
+                      )}
+                      Сохранить
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          {/* Date Range and Comparison */}
+          <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
+            {/* Main Period */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Период:</span>
+              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "justify-start text-left font-normal min-w-[200px]",
+                      !reportDateRange && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {format(reportDateRange.from, 'd MMM', { locale: ru })} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <div className="p-3 border-b">
+                    <div className="flex flex-wrap gap-2">
+                      {presets.map((preset) => (
+                        <Button
+                          key={preset.key}
+                          variant={activePreset === preset.key ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => handlePresetClick(preset.key)}
+                        >
+                          {preset.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  <CalendarComponent
+                    mode="range"
+                    selected={{ from: reportDateRange.from, to: reportDateRange.to }}
+                    onSelect={handleCalendarSelect}
+                    numberOfMonths={2}
+                    locale={ru}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            {/* Comparison Toggle */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <Switch
+                  id="comparison-toggle"
+                  checked={isComparisonEnabled}
+                  onCheckedChange={setIsComparisonEnabled}
+                />
+                <Label htmlFor="comparison-toggle" className="text-sm flex items-center gap-1 cursor-pointer">
+                  <GitCompare className="w-4 h-4" />
+                  Сравнить с
+                </Label>
+              </div>
+              
+              {isComparisonEnabled && (
+                <Select value={comparisonPreset} onValueChange={(v) => handleComparisonPresetChange(v as PresetKey)}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {presets.map((preset) => (
+                      <SelectItem key={preset.key} value={preset.key}>
+                        {preset.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          </div>
         </div>
         
-        {reportData.isLoading && (
+        {(reportData.isLoading || comparisonData.isLoading) && (
           <div className="flex items-center gap-2 mt-4 text-muted-foreground">
             <Loader2 className="w-4 h-4 animate-spin" />
-            <span className="text-sm">Загрузка данных за период...</span>
+            <span className="text-sm">Загрузка данных...</span>
           </div>
         )}
       </div>
+
+      {/* Comparison Summary */}
+      {isComparisonEnabled && !comparisonData.isLoading && (
+        <div className="bg-card border rounded-xl p-4">
+          <div className="flex items-center gap-2 mb-4">
+            <GitCompare className="w-5 h-5 text-primary" />
+            <h3 className="font-semibold">Сравнение периодов</h3>
+            <Badge variant="secondary" className="text-xs">
+              {format(comparisonDateRange.from, 'd MMM', { locale: ru })} — {format(comparisonDateRange.to, 'd MMM', { locale: ru })}
+            </Badge>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+            {[
+              { label: 'Расход', current: reportData.totals.spend, previous: comparisonData.totals.spend, format: 'currency', inverse: true },
+              { label: 'Показы', current: reportData.totals.impressions, previous: comparisonData.totals.impressions, format: 'number' },
+              { label: 'Лиды', current: reportData.totals.leads, previous: comparisonData.totals.leads, format: 'number' },
+              { label: 'Продажи', current: reportData.totals.sales, previous: comparisonData.totals.sales, format: 'number' },
+              { label: 'Выручка', current: reportData.totals.revenue, previous: comparisonData.totals.revenue, format: 'currency' },
+              { label: 'CPL', current: computedMetrics.cpl, previous: comparisonMetrics.cpl, format: 'currency', inverse: true },
+              { label: 'ROMI', current: computedMetrics.romi, previous: comparisonMetrics.romi, format: 'percent' },
+            ].map((item) => {
+              const change = getChange(item.current, item.previous);
+              const isPositive = item.inverse ? change < 0 : change > 0;
+              const isNeutral = Math.abs(change) < 0.5;
+              
+              return (
+                <div key={item.label} className="text-center">
+                  <p className="text-xs text-muted-foreground mb-1">{item.label}</p>
+                  <p className="font-semibold">
+                    {item.format === 'currency' ? formatCurrency(item.current) : 
+                     item.format === 'percent' ? `${item.current.toFixed(1)}%` : 
+                     formatNumber(item.current)}
+                  </p>
+                  <div className={cn(
+                    "text-xs flex items-center justify-center gap-1 mt-1",
+                    isNeutral ? "text-muted-foreground" : isPositive ? "text-green-600" : "text-red-600"
+                  )}>
+                    {isNeutral ? (
+                      <Minus className="w-3 h-3" />
+                    ) : isPositive ? (
+                      <ArrowUpRight className="w-3 h-3" />
+                    ) : (
+                      <ArrowDownRight className="w-3 h-3" />
+                    )}
+                    {Math.abs(change).toFixed(1)}%
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2 lg:w-auto lg:inline-flex">
