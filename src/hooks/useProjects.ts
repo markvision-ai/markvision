@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { logError } from '@/lib/validation';
 
 interface Project {
   id: string;
@@ -23,7 +24,7 @@ export const useProjects = () => {
       .select('*');
 
     if (error) {
-      console.error('Error fetching projects:', error);
+      logError('Fetch projects failed', error);
       return;
     }
 
@@ -47,17 +48,24 @@ export const useProjects = () => {
       return false;
     }
 
+    // Validate project name
+    const trimmedName = name.trim();
+    if (!trimmedName || trimmedName.length > 100) {
+      toast.error('Название проекта должно быть от 1 до 100 символов');
+      return false;
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .insert({
-        name,
+        name: trimmedName,
         owner_id: user.id,
       })
       .select()
       .single();
 
     if (error) {
-      console.error('Error creating project:', error);
+      logError('Create project failed', error);
       toast.error('Ошибка при создании проекта');
       return false;
     }
@@ -81,7 +89,7 @@ export const useProjects = () => {
       .eq('id', projectId);
 
     if (error) {
-      console.error('Error deleting project:', error);
+      logError('Delete project failed', error);
       toast.error('Ошибка при удалении проекта');
       return false;
     }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { logError } from '@/lib/validation';
 
 export interface TeamMember {
   id: string;
@@ -30,7 +31,7 @@ export const useTeamMembers = () => {
       .select('*');
 
     if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
+      logError('Fetch profiles failed', profilesError);
       setLoading(false);
       return;
     }
@@ -41,7 +42,7 @@ export const useTeamMembers = () => {
       .select('*');
 
     if (rolesError) {
-      console.error('Error fetching roles:', rolesError);
+      logError('Fetch roles failed', rolesError);
     }
 
     // Fetch project access for all users
@@ -50,7 +51,7 @@ export const useTeamMembers = () => {
       .select('*');
 
     if (accessError) {
-      console.error('Error fetching project access:', accessError);
+      logError('Fetch project access failed', accessError);
     }
 
     // Combine data
@@ -100,7 +101,7 @@ export const useTeamMembers = () => {
         .eq('user_id', userId);
 
       if (error) {
-        console.error('Error updating role:', error);
+        logError('Update role failed', error);
         toast.error('Ошибка при обновлении роли');
         return false;
       }
@@ -110,7 +111,7 @@ export const useTeamMembers = () => {
         .insert({ user_id: userId, role });
 
       if (error) {
-        console.error('Error inserting role:', error);
+        logError('Insert role failed', error);
         toast.error('Ошибка при назначении роли');
         return false;
       }
@@ -133,7 +134,7 @@ export const useTeamMembers = () => {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error updating status:', error);
+      logError('Update status failed', error);
       toast.error('Ошибка при обновлении статуса');
       return false;
     }
@@ -156,7 +157,7 @@ export const useTeamMembers = () => {
       .eq('user_id', userId);
 
     if (deleteError) {
-      console.error('Error removing access:', deleteError);
+      logError('Remove access failed', deleteError);
       toast.error('Ошибка при обновлении доступа');
       return false;
     }
@@ -168,7 +169,7 @@ export const useTeamMembers = () => {
         .insert(projectIds.map(projectId => ({ user_id: userId, project_id: projectId })));
 
       if (insertError) {
-        console.error('Error adding access:', insertError);
+        logError('Add access failed', insertError);
         toast.error('Ошибка при обновлении доступа');
         return false;
       }
@@ -198,7 +199,7 @@ export const useTeamMembers = () => {
       .eq('user_id', userId);
 
     if (error) {
-      console.error('Error deactivating member:', error);
+      logError('Deactivate member failed', error);
       toast.error('Ошибка при удалении сотрудника');
       return false;
     }

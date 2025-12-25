@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
+import { validateFieldValue, logError } from '@/lib/validation';
+import { useAuth } from './useAuth';
 
 interface DailyData {
   date: string;
@@ -25,6 +27,7 @@ interface PlanData {
 }
 
 export const useProjectData = (projectId: string | null) => {
+  const { isAdmin } = useAuth();
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
   const [planData, setPlanData] = useState<PlanData>({
     spend: 0,
@@ -47,7 +50,7 @@ export const useProjectData = (projectId: string | null) => {
       .eq('project_id', projectId);
 
     if (error) {
-      console.error('Error fetching daily data:', error);
+      logError('Fetch daily data failed', error);
       return;
     }
 
@@ -82,7 +85,7 @@ export const useProjectData = (projectId: string | null) => {
       .maybeSingle();
 
     if (error) {
-      console.error('Error fetching plan data:', error);
+      logError('Fetch plan data failed', error);
       return;
     }
 
@@ -102,6 +105,13 @@ export const useProjectData = (projectId: string | null) => {
   // Update or insert daily data
   const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
     if (!projectId) return;
+
+    // Validate input
+    const validation = validateFieldValue(field, value);
+    if (!validation.success) {
+      toast.error(validation.error || 'Некорректное значение');
+      return;
+    }
 
     // Optimistically update local state
     setDailyData(prev => ({
@@ -129,7 +139,7 @@ export const useProjectData = (projectId: string | null) => {
         .eq('id', existing.id);
 
       if (error) {
-        console.error('Error updating daily data:', error);
+        logError('Update daily data failed', error);
         toast.error('Ошибка сохранения данных');
         fetchDailyData(); // Revert on error
       }
@@ -144,16 +154,29 @@ export const useProjectData = (projectId: string | null) => {
         });
 
       if (error) {
-        console.error('Error inserting daily data:', error);
+        logError('Insert daily data failed', error);
         toast.error('Ошибка сохранения данных');
         fetchDailyData(); // Revert on error
       }
     }
   }, [projectId, fetchDailyData]);
 
-  // Update plan data
+  // Update plan data (admin only)
   const updatePlanData = useCallback(async (field: keyof PlanData, value: number) => {
     if (!projectId) return;
+
+    // Check admin permission
+    if (!isAdmin) {
+      toast.error('Только администраторы могут изменять плановые данные');
+      return;
+    }
+
+    // Validate input
+    const validation = validateFieldValue(field, value);
+    if (!validation.success) {
+      toast.error(validation.error || 'Некорректное значение');
+      return;
+    }
 
     const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 
@@ -178,7 +201,7 @@ export const useProjectData = (projectId: string | null) => {
         .eq('id', existing.id);
 
       if (error) {
-        console.error('Error updating plan data:', error);
+        logError('Update plan data failed', error);
         toast.error('Ошибка сохранения плана');
         fetchPlanData();
       }
@@ -192,12 +215,12 @@ export const useProjectData = (projectId: string | null) => {
         });
 
       if (error) {
-        console.error('Error inserting plan data:', error);
+        logError('Insert plan data failed', error);
         toast.error('Ошибка сохранения плана');
         fetchPlanData();
       }
     }
-  }, [projectId, fetchPlanData]);
+  }, [projectId, isAdmin, fetchPlanData]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -217,6 +240,7 @@ export const useProjectData = (projectId: string | null) => {
     loading,
     updateDailyData,
     updatePlanData,
+    canEditPlan: isAdmin,
     refetch: () => Promise.all([fetchDailyData(), fetchPlanData()]),
   };
 };
