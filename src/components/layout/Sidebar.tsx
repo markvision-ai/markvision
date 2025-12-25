@@ -15,7 +15,8 @@ import {
   Zap,
   Target,
   UserCheck,
-  Menu
+  Menu,
+  Plug
 } from 'lucide-react';
 import {
   Dialog,
@@ -49,6 +50,7 @@ const menuItems = [
 
 const bottomItems = [
   { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
+  { id: 'integrations', label: 'Интеграции', icon: Plug },
   { id: 'team', label: 'Команда', icon: Users },
   { id: 'settings', label: 'Настройки', icon: Settings },
   { id: 'help', label: 'Помощь', icon: HelpCircle },
