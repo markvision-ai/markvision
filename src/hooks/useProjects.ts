@@ -17,25 +17,31 @@ export const useProjects = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchProjects = useCallback(async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('projects')
-      .select('*');
-
-    if (error) {
-      logError('Fetch projects failed', error);
+    if (!user) {
+      setLoading(false);
       return;
     }
 
-    setProjects(data || []);
-    
-    // Set first project as default
-    if (data && data.length > 0 && !currentProjectId) {
-      setCurrentProjectId(data[0].id);
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*');
+
+      if (error) {
+        logError('Fetch projects failed', error);
+        setLoading(false);
+        return;
+      }
+
+      setProjects(data || []);
+      
+      // Set first project as default
+      if (data && data.length > 0 && !currentProjectId) {
+        setCurrentProjectId(data[0].id);
+      }
+    } finally {
+      setLoading(false);
     }
-    
-    setLoading(false);
   }, [user]);
 
   useEffect(() => {
