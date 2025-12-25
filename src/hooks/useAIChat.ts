@@ -21,6 +21,7 @@ interface DataContext {
   cac?: number;
   aov?: number;
   romi?: number;
+  projectId?: string;
 }
 
 export const useAIChat = () => {
@@ -40,7 +41,11 @@ export const useAIChat = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('ai-analytics-chat', {
-        body: { message, context },
+        body: { 
+          message, 
+          context,
+          projectId: context?.projectId 
+        },
       });
 
       if (error) throw error;
