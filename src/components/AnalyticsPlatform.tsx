@@ -327,9 +327,11 @@ export const AnalyticsPlatform = () => {
       {activeTab === 'reports' && (
         <ReportGenerator 
           data={{
+            projectId: currentProjectId || undefined,
             projectName: currentProject?.name || 'Проект',
             dateRange: dateRange,
             totals,
+            planData,
             funnelSteps,
             metrics: { aov, cpl, cac, romi, roas }
           }}
