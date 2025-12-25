@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface ReportData {
+  projectId?: string;
   projectName: string;
   dateRange: { from: Date; to: Date };
   totals: {
@@ -33,6 +34,7 @@ export const useAIReport = () => {
     try {
       const { data: result, error } = await supabase.functions.invoke('generate-ai-report', {
         body: {
+          projectId: data.projectId,
           projectName: data.projectName,
           dateRange: {
             from: data.dateRange.from.toISOString(),

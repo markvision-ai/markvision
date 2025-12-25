@@ -38,14 +38,28 @@ serve(async (req) => {
       });
     }
 
-    const { message, context } = await req.json();
+    const { message, context, projectId } = await req.json();
+
+    // Verify project access if projectId is provided
+    if (projectId) {
+      const { data: hasAccess, error: accessError } = await supabase
+        .rpc('has_project_access', { _user_id: user.id, _project_id: projectId });
+
+      if (accessError || !hasAccess) {
+        console.log('Access denied: User does not have project access');
+        return new Response(JSON.stringify({ error: 'Access denied to this project' }), {
+          status: 403,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('AI Analytics Chat - Processing request for user:', user.id);
+    console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '');
 
     const systemPrompt = `Ты — AI-аналитик маркетинга для платформы AdMetrics. Твоя задача — помогать пользователям анализировать их маркетинговые данные и давать конкретные рекомендации.
 
