@@ -14,6 +14,142 @@ export type Database = {
   }
   public: {
     Tables: {
+      attribution_results: {
+        Row: {
+          assisted_conversions: number | null
+          attributed_leads: number | null
+          attributed_profit: number | null
+          attributed_revenue: number | null
+          attributed_sales: number | null
+          cac: number | null
+          calculated_at: string
+          campaign_name: string | null
+          channel_name: string
+          cpl: number | null
+          created_at: string
+          id: string
+          keyword: string | null
+          leads: number | null
+          model: Database["public"]["Enums"]["attribution_model"]
+          period_end: string
+          period_start: string
+          profit: number | null
+          project_id: string
+          revenue: number | null
+          roi: number | null
+          sales: number | null
+          source_type: Database["public"]["Enums"]["traffic_source"] | null
+          spend: number | null
+          visits: number | null
+        }
+        Insert: {
+          assisted_conversions?: number | null
+          attributed_leads?: number | null
+          attributed_profit?: number | null
+          attributed_revenue?: number | null
+          attributed_sales?: number | null
+          cac?: number | null
+          calculated_at?: string
+          campaign_name?: string | null
+          channel_name: string
+          cpl?: number | null
+          created_at?: string
+          id?: string
+          keyword?: string | null
+          leads?: number | null
+          model: Database["public"]["Enums"]["attribution_model"]
+          period_end: string
+          period_start: string
+          profit?: number | null
+          project_id: string
+          revenue?: number | null
+          roi?: number | null
+          sales?: number | null
+          source_type?: Database["public"]["Enums"]["traffic_source"] | null
+          spend?: number | null
+          visits?: number | null
+        }
+        Update: {
+          assisted_conversions?: number | null
+          attributed_leads?: number | null
+          attributed_profit?: number | null
+          attributed_revenue?: number | null
+          attributed_sales?: number | null
+          cac?: number | null
+          calculated_at?: string
+          campaign_name?: string | null
+          channel_name?: string
+          cpl?: number | null
+          created_at?: string
+          id?: string
+          keyword?: string | null
+          leads?: number | null
+          model?: Database["public"]["Enums"]["attribution_model"]
+          period_end?: string
+          period_start?: string
+          profit?: number | null
+          project_id?: string
+          revenue?: number | null
+          roi?: number | null
+          sales?: number | null
+          source_type?: Database["public"]["Enums"]["traffic_source"] | null
+          spend?: number | null
+          visits?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "attribution_results_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      custom_attribution_settings: {
+        Row: {
+          created_at: string
+          first_touch_weight: number
+          id: string
+          is_default: boolean | null
+          last_touch_weight: number
+          middle_touches_weight: number
+          name: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          first_touch_weight?: number
+          id?: string
+          is_default?: boolean | null
+          last_touch_weight?: number
+          middle_touches_weight?: number
+          name: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          first_touch_weight?: number
+          id?: string
+          is_default?: boolean | null
+          last_touch_weight?: number
+          middle_touches_weight?: number
+          name?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_attribution_settings_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_data: {
         Row: {
           clicks: number
@@ -206,6 +342,81 @@ export type Database = {
         }
         Relationships: []
       }
+      touchpoints: {
+        Row: {
+          campaign_name: string | null
+          channel_name: string
+          created_at: string
+          deal_id: string
+          deal_profit: number | null
+          deal_revenue: number | null
+          deal_status: string | null
+          id: string
+          is_first: boolean | null
+          is_last: boolean | null
+          keyword: string | null
+          position: number
+          project_id: string
+          source_type: Database["public"]["Enums"]["traffic_source"]
+          total_in_chain: number
+          touched_at: string
+          visit_id: string | null
+        }
+        Insert: {
+          campaign_name?: string | null
+          channel_name: string
+          created_at?: string
+          deal_id: string
+          deal_profit?: number | null
+          deal_revenue?: number | null
+          deal_status?: string | null
+          id?: string
+          is_first?: boolean | null
+          is_last?: boolean | null
+          keyword?: string | null
+          position: number
+          project_id: string
+          source_type: Database["public"]["Enums"]["traffic_source"]
+          total_in_chain: number
+          touched_at: string
+          visit_id?: string | null
+        }
+        Update: {
+          campaign_name?: string | null
+          channel_name?: string
+          created_at?: string
+          deal_id?: string
+          deal_profit?: number | null
+          deal_revenue?: number | null
+          deal_status?: string | null
+          id?: string
+          is_first?: boolean | null
+          is_last?: boolean | null
+          keyword?: string | null
+          position?: number
+          project_id?: string
+          source_type?: Database["public"]["Enums"]["traffic_source"]
+          total_in_chain?: number
+          touched_at?: string
+          visit_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "touchpoints_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "touchpoints_visit_id_fkey"
+            columns: ["visit_id"]
+            isOneToOne: false
+            referencedRelation: "visits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -223,6 +434,101 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      visits: {
+        Row: {
+          browser: string | null
+          city: string | null
+          client_id: string
+          country: string | null
+          created_at: string
+          device_type: string | null
+          duration_seconds: number | null
+          id: string
+          is_bounce: boolean | null
+          is_conversion: boolean | null
+          landing_page: string | null
+          os: string | null
+          pages_viewed: number | null
+          project_id: string
+          referrer: string | null
+          region: string | null
+          screen_resolution: string | null
+          session_id: string
+          source_type: Database["public"]["Enums"]["traffic_source"]
+          user_id: string | null
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          visited_at: string
+        }
+        Insert: {
+          browser?: string | null
+          city?: string | null
+          client_id: string
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_bounce?: boolean | null
+          is_conversion?: boolean | null
+          landing_page?: string | null
+          os?: string | null
+          pages_viewed?: number | null
+          project_id: string
+          referrer?: string | null
+          region?: string | null
+          screen_resolution?: string | null
+          session_id: string
+          source_type?: Database["public"]["Enums"]["traffic_source"]
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visited_at?: string
+        }
+        Update: {
+          browser?: string | null
+          city?: string | null
+          client_id?: string
+          country?: string | null
+          created_at?: string
+          device_type?: string | null
+          duration_seconds?: number | null
+          id?: string
+          is_bounce?: boolean | null
+          is_conversion?: boolean | null
+          landing_page?: string | null
+          os?: string | null
+          pages_viewed?: number | null
+          project_id?: string
+          referrer?: string | null
+          region?: string | null
+          screen_resolution?: string | null
+          session_id?: string
+          source_type?: Database["public"]["Enums"]["traffic_source"]
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "visits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
@@ -243,7 +549,29 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "manager"
+      attribution_model:
+        | "first_click"
+        | "last_click"
+        | "last_paid_click"
+        | "linear"
+        | "u_shape"
+        | "time_decay"
+        | "time_growth"
+        | "custom"
       member_status: "active" | "pending" | "inactive"
+      traffic_source:
+        | "direct"
+        | "organic"
+        | "paid_search"
+        | "paid_social"
+        | "email"
+        | "referral"
+        | "retargeting"
+        | "display"
+        | "video"
+        | "affiliate"
+        | "sms"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -372,7 +700,31 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "manager"],
+      attribution_model: [
+        "first_click",
+        "last_click",
+        "last_paid_click",
+        "linear",
+        "u_shape",
+        "time_decay",
+        "time_growth",
+        "custom",
+      ],
       member_status: ["active", "pending", "inactive"],
+      traffic_source: [
+        "direct",
+        "organic",
+        "paid_search",
+        "paid_social",
+        "email",
+        "referral",
+        "retargeting",
+        "display",
+        "video",
+        "affiliate",
+        "sms",
+        "other",
+      ],
     },
   },
 } as const
