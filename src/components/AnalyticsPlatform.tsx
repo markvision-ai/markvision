@@ -26,6 +26,7 @@ import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { GrowthPoints } from './analytics/GrowthPoints';
+import { MultichannelAnalytics } from './multichannel/MultichannelAnalytics';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 
@@ -162,6 +163,7 @@ export const AnalyticsPlatform = () => {
       case 'analytics': return 'Аналитика';
       case 'funnel': return 'Воронка продаж';
       case 'e2e-analytics': return 'Сквозная аналитика';
+      case 'multichannel': return 'Мультиканальная аналитика';
       case 'growth': return 'Точки роста';
       case 'reports': return 'Отчёты';
       case 'team': return 'Команда';
@@ -391,6 +393,10 @@ export const AnalyticsPlatform = () => {
 
           {activeTab === 'growth' && (
             <GrowthPoints totals={totals} planData={planData} />
+          )}
+
+          {activeTab === 'multichannel' && (
+            <MultichannelAnalytics projectId={currentProjectId} />
           )}
 
           {activeTab === 'reports' && (
