@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+interface UserProfile {
+  id: string;
+  name: string | null;
+  email: string | null;
+}
+
 interface AuthState {
   user: User | null;
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  profile: UserProfile | null;
 }
 
 export const useAuth = () => {
@@ -15,6 +22,7 @@ export const useAuth = () => {
     session: null,
     loading: true,
     isAdmin: false,
+    profile: null,
   });
 
   useEffect(() => {
@@ -30,7 +38,10 @@ export const useAuth = () => {
         if (session?.user) {
           setTimeout(() => {
             checkAdminRole(session.user.id);
+            fetchProfile(session.user.id);
           }, 0);
+        } else {
+          setAuthState(prev => ({ ...prev, profile: null }));
         }
       }
     );
@@ -45,11 +56,31 @@ export const useAuth = () => {
 
       if (session?.user) {
         checkAdminRole(session.user.id);
+        fetchProfile(session.user.id);
       }
     });
 
-    return () => subscription.unsubscribe();
+  return () => subscription.unsubscribe();
   }, []);
+
+  const fetchProfile = async (userId: string) => {
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, name, email')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (data) {
+        setAuthState(prev => ({
+          ...prev,
+          profile: data,
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+    }
+  };
 
   /**
    * NOTE: The isAdmin flag is for UI/UX purposes only (e.g., showing/hiding admin controls).
@@ -82,6 +113,7 @@ export const useAuth = () => {
       session: null,
       loading: false,
       isAdmin: false,
+      profile: null,
     });
   };
 

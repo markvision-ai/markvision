@@ -43,6 +43,7 @@ interface SidebarProps {
   onCreateProject?: (name: string) => Promise<boolean>;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
+  userProfile?: { name: string | null; email: string | null } | null;
 }
 
 import { Megaphone } from 'lucide-react';
@@ -73,7 +74,8 @@ export const Sidebar = ({
   onProjectChange,
   onCreateProject,
   isMobileOpen = false,
-  onMobileClose
+  onMobileClose,
+  userProfile
 }: SidebarProps) => {
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -222,11 +224,11 @@ export const Sidebar = ({
       <div className="p-3 md:p-4 border-t border-sidebar-muted">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-medium text-sm">
-            А
+            {userProfile?.name?.charAt(0).toUpperCase() || userProfile?.email?.charAt(0).toUpperCase() || 'U'}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">Админ</p>
-            <p className="text-xs text-sidebar-foreground/50 truncate">admin@company.kz</p>
+            <p className="text-sm font-medium truncate">{userProfile?.name || 'Пользователь'}</p>
+            <p className="text-xs text-sidebar-foreground/50 truncate">{userProfile?.email || ''}</p>
           </div>
         </div>
         <button

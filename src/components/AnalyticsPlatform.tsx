@@ -13,6 +13,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useAuth } from '@/hooks/useAuth';
 
 import { Sidebar } from './layout/Sidebar';
 import { Header } from './layout/Header';
@@ -77,6 +78,7 @@ export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { profile } = useAuth();
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
@@ -393,6 +395,7 @@ export const AnalyticsPlatform = () => {
         onCreateProject={createProject}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
+        userProfile={profile}
       />
       
       <div className="md:ml-64">
