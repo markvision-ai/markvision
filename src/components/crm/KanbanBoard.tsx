@@ -67,9 +67,7 @@ export const KanbanBoard = ({
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 10,
-        delay: 100,
-        tolerance: 5,
+        distance: 8,
       },
     })
   );
@@ -215,18 +213,11 @@ export const KanbanBoard = ({
           ))}
         </div>
 
-        <DragOverlay dropAnimation={{
-          duration: 200,
-          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
-        }}>
+        <DragOverlay dropAnimation={null}>
           {activeLead && (
-            <motion.div
-              initial={{ scale: 1, rotate: 0 }}
-              animate={{ scale: 1.05, rotate: 2, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
-              className="cursor-grabbing"
-            >
+            <div className="cursor-grabbing rotate-2 scale-105">
               <LeadCard lead={activeLead} isDragging />
-            </motion.div>
+            </div>
           )}
         </DragOverlay>
       </DndContext>
