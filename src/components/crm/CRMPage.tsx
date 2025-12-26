@@ -3,6 +3,7 @@ import { useLeads, Lead } from '@/hooks/useLeads';
 import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
 import { BulkActionsBar } from './BulkActionsBar';
+import { AddLeadDialog } from './AddLeadDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -289,12 +290,15 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           </div>
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
+            {projectId && (
+              <AddLeadDialog projectId={projectId} onLeadAdded={refetch} />
+            )}
             <Button
               variant={selectionMode ? "default" : "outline"}
               size="sm"
               onClick={toggleSelectionMode}
               className={cn(
-                "flex-shrink-0 transition-all",
+                "flex-shrink-0 transition-all h-12 rounded-xl",
                 selectionMode 
                   ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg"
                   : "crm-card-glass border-primary/20 hover:border-primary/50"
@@ -310,7 +314,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex-shrink-0 crm-card-glass border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
+              className="flex-shrink-0 h-12 rounded-xl crm-card-glass border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="ml-2 hidden sm:inline">Обновить</span>
