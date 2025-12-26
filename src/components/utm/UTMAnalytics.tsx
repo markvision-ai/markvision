@@ -101,57 +101,61 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:gap-4">
         <div>
-          <h2 className="text-2xl font-bold">UTM-аналитика</h2>
-          <p className="text-muted-foreground">
-            Входящие заявки с UTM-метками ({leads.length} заявок)
+          <h2 className="text-lg sm:text-2xl font-bold">UTM-аналитика</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground">
+            Входящие заявки ({leads.length})
           </p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
-              placeholder="Поиск по имени, email, телефону..."
-              className="pl-9 w-64"
+              placeholder="Поиск..."
+              className="pl-8 h-9 text-sm"
               value={filters.search || ''}
               onChange={(e) => handleFilterChange('search', e.target.value)}
             />
           </div>
-          <Button
-            variant={showFilters ? 'default' : 'outline'}
-            size="icon"
-            onClick={() => setShowFilters(!showFilters)}
-          >
-            <Filter className="w-4 h-4" />
-          </Button>
-          {hasActiveFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <X className="w-4 h-4 mr-1" />
-              Сбросить
+          <div className="flex items-center gap-2">
+            <Button
+              variant={showFilters ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="h-9"
+            >
+              <Filter className="w-4 h-4 sm:mr-1" />
+              <span className="hidden sm:inline">Фильтры</span>
             </Button>
-          )}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="h-9 text-xs">
+                <X className="w-4 h-4 sm:mr-1" />
+                <span className="hidden sm:inline">Сбросить</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Filters */}
       {showFilters && (
-        <div className="bg-card border rounded-xl p-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">UTM Source</label>
+              <label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Source</label>
               <Select
                 value={filters.utm_source || 'all'}
                 onValueChange={(value) => handleFilterChange('utm_source', value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Все источники" />
+                <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                  <SelectValue placeholder="Все" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все источники</SelectItem>
+                  <SelectItem value="all">Все</SelectItem>
                   {sources.map(source => (
                     <SelectItem key={source} value={source}>{source}</SelectItem>
                   ))}
@@ -160,16 +164,16 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
             </div>
             
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">UTM Medium</label>
+              <label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Medium</label>
               <Select
                 value={filters.utm_medium || 'all'}
                 onValueChange={(value) => handleFilterChange('utm_medium', value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Все каналы" />
+                <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                  <SelectValue placeholder="Все" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все каналы</SelectItem>
+                  <SelectItem value="all">Все</SelectItem>
                   {mediums.map(medium => (
                     <SelectItem key={medium} value={medium}>{medium}</SelectItem>
                   ))}
@@ -178,16 +182,16 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
             </div>
             
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">UTM Campaign</label>
+              <label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Campaign</label>
               <Select
                 value={filters.utm_campaign || 'all'}
                 onValueChange={(value) => handleFilterChange('utm_campaign', value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Все кампании" />
+                <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                  <SelectValue placeholder="Все" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все кампании</SelectItem>
+                  <SelectItem value="all">Все</SelectItem>
                   {campaigns.map(campaign => (
                     <SelectItem key={campaign} value={campaign}>{campaign}</SelectItem>
                   ))}
@@ -196,16 +200,16 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
             </div>
             
             <div>
-              <label className="text-sm text-muted-foreground mb-1 block">Статус</label>
+              <label className="text-[10px] sm:text-xs text-muted-foreground mb-1 block">Статус</label>
               <Select
                 value={filters.status || 'all'}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Все статусы" />
+                <SelectTrigger className="h-8 sm:h-9 text-xs sm:text-sm">
+                  <SelectValue placeholder="Все" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Все статусы</SelectItem>
+                  <SelectItem value="all">Все</SelectItem>
                   {Object.entries(statusLabels).map(([value, label]) => (
                     <SelectItem key={value} value={value}>{label}</SelectItem>
                   ))}
@@ -218,112 +222,107 @@ export const UTMAnalytics = ({ projectId }: UTMAnalyticsProps) => {
 
       {/* Tabs */}
       <Tabs defaultValue="funnel" className="w-full">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
-          <TabsTrigger value="funnel" className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4" />
+        <TabsList className="grid w-full max-w-xs sm:max-w-md grid-cols-2 h-9">
+          <TabsTrigger value="funnel" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4" />
             Воронка
           </TabsTrigger>
-          <TabsTrigger value="table" className="flex items-center gap-2">
-            <TableIcon className="w-4 h-4" />
+          <TabsTrigger value="table" className="flex items-center gap-1.5 text-xs sm:text-sm">
+            <TableIcon className="w-3 h-3 sm:w-4 sm:h-4" />
             Таблица
           </TabsTrigger>
         </TabsList>
         
-        <TabsContent value="funnel" className="mt-6">
+        <TabsContent value="funnel" className="mt-4 sm:mt-6">
           <UTMFunnelChart leads={leads} />
         </TabsContent>
         
-        <TabsContent value="table" className="mt-6">
+        <TabsContent value="table" className="mt-4 sm:mt-6">
           {/* Leads Table */}
-          <div className="bg-card border rounded-xl overflow-hidden">
+          <div className="bg-card border rounded-xl overflow-x-auto">
             <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[100px]">ID</TableHead>
-              <TableHead>Дата/Время</TableHead>
-              <TableHead>Контакт</TableHead>
-              <TableHead>UTM Source</TableHead>
-              <TableHead>UTM Medium</TableHead>
-              <TableHead>UTM Campaign</TableHead>
-              <TableHead>Статус</TableHead>
-              <TableHead className="text-right">Сумма</TableHead>
-              <TableHead className="w-[80px]"></TableHead>
+              <TableHead className="w-[80px] text-xs">ID</TableHead>
+              <TableHead className="text-xs">Дата</TableHead>
+              <TableHead className="text-xs">Контакт</TableHead>
+              <TableHead className="text-xs hidden md:table-cell">Source</TableHead>
+              <TableHead className="text-xs hidden lg:table-cell">Medium</TableHead>
+              <TableHead className="text-xs hidden lg:table-cell">Campaign</TableHead>
+              <TableHead className="text-xs">Статус</TableHead>
+              <TableHead className="text-right text-xs">Сумма</TableHead>
+              <TableHead className="w-[60px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {leads.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
+                <TableCell colSpan={9} className="text-center py-8 text-muted-foreground text-sm">
                   Заявки не найдены
                 </TableCell>
               </TableRow>
             ) : (
               leads.map((lead) => (
                 <TableRow key={lead.id} className="cursor-pointer hover:bg-muted/50">
-                  <TableCell className="font-mono text-xs">
-                    {lead.external_lead_id || lead.id.slice(0, 8)}
+                  <TableCell className="font-mono text-[10px] sm:text-xs py-2">
+                    {lead.external_lead_id || lead.id.slice(0, 6)}
                   </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {format(new Date(lead.created_at), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                  <TableCell className="py-2">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3 h-3 text-muted-foreground hidden sm:block" />
+                      <span className="text-[10px] sm:text-xs">
+                        {format(new Date(lead.created_at), 'dd.MM.yy', { locale: ru })}
                       </span>
                     </div>
                   </TableCell>
-                  <TableCell>
-                    <div className="space-y-1">
-                      {lead.name && <div className="font-medium">{lead.name}</div>}
-                      {lead.email && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Mail className="w-3 h-3" />
-                          {lead.email}
-                        </div>
-                      )}
+                  <TableCell className="py-2">
+                    <div className="space-y-0.5">
+                      {lead.name && <div className="font-medium text-xs truncate max-w-[100px] sm:max-w-none">{lead.name}</div>}
                       {lead.phone && (
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Phone className="w-3 h-3" />
-                          {lead.phone}
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <Phone className="w-2.5 h-2.5" />
+                          <span className="truncate">{lead.phone}</span>
                         </div>
                       )}
                     </div>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden md:table-cell py-2">
                     {lead.utm_source ? (
-                      <Badge variant="outline">{lead.utm_source}</Badge>
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0">{lead.utm_source}</Badge>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell py-2">
                     {lead.utm_medium ? (
-                      <Badge variant="secondary">{lead.utm_medium}</Badge>
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{lead.utm_medium}</Badge>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="hidden lg:table-cell py-2">
                     {lead.utm_campaign ? (
-                      <span className="text-sm">{lead.utm_campaign}</span>
+                      <span className="text-xs truncate max-w-[100px] block">{lead.utm_campaign}</span>
                     ) : (
-                      <span className="text-muted-foreground">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
                   </TableCell>
-                  <TableCell>
-                    <Badge className={statusColors[lead.status || 'new']}>
+                  <TableCell className="py-2">
+                    <Badge className={`${statusColors[lead.status || 'new']} text-[10px] px-1.5 py-0`}>
                       {statusLabels[lead.status || 'new'] || lead.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-right font-medium">
+                  <TableCell className="text-right font-medium text-xs py-2">
                     {lead.deal_amount ? formatCurrency(lead.deal_amount) : '—'}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="py-2">
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 w-7 p-0"
                       onClick={() => setSelectedLead(lead)}
                     >
-                      <Eye className="w-4 h-4" />
+                      <Eye className="w-3 h-3" />
                     </Button>
                   </TableCell>
                 </TableRow>

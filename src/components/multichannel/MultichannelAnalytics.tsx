@@ -68,82 +68,82 @@ export const MultichannelAnalytics = ({ projectId }: MultichannelAnalyticsProps)
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-background border rounded-2xl p-6">
-        <div className="flex items-start justify-between">
+      <div className="bg-gradient-to-br from-indigo-500/10 via-purple-500/5 to-background border rounded-xl sm:rounded-2xl p-4 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <Layers className="w-6 h-6 text-indigo-500" />
-              <h2 className="text-2xl font-bold">Мультиканальная аналитика</h2>
+              <Layers className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-500" />
+              <h2 className="text-lg sm:text-2xl font-bold">Мультиканальная аналитика</h2>
             </div>
-            <p className="text-muted-foreground max-w-2xl">
-              Анализируйте путь клиента от первого касания до покупки. Оценивайте реальную эффективность каждого канала с помощью различных моделей атрибуции.
+            <p className="text-xs sm:text-sm text-muted-foreground max-w-2xl">
+              Анализируйте путь клиента от первого касания до покупки.
             </p>
           </div>
-          <Badge variant="outline" className="text-indigo-500 border-indigo-500/30">
-            {summaryStats.avgTouchpoints.toFixed(1)} касаний в среднем
+          <Badge variant="outline" className="text-indigo-500 border-indigo-500/30 text-xs self-start">
+            {summaryStats.avgTouchpoints.toFixed(1)} касаний
           </Badge>
         </div>
       </div>
 
       {/* Summary Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Визиты</span>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <Users className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Визиты</span>
           </div>
-          <p className="text-2xl font-bold">{formatNumber(summaryStats.totalVisits)}</p>
+          <p className="text-base sm:text-xl font-bold truncate">{formatNumber(summaryStats.totalVisits)}</p>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Лиды</span>
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Лиды</span>
           </div>
-          <p className="text-2xl font-bold">{formatNumber(summaryStats.totalLeads)}</p>
+          <p className="text-base sm:text-xl font-bold truncate">{formatNumber(summaryStats.totalLeads)}</p>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <BarChart3 className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Продажи</span>
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <BarChart3 className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Продажи</span>
           </div>
-          <p className="text-2xl font-bold">{formatNumber(summaryStats.totalSales)}</p>
+          <p className="text-base sm:text-xl font-bold truncate">{formatNumber(summaryStats.totalSales)}</p>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <DollarSign className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Выручка</span>
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Выручка</span>
           </div>
-          <p className="text-2xl font-bold text-success">{formatCurrency(summaryStats.totalRevenue)}</p>
+          <p className="text-base sm:text-xl font-bold text-success truncate">{formatCurrency(summaryStats.totalRevenue)}</p>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <GitBranch className="w-4 h-4 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">Сред. касаний</span>
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <GitBranch className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Касаний</span>
           </div>
-          <p className="text-2xl font-bold">{summaryStats.avgTouchpoints.toFixed(1)}</p>
+          <p className="text-base sm:text-xl font-bold truncate">{summaryStats.avgTouchpoints.toFixed(1)}</p>
         </div>
-        <div className="bg-card border rounded-xl p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <TrendingUp className="w-4 h-4 text-success" />
-            <span className="text-sm text-muted-foreground">Топ канал</span>
+        <div className="bg-card border rounded-xl p-3 sm:p-4">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-2">
+            <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-success" />
+            <span className="text-[10px] sm:text-sm text-muted-foreground">Топ</span>
           </div>
-          <p className="text-lg font-bold truncate">{summaryStats.topChannel}</p>
+          <p className="text-sm sm:text-base font-bold truncate">{summaryStats.topChannel}</p>
         </div>
       </div>
 
       {/* Model Selector */}
-      <div className="bg-card border rounded-xl p-6">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-card border rounded-xl p-4 sm:p-6">
+        <div className="flex items-center justify-between mb-3 sm:mb-4 flex-wrap gap-2">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold">Модель атрибуции</h3>
+            <h3 className="font-semibold text-sm sm:text-base">Модель атрибуции</h3>
             <Tooltip>
               <TooltipTrigger>
-                <Info className="w-4 h-4 text-muted-foreground" />
+                <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground" />
               </TooltipTrigger>
-              <TooltipContent className="max-w-xs">
-                <p>Модель атрибуции определяет, как распределяется ценность конверсии между каналами в цепочке касаний</p>
+              <TooltipContent className="max-w-xs text-xs">
+                <p>Модель атрибуции определяет, как распределяется ценность конверсии между каналами</p>
               </TooltipContent>
             </Tooltip>
           </div>
@@ -151,10 +151,11 @@ export const MultichannelAnalytics = ({ projectId }: MultichannelAnalyticsProps)
             <Button 
               variant="outline" 
               size="sm"
+              className="text-xs h-7"
               onClick={() => setShowCustomSettings(!showCustomSettings)}
             >
-              <Settings2 className="w-4 h-4 mr-2" />
-              Настройки модели
+              <Settings2 className="w-3 h-3 mr-1.5" />
+              Настройки
             </Button>
           )}
         </div>

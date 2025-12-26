@@ -14,10 +14,9 @@ export const AdsSummaryCards = ({
   overallROAS 
 }: AdsSummaryCardsProps) => {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value) + ' ₸';
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M ₸`;
+    if (value >= 1000) return `${Math.round(value / 1000)}K ₸`;
+    return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
   };
 
   const cards = [
@@ -56,23 +55,23 @@ export const AdsSummaryCards = ({
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       {cards.map((card) => (
         <div
           key={card.title}
-          className={`relative overflow-hidden rounded-xl border ${card.borderColor} ${card.bgColor} p-4 md:p-5 transition-all hover:scale-[1.02]`}
+          className={`relative overflow-hidden rounded-xl border ${card.borderColor} ${card.bgColor} p-3 sm:p-4 transition-all hover:scale-[1.02]`}
         >
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-xs md:text-sm text-muted-foreground mb-1">{card.title}</p>
-              <p className={`text-xl md:text-2xl font-bold ${card.color}`}>{card.value}</p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">{card.title}</p>
+              <p className={`text-base sm:text-xl font-bold ${card.color} truncate`}>{card.value}</p>
             </div>
-            <div className={`p-2 rounded-lg ${card.bgColor}`}>
-              <card.icon className={`w-5 h-5 ${card.color}`} />
+            <div className={`p-1.5 sm:p-2 rounded-lg ${card.bgColor} flex-shrink-0`}>
+              <card.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${card.color}`} />
             </div>
           </div>
           {/* Decorative glow effect */}
-          <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full ${card.bgColor} blur-2xl opacity-50`} />
+          <div className={`absolute -bottom-4 -right-4 w-16 sm:w-24 h-16 sm:h-24 rounded-full ${card.bgColor} blur-2xl opacity-50`} />
         </div>
       ))}
     </div>
