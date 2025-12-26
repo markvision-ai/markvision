@@ -14,6 +14,7 @@ import { KanbanColumn } from './KanbanColumn';
 import { LeadCard } from './LeadCard';
 import { LeadDetailDialog } from './LeadDetailDialog';
 import { PaymentDialog } from './PaymentDialog';
+import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
@@ -140,8 +141,13 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 min-h-[500px] sm:min-h-[600px] -mx-2 px-2 sm:mx-0 sm:px-0">
+        {KANBAN_STATUSES.map((status, index) => (
+          <KanbanColumnSkeleton 
+            key={status.id} 
+            cardCount={index === 0 ? 4 : index < 3 ? 2 : 1} 
+          />
+        ))}
       </div>
     );
   }
