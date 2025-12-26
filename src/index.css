@@ -164,3 +164,17 @@
 * {
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Neon pulse animation for autopilot */
+@keyframes neon-pulse {
+  0%, 100% {
+    box-shadow: 0 0 5px hsl(var(--success) / 0.5), 0 0 10px hsl(var(--success) / 0.3), 0 0 15px hsl(var(--success) / 0.2);
+  }
+  50% {
+    box-shadow: 0 0 10px hsl(var(--success) / 0.8), 0 0 20px hsl(var(--success) / 0.5), 0 0 30px hsl(var(--success) / 0.3);
+  }
+}
+
+.neon-pulse {
+  animation: neon-pulse 2s ease-in-out infinite;
+}

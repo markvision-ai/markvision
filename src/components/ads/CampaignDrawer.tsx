@@ -61,9 +61,9 @@ export const CampaignDrawer = ({
       <SheetContent className="w-full sm:max-w-xl overflow-hidden flex flex-col">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-3">
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold ${
-              campaign.platform === 'facebook' ? 'bg-blue-600' :
-              campaign.platform === 'tiktok' ? 'bg-black' : 'bg-red-500'
+              <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold ${
+              campaign.platform === 'facebook' ? 'bg-[#1877F2] text-white' :
+              campaign.platform === 'tiktok' ? 'bg-foreground text-background' : 'bg-[#EA4335] text-white'
             }`}>
               {campaign.platform === 'facebook' ? 'f' : campaign.platform === 'tiktok' ? 'T' : 'G'}
             </div>
@@ -127,7 +127,7 @@ export const CampaignDrawer = ({
             {/* Autopilot Rules - New Panel */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <Sparkles className="w-4 h-4 text-success" />
                 <h3 className="text-sm font-medium">Правила Автопилота 2.0</h3>
               </div>
               <AutopilotRulesPanel 
@@ -141,7 +141,7 @@ export const CampaignDrawer = ({
             {/* AI Log */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <Bot className="w-4 h-4 text-blue-400" />
+                <Bot className="w-4 h-4 text-primary" />
                 <h3 className="text-sm font-medium">Лог действий AI</h3>
               </div>
 

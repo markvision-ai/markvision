@@ -90,8 +90,8 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-emerald-500/10 rounded-lg">
-            <Zap className="w-6 h-6 text-emerald-400" />
+          <div className="p-2 bg-success/10 rounded-lg">
+            <Zap className="w-6 h-6 text-success" />
           </div>
           <div>
             <h1 className="text-2xl font-bold">Quantom Ads</h1>
@@ -137,25 +137,29 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
       {/* Platform Tabs */}
       <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
-        <TabsList className="w-full justify-start bg-muted/50 p-1">
-          <TabsTrigger value="all" className="gap-2">
+        <TabsList className="w-full justify-start bg-muted/50 p-1 overflow-x-auto flex-nowrap">
+          <TabsTrigger value="all" className="gap-2 shrink-0">
             Все платформы
           </TabsTrigger>
-          <TabsTrigger value="facebook" className="gap-2">
-            <div className="w-4 h-4 bg-blue-600 rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
-            Facebook / Instagram
+          <TabsTrigger value="facebook" className="gap-2 shrink-0">
+            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
+            <span className="hidden sm:inline">Facebook / Instagram</span>
+            <span className="sm:hidden">FB</span>
           </TabsTrigger>
-          <TabsTrigger value="google" className="gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
-            Google Ads
+          <TabsTrigger value="google" className="gap-2 shrink-0">
+            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
+            <span className="hidden sm:inline">Google Ads</span>
+            <span className="sm:hidden">Google</span>
           </TabsTrigger>
-          <TabsTrigger value="tiktok" className="gap-2">
-            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center">T</div>
-            TikTok Ads
+          <TabsTrigger value="tiktok" className="gap-2 shrink-0">
+            <div className="w-4 h-4 bg-foreground rounded text-[10px] text-background font-bold flex items-center justify-center">T</div>
+            <span className="hidden sm:inline">TikTok Ads</span>
+            <span className="sm:hidden">TikTok</span>
           </TabsTrigger>
-          <TabsTrigger value="creative" className="gap-2 text-primary">
-            <Zap className="w-4 h-4" />
-            Креатив-Центр
+          <TabsTrigger value="creative" className="gap-2 shrink-0">
+            <Zap className="w-4 h-4 text-success" />
+            <span className="hidden sm:inline">Креатив-Центр</span>
+            <span className="sm:hidden">Креативы</span>
           </TabsTrigger>
         </TabsList>
 
