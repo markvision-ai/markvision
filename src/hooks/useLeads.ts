@@ -103,12 +103,42 @@ export function useLeads(projectId: string | null) {
     return [...new Set(values)];
   };
 
+  const updateLead = async (
+    leadId: string,
+    updates: Partial<Pick<Lead, 'name' | 'phone' | 'email' | 'status' | 'deal_amount'>>
+  ) => {
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({
+          ...updates,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', leadId);
+
+      if (error) throw error;
+      
+      // Update local state
+      setLeads(prev =>
+        prev.map(lead =>
+          lead.id === leadId ? { ...lead, ...updates } : lead
+        )
+      );
+      
+      return true;
+    } catch (error) {
+      console.error('Error updating lead:', error);
+      throw error;
+    }
+  };
+
   return {
     leads,
     loading,
     filters,
     setFilters,
     refetch: fetchLeads,
-    getUniqueValues
+    getUniqueValues,
+    updateLead,
   };
 }

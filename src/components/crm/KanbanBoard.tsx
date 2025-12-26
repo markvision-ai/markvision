@@ -13,7 +13,7 @@ import {
 import { Lead } from '@/hooks/useLeads';
 import { KanbanColumn } from './KanbanColumn';
 import { LeadCard } from './LeadCard';
-import { LeadDetailDialog } from './LeadDetailDialog';
+import { LeadFullPage } from './LeadFullPage';
 import { PaymentDialog } from './PaymentDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
 import { supabase } from '@/integrations/supabase/client';
@@ -215,12 +215,15 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         </div>
       )}
 
-      {/* Lead Detail Dialog */}
-      <LeadDetailDialog
-        lead={selectedLead}
-        onClose={() => setSelectedLead(null)}
-        projectId={projectId}
-      />
+      {/* Lead Full Page */}
+      {selectedLead && (
+        <LeadFullPage
+          lead={selectedLead}
+          projectId={projectId}
+          onClose={() => setSelectedLead(null)}
+          onUpdate={onRefetch}
+        />
+      )}
 
       {/* Payment Dialog */}
       <PaymentDialog
@@ -232,4 +235,3 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
     </>
   );
 };
-

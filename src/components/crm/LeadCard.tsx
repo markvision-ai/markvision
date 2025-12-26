@@ -96,7 +96,7 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
         </div>
       )}
 
-      {/* Quick View Button */}
+      {/* Open Card Button */}
       <Button
         variant="ghost"
         size="sm"
@@ -107,8 +107,8 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
         }}
       >
         <Eye className="w-3 h-3 mr-1" />
-        <span className="hidden sm:inline">Быстрый просмотр</span>
-        <span className="sm:hidden">Просмотр</span>
+        <span className="hidden sm:inline">Открыть</span>
+        <span className="sm:hidden">Открыть</span>
       </Button>
     </div>
   );
