@@ -672,6 +672,56 @@ export type Database = {
           },
         ]
       }
+      user_permissions: {
+        Row: {
+          can_edit_daily_data: boolean
+          can_edit_plan: boolean
+          can_export_data: boolean
+          can_manage_leads: boolean
+          can_view_revenue: boolean
+          can_view_sales: boolean
+          created_at: string
+          id: string
+          project_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          can_edit_daily_data?: boolean
+          can_edit_plan?: boolean
+          can_export_data?: boolean
+          can_manage_leads?: boolean
+          can_view_revenue?: boolean
+          can_view_sales?: boolean
+          created_at?: string
+          id?: string
+          project_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          can_edit_daily_data?: boolean
+          can_edit_plan?: boolean
+          can_export_data?: boolean
+          can_manage_leads?: boolean
+          can_view_revenue?: boolean
+          can_view_sales?: boolean
+          created_at?: string
+          id?: string
+          project_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_permissions_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           id: string
@@ -883,6 +933,10 @@ export type Database = {
     }
     Functions: {
       extract_json_path: { Args: { data: Json; path: string }; Returns: string }
+      has_permission: {
+        Args: { _permission: string; _project_id: string; _user_id: string }
+        Returns: boolean
+      }
       has_project_access: {
         Args: { _project_id: string; _user_id: string }
         Returns: boolean

@@ -4,7 +4,7 @@ import { format, startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import { validateFieldValue, logError } from '@/lib/validation';
 import { useAuth } from './useAuth';
-
+import { usePermissions } from './usePermissions';
 interface DailyData {
   date: string;
   spend: number;
@@ -28,6 +28,7 @@ interface PlanData {
 
 export const useProjectData = (projectId: string | null) => {
   const { isAdmin } = useAuth();
+  const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(projectId);
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
   const [planData, setPlanData] = useState<PlanData>({
     spend: 0,
@@ -161,13 +162,13 @@ export const useProjectData = (projectId: string | null) => {
     }
   }, [projectId, fetchDailyData]);
 
-  // Update plan data (admin only)
+  // Update plan data (admin or users with permission)
   const updatePlanData = useCallback(async (field: keyof PlanData, value: number) => {
     if (!projectId) return;
 
-    // Check admin permission
-    if (!isAdmin) {
-      toast.error('Только администраторы могут изменять плановые данные');
+    // Check permission
+    if (!isAdmin && !canEditPlan) {
+      toast.error('У вас нет прав на изменение плановых данных');
       return;
     }
 
@@ -220,7 +221,7 @@ export const useProjectData = (projectId: string | null) => {
         fetchPlanData();
       }
     }
-  }, [projectId, isAdmin, fetchPlanData]);
+  }, [projectId, isAdmin, canEditPlan, fetchPlanData]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -253,7 +254,10 @@ export const useProjectData = (projectId: string | null) => {
     loading,
     updateDailyData,
     updatePlanData,
-    canEditPlan: isAdmin,
+    canEditPlan: isAdmin || canEditPlan,
+    canEditDailyData: isAdmin || canEditDailyData,
+    canViewSales: isAdmin || canViewSales,
+    canViewRevenue: isAdmin || canViewRevenue,
     refetch: () => Promise.all([fetchDailyData(), fetchPlanData()]),
   };
 };
