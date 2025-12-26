@@ -231,6 +231,19 @@ export const useProjectData = (projectId: string | null) => {
 
     if (projectId) {
       loadData();
+    } else {
+      // No project selected - reset loading state and clear data
+      setLoading(false);
+      setDailyData({});
+      setPlanData({
+        spend: 0,
+        impressions: 0,
+        clicks: 0,
+        leads: 0,
+        diagnostics: 0,
+        sales: 0,
+        revenue: 0,
+      });
     }
   }, [projectId, fetchDailyData, fetchPlanData]);
 
