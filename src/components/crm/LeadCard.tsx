@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, Eye, GripVertical } from 'lucide-react';
+import { Phone, Calendar, Eye, GripVertical, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,19 +28,19 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
     const source = lead.utm_source?.toLowerCase();
     if (!source) return null;
 
-    const sourceColors: Record<string, string> = {
-      yandex: 'bg-yellow-500/20 text-yellow-600 dark:text-yellow-400',
-      google: 'bg-blue-500/20 text-blue-600 dark:text-blue-400',
-      vk: 'bg-sky-500/20 text-sky-600 dark:text-sky-400',
-      facebook: 'bg-indigo-500/20 text-indigo-600 dark:text-indigo-400',
-      instagram: 'bg-pink-500/20 text-pink-600 dark:text-pink-400',
-      telegram: 'bg-cyan-500/20 text-cyan-600 dark:text-cyan-400',
+    const sourceStyles: Record<string, { bg: string; text: string; glow: string }> = {
+      yandex: { bg: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20', text: 'text-yellow-500', glow: 'shadow-yellow-500/20' },
+      google: { bg: 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20', text: 'text-blue-500', glow: 'shadow-blue-500/20' },
+      vk: { bg: 'bg-gradient-to-r from-sky-500/20 to-blue-500/20', text: 'text-sky-500', glow: 'shadow-sky-500/20' },
+      facebook: { bg: 'bg-gradient-to-r from-indigo-500/20 to-blue-500/20', text: 'text-indigo-500', glow: 'shadow-indigo-500/20' },
+      instagram: { bg: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20', text: 'text-pink-500', glow: 'shadow-pink-500/20' },
+      telegram: { bg: 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20', text: 'text-cyan-500', glow: 'shadow-cyan-500/20' },
     };
 
-    const colorClass = sourceColors[source] || 'bg-secondary text-secondary-foreground';
+    const style = sourceStyles[source] || { bg: 'bg-secondary', text: 'text-secondary-foreground', glow: '' };
 
     return (
-      <Badge variant="secondary" className={cn('text-xs font-normal', colorClass)}>
+      <Badge variant="secondary" className={cn('text-[10px] font-semibold border-0', style.bg, style.text, style.glow)}>
         {lead.utm_source}
       </Badge>
     );
@@ -51,20 +51,22 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       ref={setNodeRef}
       style={style}
       className={cn(
-        'bg-background border rounded-lg p-2 sm:p-3 cursor-grab active:cursor-grabbing transition-all',
-        isDragging && 'opacity-90 shadow-lg rotate-2 scale-105',
-        !isDragging && 'hover:border-primary/50 hover:shadow-sm'
+        'crm-card-glass rounded-xl p-3 sm:p-4 cursor-grab active:cursor-grabbing transition-all duration-300 premium-border',
+        isDragging && 'opacity-95 shadow-2xl rotate-2 scale-105 z-50',
+        !isDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30'
       )}
     >
-      {/* Drag Handle */}
+      {/* Drag Handle & Name */}
       <div
         {...listeners}
         {...attributes}
-        className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2"
+        className="flex items-center gap-2 mb-3"
       >
-        <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
+          <GripVertical className="w-4 h-4 text-primary/70" />
+        </div>
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-xs sm:text-sm truncate">
+          <p className="font-semibold text-sm truncate">
             {lead.name || 'Без имени'}
           </p>
         </div>
@@ -73,15 +75,15 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
 
       {/* Phone */}
       {lead.phone && (
-        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
-          <Phone className="w-3 h-3" />
-          <span className="truncate">{lead.phone}</span>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-10">
+          <Phone className="w-3.5 h-3.5 text-primary/60" />
+          <span className="truncate font-medium">{lead.phone}</span>
         </div>
       )}
 
       {/* Date */}
-      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
-        <Calendar className="w-3 h-3" />
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 pl-10">
+        <Calendar className="w-3.5 h-3.5 text-primary/60" />
         <span className="truncate">
           {format(new Date(lead.created_at), 'd MMM, HH:mm', { locale: ru })}
         </span>
@@ -89,8 +91,9 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
 
       {/* Amount Badge (if paid) */}
       {lead.status === 'paid' && lead.deal_amount && lead.deal_amount > 0 && (
-        <div className="mb-2 sm:mb-3">
-          <Badge variant="secondary" className="bg-success/20 text-success text-[10px] sm:text-xs">
+        <div className="mb-3 pl-10">
+          <Badge className="bg-gradient-to-r from-success to-emerald-500 text-success-foreground border-0 text-xs font-bold shadow-lg shadow-success/20">
+            <Sparkles className="w-3 h-3 mr-1" />
             {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.deal_amount)} ₸
           </Badge>
         </div>
@@ -100,15 +103,14 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       <Button
         variant="ghost"
         size="sm"
-        className="w-full h-6 sm:h-7 text-[10px] sm:text-xs"
+        className="w-full h-8 text-xs bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 hover:border-primary/40 transition-all"
         onClick={(e) => {
           e.stopPropagation();
           onClick?.();
         }}
       >
-        <Eye className="w-3 h-3 mr-1" />
-        <span className="hidden sm:inline">Открыть</span>
-        <span className="sm:hidden">Открыть</span>
+        <Eye className="w-3.5 h-3.5 mr-1.5" />
+        Открыть карточку
       </Button>
     </div>
   );

@@ -10,13 +10,15 @@ import {
   Trash2, 
   Clock,
   Loader2,
-  AlertTriangle
+  AlertTriangle,
+  Sparkles
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface LeadTasksProps {
   leadId: string;
@@ -73,7 +75,7 @@ export const LeadTasks = ({ leadId }: LeadTasksProps) => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center justify-center py-6">
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
       </div>
     );
@@ -85,56 +87,135 @@ export const LeadTasks = ({ leadId }: LeadTasksProps) => {
   return (
     <div className="space-y-4">
       {/* Add Task Button / Form */}
-      {!isAdding ? (
-        <Button 
-          variant="outline" 
-          size="sm" 
-          className="w-full"
-          onClick={() => setIsAdding(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Добавить задачу
-        </Button>
-      ) : (
-        <div className="space-y-2 p-3 border rounded-lg bg-secondary/30">
-          <Input
-            placeholder="Название задачи"
-            value={newTaskTitle}
-            onChange={(e) => setNewTaskTitle(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreateTask()}
-            autoFocus
-          />
-          <div className="flex gap-2">
+      <AnimatePresence mode="wait">
+        {!isAdding ? (
+          <motion.div
+            key="add-button"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="w-full bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20 hover:border-primary/40 transition-all"
+              onClick={() => setIsAdding(true)}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Добавить задачу
+            </Button>
+          </motion.div>
+        ) : (
+          <motion.div 
+            key="add-form"
+            className="space-y-3 p-4 border border-primary/20 rounded-xl bg-gradient-to-br from-primary/5 to-accent/5"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
             <Input
-              type="datetime-local"
-              value={newTaskDueDate}
-              onChange={(e) => setNewTaskDueDate(e.target.value)}
-              className="flex-1"
+              placeholder="Название задачи"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleCreateTask()}
+              autoFocus
+              className="bg-background/50 border-border/50"
             />
-            <Button size="sm" onClick={handleCreateTask} disabled={creating}>
-              {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Создать'}
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)}>
-              Отмена
-            </Button>
-          </div>
-        </div>
-      )}
+            <div className="flex gap-2">
+              <Input
+                type="datetime-local"
+                value={newTaskDueDate}
+                onChange={(e) => setNewTaskDueDate(e.target.value)}
+                className="flex-1 bg-background/50 border-border/50"
+              />
+              <Button 
+                size="sm" 
+                onClick={handleCreateTask} 
+                disabled={creating}
+                className="bg-gradient-to-r from-primary to-accent hover:opacity-90"
+              >
+                {creating ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Создать'}
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setIsAdding(false)}>
+                Отмена
+              </Button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Active Tasks */}
       {activeTasks.length > 0 && (
         <div className="space-y-2">
-          {activeTasks.map(task => {
-            const status = getTaskStatus(task);
-            return (
-              <div 
+          <AnimatePresence>
+            {activeTasks.map(task => {
+              const status = getTaskStatus(task);
+              return (
+                <motion.div 
+                  key={task.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  className={cn(
+                    'flex items-start gap-3 p-3 rounded-xl border transition-all',
+                    status === 'overdue' && 'border-destructive/50 bg-gradient-to-r from-destructive/10 to-destructive/5',
+                    status === 'today' && 'border-warning/50 bg-gradient-to-r from-warning/10 to-warning/5',
+                    status === 'normal' && 'border-border/50 bg-gradient-to-r from-muted/30 to-transparent'
+                  )}
+                >
+                  <Checkbox
+                    checked={task.completed}
+                    onCheckedChange={() => handleToggle(task)}
+                    className="mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{task.title}</p>
+                    {task.due_date && (
+                      <div className={cn(
+                        'flex items-center gap-1.5 mt-1.5 text-xs font-medium',
+                        status === 'overdue' && 'text-destructive',
+                        status === 'today' && 'text-warning',
+                        status === 'normal' && 'text-muted-foreground'
+                      )}>
+                        {status === 'overdue' ? (
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                        ) : (
+                          <Clock className="w-3.5 h-3.5" />
+                        )}
+                        <span>
+                          {format(new Date(task.due_date), 'd MMM, HH:mm', { locale: ru })}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => handleDelete(task.id)}
+                    className="p-1.5 hover:bg-destructive/20 rounded-lg opacity-50 hover:opacity-100 transition-all"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                  </button>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
+        </div>
+      )}
+
+      {/* Completed Tasks */}
+      {completedTasks.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-semibold uppercase tracking-wide flex items-center gap-2">
+            <CheckCircle2 className="w-3.5 h-3.5 text-success" />
+            Выполнено ({completedTasks.length})
+          </p>
+          <AnimatePresence>
+            {completedTasks.map(task => (
+              <motion.div 
                 key={task.id}
-                className={cn(
-                  'flex items-start gap-3 p-3 rounded-lg border',
-                  status === 'overdue' && 'border-destructive/50 bg-destructive/5',
-                  status === 'today' && 'border-warning/50 bg-warning/5',
-                  status === 'normal' && 'bg-secondary/30'
-                )}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: 10 }}
+                className="flex items-start gap-3 p-3 rounded-xl bg-muted/20 opacity-60 hover:opacity-80 transition-opacity"
               >
                 <Checkbox
                   checked={task.completed}
@@ -142,72 +223,28 @@ export const LeadTasks = ({ leadId }: LeadTasksProps) => {
                   className="mt-0.5"
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{task.title}</p>
-                  {task.due_date && (
-                    <div className={cn(
-                      'flex items-center gap-1 mt-1 text-xs',
-                      status === 'overdue' && 'text-destructive',
-                      status === 'today' && 'text-warning',
-                      status === 'normal' && 'text-muted-foreground'
-                    )}>
-                      {status === 'overdue' ? (
-                        <AlertTriangle className="w-3 h-3" />
-                      ) : (
-                        <Clock className="w-3 h-3" />
-                      )}
-                      <span>
-                        {format(new Date(task.due_date), 'd MMM, HH:mm', { locale: ru })}
-                      </span>
-                    </div>
-                  )}
+                  <p className="text-sm line-through text-muted-foreground">{task.title}</p>
                 </div>
                 <button
                   onClick={() => handleDelete(task.id)}
-                  className="p-1 hover:bg-destructive/20 rounded opacity-50 hover:opacity-100 transition-opacity"
+                  className="p-1.5 hover:bg-destructive/20 rounded-lg opacity-50 hover:opacity-100 transition-all"
                 >
-                  <Trash2 className="w-3 h-3 text-destructive" />
+                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
                 </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Completed Tasks */}
-      {completedTasks.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs text-muted-foreground font-medium">
-            Выполнено ({completedTasks.length})
-          </p>
-          {completedTasks.map(task => (
-            <div 
-              key={task.id}
-              className="flex items-start gap-3 p-3 rounded-lg bg-secondary/20 opacity-60"
-            >
-              <Checkbox
-                checked={task.completed}
-                onCheckedChange={() => handleToggle(task)}
-                className="mt-0.5"
-              />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm line-through">{task.title}</p>
-              </div>
-              <button
-                onClick={() => handleDelete(task.id)}
-                className="p-1 hover:bg-destructive/20 rounded opacity-50 hover:opacity-100 transition-opacity"
-              >
-                <Trash2 className="w-3 h-3 text-destructive" />
-              </button>
-            </div>
-          ))}
+              </motion.div>
+            ))}
+          </AnimatePresence>
         </div>
       )}
 
       {/* Empty State */}
       {tasks.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-4">
-          Нет задач
-        </p>
+        <div className="text-center py-6">
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center mx-auto mb-3">
+            <Sparkles className="w-6 h-6 text-muted-foreground/50" />
+          </div>
+          <p className="text-sm text-muted-foreground">Нет задач</p>
+        </div>
       )}
     </div>
   );

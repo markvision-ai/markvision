@@ -4,7 +4,7 @@ import { KanbanBoard } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Kanban, TrendingUp } from 'lucide-react';
+import { RefreshCw, Kanban, TrendingUp, Sparkles } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
@@ -65,42 +65,68 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-2">
+    <div className="space-y-6">
+      {/* Premium Header */}
+      <motion.div 
+        className="flex items-center justify-between gap-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className="min-w-0">
-          <h2 className="text-xl md:text-2xl font-bold truncate">CRM</h2>
-          <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">
-            Управление лидами и сделками
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg crm-glow">
+              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            </div>
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold crm-header-gradient">
+                CRM
+              </h2>
+              <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">
+                Управление лидами и сделками
+              </p>
+            </div>
+          </div>
         </div>
         <Button
           variant="outline"
           size="sm"
           onClick={handleRefresh}
           disabled={isRefreshing}
-          className="flex-shrink-0"
+          className="flex-shrink-0 crm-card-glass border-primary/20 hover:border-primary/50 hover:crm-glow transition-all"
         >
           <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           <span className="ml-2 hidden sm:inline">Обновить</span>
         </Button>
-      </div>
+      </motion.div>
 
-      {/* Tabs */}
+      {/* Premium Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
-          <TabsTrigger value="kanban" className="gap-1 sm:gap-2 text-xs sm:text-sm">
-            <Kanban className="w-4 h-4" />
-            <span>Канбан</span>
-          </TabsTrigger>
-          <TabsTrigger value="funnel" className="gap-1 sm:gap-2 text-xs sm:text-sm">
-            <TrendingUp className="w-4 h-4" />
-            <span>Воронка</span>
-          </TabsTrigger>
-        </TabsList>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
+          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex crm-card-glass p-1 gap-1">
+            <TabsTrigger 
+              value="kanban" 
+              className="gap-2 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              <Kanban className="w-4 h-4" />
+              <span>Канбан</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="funnel" 
+              className="gap-2 text-xs sm:text-sm data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg transition-all duration-300"
+            >
+              <TrendingUp className="w-4 h-4" />
+              <span>Воронка</span>
+            </TabsTrigger>
+          </TabsList>
+        </motion.div>
 
         {/* Swipeable content for mobile with pull-to-refresh */}
-        <div className="mt-4 overflow-hidden">
+        <div className="mt-6 overflow-hidden">
           {isMobile ? (
             <PullToRefresh onRefresh={handleRefresh}>
               <motion.div
@@ -135,7 +161,11 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               </motion.div>
             </PullToRefresh>
           ) : (
-            <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
               {activeTab === 'kanban' ? (
                 <KanbanBoard 
                   leads={leads} 
@@ -146,19 +176,22 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               ) : (
                 <CRMFunnel leads={leads} loading={loading} />
               )}
-            </>
+            </motion.div>
           )}
         </div>
 
-        {/* Swipe indicator for mobile */}
+        {/* Premium Swipe indicator for mobile */}
         {isMobile && (
-          <div className="flex justify-center gap-1.5 mt-3">
+          <div className="flex justify-center gap-2 mt-4">
             {tabs.map((tab) => (
-              <div
+              <motion.div
                 key={tab}
-                className={`w-1.5 h-1.5 rounded-full transition-colors ${
-                  activeTab === tab ? 'bg-primary' : 'bg-muted-foreground/30'
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  activeTab === tab 
+                    ? 'w-6 bg-gradient-to-r from-primary to-accent' 
+                    : 'w-1.5 bg-muted-foreground/30'
                 }`}
+                layoutId="tabIndicator"
               />
             ))}
           </div>

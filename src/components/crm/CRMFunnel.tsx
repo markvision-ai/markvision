@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Lead } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, Calendar, DollarSign, TrendingUp, Sparkles, Target } from 'lucide-react';
 import { CRMFunnelSkeleton } from './CRMFunnelSkeleton';
 import { motion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface CRMFunnelProps {
   leads: Lead[];
@@ -15,7 +16,8 @@ interface FunnelStep {
   label: string;
   count: number;
   amount: number;
-  color: string;
+  gradient: string;
+  icon: React.ElementType;
 }
 
 export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
@@ -27,9 +29,9 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
     const totalAmount = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
 
     const steps: FunnelStep[] = [
-      { id: 'new', label: 'Новые лиды', count: leads.length, amount: 0, color: 'hsl(220, 90%, 56%)' },
-      { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: 0, color: 'hsl(262, 83%, 58%)' },
-      { id: 'paid', label: 'Оплачено', count: paidCount, amount: totalAmount, color: 'hsl(142, 76%, 36%)' },
+      { id: 'new', label: 'Новые лиды', count: leads.length, amount: 0, gradient: 'from-blue-500 to-cyan-500', icon: Users },
+      { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: 0, gradient: 'from-purple-500 to-pink-500', icon: Calendar },
+      { id: 'paid', label: 'Оплачено', count: paidCount, amount: totalAmount, gradient: 'from-emerald-500 to-green-500', icon: DollarSign },
     ];
 
     return steps;
@@ -56,6 +58,13 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
   const maxCount = Math.max(...funnelData.map(s => s.count), 1);
 
+  const statCards = [
+    { icon: Users, label: 'Всего лидов', value: stats.totalLeads.toString(), gradient: 'from-blue-500 to-cyan-500', glow: 'shadow-blue-500/20' },
+    { icon: Target, label: 'Оплачено', value: stats.paidLeads.toString(), gradient: 'from-emerald-500 to-green-500', glow: 'shadow-emerald-500/20' },
+    { icon: DollarSign, label: 'Выручка', value: `${new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸`, gradient: 'from-amber-500 to-orange-500', glow: 'shadow-amber-500/20' },
+    { icon: TrendingUp, label: 'Конверсия', value: `${stats.conversionRate.toFixed(1)}%`, gradient: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/20' },
+  ];
+
   return (
     <motion.div 
       className="space-y-6"
@@ -63,29 +72,24 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        {[
-          { icon: Users, label: 'Всего лидов', value: stats.totalLeads, color: 'primary' },
-          { icon: Calendar, label: 'Оплачено', value: stats.paidLeads, color: 'success' },
-          { icon: DollarSign, label: 'Выручка', value: `${new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸`, color: 'accent' },
-          { icon: TrendingUp, label: 'Конверсия', value: `${stats.conversionRate.toFixed(1)}%`, color: 'warning' },
-        ].map((stat, index) => (
+      {/* Premium Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+        {statCards.map((stat, index) => (
           <motion.div
             key={stat.label}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card>
-              <CardContent className="p-3 md:pt-4 md:p-4">
-                <div className="flex items-center gap-2 md:gap-3">
-                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg bg-${stat.color}/10 flex items-center justify-center flex-shrink-0`}>
-                    <stat.icon className={`w-4 h-4 md:w-5 md:h-5 text-${stat.color}`} />
+            <Card className={cn('crm-card-glass crm-stat-card overflow-hidden hover:scale-[1.02] transition-all duration-300', stat.glow, 'shadow-lg')}>
+              <CardContent className="p-4 md:p-5">
+                <div className="flex items-center gap-3">
+                  <div className={cn('w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-lg', stat.gradient)}>
+                    <stat.icon className="w-5 h-5 md:w-6 md:h-6 text-white" />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{stat.label}</p>
-                    <p className="text-lg md:text-2xl font-bold truncate">{stat.value}</p>
+                    <p className="text-xs text-muted-foreground font-medium truncate">{stat.label}</p>
+                    <p className="text-xl md:text-2xl font-bold truncate">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>
@@ -94,70 +98,102 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         ))}
       </div>
 
-      {/* Funnel Chart */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Воронка продаж</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {funnelData.map((step, index) => {
-              const widthPercent = (step.count / maxCount) * 100;
-              const prevCount = index > 0 ? funnelData[index - 1].count : step.count;
-              const conversionFromPrev = prevCount > 0 ? ((step.count / prevCount) * 100).toFixed(1) : '100';
+      {/* Premium Funnel Chart */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: 0.3 }}
+      >
+        <Card className="crm-card-glass overflow-hidden">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
+                <Sparkles className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <span className="crm-header-gradient font-bold text-xl">Воронка продаж</span>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="space-y-5">
+              {funnelData.map((step, index) => {
+                const widthPercent = (step.count / maxCount) * 100;
+                const prevCount = index > 0 ? funnelData[index - 1].count : step.count;
+                const conversionFromPrev = prevCount > 0 ? ((step.count / prevCount) * 100).toFixed(1) : '100';
+                const StepIcon = step.icon;
 
-              return (
-                <div key={step.id} className="space-y-1 md:space-y-2">
-                  <div className="flex flex-wrap items-center justify-between text-xs md:text-sm gap-1">
-                    <span className="font-medium">{step.label}</span>
-                    <div className="flex items-center gap-2 md:gap-4 flex-wrap">
-                      <span className="text-muted-foreground">
-                        {step.count}
-                      </span>
-                      {index > 0 && (
-                        <span className="text-[10px] md:text-xs text-muted-foreground">
-                          ({conversionFromPrev}%)
-                        </span>
-                      )}
-                      {step.amount > 0 && (
-                        <span className="font-semibold text-success text-xs md:text-sm">
-                          {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(step.amount)} ₸
-                        </span>
-                      )}
+                return (
+                  <motion.div 
+                    key={step.id} 
+                    className="space-y-2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 + index * 0.1 }}
+                  >
+                    <div className="flex items-center justify-between text-sm gap-2">
+                      <div className="flex items-center gap-2">
+                        <div className={cn('w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center', step.gradient)}>
+                          <StepIcon className="w-4 h-4 text-white" />
+                        </div>
+                        <span className="font-semibold">{step.label}</span>
+                      </div>
+                      <div className="flex items-center gap-3 flex-wrap justify-end">
+                        <span className="text-lg font-bold">{step.count}</span>
+                        {index > 0 && (
+                          <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium">
+                            {conversionFromPrev}%
+                          </span>
+                        )}
+                        {step.amount > 0 && (
+                          <span className="font-bold text-success bg-success/10 px-3 py-1 rounded-full text-sm">
+                            {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(step.amount)} ₸
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <div className="h-8 md:h-10 bg-secondary rounded-lg overflow-hidden">
-                    <div
-                      className="h-full rounded-lg transition-all duration-500 flex items-center justify-center text-white text-xs md:text-sm font-medium"
-                      style={{
-                        width: `${Math.max(widthPercent, 5)}%`,
-                        backgroundColor: step.color,
-                      }}
-                    >
-                      {widthPercent > 25 && step.count}
+                    <div className="h-10 md:h-12 bg-muted/50 rounded-xl overflow-hidden">
+                      <motion.div
+                        className={cn('h-full rounded-xl flex items-center justify-center text-white font-bold text-sm bg-gradient-to-r', step.gradient)}
+                        initial={{ width: 0 }}
+                        animate={{ width: `${Math.max(widthPercent, 8)}%` }}
+                        transition={{ duration: 0.8, delay: 0.5 + index * 0.1, ease: 'easeOut' }}
+                      >
+                        {widthPercent > 20 && step.count}
+                      </motion.div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {/* Premium Conversion Summary */}
+            {leads.length > 0 && (
+              <motion.div 
+                className="mt-8 pt-6 border-t border-border/50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.4, delay: 0.8 }}
+              >
+                <div className="flex items-center justify-center gap-4 p-4 rounded-xl bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+                  <div className="text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Общая конверсия</p>
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl font-bold">{stats.totalLeads}</span>
+                      <span className="text-muted-foreground">→</span>
+                      <span className="text-2xl font-bold text-success">{stats.paidLeads}</span>
+                      <span className={cn(
+                        'text-lg font-bold px-3 py-1 rounded-full',
+                        stats.conversionRate >= 5 ? 'bg-success/20 text-success' : 'bg-warning/20 text-warning'
+                      )}>
+                        {stats.conversionRate.toFixed(1)}%
+                      </span>
                     </div>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Conversion Arrow */}
-          {leads.length > 0 && (
-            <div className="mt-6 pt-4 border-t">
-              <div className="flex items-center justify-center gap-2 text-sm">
-                <span className="text-muted-foreground">Общая конверсия:</span>
-                <span className="font-bold text-lg">
-                  {stats.totalLeads} → {stats.paidLeads}
-                </span>
-                <span className={`font-semibold ${stats.conversionRate >= 5 ? 'text-success' : 'text-warning'}`}>
-                  ({stats.conversionRate.toFixed(1)}%)
-                </span>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+              </motion.div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
     </motion.div>
   );
 };
