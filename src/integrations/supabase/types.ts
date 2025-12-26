@@ -330,6 +330,9 @@ export type Database = {
       lead_messages: {
         Row: {
           created_at: string
+          file_name: string | null
+          file_type: string | null
+          file_url: string | null
           id: string
           lead_id: string
           message: string
@@ -338,6 +341,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           lead_id: string
           message: string
@@ -346,6 +352,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          file_name?: string | null
+          file_type?: string | null
+          file_url?: string | null
           id?: string
           lead_id?: string
           message?: string
@@ -355,6 +364,94 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "lead_messages_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_status_history: {
+        Row: {
+          changed_by: string
+          changed_by_name: string | null
+          created_at: string
+          deal_amount_change: number | null
+          id: string
+          lead_id: string
+          new_status: string
+          old_status: string | null
+        }
+        Insert: {
+          changed_by: string
+          changed_by_name?: string | null
+          created_at?: string
+          deal_amount_change?: number | null
+          id?: string
+          lead_id: string
+          new_status: string
+          old_status?: string | null
+        }
+        Update: {
+          changed_by?: string
+          changed_by_name?: string | null
+          created_at?: string
+          deal_amount_change?: number | null
+          id?: string
+          lead_id?: string
+          new_status?: string
+          old_status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_status_history_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lead_tasks: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          due_date: string | null
+          id: string
+          lead_id: string
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id: string
+          title: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          lead_id?: string
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_tasks_lead_id_fkey"
             columns: ["lead_id"]
             isOneToOne: false
             referencedRelation: "leads"

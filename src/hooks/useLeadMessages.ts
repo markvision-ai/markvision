@@ -8,6 +8,9 @@ export interface LeadMessage {
   user_id: string;
   user_name: string | null;
   message: string;
+  file_url: string | null;
+  file_name: string | null;
+  file_type: string | null;
   created_at: string;
 }
 
@@ -83,8 +86,11 @@ export const useLeadMessages = (leadId: string | null) => {
   }, [leadId]);
 
   const sendMessage = useCallback(
-    async (message: string) => {
-      if (!leadId || !user || !message.trim()) return false;
+    async (
+      message: string,
+      fileData?: { url: string; name: string; type: string } | null
+    ) => {
+      if (!leadId || !user || (!message.trim() && !fileData)) return false;
 
       setSending(true);
       try {
@@ -100,6 +106,9 @@ export const useLeadMessages = (leadId: string | null) => {
           user_id: user.id,
           user_name: profile?.name || user.email?.split('@')[0] || 'Пользователь',
           message: message.trim(),
+          file_url: fileData?.url || null,
+          file_name: fileData?.name || null,
+          file_type: fileData?.type || null,
         });
 
         if (error) throw error;

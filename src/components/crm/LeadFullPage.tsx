@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Lead, useLeads } from '@/hooks/useLeads';
 import { useLeadTouchpoints } from '@/hooks/useLeadTouchpoints';
+import { useAuth } from '@/hooks/useAuth';
+import { logStatusChange } from '@/hooks/useLeadStatusHistory';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
@@ -14,7 +17,9 @@ import {
   DollarSign,
   Save,
   Loader2,
-  X
+  X,
+  ListTodo,
+  History
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +27,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select,
   SelectContent,
@@ -30,6 +36,8 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { LeadChat } from './LeadChat';
+import { LeadTasks } from './LeadTasks';
+import { LeadStatusHistory } from './LeadStatusHistory';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
@@ -59,6 +67,7 @@ interface LeadFullPageProps {
 }
 
 export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPageProps) => {
+  const { user } = useAuth();
   const { updateLead } = useLeads(projectId || lead.project_id);
   const { touchpoints, loading: touchpointsLoading } = useLeadTouchpoints(
     lead.id,
@@ -75,6 +84,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   });
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [rightTab, setRightTab] = useState('chat');
 
   useEffect(() => {
     const changed = 
@@ -87,8 +97,15 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   }, [formData, lead]);
 
   const handleSave = async () => {
+    if (!user) return;
+    
     setSaving(true);
     try {
+      const oldStatus = lead.status || 'new';
+      const newStatus = formData.status;
+      const statusChanged = oldStatus !== newStatus;
+      const amountChanged = formData.deal_amount !== (lead.deal_amount || 0);
+
       await updateLead(lead.id, {
         name: formData.name || null,
         phone: formData.phone || null,
@@ -96,6 +113,25 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         status: formData.status,
         deal_amount: formData.deal_amount,
       });
+
+      // Log status change to history
+      if (statusChanged || amountChanged) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', user.id)
+          .single();
+
+        await logStatusChange(
+          lead.id,
+          user.id,
+          profile?.name || user.email?.split('@')[0] || 'Пользователь',
+          oldStatus,
+          newStatus,
+          amountChanged ? formData.deal_amount : undefined
+        );
+      }
+
       toast.success('Изменения сохранены');
       onUpdate?.();
       setHasChanges(false);
@@ -331,6 +367,26 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     История касаний недоступна
                   </p>
                 )}
+              </section>
+
+              {/* Tasks */}
+              <section>
+                <h2 className="font-semibold mb-4 flex items-center gap-2">
+                  <ListTodo className="w-4 h-4" />
+                  Задачи
+                </h2>
+                <LeadTasks leadId={lead.id} />
+              </section>
+
+              <Separator />
+
+              {/* Status History */}
+              <section>
+                <h2 className="font-semibold mb-4 flex items-center gap-2">
+                  <History className="w-4 h-4" />
+                  История изменений
+                </h2>
+                <LeadStatusHistory leadId={lead.id} />
               </section>
 
               {/* Meta Info */}
