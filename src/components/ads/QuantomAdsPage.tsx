@@ -5,6 +5,7 @@ import { AdsSummaryCards } from './AdsSummaryCards';
 import { CampaignTable } from './CampaignTable';
 import { CampaignDrawer } from './CampaignDrawer';
 import { CreativeCenterTab } from './CreativeCenterTab';
+import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Plus, Loader2, Zap } from 'lucide-react';
@@ -134,6 +135,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         avgCPA={summaryMetrics.avgCPA}
         overallROAS={summaryMetrics.overallROAS}
       />
+
+      {/* Campaign Funnel Chart */}
+      <CampaignFunnelChart campaigns={campaigns} leads={leads} />
 
       {/* Platform Tabs */}
       <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
