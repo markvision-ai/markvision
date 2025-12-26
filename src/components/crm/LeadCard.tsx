@@ -1,4 +1,5 @@
 import { useDraggable } from '@dnd-kit/core';
+import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -26,16 +27,14 @@ export const LeadCard = ({
   onSelect,
   selectionMode = false
 }: LeadCardProps) => {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, isDragging: isCurrentlyDragging } = useDraggable({
     id: lead.id,
     disabled: selectionMode,
   });
 
-  const style = transform
-    ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
-    : undefined;
+  const style = {
+    transform: CSS.Translate.toString(transform),
+  };
 
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
@@ -65,6 +64,7 @@ export const LeadCard = ({
 
   const handleQuickAction = (e: React.MouseEvent, action: 'call' | 'whatsapp') => {
     e.stopPropagation();
+    e.preventDefault();
     
     switch (action) {
       case 'call':
@@ -98,20 +98,23 @@ export const LeadCard = ({
     }
   };
 
+  const showDragging = isDragging || isCurrentlyDragging;
+
   return (
     <div
       ref={setNodeRef}
       style={style}
+      {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
-        'crm-card-glass rounded-xl p-3 sm:p-4 transition-all duration-300 premium-border group',
-        'cursor-pointer',
-        isDragging && 'opacity-95 shadow-2xl rotate-2 scale-105 z-50',
-        !isDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
+        'crm-card-glass rounded-xl p-3 sm:p-4 transition-all duration-300 premium-border group touch-none',
+        selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
+        showDragging && 'opacity-90 shadow-2xl scale-105 z-50',
+        !showDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
         isSelected && 'ring-2 ring-primary bg-primary/5'
       )}
       onClick={handleCardClick}
     >
-      {/* Drag Handle & Content */}
+      {/* Header */}
       <div className="flex items-center gap-2 mb-3">
         {selectionMode ? (
           <div 
@@ -125,12 +128,7 @@ export const LeadCard = ({
             />
           </div>
         ) : (
-          <div 
-            {...listeners}
-            {...attributes}
-            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
             <GripVertical className="w-4 h-4 text-primary/70" />
           </div>
         )}
@@ -169,7 +167,10 @@ export const LeadCard = ({
       )}
 
       {/* Quick Actions */}
-      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div 
+        className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
