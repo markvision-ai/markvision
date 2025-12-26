@@ -7,9 +7,11 @@ import {
   XCircle,
   X,
   Check,
-  RefreshCw
+  RefreshCw,
+  BellRing
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 import {
   Popover,
   PopoverContent,
@@ -27,9 +29,20 @@ export const NotificationsDropdown = () => {
     markAsRead, 
     markAllAsRead, 
     dismissNotification,
-    refresh 
+    refresh,
+    pushEnabled,
+    enablePushNotifications
   } = useNotifications();
   const [open, setOpen] = useState(false);
+
+  const handleEnablePush = async () => {
+    const granted = await enablePushNotifications();
+    if (granted) {
+      toast.success('Push-уведомления включены');
+    } else {
+      toast.error('Не удалось включить push-уведомления. Проверьте настройки браузера.');
+    }
+  };
 
   const getIcon = (type: Notification['type']) => {
     switch (type) {
@@ -92,6 +105,17 @@ export const NotificationsDropdown = () => {
             )}
           </div>
           <div className="flex items-center gap-1">
+            {!pushEnabled && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="h-8 text-xs"
+                onClick={handleEnablePush}
+              >
+                <BellRing className="w-3 h-3 mr-1" />
+                Push
+              </Button>
+            )}
             <Button 
               variant="ghost" 
               size="icon" 

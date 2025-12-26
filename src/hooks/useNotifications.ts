@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
+import { sendCriticalNotification, getNotificationPermission, requestNotificationPermission } from '@/lib/pushNotifications';
 
 export interface Notification {
   id: string;
@@ -29,6 +30,8 @@ export const useNotifications = (projectId?: string) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const lastNotifiedIds = useRef<Set<string>>(new Set());
 
   const generateNotifications = useCallback(async () => {
     if (!user) {
@@ -276,13 +279,29 @@ export const useNotifications = (projectId?: string) => {
         return b.createdAt.getTime() - a.createdAt.getTime();
       });
 
+      // Send push notifications for critical errors
+      if (pushEnabled) {
+        newNotifications
+          .filter(n => (n.type === 'error' || n.type === 'warning') && !lastNotifiedIds.current.has(n.id))
+          .forEach(n => {
+            sendCriticalNotification(n.id, n.title, n.message, n.type as 'error' | 'warning');
+            lastNotifiedIds.current.add(n.id);
+          });
+      }
+
       setNotifications(newNotifications);
     } catch (error) {
       console.error('Error generating notifications:', error);
     } finally {
       setLoading(false);
     }
-  }, [user, projectId]);
+  }, [user, projectId, pushEnabled]);
+
+  // Check push notification permission on mount
+  useEffect(() => {
+    const permission = getNotificationPermission();
+    setPushEnabled(permission === 'granted');
+  }, []);
 
   useEffect(() => {
     generateNotifications();
@@ -291,6 +310,12 @@ export const useNotifications = (projectId?: string) => {
     const interval = setInterval(generateNotifications, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [generateNotifications]);
+
+  const enablePushNotifications = useCallback(async () => {
+    const granted = await requestNotificationPermission();
+    setPushEnabled(granted);
+    return granted;
+  }, []);
 
   const markAsRead = useCallback((notificationId: string) => {
     setNotifications(prev => 
@@ -316,5 +341,7 @@ export const useNotifications = (projectId?: string) => {
     markAllAsRead,
     dismissNotification,
     refresh: generateNotifications,
+    pushEnabled,
+    enablePushNotifications,
   };
 };
