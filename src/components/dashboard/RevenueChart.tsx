@@ -97,40 +97,40 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="bg-card border rounded-xl p-6">
-      {/* Header with totals */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h3 className="font-semibold text-lg">Динамика показателей</h3>
-          <p className="text-sm text-muted-foreground">Выручка vs Расходы</p>
+    <div className="bg-card border rounded-xl p-4 sm:p-6">
+      {/* Header with totals - responsive layout */}
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+        <div className="flex-shrink-0">
+          <h3 className="font-semibold text-base sm:text-lg">Динамика показателей</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground">Выручка vs Расходы</p>
         </div>
-        <div className="flex gap-6">
+        <div className="flex gap-4 sm:gap-6 flex-wrap">
           <div 
-            className="text-right cursor-pointer transition-opacity"
+            className="cursor-pointer transition-opacity min-w-0"
             style={{ opacity: hoveredMetric === 'spend' ? 0.5 : 1 }}
             onMouseEnter={() => setHoveredMetric('revenue')}
             onMouseLeave={() => setHoveredMetric(null)}
           >
-            <div className="flex items-center gap-2 justify-end">
-              <div className="w-3 h-3 rounded-full bg-success" />
-              <span className="text-sm text-muted-foreground">Выручка</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-success flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Выручка</span>
             </div>
-            <p className="text-xl font-bold text-success">
-              {new Intl.NumberFormat('ru-RU').format(totals.revenue)} ₸
+            <p className="text-sm sm:text-lg font-bold text-success truncate">
+              {formatCurrency(totals.revenue)} ₸
             </p>
           </div>
           <div 
-            className="text-right cursor-pointer transition-opacity"
+            className="cursor-pointer transition-opacity min-w-0"
             style={{ opacity: hoveredMetric === 'revenue' ? 0.5 : 1 }}
             onMouseEnter={() => setHoveredMetric('spend')}
             onMouseLeave={() => setHoveredMetric(null)}
           >
-            <div className="flex items-center gap-2 justify-end">
-              <div className="w-3 h-3 rounded-full bg-destructive" />
-              <span className="text-sm text-muted-foreground">Расходы</span>
+            <div className="flex items-center gap-1.5">
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-destructive flex-shrink-0" />
+              <span className="text-xs sm:text-sm text-muted-foreground">Расходы</span>
             </div>
-            <p className="text-xl font-bold text-destructive">
-              {new Intl.NumberFormat('ru-RU').format(totals.spend)} ₸
+            <p className="text-sm sm:text-lg font-bold text-destructive truncate">
+              {formatCurrency(totals.spend)} ₸
             </p>
           </div>
         </div>
