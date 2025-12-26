@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, Eye, GripVertical, Sparkles, MessageCircle } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -85,21 +85,33 @@ export const LeadCard = ({
     onSelect?.(checked);
   };
 
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Ignore if clicking on interactive elements
+    if ((e.target as HTMLElement).closest('button, a, [role="checkbox"]')) {
+      return;
+    }
+    
+    if (selectionMode) {
+      onSelect?.(!isSelected);
+    } else {
+      onClick?.();
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
       style={style}
       className={cn(
         'crm-card-glass rounded-xl p-3 sm:p-4 transition-all duration-300 premium-border group',
-        !selectionMode && 'cursor-grab active:cursor-grabbing',
+        'cursor-pointer',
         isDragging && 'opacity-95 shadow-2xl rotate-2 scale-105 z-50',
-        !isDragging && !selectionMode && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
-        isSelected && 'ring-2 ring-primary bg-primary/5',
-        selectionMode && 'cursor-pointer'
+        !isDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
+        isSelected && 'ring-2 ring-primary bg-primary/5'
       )}
-      onClick={selectionMode ? () => onSelect?.(!isSelected) : undefined}
+      onClick={handleCardClick}
     >
-      {/* Selection Checkbox & Drag Handle */}
+      {/* Drag Handle & Content */}
       <div className="flex items-center gap-2 mb-3">
         {selectionMode ? (
           <div 
@@ -116,7 +128,8 @@ export const LeadCard = ({
           <div 
             {...listeners}
             {...attributes}
-            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0"
+            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0 cursor-grab active:cursor-grabbing"
+            onClick={(e) => e.stopPropagation()}
           >
             <GripVertical className="w-4 h-4 text-primary/70" />
           </div>
@@ -156,7 +169,7 @@ export const LeadCard = ({
       )}
 
       {/* Quick Actions */}
-      <div className="flex gap-1.5 mb-3 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -203,22 +216,6 @@ export const LeadCard = ({
           </Tooltip>
         </TooltipProvider>
       </div>
-
-      {/* Open Card Button */}
-      {!selectionMode && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full h-8 text-xs bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 hover:border-primary/40 transition-all"
-          onClick={(e) => {
-            e.stopPropagation();
-            onClick?.();
-          }}
-        >
-          <Eye className="w-3.5 h-3.5 mr-1.5" />
-          Открыть карточку
-        </Button>
-      )}
     </div>
   );
 };
