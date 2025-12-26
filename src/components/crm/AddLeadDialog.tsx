@@ -27,9 +27,51 @@ const sourceOptions = [
   { id: 'other', label: 'Другое' },
 ];
 
+// Phone validation for +7 format
+const formatPhone = (value: string): string => {
+  // Remove all non-digit characters except +
+  let digits = value.replace(/[^\d+]/g, '');
+  
+  // If starts with 8, replace with +7
+  if (digits.startsWith('8') && digits.length > 1) {
+    digits = '+7' + digits.slice(1);
+  }
+  
+  // If starts with 7 (without +), add +
+  if (digits.startsWith('7') && !digits.startsWith('+')) {
+    digits = '+' + digits;
+  }
+  
+  // If doesn't start with +7 but has digits, assume Russian number
+  if (digits && !digits.startsWith('+')) {
+    digits = '+7' + digits;
+  }
+  
+  // Format: +7 (XXX) XXX-XX-XX
+  if (digits.startsWith('+7')) {
+    const numbers = digits.slice(2);
+    let formatted = '+7';
+    if (numbers.length > 0) formatted += ' (' + numbers.slice(0, 3);
+    if (numbers.length >= 3) formatted += ') ';
+    if (numbers.length > 3) formatted += numbers.slice(3, 6);
+    if (numbers.length > 6) formatted += '-' + numbers.slice(6, 8);
+    if (numbers.length > 8) formatted += '-' + numbers.slice(8, 10);
+    return formatted;
+  }
+  
+  return digits;
+};
+
+const validatePhone = (phone: string): boolean => {
+  if (!phone.trim()) return true; // Empty is valid (optional)
+  const digits = phone.replace(/[^\d]/g, '');
+  return digits.length === 11 && digits.startsWith('7');
+};
+
 export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -37,11 +79,27 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
     source: 'manual',
   });
 
+  const handlePhoneChange = (value: string) => {
+    const formatted = formatPhone(value);
+    setFormData(prev => ({ ...prev, phone: formatted }));
+    
+    if (formatted && !validatePhone(formatted)) {
+      setPhoneError('Формат: +7 (XXX) XXX-XX-XX');
+    } else {
+      setPhoneError(null);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name.trim() && !formData.phone.trim()) {
       toast.error('Укажите имя или телефон');
+      return;
+    }
+
+    if (formData.phone && !validatePhone(formData.phone)) {
+      toast.error('Неверный формат телефона');
       return;
     }
 
@@ -136,13 +194,21 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
             <Label htmlFor="phone" className="text-sm font-semibold text-foreground/80">
               Телефон
             </Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-              placeholder="+7 (999) 123-45-67"
-              className="h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
+            <div className="space-y-1">
+              <Input
+                id="phone"
+                value={formData.phone}
+                onChange={(e) => handlePhoneChange(e.target.value)}
+                placeholder="+7 (999) 123-45-67"
+                className={cn(
+                  "h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20",
+                  phoneError && "border-destructive focus:border-destructive focus:ring-destructive/20"
+                )}
+              />
+              {phoneError && (
+                <p className="text-xs text-destructive">{phoneError}</p>
+              )}
+            </div>
           </motion.div>
 
           <motion.div
