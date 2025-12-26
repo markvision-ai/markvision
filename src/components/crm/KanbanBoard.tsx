@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 export interface KanbanStatus {
   id: string;
@@ -28,7 +28,7 @@ export interface KanbanStatus {
   color?: string;
 }
 
-const KANBAN_STATUSES: KanbanStatus[] = [
+export const KANBAN_STATUSES: KanbanStatus[] = [
   { id: 'new', label: 'Новая' },
   { id: 'in_progress', label: 'В работе' },
   { id: 'no_answer', label: 'Недозвон' },
@@ -42,9 +42,22 @@ interface KanbanBoardProps {
   loading: boolean;
   onRefetch: () => void;
   projectId?: string | null;
+  selectionMode?: boolean;
+  selectedLeads?: Set<string>;
+  onSelectLead?: (leadId: string, selected: boolean) => void;
+  onSelectAllInColumn?: (statusId: string, selected: boolean) => void;
 }
 
-export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoardProps) => {
+export const KanbanBoard = ({ 
+  leads, 
+  loading, 
+  onRefetch, 
+  projectId,
+  selectionMode = false,
+  selectedLeads = new Set(),
+  onSelectLead,
+  onSelectAllInColumn
+}: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -83,9 +96,10 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
   }, [activeId, leads]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
+    if (selectionMode) return;
     setActiveId(event.active.id as string);
     playDragStartSound();
-  }, []);
+  }, [selectionMode]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
     const { over } = event;
@@ -97,7 +111,7 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
     setActiveId(null);
     setOverId(null);
 
-    if (!over) return;
+    if (!over || selectionMode) return;
 
     const leadId = active.id as string;
     const newStatus = over.id as string;
@@ -105,16 +119,13 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
 
     if (!lead || lead.status === newStatus) return;
 
-    // Play drop sound
     playDropSound();
 
-    // If dropping into "paid" column, show payment dialog
     if (newStatus === 'paid') {
       setPaymentLead(lead);
       return;
     }
 
-    // Otherwise, update status immediately
     await updateLeadStatus(leadId, newStatus);
   };
 
@@ -137,7 +148,6 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
 
       if (error) throw error;
 
-      // Play success sound for paid status
       if (status === 'paid') {
         playSuccessSound();
       }
@@ -156,6 +166,13 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
     if (!paymentLead) return;
     await updateLeadStatus(paymentLead.id, 'paid', amount);
     setPaymentLead(null);
+  };
+
+  const handleSelectAllInColumn = (statusId: string, selected: boolean) => {
+    const leadsInColumn = leadsByStatus[statusId] || [];
+    leadsInColumn.forEach(lead => {
+      onSelectLead?.(lead.id, selected);
+    });
   };
 
   if (loading) {
@@ -188,6 +205,10 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
               leads={leadsByStatus[status.id] || []}
               onLeadClick={setSelectedLead}
               isDropTarget={overId === status.id}
+              selectionMode={selectionMode}
+              selectedLeads={selectedLeads}
+              onSelectLead={onSelectLead}
+              onSelectAllInColumn={handleSelectAllInColumn}
             />
           ))}
         </div>
@@ -208,14 +229,12 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         </DragOverlay>
       </DndContext>
 
-      {/* Loading overlay */}
       {isUpdating && (
         <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       )}
 
-      {/* Lead Full Page */}
       {selectedLead && (
         <LeadFullPage
           lead={selectedLead}
@@ -225,7 +244,6 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         />
       )}
 
-      {/* Payment Dialog */}
       <PaymentDialog
         open={!!paymentLead}
         onClose={() => setPaymentLead(null)}

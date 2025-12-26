@@ -2,20 +2,33 @@ import { useDraggable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, Eye, GripVertical, Sparkles } from 'lucide-react';
+import { Phone, Calendar, Eye, GripVertical, Sparkles, Mail, MessageCircle, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface LeadCardProps {
   lead: Lead;
   onClick?: () => void;
   isDragging?: boolean;
+  isSelected?: boolean;
+  onSelect?: (selected: boolean) => void;
+  selectionMode?: boolean;
 }
 
-export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) => {
+export const LeadCard = ({ 
+  lead, 
+  onClick, 
+  isDragging = false,
+  isSelected = false,
+  onSelect,
+  selectionMode = false
+}: LeadCardProps) => {
   const { attributes, listeners, setNodeRef, transform } = useDraggable({
     id: lead.id,
+    disabled: selectionMode,
   });
 
   const style = transform
@@ -37,13 +50,44 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       telegram: { bg: 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20', text: 'text-cyan-500', glow: 'shadow-cyan-500/20' },
     };
 
-    const style = sourceStyles[source] || { bg: 'bg-secondary', text: 'text-secondary-foreground', glow: '' };
+    const styleData = sourceStyles[source] || { bg: 'bg-secondary', text: 'text-secondary-foreground', glow: '' };
 
     return (
-      <Badge variant="secondary" className={cn('text-[10px] font-semibold border-0', style.bg, style.text, style.glow)}>
+      <Badge variant="secondary" className={cn('text-[10px] font-semibold border-0', styleData.bg, styleData.text, styleData.glow)}>
         {lead.utm_source}
       </Badge>
     );
+  };
+
+  const formatPhoneForWhatsApp = (phone: string) => {
+    return phone.replace(/\D/g, '');
+  };
+
+  const handleQuickAction = (e: React.MouseEvent, action: 'call' | 'email' | 'whatsapp') => {
+    e.stopPropagation();
+    
+    switch (action) {
+      case 'call':
+        if (lead.phone) {
+          window.open(`tel:${lead.phone}`, '_self');
+        }
+        break;
+      case 'email':
+        if (lead.email) {
+          window.open(`mailto:${lead.email}`, '_self');
+        }
+        break;
+      case 'whatsapp':
+        if (lead.phone) {
+          const phone = formatPhoneForWhatsApp(lead.phone);
+          window.open(`https://wa.me/${phone}`, '_blank');
+        }
+        break;
+    }
+  };
+
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect?.(checked);
   };
 
   return (
@@ -51,20 +95,37 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       ref={setNodeRef}
       style={style}
       className={cn(
-        'crm-card-glass rounded-xl p-3 sm:p-4 cursor-grab active:cursor-grabbing transition-all duration-300 premium-border',
+        'crm-card-glass rounded-xl p-3 sm:p-4 transition-all duration-300 premium-border group',
+        !selectionMode && 'cursor-grab active:cursor-grabbing',
         isDragging && 'opacity-95 shadow-2xl rotate-2 scale-105 z-50',
-        !isDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30'
+        !isDragging && !selectionMode && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
+        isSelected && 'ring-2 ring-primary bg-primary/5',
+        selectionMode && 'cursor-pointer'
       )}
+      onClick={selectionMode ? () => onSelect?.(!isSelected) : undefined}
     >
-      {/* Drag Handle & Name */}
-      <div
-        {...listeners}
-        {...attributes}
-        className="flex items-center gap-2 mb-3"
-      >
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-          <GripVertical className="w-4 h-4 text-primary/70" />
-        </div>
+      {/* Selection Checkbox & Drag Handle */}
+      <div className="flex items-center gap-2 mb-3">
+        {selectionMode ? (
+          <div 
+            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <Checkbox
+              checked={isSelected}
+              onCheckedChange={handleCheckboxChange}
+              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
+          </div>
+        ) : (
+          <div 
+            {...listeners}
+            {...attributes}
+            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0"
+          >
+            <GripVertical className="w-4 h-4 text-primary/70" />
+          </div>
+        )}
         <div className="flex-1 min-w-0">
           <p className="font-semibold text-sm truncate">
             {lead.name || 'Без имени'}
@@ -99,19 +160,92 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
         </div>
       )}
 
+      {/* Quick Actions */}
+      <div className="flex gap-1.5 mb-3 opacity-0 group-hover:opacity-100 transition-opacity">
+        <TooltipProvider delayDuration={300}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-lg",
+                  lead.phone 
+                    ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500" 
+                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                )}
+                onClick={(e) => handleQuickAction(e, 'call')}
+                disabled={!lead.phone}
+              >
+                <Phone className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{lead.phone ? 'Позвонить' : 'Нет телефона'}</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-lg",
+                  lead.email 
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500" 
+                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                )}
+                onClick={(e) => handleQuickAction(e, 'email')}
+                disabled={!lead.email}
+              >
+                <Mail className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{lead.email ? 'Написать email' : 'Нет email'}</p>
+            </TooltipContent>
+          </Tooltip>
+
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "h-8 w-8 rounded-lg",
+                  lead.phone 
+                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-500" 
+                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                )}
+                onClick={(e) => handleQuickAction(e, 'whatsapp')}
+                disabled={!lead.phone}
+              >
+                <MessageCircle className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>{lead.phone ? 'WhatsApp' : 'Нет телефона'}</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       {/* Open Card Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full h-8 text-xs bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 hover:border-primary/40 transition-all"
-        onClick={(e) => {
-          e.stopPropagation();
-          onClick?.();
-        }}
-      >
-        <Eye className="w-3.5 h-3.5 mr-1.5" />
-        Открыть карточку
-      </Button>
+      {!selectionMode && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full h-8 text-xs bg-gradient-to-r from-primary/10 to-accent/10 hover:from-primary/20 hover:to-accent/20 border border-primary/20 hover:border-primary/40 transition-all"
+          onClick={(e) => {
+            e.stopPropagation();
+            onClick?.();
+          }}
+        >
+          <Eye className="w-3.5 h-3.5 mr-1.5" />
+          Открыть карточку
+        </Button>
+      )}
     </div>
   );
 };

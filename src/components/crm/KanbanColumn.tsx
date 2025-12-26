@@ -4,18 +4,35 @@ import { LeadCard } from './LeadCard';
 import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface KanbanColumnProps {
   status: KanbanStatus;
   leads: Lead[];
   onLeadClick: (lead: Lead) => void;
   isDropTarget?: boolean;
+  selectionMode?: boolean;
+  selectedLeads?: Set<string>;
+  onSelectLead?: (leadId: string, selected: boolean) => void;
+  onSelectAllInColumn?: (statusId: string, selected: boolean) => void;
 }
 
-export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: KanbanColumnProps) => {
+export const KanbanColumn = ({ 
+  status, 
+  leads, 
+  onLeadClick, 
+  isDropTarget,
+  selectionMode = false,
+  selectedLeads = new Set(),
+  onSelectLead,
+  onSelectAllInColumn
+}: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
   });
+
+  const allInColumnSelected = leads.length > 0 && leads.every(lead => selectedLeads.has(lead.id));
+  const someInColumnSelected = leads.some(lead => selectedLeads.has(lead.id));
 
   const getColumnStyles = () => {
     if (status.color === 'success') {
@@ -86,9 +103,18 @@ export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: Kanba
         'flex items-center justify-between mb-4 px-3 py-2 rounded-xl',
         getHeaderStyles()
       )}>
-        <h3 className="font-bold text-sm tracking-wide uppercase">
-          {status.label}
-        </h3>
+        <div className="flex items-center gap-2">
+          {selectionMode && leads.length > 0 && (
+            <Checkbox
+              checked={allInColumnSelected}
+              onCheckedChange={(checked) => onSelectAllInColumn?.(status.id, !!checked)}
+              className="data-[state=checked]:bg-white/20 data-[state=checked]:border-white/50 border-white/30"
+            />
+          )}
+          <h3 className="font-bold text-sm tracking-wide uppercase">
+            {status.label}
+          </h3>
+        </div>
         <span className={cn(
           'text-xs font-bold px-2.5 py-1 rounded-full',
           status.color === 'success' 
@@ -113,6 +139,9 @@ export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: Kanba
             <LeadCard
               lead={lead}
               onClick={() => onLeadClick(lead)}
+              selectionMode={selectionMode}
+              isSelected={selectedLeads.has(lead.id)}
+              onSelect={(selected) => onSelectLead?.(lead.id, selected)}
             />
           </motion.div>
         ))}
