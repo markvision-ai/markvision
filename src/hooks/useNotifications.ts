@@ -217,6 +217,57 @@ export const useNotifications = (projectId?: string) => {
         });
       }
 
+      // Check for system errors - webhook failures
+      const { data: failedWebhooks, count: failedCount } = await supabase
+        .from('webhook_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'error')
+        .gte('received_at', weekAgo.toISOString());
+
+      if (failedCount && failedCount > 0) {
+        newNotifications.push({
+          id: `webhook-errors`,
+          type: 'error',
+          title: 'Ошибки вебхуков',
+          message: `${failedCount} ${failedCount === 1 ? 'ошибка' : failedCount < 5 ? 'ошибки' : 'ошибок'} при приёме данных за неделю`,
+          createdAt: new Date(),
+          read: false,
+        });
+      }
+
+      // Check for data gaps - no data for 3+ consecutive days
+      const lastThreeDays = Array.from({ length: 3 }, (_, i) => {
+        const d = new Date(today);
+        d.setDate(d.getDate() - i - 1);
+        return d.toISOString().split('T')[0];
+      });
+
+      for (const project of projects) {
+        if (projectId && project.id !== projectId) continue;
+        
+        const { count: dataCount } = await supabase
+          .from('daily_data')
+          .select('*', { count: 'exact', head: true })
+          .eq('project_id', project.id)
+          .in('date', lastThreeDays);
+
+        if (dataCount === 0) {
+          const existingGapNotification = newNotifications.find(n => n.id === `data-gap-${project.id}`);
+          if (!existingGapNotification) {
+            newNotifications.push({
+              id: `data-gap-${project.id}`,
+              type: 'warning',
+              title: 'Нет данных',
+              message: `${project.name}: данные не вносились 3+ дня`,
+              createdAt: new Date(),
+              read: false,
+              projectId: project.id,
+              projectName: project.name,
+            });
+          }
+        }
+      }
+
       // Sort by type priority and date
       const typePriority = { error: 0, warning: 1, info: 2, success: 3 };
       newNotifications.sort((a, b) => {
