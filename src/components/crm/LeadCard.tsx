@@ -51,7 +51,7 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       ref={setNodeRef}
       style={style}
       className={cn(
-        'bg-background border rounded-lg p-3 cursor-grab active:cursor-grabbing transition-all',
+        'bg-background border rounded-lg p-2 sm:p-3 cursor-grab active:cursor-grabbing transition-all',
         isDragging && 'opacity-90 shadow-lg rotate-2 scale-105',
         !isDragging && 'hover:border-primary/50 hover:shadow-sm'
       )}
@@ -60,11 +60,11 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       <div
         {...listeners}
         {...attributes}
-        className="flex items-center gap-2 mb-2"
+        className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2"
       >
-        <GripVertical className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+        <GripVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-sm truncate">
+          <p className="font-medium text-xs sm:text-sm truncate">
             {lead.name || 'Без имени'}
           </p>
         </div>
@@ -73,25 +73,25 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
 
       {/* Phone */}
       {lead.phone && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+        <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-1.5 sm:mb-2">
           <Phone className="w-3 h-3" />
-          <span>{lead.phone}</span>
+          <span className="truncate">{lead.phone}</span>
         </div>
       )}
 
       {/* Date */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+      <div className="flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-xs text-muted-foreground mb-2 sm:mb-3">
         <Calendar className="w-3 h-3" />
-        <span>
-          {format(new Date(lead.created_at), 'd MMM yyyy, HH:mm', { locale: ru })}
+        <span className="truncate">
+          {format(new Date(lead.created_at), 'd MMM, HH:mm', { locale: ru })}
         </span>
       </div>
 
       {/* Amount Badge (if paid) */}
       {lead.status === 'paid' && lead.deal_amount && lead.deal_amount > 0 && (
-        <div className="mb-3">
-          <Badge variant="secondary" className="bg-success/20 text-success">
-            {new Intl.NumberFormat('ru-RU').format(lead.deal_amount)} ₸
+        <div className="mb-2 sm:mb-3">
+          <Badge variant="secondary" className="bg-success/20 text-success text-[10px] sm:text-xs">
+            {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.deal_amount)} ₸
           </Badge>
         </div>
       )}
@@ -100,14 +100,15 @@ export const LeadCard = ({ lead, onClick, isDragging = false }: LeadCardProps) =
       <Button
         variant="ghost"
         size="sm"
-        className="w-full h-7 text-xs"
+        className="w-full h-6 sm:h-7 text-[10px] sm:text-xs"
         onClick={(e) => {
           e.stopPropagation();
           onClick?.();
         }}
       >
         <Eye className="w-3 h-3 mr-1" />
-        Быстрый просмотр
+        <span className="hidden sm:inline">Быстрый просмотр</span>
+        <span className="sm:hidden">Просмотр</span>
       </Button>
     </div>
   );

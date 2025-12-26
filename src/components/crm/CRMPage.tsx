@@ -23,10 +23,10 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">CRM</h2>
-          <p className="text-muted-foreground text-sm">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <h2 className="text-xl md:text-2xl font-bold truncate">CRM</h2>
+          <p className="text-muted-foreground text-xs md:text-sm hidden sm:block">
             Управление лидами и сделками
           </p>
         </div>
@@ -35,22 +35,23 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           size="sm"
           onClick={handleRefresh}
           disabled={isRefreshing}
+          className="flex-shrink-0"
         >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-          Обновить
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+          <span className="ml-2 hidden sm:inline">Обновить</span>
         </Button>
       </div>
 
       {/* Tabs */}
       <Tabs defaultValue="kanban" className="w-full">
-        <TabsList>
-          <TabsTrigger value="kanban" className="gap-2">
+        <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
+          <TabsTrigger value="kanban" className="gap-1 sm:gap-2 text-xs sm:text-sm">
             <Kanban className="w-4 h-4" />
-            Канбан
+            <span>Канбан</span>
           </TabsTrigger>
-          <TabsTrigger value="funnel" className="gap-2">
+          <TabsTrigger value="funnel" className="gap-1 sm:gap-2 text-xs sm:text-sm">
             <TrendingUp className="w-4 h-4" />
-            Воронка
+            <span>Воронка</span>
           </TabsTrigger>
         </TabsList>
 

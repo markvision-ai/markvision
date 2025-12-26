@@ -61,44 +61,44 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
   return (
     <div className="space-y-6">
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Users className="w-5 h-5 text-primary" />
+          <CardContent className="p-3 md:pt-4 md:p-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Всего лидов</p>
-                <p className="text-2xl font-bold">{stats.totalLeads}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Всего лидов</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.totalLeads}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center">
-                <Calendar className="w-5 h-5 text-success" />
+          <CardContent className="p-3 md:pt-4 md:p-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
+                <Calendar className="w-4 h-4 md:w-5 md:h-5 text-success" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Оплачено</p>
-                <p className="text-2xl font-bold">{stats.paidLeads}</p>
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Оплачено</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.paidLeads}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center">
-                <DollarSign className="w-5 h-5 text-accent" />
+          <CardContent className="p-3 md:pt-4 md:p-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
+                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-accent" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Выручка</p>
-                <p className="text-2xl font-bold">
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Выручка</p>
+                <p className="text-lg md:text-2xl font-bold truncate">
                   {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸
                 </p>
               </div>
@@ -107,14 +107,14 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         </Card>
 
         <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-warning/10 flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-warning" />
+          <CardContent className="p-3 md:pt-4 md:p-4">
+            <div className="flex items-center gap-2 md:gap-3">
+              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
+                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-warning" />
               </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Конверсия</p>
-                <p className="text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</p>
+              <div className="min-w-0">
+                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Конверсия</p>
+                <p className="text-lg md:text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</p>
               </div>
             </div>
           </CardContent>
@@ -134,34 +134,34 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
               const conversionFromPrev = prevCount > 0 ? ((step.count / prevCount) * 100).toFixed(1) : '100';
 
               return (
-                <div key={step.id} className="space-y-2">
-                  <div className="flex items-center justify-between text-sm">
+                <div key={step.id} className="space-y-1 md:space-y-2">
+                  <div className="flex flex-wrap items-center justify-between text-xs md:text-sm gap-1">
                     <span className="font-medium">{step.label}</span>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2 md:gap-4 flex-wrap">
                       <span className="text-muted-foreground">
-                        {step.count} лидов
+                        {step.count}
                       </span>
                       {index > 0 && (
-                        <span className="text-xs text-muted-foreground">
-                          ({conversionFromPrev}% от пред.)
+                        <span className="text-[10px] md:text-xs text-muted-foreground">
+                          ({conversionFromPrev}%)
                         </span>
                       )}
                       {step.amount > 0 && (
-                        <span className="font-semibold text-success">
-                          {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
+                        <span className="font-semibold text-success text-xs md:text-sm">
+                          {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(step.amount)} ₸
                         </span>
                       )}
                     </div>
                   </div>
-                  <div className="h-10 bg-secondary rounded-lg overflow-hidden">
+                  <div className="h-8 md:h-10 bg-secondary rounded-lg overflow-hidden">
                     <div
-                      className="h-full rounded-lg transition-all duration-500 flex items-center justify-center text-white text-sm font-medium"
+                      className="h-full rounded-lg transition-all duration-500 flex items-center justify-center text-white text-xs md:text-sm font-medium"
                       style={{
                         width: `${Math.max(widthPercent, 5)}%`,
                         backgroundColor: step.color,
                       }}
                     >
-                      {widthPercent > 20 && step.count}
+                      {widthPercent > 25 && step.count}
                     </div>
                   </div>
                 </div>
