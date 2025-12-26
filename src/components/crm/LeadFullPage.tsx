@@ -10,7 +10,6 @@ import {
   ArrowLeft, 
   User, 
   Phone, 
-  Mail, 
   Calendar, 
   Tag, 
   Target,
@@ -80,7 +79,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   const [formData, setFormData] = useState({
     name: lead.name || '',
     phone: lead.phone || '',
-    email: lead.email || '',
     status: lead.status || 'new',
     deal_amount: lead.deal_amount || 0,
   });
@@ -91,7 +89,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
     const changed = 
       formData.name !== (lead.name || '') ||
       formData.phone !== (lead.phone || '') ||
-      formData.email !== (lead.email || '') ||
       formData.status !== (lead.status || 'new') ||
       formData.deal_amount !== (lead.deal_amount || 0);
     setHasChanges(changed);
@@ -110,7 +107,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
       await updateLead(lead.id, {
         name: formData.name || null,
         phone: formData.phone || null,
-        email: formData.email || null,
         status: formData.status,
         deal_amount: formData.deal_amount,
       });
@@ -238,20 +234,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+7 (___) ___-__-__"
-                          className="pl-10 bg-background/50 border-border/50 focus:border-primary"
-                        />
-                      </div>
-                    </div>
-                    <div>
-                      <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</Label>
-                      <div className="relative mt-1.5">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                          placeholder="email@example.com"
                           className="pl-10 bg-background/50 border-border/50 focus:border-primary"
                         />
                       </div>
