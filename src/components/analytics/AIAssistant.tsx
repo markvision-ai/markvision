@@ -77,7 +77,7 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
               <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <span>AI-помощник</span>
+              <span>Святой AI аналитик</span>
               {hasContext && (
                 <p className="text-xs font-normal text-muted-foreground mt-0.5">
                   Анализирует ваши данные
@@ -106,7 +106,7 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
                 <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mx-auto mb-4 flex items-center justify-center ring-1 ring-primary/10">
                   <Bot className="w-8 h-8 text-primary" />
                 </div>
-                <h3 className="font-medium mb-1">Привет! Я ваш AI-аналитик</h3>
+                <h3 className="font-medium mb-1">Привет! Я Святой AI аналитик</h3>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                   {hasContext 
                     ? 'Я вижу ваши данные и готов помочь с анализом'
