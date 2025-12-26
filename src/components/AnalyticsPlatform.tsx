@@ -32,6 +32,7 @@ import { WebhookSettings } from './settings/WebhookSettings';
 import { ClientsManagement } from './clients/ClientsManagement';
 import { IntegrationsManagement } from './integrations/IntegrationsManagement';
 import { CRMPage } from './crm/CRMPage';
+import { AuditLogViewer } from './audit/AuditLogViewer';
 import { QuantomAdsPage } from './ads/QuantomAdsPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
@@ -361,6 +362,10 @@ export const AnalyticsPlatform = () => {
         <IntegrationsManagement projectId={currentProjectId || undefined} />
       )}
 
+      {activeTab === 'audit' && (
+        <AuditLogViewer />
+      )}
+
       {activeTab === 'settings' && currentProject && (
         <WebhookSettings projectId={currentProject.id} />
       )}
@@ -372,7 +377,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'integrations', 'settings'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'integrations', 'settings', 'audit'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />

@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -19,7 +20,8 @@ import {
   Menu,
   Plug,
   Kanban,
-  LogOut
+  LogOut,
+  Shield
 } from 'lucide-react';
 import {
   Dialog,
@@ -62,6 +64,7 @@ const bottomItems = [
   { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
   { id: 'integrations', label: 'Интеграции', icon: Plug },
   { id: 'team', label: 'Команда', icon: Users },
+  { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
   { id: 'settings', label: 'Настройки', icon: Settings },
   { id: 'help', label: 'Помощь', icon: HelpCircle },
 ];
@@ -81,8 +84,25 @@ export const Sidebar = ({
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const { isAdmin, user } = useAuth();
   
   const currentProjectData = projects.find(p => p.id === currentProject) || projects[0];
+
+  // Log logout event
+  const logLogoutEvent = useCallback(async () => {
+    if (!user) return;
+    try {
+      await supabase.from('audit_logs').insert([{
+        user_id: user.id,
+        user_email: user.email || null,
+        action: 'logout',
+        entity_type: 'session',
+        user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+      }]);
+    } catch (error) {
+      console.error('Failed to log logout event:', error);
+    }
+  }, [user]);
 
   const handleCreateProject = async () => {
     if (!newProjectName.trim() || !onCreateProject) return;
@@ -198,7 +218,9 @@ export const Sidebar = ({
 
         <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6 md:mt-8">Дополнительно</p>
         <ul className="space-y-1">
-          {bottomItems.map((item) => {
+          {bottomItems
+            .filter(item => !item.adminOnly || isAdmin)
+            .map((item) => {
             const Icon = item.icon;
             const isActive = activeTab === item.id;
             return (
@@ -233,6 +255,7 @@ export const Sidebar = ({
         </div>
         <button
           onClick={async () => {
+            await logLogoutEvent();
             await supabase.auth.signOut();
             toast.success('Вы вышли из аккаунта');
             window.location.href = '/auth';
