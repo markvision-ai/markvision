@@ -65,10 +65,59 @@ serve(async (req) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+
+    // Authentication check
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.error('Missing authorization header');
+      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // Create auth client to verify user
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } }
+    });
+
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.error('Authentication failed:', authError?.message);
+      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`User authenticated: ${user.id}`);
+
+    // Create service role client for database operations
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    console.log('Starting weekly report generation...');
+    // Check if user has admin role
+    const { data: hasAdmin, error: roleError } = await supabase
+      .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+
+    if (roleError) {
+      console.error('Role check error:', roleError.message);
+      return new Response(JSON.stringify({ error: 'Failed to verify permissions' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (!hasAdmin) {
+      console.error('User lacks admin role:', user.id);
+      return new Response(JSON.stringify({ error: 'Admin access required' }), {
+        status: 403,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log('Admin role verified, starting weekly report generation...');
 
     // Get all projects with telegram_chat_id
     const { data: projects, error: projectsError } = await supabase
