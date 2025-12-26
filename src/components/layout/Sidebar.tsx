@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -17,7 +18,8 @@ import {
   UserCheck,
   Menu,
   Plug,
-  Kanban
+  Kanban,
+  LogOut
 } from 'lucide-react';
 import {
   Dialog,
@@ -29,6 +31,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SidebarProps {
   activeTab: string;
@@ -214,7 +218,7 @@ export const Sidebar = ({
         </ul>
       </nav>
 
-      {/* User Info */}
+      {/* User Info with Logout */}
       <div className="p-3 md:p-4 border-t border-sidebar-muted">
         <div className="flex items-center gap-3 px-3 py-2">
           <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-accent flex items-center justify-center text-accent-foreground font-medium text-sm">
@@ -225,6 +229,17 @@ export const Sidebar = ({
             <p className="text-xs text-sidebar-foreground/50 truncate">admin@company.kz</p>
           </div>
         </div>
+        <button
+          onClick={async () => {
+            await supabase.auth.signOut();
+            toast.success('Вы вышли из аккаунта');
+            window.location.href = '/auth';
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 mt-2 rounded-lg text-sidebar-foreground/70 hover:bg-destructive/10 hover:text-destructive transition-colors"
+        >
+          <LogOut className="w-5 h-5" />
+          <span className="font-medium text-sm">Выйти</span>
+        </button>
       </div>
     </div>
   );
