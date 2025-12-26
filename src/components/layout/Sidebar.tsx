@@ -16,7 +16,8 @@ import {
   Target,
   UserCheck,
   Menu,
-  Plug
+  Plug,
+  Kanban
 } from 'lucide-react';
 import {
   Dialog,
@@ -43,6 +44,7 @@ interface SidebarProps {
 const menuItems = [
   { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
+  { id: 'crm', label: 'CRM', icon: Kanban },
   { id: 'clients', label: 'Клиенты', icon: UserCheck },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
   { id: 'utm-analytics', label: 'UTM-аналитика', icon: Target },
