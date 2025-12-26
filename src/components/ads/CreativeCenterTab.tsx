@@ -156,9 +156,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
   };
 
   const getAIScoreColor = (score: number) => {
-    if (score >= 80) return 'text-emerald-400';
-    if (score >= 60) return 'text-amber-400';
-    return 'text-rose-400';
+    if (score >= 80) return 'text-success';
+    if (score >= 60) return 'text-warning';
+    return 'text-destructive';
   };
 
   return (
@@ -167,15 +167,15 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
       <Tabs value={platform} onValueChange={(v) => setPlatform(v as any)}>
         <TabsList className="w-full justify-start">
           <TabsTrigger value="facebook" className="gap-2">
-            <div className="w-4 h-4 bg-blue-600 rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
+            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
             Facebook / Instagram
           </TabsTrigger>
           <TabsTrigger value="google" className="gap-2">
-            <div className="w-4 h-4 bg-red-500 rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
+            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
             Google Ads
           </TabsTrigger>
           <TabsTrigger value="tiktok" className="gap-2">
-            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center">T</div>
+            <div className="w-4 h-4 bg-foreground rounded text-[10px] text-background font-bold flex items-center justify-center">T</div>
             TikTok
           </TabsTrigger>
         </TabsList>
@@ -349,9 +349,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             onClick={() => copyToClipboard(headline, `h-${i}`)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                            {copiedIndex === `h-${i}` ? (
-                              <Check className="w-4 h-4 text-emerald-400" />
-                            ) : (
+                          {copiedIndex === `h-${i}` ? (
+                            <Check className="w-4 h-4 text-success" />
+                          ) : (
                               <Copy className="w-4 h-4 text-muted-foreground" />
                             )}
                           </button>
@@ -376,9 +376,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             onClick={() => copyToClipboard(desc, `d-${i}`)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity ml-2"
                           >
-                            {copiedIndex === `d-${i}` ? (
-                              <Check className="w-4 h-4 text-emerald-400" />
-                            ) : (
+                          {copiedIndex === `d-${i}` ? (
+                            <Check className="w-4 h-4 text-success" />
+                          ) : (
                               <Copy className="w-4 h-4 text-muted-foreground" />
                             )}
                           </button>
@@ -402,7 +402,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                           className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                           {copiedIndex === 'primary' ? (
-                            <Check className="w-4 h-4 text-emerald-400" />
+                            <Check className="w-4 h-4 text-success" />
                           ) : (
                             <Copy className="w-4 h-4 text-muted-foreground" />
                           )}

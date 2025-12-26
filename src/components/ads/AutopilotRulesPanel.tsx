@@ -100,7 +100,7 @@ export const AutopilotRulesPanel = ({ campaign, onUpdateCampaign }: AutopilotRul
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-rose-400" />
+            <ShieldAlert className="w-4 h-4 text-destructive" />
             <h4 className="font-medium">Стоп-лосс</h4>
           </div>
           <Switch
@@ -145,7 +145,7 @@ export const AutopilotRulesPanel = ({ campaign, onUpdateCampaign }: AutopilotRul
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <TrendingUp className="w-4 h-4 text-emerald-400" />
+            <TrendingUp className="w-4 h-4 text-success" />
             <h4 className="font-medium">Масштабирование</h4>
           </div>
           <Switch
@@ -189,7 +189,7 @@ export const AutopilotRulesPanel = ({ campaign, onUpdateCampaign }: AutopilotRul
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <RefreshCw className="w-4 h-4 text-amber-400" />
+            <RefreshCw className="w-4 h-4 text-warning" />
             <h4 className="font-medium">Обновление креативов</h4>
           </div>
           <Switch
@@ -225,9 +225,9 @@ export const AutopilotRulesPanel = ({ campaign, onUpdateCampaign }: AutopilotRul
               </div>
             </div>
             
-            <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-lg flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-              <p className="text-xs text-amber-200">
+            <div className="p-2 bg-warning/10 border border-warning/20 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-warning shrink-0 mt-0.5" />
+              <p className="text-xs text-muted-foreground">
                 При срабатывании вы получите уведомление с предложением сгенерировать новый креатив
               </p>
             </div>

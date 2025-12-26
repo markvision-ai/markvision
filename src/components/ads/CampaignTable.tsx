@@ -21,32 +21,21 @@ interface CampaignTableProps {
 }
 
 const PlatformIcon = ({ platform }: { platform: string }) => {
-  const icons: Record<string, { icon: string; color: string }> = {
-    facebook: { icon: 'f', color: 'bg-blue-600' },
-    tiktok: { icon: 'T', color: 'bg-black' },
-    google: { icon: 'G', color: 'bg-red-500' },
+  const icons: Record<string, { icon: string; bgClass: string }> = {
+    facebook: { icon: 'f', bgClass: 'bg-[#1877F2]' },
+    tiktok: { icon: 'T', bgClass: 'bg-foreground dark:bg-foreground' },
+    google: { icon: 'G', bgClass: 'bg-[#EA4335]' },
   };
 
-  const { icon, color } = icons[platform] || { icon: '?', color: 'bg-gray-500' };
+  const { icon, bgClass } = icons[platform] || { icon: '?', bgClass: 'bg-muted-foreground' };
 
   return (
-    <div className={`w-8 h-8 ${color} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
+    <div className={`w-8 h-8 ${bgClass} rounded-lg flex items-center justify-center text-white font-bold text-sm`}>
       {icon}
     </div>
   );
 };
 
-// Neon pulse animation styles
-const neonPulseStyles = `
-  @keyframes neon-pulse {
-    0%, 100% {
-      box-shadow: 0 0 5px rgba(16, 185, 129, 0.5), 0 0 10px rgba(16, 185, 129, 0.3), 0 0 15px rgba(16, 185, 129, 0.2);
-    }
-    50% {
-      box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.5), 0 0 30px rgba(16, 185, 129, 0.3);
-    }
-  }
-`;
 
 export const CampaignTable = ({
   campaigns,
@@ -132,7 +121,7 @@ export const CampaignTable = ({
                 key={campaign.id}
                 className={`border-border cursor-pointer transition-all ${
                   campaign.autopilot_enabled 
-                    ? 'bg-emerald-500/5 hover:bg-emerald-500/10 shadow-[inset_0_0_20px_rgba(16,185,129,0.1)]' 
+                    ? 'bg-success/5 hover:bg-success/10' 
                     : 'hover:bg-muted/50'
                 }`}
                 onClick={() => onCampaignClick(campaign)}
@@ -186,7 +175,7 @@ export const CampaignTable = ({
                 </TableCell>
                 
                 <TableCell className="text-right">
-                  <span className="text-rose-400">{formatCurrency(campaign.spent_today)}</span>
+                  <span className="text-destructive">{formatCurrency(campaign.spent_today)}</span>
                 </TableCell>
                 
                 <TableCell className="text-right">
@@ -196,7 +185,7 @@ export const CampaignTable = ({
                 </TableCell>
                 
                 <TableCell className="text-right">
-                  <span className={cpl > 0 ? 'text-amber-400' : 'text-muted-foreground'}>
+                  <span className={cpl > 0 ? 'text-warning' : 'text-muted-foreground'}>
                     {cpl > 0 ? formatCurrency(cpl) : '—'}
                   </span>
                 </TableCell>
@@ -209,23 +198,20 @@ export const CampaignTable = ({
                       <div 
                         className={`relative p-1 rounded-full transition-all ${
                           campaign.autopilot_enabled 
-                            ? 'bg-emerald-500/20' 
+                            ? 'bg-success/20 neon-pulse' 
                             : ''
                         }`}
-                        style={campaign.autopilot_enabled ? {
-                          animation: 'neon-pulse 2s ease-in-out infinite',
-                        } : undefined}
                       >
                         <Zap 
                           className={`w-4 h-4 transition-colors ${
-                            campaign.autopilot_enabled ? 'text-emerald-400 fill-emerald-400' : 'text-muted-foreground'
+                            campaign.autopilot_enabled ? 'text-success fill-success' : 'text-muted-foreground'
                           }`} 
                         />
                       </div>
                       <Switch
                         checked={campaign.autopilot_enabled}
                         onCheckedChange={() => handleAutopilotToggle(campaign)}
-                        className="data-[state=checked]:bg-emerald-500"
+                        className="data-[state=checked]:bg-success"
                       />
                     </div>
                   )}
