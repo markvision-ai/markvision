@@ -1,6 +1,17 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Sanitize search input to prevent ILIKE wildcard injection
+function sanitizeSearchInput(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  
+  // Remove PostgreSQL ILIKE wildcards and escape character, limit length
+  return input
+    .replace(/[%_\\]/g, '') // Remove % _ and \ characters
+    .substring(0, 100)
+    .trim();
+}
+
 export interface Lead {
   id: string;
   project_id: string;
@@ -63,7 +74,10 @@ export function useLeads(projectId: string | null) {
         query = query.eq('status', filters.status);
       }
       if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,email.ilike.%${filters.search}%,phone.ilike.%${filters.search}%`);
+        const sanitized = sanitizeSearchInput(filters.search);
+        if (sanitized) {
+          query = query.or(`name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`);
+        }
       }
 
       const { data, error } = await query;
