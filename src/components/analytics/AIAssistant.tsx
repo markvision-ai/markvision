@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Trash2, Sparkles, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target } from 'lucide-react';
+import { Send, User, Trash2, Sparkles, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target, Church } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -73,14 +73,14 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
       <CardHeader className="flex-shrink-0 pb-3 border-b">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-3 text-lg">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 ring-1 ring-primary/20">
-              <Sparkles className="w-5 h-5 text-primary" />
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30">
+              <Church className="w-5 h-5 text-amber-500" />
             </div>
             <div>
               <span>Святой AI аналитик</span>
               {hasContext && (
                 <p className="text-xs font-normal text-muted-foreground mt-0.5">
-                  Анализирует ваши данные
+                  Благословляет ваши метрики
                 </p>
               )}
             </div>
@@ -103,14 +103,14 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
           {messages.length === 0 ? (
             <div className="space-y-6 py-4">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 mx-auto mb-4 flex items-center justify-center ring-1 ring-primary/10">
-                  <Bot className="w-8 h-8 text-primary" />
+                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 mx-auto mb-4 flex items-center justify-center ring-1 ring-amber-500/20">
+                  <Church className="w-8 h-8 text-amber-500" />
                 </div>
-                <h3 className="font-medium mb-1">Привет! Я Святой AI аналитик</h3>
+                <h3 className="font-medium mb-1">Мир вам! Я Святой AI аналитик</h3>
                 <p className="text-sm text-muted-foreground max-w-xs mx-auto">
                   {hasContext 
-                    ? 'Я вижу ваши данные и готов помочь с анализом'
-                    : 'Загрузите данные, чтобы получить персонализированный анализ'
+                    ? 'Вижу ваши метрики и готов направить вас к просветлению в маркетинге'
+                    : 'Загрузите данные, и я дарую вам святые инсайты'
                   }
                 </p>
               </div>
@@ -188,10 +188,10 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
           'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ring-1',
           isUser 
             ? 'bg-primary text-primary-foreground ring-primary/20' 
-            : 'bg-gradient-to-br from-secondary to-secondary/50 ring-border'
+            : 'bg-gradient-to-br from-amber-500/20 to-amber-500/5 ring-amber-500/20'
         )}
       >
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
+        {isUser ? <User className="w-4 h-4" /> : <Church className="w-4 h-4 text-amber-500" />}
       </div>
       <div
         className={cn(
