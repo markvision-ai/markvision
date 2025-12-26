@@ -17,8 +17,11 @@ import {
   X,
   SlidersHorizontal,
   Zap,
-  CheckSquare
+  CheckSquare,
+  Calendar
 } from 'lucide-react';
+import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
@@ -57,6 +60,18 @@ const sourceOptions = [
   { id: 'facebook', label: 'Facebook' },
   { id: 'instagram', label: 'Instagram' },
   { id: 'telegram', label: 'Telegram' },
+  { id: 'whatsapp', label: 'WhatsApp' },
+  { id: 'manual', label: 'Ручной ввод' },
+  { id: 'website', label: 'Сайт' },
+  { id: 'referral', label: 'Рекомендация' },
+];
+
+const datePresets = [
+  { id: 'today', label: 'Сегодня', days: 0 },
+  { id: 'yesterday', label: 'Вчера', days: 1 },
+  { id: 'week', label: 'Неделя', days: 7 },
+  { id: 'month', label: 'Месяц', days: 30 },
+  { id: 'quarter', label: 'Квартал', days: 90 },
 ];
 
 export const CRMPage = ({ projectId }: CRMPageProps) => {
@@ -70,6 +85,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
+  const [selectedDatePreset, setSelectedDatePreset] = useState<string | null>(null);
   
   // Selection mode
   const [selectionMode, setSelectionMode] = useState(false);
@@ -100,16 +116,44 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         if (!leadSource || !selectedSources.includes(leadSource)) return false;
       }
 
+      // Date filter
+      if (selectedDatePreset) {
+        const preset = datePresets.find(p => p.id === selectedDatePreset);
+        if (preset) {
+          const leadDate = new Date(lead.created_at);
+          const today = new Date();
+          
+          if (preset.id === 'today') {
+            const start = startOfDay(today);
+            const end = endOfDay(today);
+            if (isBefore(leadDate, start) || isAfter(leadDate, end)) return false;
+          } else if (preset.id === 'yesterday') {
+            const yesterday = subDays(today, 1);
+            const start = startOfDay(yesterday);
+            const end = endOfDay(yesterday);
+            if (isBefore(leadDate, start) || isAfter(leadDate, end)) return false;
+          } else {
+            const startDate = startOfDay(subDays(today, preset.days));
+            if (isBefore(leadDate, startDate)) return false;
+          }
+        }
+      }
+
       return true;
     });
-  }, [leads, searchQuery, selectedStatuses, selectedSources]);
+  }, [leads, searchQuery, selectedStatuses, selectedSources, selectedDatePreset]);
 
-  const activeFiltersCount = selectedStatuses.length + selectedSources.length + (searchQuery ? 1 : 0);
+  const activeFiltersCount = selectedStatuses.length + selectedSources.length + (searchQuery ? 1 : 0) + (selectedDatePreset ? 1 : 0);
 
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedStatuses([]);
     setSelectedSources([]);
+    setSelectedDatePreset(null);
+  };
+
+  const toggleDatePreset = (presetId: string) => {
+    setSelectedDatePreset(prev => prev === presetId ? null : presetId);
   };
 
   const handleRefresh = async () => {
@@ -438,6 +482,41 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* Date Filter */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className={cn(
+                    "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
+                    selectedDatePreset && "border-emerald-500 bg-emerald-500/10"
+                  )}
+                >
+                  <Calendar className="w-4 h-4 mr-2" />
+                  <span className="hidden sm:inline">Дата</span>
+                  {selectedDatePreset && (
+                    <Badge className="ml-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0">
+                      {datePresets.find(p => p.id === selectedDatePreset)?.label}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 crm-card-glass border-border/50">
+                <DropdownMenuLabel className="font-bold">Фильтр по дате</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                {datePresets.map((preset) => (
+                  <DropdownMenuCheckboxItem
+                    key={preset.id}
+                    checked={selectedDatePreset === preset.id}
+                    onCheckedChange={() => toggleDatePreset(preset.id)}
+                    className="cursor-pointer"
+                  >
+                    {preset.label}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -494,6 +573,18 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   </Badge>
                 );
               })}
+
+              {selectedDatePreset && (
+                <Badge 
+                  variant="secondary" 
+                  className="bg-emerald-500/10 text-emerald-600 gap-1 cursor-pointer hover:bg-emerald-500/20"
+                  onClick={() => setSelectedDatePreset(null)}
+                >
+                  <Calendar className="w-3 h-3" />
+                  {datePresets.find(p => p.id === selectedDatePreset)?.label}
+                  <X className="w-3 h-3 ml-1" />
+                </Badge>
+              )}
               
               <Button
                 variant="ghost"
