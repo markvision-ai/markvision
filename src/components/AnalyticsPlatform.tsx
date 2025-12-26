@@ -418,7 +418,11 @@ export const AnalyticsPlatform = () => {
       </div>
 
       {/* Mobile Bottom Navigation */}
-      <MobileBottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <MobileBottomNav 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+        onMoreClick={() => setIsMobileSidebarOpen(true)}
+      />
     </div>
   );
 };

@@ -154,7 +154,7 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
+        <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 min-h-[500px] sm:min-h-[600px] -mx-2 px-2 sm:mx-0 sm:px-0">
           {KANBAN_STATUSES.map(status => (
             <KanbanColumn
               key={status.id}

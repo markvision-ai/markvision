@@ -46,10 +46,10 @@ export const MetricCard = ({
       
       <p className={`text-lg md:text-2xl font-bold ${valueStyles[variant]}`}>{value}</p>
       
-      <div className="flex items-center justify-between mt-2">
-        {subValue && <p className="text-xs text-muted-foreground">{subValue}</p>}
+      <div className="flex items-center justify-between mt-1 md:mt-2 gap-2">
+        {subValue && <p className="text-[10px] md:text-xs text-muted-foreground truncate hidden sm:block">{subValue}</p>}
         {trend && (
-          <div className={`flex items-center gap-1 text-xs ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
+          <div className={`flex items-center gap-1 text-xs flex-shrink-0 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
             {trend.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             <span>{trend.isPositive ? '+' : ''}{trend.value}%</span>
           </div>

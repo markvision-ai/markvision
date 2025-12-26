@@ -36,6 +36,7 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
   const { messages, isLoading, sendMessage, clearChat, stopGeneration } = useAIChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const isMobileLayout = typeof window !== 'undefined' && window.innerWidth < 640;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -69,17 +70,17 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
   const hasContext = context && (context.spend || context.revenue || context.leads);
 
   return (
-    <Card className="flex flex-col h-[600px] bg-gradient-to-b from-card to-card/95">
-      <CardHeader className="flex-shrink-0 pb-3 border-b">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-3 text-lg">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30">
-              <Church className="w-5 h-5 text-amber-500" />
+    <Card className="flex flex-col h-[400px] sm:h-[600px] bg-gradient-to-b from-card to-card/95">
+      <CardHeader className="flex-shrink-0 pb-2 sm:pb-3 border-b px-3 sm:px-6">
+        <div className="flex items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg">
+            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30">
+              <Church className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
             </div>
-            <div>
-              <span>Святой AI аналитик</span>
+            <div className="min-w-0">
+              <span className="block truncate">Святой AI аналитик</span>
               {hasContext && (
-                <p className="text-xs font-normal text-muted-foreground mt-0.5">
+                <p className="text-[10px] sm:text-xs font-normal text-muted-foreground mt-0.5 hidden sm:block">
                   Благословляет ваши метрики
                 </p>
               )}
@@ -90,52 +91,52 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
               variant="ghost"
               size="sm"
               onClick={clearChat}
-              className="text-muted-foreground hover:text-destructive h-8 w-8 p-0"
+              className="text-muted-foreground hover:text-destructive h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </Button>
           )}
         </div>
       </CardHeader>
 
-      <CardContent className="flex-1 flex flex-col min-h-0 pt-4">
-        <ScrollArea className="flex-1 pr-4" ref={scrollRef}>
+      <CardContent className="flex-1 flex flex-col min-h-0 pt-3 sm:pt-4 px-3 sm:px-6">
+        <ScrollArea className="flex-1 pr-2 sm:pr-4" ref={scrollRef}>
           {messages.length === 0 ? (
-            <div className="space-y-6 py-4">
+            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
               <div className="text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 mx-auto mb-4 flex items-center justify-center ring-1 ring-amber-500/20">
-                  <Church className="w-8 h-8 text-amber-500" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 mx-auto mb-3 sm:mb-4 flex items-center justify-center ring-1 ring-amber-500/20">
+                  <Church className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
                 </div>
-                <h3 className="font-medium mb-1">Мир вам! Я Святой AI аналитик</h3>
-                <p className="text-sm text-muted-foreground max-w-xs mx-auto">
+                <h3 className="font-medium mb-1 text-sm sm:text-base">Мир вам!</h3>
+                <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
                   {hasContext 
-                    ? 'Вижу ваши метрики и готов направить вас к просветлению в маркетинге'
-                    : 'Загрузите данные, и я дарую вам святые инсайты'
+                    ? 'Готов анализировать ваши метрики'
+                    : 'Загрузите данные для анализа'
                   }
                 </p>
               </div>
               
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground text-center mb-3">Попробуйте спросить:</p>
-                <div className="grid gap-2">
-                  {suggestedQuestions.map(({ text, icon: Icon }) => (
+              <div className="space-y-1.5 sm:space-y-2">
+                <p className="text-[10px] sm:text-xs text-muted-foreground text-center mb-2 sm:mb-3">Попробуйте спросить:</p>
+                <div className="grid gap-1.5 sm:gap-2">
+                  {suggestedQuestions.slice(0, isMobileLayout ? 2 : 4).map(({ text, icon: Icon }) => (
                     <Button
                       key={text}
                       variant="outline"
                       size="sm"
-                      className="h-auto py-2.5 px-4 text-sm text-left justify-start gap-3 hover:bg-primary/5 hover:border-primary/30 transition-all"
+                      className="h-auto py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm text-left justify-start gap-2 sm:gap-3 hover:bg-primary/5 hover:border-primary/30 transition-all"
                       onClick={() => handleSuggestion(text)}
                       disabled={isLoading}
                     >
-                      <Icon className="w-4 h-4 text-primary/70 flex-shrink-0" />
-                      <span>{text}</span>
+                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary/70 flex-shrink-0" />
+                      <span className="truncate">{text}</span>
                     </Button>
                   ))}
                 </div>
               </div>
             </div>
           ) : (
-            <div className="space-y-4 py-2">
+            <div className="space-y-3 sm:space-y-4 py-2">
               {messages.map((msg) => (
                 <MessageBubble key={msg.id} message={msg} />
               ))}
@@ -143,22 +144,22 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
           )}
         </ScrollArea>
 
-        <div className="flex gap-2 pt-4 border-t mt-3">
+        <div className="flex gap-2 pt-3 sm:pt-4 border-t mt-2 sm:mt-3">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Задайте вопрос о ваших данных..."
+            placeholder="Задайте вопрос..."
             disabled={isLoading}
-            className="flex-1 bg-secondary/50"
+            className="flex-1 bg-secondary/50 text-sm"
           />
           {isLoading ? (
             <Button
               onClick={stopGeneration}
               size="icon"
               variant="destructive"
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10"
             >
               <Square className="w-4 h-4" />
             </Button>
@@ -167,7 +168,7 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
               onClick={handleSend}
               disabled={!input.trim()}
               size="icon"
-              className="flex-shrink-0"
+              className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10"
             >
               <Send className="w-4 h-4" />
             </Button>

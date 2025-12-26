@@ -26,22 +26,22 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
   });
 
   return (
-    <div className="bg-card border rounded-xl p-6">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h3 className="font-semibold text-lg">Конверсии воронки</h3>
-          <p className="text-sm text-muted-foreground">Переходы между этапами</p>
+    <div className="bg-card border rounded-xl p-4 sm:p-6">
+      <div className="flex items-center justify-between mb-4 sm:mb-6 gap-2">
+        <div className="min-w-0">
+          <h3 className="font-semibold text-sm sm:text-lg truncate">Конверсии воронки</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground hidden sm:block">Переходы между этапами</p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 sm:space-y-4">
         {conversions.map((conv, index) => {
-          const isGoodRate = conv.rate > 10; // Consider >10% as good
+          const isGoodRate = conv.rate > 10;
           
           return (
             <div 
               key={index}
-              className="relative bg-secondary/50 rounded-xl p-4 overflow-hidden"
+              className="relative bg-secondary/50 rounded-lg sm:rounded-xl p-3 sm:p-4 overflow-hidden"
             >
               {/* Background gradient */}
               <div 
@@ -51,49 +51,49 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
                 }}
               />
               
-              <div className="relative flex items-center justify-between">
+              <div className="relative flex items-center justify-between gap-2">
                 {/* From */}
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 mb-0.5 sm:mb-1">
                     <div 
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: conv.fromColor }}
                     />
-                    <span className="text-sm text-muted-foreground">{conv.from}</span>
+                    <span className="text-xs sm:text-sm text-muted-foreground truncate">{conv.from}</span>
                   </div>
-                  <p className="text-lg font-bold">
-                    {new Intl.NumberFormat('ru-RU').format(conv.fromValue)}
+                  <p className="text-sm sm:text-lg font-bold">
+                    {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(conv.fromValue)}
                   </p>
                 </div>
 
                 {/* Arrow with conversion rate */}
-                <div className="flex flex-col items-center px-4">
-                  <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${
+                <div className="flex flex-col items-center px-1.5 sm:px-4 flex-shrink-0">
+                  <div className={`flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-[10px] sm:text-sm font-semibold ${
                     isGoodRate 
                       ? 'bg-success/20 text-success' 
                       : 'bg-warning/20 text-warning'
                   }`}>
                     {isGoodRate ? (
-                      <TrendingUp className="w-3.5 h-3.5" />
+                      <TrendingUp className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     ) : (
-                      <TrendingDown className="w-3.5 h-3.5" />
+                      <TrendingDown className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                     )}
-                    {conv.rate.toFixed(1)}%
+                    {conv.rate.toFixed(0)}%
                   </div>
-                  <ArrowRight className="w-5 h-5 text-muted-foreground mt-1" />
+                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground mt-0.5 sm:mt-1" />
                 </div>
 
                 {/* To */}
-                <div className="flex-1 text-right">
-                  <div className="flex items-center gap-2 justify-end mb-1">
-                    <span className="text-sm text-muted-foreground">{conv.to}</span>
+                <div className="flex-1 text-right min-w-0">
+                  <div className="flex items-center gap-1.5 sm:gap-2 justify-end mb-0.5 sm:mb-1">
+                    <span className="text-xs sm:text-sm text-muted-foreground truncate">{conv.to}</span>
                     <div 
-                      className="w-2.5 h-2.5 rounded-full"
+                      className="w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full flex-shrink-0"
                       style={{ backgroundColor: conv.toColor }}
                     />
                   </div>
-                  <p className="text-lg font-bold">
-                    {new Intl.NumberFormat('ru-RU').format(conv.toValue)}
+                  <p className="text-sm sm:text-lg font-bold">
+                    {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(conv.toValue)}
                   </p>
                 </div>
               </div>
@@ -115,15 +115,16 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
 
       {/* Overall conversion */}
       {steps.length >= 2 && (
-        <div className="mt-6 pt-4 border-t border-border">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-muted-foreground">
-              Общая конверсия ({steps[0].label} → {steps[steps.length - 1].label})
+        <div className="mt-4 sm:mt-6 pt-3 sm:pt-4 border-t border-border">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-xs sm:text-sm text-muted-foreground truncate">
+              <span className="hidden sm:inline">Общая конверсия ({steps[0].label} → {steps[steps.length - 1].label})</span>
+              <span className="sm:hidden">Общая</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-bold text-primary">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-sm sm:text-lg font-bold text-primary">
                 {steps[0].value > 0 
-                  ? ((steps[steps.length - 1].value / steps[0].value) * 100).toFixed(3)
+                  ? ((steps[steps.length - 1].value / steps[0].value) * 100).toFixed(2)
                   : 0
                 }%
               </span>

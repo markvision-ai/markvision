@@ -39,7 +39,7 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-72 rounded-xl border p-3 transition-colors',
+        'flex-shrink-0 w-[260px] sm:w-72 rounded-xl border p-2 sm:p-3 transition-colors',
         getColumnStyles(),
         isOver && 'ring-2 ring-primary'
       )}
