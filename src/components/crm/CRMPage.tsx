@@ -100,7 +100,6 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         const matchesSearch = 
           (lead.name?.toLowerCase().includes(query)) ||
           (lead.phone?.toLowerCase().includes(query)) ||
-          (lead.email?.toLowerCase().includes(query)) ||
           (lead.utm_source?.toLowerCase().includes(query)) ||
           (lead.utm_campaign?.toLowerCase().includes(query));
         if (!matchesSearch) return false;
@@ -397,7 +396,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             <Input
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Поиск по имени, телефону, email, источнику..."
+              placeholder="Поиск по имени, телефону, источнику..."
               className="pl-12 h-12 text-base crm-card-glass border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl"
             />
             {searchQuery && (
