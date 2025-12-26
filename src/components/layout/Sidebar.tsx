@@ -41,9 +41,12 @@ interface SidebarProps {
   onMobileClose?: () => void;
 }
 
+import { Megaphone } from 'lucide-react';
+
 const menuItems = [
   { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard },
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
+  { id: 'quantom-ads', label: 'Quantom Ads', icon: Megaphone },
   { id: 'crm', label: 'CRM', icon: Kanban },
   { id: 'clients', label: 'Клиенты', icon: UserCheck },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
