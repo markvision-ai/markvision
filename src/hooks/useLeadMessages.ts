@@ -88,7 +88,7 @@ export const useLeadMessages = (leadId: string | null) => {
   const sendMessage = useCallback(
     async (
       message: string,
-      fileData?: { url: string; name: string; type: string } | null
+      fileData?: { url: string; name: string; type: string; path?: string } | null
     ) => {
       if (!leadId || !user || (!message.trim() && !fileData)) return false;
 
@@ -101,12 +101,13 @@ export const useLeadMessages = (leadId: string | null) => {
           .eq('user_id', user.id)
           .single();
 
+        // Store the file path (not the signed URL) so we can regenerate signed URLs later
         const { error } = await supabase.from('lead_messages').insert({
           lead_id: leadId,
           user_id: user.id,
           user_name: profile?.name || user.email?.split('@')[0] || 'Пользователь',
           message: message.trim(),
-          file_url: fileData?.url || null,
+          file_url: fileData?.path || null, // Store path, not signed URL
           file_name: fileData?.name || null,
           file_type: fileData?.type || null,
         });

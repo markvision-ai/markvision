@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLeadMessages } from '@/hooks/useLeadMessages';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,6 +15,93 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface LeadChatProps {
   leadId: string;
 }
+
+// Helper to get signed URL for a file path
+const getSignedUrl = async (filePath: string): Promise<string | null> => {
+  const { data, error } = await supabase.storage
+    .from('lead-attachments')
+    .createSignedUrl(filePath, 3600); // 1 hour expiry
+  
+  if (error) {
+    console.error('Error getting signed URL:', error);
+    return null;
+  }
+  return data.signedUrl;
+};
+
+// Component for displaying file attachments with signed URLs
+const FileAttachment = ({ 
+  filePath, 
+  fileName, 
+  fileType, 
+  isOwn 
+}: { 
+  filePath: string; 
+  fileName: string | null; 
+  fileType: string | null; 
+  isOwn: boolean;
+}) => {
+  const [signedUrl, setSignedUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const isImage = fileType?.startsWith('image/');
+
+  useEffect(() => {
+    const loadSignedUrl = async () => {
+      setLoading(true);
+      const url = await getSignedUrl(filePath);
+      setSignedUrl(url);
+      setLoading(false);
+    };
+    loadSignedUrl();
+  }, [filePath]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span className="text-xs">Загрузка файла...</span>
+      </div>
+    );
+  }
+
+  if (!signedUrl) {
+    return (
+      <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive">
+        <FileText className="w-4 h-4" />
+        <span className="text-xs">Файл недоступен</span>
+      </div>
+    );
+  }
+
+  if (isImage) {
+    return (
+      <a href={signedUrl} target="_blank" rel="noopener noreferrer">
+        <img 
+          src={signedUrl} 
+          alt={fileName || 'Изображение'} 
+          className="max-w-full max-h-48 rounded-lg object-cover shadow-lg"
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a 
+      href={signedUrl} 
+      target="_blank" 
+      rel="noopener noreferrer"
+      className={cn(
+        'flex items-center gap-2 p-3 rounded-lg transition-colors',
+        isOwn ? 'bg-primary-foreground/10 hover:bg-primary-foreground/20' : 'bg-muted/50 hover:bg-muted'
+      )}
+    >
+      <FileText className="w-5 h-5" />
+      <span className="text-xs truncate max-w-[150px] font-medium">
+        {fileName || 'Файл'}
+      </span>
+    </a>
+  );
+};
 
 export const LeadChat = ({ leadId }: LeadChatProps) => {
   const { user } = useAuth();
@@ -49,25 +136,28 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
     }
   };
 
-  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string } | null> => {
+  const uploadFile = async (file: File): Promise<{ url: string; name: string; type: string; path: string } | null> => {
     try {
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user?.id}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      // Use lead_id as folder to match RLS policy structure
+      const filePath = `${leadId}/${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from('lead-attachments')
-        .upload(fileName, file);
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('lead-attachments')
-        .getPublicUrl(fileName);
+      // Get signed URL instead of public URL for secure access
+      const signedUrl = await getSignedUrl(filePath);
+      
+      if (!signedUrl) throw new Error('Failed to get signed URL');
 
       return {
-        url: publicUrl,
+        url: signedUrl,
         name: file.name,
         type: file.type,
+        path: filePath, // Store path for regenerating signed URLs
       };
     } catch (error) {
       console.error('Error uploading file:', error);
@@ -107,7 +197,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
     }
   };
 
-  const isImage = (type: string) => type?.startsWith('image/');
+  
 
   if (loading) {
     return (
@@ -179,33 +269,15 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                           : 'crm-card-glass rounded-bl-md'
                       )}
                     >
-                      {/* File attachment */}
+                      {/* File attachment - uses signed URLs for secure access */}
                       {msg.file_url && (
                         <div className="mb-2">
-                          {isImage(msg.file_type || '') ? (
-                            <a href={msg.file_url} target="_blank" rel="noopener noreferrer">
-                              <img 
-                                src={msg.file_url} 
-                                alt={msg.file_name || 'Изображение'} 
-                                className="max-w-full max-h-48 rounded-lg object-cover shadow-lg"
-                              />
-                            </a>
-                          ) : (
-                            <a 
-                              href={msg.file_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className={cn(
-                                'flex items-center gap-2 p-3 rounded-lg transition-colors',
-                                isOwn ? 'bg-primary-foreground/10 hover:bg-primary-foreground/20' : 'bg-muted/50 hover:bg-muted'
-                              )}
-                            >
-                              <FileText className="w-5 h-5" />
-                              <span className="text-xs truncate max-w-[150px] font-medium">
-                                {msg.file_name || 'Файл'}
-                              </span>
-                            </a>
-                          )}
+                          <FileAttachment
+                            filePath={msg.file_url}
+                            fileName={msg.file_name}
+                            fileType={msg.file_type}
+                            isOwn={isOwn}
+                          />
                         </div>
                       )}
                       {msg.message && !msg.message.startsWith('📎') && (
