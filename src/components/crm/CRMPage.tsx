@@ -7,6 +7,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Kanban, TrendingUp } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
+import { PullToRefresh } from '@/components/mobile/PullToRefresh';
 
 interface CRMPageProps {
   projectId: string | null;
@@ -98,39 +99,41 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Swipeable content for mobile */}
+        {/* Swipeable content for mobile with pull-to-refresh */}
         <div className="mt-4 overflow-hidden">
           {isMobile ? (
-            <motion.div
-              drag="x"
-              dragConstraints={{ left: 0, right: 0 }}
-              dragElastic={0.2}
-              onDragEnd={handleSwipe}
-              className="touch-pan-y"
-            >
-              <AnimatePresence mode="wait" custom={direction}>
-                <motion.div
-                  key={activeTab}
-                  custom={direction}
-                  variants={slideVariants}
-                  initial="enter"
-                  animate="center"
-                  exit="exit"
-                  transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
-                >
-                  {activeTab === 'kanban' ? (
-                    <KanbanBoard 
-                      leads={leads} 
-                      loading={loading} 
-                      onRefetch={refetch}
-                      projectId={projectId}
-                    />
-                  ) : (
-                    <CRMFunnel leads={leads} loading={loading} />
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </motion.div>
+            <PullToRefresh onRefresh={handleRefresh}>
+              <motion.div
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={handleSwipe}
+                className="touch-pan-y"
+              >
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={activeTab}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
+                  >
+                    {activeTab === 'kanban' ? (
+                      <KanbanBoard 
+                        leads={leads} 
+                        loading={loading} 
+                        onRefetch={refetch}
+                        projectId={projectId}
+                      />
+                    ) : (
+                      <CRMFunnel leads={leads} loading={loading} />
+                    )}
+                  </motion.div>
+                </AnimatePresence>
+              </motion.div>
+            </PullToRefresh>
           ) : (
             <>
               {activeTab === 'kanban' ? (
