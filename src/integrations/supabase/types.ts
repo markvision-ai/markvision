@@ -106,6 +106,62 @@ export type Database = {
           },
         ]
       }
+      campaigns: {
+        Row: {
+          ai_log: Json | null
+          autopilot_enabled: boolean
+          budget: number
+          created_at: string
+          external_id: string | null
+          id: string
+          name: string
+          platform: string
+          project_id: string
+          rules: Json | null
+          spent_today: number
+          status: boolean
+          updated_at: string
+        }
+        Insert: {
+          ai_log?: Json | null
+          autopilot_enabled?: boolean
+          budget?: number
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          name: string
+          platform: string
+          project_id: string
+          rules?: Json | null
+          spent_today?: number
+          status?: boolean
+          updated_at?: string
+        }
+        Update: {
+          ai_log?: Json | null
+          autopilot_enabled?: boolean
+          budget?: number
+          created_at?: string
+          external_id?: string | null
+          id?: string
+          name?: string
+          platform?: string
+          project_id?: string
+          rules?: Json | null
+          spent_today?: number
+          status?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_attribution_settings: {
         Row: {
           created_at: string
