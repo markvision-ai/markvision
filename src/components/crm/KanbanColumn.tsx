@@ -9,9 +9,10 @@ interface KanbanColumnProps {
   status: KanbanStatus;
   leads: Lead[];
   onLeadClick: (lead: Lead) => void;
+  isDropTarget?: boolean;
 }
 
-export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) => {
+export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
   });
@@ -61,13 +62,18 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
   };
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       className={cn(
         'flex-shrink-0 w-[260px] sm:w-72 rounded-xl border p-2 sm:p-3 transition-colors',
         getColumnStyles(),
-        isOver && 'ring-2 ring-primary'
+        (isOver || isDropTarget) && 'ring-2 ring-primary'
       )}
+      animate={{
+        scale: isOver || isDropTarget ? 1.02 : 1,
+        backgroundColor: isOver || isDropTarget ? 'hsl(var(--primary) / 0.05)' : undefined,
+      }}
+      transition={{ duration: 0.2 }}
     >
       {/* Column Header */}
       <div className="flex items-center justify-between mb-3 px-1">
@@ -101,6 +107,6 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
           </div>
         )}
       </motion.div>
-    </div>
+    </motion.div>
   );
 };

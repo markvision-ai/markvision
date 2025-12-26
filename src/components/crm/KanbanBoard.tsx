@@ -1,9 +1,10 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import {
   DndContext,
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
+  DragOverEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -18,6 +19,8 @@ import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
+import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export interface KanbanStatus {
   id: string;
@@ -43,6 +46,7 @@ interface KanbanBoardProps {
 
 export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoardProps) => {
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -78,13 +82,20 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
     return leads.find(lead => lead.id === activeId) || null;
   }, [activeId, leads]);
 
-  const handleDragStart = (event: DragStartEvent) => {
+  const handleDragStart = useCallback((event: DragStartEvent) => {
     setActiveId(event.active.id as string);
-  };
+    playDragStartSound();
+  }, []);
+
+  const handleDragOver = useCallback((event: DragOverEvent) => {
+    const { over } = event;
+    setOverId(over?.id as string || null);
+  }, []);
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveId(null);
+    setOverId(null);
 
     if (!over) return;
 
@@ -93,6 +104,9 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
     const lead = leads.find(l => l.id === leadId);
 
     if (!lead || lead.status === newStatus) return;
+
+    // Play drop sound
+    playDropSound();
 
     // If dropping into "paid" column, show payment dialog
     if (newStatus === 'paid') {
@@ -122,6 +136,11 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         .eq('id', leadId);
 
       if (error) throw error;
+
+      // Play success sound for paid status
+      if (status === 'paid') {
+        playSuccessSound();
+      }
 
       toast.success('Статус обновлен');
       onRefetch();
@@ -158,6 +177,7 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
+        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 min-h-[500px] sm:min-h-[600px] -mx-2 px-2 sm:mx-0 sm:px-0">
@@ -167,13 +187,23 @@ export const KanbanBoard = ({ leads, loading, onRefetch, projectId }: KanbanBoar
               status={status}
               leads={leadsByStatus[status.id] || []}
               onLeadClick={setSelectedLead}
+              isDropTarget={overId === status.id}
             />
           ))}
         </div>
 
-        <DragOverlay>
+        <DragOverlay dropAnimation={{
+          duration: 200,
+          easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)',
+        }}>
           {activeLead && (
-            <LeadCard lead={activeLead} isDragging />
+            <motion.div
+              initial={{ scale: 1, rotate: 0 }}
+              animate={{ scale: 1.05, rotate: 2, boxShadow: '0 20px 40px rgba(0,0,0,0.2)' }}
+              className="cursor-grabbing"
+            >
+              <LeadCard lead={activeLead} isDragging />
+            </motion.div>
           )}
         </DragOverlay>
       </DndContext>
