@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -32,29 +32,40 @@ export const LeadCard = ({
     disabled: selectionMode,
   });
 
-  const style = {
-    transform: CSS.Translate.toString(transform),
-  };
+  // Only apply transform, no transition during drag to prevent stickiness
+  const style: React.CSSProperties = transform
+    ? {
+        transform: CSS.Translate.toString(transform),
+        transition: undefined, // Remove transition during drag
+      }
+    : {};
 
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
-    if (!source) return null;
-
-    const sourceStyles: Record<string, { bg: string; text: string; glow: string }> = {
-      yandex: { bg: 'bg-gradient-to-r from-yellow-500/20 to-orange-500/20', text: 'text-yellow-500', glow: 'shadow-yellow-500/20' },
-      google: { bg: 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20', text: 'text-blue-500', glow: 'shadow-blue-500/20' },
-      vk: { bg: 'bg-gradient-to-r from-sky-500/20 to-blue-500/20', text: 'text-sky-500', glow: 'shadow-sky-500/20' },
-      facebook: { bg: 'bg-gradient-to-r from-indigo-500/20 to-blue-500/20', text: 'text-indigo-500', glow: 'shadow-indigo-500/20' },
-      instagram: { bg: 'bg-gradient-to-r from-pink-500/20 to-purple-500/20', text: 'text-pink-500', glow: 'shadow-pink-500/20' },
-      telegram: { bg: 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20', text: 'text-cyan-500', glow: 'shadow-cyan-500/20' },
+    
+    const sourceStyles: Record<string, { bg: string; text: string }> = {
+      yandex: { bg: 'bg-yellow-500/20', text: 'text-yellow-600' },
+      google: { bg: 'bg-blue-500/20', text: 'text-blue-600' },
+      vk: { bg: 'bg-sky-500/20', text: 'text-sky-600' },
+      facebook: { bg: 'bg-indigo-500/20', text: 'text-indigo-600' },
+      instagram: { bg: 'bg-pink-500/20', text: 'text-pink-600' },
+      telegram: { bg: 'bg-cyan-500/20', text: 'text-cyan-600' },
     };
 
-    const styleData = sourceStyles[source] || { bg: 'bg-secondary', text: 'text-secondary-foreground', glow: '' };
+    const styleData = source && sourceStyles[source] 
+      ? sourceStyles[source] 
+      : { bg: 'bg-muted', text: 'text-muted-foreground' };
 
     return (
-      <Badge variant="secondary" className={cn('text-[10px] font-semibold border-0', styleData.bg, styleData.text, styleData.glow)}>
-        {lead.utm_source}
-      </Badge>
+      <div className={cn(
+        'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
+        styleData.bg, styleData.text
+      )}>
+        <Globe className="w-3 h-3" />
+        <span className="truncate max-w-[80px]">
+          {lead.utm_source || 'Прямой'}
+        </span>
+      </div>
     );
   };
 
@@ -66,27 +77,16 @@ export const LeadCard = ({
     e.stopPropagation();
     e.preventDefault();
     
-    switch (action) {
-      case 'call':
-        if (lead.phone) {
-          window.open(`tel:${lead.phone}`, '_self');
-        }
-        break;
-      case 'whatsapp':
-        if (lead.phone) {
-          const phone = formatPhoneForWhatsApp(lead.phone);
-          window.open(`https://wa.me/${phone}`, '_blank');
-        }
-        break;
+    if (action === 'call' && lead.phone) {
+      window.open(`tel:${lead.phone}`, '_self');
+    } else if (action === 'whatsapp' && lead.phone) {
+      const phone = formatPhoneForWhatsApp(lead.phone);
+      window.open(`https://wa.me/${phone}`, '_blank');
     }
   };
 
-  const handleCheckboxChange = (checked: boolean) => {
-    onSelect?.(checked);
-  };
-
   const handleCardClick = (e: React.MouseEvent) => {
-    // Ignore if clicking on interactive elements
+    // Ignore clicks on interactive elements
     if ((e.target as HTMLElement).closest('button, a, [role="checkbox"]')) {
       return;
     }
@@ -106,69 +106,74 @@ export const LeadCard = ({
       style={style}
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
-        'crm-card-glass rounded-xl p-3 sm:p-4 transition-all duration-300 premium-border group touch-none',
+        'bg-card border border-border rounded-xl p-3 sm:p-4 group touch-none',
+        // Only apply hover transitions when not dragging
+        !showDragging && 'transition-shadow duration-200 hover:shadow-md hover:border-primary/30',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
-        showDragging && 'opacity-90 shadow-2xl scale-105 z-50',
-        !showDragging && 'hover:scale-[1.02] hover:shadow-lg hover:border-primary/30',
+        showDragging && 'shadow-xl opacity-95 z-50',
         isSelected && 'ring-2 ring-primary bg-primary/5'
       )}
       onClick={handleCardClick}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2 mb-3">
+      {/* Header: Name + Drag Handle */}
+      <div className="flex items-start gap-2 mb-3">
         {selectionMode ? (
           <div 
-            className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0"
+            className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5"
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
               checked={isSelected}
-              onCheckedChange={handleCheckboxChange}
+              onCheckedChange={(checked) => onSelect?.(!!checked)}
               className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
             />
           </div>
         ) : (
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center flex-shrink-0">
-            <GripVertical className="w-4 h-4 text-primary/70" />
+          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm truncate">
+          <p className="font-semibold text-sm leading-tight truncate">
             {lead.name || 'Без имени'}
           </p>
         </div>
-        {getSourceBadge()}
       </div>
 
       {/* Phone */}
-      {lead.phone && (
-        <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-10">
-          <Phone className="w-3.5 h-3.5 text-primary/60" />
-          <span className="truncate font-medium">{lead.phone}</span>
-        </div>
-      )}
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-9">
+        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
+        <span className="truncate font-medium">
+          {lead.phone || 'Нет телефона'}
+        </span>
+      </div>
 
       {/* Date */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3 pl-10">
-        <Calendar className="w-3.5 h-3.5 text-primary/60" />
+      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-9">
+        <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
         <span className="truncate">
-          {format(new Date(lead.created_at), 'd MMM, HH:mm', { locale: ru })}
+          {format(new Date(lead.created_at), 'd MMM yyyy, HH:mm', { locale: ru })}
         </span>
+      </div>
+
+      {/* Source */}
+      <div className="mb-3 pl-9">
+        {getSourceBadge()}
       </div>
 
       {/* Amount Badge (if paid) */}
       {lead.status === 'paid' && lead.deal_amount && lead.deal_amount > 0 && (
-        <div className="mb-3 pl-10">
-          <Badge className="bg-gradient-to-r from-success to-emerald-500 text-success-foreground border-0 text-xs font-bold shadow-lg shadow-success/20">
+        <div className="mb-3 pl-9">
+          <Badge className="bg-success/20 text-success border-0 text-xs font-bold">
             <Sparkles className="w-3 h-3 mr-1" />
-            {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.deal_amount)} ₸
+            {new Intl.NumberFormat('ru-RU').format(lead.deal_amount)} ₸
           </Badge>
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* Quick Actions - visible on hover */}
       <div 
-        className="flex gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="flex gap-1.5 pl-9 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <TooltipProvider delayDuration={300}>
@@ -176,17 +181,18 @@ export const LeadCard = ({
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className={cn(
-                  "h-8 w-8 rounded-lg",
+                  "h-7 px-2 rounded-md text-xs",
                   lead.phone 
-                    ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-500" 
-                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                    ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600" 
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
                 )}
                 onClick={(e) => handleQuickAction(e, 'call')}
                 disabled={!lead.phone}
               >
-                <Phone className="w-4 h-4" />
+                <Phone className="w-3.5 h-3.5 mr-1" />
+                Звонок
               </Button>
             </TooltipTrigger>
             <TooltipContent>
@@ -198,21 +204,22 @@ export const LeadCard = ({
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
+                size="sm"
                 className={cn(
-                  "h-8 w-8 rounded-lg",
+                  "h-7 px-2 rounded-md text-xs",
                   lead.phone 
-                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-500" 
-                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-600" 
+                    : "bg-muted text-muted-foreground cursor-not-allowed"
                 )}
                 onClick={(e) => handleQuickAction(e, 'whatsapp')}
                 disabled={!lead.phone}
               >
-                <MessageCircle className="w-4 h-4" />
+                <MessageCircle className="w-3.5 h-3.5 mr-1" />
+                WhatsApp
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{lead.phone ? 'WhatsApp' : 'Нет телефона'}</p>
+              <p>{lead.phone ? 'Написать в WhatsApp' : 'Нет телефона'}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>
