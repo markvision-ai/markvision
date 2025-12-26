@@ -19,7 +19,9 @@ import {
   Loader2,
   X,
   ListTodo,
-  History
+  History,
+  Sparkles,
+  MessageCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,7 +29,6 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Select,
   SelectContent,
@@ -40,6 +41,7 @@ import { LeadTasks } from './LeadTasks';
 import { LeadStatusHistory } from './LeadStatusHistory';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const statusLabels: Record<string, string> = {
   new: 'Новая',
@@ -50,13 +52,13 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Отказ',
 };
 
-const statusColors: Record<string, string> = {
-  new: 'bg-blue-500/20 text-blue-600',
-  in_progress: 'bg-yellow-500/20 text-yellow-600',
-  no_answer: 'bg-orange-500/20 text-orange-600',
-  appointment: 'bg-purple-500/20 text-purple-600',
-  paid: 'bg-success/20 text-success',
-  cancelled: 'bg-destructive/20 text-destructive',
+const statusStyles: Record<string, { bg: string; text: string; gradient: string }> = {
+  new: { bg: 'bg-blue-500/20', text: 'text-blue-500', gradient: 'from-blue-500 to-cyan-500' },
+  in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
+  no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
+  appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
+  paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-emerald-500 to-green-500' },
+  cancelled: { bg: 'bg-destructive/20', text: 'text-destructive', gradient: 'from-red-500 to-rose-500' },
 };
 
 interface LeadFullPageProps {
@@ -84,7 +86,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   });
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [rightTab, setRightTab] = useState('chat');
 
   useEffect(() => {
     const changed = 
@@ -114,7 +115,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         deal_amount: formData.deal_amount,
       });
 
-      // Log status change to history
       if (statusChanged || amountChanged) {
         const { data: profile } = await supabase
           .from('profiles')
@@ -142,271 +142,323 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
     }
   };
 
+  const currentStatusStyle = statusStyles[formData.status] || statusStyles.new;
+
   return (
-    <div className="fixed inset-0 z-50 bg-background flex flex-col">
-      {/* Header */}
-      <header className="flex items-center justify-between px-4 py-3 border-b bg-background shrink-0">
-        <div className="flex items-center gap-3">
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <ArrowLeft className="w-5 h-5" />
-          </Button>
-          <div className="flex items-center gap-2">
-            <h1 className="text-lg font-semibold">
-              {lead.name || 'Без имени'}
-            </h1>
-            <Badge className={statusColors[formData.status]}>
-              {statusLabels[formData.status]}
-            </Badge>
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          {hasChanges && (
-            <Button onClick={handleSave} disabled={saving} size="sm">
-              {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Save className="w-4 h-4 mr-2" />
-              )}
-              Сохранить
+    <AnimatePresence>
+      <motion.div 
+        className="fixed inset-0 z-50 bg-background flex flex-col"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+      >
+        {/* Premium Header */}
+        <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b crm-card-glass shrink-0">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-primary/10">
+              <ArrowLeft className="w-5 h-5" />
             </Button>
-          )}
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="w-5 h-5" />
-          </Button>
-        </div>
-      </header>
+            <div className="flex items-center gap-3">
+              <div className={cn('w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg', currentStatusStyle.gradient)}>
+                <User className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg md:text-xl font-bold">
+                  {lead.name || 'Без имени'}
+                </h1>
+                <Badge className={cn('mt-1', currentStatusStyle.bg, currentStatusStyle.text, 'border-0')}>
+                  {statusLabels[formData.status]}
+                </Badge>
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            {hasChanges && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+              >
+                <Button 
+                  onClick={handleSave} 
+                  disabled={saving} 
+                  size="sm"
+                  className="bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg"
+                >
+                  {saving ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <Save className="w-4 h-4 mr-2" />
+                  )}
+                  Сохранить
+                </Button>
+              </motion.div>
+            )}
+            <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-destructive/10">
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+        </header>
 
-      {/* Content */}
-      <div className="flex-1 flex overflow-hidden">
-        {/* Left: Lead Details */}
-        <div className="w-1/2 border-r overflow-hidden flex flex-col">
-          <ScrollArea className="flex-1 p-6">
-            <div className="space-y-6 max-w-lg">
-              {/* Contact Info */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  Контактные данные
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Имя</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Имя клиента"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Телефон</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        {/* Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left: Lead Details */}
+          <div className="w-1/2 border-r border-border/50 overflow-hidden flex flex-col bg-gradient-to-b from-background to-muted/20">
+            <ScrollArea className="flex-1 p-6">
+              <div className="space-y-6 max-w-lg">
+                {/* Contact Info Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                      <User className="w-4 h-4 text-primary-foreground" />
+                    </div>
+                    Контактные данные
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">Имя</Label>
                       <Input
-                        id="phone"
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        placeholder="+7 (___) ___-__-__"
-                        className="pl-10"
+                        id="name"
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        placeholder="Имя клиента"
+                        className="mt-1.5 bg-background/50 border-border/50 focus:border-primary"
                       />
                     </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        type="email"
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        placeholder="email@example.com"
-                        className="pl-10"
-                      />
+                    <div>
+                      <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground">Телефон</Label>
+                      <div className="relative mt-1.5">
+                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
+                        <Input
+                          id="phone"
+                          value={formData.phone}
+                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                          placeholder="+7 (___) ___-__-__"
+                          className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label htmlFor="email" className="text-xs font-medium text-muted-foreground">Email</Label>
+                      <div className="relative mt-1.5">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
+                        <Input
+                          id="email"
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          placeholder="email@example.com"
+                          className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
-              </section>
+                </motion.section>
 
-              <Separator />
-
-              {/* Status & Deal */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <DollarSign className="w-4 h-4" />
-                  Статус и сделка
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="status">Статус</Label>
-                    <Select
-                      value={formData.status}
-                      onValueChange={(value) => setFormData({ ...formData, status: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(statusLabels).map(([key, label]) => (
-                          <SelectItem key={key} value={key}>
-                            {label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="amount">Сумма сделки</Label>
-                    <div className="relative">
-                      <Input
-                        id="amount"
-                        type="number"
-                        value={formData.deal_amount}
-                        onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
-                        placeholder="0"
-                        className="pr-8"
-                      />
-                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">₸</span>
+                {/* Status & Deal Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-success to-emerald-500 flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-success-foreground" />
                     </div>
-                  </div>
-                </div>
-              </section>
-
-              <Separator />
-
-              {/* UTM Tags */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <Tag className="w-4 h-4" />
-                  UTM-метки
-                </h2>
-                <div className="grid grid-cols-2 gap-2">
-                  {lead.utm_source && (
-                    <div className="p-2 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Source</p>
-                      <p className="text-sm font-medium">{lead.utm_source}</p>
-                    </div>
-                  )}
-                  {lead.utm_medium && (
-                    <div className="p-2 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Medium</p>
-                      <p className="text-sm font-medium">{lead.utm_medium}</p>
-                    </div>
-                  )}
-                  {lead.utm_campaign && (
-                    <div className="p-2 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Campaign</p>
-                      <p className="text-sm font-medium">{lead.utm_campaign}</p>
-                    </div>
-                  )}
-                  {lead.utm_content && (
-                    <div className="p-2 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Content</p>
-                      <p className="text-sm font-medium">{lead.utm_content}</p>
-                    </div>
-                  )}
-                  {lead.utm_term && (
-                    <div className="p-2 bg-secondary/50 rounded-lg">
-                      <p className="text-xs text-muted-foreground">Term</p>
-                      <p className="text-sm font-medium">{lead.utm_term}</p>
-                    </div>
-                  )}
-                  {!lead.utm_source && !lead.utm_medium && !lead.utm_campaign && (
-                    <p className="text-sm text-muted-foreground col-span-2">
-                      UTM-метки отсутствуют
-                    </p>
-                  )}
-                </div>
-              </section>
-
-              <Separator />
-
-              {/* Touchpoints */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  История касаний
-                </h2>
-                {touchpointsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                  </div>
-                ) : touchpoints.length > 0 ? (
-                  <div className="space-y-2">
-                    {touchpoints.map((tp, index) => (
-                      <div
-                        key={tp.id}
-                        className="flex items-start gap-3 p-3 bg-secondary/30 rounded-lg"
+                    Статус и сделка
+                  </h2>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="status" className="text-xs font-medium text-muted-foreground">Статус</Label>
+                      <Select
+                        value={formData.status}
+                        onValueChange={(value) => setFormData({ ...formData, status: value })}
                       >
-                        <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-medium text-primary">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="font-medium text-sm">{tp.channel_name}</span>
-                            {tp.is_first && (
-                              <Badge variant="outline" className="text-xs">Первый</Badge>
-                            )}
-                            {tp.is_last && (
-                              <Badge variant="outline" className="text-xs">Последний</Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            {tp.campaign_name && <span>{tp.campaign_name}</span>}
-                            <span>•</span>
-                            <span>
-                              {format(new Date(tp.touched_at), 'd MMM yyyy, HH:mm', { locale: ru })}
-                            </span>
-                          </div>
-                        </div>
+                        <SelectTrigger className="mt-1.5 bg-background/50 border-border/50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(statusLabels).map(([key, label]) => (
+                            <SelectItem key={key} value={key}>
+                              <div className="flex items-center gap-2">
+                                <div className={cn('w-2 h-2 rounded-full bg-gradient-to-r', statusStyles[key]?.gradient)} />
+                                {label}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label htmlFor="amount" className="text-xs font-medium text-muted-foreground">Сумма сделки</Label>
+                      <div className="relative mt-1.5">
+                        <Input
+                          id="amount"
+                          type="number"
+                          value={formData.deal_amount}
+                          onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
+                          placeholder="0"
+                          className="pr-10 bg-background/50 border-border/50 focus:border-primary"
+                        />
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
+                      </div>
+                    </div>
+                  </div>
+                </motion.section>
+
+                {/* UTM Tags Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                      <Tag className="w-4 h-4 text-white" />
+                    </div>
+                    UTM-метки
+                  </h2>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { key: 'utm_source', label: 'Source', value: lead.utm_source },
+                      { key: 'utm_medium', label: 'Medium', value: lead.utm_medium },
+                      { key: 'utm_campaign', label: 'Campaign', value: lead.utm_campaign },
+                      { key: 'utm_content', label: 'Content', value: lead.utm_content },
+                      { key: 'utm_term', label: 'Term', value: lead.utm_term },
+                    ].filter(item => item.value).map(item => (
+                      <div key={item.key} className="p-3 bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border border-border/30">
+                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.label}</p>
+                        <p className="text-sm font-semibold truncate">{item.value}</p>
                       </div>
                     ))}
+                    {!lead.utm_source && !lead.utm_medium && !lead.utm_campaign && (
+                      <p className="text-sm text-muted-foreground col-span-2 text-center py-4">
+                        UTM-метки отсутствуют
+                      </p>
+                    )}
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    История касаний недоступна
-                  </p>
-                )}
-              </section>
+                </motion.section>
 
-              {/* Tasks */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <ListTodo className="w-4 h-4" />
-                  Задачи
-                </h2>
-                <LeadTasks leadId={lead.id} />
-              </section>
+                {/* Touchpoints Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.4 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                      <Target className="w-4 h-4 text-white" />
+                    </div>
+                    История касаний
+                  </h2>
+                  {touchpointsLoading ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : touchpoints.length > 0 ? (
+                    <div className="space-y-2">
+                      {touchpoints.map((tp, index) => (
+                        <div
+                          key={tp.id}
+                          className="flex items-start gap-3 p-3 bg-gradient-to-r from-muted/30 to-transparent rounded-lg border border-border/20"
+                        >
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-primary-foreground">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1 flex-wrap">
+                              <span className="font-semibold text-sm">{tp.channel_name}</span>
+                              {tp.is_first && (
+                                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Первый</Badge>
+                              )}
+                              {tp.is_last && (
+                                <Badge variant="outline" className="text-[10px] border-success/30 text-success">Последний</Badge>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              {tp.campaign_name && <span>{tp.campaign_name}</span>}
+                              {tp.campaign_name && <span>•</span>}
+                              <span>
+                                {format(new Date(tp.touched_at), 'd MMM yyyy, HH:mm', { locale: ru })}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      История касаний недоступна
+                    </p>
+                  )}
+                </motion.section>
 
-              <Separator />
+                {/* Tasks Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.5 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                      <ListTodo className="w-4 h-4 text-white" />
+                    </div>
+                    Задачи
+                  </h2>
+                  <LeadTasks leadId={lead.id} />
+                </motion.section>
 
-              {/* Status History */}
-              <section>
-                <h2 className="font-semibold mb-4 flex items-center gap-2">
-                  <History className="w-4 h-4" />
-                  История изменений
-                </h2>
-                <LeadStatusHistory leadId={lead.id} />
-              </section>
+                {/* Status History Section */}
+                <motion.section
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.6 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+                      <History className="w-4 h-4 text-white" />
+                    </div>
+                    История изменений
+                  </h2>
+                  <LeadStatusHistory leadId={lead.id} />
+                </motion.section>
 
-              {/* Meta Info */}
-              <section className="pt-4">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Calendar className="w-3 h-3" />
+                {/* Meta Info */}
+                <motion.div 
+                  className="flex items-center gap-2 text-xs text-muted-foreground p-4"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.7 }}
+                >
+                  <Calendar className="w-3.5 h-3.5" />
                   <span>
                     Создано: {format(new Date(lead.created_at), 'd MMMM yyyy, HH:mm', { locale: ru })}
                   </span>
-                </div>
-              </section>
-            </div>
-          </ScrollArea>
-        </div>
+                </motion.div>
+              </div>
+            </ScrollArea>
+          </div>
 
-        {/* Right: Chat */}
-        <div className="w-1/2 flex flex-col overflow-hidden">
-          <LeadChat leadId={lead.id} />
+          {/* Right: Chat */}
+          <motion.div 
+            className="w-1/2 flex flex-col overflow-hidden bg-gradient-to-b from-muted/10 to-background"
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.3 }}
+          >
+            <LeadChat leadId={lead.id} />
+          </motion.div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </AnimatePresence>
   );
 };

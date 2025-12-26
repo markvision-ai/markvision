@@ -19,22 +19,28 @@ export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: Kanba
 
   const getColumnStyles = () => {
     if (status.color === 'success') {
-      return 'bg-success/5 border-success/20';
+      return 'bg-gradient-to-b from-success/10 to-success/5 border-success/30';
     }
     if (status.color === 'destructive') {
-      return 'bg-destructive/5 border-destructive/20';
+      return 'bg-gradient-to-b from-destructive/10 to-destructive/5 border-destructive/30';
     }
-    return 'bg-card border-border';
+    return 'crm-column-glass';
   };
 
   const getHeaderStyles = () => {
     if (status.color === 'success') {
-      return 'text-success';
+      return 'bg-gradient-to-r from-success to-success/80 text-success-foreground';
     }
     if (status.color === 'destructive') {
-      return 'text-destructive';
+      return 'bg-gradient-to-r from-destructive to-destructive/80 text-destructive-foreground';
     }
-    return 'text-foreground';
+    return 'bg-gradient-to-r from-primary/20 to-accent/20 text-foreground';
+  };
+
+  const getGlowStyles = () => {
+    if (status.color === 'success') return 'crm-glow-success';
+    if (status.color === 'destructive') return '';
+    return '';
   };
 
   const containerVariants = {
@@ -65,34 +71,44 @@ export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: Kanba
     <motion.div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[260px] sm:w-72 rounded-xl border p-2 sm:p-3 transition-colors',
+        'flex-shrink-0 w-[280px] sm:w-80 rounded-2xl border p-3 sm:p-4 transition-all duration-300',
         getColumnStyles(),
-        (isOver || isDropTarget) && 'ring-2 ring-primary'
+        getGlowStyles(),
+        (isOver || isDropTarget) && 'ring-2 ring-primary ring-offset-2 ring-offset-background scale-[1.02]'
       )}
       animate={{
         scale: isOver || isDropTarget ? 1.02 : 1,
-        backgroundColor: isOver || isDropTarget ? 'hsl(var(--primary) / 0.05)' : undefined,
       }}
       transition={{ duration: 0.2 }}
     >
-      {/* Column Header */}
-      <div className="flex items-center justify-between mb-3 px-1">
-        <h3 className={cn('font-semibold text-sm', getHeaderStyles())}>
+      {/* Premium Column Header */}
+      <div className={cn(
+        'flex items-center justify-between mb-4 px-3 py-2 rounded-xl',
+        getHeaderStyles()
+      )}>
+        <h3 className="font-bold text-sm tracking-wide uppercase">
           {status.label}
         </h3>
-        <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">
+        <span className={cn(
+          'text-xs font-bold px-2.5 py-1 rounded-full',
+          status.color === 'success' 
+            ? 'bg-success-foreground/20 text-success-foreground' 
+            : status.color === 'destructive'
+            ? 'bg-destructive-foreground/20 text-destructive-foreground'
+            : 'bg-background/50 text-foreground'
+        )}>
           {leads.length}
         </span>
       </div>
 
       {/* Cards Container */}
       <motion.div 
-        className="space-y-2 min-h-[200px]"
+        className="space-y-3 min-h-[200px]"
         variants={containerVariants}
         initial="hidden"
         animate="show"
       >
-        {leads.map((lead, index) => (
+        {leads.map((lead) => (
           <motion.div key={lead.id} variants={itemVariants}>
             <LeadCard
               lead={lead}
@@ -102,8 +118,11 @@ export const KanbanColumn = ({ status, leads, onLeadClick, isDropTarget }: Kanba
         ))}
 
         {leads.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground text-sm">
-            Нет лидов
+          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+            <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+              <span className="text-2xl opacity-50">📭</span>
+            </div>
+            <span className="text-sm font-medium">Нет лидов</span>
           </div>
         )}
       </motion.div>
