@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, Eye, GripVertical, Sparkles, Mail, MessageCircle, Check } from 'lucide-react';
+import { Phone, Calendar, Eye, GripVertical, Sparkles, MessageCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -63,18 +63,13 @@ export const LeadCard = ({
     return phone.replace(/\D/g, '');
   };
 
-  const handleQuickAction = (e: React.MouseEvent, action: 'call' | 'email' | 'whatsapp') => {
+  const handleQuickAction = (e: React.MouseEvent, action: 'call' | 'whatsapp') => {
     e.stopPropagation();
     
     switch (action) {
       case 'call':
         if (lead.phone) {
           window.open(`tel:${lead.phone}`, '_self');
-        }
-        break;
-      case 'email':
-        if (lead.email) {
-          window.open(`mailto:${lead.email}`, '_self');
         }
         break;
       case 'whatsapp':
@@ -182,28 +177,6 @@ export const LeadCard = ({
             </TooltipTrigger>
             <TooltipContent>
               <p>{lead.phone ? 'Позвонить' : 'Нет телефона'}</p>
-            </TooltipContent>
-          </Tooltip>
-
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-8 w-8 rounded-lg",
-                  lead.email 
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-500" 
-                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
-                )}
-                onClick={(e) => handleQuickAction(e, 'email')}
-                disabled={!lead.email}
-              >
-                <Mail className="w-4 h-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>{lead.email ? 'Написать email' : 'Нет email'}</p>
             </TooltipContent>
           </Tooltip>
 

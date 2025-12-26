@@ -75,7 +75,6 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
-    email: '',
     source: 'manual',
   });
 
@@ -111,7 +110,6 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           project_id: projectId,
           name: formData.name.trim() || null,
           phone: formData.phone.trim() || null,
-          email: formData.email.trim() || null,
           utm_source: formData.source,
           utm_medium: 'manual',
           status: 'new',
@@ -120,7 +118,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
       if (error) throw error;
 
       toast.success('Лид успешно добавлен');
-      setFormData({ name: '', phone: '', email: '', source: 'manual' });
+      setFormData({ name: '', phone: '', source: 'manual' });
       setOpen(false);
       onLeadAdded();
     } catch (error) {
@@ -215,25 +213,6 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="space-y-2"
-          >
-            <Label htmlFor="email" className="text-sm font-semibold text-foreground/80">
-              Email <span className="text-muted-foreground font-normal">(опционально)</span>
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-              placeholder="email@example.com"
-              className="h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
-            />
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.25 }}
             className="space-y-2"
           >
             <Label htmlFor="source" className="text-sm font-semibold text-foreground/80">
