@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { useLeads, Lead } from '@/hooks/useLeads';
-import { KanbanBoard } from './KanbanBoard';
+import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
+import { BulkActionsBar } from './BulkActionsBar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -10,12 +11,12 @@ import {
   RefreshCw, 
   Kanban, 
   TrendingUp, 
-  Sparkles, 
   Search, 
   Filter, 
   X,
   SlidersHorizontal,
-  Zap
+  Zap,
+  CheckSquare
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
@@ -29,6 +30,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface CRMPageProps {
   projectId: string | null;
@@ -66,12 +69,15 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
-  const [showFilters, setShowFilters] = useState(false);
+  
+  // Selection mode
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
+  const [isBulkUpdating, setIsBulkUpdating] = useState(false);
 
   // Filter leads
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
-      // Search filter
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch = 
@@ -83,13 +89,11 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         if (!matchesSearch) return false;
       }
 
-      // Status filter
       if (selectedStatuses.length > 0) {
         const leadStatus = lead.status || 'new';
         if (!selectedStatuses.includes(leadStatus)) return false;
       }
 
-      // Source filter
       if (selectedSources.length > 0) {
         const leadSource = lead.utm_source?.toLowerCase();
         if (!leadSource || !selectedSources.includes(leadSource)) return false;
@@ -164,6 +168,91 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
     );
   };
 
+  // Selection handlers
+  const toggleSelectionMode = () => {
+    setSelectionMode(!selectionMode);
+    setSelectedLeads(new Set());
+  };
+
+  const handleSelectLead = useCallback((leadId: string, selected: boolean) => {
+    setSelectedLeads(prev => {
+      const next = new Set(prev);
+      if (selected) {
+        next.add(leadId);
+      } else {
+        next.delete(leadId);
+      }
+      return next;
+    });
+  }, []);
+
+  const handleSelectAll = () => {
+    if (selectedLeads.size === filteredLeads.length) {
+      setSelectedLeads(new Set());
+    } else {
+      setSelectedLeads(new Set(filteredLeads.map(l => l.id)));
+    }
+  };
+
+  const handleClearSelection = () => {
+    setSelectedLeads(new Set());
+  };
+
+  // Bulk actions
+  const handleBulkDelete = async () => {
+    if (selectedLeads.size === 0) return;
+    
+    setIsBulkUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .delete()
+        .in('id', Array.from(selectedLeads));
+
+      if (error) throw error;
+
+      toast.success(`Удалено ${selectedLeads.size} лидов`);
+      setSelectedLeads(new Set());
+      setSelectionMode(false);
+      refetch();
+    } catch (error) {
+      console.error('Error deleting leads:', error);
+      toast.error('Ошибка удаления лидов');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedLeads.size === 0) return;
+    
+    setIsBulkUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          status: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .in('id', Array.from(selectedLeads));
+
+      if (error) throw error;
+
+      toast.success(`Статус обновлен для ${selectedLeads.size} лидов`);
+      setSelectedLeads(new Set());
+      refetch();
+    } catch (error) {
+      console.error('Error updating leads:', error);
+      toast.error('Ошибка обновления статуса');
+    } finally {
+      setIsBulkUpdating(false);
+    }
+  };
+
+  const getSelectedLeadsData = () => {
+    return filteredLeads.filter(lead => selectedLeads.has(lead.id));
+  };
+
   return (
     <div className="space-y-6">
       {/* Ultra Premium Header */}
@@ -173,7 +262,6 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        {/* Background Glow Effect */}
         <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20 blur-3xl opacity-30 -z-10" />
         
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -202,11 +290,27 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <Button
+              variant={selectionMode ? "default" : "outline"}
+              size="sm"
+              onClick={toggleSelectionMode}
+              className={cn(
+                "flex-shrink-0 transition-all",
+                selectionMode 
+                  ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg"
+                  : "crm-card-glass border-primary/20 hover:border-primary/50"
+              )}
+            >
+              <CheckSquare className="w-4 h-4" />
+              <span className="ml-2 hidden sm:inline">
+                {selectionMode ? 'Отменить' : 'Выбрать'}
+              </span>
+            </Button>
+            <Button
               variant="outline"
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="crm-card-glass border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
+              className="flex-shrink-0 crm-card-glass border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="ml-2 hidden sm:inline">Обновить</span>
@@ -214,6 +318,22 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           </div>
         </div>
       </motion.div>
+
+      {/* Bulk Actions Bar */}
+      <AnimatePresence>
+        {selectionMode && (
+          <BulkActionsBar
+            selectedCount={selectedLeads.size}
+            totalCount={filteredLeads.length}
+            onSelectAll={handleSelectAll}
+            onClearSelection={handleClearSelection}
+            onDelete={handleBulkDelete}
+            onStatusChange={handleBulkStatusChange}
+            selectedLeads={getSelectedLeadsData()}
+            isLoading={isBulkUpdating}
+          />
+        )}
+      </AnimatePresence>
 
       {/* Premium Search & Filters Bar */}
       <motion.div
@@ -244,7 +364,6 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
           {/* Filter Buttons */}
           <div className="flex gap-2">
-            {/* Status Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -282,7 +401,6 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* Source Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button 
@@ -438,6 +556,9 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                         loading={loading} 
                         onRefetch={refetch}
                         projectId={projectId}
+                        selectionMode={selectionMode}
+                        selectedLeads={selectedLeads}
+                        onSelectLead={handleSelectLead}
                       />
                     ) : (
                       <CRMFunnel leads={filteredLeads} loading={loading} />
@@ -458,6 +579,9 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   loading={loading} 
                   onRefetch={refetch}
                   projectId={projectId}
+                  selectionMode={selectionMode}
+                  selectedLeads={selectedLeads}
+                  onSelectLead={handleSelectLead}
                 />
               ) : (
                 <CRMFunnel leads={filteredLeads} loading={loading} />
