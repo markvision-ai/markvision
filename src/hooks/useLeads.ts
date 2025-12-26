@@ -1,5 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuditLog } from './useAuditLog';
+import { Json } from '@/integrations/supabase/types';
 
 // Sanitize search input to prevent ILIKE wildcard injection
 function sanitizeSearchInput(input: string): string {
@@ -45,6 +47,7 @@ export function useLeads(projectId: string | null) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<LeadFilter>({});
+  const { logUpdate, logStatusChange } = useAuditLog();
 
   const fetchLeads = async () => {
     if (!projectId) {
@@ -103,11 +106,14 @@ export function useLeads(projectId: string | null) {
     return [...new Set(values)];
   };
 
-  const updateLead = async (
+  const updateLead = useCallback(async (
     leadId: string,
     updates: Partial<Pick<Lead, 'name' | 'phone' | 'email' | 'status' | 'deal_amount'>>
   ) => {
     try {
+      // Get current lead for audit logging
+      const currentLead = leads.find(l => l.id === leadId);
+      
       const { error } = await supabase
         .from('leads')
         .update({
@@ -117,6 +123,17 @@ export function useLeads(projectId: string | null) {
         .eq('id', leadId);
 
       if (error) throw error;
+      
+      // Log the update
+      if (currentLead) {
+        if (updates.status && updates.status !== currentLead.status) {
+          logStatusChange('lead', leadId, projectId || undefined, currentLead.status || undefined, updates.status);
+        } else {
+          const oldValues = { name: currentLead.name, phone: currentLead.phone, deal_amount: currentLead.deal_amount } as Json;
+          const newValues = updates as unknown as Json;
+          logUpdate('lead', leadId, projectId || undefined, oldValues, newValues);
+        }
+      }
       
       // Update local state
       setLeads(prev =>
@@ -130,7 +147,7 @@ export function useLeads(projectId: string | null) {
       console.error('Error updating lead:', error);
       throw error;
     }
-  };
+  }, [leads, projectId, logUpdate, logStatusChange]);
 
   return {
     leads,

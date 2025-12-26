@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart3, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -7,6 +7,21 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
+
+// Standalone audit log function for auth events (can't use hook before user exists)
+const logAuthEvent = async (userId: string, userEmail: string, action: 'login' | 'logout' | 'create') => {
+  try {
+    await supabase.from('audit_logs').insert([{
+      user_id: userId,
+      user_email: userEmail,
+      action,
+      entity_type: 'session',
+      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
+    }]);
+  } catch (error) {
+    console.error('Failed to log auth event:', error);
+  }
+};
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -85,6 +100,12 @@ export default function Auth() {
           return;
         }
 
+        // Log successful login
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          logAuthEvent(session.user.id, session.user.email || email, 'login');
+        }
+
         toast.success('Добро пожаловать!');
       } else {
         const { error } = await supabase.auth.signUp({
@@ -108,6 +129,12 @@ export default function Auth() {
             toast.error('Ошибка регистрации. Попробуйте позже.');
           }
           return;
+        }
+
+        // Log successful signup
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          logAuthEvent(session.user.id, session.user.email || email, 'create');
         }
 
         toast.success('Регистрация успешна!');
