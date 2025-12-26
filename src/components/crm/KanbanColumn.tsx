@@ -3,6 +3,7 @@ import { Lead } from '@/hooks/useLeads';
 import { LeadCard } from './LeadCard';
 import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface KanbanColumnProps {
   status: KanbanStatus;
@@ -35,6 +36,30 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
     return 'text-foreground';
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.05,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20, scale: 0.95 },
+    show: { 
+      opacity: 1, 
+      y: 0, 
+      scale: 1,
+      transition: {
+        type: 'spring' as const,
+        stiffness: 300,
+        damping: 24,
+      },
+    },
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -55,13 +80,19 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
       </div>
 
       {/* Cards Container */}
-      <div className="space-y-2 min-h-[200px]">
-        {leads.map(lead => (
-          <LeadCard
-            key={lead.id}
-            lead={lead}
-            onClick={() => onLeadClick(lead)}
-          />
+      <motion.div 
+        className="space-y-2 min-h-[200px]"
+        variants={containerVariants}
+        initial="hidden"
+        animate="show"
+      >
+        {leads.map((lead, index) => (
+          <motion.div key={lead.id} variants={itemVariants}>
+            <LeadCard
+              lead={lead}
+              onClick={() => onLeadClick(lead)}
+            />
+          </motion.div>
         ))}
 
         {leads.length === 0 && (
@@ -69,7 +100,7 @@ export const KanbanColumn = ({ status, leads, onLeadClick }: KanbanColumnProps) 
             Нет лидов
           </div>
         )}
-      </div>
+      </motion.div>
     </div>
   );
 };

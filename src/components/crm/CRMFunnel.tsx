@@ -1,7 +1,9 @@
 import { useMemo } from 'react';
 import { Lead } from '@/hooks/useLeads';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Loader2, Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { Users, Calendar, DollarSign, TrendingUp } from 'lucide-react';
+import { CRMFunnelSkeleton } from './CRMFunnelSkeleton';
+import { motion } from 'framer-motion';
 
 interface CRMFunnelProps {
   leads: Lead[];
@@ -49,76 +51,47 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
   }, [leads]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
+    return <CRMFunnelSkeleton />;
   }
 
   const maxCount = Math.max(...funnelData.map(s => s.count), 1);
 
   return (
-    <div className="space-y-6">
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
-        <Card>
-          <CardContent className="p-3 md:pt-4 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
-                <Users className="w-4 h-4 md:w-5 md:h-5 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Всего лидов</p>
-                <p className="text-lg md:text-2xl font-bold">{stats.totalLeads}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-3 md:pt-4 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-success/10 flex items-center justify-center flex-shrink-0">
-                <Calendar className="w-4 h-4 md:w-5 md:h-5 text-success" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Оплачено</p>
-                <p className="text-lg md:text-2xl font-bold">{stats.paidLeads}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-3 md:pt-4 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-accent/10 flex items-center justify-center flex-shrink-0">
-                <DollarSign className="w-4 h-4 md:w-5 md:h-5 text-accent" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Выручка</p>
-                <p className="text-lg md:text-2xl font-bold truncate">
-                  {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-3 md:pt-4 md:p-4">
-            <div className="flex items-center gap-2 md:gap-3">
-              <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-warning/10 flex items-center justify-center flex-shrink-0">
-                <TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-warning" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[10px] md:text-xs text-muted-foreground truncate">Конверсия</p>
-                <p className="text-lg md:text-2xl font-bold">{stats.conversionRate.toFixed(1)}%</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {[
+          { icon: Users, label: 'Всего лидов', value: stats.totalLeads, color: 'primary' },
+          { icon: Calendar, label: 'Оплачено', value: stats.paidLeads, color: 'success' },
+          { icon: DollarSign, label: 'Выручка', value: `${new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸`, color: 'accent' },
+          { icon: TrendingUp, label: 'Конверсия', value: `${stats.conversionRate.toFixed(1)}%`, color: 'warning' },
+        ].map((stat, index) => (
+          <motion.div
+            key={stat.label}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.1 }}
+          >
+            <Card>
+              <CardContent className="p-3 md:pt-4 md:p-4">
+                <div className="flex items-center gap-2 md:gap-3">
+                  <div className={`w-8 h-8 md:w-10 md:h-10 rounded-lg bg-${stat.color}/10 flex items-center justify-center flex-shrink-0`}>
+                    <stat.icon className={`w-4 h-4 md:w-5 md:h-5 text-${stat.color}`} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{stat.label}</p>
+                    <p className="text-lg md:text-2xl font-bold truncate">{stat.value}</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
       </div>
 
       {/* Funnel Chart */}
@@ -185,6 +158,6 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
           )}
         </CardContent>
       </Card>
-    </div>
+    </motion.div>
   );
 };
