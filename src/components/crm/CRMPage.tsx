@@ -3,21 +3,64 @@ import { useLeads } from '@/hooks/useLeads';
 import { KanbanBoard } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Kanban, TrendingUp } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 
 interface CRMPageProps {
   projectId: string | null;
 }
 
+const tabs = ['kanban', 'funnel'] as const;
+type TabValue = typeof tabs[number];
+
 export const CRMPage = ({ projectId }: CRMPageProps) => {
   const { leads, loading, refetch } = useLeads(projectId);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabValue>('kanban');
+  const [direction, setDirection] = useState(0);
+  const isMobile = useIsMobile();
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
+  };
+
+  const handleSwipe = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    const swipeThreshold = 50;
+    const currentIndex = tabs.indexOf(activeTab);
+    
+    if (info.offset.x < -swipeThreshold && currentIndex < tabs.length - 1) {
+      setDirection(1);
+      setActiveTab(tabs[currentIndex + 1]);
+    } else if (info.offset.x > swipeThreshold && currentIndex > 0) {
+      setDirection(-1);
+      setActiveTab(tabs[currentIndex - 1]);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    const newIndex = tabs.indexOf(value as TabValue);
+    const currentIndex = tabs.indexOf(activeTab);
+    setDirection(newIndex > currentIndex ? 1 : -1);
+    setActiveTab(value as TabValue);
+  };
+
+  const slideVariants = {
+    enter: (dir: number) => ({
+      x: dir > 0 ? '100%' : '-100%',
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (dir: number) => ({
+      x: dir > 0 ? '-100%' : '100%',
+      opacity: 0,
+    }),
   };
 
   return (
@@ -43,7 +86,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
       </div>
 
       {/* Tabs */}
-      <Tabs defaultValue="kanban" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex">
           <TabsTrigger value="kanban" className="gap-1 sm:gap-2 text-xs sm:text-sm">
             <Kanban className="w-4 h-4" />
@@ -55,18 +98,68 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="kanban" className="mt-4">
-          <KanbanBoard 
-            leads={leads} 
-            loading={loading} 
-            onRefetch={refetch}
-            projectId={projectId}
-          />
-        </TabsContent>
+        {/* Swipeable content for mobile */}
+        <div className="mt-4 overflow-hidden">
+          {isMobile ? (
+            <motion.div
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={0.2}
+              onDragEnd={handleSwipe}
+              className="touch-pan-y"
+            >
+              <AnimatePresence mode="wait" custom={direction}>
+                <motion.div
+                  key={activeTab}
+                  custom={direction}
+                  variants={slideVariants}
+                  initial="enter"
+                  animate="center"
+                  exit="exit"
+                  transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
+                >
+                  {activeTab === 'kanban' ? (
+                    <KanbanBoard 
+                      leads={leads} 
+                      loading={loading} 
+                      onRefetch={refetch}
+                      projectId={projectId}
+                    />
+                  ) : (
+                    <CRMFunnel leads={leads} loading={loading} />
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </motion.div>
+          ) : (
+            <>
+              {activeTab === 'kanban' ? (
+                <KanbanBoard 
+                  leads={leads} 
+                  loading={loading} 
+                  onRefetch={refetch}
+                  projectId={projectId}
+                />
+              ) : (
+                <CRMFunnel leads={leads} loading={loading} />
+              )}
+            </>
+          )}
+        </div>
 
-        <TabsContent value="funnel" className="mt-4">
-          <CRMFunnel leads={leads} loading={loading} />
-        </TabsContent>
+        {/* Swipe indicator for mobile */}
+        {isMobile && (
+          <div className="flex justify-center gap-1.5 mt-3">
+            {tabs.map((tab) => (
+              <div
+                key={tab}
+                className={`w-1.5 h-1.5 rounded-full transition-colors ${
+                  activeTab === tab ? 'bg-primary' : 'bg-muted-foreground/30'
+                }`}
+              />
+            ))}
+          </div>
+        )}
       </Tabs>
     </div>
   );
