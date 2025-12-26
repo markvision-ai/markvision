@@ -12,7 +12,6 @@ import { Separator } from '@/components/ui/separator';
 import { 
   User, 
   Phone, 
-  Mail, 
   Calendar, 
   Tag, 
   Target, 
@@ -81,15 +80,6 @@ export const LeadDetailDialog = ({ lead, onClose, projectId }: LeadDetailDialogP
                 <div>
                   <p className="text-xs text-muted-foreground">Телефон</p>
                   <p className="font-medium">{lead.phone}</p>
-                </div>
-              </div>
-            )}
-            {lead.email && (
-              <div className="flex items-center gap-3 p-3 bg-secondary/50 rounded-lg">
-                <Mail className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Email</p>
-                  <p className="font-medium">{lead.email}</p>
                 </div>
               </div>
             )}

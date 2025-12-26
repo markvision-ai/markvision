@@ -76,7 +76,7 @@ export function useLeads(projectId: string | null) {
       if (filters.search) {
         const sanitized = sanitizeSearchInput(filters.search);
         if (sanitized) {
-          query = query.or(`name.ilike.%${sanitized}%,email.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`);
+          query = query.or(`name.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`);
         }
       }
 
