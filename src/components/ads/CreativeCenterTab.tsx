@@ -20,6 +20,7 @@ import {
   Check
 } from 'lucide-react';
 import { AdAsset, useAdAssets } from '@/hooks/useAdAssets';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface CreativeCenterTabProps {
@@ -109,62 +110,42 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
     setGenerating(true);
     
-    // Симуляция генерации AI (в реальном приложении - вызов edge function)
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    if (platform === 'google') {
-      setGeneratedContent({
-        headlines: [
-          'Купите сейчас со скидкой',
-          'Лучшее предложение года',
-          'Бесплатная доставка',
-          'Гарантия качества',
-          'Только сегодня -50%',
-          'Топ продаж 2024',
-          'Хит сезона',
-          'Успейте купить',
-          'Ограниченное предложение',
-          'Новая коллекция',
-          'Премиум качество',
-          'Выгодная цена',
-          'Быстрая доставка',
-          'Проверено временем',
-          'Рекомендуем',
-        ],
-        descriptions: [
-          'Высокое качество по доступной цене. Закажите сейчас и получите бесплатную доставку по всему Казахстану.',
-          'Более 10000 довольных клиентов выбрали нас. Присоединяйтесь к лучшим!',
-          'Официальная гарантия 2 года. Возврат в течение 14 дней без вопросов.',
-          'Эксклюзивное предложение для новых клиентов. Используйте промокод NEW20.',
-        ],
-        primaryText: '',
-        hashtags: [],
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-ad-copy', {
+        body: {
+          platform,
+          productDescription: productDescription.trim(),
+          language: 'ru',
+        },
       });
-    } else if (platform === 'facebook') {
-      setGeneratedContent({
-        headlines: [
-          'Откройте для себя новые возможности',
-          'Ваш идеальный выбор',
-          'Попробуйте прямо сейчас',
-        ],
-        descriptions: [
-          'Уникальное предложение для тех, кто ценит качество',
-          'Присоединяйтесь к тысячам довольных клиентов',
-        ],
-        primaryText: `🔥 ${productDescription}\n\n✅ Гарантия качества\n✅ Быстрая доставка\n✅ Поддержка 24/7\n\n👉 Переходите по ссылке и заказывайте!`,
-        hashtags: [],
-      });
-    } else {
-      setGeneratedContent({
-        headlines: [],
-        descriptions: [],
-        primaryText: `${productDescription.slice(0, 60)}... 🔥`,
-        hashtags: ['#рекомендации', '#fyp', '#казахстан', '#покупки', '#скидки', '#тренды'],
-      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data?.content) {
+        setGeneratedContent({
+          headlines: data.content.headlines || [],
+          descriptions: data.content.descriptions || [],
+          primaryText: data.content.primaryText || '',
+          hashtags: data.content.hashtags || [],
+        });
+        toast.success('Контент сгенерирован!');
+      } else {
+        throw new Error('No content in response');
+      }
+    } catch (error: any) {
+      console.error('Generation error:', error);
+      if (error.message?.includes('429')) {
+        toast.error('Превышен лимит запросов. Попробуйте позже.');
+      } else if (error.message?.includes('402')) {
+        toast.error('Закончились кредиты API.');
+      } else {
+        toast.error('Ошибка генерации. Попробуйте снова.');
+      }
+    } finally {
+      setGenerating(false);
     }
-    
-    setGenerating(false);
-    toast.success('Контент сгенерирован!');
   };
 
   const copyToClipboard = (text: string, id: string) => {
