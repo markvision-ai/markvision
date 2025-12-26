@@ -172,20 +172,33 @@ export const DataTable = ({
               </tr>
             </thead>
             <tbody>
-              {/* Plan Row - at top */}
+              {/* Plan Row - editable at top */}
               {planData && (
                 <tr className="bg-primary/10 font-semibold border-b-2 border-primary/20">
                   <td className="p-2 md:p-4 sticky left-0 bg-primary/10 flex items-center gap-1 md:gap-2">
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                     <span>ПЛАН</span>
                   </td>
-                  <td className="p-2 md:p-4 text-right">{formatCurrency(planData.spend)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.impressions)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.clicks)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.leads)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.diagnostics)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatNumber(planData.sales)}</td>
-                  <td className="p-2 md:p-4 text-right">{formatCurrency(planData.revenue)}</td>
+                  {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                    <td key={field} className="p-1 md:p-2">
+                      {onPlanChange ? (
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={planData[field] || ''}
+                          onChange={e => {
+                            const numValue = parseFloat(e.target.value) || 0;
+                            onPlanChange(field, numValue);
+                          }}
+                          className="w-full text-right bg-primary/5 border border-primary/20 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm font-semibold"
+                        />
+                      ) : (
+                        <span className="block text-right px-1.5 md:px-3 py-1.5 md:py-2">
+                          {field === 'spend' || field === 'revenue' ? formatCurrency(planData[field]) : formatNumber(planData[field])}
+                        </span>
+                      )}
+                    </td>
+                  ))}
                 </tr>
               )}
 
