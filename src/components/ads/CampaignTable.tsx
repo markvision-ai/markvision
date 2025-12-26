@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Switch } from '@/components/ui/switch';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Loader2 } from 'lucide-react';
+import { Sparkles, Loader2, Zap } from 'lucide-react';
 import { Campaign } from '@/hooks/useCampaigns';
 import {
   Table,
@@ -35,6 +35,18 @@ const PlatformIcon = ({ platform }: { platform: string }) => {
     </div>
   );
 };
+
+// Neon pulse animation styles
+const neonPulseStyles = `
+  @keyframes neon-pulse {
+    0%, 100% {
+      box-shadow: 0 0 5px rgba(16, 185, 129, 0.5), 0 0 10px rgba(16, 185, 129, 0.3), 0 0 15px rgba(16, 185, 129, 0.2);
+    }
+    50% {
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.8), 0 0 20px rgba(16, 185, 129, 0.5), 0 0 30px rgba(16, 185, 129, 0.3);
+    }
+  }
+`;
 
 export const CampaignTable = ({
   campaigns,
@@ -194,11 +206,22 @@ export const CampaignTable = ({
                     <Loader2 className="w-4 h-4 animate-spin mx-auto" />
                   ) : (
                     <div className="flex items-center justify-center gap-2">
-                      <Sparkles 
-                        className={`w-4 h-4 transition-colors ${
-                          campaign.autopilot_enabled ? 'text-emerald-400' : 'text-muted-foreground'
-                        }`} 
-                      />
+                      <div 
+                        className={`relative p-1 rounded-full transition-all ${
+                          campaign.autopilot_enabled 
+                            ? 'bg-emerald-500/20' 
+                            : ''
+                        }`}
+                        style={campaign.autopilot_enabled ? {
+                          animation: 'neon-pulse 2s ease-in-out infinite',
+                        } : undefined}
+                      >
+                        <Zap 
+                          className={`w-4 h-4 transition-colors ${
+                            campaign.autopilot_enabled ? 'text-emerald-400 fill-emerald-400' : 'text-muted-foreground'
+                          }`} 
+                        />
+                      </div>
                       <Switch
                         checked={campaign.autopilot_enabled}
                         onCheckedChange={() => handleAutopilotToggle(campaign)}

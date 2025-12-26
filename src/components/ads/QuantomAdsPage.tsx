@@ -4,8 +4,9 @@ import { useLeads } from '@/hooks/useLeads';
 import { AdsSummaryCards } from './AdsSummaryCards';
 import { CampaignTable } from './CampaignTable';
 import { CampaignDrawer } from './CampaignDrawer';
+import { CreativeCenterTab } from './CreativeCenterTab';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Plus, Loader2, Zap } from 'lucide-react';
 
 interface QuantomAdsPageProps {
@@ -18,6 +19,13 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [periodFilter, setPeriodFilter] = useState<'today' | 'yesterday' | '7days'>('today');
+  const [platformTab, setPlatformTab] = useState<'all' | 'facebook' | 'google' | 'tiktok' | 'creative'>('all');
+
+  // Filter campaigns by platform
+  const filteredCampaigns = useMemo(() => {
+    if (platformTab === 'all' || platformTab === 'creative') return campaigns;
+    return campaigns.filter(c => c.platform === platformTab);
+  }, [campaigns, platformTab]);
 
   // Calculate leads per campaign based on utm_campaign matching
   const leadsPerCampaign = useMemo(() => {
@@ -43,9 +51,13 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
   // Summary calculations
   const summaryMetrics = useMemo(() => {
-    const totalSpent = campaigns.reduce((sum, c) => sum + c.spent_today, 0);
-    const totalLeads = campaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
-    const totalRevenue = campaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
+    const relevantCampaigns = platformTab === 'all' || platformTab === 'creative' 
+      ? campaigns 
+      : campaigns.filter(c => c.platform === platformTab);
+    
+    const totalSpent = relevantCampaigns.reduce((sum, c) => sum + c.spent_today, 0);
+    const totalLeads = relevantCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
+    const totalRevenue = relevantCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
     
     return {
       totalSpent,
@@ -53,7 +65,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       avgCPA: totalLeads > 0 ? totalSpent / totalLeads : 0,
       overallROAS: totalSpent > 0 ? totalRevenue / totalSpent : 0,
     };
-  }, [campaigns, leadsPerCampaign, revenuePerCampaign]);
+  }, [campaigns, platformTab, leadsPerCampaign, revenuePerCampaign]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -98,7 +110,13 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
             </TabsList>
           </Tabs>
 
-          <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={handleRefresh} 
+            disabled={refreshing}
+            className="relative"
+          >
             <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
           </Button>
 
@@ -117,13 +135,75 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         overallROAS={summaryMetrics.overallROAS}
       />
 
-      {/* Campaign Table */}
-      <CampaignTable
-        campaigns={campaigns}
-        leadsPerCampaign={leadsPerCampaign}
-        onCampaignClick={handleCampaignClick}
-        onUpdateCampaign={updateCampaign}
-      />
+      {/* Platform Tabs */}
+      <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
+        <TabsList className="w-full justify-start bg-muted/50 p-1">
+          <TabsTrigger value="all" className="gap-2">
+            Все платформы
+          </TabsTrigger>
+          <TabsTrigger value="facebook" className="gap-2">
+            <div className="w-4 h-4 bg-blue-600 rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
+            Facebook / Instagram
+          </TabsTrigger>
+          <TabsTrigger value="google" className="gap-2">
+            <div className="w-4 h-4 bg-red-500 rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
+            Google Ads
+          </TabsTrigger>
+          <TabsTrigger value="tiktok" className="gap-2">
+            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center">T</div>
+            TikTok Ads
+          </TabsTrigger>
+          <TabsTrigger value="creative" className="gap-2 text-primary">
+            <Zap className="w-4 h-4" />
+            Креатив-Центр
+          </TabsTrigger>
+        </TabsList>
+
+        {/* All Platforms */}
+        <TabsContent value="all" className="mt-4">
+          <CampaignTable
+            campaigns={filteredCampaigns}
+            leadsPerCampaign={leadsPerCampaign}
+            onCampaignClick={handleCampaignClick}
+            onUpdateCampaign={updateCampaign}
+          />
+        </TabsContent>
+
+        {/* Facebook */}
+        <TabsContent value="facebook" className="mt-4">
+          <CampaignTable
+            campaigns={filteredCampaigns}
+            leadsPerCampaign={leadsPerCampaign}
+            onCampaignClick={handleCampaignClick}
+            onUpdateCampaign={updateCampaign}
+          />
+        </TabsContent>
+
+        {/* Google */}
+        <TabsContent value="google" className="mt-4">
+          <CampaignTable
+            campaigns={filteredCampaigns}
+            leadsPerCampaign={leadsPerCampaign}
+            onCampaignClick={handleCampaignClick}
+            onUpdateCampaign={updateCampaign}
+          />
+        </TabsContent>
+
+        {/* TikTok */}
+        <TabsContent value="tiktok" className="mt-4">
+          <CampaignTable
+            campaigns={filteredCampaigns}
+            leadsPerCampaign={leadsPerCampaign}
+            onCampaignClick={handleCampaignClick}
+            onUpdateCampaign={updateCampaign}
+          />
+        </TabsContent>
+
+        {/* Creative Center */}
+        <TabsContent value="creative" className="mt-4">
+          <CreativeCenterTab projectId={projectId} />
+        </TabsContent>
+      </Tabs>
 
       {/* Campaign Drawer */}
       <CampaignDrawer

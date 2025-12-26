@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      ad_assets: {
+        Row: {
+          ai_descriptions: Json | null
+          ai_hashtags: string[] | null
+          ai_headlines: Json | null
+          ai_primary_text: string | null
+          ai_score: number | null
+          aspect_ratio: string | null
+          asset_type: string
+          campaign_id: string | null
+          created_at: string
+          file_name: string | null
+          file_url: string
+          id: string
+          platform: string | null
+          project_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          ai_descriptions?: Json | null
+          ai_hashtags?: string[] | null
+          ai_headlines?: Json | null
+          ai_primary_text?: string | null
+          ai_score?: number | null
+          aspect_ratio?: string | null
+          asset_type: string
+          campaign_id?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url: string
+          id?: string
+          platform?: string | null
+          project_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          ai_descriptions?: Json | null
+          ai_hashtags?: string[] | null
+          ai_headlines?: Json | null
+          ai_primary_text?: string | null
+          ai_score?: number | null
+          aspect_ratio?: string | null
+          asset_type?: string
+          campaign_id?: string | null
+          created_at?: string
+          file_name?: string | null
+          file_url?: string
+          id?: string
+          platform?: string | null
+          project_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ad_assets_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attribution_results: {
         Row: {
           assisted_conversions: number | null
@@ -110,6 +175,7 @@ export type Database = {
         Row: {
           ai_log: Json | null
           autopilot_enabled: boolean
+          autopilot_rules: Json | null
           budget: number
           created_at: string
           external_id: string | null
@@ -125,6 +191,7 @@ export type Database = {
         Insert: {
           ai_log?: Json | null
           autopilot_enabled?: boolean
+          autopilot_rules?: Json | null
           budget?: number
           created_at?: string
           external_id?: string | null
@@ -140,6 +207,7 @@ export type Database = {
         Update: {
           ai_log?: Json | null
           autopilot_enabled?: boolean
+          autopilot_rules?: Json | null
           budget?: number
           created_at?: string
           external_id?: string | null

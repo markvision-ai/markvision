@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { Campaign } from '@/hooks/useCampaigns';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -21,9 +19,10 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { Bot, Sparkles, Save, X } from 'lucide-react';
+import { Bot, Sparkles } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { AutopilotRulesPanel } from './AutopilotRulesPanel';
 
 interface CampaignDrawerProps {
   campaign: Campaign | null;
@@ -53,27 +52,7 @@ export const CampaignDrawer = ({
   onClose,
   onUpdateCampaign,
 }: CampaignDrawerProps) => {
-  const [rules, setRules] = useState({
-    max_cpa: campaign?.rules.max_cpa || '',
-    min_roas: campaign?.rules.min_roas || '',
-    max_daily_spend: campaign?.rules.max_daily_spend || '',
-  });
-  const [saving, setSaving] = useState(false);
-
   const chartData = generateChartData();
-
-  const handleSaveRules = async () => {
-    if (!campaign) return;
-    setSaving(true);
-    await onUpdateCampaign(campaign.id, {
-      rules: {
-        max_cpa: rules.max_cpa ? Number(rules.max_cpa) : null,
-        min_roas: rules.min_roas ? Number(rules.min_roas) : null,
-        max_daily_spend: rules.max_daily_spend ? Number(rules.max_daily_spend) : null,
-      },
-    });
-    setSaving(false);
-  };
 
   if (!campaign) return null;
 
@@ -145,59 +124,16 @@ export const CampaignDrawer = ({
 
             <Separator />
 
-            {/* Autopilot Rules */}
+            {/* Autopilot Rules - New Panel */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-emerald-400" />
-                <h3 className="text-sm font-medium">Правила AI Autopilot</h3>
+                <h3 className="text-sm font-medium">Правила Автопилота 2.0</h3>
               </div>
-
-              <div className="grid gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="max_cpa">Макс. CPA (₸)</Label>
-                  <Input
-                    id="max_cpa"
-                    type="number"
-                    placeholder="Напр: 5000"
-                    value={rules.max_cpa}
-                    onChange={(e) => setRules({ ...rules, max_cpa: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Если CPA превысит это значение — кампания будет остановлена
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="min_roas">Мин. ROAS</Label>
-                  <Input
-                    id="min_roas"
-                    type="number"
-                    step="0.1"
-                    placeholder="Напр: 2.0"
-                    value={rules.min_roas}
-                    onChange={(e) => setRules({ ...rules, min_roas: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Если ROAS упадёт ниже — бюджет будет снижен
-                  </p>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="max_daily_spend">Макс. расход в день (₸)</Label>
-                  <Input
-                    id="max_daily_spend"
-                    type="number"
-                    placeholder="Напр: 100000"
-                    value={rules.max_daily_spend}
-                    onChange={(e) => setRules({ ...rules, max_daily_spend: e.target.value })}
-                  />
-                </div>
-
-                <Button onClick={handleSaveRules} disabled={saving}>
-                  <Save className="w-4 h-4 mr-2" />
-                  {saving ? 'Сохранение...' : 'Сохранить правила'}
-                </Button>
-              </div>
+              <AutopilotRulesPanel 
+                campaign={campaign} 
+                onUpdateCampaign={onUpdateCampaign} 
+              />
             </div>
 
             <Separator />
