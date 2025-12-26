@@ -30,6 +30,7 @@ import { UTMAnalytics } from './utm/UTMAnalytics';
 import { WebhookSettings } from './settings/WebhookSettings';
 import { ClientsManagement } from './clients/ClientsManagement';
 import { IntegrationsManagement } from './integrations/IntegrationsManagement';
+import { CRMPage } from './crm/CRMPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -171,6 +172,7 @@ export const AnalyticsPlatform = () => {
     switch (activeTab) {
       case 'dashboard': return 'Дашборд';
       case 'table': return 'Таблица данных';
+      case 'crm': return 'CRM';
       case 'clients': return 'Клиенты';
       case 'e2e-analytics': return 'Сквозная аналитика';
       case 'multichannel': return 'Мультиканальная аналитика';
@@ -316,6 +318,10 @@ export const AnalyticsPlatform = () => {
         <ClientsManagement projectId={currentProjectId} />
       )}
 
+      {activeTab === 'crm' && (
+        <CRMPage projectId={currentProjectId} />
+      )}
+
       {activeTab === 'e2e-analytics' && (
         <E2EAnalytics totals={totals} projectId={currentProjectId} />
       )}
@@ -358,7 +364,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'integrations', 'settings'].includes(activeTab) && (
+      {!['dashboard', 'table', 'crm', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'integrations', 'settings'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
