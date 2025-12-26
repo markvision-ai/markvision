@@ -111,7 +111,7 @@ export const Sidebar = ({
             <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-semibold text-base md:text-lg">AdMetrics</h1>
+            <h1 className="font-semibold text-base md:text-lg">Quantom AI</h1>
             <p className="text-xs text-sidebar-foreground/60">Аналитика рекламы</p>
           </div>
         </div>
