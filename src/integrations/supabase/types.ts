@@ -278,6 +278,121 @@ export type Database = {
           },
         ]
       }
+      competitor_monitoring: {
+        Row: {
+          account_handle: string
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_scanned_at: string | null
+          platform: string
+          project_id: string
+        }
+        Insert: {
+          account_handle: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scanned_at?: string | null
+          platform?: string
+          project_id: string
+        }
+        Update: {
+          account_handle?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_scanned_at?: string | null
+          platform?: string
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "competitor_monitoring_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      content_factory: {
+        Row: {
+          audio_url: string | null
+          caption: string | null
+          carousel_media: Json | null
+          competitor_id: string | null
+          content_type: string
+          created_at: string
+          feedback: string | null
+          final_video_url: string | null
+          followers_gained: number | null
+          id: string
+          original_script: string | null
+          project_id: string
+          raw_video_url: string | null
+          revenue_attributed: number | null
+          rewritten_script: string | null
+          source_url: string | null
+          status: string
+          title: string
+          updated_at: string
+          views_count: number | null
+        }
+        Insert: {
+          audio_url?: string | null
+          caption?: string | null
+          carousel_media?: Json | null
+          competitor_id?: string | null
+          content_type?: string
+          created_at?: string
+          feedback?: string | null
+          final_video_url?: string | null
+          followers_gained?: number | null
+          id?: string
+          original_script?: string | null
+          project_id: string
+          raw_video_url?: string | null
+          revenue_attributed?: number | null
+          rewritten_script?: string | null
+          source_url?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Update: {
+          audio_url?: string | null
+          caption?: string | null
+          carousel_media?: Json | null
+          competitor_id?: string | null
+          content_type?: string
+          created_at?: string
+          feedback?: string | null
+          final_video_url?: string | null
+          followers_gained?: number | null
+          id?: string
+          original_script?: string | null
+          project_id?: string
+          raw_video_url?: string | null
+          revenue_attributed?: number | null
+          rewritten_script?: string | null
+          source_url?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "content_factory_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_attribution_settings: {
         Row: {
           created_at: string

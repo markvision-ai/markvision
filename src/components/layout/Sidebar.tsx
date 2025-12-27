@@ -21,7 +21,8 @@ import {
   Plug,
   Kanban,
   LogOut,
-  Shield
+  Shield,
+  Factory
 } from 'lucide-react';
 import {
   Dialog,
@@ -55,6 +56,7 @@ const menuItems = [
   { id: 'table', label: 'Таблица данных', icon: CalendarDays },
   { id: 'quantom-ads', label: 'Quantom Ads', icon: Megaphone },
   { id: 'crm', label: 'CRM', icon: Kanban },
+  { id: 'factory', label: 'Content Factory', icon: Factory },
   { id: 'clients', label: 'Клиенты', icon: UserCheck },
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
   { id: 'utm-analytics', label: 'UTM-аналитика', icon: Target },

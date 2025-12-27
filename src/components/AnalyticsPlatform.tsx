@@ -34,6 +34,7 @@ import { IntegrationsManagement } from './integrations/IntegrationsManagement';
 import { CRMPage } from './crm/CRMPage';
 import { AuditLogViewer } from './audit/AuditLogViewer';
 import { QuantomAdsPage } from './ads/QuantomAdsPage';
+import { ContentFactoryPage } from './factory/ContentFactoryPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -178,6 +179,7 @@ export const AnalyticsPlatform = () => {
       case 'table': return 'Таблица данных';
       case 'quantom-ads': return 'Quantom Ads';
       case 'crm': return 'CRM';
+      case 'factory': return 'Content Factory';
       case 'clients': return 'Клиенты';
       case 'e2e-analytics': return 'Сквозная аналитика';
       case 'multichannel': return 'Мультиканальная аналитика';
@@ -329,6 +331,10 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'quantom-ads' && (
         <QuantomAdsPage projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'factory' && (
+        <ContentFactoryPage projectId={currentProjectId} />
       )}
 
       {activeTab === 'e2e-analytics' && (
