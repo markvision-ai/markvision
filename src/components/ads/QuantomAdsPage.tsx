@@ -7,6 +7,7 @@ import { CampaignDrawer } from './CampaignDrawer';
 import { CreativeCenterTab } from './CreativeCenterTab';
 import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RefreshCw, Plus, Loader2, Zap } from 'lucide-react';
 
@@ -91,11 +92,17 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-success/10 rounded-lg">
-            <Zap className="w-6 h-6 text-success" />
+          <div className="p-2 bg-primary/10 rounded-lg">
+            <Zap className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">Quantom Ads</h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-bold">Quantum Ads</h1>
+              <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs animate-pulse">
+                <Zap className="w-3 h-3 mr-1" />
+                AI Active
+              </Badge>
+            </div>
             <p className="text-sm text-muted-foreground">
               Управление рекламными кампаниями
             </p>
