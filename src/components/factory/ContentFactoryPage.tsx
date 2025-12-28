@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, Eye, Plus } from 'lucide-react';
+import { Factory, Eye, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { ContentPipeline } from './ContentPipeline';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
@@ -64,7 +65,13 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
             <Factory className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold">Content Factory</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-2xl font-bold">Content Factory</h2>
+              <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs">
+                <Sparkles className="w-3 h-3 mr-1" />
+                AI Powered
+              </Badge>
+            </div>
             <p className="text-sm text-muted-foreground">Производственная линия контента</p>
           </div>
         </div>

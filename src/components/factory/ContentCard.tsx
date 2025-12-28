@@ -21,6 +21,8 @@ import {
   Eye,
   Users,
   DollarSign,
+  Sparkles,
+  Bot,
 } from 'lucide-react';
 import { ContentItem, ContentType, ContentStatus } from '@/hooks/useContentFactory';
 import { format } from 'date-fns';
@@ -215,7 +217,15 @@ export const ContentCard = ({
               {typeConfig.icon}
             </div>
             <div>
-              <h3 className="font-semibold">{item.title}</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold">{item.title}</h3>
+                {item.rewritten_script && (
+                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-[10px] px-1.5 py-0">
+                    <Bot className="w-2.5 h-2.5 mr-0.5" />
+                    AI
+                  </Badge>
+                )}
+              </div>
               <div className="flex items-center gap-2 mt-1">
                 <Badge variant="outline" className="text-xs">
                   {typeConfig.label}
