@@ -18,12 +18,15 @@ import {
   Clock,
   Award,
   AlertCircle,
-  LineChart as LineChartIcon
+  LineChart as LineChartIcon,
+  Link2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
+import { UTMAnalytics } from '@/components/utm/UTMAnalytics';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { format, parseISO, startOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -114,6 +117,7 @@ const getSourceCategory = (utm_source: string | null): string => {
 };
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
+  const [activeView, setActiveView] = useState<'e2e' | 'utm'>('e2e');
   const [leads, setLeads] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -354,9 +358,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Tabs */}
       <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border rounded-2xl p-6">
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-6 h-6 text-primary" />
@@ -366,11 +370,35 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
               Анализируйте эффективность рекламы от показа до прибыли
             </p>
           </div>
-          <Badge variant="secondary" className="text-xs">
-            ROMI: {romi.toFixed(0)}%
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as 'e2e' | 'utm')}>
+              <TabsList className="bg-background/50">
+                <TabsTrigger value="e2e" className="gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  ROI
+                </TabsTrigger>
+                <TabsTrigger value="utm" className="gap-2">
+                  <Link2 className="w-4 h-4" />
+                  UTM
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <Badge variant="secondary" className="text-xs">
+              ROMI: {romi.toFixed(0)}%
+            </Badge>
+          </div>
         </div>
       </div>
+
+      {activeView === 'utm' && projectId ? (
+        <UTMAnalytics projectId={projectId} />
+      ) : activeView === 'utm' ? (
+        <div className="bg-card border rounded-xl p-12 text-center">
+          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+          <p className="text-muted-foreground">Выберите проект для просмотра UTM-аналитики</p>
+        </div>
+      ) : (
+        <>
 
       {/* End-to-End Funnel */}
       <div className="bg-card border rounded-xl p-6">
@@ -727,6 +755,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           </div>
         )}
       </div>
+      </>
+      )}
     </div>
   );
 };
