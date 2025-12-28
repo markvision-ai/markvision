@@ -4,6 +4,7 @@ import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
 import { BulkActionsBar } from './BulkActionsBar';
 import { AddLeadDialog } from './AddLeadDialog';
+import { ClientsManagement } from '@/components/clients/ClientsManagement';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -18,7 +19,8 @@ import {
   SlidersHorizontal,
   Zap,
   CheckSquare,
-  Calendar
+  Calendar,
+  Users
 } from 'lucide-react';
 import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -41,7 +43,7 @@ interface CRMPageProps {
   projectId: string | null;
 }
 
-const tabs = ['kanban', 'funnel'] as const;
+const tabs = ['kanban', 'clients', 'funnel'] as const;
 type TabValue = typeof tabs[number];
 
 const statusOptions = [
@@ -605,7 +607,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <TabsList className="w-full sm:w-auto grid grid-cols-2 sm:flex crm-card-glass p-1.5 gap-1 rounded-xl">
+          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex crm-card-glass p-1.5 gap-1 rounded-xl">
             <TabsTrigger 
               value="kanban" 
               className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
@@ -614,8 +616,15 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               <span>Канбан</span>
             </TabsTrigger>
             <TabsTrigger 
-              value="funnel" 
+              value="clients" 
               className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+            >
+              <Users className="w-4 h-4" />
+              <span>Все клиенты</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="funnel" 
+              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-success data-[state=active]:to-success/80 data-[state=active]:text-success-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
             >
               <TrendingUp className="w-4 h-4" />
               <span>Воронка</span>
@@ -654,6 +663,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                         selectedLeads={selectedLeads}
                         onSelectLead={handleSelectLead}
                       />
+                    ) : activeTab === 'clients' ? (
+                      <ClientsManagement projectId={projectId} />
                     ) : (
                       <CRMFunnel leads={filteredLeads} loading={loading} />
                     )}
@@ -677,6 +688,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   selectedLeads={selectedLeads}
                   onSelectLead={handleSelectLead}
                 />
+              ) : activeTab === 'clients' ? (
+                <ClientsManagement projectId={projectId} />
               ) : (
                 <CRMFunnel leads={filteredLeads} loading={loading} />
               )}

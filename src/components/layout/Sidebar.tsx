@@ -4,25 +4,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
   CalendarDays, 
-  BarChart3, 
   Settings, 
   Users,
-  TrendingUp,
   FileSpreadsheet,
   HelpCircle,
   ChevronDown,
   Plus,
   Folder,
-  X,
   Zap,
-  Target,
-  UserCheck,
   Menu,
   Plug,
   Kanban,
   LogOut,
   Shield,
-  Factory
+  Factory,
+  Megaphone,
+  Sparkles
 } from 'lucide-react';
 import {
   Dialog,
@@ -33,7 +30,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -49,17 +46,14 @@ interface SidebarProps {
   userProfile?: { name: string | null; email: string | null } | null;
 }
 
-import { Megaphone } from 'lucide-react';
-
+// Main 6 sections as per ТЗ
 const menuItems = [
-  { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard },
-  { id: 'table', label: 'Таблица данных', icon: CalendarDays },
-  { id: 'quantom-ads', label: 'Quantom Ads', icon: Megaphone },
-  { id: 'crm', label: 'CRM', icon: Kanban },
-  { id: 'factory', label: 'Content Factory', icon: Factory },
-  { id: 'clients', label: 'Клиенты', icon: UserCheck },
-  { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
-  { id: 'utm-analytics', label: 'UTM-аналитика', icon: Target },
+  { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard, emoji: '🏠' },
+  { id: 'table', label: 'Таблица данных', icon: CalendarDays, emoji: '📅' },
+  { id: 'crm', label: 'CRM', icon: Kanban, emoji: '🤝' },
+  { id: 'quantom-ads', label: 'Quantum Ads', icon: Megaphone, emoji: '🚀' },
+  { id: 'factory', label: 'Content Factory', icon: Factory, emoji: '🎬' },
+  { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap, emoji: '📊' },
 ];
 
 const bottomItems = [
@@ -129,12 +123,12 @@ export const Sidebar = ({
       {/* Logo */}
       <div className="p-4 md:p-6 border-b border-sidebar-muted">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-primary flex items-center justify-center">
-            <BarChart3 className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
+            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
           </div>
           <div>
-            <h1 className="font-semibold text-base md:text-lg">Quantom AI</h1>
-            <p className="text-xs text-sidebar-foreground/60">Аналитика рекламы</p>
+            <h1 className="font-bold text-base md:text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">MarkVision AI</h1>
+            <p className="text-xs text-sidebar-foreground/60">Умный маркетинг</p>
           </div>
         </div>
       </div>

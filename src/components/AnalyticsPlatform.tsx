@@ -27,9 +27,7 @@ import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { AIAssistant } from './analytics/AIAssistant';
-import { UTMAnalytics } from './utm/UTMAnalytics';
 import { WebhookSettings } from './settings/WebhookSettings';
-import { ClientsManagement } from './clients/ClientsManagement';
 import { IntegrationsManagement } from './integrations/IntegrationsManagement';
 import { CRMPage } from './crm/CRMPage';
 import { AuditLogViewer } from './audit/AuditLogViewer';
@@ -175,17 +173,16 @@ export const AnalyticsPlatform = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return 'Дашборд';
-      case 'table': return 'Таблица данных';
-      case 'quantom-ads': return 'Quantom Ads';
-      case 'crm': return 'CRM';
-      case 'factory': return 'Content Factory';
-      case 'clients': return 'Клиенты';
-      case 'e2e-analytics': return 'Сквозная аналитика';
-      case 'multichannel': return 'Мультиканальная аналитика';
-      case 'utm-analytics': return 'UTM-аналитика';
+      case 'dashboard': return '🏠 Дашборд';
+      case 'table': return '📅 Таблица данных';
+      case 'quantom-ads': return '🚀 Quantum Ads';
+      case 'crm': return '🤝 CRM';
+      case 'factory': return '🎬 Content Factory';
+      case 'e2e-analytics': return '📊 Сквозная аналитика';
       case 'reports': return 'Отчёты';
       case 'team': return 'Команда';
+      case 'integrations': return 'Интеграции';
+      case 'audit': return 'Аудит';
       case 'settings': return 'Настройки';
       default: return 'Раздел в разработке';
     }
@@ -321,10 +318,6 @@ export const AnalyticsPlatform = () => {
         />
       )}
 
-      {activeTab === 'clients' && (
-        <ClientsManagement projectId={currentProjectId} />
-      )}
-
       {activeTab === 'crm' && (
         <CRMPage projectId={currentProjectId} />
       )}
@@ -339,11 +332,6 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'e2e-analytics' && (
         <E2EAnalytics totals={totals} projectId={currentProjectId} />
-      )}
-
-
-      {activeTab === 'utm-analytics' && (
-        <UTMAnalytics projectId={currentProjectId} />
       )}
 
       {activeTab === 'reports' && (
@@ -383,7 +371,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'clients', 'e2e-analytics', 'utm-analytics', 'reports', 'team', 'integrations', 'settings', 'audit'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
