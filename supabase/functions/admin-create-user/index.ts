@@ -1,20 +1,36 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface CreateUserRequest {
-  email: string;
-  password: string;
-  name: string;
-  role: "admin" | "manager";
-  projectAccess?: string[];
-  sendEmail?: boolean;
-}
+// Input validation schema
+const CreateUserSchema = z.object({
+  email: z.string()
+    .trim()
+    .email({ message: "Некорректный формат email" })
+    .max(255, { message: "Email слишком длинный (максимум 255 символов)" }),
+  password: z.string()
+    .min(6, { message: "Пароль должен быть минимум 6 символов" })
+    .max(128, { message: "Пароль слишком длинный (максимум 128 символов)" }),
+  name: z.string()
+    .trim()
+    .min(1, { message: "Имя обязательно" })
+    .max(100, { message: "Имя слишком длинное (максимум 100 символов)" }),
+  role: z.enum(['admin', 'manager'], { 
+    errorMap: () => ({ message: "Роль должна быть 'admin' или 'manager'" })
+  }),
+  projectAccess: z.array(
+    z.string().uuid({ message: "Некорректный формат ID проекта" })
+  ).optional().default([]),
+  sendEmail: z.boolean().optional().default(false)
+});
+
+type CreateUserRequest = z.infer<typeof CreateUserSchema>;
 
 async function sendWelcomeEmail(email: string, name: string, password: string) {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
@@ -48,6 +64,7 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
             .value { font-weight: 600; color: #1e293b; font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; }
             .button { display: inline-block; background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }
             .footer { text-align: center; margin-top: 30px; color: #94a3b8; font-size: 12px; }
+            .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #92400e; }
           </style>
         </head>
         <body>
@@ -70,7 +87,9 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
                 </div>
               </div>
               
-              <p><strong>Рекомендуем сменить пароль после первого входа.</strong></p>
+              <div class="warning">
+                ⚠️ <strong>Важно:</strong> Смените пароль сразу после первого входа. Удалите это письмо после использования.
+              </div>
               
               <p>С уважением,<br>Команда AdMetrics</p>
             </div>
@@ -90,9 +109,10 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
 
     console.log("Welcome email sent to:", email);
     return { success: true };
-  } catch (error: any) {
-    console.error("Email error:", error);
-    return { success: false, error: error.message };
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Email error:", errorMessage);
+    return { success: false, error: errorMessage };
   }
 }
 
@@ -124,7 +144,7 @@ serve(async (req) => {
     // Get current user
     const { data: { user: currentUser }, error: userError } = await supabaseUser.auth.getUser();
     if (userError || !currentUser) {
-      console.error("Auth error:", userError);
+      console.error("Auth error:", userError?.message);
       return new Response(
         JSON.stringify({ success: false, error: "Неверный токен авторизации" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -151,23 +171,29 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body
-    const { email, password, name, role, projectAccess = [], sendEmail = false }: CreateUserRequest = await req.json();
-
-    // Validate input
-    if (!email || !password || !name) {
+    // Parse and validate request body using Zod
+    const rawBody = await req.json();
+    const validationResult = CreateUserSchema.safeParse(rawBody);
+    
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues
+        .map(issue => issue.message)
+        .join("; ");
+      console.log("Validation failed:", validationResult.error.issues);
       return new Response(
-        JSON.stringify({ success: false, error: "Email, пароль и имя обязательны" }),
+        JSON.stringify({ 
+          success: false, 
+          error: errorMessages,
+          validationErrors: validationResult.error.issues.map(i => ({
+            field: i.path.join('.'),
+            message: i.message
+          }))
+        }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    if (password.length < 6) {
-      return new Response(
-        JSON.stringify({ success: false, error: "Пароль должен быть минимум 6 символов" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { email, password, name, role, projectAccess, sendEmail } = validationResult.data;
 
     // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
