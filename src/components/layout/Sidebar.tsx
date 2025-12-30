@@ -19,7 +19,16 @@ import {
   Shield,
   Factory,
   Megaphone,
-  Sparkles
+  Sparkles,
+  UserCog,
+  BookOpen,
+  Wallet,
+  Inbox,
+  FlameKindling,
+  Trophy,
+  FlaskConical,
+  Activity,
+  Compass
 } from 'lucide-react';
 import {
   Dialog,
@@ -56,10 +65,25 @@ const menuItems = [
   { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap, emoji: '📊' },
 ];
 
+const operationsItems = [
+  { id: 'staff', label: 'Персонал', icon: UserCog },
+  { id: 'inbox', label: 'Inbox', icon: Inbox },
+  { id: 'finance', label: 'Финансы', icon: Wallet },
+];
+
+const toolsItems = [
+  { id: 'scoring', label: 'Lead Scoring', icon: FlameKindling },
+  { id: 'gamification', label: 'Геймификация', icon: Trophy },
+  { id: 'ab-testing', label: 'A/B Тесты', icon: FlaskConical },
+  { id: 'knowledge', label: 'База знаний', icon: BookOpen },
+];
+
 const bottomItems = [
   { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
   { id: 'integrations', label: 'Интеграции', icon: Plug },
+  { id: 'health', label: 'Здоровье системы', icon: Activity },
   { id: 'team', label: 'Команда', icon: Users },
+  { id: 'onboarding', label: 'Онбординг', icon: Compass },
   { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
   { id: 'settings', label: 'Настройки', icon: Settings },
   { id: 'help', label: 'Помощь', icon: HelpCircle },
@@ -212,7 +236,53 @@ export const Sidebar = ({
           })}
         </ul>
 
-        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6 md:mt-8">Дополнительно</p>
+        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Операции</p>
+        <ul className="space-y-1">
+          {operationsItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => handleTabChange(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Инструменты</p>
+        <ul className="space-y-1">
+          {toolsItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeTab === item.id;
+            return (
+              <li key={item.id}>
+                <button
+                  onClick={() => handleTabChange(item.id)}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                    isActive 
+                      ? 'bg-primary text-primary-foreground' 
+                      : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
+                  }`}
+                >
+                  <Icon className="w-5 h-5" />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Дополнительно</p>
         <ul className="space-y-1">
           {bottomItems
             .filter(item => !item.adminOnly || isAdmin)
