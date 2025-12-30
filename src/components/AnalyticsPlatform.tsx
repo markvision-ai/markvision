@@ -33,6 +33,15 @@ import { CRMPage } from './crm/CRMPage';
 import { AuditLogViewer } from './audit/AuditLogViewer';
 import { QuantomAdsPage } from './ads/QuantomAdsPage';
 import { ContentFactoryPage } from './factory/ContentFactoryPage';
+import { OnboardingWizard } from './onboarding/OnboardingWizard';
+import { StaffManagement } from './staff/StaffManagement';
+import { KnowledgeBase } from './knowledge/KnowledgeBase';
+import { FinanceDashboard } from './finance/FinanceDashboard';
+import { OmnichannelInbox } from './inbox/OmnichannelInbox';
+import { LeadScoring } from './scoring/LeadScoring';
+import { GamificationHub } from './gamification/GamificationHub';
+import { ABOptimizer } from './abtesting/ABOptimizer';
+import { TechnicalHealth } from './health/TechnicalHealth';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -184,6 +193,15 @@ export const AnalyticsPlatform = () => {
       case 'integrations': return 'Интеграции';
       case 'audit': return 'Аудит';
       case 'settings': return 'Настройки';
+      case 'staff': return '👥 Персонал';
+      case 'inbox': return '📬 Inbox';
+      case 'finance': return '💰 Финансы';
+      case 'scoring': return '🔥 Lead Scoring';
+      case 'gamification': return '🏆 Геймификация';
+      case 'ab-testing': return '🧪 A/B Тесты';
+      case 'knowledge': return '📚 База знаний';
+      case 'health': return '🩺 Здоровье системы';
+      case 'onboarding': return '🧭 Онбординг';
       default: return 'Раздел в разработке';
     }
   };
@@ -371,7 +389,43 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory'].includes(activeTab) && (
+      {activeTab === 'staff' && currentProjectId && (
+        <StaffManagement projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'inbox' && currentProjectId && (
+        <OmnichannelInbox projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'finance' && currentProjectId && (
+        <FinanceDashboard projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'scoring' && currentProjectId && (
+        <LeadScoring projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'gamification' && currentProjectId && (
+        <GamificationHub projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'ab-testing' && currentProjectId && (
+        <ABOptimizer projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'knowledge' && currentProjectId && (
+        <KnowledgeBase projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'health' && currentProjectId && (
+        <TechnicalHealth projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'onboarding' && (
+        <OnboardingWizard />
+      )}
+
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'onboarding'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
