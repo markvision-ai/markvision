@@ -58,6 +58,7 @@ interface SidebarProps {
 // Main 6 sections as per ТЗ
 const menuItems = [
   { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard, emoji: '🏠' },
+  { id: 'realtime', label: 'Realtime', icon: Activity, emoji: '⚡' },
   { id: 'table', label: 'Таблица данных', icon: CalendarDays, emoji: '📅' },
   { id: 'crm', label: 'CRM', icon: Kanban, emoji: '🤝' },
   { id: 'quantom-ads', label: 'Quantum Ads', icon: Megaphone, emoji: '🚀' },

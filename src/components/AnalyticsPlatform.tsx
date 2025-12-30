@@ -42,6 +42,7 @@ import { LeadScoring } from './scoring/LeadScoring';
 import { GamificationHub } from './gamification/GamificationHub';
 import { ABOptimizer } from './abtesting/ABOptimizer';
 import { TechnicalHealth } from './health/TechnicalHealth';
+import { RealtimeDashboard } from './dashboard/RealtimeDashboard';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -338,6 +339,10 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'crm' && (
         <CRMPage projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'realtime' && (
+        <RealtimeDashboard projectId={currentProjectId} />
       )}
 
       {activeTab === 'quantom-ads' && (
