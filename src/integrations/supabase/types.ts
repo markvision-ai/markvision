@@ -328,6 +328,64 @@ export type Database = {
         }
         Relationships: []
       }
+      automation_logs: {
+        Row: {
+          action_data: Json | null
+          action_result: string | null
+          action_type: string
+          automation_rule_id: string | null
+          error_message: string | null
+          executed_at: string | null
+          id: string
+          lead_id: string | null
+          project_id: string
+        }
+        Insert: {
+          action_data?: Json | null
+          action_result?: string | null
+          action_type: string
+          automation_rule_id?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          lead_id?: string | null
+          project_id: string
+        }
+        Update: {
+          action_data?: Json | null
+          action_result?: string | null
+          action_type?: string
+          automation_rule_id?: string | null
+          error_message?: string | null
+          executed_at?: string | null
+          id?: string
+          lead_id?: string | null
+          project_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_logs_automation_rule_id_fkey"
+            columns: ["automation_rule_id"]
+            isOneToOne: false
+            referencedRelation: "crm_automation_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_logs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       campaigns: {
         Row: {
           ai_log: Json | null
@@ -495,6 +553,62 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "content_factory_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      crm_automation_rules: {
+        Row: {
+          action_config: Json
+          action_type: string
+          conditions: Json | null
+          created_at: string | null
+          description: string | null
+          execution_order: number | null
+          id: string
+          is_active: boolean | null
+          name: string
+          project_id: string
+          trigger_status: string | null
+          trigger_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_config?: Json
+          action_type: string
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          execution_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          project_id: string
+          trigger_status?: string | null
+          trigger_type: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_config?: Json
+          action_type?: string
+          conditions?: Json | null
+          created_at?: string | null
+          description?: string | null
+          execution_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          project_id?: string
+          trigger_status?: string | null
+          trigger_type?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crm_automation_rules_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -763,6 +877,61 @@ export type Database = {
           },
         ]
       }
+      lead_assignments: {
+        Row: {
+          accepted_at: string | null
+          assigned_at: string | null
+          assigned_by: string | null
+          id: string
+          lead_id: string
+          project_id: string
+          staff_id: string | null
+          status: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          lead_id: string
+          project_id: string
+          staff_id?: string | null
+          status?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          assigned_at?: string | null
+          assigned_by?: string | null
+          id?: string
+          lead_id?: string
+          project_id?: string
+          staff_id?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_assignments_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_assignments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_messages: {
         Row: {
           created_at: string
@@ -941,6 +1110,9 @@ export type Database = {
       }
       leads: {
         Row: {
+          appointment_date: string | null
+          assigned_at: string | null
+          assigned_to: string | null
           client_id: string | null
           created_at: string
           deal_amount: number | null
@@ -948,10 +1120,12 @@ export type Database = {
           external_lead_id: string | null
           extra_data: Json | null
           id: string
+          last_automation_at: string | null
           lead_score: number | null
           name: string | null
           phone: string | null
           project_id: string
+          rejection_reason: string | null
           score_label: string | null
           status: string | null
           touchpoint_chain_id: string | null
@@ -965,6 +1139,9 @@ export type Database = {
           webhook_log_id: string | null
         }
         Insert: {
+          appointment_date?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           client_id?: string | null
           created_at?: string
           deal_amount?: number | null
@@ -972,10 +1149,12 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           id?: string
+          last_automation_at?: string | null
           lead_score?: number | null
           name?: string | null
           phone?: string | null
           project_id: string
+          rejection_reason?: string | null
           score_label?: string | null
           status?: string | null
           touchpoint_chain_id?: string | null
@@ -989,6 +1168,9 @@ export type Database = {
           webhook_log_id?: string | null
         }
         Update: {
+          appointment_date?: string | null
+          assigned_at?: string | null
+          assigned_to?: string | null
           client_id?: string | null
           created_at?: string
           deal_amount?: number | null
@@ -996,10 +1178,12 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           id?: string
+          last_automation_at?: string | null
           lead_score?: number | null
           name?: string | null
           phone?: string | null
           project_id?: string
+          rejection_reason?: string | null
           score_label?: string | null
           status?: string | null
           touchpoint_chain_id?: string | null
@@ -1013,6 +1197,13 @@ export type Database = {
           webhook_log_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "leads_assigned_to_fkey"
+            columns: ["assigned_to"]
+            isOneToOne: false
+            referencedRelation: "staff"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_project_id_fkey"
             columns: ["project_id"]
@@ -1208,6 +1399,70 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "report_templates_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      scheduled_reminders: {
+        Row: {
+          automation_rule_id: string | null
+          channel: string
+          created_at: string | null
+          id: string
+          lead_id: string
+          message_template: string | null
+          project_id: string
+          reminder_type: string
+          scheduled_for: string
+          sent_at: string | null
+          status: string | null
+        }
+        Insert: {
+          automation_rule_id?: string | null
+          channel: string
+          created_at?: string | null
+          id?: string
+          lead_id: string
+          message_template?: string | null
+          project_id: string
+          reminder_type: string
+          scheduled_for: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Update: {
+          automation_rule_id?: string | null
+          channel?: string
+          created_at?: string | null
+          id?: string
+          lead_id?: string
+          message_template?: string | null
+          project_id?: string
+          reminder_type?: string
+          scheduled_for?: string
+          sent_at?: string | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "scheduled_reminders_automation_rule_id_fkey"
+            columns: ["automation_rule_id"]
+            isOneToOne: false
+            referencedRelation: "crm_automation_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_reminders_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_reminders_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
