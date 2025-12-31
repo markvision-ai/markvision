@@ -18,5 +18,8 @@ verify_jwt = false
 [functions.weekly-report]
 verify_jwt = false
 
+[functions.crm-automation]
+verify_jwt = true
+
 [functions.generate-ad-copy]
 verify_jwt = true
