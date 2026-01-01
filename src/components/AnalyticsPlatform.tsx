@@ -90,7 +90,7 @@ export const AnalyticsPlatform = () => {
   const isMobile = useIsMobile();
   const { profile } = useAuth();
   
-  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
 
   const handleRefresh = useCallback(async () => {
@@ -215,7 +215,7 @@ export const AnalyticsPlatform = () => {
     );
   }
 
-  const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
+  const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: p.owner_id }));
 
   const mainContent = (
     <main className="p-3 md:p-6 pb-20 md:pb-6">
@@ -451,6 +451,7 @@ export const AnalyticsPlatform = () => {
         projects={projectsList}
         onProjectChange={setCurrentProjectId}
         onCreateProject={createProject}
+        onDeleteProject={deleteProject}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
         userProfile={profile}
