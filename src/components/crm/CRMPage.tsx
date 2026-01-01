@@ -4,6 +4,7 @@ import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
 import { CRMFunnel } from './CRMFunnel';
 import { BulkActionsBar } from './BulkActionsBar';
 import { AddLeadDialog } from './AddLeadDialog';
+import { AutomationPanel } from './AutomationPanel';
 import { ClientsManagement } from '@/components/clients/ClientsManagement';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +21,8 @@ import {
   Zap,
   CheckSquare,
   Calendar,
-  Users
+  Users,
+  Bot
 } from 'lucide-react';
 import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -43,7 +45,7 @@ interface CRMPageProps {
   projectId: string | null;
 }
 
-const tabs = ['kanban', 'clients', 'funnel'] as const;
+const tabs = ['kanban', 'clients', 'funnel', 'automation'] as const;
 type TabValue = typeof tabs[number];
 
 const statusOptions = [
@@ -607,27 +609,34 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.2 }}
         >
-          <TabsList className="w-full sm:w-auto grid grid-cols-3 sm:flex crm-card-glass p-1.5 gap-1 rounded-xl">
+          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex crm-card-glass p-1.5 gap-1 rounded-xl">
             <TabsTrigger 
               value="kanban" 
               className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
             >
               <Kanban className="w-4 h-4" />
-              <span>Канбан</span>
+              <span className="hidden sm:inline">Канбан</span>
             </TabsTrigger>
             <TabsTrigger 
               value="clients" 
               className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
             >
               <Users className="w-4 h-4" />
-              <span>Все клиенты</span>
+              <span className="hidden sm:inline">Клиенты</span>
             </TabsTrigger>
             <TabsTrigger 
               value="funnel" 
               className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-success data-[state=active]:to-success/80 data-[state=active]:text-success-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Воронка</span>
+              <span className="hidden sm:inline">Воронка</span>
+            </TabsTrigger>
+            <TabsTrigger 
+              value="automation" 
+              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+            >
+              <Bot className="w-4 h-4" />
+              <span className="hidden sm:inline">Автоматизация</span>
             </TabsTrigger>
           </TabsList>
         </motion.div>
@@ -665,6 +674,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                       />
                     ) : activeTab === 'clients' ? (
                       <ClientsManagement projectId={projectId} />
+                    ) : activeTab === 'automation' ? (
+                      <AutomationPanel projectId={projectId} />
                     ) : (
                       <CRMFunnel leads={filteredLeads} loading={loading} />
                     )}
@@ -690,6 +701,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 />
               ) : activeTab === 'clients' ? (
                 <ClientsManagement projectId={projectId} />
+              ) : activeTab === 'automation' ? (
+                <AutomationPanel projectId={projectId} />
               ) : (
                 <CRMFunnel leads={filteredLeads} loading={loading} />
               )}
