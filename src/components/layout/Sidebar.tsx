@@ -28,7 +28,9 @@ import {
   Trophy,
   FlaskConical,
   Activity,
-  Compass
+  Compass,
+  Trash2,
+  MoreVertical
 } from 'lucide-react';
 import {
   Dialog,
@@ -36,7 +38,14 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -47,9 +56,10 @@ interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   currentProject?: string;
-  projects?: { id: string; name: string }[];
+  projects?: { id: string; name: string; owner_id: string }[];
   onProjectChange?: (projectId: string) => void;
   onCreateProject?: (name: string) => Promise<boolean>;
+  onDeleteProject?: (projectId: string) => Promise<boolean>;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
   userProfile?: { name: string | null; email: string | null } | null;
@@ -94,17 +104,21 @@ export const Sidebar = ({
   activeTab, 
   onTabChange, 
   currentProject = 'default',
-  projects = [{ id: 'default', name: 'Основной проект' }],
+  projects = [{ id: 'default', name: 'Основной проект', owner_id: '' }],
   onProjectChange,
   onCreateProject,
+  onDeleteProject,
   isMobileOpen = false,
   onMobileClose,
   userProfile
 }: SidebarProps) => {
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { isAdmin, user } = useAuth();
   
   const currentProjectData = projects.find(p => p.id === currentProject) || projects[0];
@@ -136,6 +150,29 @@ export const Sidebar = ({
       setNewProjectName('');
       setIsCreateDialogOpen(false);
     }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete || !onDeleteProject) return;
+    
+    setIsDeleting(true);
+    const success = await onDeleteProject(projectToDelete.id);
+    setIsDeleting(false);
+    
+    if (success) {
+      setProjectToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const openDeleteDialog = (project: { id: string; name: string }) => {
+    setProjectToDelete(project);
+    setIsDeleteDialogOpen(true);
+    setIsProjectDropdownOpen(false);
+  };
+
+  const canDeleteProject = (project: { id: string; owner_id: string }) => {
+    return isAdmin || project.owner_id === user?.id;
   };
 
   const handleTabChange = (tab: string) => {
@@ -180,21 +217,50 @@ export const Sidebar = ({
                 </div>
               ) : (
                 projects.map((project) => (
-                  <button
+                  <div
                     key={project.id}
-                    onClick={() => {
-                      onProjectChange?.(project.id);
-                      setIsProjectDropdownOpen(false);
-                    }}
-                    className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm transition-colors ${
+                    className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
                       currentProject === project.id 
                         ? 'bg-primary text-primary-foreground' 
                         : 'hover:bg-sidebar-foreground/10'
                     }`}
                   >
-                    <Folder className="w-4 h-4" />
-                    <span className="truncate">{project.name}</span>
-                  </button>
+                    <button
+                      onClick={() => {
+                        onProjectChange?.(project.id);
+                        setIsProjectDropdownOpen(false);
+                      }}
+                      className="flex-1 flex items-center gap-3 text-left"
+                    >
+                      <Folder className="w-4 h-4" />
+                      <span className="truncate">{project.name}</span>
+                    </button>
+                    {canDeleteProject(project) && (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <button 
+                            className={`p-1 rounded hover:bg-sidebar-foreground/20 transition-colors ${
+                              currentProject === project.id 
+                                ? 'text-primary-foreground/70 hover:text-primary-foreground' 
+                                : 'text-sidebar-foreground/50 hover:text-sidebar-foreground'
+                            }`}
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreVertical className="w-4 h-4" />
+                          </button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="w-40">
+                          <DropdownMenuItem
+                            onClick={() => openDeleteDialog(project)}
+                            className="text-destructive focus:text-destructive cursor-pointer"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Удалить
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    )}
+                  </div>
                 ))
               )}
               <button
@@ -379,6 +445,37 @@ export const Sidebar = ({
               disabled={!newProjectName.trim() || isCreating}
             >
               {isCreating ? 'Создание...' : 'Создать'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Project Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Удалить проект</DialogTitle>
+            <DialogDescription>
+              Вы уверены, что хотите удалить проект <strong>"{projectToDelete?.name}"</strong>? 
+              Это действие нельзя отменить. Все данные проекта будут удалены.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setProjectToDelete(null);
+              }}
+            >
+              Отмена
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteProject}
+              disabled={isDeleting}
+            >
+              {isDeleting ? 'Удаление...' : 'Удалить'}
             </Button>
           </DialogFooter>
         </DialogContent>

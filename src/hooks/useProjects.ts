@@ -8,6 +8,7 @@ interface Project {
   id: string;
   name: string;
   owner_id: string;
+  telegram_chat_id?: string | null;
 }
 
 export const useProjects = () => {
