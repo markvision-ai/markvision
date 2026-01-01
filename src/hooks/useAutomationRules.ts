@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Json } from '@/integrations/supabase/types';
 
 export interface AutomationRule {
   id: string;
@@ -32,6 +33,31 @@ export interface AutomationLog {
   rule?: { id: string; name: string } | null;
 }
 
+// Helper to convert Json to Record<string, any>
+const toRecord = (json: Json | null): Record<string, any> => {
+  if (json === null || typeof json !== 'object' || Array.isArray(json)) {
+    return {};
+  }
+  return json as Record<string, any>;
+};
+
+// Helper to map DB row to AutomationRule
+const mapDbToRule = (row: any): AutomationRule => ({
+  id: row.id,
+  project_id: row.project_id,
+  name: row.name,
+  description: row.description,
+  trigger_type: row.trigger_type,
+  trigger_status: row.trigger_status,
+  action_type: row.action_type,
+  action_config: toRecord(row.action_config),
+  conditions: toRecord(row.conditions),
+  is_active: row.is_active ?? true,
+  execution_order: row.execution_order ?? 0,
+  created_at: row.created_at,
+  updated_at: row.updated_at,
+});
+
 export function useAutomationRules(projectId: string | null) {
   const [rules, setRules] = useState<AutomationRule[]>([]);
   const [logs, setLogs] = useState<AutomationLog[]>([]);
@@ -52,7 +78,7 @@ export function useAutomationRules(projectId: string | null) {
         .order('execution_order');
 
       if (error) throw error;
-      setRules(data || []);
+      setRules((data || []).map(mapDbToRule));
     } catch (error) {
       console.error('Error fetching automation rules:', error);
       toast.error('Ошибка загрузки правил автоматизации');
@@ -168,9 +194,10 @@ export function useAutomationRules(projectId: string | null) {
 
       if (error) throw error;
       
-      setRules(prev => [...prev, data]);
+      const mappedRule = mapDbToRule(data);
+      setRules(prev => [...prev, mappedRule]);
       toast.success('Правило создано');
-      return data;
+      return mappedRule;
     } catch (error) {
       console.error('Error creating rule:', error);
       toast.error('Ошибка создания правила');
@@ -192,9 +219,10 @@ export function useAutomationRules(projectId: string | null) {
 
       if (error) throw error;
       
-      setRules(prev => prev.map(r => r.id === ruleId ? data : r));
+      const mappedRule = mapDbToRule(data);
+      setRules(prev => prev.map(r => r.id === ruleId ? mappedRule : r));
       toast.success('Правило обновлено');
-      return data;
+      return mappedRule;
     } catch (error) {
       console.error('Error updating rule:', error);
       toast.error('Ошибка обновления правила');
