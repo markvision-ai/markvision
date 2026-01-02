@@ -87,6 +87,7 @@ const formatNumber = (value: number): string => {
 export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const isMobile = useIsMobile();
   const { profile } = useAuth();
   
@@ -426,11 +427,8 @@ export const AnalyticsPlatform = () => {
         <TechnicalHealth projectId={currentProjectId} />
       )}
 
-      {activeTab === 'onboarding' && (
-        <OnboardingWizard />
-      )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'onboarding'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
@@ -444,13 +442,24 @@ export const AnalyticsPlatform = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {showOnboarding && (
+        <OnboardingWizard 
+          createProject={createProject}
+          onComplete={(projectId) => {
+            setShowOnboarding(false);
+            setCurrentProjectId(projectId);
+            setActiveTab('dashboard');
+          }}
+        />
+      )}
+      
       <Sidebar 
         activeTab={activeTab} 
         onTabChange={setActiveTab}
         currentProject={currentProjectId || undefined}
         projects={projectsList}
         onProjectChange={setCurrentProjectId}
-        onCreateProject={createProject}
+        onStartOnboarding={() => setShowOnboarding(true)}
         onDeleteProject={deleteProject}
         isMobileOpen={isMobileSidebarOpen}
         onMobileClose={() => setIsMobileSidebarOpen(false)}
