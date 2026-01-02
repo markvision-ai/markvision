@@ -49,17 +49,17 @@ export const useProjects = () => {
     fetchProjects();
   }, [fetchProjects]);
 
-  const createProject = async (name: string): Promise<boolean> => {
+  const createProject = async (name: string): Promise<string | null> => {
     if (!user) {
       toast.error('Необходимо авторизоваться');
-      return false;
+      return null;
     }
 
     // Validate project name
     const trimmedName = name.trim();
     if (!trimmedName || trimmedName.length > 100) {
       toast.error('Название проекта должно быть от 1 до 100 символов');
-      return false;
+      return null;
     }
 
     const { data, error } = await supabase
@@ -74,7 +74,7 @@ export const useProjects = () => {
     if (error) {
       logError('Create project failed', error);
       toast.error('Ошибка при создании проекта');
-      return false;
+      return null;
     }
 
     // Also add project access for the creator
@@ -83,10 +83,9 @@ export const useProjects = () => {
       user_id: user.id,
     });
 
-    toast.success('Проект создан');
     await fetchProjects();
     setCurrentProjectId(data.id);
-    return true;
+    return data.id;
   };
 
   const deleteProject = async (projectId: string): Promise<boolean> => {

@@ -58,7 +58,7 @@ interface SidebarProps {
   currentProject?: string;
   projects?: { id: string; name: string; owner_id: string }[];
   onProjectChange?: (projectId: string) => void;
-  onCreateProject?: (name: string) => Promise<boolean>;
+  onStartOnboarding?: () => void;
   onDeleteProject?: (projectId: string) => Promise<boolean>;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
@@ -94,7 +94,6 @@ const bottomItems = [
   { id: 'integrations', label: 'Интеграции', icon: Plug },
   { id: 'health', label: 'Здоровье системы', icon: Activity },
   { id: 'team', label: 'Команда', icon: Users },
-  { id: 'onboarding', label: 'Онбординг', icon: Compass },
   { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
   { id: 'settings', label: 'Настройки', icon: Settings },
   { id: 'help', label: 'Помощь', icon: HelpCircle },
@@ -106,18 +105,15 @@ export const Sidebar = ({
   currentProject = 'default',
   projects = [{ id: 'default', name: 'Основной проект', owner_id: '' }],
   onProjectChange,
-  onCreateProject,
+  onStartOnboarding,
   onDeleteProject,
   isMobileOpen = false,
   onMobileClose,
   userProfile
 }: SidebarProps) => {
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const { isAdmin, user } = useAuth();
   
@@ -139,17 +135,9 @@ export const Sidebar = ({
     }
   }, [user]);
 
-  const handleCreateProject = async () => {
-    if (!newProjectName.trim() || !onCreateProject) return;
-    
-    setIsCreating(true);
-    const success = await onCreateProject(newProjectName.trim());
-    setIsCreating(false);
-    
-    if (success) {
-      setNewProjectName('');
-      setIsCreateDialogOpen(false);
-    }
+  const handleStartOnboarding = () => {
+    setIsProjectDropdownOpen(false);
+    onStartOnboarding?.();
   };
 
   const handleDeleteProject = async () => {
@@ -264,10 +252,7 @@ export const Sidebar = ({
                 ))
               )}
               <button
-                onClick={() => {
-                  setIsProjectDropdownOpen(false);
-                  setIsCreateDialogOpen(true);
-                }}
+                onClick={handleStartOnboarding}
                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-primary hover:bg-sidebar-foreground/10 border-t border-sidebar-foreground/10"
               >
                 <Plus className="w-4 h-4" />
@@ -415,40 +400,6 @@ export const Sidebar = ({
           <SidebarContent />
         </SheetContent>
       </Sheet>
-
-      {/* Create Project Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Создать новый проект</DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <Input
-              placeholder="Название проекта"
-              value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleCreateProject();
-              }}
-              autoFocus
-            />
-          </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsCreateDialogOpen(false)}
-            >
-              Отмена
-            </Button>
-            <Button
-              onClick={handleCreateProject}
-              disabled={!newProjectName.trim() || isCreating}
-            >
-              {isCreating ? 'Создание...' : 'Создать'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Delete Project Dialog */}
       <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
