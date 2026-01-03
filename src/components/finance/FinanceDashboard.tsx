@@ -40,7 +40,9 @@ import {
   RefreshCw,
   Calendar,
   Filter,
-  Percent
+  Percent,
+  Zap,
+  Loader2
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -57,6 +59,7 @@ import {
 } from 'recharts';
 import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWithinInterval, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 
 interface Transaction {
   id: string;
@@ -121,6 +124,16 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     amount: 0,
     description: '',
   });
+
+  // QuantumAds sync hook
+  const { syncing, syncAdSpend } = useAdSpendSync(projectId);
+
+  const handleSyncAds = async () => {
+    const result = await syncAdSpend();
+    if (result) {
+      fetchTransactions();
+    }
+  };
 
   useEffect(() => {
     fetchTransactions();
@@ -311,6 +324,19 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           <Button variant="outline" onClick={fetchTransactions}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Обновить
+          </Button>
+          <Button 
+            variant="outline" 
+            onClick={handleSyncAds} 
+            disabled={syncing}
+            className="border-violet-500/50 text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/20"
+          >
+            {syncing ? (
+              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            ) : (
+              <Zap className="w-4 h-4 mr-2" />
+            )}
+            Синхр. QuantumAds
           </Button>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
