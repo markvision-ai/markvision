@@ -132,6 +132,7 @@ export const KanbanBoard = ({
   const updateLeadStatus = async (leadId: string, status: string, amount?: number) => {
     setIsUpdating(true);
     try {
+      const lead = leads.find(l => l.id === leadId);
       const updateData: { status: string; updated_at: string; deal_amount?: number } = {
         status,
         updated_at: new Date().toISOString(),
@@ -148,7 +149,29 @@ export const KanbanBoard = ({
 
       if (error) throw error;
 
-      if (status === 'paid') {
+      // Auto-create income transaction when status changes to 'paid'
+      if (status === 'paid' && projectId) {
+        const incomeAmount = amount ?? lead?.deal_amount ?? 0;
+        if (incomeAmount > 0) {
+          const { error: transactionError } = await supabase
+            .from('transactions')
+            .insert([{
+              project_id: projectId,
+              type: 'income',
+              category: 'sales',
+              amount: incomeAmount,
+              description: `Оплата от ${lead?.name || 'клиента'}`,
+              lead_id: leadId,
+              currency: 'KZT',
+              transaction_date: new Date().toISOString(),
+            }]);
+
+          if (transactionError) {
+            console.error('Error creating income transaction:', transactionError);
+          } else {
+            console.log('Income transaction created for lead:', leadId);
+          }
+        }
         playSuccessSound();
       }
 

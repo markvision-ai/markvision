@@ -181,6 +181,30 @@ serve(async (req) => {
           .eq('month', currentMonth.toISOString().split('T')[0])
           .single();
 
+        // Get financial data for the week
+        const { data: financeData, error: financeError } = await supabase
+          .from('transactions')
+          .select('*')
+          .eq('project_id', project.id)
+          .gte('transaction_date', lastMonday.toISOString())
+          .lte('transaction_date', lastSunday.toISOString());
+
+        // Calculate finance totals
+        const financeIncome = (financeData || [])
+          .filter((t: any) => t.type === 'income')
+          .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+        
+        const financeExpenses = (financeData || [])
+          .filter((t: any) => t.type === 'expense')
+          .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+        
+        const marketingExpenses = (financeData || [])
+          .filter((t: any) => t.type === 'expense' && t.category === 'marketing')
+          .reduce((sum: number, t: any) => sum + (t.amount || 0), 0);
+        
+        const operationalExpenses = financeExpenses - marketingExpenses;
+        const netProfit = financeIncome - financeExpenses;
+
         // Calculate totals
         const current: WeeklyStats = (currentWeekData || []).reduce((acc, day) => ({
           spend: acc.spend + (day.spend || 0),
@@ -311,7 +335,14 @@ serve(async (req) => {
           message += aiAnalysis + '\n\n';
         }
 
-        message += `_Сформировано автоматически в AdMetrics_`;
+        // Finance block
+        message += `━━━ 💰 ФИНАНСЫ ━━━\n\n`;
+        message += `💵 *Заработано:* ${formatCurrency(financeIncome)}\n`;
+        message += `📢 *Реклама:* ${formatCurrency(marketingExpenses)}\n`;
+        message += `🏢 *Операционные:* ${formatCurrency(operationalExpenses)}\n`;
+        message += `${netProfit >= 0 ? '✅' : '🔴'} *Чистая прибыль:* ${formatCurrency(netProfit)}\n\n`;
+
+        message += `_Сформировано автоматически в MarkVision AI_`;
 
         // Send to Telegram
         const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
