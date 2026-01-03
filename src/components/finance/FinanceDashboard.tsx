@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,13 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   DollarSign, 
   Plus, 
@@ -29,13 +36,27 @@ import {
   ArrowDownRight,
   Wallet,
   PiggyBank,
-  CreditCard,
   Download,
-  RefreshCw
+  RefreshCw,
+  Calendar,
+  Filter,
+  Percent
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Legend,
+  Cell
+} from 'recharts';
+import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWithinInterval, parseISO } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface Transaction {
   id: string;
@@ -46,19 +67,57 @@ interface Transaction {
   description: string;
   transaction_date: string;
   created_at: string;
+  lead_id?: string;
 }
 
 interface FinanceDashboardProps {
   projectId: string;
 }
 
+const EXPENSE_CATEGORIES = [
+  { value: 'marketing', label: 'Маркетинг / Реклама' },
+  { value: 'salary', label: 'Зарплаты (ФОТ)' },
+  { value: 'rent', label: 'Аренда' },
+  { value: 'software', label: 'Подписки / Софт' },
+  { value: 'taxes', label: 'Налоги' },
+  { value: 'equipment', label: 'Оборудование' },
+  { value: 'other', label: 'Прочие расходы' },
+];
+
+const INCOME_CATEGORIES = [
+  { value: 'sales', label: 'Продажи' },
+  { value: 'services', label: 'Услуги' },
+  { value: 'refund', label: 'Возврат' },
+  { value: 'other', label: 'Прочие доходы' },
+];
+
+const DATE_PRESETS = [
+  { value: 'today', label: 'Сегодня' },
+  { value: 'week', label: '7 дней' },
+  { value: 'month', label: '30 дней' },
+  { value: 'quarter', label: '90 дней' },
+  { value: 'year', label: 'Год' },
+  { value: 'all', label: 'Всё время' },
+];
+
+const formatCurrency = (value: number): string => {
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
+};
+
+const getCategoryLabel = (category: string, type: string): string => {
+  const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
+  return categories.find(c => c.value === category)?.label || category;
+};
+
 export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [datePreset, setDatePreset] = useState('month');
+  const [categoryFilter, setCategoryFilter] = useState('all');
   const [newTransaction, setNewTransaction] = useState({
-    type: 'income' as 'income' | 'expense' | 'transfer',
-    category: '',
+    type: 'expense' as 'income' | 'expense',
+    category: 'salary',
     amount: 0,
     description: '',
   });
@@ -85,17 +144,31 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   };
 
   const handleAddTransaction = async () => {
+    if (newTransaction.amount <= 0) {
+      toast.error('Введите корректную сумму');
+      return;
+    }
+    if (!newTransaction.category) {
+      toast.error('Выберите категорию');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('transactions').insert([{
         project_id: projectId,
-        ...newTransaction,
+        type: newTransaction.type,
+        category: newTransaction.category,
+        amount: newTransaction.amount,
+        description: newTransaction.description,
+        currency: 'KZT',
+        transaction_date: new Date().toISOString(),
       }]);
 
       if (error) throw error;
       
       toast.success('Транзакция добавлена');
       setIsAddDialogOpen(false);
-      setNewTransaction({ type: 'income', category: '', amount: 0, description: '' });
+      setNewTransaction({ type: 'expense', category: 'salary', amount: 0, description: '' });
       fetchTransactions();
     } catch (error) {
       console.error('Error adding transaction:', error);
@@ -103,36 +176,112 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     }
   };
 
-  const totalIncome = transactions
+  // Filter transactions by date
+  const filteredTransactions = useMemo(() => {
+    const now = new Date();
+    let startDate: Date | null = null;
+
+    switch (datePreset) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = subDays(now, 7);
+        break;
+      case 'month':
+        startDate = subDays(now, 30);
+        break;
+      case 'quarter':
+        startDate = subDays(now, 90);
+        break;
+      case 'year':
+        startDate = subDays(now, 365);
+        break;
+      case 'all':
+      default:
+        startDate = null;
+    }
+
+    return transactions.filter(t => {
+      const transactionDate = parseISO(t.transaction_date);
+      const dateMatch = !startDate || transactionDate >= startDate;
+      const categoryMatch = categoryFilter === 'all' || t.category === categoryFilter;
+      return dateMatch && categoryMatch;
+    });
+  }, [transactions, datePreset, categoryFilter]);
+
+  // Calculate metrics
+  const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const totalExpense = transactions
+  const totalExpense = filteredTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
 
   const profit = totalIncome - totalExpense;
-  const margin = totalIncome > 0 ? ((profit / totalIncome) * 100).toFixed(1) : 0;
+  const margin = totalIncome > 0 ? ((profit / totalIncome) * 100).toFixed(1) : '0';
 
-  // Prepare chart data
-  const chartData = transactions
-    .slice(0, 30)
-    .reverse()
-    .reduce((acc: any[], t) => {
-      const date = new Date(t.transaction_date).toLocaleDateString('ru-RU', { day: '2-digit', month: 'short' });
-      const existing = acc.find(d => d.date === date);
-      if (existing) {
-        if (t.type === 'income') existing.income += t.amount;
-        else if (t.type === 'expense') existing.expense += t.amount;
-      } else {
-        acc.push({
-          date,
-          income: t.type === 'income' ? t.amount : 0,
-          expense: t.type === 'expense' ? t.amount : 0,
-        });
+  // Prepare monthly chart data
+  const chartData = useMemo(() => {
+    const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
+    
+    filteredTransactions.forEach(t => {
+      const date = parseISO(t.transaction_date);
+      const monthKey = format(date, 'yyyy-MM');
+      const monthLabel = format(date, 'MMM', { locale: ru });
+      
+      if (!months[monthKey]) {
+        months[monthKey] = { month: monthLabel, income: 0, expense: 0, profit: 0 };
       }
-      return acc;
-    }, []);
+      
+      if (t.type === 'income') {
+        months[monthKey].income += t.amount;
+      } else {
+        months[monthKey].expense += t.amount;
+      }
+      months[monthKey].profit = months[monthKey].income - months[monthKey].expense;
+    });
+
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, data]) => data);
+  }, [filteredTransactions]);
+
+  // Category breakdown for expenses
+  const expensesByCategory = useMemo(() => {
+    const categories: Record<string, number> = {};
+    
+    filteredTransactions
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        categories[t.category] = (categories[t.category] || 0) + t.amount;
+      });
+
+    return Object.entries(categories)
+      .map(([category, amount]) => ({
+        category: getCategoryLabel(category, 'expense'),
+        amount,
+        percent: totalExpense > 0 ? ((amount / totalExpense) * 100).toFixed(1) : '0'
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  }, [filteredTransactions, totalExpense]);
+
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium mb-2">{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: {formatCurrency(entry.value)}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="space-y-6">
@@ -140,39 +289,52 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2">
-            <DollarSign className="w-6 h-6 text-primary" />
-            Финансы
+            <Wallet className="w-6 h-6 text-primary" />
+            MarkFinance
           </h2>
-          <p className="text-muted-foreground">P&L, транзакции и денежный поток</p>
+          <p className="text-muted-foreground">P&L дашборд и учёт финансов</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 flex-wrap">
+          <Select value={datePreset} onValueChange={setDatePreset}>
+            <SelectTrigger className="w-[140px]">
+              <Calendar className="w-4 h-4 mr-2" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DATE_PRESETS.map(preset => (
+                <SelectItem key={preset.value} value={preset.value}>
+                  {preset.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button variant="outline" onClick={fetchTransactions}>
             <RefreshCw className="w-4 h-4 mr-2" />
             Обновить
           </Button>
           <Button onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
-            Добавить
+            Добавить расход
           </Button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="border-l-4 border-l-green-500">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-green-500/10">
                 <ArrowUpRight className="w-6 h-6 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Доходы</p>
-                <p className="text-2xl font-bold text-green-500">{totalIncome.toLocaleString()} ₽</p>
+                <p className="text-sm text-muted-foreground">Выручка</p>
+                <p className="text-2xl font-bold text-green-500">{formatCurrency(totalIncome)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-red-500">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-red-500/10">
@@ -180,95 +342,133 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Расходы</p>
-                <p className="text-2xl font-bold text-red-500">{totalExpense.toLocaleString()} ₽</p>
+                <p className="text-2xl font-bold text-red-500">{formatCurrency(totalExpense)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-primary">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-primary/10">
                 <Wallet className="w-6 h-6 text-primary" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Прибыль</p>
+                <p className="text-sm text-muted-foreground">Чистая прибыль</p>
                 <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {profit.toLocaleString()} ₽
+                  {formatCurrency(profit)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="border-l-4 border-l-purple-500">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-purple-500/10">
-                <PiggyBank className="w-6 h-6 text-purple-500" />
+                <Percent className="w-6 h-6 text-purple-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Маржа</p>
-                <p className="text-2xl font-bold">{margin}%</p>
+                <p className="text-sm text-muted-foreground">Рентабельность</p>
+                <p className={`text-2xl font-bold ${Number(margin) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {margin}%
+                </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      <Tabs defaultValue="overview">
+      <Tabs defaultValue="dashboard">
         <TabsList>
-          <TabsTrigger value="overview">Обзор</TabsTrigger>
+          <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
-          <TabsTrigger value="realtime">Реалтайм</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="overview" className="mt-4">
+        <TabsContent value="dashboard" className="mt-4 space-y-6">
+          {/* Bar Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Динамика доходов и расходов</CardTitle>
-              <CardDescription>За последние 30 дней</CardDescription>
+              <CardTitle>Доходы vs Расходы</CardTitle>
+              <CardDescription>Сравнение по месяцам за выбранный период</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData}>
-                    <defs>
-                      <linearGradient id="incomeGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0}/>
-                      </linearGradient>
-                      <linearGradient id="expenseGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis dataKey="date" stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <YAxis stroke="hsl(var(--muted-foreground))" fontSize={12} />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px'
-                      }}
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="income"
-                      stroke="hsl(var(--chart-1))"
-                      fill="url(#incomeGradient)"
-                      name="Доходы"
-                    />
-                    <Area
-                      type="monotone"
-                      dataKey="expense"
-                      stroke="hsl(var(--destructive))"
-                      fill="url(#expenseGradient)"
-                      name="Расходы"
-                    />
-                  </AreaChart>
-                </ResponsiveContainer>
+              <div className="h-[350px]">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} barCategoryGap="20%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                        tickLine={false}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Bar 
+                        dataKey="income" 
+                        name="Доходы" 
+                        fill="#22c55e" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar 
+                        dataKey="expense" 
+                        name="Расходы" 
+                        fill="#ef4444" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    Нет данных за выбранный период
+                  </div>
+                )}
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Expense Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Структура расходов</CardTitle>
+              <CardDescription>Распределение по категориям</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {expensesByCategory.length > 0 ? (
+                <div className="space-y-4">
+                  {expensesByCategory.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">{item.category}</span>
+                          <span className="text-sm text-muted-foreground">{item.percent}%</span>
+                        </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-red-500 rounded-full transition-all"
+                            style={{ width: `${item.percent}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-sm font-medium w-32 text-right text-red-500">
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Нет расходов за выбранный период
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
@@ -276,12 +476,33 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         <TabsContent value="transactions" className="mt-4">
           <Card>
             <CardHeader>
-              <div className="flex justify-between items-center">
-                <CardTitle>История транзакций</CardTitle>
-                <Button variant="outline" size="sm">
-                  <Download className="w-4 h-4 mr-2" />
-                  Экспорт
-                </Button>
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <div>
+                  <CardTitle>История транзакций</CardTitle>
+                  <CardDescription>
+                    Всего {filteredTransactions.length} записей
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Категория" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все категории</SelectItem>
+                      {[...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(cat => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Экспорт
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -289,7 +510,6 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Дата</TableHead>
-                    <TableHead>Тип</TableHead>
                     <TableHead>Категория</TableHead>
                     <TableHead>Описание</TableHead>
                     <TableHead className="text-right">Сумма</TableHead>
@@ -298,39 +518,42 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                 <TableBody>
                   {loading ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8">
+                      <TableCell colSpan={4} className="text-center py-8">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
                         Загрузка...
                       </TableCell>
                     </TableRow>
-                  ) : transactions.length === 0 ? (
+                  ) : filteredTransactions.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
                         Транзакции не найдены
                       </TableCell>
                     </TableRow>
                   ) : (
-                    transactions.map((t) => (
+                    filteredTransactions.map((t) => (
                       <TableRow key={t.id}>
-                        <TableCell>
-                          {new Date(t.transaction_date).toLocaleDateString('ru-RU')}
+                        <TableCell className="whitespace-nowrap">
+                          {format(parseISO(t.transaction_date), 'dd.MM.yyyy', { locale: ru })}
                         </TableCell>
                         <TableCell>
-                          <Badge variant={t.type === 'income' ? 'default' : 'destructive'}>
+                          <Badge 
+                            variant={t.type === 'income' ? 'default' : 'destructive'}
+                            className="whitespace-nowrap"
+                          >
                             {t.type === 'income' ? (
-                              <><TrendingUp className="w-3 h-3 mr-1" /> Доход</>
-                            ) : t.type === 'expense' ? (
-                              <><TrendingDown className="w-3 h-3 mr-1" /> Расход</>
+                              <><TrendingUp className="w-3 h-3 mr-1" /> {getCategoryLabel(t.category, t.type)}</>
                             ) : (
-                              <><CreditCard className="w-3 h-3 mr-1" /> Перевод</>
+                              <><TrendingDown className="w-3 h-3 mr-1" /> {getCategoryLabel(t.category, t.type)}</>
                             )}
                           </Badge>
                         </TableCell>
-                        <TableCell>{t.category}</TableCell>
-                        <TableCell>{t.description || '—'}</TableCell>
-                        <TableCell className={`text-right font-medium ${
+                        <TableCell className="max-w-[200px] truncate">
+                          {t.description || '—'}
+                        </TableCell>
+                        <TableCell className={`text-right font-medium whitespace-nowrap ${
                           t.type === 'income' ? 'text-green-500' : 'text-red-500'
                         }`}>
-                          {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString()} ₽
+                          {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                         </TableCell>
                       </TableRow>
                     ))
@@ -340,107 +563,79 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             </CardContent>
           </Card>
         </TabsContent>
-
-        <TabsContent value="realtime" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                Финансы в реальном времени
-              </CardTitle>
-              <CardDescription>Мониторинг денежного потока</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <h4 className="font-medium">Сегодня</h4>
-                  <div className="p-4 rounded-lg bg-green-500/5 border border-green-500/20">
-                    <p className="text-sm text-muted-foreground">Поступления</p>
-                    <p className="text-3xl font-bold text-green-500">
-                      +{transactions
-                        .filter(t => t.type === 'income' && new Date(t.transaction_date).toDateString() === new Date().toDateString())
-                        .reduce((sum, t) => sum + t.amount, 0)
-                        .toLocaleString()} ₽
-                    </p>
-                  </div>
-                  <div className="p-4 rounded-lg bg-red-500/5 border border-red-500/20">
-                    <p className="text-sm text-muted-foreground">Списания</p>
-                    <p className="text-3xl font-bold text-red-500">
-                      -{transactions
-                        .filter(t => t.type === 'expense' && new Date(t.transaction_date).toDateString() === new Date().toDateString())
-                        .reduce((sum, t) => sum + t.amount, 0)
-                        .toLocaleString()} ₽
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-4">
-                  <h4 className="font-medium">Последние операции</h4>
-                  <div className="space-y-2">
-                    {transactions.slice(0, 5).map((t) => (
-                      <div key={t.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                        <div className="flex items-center gap-3">
-                          {t.type === 'income' ? (
-                            <ArrowUpRight className="w-4 h-4 text-green-500" />
-                          ) : (
-                            <ArrowDownRight className="w-4 h-4 text-red-500" />
-                          )}
-                          <span className="text-sm">{t.category}</span>
-                        </div>
-                        <span className={`font-medium ${t.type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
-                          {t.type === 'income' ? '+' : '-'}{t.amount.toLocaleString()} ₽
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       {/* Add Transaction Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Добавить транзакцию</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Тип</Label>
-              <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-                value={newTransaction.type}
-                onChange={(e) => setNewTransaction({ ...newTransaction, type: e.target.value as any })}
+              <Select 
+                value={newTransaction.type} 
+                onValueChange={(value: 'income' | 'expense') => {
+                  setNewTransaction({ 
+                    ...newTransaction, 
+                    type: value,
+                    category: value === 'income' ? 'sales' : 'salary'
+                  });
+                }}
               >
-                <option value="income">Доход</option>
-                <option value="expense">Расход</option>
-                <option value="transfer">Перевод</option>
-              </select>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="expense">
+                    <span className="flex items-center gap-2">
+                      <ArrowDownRight className="w-4 h-4 text-red-500" />
+                      Расход
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="income">
+                    <span className="flex items-center gap-2">
+                      <ArrowUpRight className="w-4 h-4 text-green-500" />
+                      Доход
+                    </span>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label>Категория</Label>
-              <Input
-                value={newTransaction.category}
-                onChange={(e) => setNewTransaction({ ...newTransaction, category: e.target.value })}
-                placeholder="Продажи, Реклама, ФОТ..."
-              />
+              <Select 
+                value={newTransaction.category} 
+                onValueChange={(value) => setNewTransaction({ ...newTransaction, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(newTransaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
-              <Label>Сумма (₽)</Label>
+              <Label>Сумма (₸)</Label>
               <Input
                 type="number"
-                value={newTransaction.amount}
+                value={newTransaction.amount || ''}
                 onChange={(e) => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })}
-                placeholder="10000"
+                placeholder="100000"
               />
             </div>
             <div className="space-y-2">
-              <Label>Описание</Label>
+              <Label>Описание (опционально)</Label>
               <Input
                 value={newTransaction.description}
                 onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
-                placeholder="Комментарий к транзакции"
+                placeholder="Комментарий к транзакции..."
               />
             </div>
           </div>
@@ -448,7 +643,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Отмена
             </Button>
-            <Button onClick={handleAddTransaction} disabled={!newTransaction.category || !newTransaction.amount}>
+            <Button onClick={handleAddTransaction}>
               Добавить
             </Button>
           </DialogFooter>
