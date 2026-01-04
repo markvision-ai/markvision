@@ -30,7 +30,11 @@ import {
   Activity,
   Compass,
   Trash2,
-  MoreVertical
+  MoreVertical,
+  BarChart3,
+  ShoppingCart,
+  ClipboardCheck,
+  ChevronRight
 } from 'lucide-react';
 import {
   Dialog,
@@ -46,6 +50,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
@@ -65,38 +74,65 @@ interface SidebarProps {
   userProfile?: { name: string | null; email: string | null } | null;
 }
 
-// Main 6 sections as per ТЗ
-const menuItems = [
-  { id: 'dashboard', label: 'Дашборд', icon: LayoutDashboard, emoji: '🏠' },
-  { id: 'realtime', label: 'Realtime', icon: Activity, emoji: '⚡' },
-  { id: 'table', label: 'Таблица данных', icon: CalendarDays, emoji: '📅' },
-  { id: 'crm', label: 'CRM', icon: Kanban, emoji: '🤝' },
-  { id: 'quantom-ads', label: 'Quantum Ads', icon: Megaphone, emoji: '🚀' },
-  { id: 'factory', label: 'Content Factory', icon: Factory, emoji: '🎬' },
-  { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap, emoji: '📊' },
-];
-
-const operationsItems = [
-  { id: 'staff', label: 'Персонал', icon: UserCog },
-  { id: 'inbox', label: 'Inbox', icon: Inbox },
-  { id: 'finance', label: 'Финансы', icon: Wallet },
-];
-
-const toolsItems = [
-  { id: 'scoring', label: 'Lead Scoring', icon: FlameKindling },
-  { id: 'gamification', label: 'Геймификация', icon: Trophy },
-  { id: 'ab-testing', label: 'A/B Тесты', icon: FlaskConical },
-  { id: 'knowledge', label: 'База знаний', icon: BookOpen },
-];
-
-const bottomItems = [
-  { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
-  { id: 'integrations', label: 'Интеграции', icon: Plug },
-  { id: 'health', label: 'Здоровье системы', icon: Activity },
-  { id: 'team', label: 'Команда', icon: Users },
-  { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
-  { id: 'settings', label: 'Настройки', icon: Settings },
-  { id: 'help', label: 'Помощь', icon: HelpCircle },
+// New 5-group structure
+const menuGroups = [
+  {
+    id: 'dashboard-group',
+    label: 'ДАШБОРД',
+    icon: LayoutDashboard,
+    items: [
+      { id: 'dashboard', label: 'Главный дашборд', icon: LayoutDashboard },
+      { id: 'realtime', label: 'Realtime', icon: Activity },
+      { id: 'table', label: 'Таблица данных', icon: CalendarDays },
+    ]
+  },
+  {
+    id: 'marketing-group',
+    label: 'МАРКЕТИНГ',
+    icon: Megaphone,
+    items: [
+      { id: 'quantom-ads', label: 'Quantum Ads', icon: Megaphone },
+      { id: 'ab-testing', label: 'A/B Тесты', icon: FlaskConical },
+      { id: 'factory', label: 'Content Factory', icon: Factory },
+    ]
+  },
+  {
+    id: 'sales-group',
+    label: 'ПРОДАЖИ',
+    icon: ShoppingCart,
+    items: [
+      { id: 'crm', label: 'CRM', icon: Kanban },
+      { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
+      { id: 'inbox', label: 'Inbox', icon: Inbox },
+      { id: 'scoring', label: 'Lead Scoring', icon: FlameKindling },
+      { id: 'gamification', label: 'Геймификация', icon: Trophy },
+    ]
+  },
+  {
+    id: 'analytics-group',
+    label: 'АНАЛИТИКА',
+    icon: BarChart3,
+    items: [
+      { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
+      { id: 'finance', label: 'Финансы (P&L)', icon: Wallet },
+      { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
+    ]
+  },
+  {
+    id: 'infrastructure-group',
+    label: 'ИНФРАСТРУКТУРА',
+    icon: Settings,
+    items: [
+      { id: 'settings', label: 'Настройки', icon: Settings },
+      { id: 'integrations', label: 'Интеграции', icon: Plug },
+      { id: 'team', label: 'Команда', icon: Users },
+      { id: 'staff', label: 'Персонал', icon: UserCog },
+      { id: 'knowledge', label: 'База знаний', icon: BookOpen },
+      { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
+      { id: 'health', label: 'Здоровье системы', icon: Activity },
+      { id: 'help', label: 'Помощь', icon: HelpCircle },
+    ]
+  },
 ];
 
 export const Sidebar = ({ 
@@ -115,9 +151,24 @@ export const Sidebar = ({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<{ id: string; name: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [openGroups, setOpenGroups] = useState<string[]>(() => {
+    // Open the group that contains the active tab by default
+    const activeGroup = menuGroups.find(group => 
+      group.items.some(item => item.id === activeTab)
+    );
+    return activeGroup ? [activeGroup.id] : ['dashboard-group'];
+  });
   const { isAdmin, user } = useAuth();
   
   const currentProjectData = projects.find(p => p.id === currentProject) || projects[0];
+
+  const toggleGroup = (groupId: string) => {
+    setOpenGroups(prev => 
+      prev.includes(groupId) 
+        ? prev.filter(id => id !== groupId)
+        : [...prev, groupId]
+    );
+  };
 
   // Log logout event
   const logLogoutEvent = useCallback(async () => {
@@ -263,101 +314,58 @@ export const Sidebar = ({
         </div>
       </div>
 
-      {/* Main Navigation */}
-      <nav className="flex-1 p-3 md:p-4 overflow-y-auto">
-        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3">Меню</p>
-        <ul className="space-y-1">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => handleTabChange(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+      {/* Main Navigation - Collapsible Groups */}
+      <nav className="flex-1 p-3 md:p-4 overflow-y-auto space-y-2">
+        {menuGroups.map((group) => {
+          const GroupIcon = group.icon;
+          const isOpen = openGroups.includes(group.id);
+          const hasActiveItem = group.items.some(item => item.id === activeTab);
+          const visibleItems = group.items.filter(item => !('adminOnly' in item) || !item.adminOnly || isAdmin);
 
-        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Операции</p>
-        <ul className="space-y-1">
-          {operationsItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <li key={item.id}>
+          return (
+            <Collapsible
+              key={group.id}
+              open={isOpen}
+              onOpenChange={() => toggleGroup(group.id)}
+            >
+              <CollapsibleTrigger asChild>
                 <button
-                  onClick={() => handleTabChange(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground' 
+                    hasActiveItem && !isOpen
+                      ? 'bg-primary/10 text-primary'
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
                   }`}
                 >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
+                  <GroupIcon className="w-5 h-5" />
+                  <span className="flex-1 text-left text-xs font-semibold tracking-wider uppercase">
+                    {group.label}
+                  </span>
+                  <ChevronRight className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
                 </button>
-              </li>
-            );
-          })}
-        </ul>
-
-        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Инструменты</p>
-        <ul className="space-y-1">
-          {toolsItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => handleTabChange(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-
-        <p className="text-xs text-sidebar-foreground/50 uppercase tracking-wider mb-3 px-3 mt-6">Дополнительно</p>
-        <ul className="space-y-1">
-          {bottomItems
-            .filter(item => !item.adminOnly || isAdmin)
-            .map((item) => {
-            const Icon = item.icon;
-            const isActive = activeTab === item.id;
-            return (
-              <li key={item.id}>
-                <button
-                  onClick={() => handleTabChange(item.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    isActive 
-                      ? 'bg-primary text-primary-foreground' 
-                      : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
-                  }`}
-                >
-                  <Icon className="w-5 h-5" />
-                  <span className="font-medium text-sm">{item.label}</span>
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-1 ml-3 pl-3 border-l border-sidebar-muted space-y-1">
+                {visibleItems.map((item) => {
+                  const Icon = item.icon;
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => handleTabChange(item.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
+                        isActive 
+                          ? 'bg-primary text-primary-foreground' 
+                          : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      <span className="font-medium">{item.label}</span>
+                    </button>
+                  );
+                })}
+              </CollapsibleContent>
+            </Collapsible>
+          );
+        })}
       </nav>
 
       {/* User Info with Logout */}
