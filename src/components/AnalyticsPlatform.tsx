@@ -204,6 +204,7 @@ export const AnalyticsPlatform = () => {
       case 'knowledge': return '📚 База знаний';
       case 'health': return '🩺 Здоровье системы';
       case 'onboarding': return '🧭 Онбординг';
+      case 'diagnostics': return '📋 Диагностика';
       default: return 'Раздел в разработке';
     }
   };
@@ -427,8 +428,23 @@ export const AnalyticsPlatform = () => {
         <TechnicalHealth projectId={currentProjectId} />
       )}
 
+      {activeTab === 'diagnostics' && currentProjectId && (
+        <div className="bg-card border rounded-xl p-6">
+          <h3 className="text-lg font-semibold mb-4">📋 Диагностика</h3>
+          <p className="text-muted-foreground mb-4">
+            Здесь будут отображаться анкеты и результаты диагностик клиентов, 
+            поступающие с внешнего сервиса diagnostoka.lovable.app
+          </p>
+          <div className="bg-muted/50 rounded-lg p-8 text-center">
+            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
+              <Target className="w-6 h-6 text-primary" />
+            </div>
+            <p className="text-sm text-muted-foreground">Ожидание данных диагностики...</p>
+          </div>
+        </div>
+      )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
