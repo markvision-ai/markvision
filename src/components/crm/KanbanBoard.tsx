@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -21,6 +21,7 @@ import { toast } from 'sonner';
 import { Loader2 } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
 import { motion } from 'framer-motion';
+import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export interface KanbanStatus {
   id: string;
@@ -63,6 +64,39 @@ export const KanbanBoard = ({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Realtime subscription for leads changes
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('leads-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload: RealtimePostgresChangesPayload<Lead>) => {
+          const newRecord = payload.new as Lead;
+          // Если статус изменился на appointment (diagnostics_booked), обновляем канбан
+          if (newRecord && newRecord.status === 'appointment') {
+            toast.info('Лид записан на диагностику!');
+            onRefetch();
+          } else if (newRecord) {
+            // Обновляем канбан при любых изменениях статуса
+            onRefetch();
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, onRefetch]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

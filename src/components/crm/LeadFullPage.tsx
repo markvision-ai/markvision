@@ -20,7 +20,8 @@ import {
   ListTodo,
   History,
   Sparkles,
-  MessageCircle
+  MessageCircle,
+  Activity
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -41,6 +42,12 @@ import { LeadStatusHistory } from './LeadStatusHistory';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const statusLabels: Record<string, string> = {
   new: 'Новая',
@@ -84,6 +91,60 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   });
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+
+  const handleDiagnosisClick = async () => {
+    if (formData.status === 'cancelled') return;
+    
+    setDiagnosisLoading(true);
+    try {
+      // Если статус new или no_answer, меняем на in_progress
+      if (formData.status === 'new' || formData.status === 'no_answer') {
+        const { error } = await supabase
+          .from('leads')
+          .update({ 
+            status: 'in_progress', 
+            updated_at: new Date().toISOString() 
+          })
+          .eq('id', lead.id);
+
+        if (error) throw error;
+
+        // Логируем изменение статуса
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('name')
+            .eq('user_id', user.id)
+            .single();
+
+          await logStatusChange(
+            lead.id,
+            user.id,
+            profile?.name || user.email?.split('@')[0] || 'Пользователь',
+            formData.status,
+            'in_progress'
+          );
+        }
+
+        setFormData(prev => ({ ...prev, status: 'in_progress' }));
+        onUpdate?.();
+      }
+
+      toast.success('Статус обновлен, переход к диагностике...');
+      
+      // Формируем ссылку и открываем в новой вкладке
+      const diagnosticsUrl = `https://diagnostoka.lovable.app/?lead_id=${lead.id}`;
+      window.open(diagnosticsUrl, '_blank');
+    } catch (error) {
+      console.error('Error updating status for diagnosis:', error);
+      toast.error('Ошибка обновления статуса');
+    } finally {
+      setDiagnosisLoading(false);
+    }
+  };
+
+  const isDiagnosisDisabled = formData.status === 'cancelled';
 
   useEffect(() => {
     const changed = 
@@ -290,10 +351,37 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
                       </div>
                     </div>
+                    {/* Diagnosis Button */}
+                    <div className="pt-2">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={handleDiagnosisClick}
+                              disabled={isDiagnosisDisabled || diagnosisLoading}
+                              className={cn(
+                                'w-full bg-blue-500 hover:bg-blue-600 text-white',
+                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                              )}
+                            >
+                              {diagnosisLoading ? (
+                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : (
+                                <Activity className="w-4 h-4 mr-2" />
+                              )}
+                              Провести диагностику
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-xs">
+                            <p>Данные диагностики автоматически сохранятся в историю этого клиента</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                   </div>
                 </motion.section>
 
-                {/* UTM Tags Section */}
+
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
