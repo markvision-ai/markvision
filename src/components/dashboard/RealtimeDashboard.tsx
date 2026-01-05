@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -9,10 +9,14 @@ import {
   ArrowUpRight, 
   ArrowDownRight,
   Zap,
-  Clock
+  Clock,
+  WifiOff,
+  Wifi
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface RealtimeMetric {
   label: string;
@@ -56,6 +60,9 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [pulseEffect, setPulseEffect] = useState<string | null>(null);
+  
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
 
   // Fetch initial data
   useEffect(() => {
@@ -105,86 +112,166 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     fetchInitialData();
   }, [projectId]);
 
-  // Set up realtime subscriptions
+  // Set up realtime subscriptions with reconnection logic
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase
-      .channel('realtime-dashboard')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'daily_data',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload) => {
-          console.log('Daily data change:', payload);
-          setLastUpdate(new Date());
-          setPulseEffect('daily_data');
-          setTimeout(() => setPulseEffect(null), 1000);
-          
-          if (payload.new && typeof payload.new === 'object') {
-            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number };
-            const conversion = (newData.leads || 0) > 0 ? ((newData.sales || 0) / (newData.leads || 1)) * 100 : 0;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupChannel = () => {
+      channel = supabase
+        .channel(`realtime-dashboard-${projectId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'daily_data',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            console.log('Daily data change:', payload);
+            setLastUpdate(new Date());
+            setPulseEffect('daily_data');
+            setTimeout(() => setPulseEffect(null), 1000);
             
-            setMetrics(prev => [
-              { ...prev[0], previousValue: prev[0].value, value: newData.leads || 0 },
-              { ...prev[1], previousValue: prev[1].value, value: newData.revenue || 0 },
-              { ...prev[2], previousValue: prev[2].value, value: conversion },
-              { ...prev[3], previousValue: prev[3].value, value: newData.clicks || 0 },
-            ]);
+            if (payload.new && typeof payload.new === 'object') {
+              const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number };
+              const conversion = (newData.leads || 0) > 0 ? ((newData.sales || 0) / (newData.leads || 1)) * 100 : 0;
+              
+              setMetrics(prev => [
+                { ...prev[0], previousValue: prev[0].value, value: newData.leads || 0 },
+                { ...prev[1], previousValue: prev[1].value, value: newData.revenue || 0 },
+                { ...prev[2], previousValue: prev[2].value, value: conversion },
+                { ...prev[3], previousValue: prev[3].value, value: newData.clicks || 0 },
+              ]);
+            }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'leads',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload) => {
-          console.log('New lead:', payload);
-          setLastUpdate(new Date());
-          setPulseEffect('leads');
-          setTimeout(() => setPulseEffect(null), 1000);
-          
-          if (payload.new) {
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'leads',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            console.log('New lead:', payload);
+            setLastUpdate(new Date());
+            setPulseEffect('leads');
+            setTimeout(() => setPulseEffect(null), 1000);
+            
+            if (payload.new) {
+              const newLead = payload.new as RealtimeLead;
+              setRecentLeads(prev => [newLead, ...prev.slice(0, 4)]);
+              
+              // Update leads count
+              setMetrics(prev => [
+                { ...prev[0], previousValue: prev[0].value, value: prev[0].value + 1 },
+                ...prev.slice(1)
+              ]);
+            }
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'leads',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            console.log('Lead updated:', payload);
             const newLead = payload.new as RealtimeLead;
-            setRecentLeads(prev => [newLead, ...prev.slice(0, 4)]);
+            const oldLead = payload.old as RealtimeLead;
+            
+            // Check if deal_amount changed (revenue updated from diagnostics)
+            if (newLead && oldLead && newLead.deal_amount !== oldLead.deal_amount) {
+              setLastUpdate(new Date());
+              setPulseEffect('daily_data');
+              setTimeout(() => setPulseEffect(null), 1000);
+              
+              const amountDiff = (newLead.deal_amount || 0) - (oldLead.deal_amount || 0);
+              if (amountDiff > 0) {
+                toast.success(`Выручка увеличена на ${new Intl.NumberFormat('ru-RU').format(amountDiff)} ₸`);
+                
+                // Update revenue metric
+                setMetrics(prev => [
+                  prev[0],
+                  { ...prev[1], previousValue: prev[1].value, value: prev[1].value + amountDiff },
+                  ...prev.slice(2)
+                ]);
+              }
+            }
+            
+            // Update the lead in the list
+            setRecentLeads(prev => 
+              prev.map(lead => 
+                lead.id === newLead.id ? newLead : lead
+              )
+            );
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'transactions',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload) => {
-          console.log('New transaction:', payload);
-          setLastUpdate(new Date());
-          setPulseEffect('transactions');
-          setTimeout(() => setPulseEffect(null), 1000);
-          
-          if (payload.new) {
-            const newTransaction = payload.new as RealtimeTransaction;
-            setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 4)]);
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'transactions',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            console.log('New transaction:', payload);
+            setLastUpdate(new Date());
+            setPulseEffect('transactions');
+            setTimeout(() => setPulseEffect(null), 1000);
+            
+            if (payload.new) {
+              const newTransaction = payload.new as RealtimeTransaction;
+              setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 4)]);
+              
+              // If income transaction, update revenue metric instantly
+              if (newTransaction.type === 'income') {
+                toast.success(`Новая выручка: +${new Intl.NumberFormat('ru-RU').format(newTransaction.amount)} ₸`);
+                setMetrics(prev => [
+                  prev[0],
+                  { ...prev[1], previousValue: prev[1].value, value: prev[1].value + newTransaction.amount },
+                  ...prev.slice(2)
+                ]);
+              }
+            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Realtime subscription status:', status);
-        setIsConnected(status === 'SUBSCRIBED');
-      });
+        )
+        .subscribe((status) => {
+          console.log('Realtime subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            setIsConnected(true);
+            reconnectAttempts.current = 0;
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setIsConnected(false);
+            // Auto-reconnect logic
+            if (reconnectAttempts.current < maxReconnectAttempts) {
+              reconnectAttempts.current += 1;
+              console.log(`Dashboard reconnecting... (${reconnectAttempts.current}/${maxReconnectAttempts})`);
+              setTimeout(() => {
+                if (channel) {
+                  supabase.removeChannel(channel);
+                }
+                setupChannel();
+              }, 2000 * reconnectAttempts.current);
+            }
+          }
+        });
+    };
+
+    setupChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [projectId]);
 
@@ -202,10 +289,10 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'new': return 'bg-blue-500';
-      case 'qualified': return 'bg-green-500';
-      case 'negotiation': return 'bg-yellow-500';
-      case 'won': return 'bg-emerald-500';
-      case 'lost': return 'bg-red-500';
+      case 'in_progress': return 'bg-yellow-500';
+      case 'appointment': return 'bg-purple-500';
+      case 'paid': return 'bg-emerald-500';
+      case 'cancelled': return 'bg-red-500';
       default: return 'bg-gray-500';
     }
   };
@@ -227,10 +314,26 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* Connection Status */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-          <span className="text-sm text-muted-foreground">
-            {isConnected ? 'Realtime подключен' : 'Подключение...'}
-          </span>
+          <div 
+            className={cn(
+              "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
+              isConnected 
+                ? "bg-success/10 text-success" 
+                : "bg-destructive/10 text-destructive"
+            )}
+          >
+            {isConnected ? (
+              <>
+                <Wifi className="w-3 h-3" />
+                <span>Realtime подключен</span>
+              </>
+            ) : (
+              <>
+                <WifiOff className="w-3 h-3 animate-pulse" />
+                <span>Переподключение...</span>
+              </>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Clock className="h-4 w-4" />
@@ -321,7 +424,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                           </p>
                         </div>
                       </div>
-                      {lead.deal_amount && (
+                      {lead.deal_amount && lead.deal_amount > 0 && (
                         <span className="text-sm font-medium text-green-500">
                           {new Intl.NumberFormat('ru-RU').format(lead.deal_amount)} ₸
                         </span>

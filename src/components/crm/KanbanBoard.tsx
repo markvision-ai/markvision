@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -18,10 +18,10 @@ import { PaymentDialog } from './PaymentDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Loader2 } from 'lucide-react';
+import { Loader2, WifiOff, Wifi } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
-import { motion } from 'framer-motion';
-import { RealtimePostgresChangesPayload } from '@supabase/supabase-js';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 export interface KanbanStatus {
   id: string;
@@ -37,6 +37,15 @@ export const KANBAN_STATUSES: KanbanStatus[] = [
   { id: 'paid', label: 'Оплачено', color: 'success' },
   { id: 'cancelled', label: 'Отказ', color: 'destructive' },
 ];
+
+const statusLabels: Record<string, string> = {
+  new: 'Новая',
+  in_progress: 'В работе',
+  no_answer: 'Недозвон',
+  appointment: 'Записан',
+  paid: 'Оплачено',
+  cancelled: 'Отказ',
+};
 
 interface KanbanBoardProps {
   leads: Lead[];
@@ -64,37 +73,100 @@ export const KanbanBoard = ({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isConnected, setIsConnected] = useState(false);
+  const [animatingLeadId, setAnimatingLeadId] = useState<string | null>(null);
+  const reconnectAttempts = useRef(0);
+  const maxReconnectAttempts = 5;
 
-  // Realtime subscription for leads changes
+  // Realtime subscription for leads changes with reconnection logic
   useEffect(() => {
     if (!projectId) return;
 
-    const channel = supabase
-      .channel('leads-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'leads',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload: RealtimePostgresChangesPayload<Lead>) => {
-          const newRecord = payload.new as Lead;
-          // Если статус изменился на appointment (diagnostics_booked), обновляем канбан
-          if (newRecord && newRecord.status === 'appointment') {
-            toast.info('Лид записан на диагностику!');
-            onRefetch();
-          } else if (newRecord) {
-            // Обновляем канбан при любых изменениях статуса
-            onRefetch();
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupChannel = () => {
+      channel = supabase
+        .channel(`leads-realtime-${projectId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'leads',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            const newRecord = payload.new as Lead;
+            const oldRecord = payload.old as { status?: string };
+            
+            if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
+              // Animate the card moving
+              setAnimatingLeadId(newRecord.id);
+              setTimeout(() => setAnimatingLeadId(null), 600);
+              
+              // Show toast with lead name and new status
+              const leadName = newRecord.name || 'Клиент';
+              const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
+              toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
+                duration: 4000,
+              });
+              
+              // Special handling for appointment status
+              if (newRecord.status === 'appointment') {
+                playSuccessSound();
+              }
+              
+              onRefetch();
+            }
           }
-        }
-      )
-      .subscribe();
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'leads',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            const newLead = payload.new as Lead;
+            if (newLead) {
+              toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
+              playSuccessSound();
+              onRefetch();
+            }
+          }
+        )
+        .subscribe((status) => {
+          console.log('Kanban realtime status:', status);
+          if (status === 'SUBSCRIBED') {
+            setIsConnected(true);
+            reconnectAttempts.current = 0;
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setIsConnected(false);
+            // Auto-reconnect logic
+            if (reconnectAttempts.current < maxReconnectAttempts) {
+              reconnectAttempts.current += 1;
+              console.log(`Attempting to reconnect... (${reconnectAttempts.current}/${maxReconnectAttempts})`);
+              setTimeout(() => {
+                if (channel) {
+                  supabase.removeChannel(channel);
+                }
+                setupChannel();
+              }, 2000 * reconnectAttempts.current); // Exponential backoff
+            } else {
+              toast.error('Соединение с сервером потеряно. Обновите страницу.');
+            }
+          }
+        });
+    };
+
+    setupChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [projectId, onRefetch]);
 
@@ -247,6 +319,30 @@ export const KanbanBoard = ({
 
   return (
     <>
+      {/* Connection Status Indicator */}
+      <div className="flex items-center justify-end mb-2">
+        <div 
+          className={cn(
+            "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
+            isConnected 
+              ? "bg-success/10 text-success" 
+              : "bg-destructive/10 text-destructive"
+          )}
+        >
+          {isConnected ? (
+            <>
+              <Wifi className="w-3 h-3" />
+              <span>Realtime</span>
+            </>
+          ) : (
+            <>
+              <WifiOff className="w-3 h-3 animate-pulse" />
+              <span>Переподключение...</span>
+            </>
+          )}
+        </div>
+      </div>
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
@@ -266,6 +362,7 @@ export const KanbanBoard = ({
               selectedLeads={selectedLeads}
               onSelectLead={onSelectLead}
               onSelectAllInColumn={handleSelectAllInColumn}
+              animatingLeadId={animatingLeadId}
             />
           ))}
         </div>

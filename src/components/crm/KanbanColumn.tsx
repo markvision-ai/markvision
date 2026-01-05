@@ -4,6 +4,7 @@ import { LeadCard } from './LeadCard';
 import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface KanbanColumnProps {
   status: KanbanStatus;
@@ -14,6 +15,7 @@ interface KanbanColumnProps {
   selectedLeads?: Set<string>;
   onSelectLead?: (leadId: string, selected: boolean) => void;
   onSelectAllInColumn?: (statusId: string, selected: boolean) => void;
+  animatingLeadId?: string | null;
 }
 
 export const KanbanColumn = ({ 
@@ -24,7 +26,8 @@ export const KanbanColumn = ({
   selectionMode = false,
   selectedLeads = new Set(),
   onSelectLead,
-  onSelectAllInColumn
+  onSelectAllInColumn,
+  animatingLeadId
 }: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
@@ -77,18 +80,42 @@ export const KanbanColumn = ({
         </span>
       </div>
 
-      {/* Cards Container */}
+      {/* Cards Container with AnimatePresence */}
       <div className="space-y-3 min-h-[200px]">
-        {leads.map((lead) => (
-          <LeadCard
-            key={lead.id}
-            lead={lead}
-            onClick={() => onLeadClick(lead)}
-            selectionMode={selectionMode}
-            isSelected={selectedLeads.has(lead.id)}
-            onSelect={(selected) => onSelectLead?.(lead.id, selected)}
-          />
-        ))}
+        <AnimatePresence mode="popLayout">
+          {leads.map((lead) => (
+            <motion.div
+              key={lead.id}
+              layout
+              initial={{ opacity: 0, scale: 0.8, y: -20 }}
+              animate={{ 
+                opacity: 1, 
+                scale: animatingLeadId === lead.id ? 1.02 : 1, 
+                y: 0,
+                boxShadow: animatingLeadId === lead.id 
+                  ? '0 0 20px rgba(var(--primary), 0.3)' 
+                  : 'none'
+              }}
+              exit={{ opacity: 0, scale: 0.8, y: 20 }}
+              transition={{
+                layout: { type: 'spring', stiffness: 300, damping: 30 },
+                opacity: { duration: 0.2 },
+                scale: { duration: 0.3 }
+              }}
+              className={cn(
+                animatingLeadId === lead.id && 'ring-2 ring-primary ring-offset-2 ring-offset-background rounded-xl'
+              )}
+            >
+              <LeadCard
+                lead={lead}
+                onClick={() => onLeadClick(lead)}
+                selectionMode={selectionMode}
+                isSelected={selectedLeads.has(lead.id)}
+                onSelect={(selected) => onSelectLead?.(lead.id, selected)}
+              />
+            </motion.div>
+          ))}
+        </AnimatePresence>
 
         {leads.length === 0 && (
           <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
