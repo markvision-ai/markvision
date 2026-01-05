@@ -19,9 +19,9 @@ import {
   X,
   ListTodo,
   History,
-  Sparkles,
   MessageCircle,
-  Activity
+  Activity,
+  RefreshCw
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -93,12 +93,16 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   const [hasChanges, setHasChanges] = useState(false);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
 
+  // Check if diagnosis has already been done (status is appointment or paid)
+  const isDiagnosisDone = formData.status === 'appointment' || formData.status === 'paid';
+  const isDiagnosisDisabled = formData.status === 'cancelled';
+
   const handleDiagnosisClick = async () => {
-    if (formData.status === 'cancelled') return;
+    if (isDiagnosisDisabled) return;
     
     setDiagnosisLoading(true);
     try {
-      // Если статус new или no_answer, меняем на in_progress
+      // If status is new or no_answer, change to in_progress first
       if (formData.status === 'new' || formData.status === 'no_answer') {
         const { error } = await supabase
           .from('leads')
@@ -110,7 +114,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
         if (error) throw error;
 
-        // Логируем изменение статуса
+        // Log status change
         if (user) {
           const { data: profile } = await supabase
             .from('profiles')
@@ -129,11 +133,13 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
         setFormData(prev => ({ ...prev, status: 'in_progress' }));
         onUpdate?.();
+        
+        toast.success('Статус обновлен, переход к диагностике...');
+      } else {
+        toast.info('Переход к диагностике...');
       }
-
-      toast.success('Статус обновлен, переход к диагностике...');
       
-      // Формируем ссылку и открываем в новой вкладке
+      // Build URL and open in new tab AFTER successful status update
       const diagnosticsUrl = `https://diagnostoka.lovable.app/?lead_id=${lead.id}`;
       window.open(diagnosticsUrl, '_blank');
     } catch (error) {
@@ -143,8 +149,6 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
       setDiagnosisLoading(false);
     }
   };
-
-  const isDiagnosisDisabled = formData.status === 'cancelled';
 
   useEffect(() => {
     const changed = 
@@ -360,16 +364,21 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                               onClick={handleDiagnosisClick}
                               disabled={isDiagnosisDisabled || diagnosisLoading}
                               className={cn(
-                                'w-full bg-blue-500 hover:bg-blue-600 text-white',
+                                'w-full text-white transition-all',
+                                isDiagnosisDone 
+                                  ? 'bg-purple-500 hover:bg-purple-600' 
+                                  : 'bg-blue-500 hover:bg-blue-600',
                                 isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
                               )}
                             >
                               {diagnosisLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                              ) : isDiagnosisDone ? (
+                                <RefreshCw className="w-4 h-4 mr-2" />
                               ) : (
                                 <Activity className="w-4 h-4 mr-2" />
                               )}
-                              Провести диагностику
+                              {isDiagnosisDone ? 'Повторить диагностику' : 'Провести диагностику'}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="max-w-xs">
