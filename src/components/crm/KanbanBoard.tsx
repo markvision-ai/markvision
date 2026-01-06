@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   DndContext,
   DragEndEvent,
@@ -73,100 +73,80 @@ export const KanbanBoard = ({
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isConnected, setIsConnected] = useState(true);
   const [animatingLeadId, setAnimatingLeadId] = useState<string | null>(null);
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
 
-  // Realtime subscription for leads changes with reconnection logic
+  // Realtime subscription for leads changes
   useEffect(() => {
-    if (!projectId) return;
+    if (!projectId) {
+      setIsConnected(false);
+      return;
+    }
 
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupChannel = () => {
-      channel = supabase
-        .channel(`leads-realtime-${projectId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'leads',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            const newRecord = payload.new as Lead;
-            const oldRecord = payload.old as { status?: string };
+    // Mark as connected immediately since we're setting up
+    setIsConnected(true);
+    
+    const channelName = `leads-kanban-${projectId}-${Date.now()}`;
+    
+    const channel = supabase
+      .channel(channelName)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          const newRecord = payload.new as Lead;
+          const oldRecord = payload.old as { status?: string };
+          
+          if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
+            setAnimatingLeadId(newRecord.id);
+            setTimeout(() => setAnimatingLeadId(null), 600);
             
-            if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
-              // Animate the card moving
-              setAnimatingLeadId(newRecord.id);
-              setTimeout(() => setAnimatingLeadId(null), 600);
-              
-              // Show toast with lead name and new status
-              const leadName = newRecord.name || 'Клиент';
-              const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
-              toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
-                duration: 4000,
-              });
-              
-              // Special handling for appointment status
-              if (newRecord.status === 'appointment') {
-                playSuccessSound();
-              }
-              
-              onRefetch();
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'leads',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            const newLead = payload.new as Lead;
-            if (newLead) {
-              toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
+            const leadName = newRecord.name || 'Клиент';
+            const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
+            toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
+              duration: 4000,
+            });
+            
+            if (newRecord.status === 'appointment') {
               playSuccessSound();
-              onRefetch();
             }
+            
+            onRefetch();
           }
-        )
-        .subscribe((status) => {
-          console.log('Kanban realtime status:', status);
-          if (status === 'SUBSCRIBED') {
-            setIsConnected(true);
-            reconnectAttempts.current = 0;
-          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            setIsConnected(false);
-            // Auto-reconnect logic
-            if (reconnectAttempts.current < maxReconnectAttempts) {
-              reconnectAttempts.current += 1;
-              console.log(`Attempting to reconnect... (${reconnectAttempts.current}/${maxReconnectAttempts})`);
-              setTimeout(() => {
-                if (channel) {
-                  supabase.removeChannel(channel);
-                }
-                setupChannel();
-              }, 2000 * reconnectAttempts.current); // Exponential backoff
-            } else {
-              toast.error('Соединение с сервером потеряно. Обновите страницу.');
-            }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          const newLead = payload.new as Lead;
+          if (newLead) {
+            toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
+            playSuccessSound();
+            onRefetch();
           }
-        });
-    };
-
-    setupChannel();
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+          setIsConnected(false);
+        }
+      });
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, [projectId, onRefetch]);
 
