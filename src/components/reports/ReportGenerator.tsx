@@ -45,7 +45,7 @@ import { toast } from 'sonner';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { useAIReport } from '@/hooks/useAIReport';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 
 interface DailyDataPoint {
   date: string;

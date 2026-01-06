@@ -16,7 +16,7 @@ import { LeadCard } from './LeadCard';
 import { LeadFullPage } from './LeadFullPage';
 import { PaymentDialog } from './PaymentDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
