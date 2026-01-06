@@ -24,7 +24,7 @@ import {
   BarChart3,
   Zap
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 
 interface ABTest {
