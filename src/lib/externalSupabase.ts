@@ -9,8 +9,9 @@ import { createClient } from '@supabase/supabase-js';
 const envUrl = import.meta.env.VITE_SUPABASE_URL;
 const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-// Fallback на внешнюю базу (если env переменные не заданы)
+// Fallback на внешнюю базу (если env переменные указывают на Lovable Cloud)
 const EXTERNAL_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
+// Ключ для внешней базы должен быть задан через VITE_EXTERNAL_SUPABASE_ANON_KEY
 const EXTERNAL_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || '';
 
 // Определяем какую базу использовать
