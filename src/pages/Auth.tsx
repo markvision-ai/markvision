@@ -108,7 +108,8 @@ export default function Auth() {
 
         toast.success('Добро пожаловать!');
       } else {
-        const { error } = await supabase.auth.signUp({
+        // Sign up the user
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -119,22 +120,47 @@ export default function Auth() {
           },
         });
 
-        if (error) {
-          console.error('Signup error:', error.code || error.message);
-          if (error.message.includes('already registered')) {
-            toast.error('Этот email уже зарегистрирован');
-          } else if (error.message.includes('Password')) {
+        if (signUpError) {
+          console.error('Signup error:', signUpError.code || signUpError.message);
+          if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
+            toast.error('Этот email уже зарегистрирован. Попробуйте войти.');
+          } else if (signUpError.message.includes('Password')) {
             toast.error('Пароль не соответствует требованиям');
           } else {
-            toast.error('Ошибка регистрации. Попробуйте позже.');
+            toast.error('Ошибка регистрации: ' + signUpError.message);
           }
           return;
         }
 
-        // Log successful signup
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session?.user) {
-          logAuthEvent(session.user.id, session.user.email || email, 'create');
+        // Check if user was created and session exists (auto-confirm enabled)
+        if (signUpData.session) {
+          // Auto-login worked, session is active
+          logAuthEvent(signUpData.user!.id, signUpData.user!.email || email, 'create');
+          toast.success('Регистрация успешна! Добро пожаловать!');
+          navigate('/');
+          return;
+        }
+
+        // If no session but user exists, try to sign in immediately
+        // (this works when email confirmation is disabled in Supabase)
+        if (signUpData.user && !signUpData.session) {
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+            email,
+            password,
+          });
+
+          if (signInError) {
+            // If sign-in fails, it means email confirmation is required
+            toast.info('Проверьте почту для подтверждения регистрации');
+            return;
+          }
+
+          if (signInData.session) {
+            logAuthEvent(signInData.user.id, signInData.user.email || email, 'create');
+            toast.success('Регистрация успешна! Добро пожаловать!');
+            navigate('/');
+            return;
+          }
         }
 
         toast.success('Регистрация успешна!');
