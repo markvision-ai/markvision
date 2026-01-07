@@ -1,4 +1,5 @@
-project_id = "grzqykegqgglekcxdtsu"
+# Твой новый Project ID из адреса https://pyscczcuersdjvpmkiec.supabase.co
+project_id = "pyscczcuersdjvpmkiec"
 
 [functions.webhook-receiver]
 verify_jwt = false
