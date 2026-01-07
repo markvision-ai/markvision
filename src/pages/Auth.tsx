@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft } from 'lucide-react';
+import { BarChart3, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase, checkConnection, clearAuthData } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
@@ -31,6 +31,27 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [checkingConnection, setCheckingConnection] = useState(true);
+
+  // Проверка подключения к базе при загрузке
+  useEffect(() => {
+    const verifyConnection = async () => {
+      setCheckingConnection(true);
+      // Очищаем старые токены перед проверкой
+      clearAuthData();
+      
+      const result = await checkConnection();
+      if (!result.ok) {
+        setConnectionError(result.error || 'Ошибка подключения к базе данных');
+      } else {
+        setConnectionError(null);
+      }
+      setCheckingConnection(false);
+    };
+    
+    verifyConnection();
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -83,19 +104,31 @@ export default function Auth() {
         toast.success('Письмо для сброса пароля отправлено на вашу почту!');
         setMode('login');
       } else if (mode === 'login') {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
 
         if (error) {
-          console.error('Login error:', error.code || error.message);
+          // Подробное логирование ошибки
+          console.error('❌ Login error details:', {
+            code: error.code,
+            message: error.message,
+            status: error.status,
+            name: error.name
+          });
+          
+          // Показываем точный текст ошибки пользователю
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Неверный email или пароль');
           } else if (error.message.includes('Email not confirmed')) {
-            toast.error('Email не подтверждён');
+            toast.error('Email не подтверждён. Проверьте почту.');
+          } else if (error.message.includes('Invalid API key')) {
+            toast.error('Ошибка API ключа. Ключи Supabase неверные.');
+          } else if (error.message.includes('Database') || error.message.includes('not found')) {
+            toast.error('База данных не найдена: ' + error.message);
           } else {
-            toast.error('Ошибка авторизации. Попробуйте позже.');
+            toast.error('Ошибка входа: ' + error.message);
           }
           return;
         }
@@ -187,6 +220,49 @@ export default function Auth() {
       case 'forgot-password': return 'Отправить ссылку';
     }
   };
+
+  // Показываем ошибку подключения или загрузку
+  if (checkingConnection) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Проверка подключения к базе данных...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (connectionError) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-destructive/10 border border-destructive rounded-2xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <AlertTriangle className="w-8 h-8 text-destructive" />
+            <h2 className="text-xl font-semibold text-destructive">Ошибка подключения</h2>
+          </div>
+          <p className="text-sm text-muted-foreground mb-4">
+            Не удалось подключиться к базе данных. Возможные причины:
+          </p>
+          <ul className="text-sm text-muted-foreground list-disc list-inside mb-4 space-y-1">
+            <li>Неверный VITE_SUPABASE_URL</li>
+            <li>Неверный VITE_SUPABASE_ANON_KEY</li>
+            <li>База данных недоступна</li>
+          </ul>
+          <div className="bg-muted rounded-lg p-3 font-mono text-xs break-all">
+            {connectionError}
+          </div>
+          <Button 
+            onClick={() => window.location.reload()} 
+            className="w-full mt-4"
+            variant="outline"
+          >
+            Попробовать снова
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
