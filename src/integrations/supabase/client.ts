@@ -1,15 +1,16 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from './types';
 
-// Код будет брать данные напрямую из того, что мы только что вписали в Vercel
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// ПРИНУДИТЕЛЬНЫЙ ВЫХОД ИЗ ЛОВБАЛ КЛАУД
+const REAL_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
+const REAL_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+export const supabase = createClient(REAL_URL, REAL_KEY, {
   auth: {
-    storage: window.localStorage,
     persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
+    storageKey: 'markvision-auth-token',
+    storage: window.localStorage
+  }
 });
+
+// Этот лог поможет нам в консоли увидеть, что код реально изменился
+console.log("MARKVISION: Система принудительно подключена к", REAL_URL);
