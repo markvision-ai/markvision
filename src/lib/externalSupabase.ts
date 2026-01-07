@@ -1,66 +1,37 @@
-/**
- * External Supabase Client
- * Использует переменные окружения VITE_SUPABASE_URL и VITE_SUPABASE_ANON_KEY
- * Если они не заданы - использует внешнюю базу pyscczcuersdjvpmkiec
- */
 import { createClient } from '@supabase/supabase-js';
 
-// Получаем значения из переменных окружения
-const envUrl = import.meta.env.VITE_SUPABASE_URL;
-const envKey = import.meta.env.VITE_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+// ПРИНУДИТЕЛЬНЫЕ ДАННЫЕ ВАШЕЙ БАЗЫ (Analitika)
+const SUPABASE_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
 
-// Fallback на внешнюю базу (если env переменные указывают на Lovable Cloud)
-const EXTERNAL_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
-// Ключ для внешней базы должен быть задан через VITE_EXTERNAL_SUPABASE_ANON_KEY
-const EXTERNAL_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || '';
-
-// Определяем какую базу использовать
-const useExternal = !envUrl || envUrl.includes('grzqykeg');
-const SUPABASE_URL = useExternal && EXTERNAL_KEY ? EXTERNAL_URL : (envUrl || EXTERNAL_URL);
-const SUPABASE_KEY = useExternal && EXTERNAL_KEY ? EXTERNAL_KEY : (envKey || '');
-
-// Логируем подключение
-console.log('🔌 Supabase подключение:', {
-  url: SUPABASE_URL.substring(8, 35) + '...',
-  hasKey: !!SUPABASE_KEY,
-  source: useExternal && EXTERNAL_KEY ? 'external' : 'env'
-});
-
-if (!SUPABASE_KEY) {
-  console.error('❌ SUPABASE_KEY не задан! Авторизация не будет работать.');
-}
+console.log('🔌 MarkVision Engine: Принудительное подключение к', SUPABASE_URL);
 
 export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
-    storage: localStorage,
+    storage: window.localStorage,
     persistSession: true,
     autoRefreshToken: true,
+    detectSessionInUrl: true,
   }
 });
 
-// Функция проверки подключения к базе
-export const checkConnection = async (): Promise<{ ok: boolean; error?: string }> => {
+// Функция проверки подключения
+export const checkConnection = async () => {
   try {
-    const { error } = await supabase.from('projects').select('count', { count: 'exact', head: true });
-    if (error) {
-      console.error('❌ Ошибка подключения к БД:', error.message);
-      return { ok: false, error: error.message };
-    }
-    console.log('✅ Подключение к БД успешно');
+    const { data, error } = await supabase.from('projects').select('count').limit(1);
+    if (error) throw error;
+    console.log('✅ Связь с базой Analitika установлена');
     return { ok: true };
   } catch (e: any) {
-    console.error('❌ Ошибка подключения:', e.message);
+    console.error('❌ Ошибка связи с базой:', e.message);
     return { ok: false, error: e.message };
   }
 };
 
-// Функция очистки старых токенов
+// Очистка старого мусора
 export const clearAuthData = () => {
-  const keysToRemove = Object.keys(localStorage).filter(key => 
-    key.includes('supabase') || key.includes('sb-')
-  );
-  keysToRemove.forEach(key => localStorage.removeItem(key));
-  console.log('🧹 Очищено', keysToRemove.length, 'ключей localStorage');
+  localStorage.clear();
+  console.log('🧹 Все локальные данные сессии очищены');
 };
 
 export { SUPABASE_URL };
