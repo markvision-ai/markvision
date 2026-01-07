@@ -1,23 +1,31 @@
 /**
  * External Supabase Client
- * Connects to pyscczcuersdjvpmkiec.supabase.co - external unified database
- * This replaces the default Lovable Cloud Supabase client
+ * ПРИНУДИТЕЛЬНО подключается к pyscczcuersdjvpmkiec.supabase.co
+ * Это единственная база данных для всего приложения
  */
 import { createClient } from '@supabase/supabase-js';
 
-const EXTERNAL_SUPABASE_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
-const EXTERNAL_SUPABASE_ANON_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || '';
+// ПРИНУДИТЕЛЬНЫЙ URL внешней базы (НЕ использовать grzqykeg...)
+const FALLBACK_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
+const FALLBACK_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1OTQ1NDAsImV4cCI6MjA1MjE3MDU0MH0.F1nJFwZAU6S4R5CfXxzBCnuVfWnwl-2gRsVZNbCbvh4';
 
-// Fallback to original key if external not set
-const ANON_KEY = EXTERNAL_SUPABASE_ANON_KEY || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY || '';
+// Используем env variables с fallback на внешнюю базу
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || FALLBACK_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || FALLBACK_KEY;
 
-if (!ANON_KEY) {
-  console.error('EXTERNAL_SUPABASE_ANON_KEY is not configured!');
+// Проверка что используется правильная база
+const isCorrectDatabase = supabaseUrl.includes('pyscczcuersdjvpmkiec');
+if (!isCorrectDatabase) {
+  console.warn('⚠️ Обнаружена неправильная база! Переключаюсь на pyscczcuersdjvpmkiec...');
 }
 
-console.log('MarkVision подключен к базе pyscczcu...');
+// ВСЕГДА используем внешнюю базу
+const FINAL_URL = isCorrectDatabase ? supabaseUrl : FALLBACK_URL;
+const FINAL_KEY = isCorrectDatabase ? supabaseKey : FALLBACK_KEY;
 
-export const supabase = createClient(EXTERNAL_SUPABASE_URL, ANON_KEY, {
+console.log('✅ MarkVision подключен к базе:', FINAL_URL.substring(8, 30) + '...');
+
+export const supabase = createClient(FINAL_URL, FINAL_KEY, {
   auth: {
     storage: localStorage,
     persistSession: true,
@@ -26,4 +34,4 @@ export const supabase = createClient(EXTERNAL_SUPABASE_URL, ANON_KEY, {
 });
 
 // Export URL for edge functions if needed
-export const SUPABASE_URL = EXTERNAL_SUPABASE_URL;
+export const SUPABASE_URL = FINAL_URL;
