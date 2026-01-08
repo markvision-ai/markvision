@@ -76,7 +76,7 @@ export const KanbanBoard = ({
   const [isConnected, setIsConnected] = useState(true);
   const [animatingLeadId, setAnimatingLeadId] = useState<string | null>(null);
 
-  // Realtime subscription for leads changes
+  // Realtime subscription for leads changes with auto-reconnect
   useEffect(() => {
     if (!projectId) {
       setIsConnected(false);
@@ -86,67 +86,95 @@ export const KanbanBoard = ({
     // Mark as connected immediately since we're setting up
     setIsConnected(true);
     
-    const channelName = `leads-kanban-${projectId}-${Date.now()}`;
-    
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'leads',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload) => {
-          const newRecord = payload.new as Lead;
-          const oldRecord = payload.old as { status?: string };
-          
-          if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
-            setAnimatingLeadId(newRecord.id);
-            setTimeout(() => setAnimatingLeadId(null), 600);
-            
-            const leadName = newRecord.name || 'Клиент';
-            const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
-            toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
-              duration: 4000,
-            });
-            
-            if (newRecord.status === 'appointment') {
-              playSuccessSound();
+    let reconnectTimeout: NodeJS.Timeout | null = null;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+
+    const setupChannel = () => {
+      const channelName = `public:leads:${projectId}`;
+      
+      if (import.meta.env.DEV) {
+        console.log('📡 Подключаем realtime канал:', channelName);
+      }
+      
+      channel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'leads',
+            filter: `project_id=eq.${projectId}`
+          },
+          (payload) => {
+            if (payload.eventType === 'UPDATE') {
+              const newRecord = payload.new as Lead;
+              const oldRecord = payload.old as { status?: string };
+              
+              if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
+                setAnimatingLeadId(newRecord.id);
+                setTimeout(() => setAnimatingLeadId(null), 600);
+                
+                const leadName = newRecord.name || 'Клиент';
+                const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
+                toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
+                  duration: 4000,
+                });
+                
+                if (newRecord.status === 'appointment') {
+                  playSuccessSound();
+                }
+                
+                onRefetch();
+              }
+            } else if (payload.eventType === 'INSERT') {
+              const newLead = payload.new as Lead;
+              if (newLead) {
+                toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
+                playSuccessSound();
+                onRefetch();
+              }
             }
-            
-            onRefetch();
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'leads',
-          filter: `project_id=eq.${projectId}`
-        },
-        (payload) => {
-          const newLead = payload.new as Lead;
-          if (newLead) {
-            toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
-            playSuccessSound();
-            onRefetch();
+        )
+        .subscribe((status) => {
+          if (import.meta.env.DEV) {
+            console.log('📡 Realtime статус:', status);
           }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          setIsConnected(true);
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          setIsConnected(false);
-        }
-      });
+          
+          if (status === 'SUBSCRIBED') {
+            setIsConnected(true);
+            if (reconnectTimeout) {
+              clearTimeout(reconnectTimeout);
+              reconnectTimeout = null;
+            }
+          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            setIsConnected(false);
+            // Auto-reconnect после 3 секунд
+            if (!reconnectTimeout) {
+              reconnectTimeout = setTimeout(() => {
+                if (import.meta.env.DEV) {
+                  console.log('🔄 Попытка переподключения realtime...');
+                }
+                if (channel) {
+                  supabase.removeChannel(channel);
+                }
+                setupChannel();
+              }, 3000);
+            }
+          }
+        });
+    };
+
+    setupChannel();
 
     return () => {
-      supabase.removeChannel(channel);
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
+      }
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
     };
   }, [projectId, onRefetch]);
 
