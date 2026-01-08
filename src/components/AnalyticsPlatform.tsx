@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
@@ -89,14 +89,25 @@ export const AnalyticsPlatform = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const isMobile = useIsMobile();
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   
-  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
+
+  // Debug: выводим информацию о текущем проекте
+  useEffect(() => {
+    if (import.meta.env.DEV) {
+      console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
+      console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
+      console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
+      console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
+    }
+  }, [currentProjectId, currentProject, user, projects]);
 
   const handleRefresh = useCallback(async () => {
     await refetch();
-  }, [refetch]);
+    await refetchProjects();
+  }, [refetch, refetchProjects]);
 
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),

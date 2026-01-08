@@ -58,12 +58,19 @@ export default function Auth() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
+        if (import.meta.env.DEV) {
+          console.log('✅ Пользователь авторизован, редирект на /');
+        }
+        // Редирект на главную страницу (CRM будет выбран через activeTab)
         navigate('/');
       }
     });
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
+        if (import.meta.env.DEV) {
+          console.log('✅ Сессия найдена, редирект на /');
+        }
         navigate('/');
       }
     });
