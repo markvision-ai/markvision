@@ -78,7 +78,9 @@ export const useAuth = () => {
         }));
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching profile:', error);
+      }
     }
   };
 
@@ -102,7 +104,9 @@ export const useAuth = () => {
         isAdmin: !!data,
       }));
     } catch (error) {
-      console.error('Error checking admin role:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error checking admin role:', error);
+      }
     }
   };
 

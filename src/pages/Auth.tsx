@@ -19,7 +19,9 @@ const logAuthEvent = async (userId: string, userEmail: string, action: 'login' |
       user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
     }]);
   } catch (error) {
-    console.error('Failed to log auth event:', error);
+    if (import.meta.env.DEV) {
+      console.error('Failed to log auth event:', error);
+    }
   }
 };
 
@@ -110,13 +112,15 @@ export default function Auth() {
         });
 
         if (error) {
-          // Подробное логирование ошибки
-          console.error('❌ Login error details:', {
-            code: error.code,
-            message: error.message,
-            status: error.status,
-            name: error.name
-          });
+          // Подробное логирование ошибки только в dev режиме
+          if (import.meta.env.DEV) {
+            console.error('❌ Login error details:', {
+              code: error.code,
+              message: error.message,
+              status: error.status,
+              name: error.name
+            });
+          }
           
           // Показываем точный текст ошибки пользователю
           if (error.message.includes('Invalid login credentials')) {
