@@ -25,7 +25,9 @@ export const checkConnection = async () => {
 // ВОТ ЭТА ФУНКЦИЯ БЫЛА НУЖНА ДЛЯ ОШИБКИ 404
 export const clearAuthData = () => {
   localStorage.clear();
-  console.log('🧹 Данные очищены');
+  if (import.meta.env.DEV) {
+    console.log('🧹 Данные очищены');
+  }
 };
 
 export { SUPABASE_URL };
