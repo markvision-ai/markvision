@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // ПРИНУДИТЕЛЬНЫЕ ДАННЫЕ ВНЕШНЕЙ БАЗЫ pyscczcuersdjvpmkiec
 const SUPABASE_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
-const SUPABASE_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzY1OTQ1NDAsImV4cCI6MjA1MjE3MDU0MH0.F1nJFwZAU6S4R5CfXxzBCnuVfWnwl-2gRsVZNbCbvh4";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
 
 // DEBUG LOG при запуске
 console.log('🚀 MVI Core connected to pyscczcu');
