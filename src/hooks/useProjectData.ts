@@ -1,10 +1,14 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/lib/externalSupabase';
-import { format, startOfMonth } from 'date-fns';
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
 import { toast } from 'sonner';
 import { validateFieldValue, logError } from '@/lib/validation';
 import { useAuth } from './useAuth';
 import { usePermissions } from './usePermissions';
+
+// Жёстко закодированный project_id для использования по умолчанию
+const DEFAULT_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+
 interface DailyData {
   date: string;
   spend: number;
@@ -28,32 +32,55 @@ interface PlanData {
 
 export const useProjectData = (projectId: string | null) => {
   const { isAdmin } = useAuth();
-  const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(projectId);
+  // Используем переданный projectId или DEFAULT_PROJECT_ID
+  const effectiveProjectId = projectId || DEFAULT_PROJECT_ID;
+  
+  const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(effectiveProjectId);
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
-  const [planData, setPlanData] = useState<PlanData>({
-    spend: 0,
-    impressions: 0,
-    clicks: 0,
-    leads: 0,
-    diagnostics: 0,
-    sales: 0,
-    revenue: 0,
-  });
+  const [rawPlanData, setRawPlanData] = useState<DailyData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  // ПЛАН берётся из записи за 1-е число текущего месяца
+  const planData = useMemo((): PlanData => {
+    if (!rawPlanData) {
+      return {
+        spend: 0,
+        impressions: 0,
+        clicks: 0,
+        leads: 0,
+        diagnostics: 0,
+        sales: 0,
+        revenue: 0,
+      };
+    }
+    return {
+      spend: rawPlanData.spend || 0,
+      impressions: rawPlanData.impressions || 0,
+      clicks: rawPlanData.clicks || 0,
+      leads: rawPlanData.leads || 0,
+      diagnostics: rawPlanData.diagnostics || 0,
+      sales: rawPlanData.sales || 0,
+      revenue: rawPlanData.revenue || 0,
+    };
+  }, [rawPlanData]);
 
   // Fetch daily data
   const fetchDailyData = useCallback(async () => {
-    if (!projectId) return;
+    console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
 
     const { data, error } = await supabase
       .from('daily_data')
       .select('*')
-      .eq('project_id', projectId);
+      .eq('project_id', effectiveProjectId)
+      .order('date', { ascending: true });
 
     if (error) {
       logError('Fetch daily data failed', error);
+      console.error('❌ useProjectData | Ошибка загрузки daily_data:', error);
       return;
     }
+
+    console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
 
     const dataMap: Record<string, DailyData> = {};
     data?.forEach((row) => {
@@ -70,28 +97,30 @@ export const useProjectData = (projectId: string | null) => {
     });
 
     setDailyData(dataMap);
-  }, [projectId]);
+  }, [effectiveProjectId]);
 
-  // Fetch plan data for current month
+  // Fetch plan data - берём данные за 1-е число текущего месяца
   const fetchPlanData = useCallback(async () => {
-    if (!projectId) return;
-
-    const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    console.log('📋 useProjectData | Загрузка ПЛАНА из daily_data за дату:', firstDayOfMonth);
     
     const { data, error } = await supabase
-      .from('plan_data')
+      .from('daily_data')
       .select('*')
-      .eq('project_id', projectId)
-      .eq('month', currentMonth)
+      .eq('project_id', effectiveProjectId)
+      .eq('date', firstDayOfMonth)
       .maybeSingle();
 
     if (error) {
       logError('Fetch plan data failed', error);
+      console.error('❌ useProjectData | Ошибка загрузки плана:', error);
       return;
     }
 
     if (data) {
-      setPlanData({
+      console.log('✅ useProjectData | ПЛАН загружен:', data);
+      setRawPlanData({
+        date: data.date,
         spend: Number(data.spend) || 0,
         impressions: data.impressions || 0,
         clicks: data.clicks || 0,
@@ -100,13 +129,14 @@ export const useProjectData = (projectId: string | null) => {
         sales: data.sales || 0,
         revenue: Number(data.revenue) || 0,
       });
+    } else {
+      console.log('⚠️ useProjectData | ПЛАН не найден для даты:', firstDayOfMonth);
+      setRawPlanData(null);
     }
-  }, [projectId]);
+  }, [effectiveProjectId]);
 
   // Update or insert daily data
   const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
-    if (!projectId) return;
-
     // Validate input
     const validation = validateFieldValue(field, value);
     if (!validation.success) {
@@ -128,7 +158,7 @@ export const useProjectData = (projectId: string | null) => {
     const { data: existing } = await supabase
       .from('daily_data')
       .select('id')
-      .eq('project_id', projectId)
+      .eq('project_id', effectiveProjectId)
       .eq('date', date)
       .maybeSingle();
 
@@ -149,7 +179,7 @@ export const useProjectData = (projectId: string | null) => {
       const { error } = await supabase
         .from('daily_data')
         .insert({
-          project_id: projectId,
+          project_id: effectiveProjectId,
           date,
           [field]: value,
         });
@@ -160,12 +190,10 @@ export const useProjectData = (projectId: string | null) => {
         fetchDailyData(); // Revert on error
       }
     }
-  }, [projectId, fetchDailyData]);
+  }, [effectiveProjectId, fetchDailyData]);
 
-  // Update plan data (admin or users with permission)
+  // Update plan data (обновляем запись за 1-е число месяца)
   const updatePlanData = useCallback(async (field: keyof PlanData, value: number) => {
-    if (!projectId) return;
-
     // Check permission
     if (!isAdmin && !canEditPlan) {
       toast.error('У вас нет прав на изменение плановых данных');
@@ -179,25 +207,34 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
 
-    const currentMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
 
     // Optimistically update local state
-    setPlanData(prev => ({
+    setRawPlanData(prev => prev ? {
       ...prev,
       [field]: value,
-    }));
+    } : {
+      date: firstDayOfMonth,
+      spend: field === 'spend' ? value : 0,
+      impressions: field === 'impressions' ? value : 0,
+      clicks: field === 'clicks' ? value : 0,
+      leads: field === 'leads' ? value : 0,
+      diagnostics: field === 'diagnostics' ? value : 0,
+      sales: field === 'sales' ? value : 0,
+      revenue: field === 'revenue' ? value : 0,
+    });
 
     // Check if record exists
     const { data: existing } = await supabase
-      .from('plan_data')
+      .from('daily_data')
       .select('id')
-      .eq('project_id', projectId)
-      .eq('month', currentMonth)
+      .eq('project_id', effectiveProjectId)
+      .eq('date', firstDayOfMonth)
       .maybeSingle();
 
     if (existing) {
       const { error } = await supabase
-        .from('plan_data')
+        .from('daily_data')
         .update({ [field]: value, updated_at: new Date().toISOString() })
         .eq('id', existing.id);
 
@@ -208,10 +245,10 @@ export const useProjectData = (projectId: string | null) => {
       }
     } else {
       const { error } = await supabase
-        .from('plan_data')
+        .from('daily_data')
         .insert({
-          project_id: projectId,
-          month: currentMonth,
+          project_id: effectiveProjectId,
+          date: firstDayOfMonth,
           [field]: value,
         });
 
@@ -221,32 +258,18 @@ export const useProjectData = (projectId: string | null) => {
         fetchPlanData();
       }
     }
-  }, [projectId, isAdmin, canEditPlan, fetchPlanData]);
+  }, [effectiveProjectId, isAdmin, canEditPlan, fetchPlanData]);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
+      console.log('🔄 useProjectData | Начинаем загрузку данных для project_id:', effectiveProjectId);
       await Promise.all([fetchDailyData(), fetchPlanData()]);
       setLoading(false);
     };
 
-    if (projectId) {
-      loadData();
-    } else {
-      // No project selected - reset loading state and clear data
-      setLoading(false);
-      setDailyData({});
-      setPlanData({
-        spend: 0,
-        impressions: 0,
-        clicks: 0,
-        leads: 0,
-        diagnostics: 0,
-        sales: 0,
-        revenue: 0,
-      });
-    }
-  }, [projectId, fetchDailyData, fetchPlanData]);
+    loadData();
+  }, [effectiveProjectId, fetchDailyData, fetchPlanData]);
 
   return {
     dailyData,
@@ -259,5 +282,6 @@ export const useProjectData = (projectId: string | null) => {
     canViewSales: isAdmin || canViewSales,
     canViewRevenue: isAdmin || canViewRevenue,
     refetch: () => Promise.all([fetchDailyData(), fetchPlanData()]),
+    effectiveProjectId,
   };
 };

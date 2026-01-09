@@ -21,6 +21,7 @@ interface AIAssistantProps {
     cac?: number;
     aov?: number;
     romi?: number;
+    projectId?: string;
   };
 }
 

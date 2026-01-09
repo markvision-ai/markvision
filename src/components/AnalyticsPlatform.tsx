@@ -332,6 +332,7 @@ export const AnalyticsPlatform = () => {
                 cac,
                 aov,
                 romi,
+                projectId: currentProjectId || undefined,
               }}
             />
           </div>
