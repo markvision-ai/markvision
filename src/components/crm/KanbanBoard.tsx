@@ -76,25 +76,21 @@ export const KanbanBoard = ({
   const [isConnected, setIsConnected] = useState(true);
   const [animatingLeadId, setAnimatingLeadId] = useState<string | null>(null);
 
-  // Realtime subscription for leads changes with auto-reconnect
-  useEffect(() => {
-    if (!projectId) {
-      setIsConnected(false);
-      return;
-    }
+  // Fallback project ID
+  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-    // Mark as connected immediately since we're setting up
+  // Realtime subscription for leads changes with auto-reconnect + 30s fallback refresh
+  useEffect(() => {
     setIsConnected(true);
     
     let reconnectTimeout: NodeJS.Timeout | null = null;
+    let fallbackInterval: NodeJS.Timeout | null = null;
     let channel: ReturnType<typeof supabase.channel> | null = null;
 
     const setupChannel = () => {
-      const channelName = `public:leads:${projectId}`;
+      const channelName = `realtime-leads-${effectiveProjectId}`;
       
-      if (import.meta.env.DEV) {
-        console.log('📡 Подключаем realtime канал:', channelName);
-      }
+      console.log('📡 Realtime: Подключаем канал:', channelName);
       
       channel = supabase
         .channel(channelName)
@@ -104,9 +100,11 @@ export const KanbanBoard = ({
             event: '*',
             schema: 'public',
             table: 'leads',
-            filter: `project_id=eq.${projectId}`
+            filter: `project_id=eq.${effectiveProjectId}`
           },
           (payload) => {
+            console.log('📡 Realtime event:', payload.eventType, payload);
+            
             if (payload.eventType === 'UPDATE') {
               const newRecord = payload.new as Lead;
               const oldRecord = payload.old as { status?: string };
@@ -138,24 +136,22 @@ export const KanbanBoard = ({
           }
         )
         .subscribe((status) => {
-          if (import.meta.env.DEV) {
-            console.log('📡 Realtime статус:', status);
-          }
+          console.log('📡 Realtime статус:', status);
           
           if (status === 'SUBSCRIBED') {
+            console.log('✅ Realtime: SUBSCRIBED успешно');
             setIsConnected(true);
             if (reconnectTimeout) {
               clearTimeout(reconnectTimeout);
               reconnectTimeout = null;
             }
           } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+            console.log('❌ Realtime: соединение потеряно, переподключение через 3 сек...');
             setIsConnected(false);
             // Auto-reconnect после 3 секунд
             if (!reconnectTimeout) {
               reconnectTimeout = setTimeout(() => {
-                if (import.meta.env.DEV) {
-                  console.log('🔄 Попытка переподключения realtime...');
-                }
+                console.log('🔄 Realtime: попытка переподключения...');
                 if (channel) {
                   supabase.removeChannel(channel);
                 }
@@ -168,15 +164,26 @@ export const KanbanBoard = ({
 
     setupChannel();
 
+    // Fallback: обновлять данные каждые 30 секунд если WebSocket не работает
+    fallbackInterval = setInterval(() => {
+      if (!isConnected) {
+        console.log('🔄 Fallback refresh: загрузка данных по таймеру');
+        onRefetch();
+      }
+    }, 30000);
+
     return () => {
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
+      }
+      if (fallbackInterval) {
+        clearInterval(fallbackInterval);
       }
       if (channel) {
         supabase.removeChannel(channel);
       }
     };
-  }, [projectId, onRefetch]);
+  }, [effectiveProjectId, onRefetch, isConnected]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {

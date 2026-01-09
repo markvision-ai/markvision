@@ -135,7 +135,7 @@ export const useProjectData = (projectId: string | null) => {
     }
   }, [effectiveProjectId]);
 
-  // Update or insert daily data
+  // Update or insert daily data using UPSERT
   const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
     // Validate input
     const validation = validateFieldValue(field, value);
@@ -143,6 +143,8 @@ export const useProjectData = (projectId: string | null) => {
       toast.error(validation.error || 'Некорректное значение');
       return;
     }
+
+    console.log('💾 updateDailyData | Сохраняем:', { date, field, value, project_id: effectiveProjectId });
 
     // Optimistically update local state
     setDailyData(prev => ({
@@ -154,45 +156,33 @@ export const useProjectData = (projectId: string | null) => {
       },
     }));
 
-    // Check if record exists
-    const { data: existing } = await supabase
+    // Use UPSERT to avoid separate check+insert/update
+    const { error } = await supabase
       .from('daily_data')
-      .select('id')
-      .eq('project_id', effectiveProjectId)
-      .eq('date', date)
-      .maybeSingle();
-
-    if (existing) {
-      // Update existing record
-      const { error } = await supabase
-        .from('daily_data')
-        .update({ [field]: value, updated_at: new Date().toISOString() })
-        .eq('id', existing.id);
-
-      if (error) {
-        logError('Update daily data failed', error);
-        toast.error('Ошибка сохранения данных');
-        fetchDailyData(); // Revert on error
-      }
-    } else {
-      // Insert new record
-      const { error } = await supabase
-        .from('daily_data')
-        .insert({
+      .upsert(
+        {
           project_id: effectiveProjectId,
           date,
           [field]: value,
-        });
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'project_id,date',
+          ignoreDuplicates: false,
+        }
+      );
 
-      if (error) {
-        logError('Insert daily data failed', error);
-        toast.error('Ошибка сохранения данных');
-        fetchDailyData(); // Revert on error
-      }
+    if (error) {
+      logError('Upsert daily data failed', error);
+      console.error('❌ updateDailyData | Ошибка:', error);
+      toast.error('Ошибка сохранения данных: ' + error.message);
+      fetchDailyData(); // Revert on error
+    } else {
+      console.log('✅ updateDailyData | Успешно сохранено');
     }
   }, [effectiveProjectId, fetchDailyData]);
 
-  // Update plan data (обновляем запись за 1-е число месяца)
+  // Update plan data using UPSERT (обновляем запись за 1-е число месяца)
   const updatePlanData = useCallback(async (field: keyof PlanData, value: number) => {
     // Check permission
     if (!isAdmin && !canEditPlan) {
@@ -208,6 +198,7 @@ export const useProjectData = (projectId: string | null) => {
     }
 
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: firstDayOfMonth, field, value, project_id: effectiveProjectId });
 
     // Optimistically update local state
     setRawPlanData(prev => prev ? {
@@ -224,39 +215,29 @@ export const useProjectData = (projectId: string | null) => {
       revenue: field === 'revenue' ? value : 0,
     });
 
-    // Check if record exists
-    const { data: existing } = await supabase
+    // Use UPSERT
+    const { error } = await supabase
       .from('daily_data')
-      .select('id')
-      .eq('project_id', effectiveProjectId)
-      .eq('date', firstDayOfMonth)
-      .maybeSingle();
-
-    if (existing) {
-      const { error } = await supabase
-        .from('daily_data')
-        .update({ [field]: value, updated_at: new Date().toISOString() })
-        .eq('id', existing.id);
-
-      if (error) {
-        logError('Update plan data failed', error);
-        toast.error('Ошибка сохранения плана');
-        fetchPlanData();
-      }
-    } else {
-      const { error } = await supabase
-        .from('daily_data')
-        .insert({
+      .upsert(
+        {
           project_id: effectiveProjectId,
           date: firstDayOfMonth,
           [field]: value,
-        });
+          updated_at: new Date().toISOString(),
+        },
+        {
+          onConflict: 'project_id,date',
+          ignoreDuplicates: false,
+        }
+      );
 
-      if (error) {
-        logError('Insert plan data failed', error);
-        toast.error('Ошибка сохранения плана');
-        fetchPlanData();
-      }
+    if (error) {
+      logError('Upsert plan data failed', error);
+      console.error('❌ updatePlanData | Ошибка:', error);
+      toast.error('Ошибка сохранения плана: ' + error.message);
+      fetchPlanData();
+    } else {
+      console.log('✅ updatePlanData | ПЛАН успешно сохранён');
     }
   }, [effectiveProjectId, isAdmin, canEditPlan, fetchPlanData]);
 
