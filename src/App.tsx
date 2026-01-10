@@ -17,22 +17,23 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          {/* Авторизация - отдельная страница */}
+          {/* Страницы авторизации */}
           <Route path="/auth" element={<Auth />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* ГЛАВНАЯ ЛОГИКА: Все разделы ведут на Index, 
-              но передают разный путь, чтобы Index знал, какую вкладку открыть */}
+          {/* Главные разделы - все рендерят Index, но с разными путями */}
           <Route path="/" element={<Index />} />
           <Route path="/dashboard" element={<Index />} />
+          <Route path="/realtime" element={<Index />} />
+          <Route path="/table" element={<Index />} /> {/* ВОТ ЭТОТ ПУТЬ МЫ ДОБАВИЛИ */}
           <Route path="/crm" element={<Index />} />
-          <Route path="/diagnostics" element={<Index />} />
-          <Route path="/content-factory" element={<Index />} />
           <Route path="/analytics" element={<Index />} />
           <Route path="/finance" element={<Index />} />
           <Route path="/settings" element={<Index />} />
 
-          {/* Обработка несуществующих страниц */}
+          {/* Редирект для старых ссылок, если они были */}
+          <Route path="/table-data" element={<Navigate to="/table" replace />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
