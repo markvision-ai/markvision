@@ -20,8 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useQueryClient } from '@tanstack/react-query';
 
 export interface KanbanStatus {
   id: string;
@@ -29,6 +28,7 @@ export interface KanbanStatus {
   color?: string;
 }
 
+// СЛОВАРЬ СТАТУСОВ: Связываем ID кода со словами в базе данных
 export const KANBAN_STATUSES: KanbanStatus[] = [
   { id: 'new', label: 'Новая' },
   { id: 'in_progress', label: 'В работе' },
@@ -68,6 +68,7 @@ export const KanbanBoard = ({
   onSelectLead,
   onSelectAllInColumn
 }: KanbanBoardProps) => {
+  const queryClient = useQueryClient();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -76,145 +77,74 @@ export const KanbanBoard = ({
   const [isConnected, setIsConnected] = useState(true);
   const [animatingLeadId, setAnimatingLeadId] = useState<string | null>(null);
 
-  // Fallback project ID
   const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-  // Realtime subscription for leads changes with auto-reconnect + 30s fallback refresh
+  // REALTIME ENGINE 2.0: Максимальная стабильность
   useEffect(() => {
-    setIsConnected(true);
+    console.log('📡 Realtime: Инициализация живой связи...');
     
-    let reconnectTimeout: NodeJS.Timeout | null = null;
-    let fallbackInterval: NodeJS.Timeout | null = null;
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupChannel = () => {
-      const channelName = `realtime-leads-${effectiveProjectId}`;
-      
-      console.log('📡 Realtime: Подключаем канал:', channelName);
-      
-      channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'leads',
-            filter: `project_id=eq.${effectiveProjectId}`
-          },
-          (payload) => {
-            console.log('📡 Realtime event:', payload.eventType, payload);
+    const channel = supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads'
+        },
+        (payload) => {
+          // Фильтруем изменения только для нашего проекта в коде (для стабильности WebSocket)
+          const data = payload.new as any;
+          if (data && data.project_id === effectiveProjectId) {
+            console.log('⚡️ Изменение лида поймано:', data.name, data.status);
             
-            if (payload.eventType === 'UPDATE') {
-              const newRecord = payload.new as Lead;
-              const oldRecord = payload.old as { status?: string };
-              
-              if (newRecord && oldRecord && newRecord.status !== oldRecord.status) {
-                setAnimatingLeadId(newRecord.id);
-                setTimeout(() => setAnimatingLeadId(null), 600);
-                
-                const leadName = newRecord.name || 'Клиент';
-                const newStatusLabel = statusLabels[newRecord.status || 'new'] || newRecord.status;
-                toast.info(`Статус клиента ${leadName} обновлен: ${newStatusLabel}`, {
-                  duration: 4000,
-                });
-                
-                if (newRecord.status === 'appointment') {
-                  playSuccessSound();
-                }
-                
-                onRefetch();
-              }
-            } else if (payload.eventType === 'INSERT') {
-              const newLead = payload.new as Lead;
-              if (newLead) {
-                toast.success(`Новый лид: ${newLead.name || 'Без имени'}`);
-                playSuccessSound();
-                onRefetch();
-              }
+            // Если статус изменился на "Записан", пускаем звук победы
+            if (data.status === 'Записан') {
+              playSuccessSound();
+              toast.success(`Клиент ${data.name} записан на диагностику!`, { icon: '🩺' });
             }
+            
+            // Принудительно обновляем данные в CRM
+            onRefetch();
+            queryClient.invalidateQueries({ queryKey: ['leads'] });
+            queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
           }
-        )
-        .subscribe((status) => {
-          console.log('📡 Realtime статус:', status);
-          
-          if (status === 'SUBSCRIBED') {
-            console.log('✅ MarkVision Core: Realtime Active (Leads Channel)');
-            setIsConnected(true);
-            if (reconnectTimeout) {
-              clearTimeout(reconnectTimeout);
-              reconnectTimeout = null;
-            }
-          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            console.log('❌ Realtime: соединение потеряно, переподключение через 3 сек...');
-            setIsConnected(false);
-            // Auto-reconnect после 3 секунд
-            if (!reconnectTimeout) {
-              reconnectTimeout = setTimeout(() => {
-                console.log('🔄 Realtime: попытка переподключения...');
-                if (channel) {
-                  supabase.removeChannel(channel);
-                }
-                setupChannel();
-              }, 3000);
-            }
-          }
-        });
-    };
+        }
+      )
+      .subscribe((status) => {
+        console.log('🔌 Realtime Status:', status);
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        } else {
+          setIsConnected(false);
+        }
+      });
 
-    setupChannel();
-
-    // Fallback: обновлять данные каждые 30 секунд если WebSocket не работает
-    fallbackInterval = setInterval(() => {
-      if (!isConnected) {
-        console.log('🔄 Fallback refresh: загрузка данных по таймеру');
-        onRefetch();
-      }
-    }, 30000);
+    // Резервное обновление раз в 30 секунд (если Realtime упадет)
+    const fallback = setInterval(() => onRefetch(), 30000);
 
     return () => {
-      if (reconnectTimeout) {
-        clearTimeout(reconnectTimeout);
-      }
-      if (fallbackInterval) {
-        clearInterval(fallbackInterval);
-      }
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
+      clearInterval(fallback);
     };
-  }, [effectiveProjectId, onRefetch, isConnected]);
+  }, [effectiveProjectId, onRefetch, queryClient]);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    })
-  );
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
   const leadsByStatus = useMemo(() => {
     const grouped: Record<string, Lead[]> = {};
-    KANBAN_STATUSES.forEach(status => {
-      grouped[status.id] = [];
-    });
+    KANBAN_STATUSES.forEach(status => { grouped[status.id] = []; });
     
     leads.forEach(lead => {
-      const status = lead.status || 'new';
-      if (grouped[status]) {
-        grouped[status].push(lead);
-      } else {
-        grouped['new'].push(lead);
-      }
+      // Маппинг: если в базе 'Записан', кладем в колонку 'appointment'
+      const statusId = Object.keys(statusLabels).find(key => statusLabels[key] === lead.status) || 'new';
+      if (grouped[statusId]) grouped[statusId].push(lead);
     });
     
     return grouped;
   }, [leads]);
 
-  const activeLead = useMemo(() => {
-    if (!activeId) return null;
-    return leads.find(lead => lead.id === activeId) || null;
-  }, [activeId, leads]);
+  const activeLead = useMemo(() => leads.find(l => l.id === activeId) || null, [activeId, leads]);
 
   const handleDragStart = useCallback((event: DragStartEvent) => {
     if (selectionMode) return;
@@ -223,8 +153,7 @@ export const KanbanBoard = ({
   }, [selectionMode]);
 
   const handleDragOver = useCallback((event: DragOverEvent) => {
-    const { over } = event;
-    setOverId(over?.id as string || null);
+    setOverId(event.over?.id as string || null);
   }, []);
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -235,137 +164,62 @@ export const KanbanBoard = ({
     if (!over || selectionMode) return;
 
     const leadId = active.id as string;
-    const newStatus = over.id as string;
+    const newStatusId = over.id as string;
+    const newStatusLabel = statusLabels[newStatusId];
     const lead = leads.find(l => l.id === leadId);
 
-    if (!lead || lead.status === newStatus) return;
+    if (!lead || lead.status === newStatusLabel) return;
 
     playDropSound();
-
-    if (newStatus === 'paid') {
+    if (newStatusId === 'paid') {
       setPaymentLead(lead);
       return;
     }
 
-    await updateLeadStatus(leadId, newStatus);
+    await updateLeadStatus(leadId, newStatusLabel);
   };
 
-  const updateLeadStatus = async (leadId: string, status: string, amount?: number) => {
+  const updateLeadStatus = async (leadId: string, statusLabel: string, amount?: number) => {
     setIsUpdating(true);
     try {
-      const lead = leads.find(l => l.id === leadId);
-      const updateData: { status: string; updated_at: string; deal_amount?: number } = {
-        status,
-        updated_at: new Date().toISOString(),
-      };
-
-      if (amount !== undefined) {
-        updateData.deal_amount = amount;
-      }
-
       const { error } = await supabase
         .from('leads')
-        .update(updateData)
+        .update({ 
+          status: statusLabel, 
+          revenue: amount || undefined,
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', leadId);
 
       if (error) throw error;
-
-      // Auto-create income transaction when status changes to 'paid'
-      if (status === 'paid' && projectId) {
-        const incomeAmount = amount ?? lead?.deal_amount ?? 0;
-        if (incomeAmount > 0) {
-          const { error: transactionError } = await supabase
-            .from('transactions')
-            .insert([{
-              project_id: projectId,
-              type: 'income',
-              category: 'sales',
-              amount: incomeAmount,
-              description: `Оплата от ${lead?.name || 'клиента'}`,
-              lead_id: leadId,
-              currency: 'KZT',
-              transaction_date: new Date().toISOString(),
-            }]);
-
-          if (transactionError) {
-            console.error('Error creating income transaction:', transactionError);
-          } else {
-            console.log('Income transaction created for lead:', leadId);
-          }
-        }
-        playSuccessSound();
-      }
-
       toast.success('Статус обновлен');
       onRefetch();
     } catch (error) {
-      console.error('Error updating lead:', error);
-      toast.error('Ошибка обновления статуса');
+      toast.error('Ошибка сохранения');
     } finally {
       setIsUpdating(false);
     }
   };
 
-  const handlePaymentConfirm = async (amount: number) => {
-    if (!paymentLead) return;
-    await updateLeadStatus(paymentLead.id, 'paid', amount);
-    setPaymentLead(null);
-  };
-
-  const handleSelectAllInColumn = (statusId: string, selected: boolean) => {
-    const leadsInColumn = leadsByStatus[statusId] || [];
-    leadsInColumn.forEach(lead => {
-      onSelectLead?.(lead.id, selected);
-    });
-  };
-
   if (loading) {
     return (
-      <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 min-h-[500px] sm:min-h-[600px] -mx-2 px-2 sm:mx-0 sm:px-0">
-        {KANBAN_STATUSES.map((status, index) => (
-          <KanbanColumnSkeleton 
-            key={status.id} 
-            cardCount={index === 0 ? 4 : index < 3 ? 2 : 1} 
-          />
-        ))}
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {KANBAN_STATUSES.map(s => <KanbanColumnSkeleton key={s.id} />)}
       </div>
     );
   }
 
   return (
     <>
-      {/* Connection Status Indicator */}
       <div className="flex items-center justify-end mb-2">
-        <div 
-          className={cn(
-            "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
-            isConnected 
-              ? "bg-success/10 text-success" 
-              : "bg-destructive/10 text-destructive"
-          )}
-        >
-          {isConnected ? (
-            <>
-              <Wifi className="w-3 h-3" />
-              <span>Realtime</span>
-            </>
-          ) : (
-            <>
-              <WifiOff className="w-3 h-3 animate-pulse" />
-              <span>Переподключение...</span>
-            </>
-          )}
+        <div className={isConnected ? "text-success flex items-center gap-1 text-xs" : "text-destructive flex items-center gap-1 text-xs"}>
+          {isConnected ? <Wifi className="w-3 h-3" /> : <WifiOff className="w-3 h-3 animate-pulse" />}
+          <span>{isConnected ? "Realtime подключен" : "Переподключение (30с)..."}</span>
         </div>
       </div>
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
-        <div className="flex gap-2 sm:gap-4 overflow-x-auto pb-4 min-h-[500px] sm:min-h-[600px] -mx-2 px-2 sm:mx-0 sm:px-0">
+      <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
+        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
           {KANBAN_STATUSES.map(status => (
             <KanbanColumn
               key={status.id}
@@ -376,40 +230,20 @@ export const KanbanBoard = ({
               selectionMode={selectionMode}
               selectedLeads={selectedLeads}
               onSelectLead={onSelectLead}
-              onSelectAllInColumn={handleSelectAllInColumn}
-              animatingLeadId={animatingLeadId}
             />
           ))}
         </div>
-
-        <DragOverlay dropAnimation={null}>
-          {activeLead && (
-            <div className="cursor-grabbing rotate-2 scale-105">
-              <LeadCard lead={activeLead} isDragging />
-            </div>
-          )}
-        </DragOverlay>
+        <DragOverlay>{activeLead && <LeadCard lead={activeLead} isDragging />}</DragOverlay>
       </DndContext>
 
-      {isUpdating && (
-        <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
-        </div>
-      )}
-
       {selectedLead && (
-        <LeadFullPage
-          lead={selectedLead}
-          projectId={projectId}
-          onClose={() => setSelectedLead(null)}
-          onUpdate={onRefetch}
-        />
+        <LeadFullPage lead={selectedLead} projectId={effectiveProjectId} onClose={() => setSelectedLead(null)} onUpdate={onRefetch} />
       )}
 
       <PaymentDialog
         open={!!paymentLead}
         onClose={() => setPaymentLead(null)}
-        onConfirm={handlePaymentConfirm}
+        onConfirm={(amt) => updateLeadStatus(paymentLead!.id, 'Оплачено', amt)}
         leadName={paymentLead?.name || 'Клиент'}
       />
     </>
