@@ -1,25 +1,11 @@
-import { createClient } from '@supabase/supabase-js';
+// Этот файл больше не создает свой клиент, чтобы не было конфликтов
+import { supabase } from '../integrations/supabase/client';
+export { supabase };
 
-const SUPABASE_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    storage: window.localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  }
-});
-
+// Функция проверки для совместимости
 export const checkConnection = async () => {
   try {
-    const { data, error } = await supabase.from('projects').select('count').limit(1);
+    const { data, error } = await supabase.from('leads').select('count').limit(1);
     if (error) throw error;
     return { ok: true };
   } catch (e: any) {
@@ -27,12 +13,7 @@ export const checkConnection = async () => {
   }
 };
 
-// ВОТ ЭТА ФУНКЦИЯ БЫЛА НУЖНА ДЛЯ ОШИБКИ 404
 export const clearAuthData = () => {
   localStorage.clear();
-  if (import.meta.env.DEV) {
-    console.log('🧹 Данные очищены');
-  }
+  console.log('🧹 Сессия очищена');
 };
-
-export { SUPABASE_URL };
