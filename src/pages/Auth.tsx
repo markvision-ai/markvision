@@ -287,8 +287,9 @@ export default function Auth() {
           <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center mb-4">
             <BarChart3 className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">AdMetrics</h1>
-          <p className="text-muted-foreground mt-1">Аналитика рекламы</p>
+          <h1 className="text-2xl font-bold">MarkVision AI</h1>
+          <p className="text-muted-foreground mt-1">  Умный маркетинг для клиник
+</p>
         </div>
 
         {/* Form Card */}
