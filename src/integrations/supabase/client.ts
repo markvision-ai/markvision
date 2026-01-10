@@ -1,37 +1,41 @@
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+import { createClient } from '@supabase/supabase-js';
+
+const SUPABASE_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
+
+export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
   auth: {
-    storage: window.localStorage,
     persistSession: true,
+    storage: window.localStorage,
   },
   realtime: {
     params: {
-      eventsPerSecond: 1, // Минимальная нагрузка
-    },
-    // Увеличиваем интервал проверки связи, чтобы не спамить
-    timeout: 60000, 
-  },
-  global: {
-    // Настройка задержки между попытками (в миллисекундах)
-    fetch: (url, options) => {
-      return fetch(url, options);
-    },
-  },
-});
-
-// Настройка канала с ручным управлением повторами
-const channel = supabase.channel('leads-channel', {
-  config: {
-    broadcast: { self: false },
-    presence: { key: 'crm' },
+      eventsPerSecond: 2,
+    }
   }
 });
 
-// Если соединение закрыто, ждем 30 секунд перед следующей попыткой
+// ЛОГИКА УМНОГО ПЕРЕПОДКЛЮЧЕНИЯ (30 СЕКУНД)
+const channel = supabase.channel('leads-realtime');
+
 channel.subscribe((status) => {
-  if (status === 'CLOSED') {
-    console.log('⚠️ Реальное время: связь закрыта. Ждем 30 сек...');
+  if (status === 'SUBSCRIBED') {
+    console.log('✅ Realtime: ПОДКЛЮЧЕНО. Ждем изменений...');
+  }
+  if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+    console.warn('⚠️ Realtime: Связь потеряна. Следующая попытка через 30 секунд...');
+    // Отключаем старый канал и пробуем через 30 сек
+    supabase.removeChannel(channel);
     setTimeout(() => {
-      channel.subscribe();
-    }, 30000); 
+      window.location.reload(); // Самый надежный способ "встряхнуть" Realtime на Vercel
+    }, 30000);
   }
 });
+
+export const createLeadSimple = async (leadData: any) => {
+  const { data, error } = await supabase.from('leads').insert([{
+    ...leadData,
+    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa' // Всегда шлем правильный ID
+  }]);
+  return { data, error };
+};
