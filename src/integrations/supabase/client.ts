@@ -1,41 +1,26 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = "https://pyscczcuersdjvpmkiec.supabase.co";
-const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
+const url = "https://pyscczcuersdjvpmkiec.supabase.co";
+const key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k";
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+export const supabase = createClient(url, key, {
   auth: {
-    persistSession: true,
     storage: window.localStorage,
+    persistSession: true,
   },
   realtime: {
     params: {
-      eventsPerSecond: 2,
+      eventsPerSecond: 2, // Снижаем нагрузку
     }
   }
 });
 
-// ЛОГИКА УМНОГО ПЕРЕПОДКЛЮЧЕНИЯ (30 СЕКУНД)
-const channel = supabase.channel('leads-realtime');
-
+// Умная подписка: если ошибка — ждем 30 секунд
+const channel = supabase.channel('leads-all');
 channel.subscribe((status) => {
-  if (status === 'SUBSCRIBED') {
-    console.log('✅ Realtime: ПОДКЛЮЧЕНО. Ждем изменений...');
-  }
-  if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-    console.warn('⚠️ Realtime: Связь потеряна. Следующая попытка через 30 секунд...');
-    // Отключаем старый канал и пробуем через 30 сек
-    supabase.removeChannel(channel);
-    setTimeout(() => {
-      window.location.reload(); // Самый надежный способ "встряхнуть" Realtime на Vercel
-    }, 30000);
+  if (status === 'SUBSCRIBED') console.log('✅ Realtime: Connected');
+  if (status === 'CLOSED') {
+    console.log('⚠️ Realtime: Connection lost. Retrying in 30s...');
+    setTimeout(() => channel.subscribe(), 30000);
   }
 });
-
-export const createLeadSimple = async (leadData: any) => {
-  const { data, error } = await supabase.from('leads').insert([{
-    ...leadData,
-    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa' // Всегда шлем правильный ID
-  }]);
-  return { data, error };
-};
