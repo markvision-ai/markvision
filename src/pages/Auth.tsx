@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { BarChart3, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase, checkConnection, clearAuthData } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
@@ -40,15 +40,19 @@ export default function Auth() {
   useEffect(() => {
     const verifyConnection = async () => {
       setCheckingConnection(true);
-      // Очищаем старые токены перед проверкой
-      clearAuthData();
       
-      const result = await checkConnection();
-      if (!result.ok) {
-        setConnectionError(result.error || 'Ошибка подключения к базе данных');
-      } else {
-        setConnectionError(null);
+      try {
+        // Простая проверка подключения
+        const { error } = await supabase.from('projects').select('count').limit(1);
+        if (error) {
+          setConnectionError(error.message);
+        } else {
+          setConnectionError(null);
+        }
+      } catch (e: any) {
+        setConnectionError(e.message || 'Ошибка подключения к базе данных');
       }
+      
       setCheckingConnection(false);
     };
     

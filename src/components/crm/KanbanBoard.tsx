@@ -16,7 +16,7 @@ import { LeadCard } from './LeadCard';
 import { LeadFullPage } from './LeadFullPage';
 import { PaymentDialog } from './PaymentDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
 import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
@@ -139,7 +139,7 @@ export const KanbanBoard = ({
           console.log('📡 Realtime статус:', status);
           
           if (status === 'SUBSCRIBED') {
-            console.log('✅ Realtime: SUBSCRIBED успешно');
+            console.log('✅ MarkVision Core: Realtime Active (Leads Channel)');
             setIsConnected(true);
             if (reconnectTimeout) {
               clearTimeout(reconnectTimeout);

@@ -3,7 +3,7 @@ import { Lead, useLeads } from '@/hooks/useLeads';
 import { useLeadTouchpoints } from '@/hooks/useLeadTouchpoints';
 import { useAuth } from '@/hooks/useAuth';
 import { logStatusChange } from '@/hooks/useLeadStatusHistory';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 

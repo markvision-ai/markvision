@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/externalSupabase';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval } from 'date-fns';
+import { supabase } from '@/integrations/supabase/client';
+import { format, startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import { validateFieldValue, logError } from '@/lib/validation';
 import { useAuth } from './useAuth';
