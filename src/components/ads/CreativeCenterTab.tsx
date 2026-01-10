@@ -20,7 +20,7 @@ import {
   Check
 } from 'lucide-react';
 import { AdAsset, useAdAssets } from '@/hooks/useAdAssets';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface CreativeCenterTabProps {

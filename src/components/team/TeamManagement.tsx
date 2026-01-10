@@ -49,7 +49,7 @@ import { toast } from 'sonner';
 import { useTeamMembers, TeamMember } from '@/hooks/useTeamMembers';
 import { useAuth } from '@/hooks/useAuth';
 import { useManagePermissions, UserPermissions } from '@/hooks/usePermissions';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Project {
   id: string;

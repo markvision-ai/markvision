@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
-import { ru } from 'date-fns/locale';
 import { 
   DollarSign, 
   Eye, 
@@ -85,23 +85,47 @@ const formatNumber = (value: number): string => {
 };
 
 export const AnalyticsPlatform = () => {
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const location = useLocation();
+  const navigate = useNavigate();
+  
+  // Синхронизация activeTab с URL
+  const getTabFromPath = (pathname: string): string => {
+    const path = pathname.replace('/', '');
+    if (!path || path === 'dashboard') return 'dashboard';
+    return path;
+  };
+  
+  const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const isMobile = useIsMobile();
   const { profile, user } = useAuth();
+  
+  // Обновляем URL при смене вкладки
+  const handleTabChange = useCallback((tab: string) => {
+    setActiveTab(tab);
+    const path = tab === 'dashboard' ? '/' : `/${tab}`;
+    navigate(path, { replace: true });
+  }, [navigate]);
+  
+  // При изменении URL (например F5 или история браузера) - обновляем вкладку
+  useEffect(() => {
+    const newTab = getTabFromPath(location.pathname);
+    if (newTab !== activeTab) {
+      setActiveTab(newTab);
+    }
+  }, [location.pathname]);
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
 
   // Debug: выводим информацию о текущем проекте
   useEffect(() => {
-    if (import.meta.env.DEV) {
-      console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
-      console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
-      console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
-      console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
-    }
+    console.log('✅ MarkVision Core: Realtime Active');
+    console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
+    console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
+    console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
+    console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
   }, [currentProjectId, currentProject, user, projects]);
 
   const handleRefresh = useCallback(async () => {
@@ -483,7 +507,7 @@ export const AnalyticsPlatform = () => {
       
       <Sidebar 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         currentProject={currentProjectId || undefined}
         projects={projectsList}
         onProjectChange={setCurrentProjectId}
@@ -516,7 +540,7 @@ export const AnalyticsPlatform = () => {
       {/* Mobile Bottom Navigation */}
       <MobileBottomNav 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
         onMoreClick={() => setIsMobileSidebarOpen(true)}
       />
     </div>

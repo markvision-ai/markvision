@@ -32,7 +32,7 @@ import {
   Award,
   Download
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Staff {

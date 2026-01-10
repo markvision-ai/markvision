@@ -13,7 +13,7 @@ import {
   WifiOff,
   Wifi
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';

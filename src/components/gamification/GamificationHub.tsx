@@ -18,7 +18,7 @@ import {
   Gift,
   Users
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface Staff {
   id: string;

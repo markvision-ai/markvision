@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface ChatMessage {
   id: string;
