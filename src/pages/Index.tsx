@@ -1,101 +1,78 @@
-import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/hooks/useAuth';
-import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import AnalyticsPlatform from '@/components/AnalyticsPlatform';
-import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import { playSuccessSound } from '@/lib/sounds';
-
-const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+import { useState, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AppSidebar } from "@/components/AppSidebar";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
+import { CRMPage } from "@/components/crm/CRMPage";
+import { IntegrationsManagement } from "@/components/integrations/IntegrationsManagement";
+import MainDashboard from "@/components/dashboard/MainDashboard";
+import { RealtimeMonitor } from "@/components/dashboard/RealtimeMonitor";
+import { DataTable } from "@/components/dashboard/DataTable";
+import { Loader2 } from "lucide-react";
 
 const Index = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
+  const location = useLocation();
+  const [activeTab, setActiveTab] = useState("dashboard");
 
-  // Глобальная подписка на Realtime — ОДНА на всё приложение
+  // 1. ЛОГИКА ЗАЩИТЫ ОТ ВЫЛЕТА (OAuth Guard)
   useEffect(() => {
-    console.log('✅ MarkVision Core: Initializing global realtime subscription...');
+    const hasOAuthParams = window.location.hash.includes('access_token') || 
+                          window.location.search.includes('code=');
 
-    const channel = supabase
-      .channel('global-leads-channel')
-      .on(
-        'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'leads' 
-        },
-        (payload) => {
-          console.log('🔔 Realtime event:', payload.eventType, payload);
-          
-          const newData = payload.new as any;
-          const oldData = payload.old as any;
-          
-          // Проверяем project_id
-          const projectId = newData?.project_id || oldData?.project_id;
-          
-          // Инвалидируем кеш React Query для мгновенного обновления UI
-          queryClient.invalidateQueries({ queryKey: ['leads'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-          
-          // Если статус изменился на "Записан" - уведомление + звук
-          if (payload.eventType === 'UPDATE' && newData?.status === 'Записан' && oldData?.status !== 'Записан') {
-            playSuccessSound();
-            toast.success(`🩺 Клиент ${newData.name || ''} записан на приём!`, {
-              duration: 5000,
-            });
-          }
-          
-          // Если новый лид создан
-          if (payload.eventType === 'INSERT') {
-            toast.info(`📥 Новый лид: ${newData?.name || 'Без имени'}`, {
-              duration: 3000,
-            });
-          }
-        }
-      )
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') {
-          console.log('✅ MarkVision Core: Realtime Active');
-        } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-          console.warn('⚠️ Realtime disconnected, will retry...');
-        }
-      });
-
-    // Fallback: обновление каждые 30 секунд если WebSocket не работает
-    const fallbackInterval = setInterval(() => {
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-    }, 30000);
-
-    return () => {
-      supabase.removeChannel(channel);
-      clearInterval(fallbackInterval);
-    };
-  }, [queryClient]);
-
-  useEffect(() => {
-    if (!loading && !user) {
-      navigate('/auth');
+    if (hasOAuthParams) {
+      console.log("⏳ MarkVision: Захват сессии... Ждем завершения входа.");
+      return;
     }
-  }, [user, loading, navigate]);
 
-  if (loading) {
+    if (!authLoading && !user) {
+      navigate("/auth");
+    }
+  }, [user, authLoading, navigate]);
+
+  // 2. СИНХРОНИЗАЦИЯ ВКЛАДОК С URL
+  useEffect(() => {
+    const path = location.pathname.split('/')[1];
+    if (path && ["dashboard", "crm", "integrations", "table", "realtime"].includes(path)) {
+      setActiveTab(path);
+    }
+  }, [location]);
+
+  if (authLoading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="h-screen w-full flex items-center justify-center bg-[#0B0E14]">
+        <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
       </div>
     );
   }
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
 
-  return <AnalyticsPlatform />;
+  return (
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full bg-background overflow-hidden">
+        <AppSidebar activeTab={activeTab} onTabChange={(tab) => {
+          setActiveTab(tab);
+          navigate(`/${tab}`);
+        }} />
+        <main className="flex-1 flex flex-col min-w-0 h-screen relative overflow-y-auto overflow-x-hidden">
+          <DashboardHeader activeTab={activeTab} />
+          <div className="flex-1 p-4 md:p-6 pb-20">
+            <Tabs value={activeTab} className="w-full h-full border-none bg-transparent">
+              <TabsContent value="dashboard" className="m-0 border-none"><MainDashboard /></TabsContent>
+              <TabsContent value="crm" className="m-0 border-none"><CRMPage /></TabsContent>
+              <TabsContent value="integrations" className="m-0 border-none"><IntegrationsManagement /></TabsContent>
+              <TabsContent value="table" className="m-0 border-none"><DataTable /></TabsContent>
+              <TabsContent value="realtime" className="m-0 border-none"><RealtimeMonitor /></TabsContent>
+            </Tabs>
+          </div>
+        </main>
+      </div>
+    </SidebarProvider>
+  );
 };
 
 export default Index;
