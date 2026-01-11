@@ -4,49 +4,58 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AnalyticsPlatform from '@/components/AnalyticsPlatform';
-import { Loader2, AlertTriangle } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
-import { playSuccessSound } from '@/lib/sounds';
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const queryClient = useQueryClient();
+  const currentProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
+  // ГЛОБАЛЬНЫЙ ЗАХВАТ ТОКЕНОВ ИЗ ОПЛАТЫ И ОАUTH
   useEffect(() => {
-    const channel = supabase
-      .channel('global-leads-channel')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['leads'] });
-          queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
-          if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'Записан') {
-            playSuccessSound();
-            toast.success(`🩺 Клиент ${(payload.new as any).name || ''} записан на приём!`);
-          }
-      })
-      .subscribe();
+    const handleSessionCapture = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      // Если есть токен провайдера (Facebook/Google)
+      if (session?.provider_token) {
+        console.log("💎 MarkVision: Обнаружен токен Meta. Сохраняю...");
+        
+        const { error } = await supabase.from('integrations').upsert({
+          project_id: currentProjectId,
+          platform: 'facebook',
+          access_token: session.provider_token,
+          status: 'active',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'project_id,platform' });
 
-    return () => { supabase.removeChannel(channel); };
+        if (!error) {
+          toast.success("Интеграция с Meta успешно активирована!");
+          queryClient.invalidateQueries({ queryKey: ['integrations'] });
+        }
+      }
+    };
+
+    handleSessionCapture();
+
+    // Слушаем изменения авторизации
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session?.provider_token) {
+        handleSessionCapture();
+      }
+    });
+
+    return () => authListener.subscription.unsubscribe();
   }, [queryClient]);
 
-  // ОБРАБОТКА РЕДИРЕКТА И ОШИБОК OAUTH
+  // Защита роутов
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const errorDescription = params.get('error_description');
-    
-    if (errorDescription) {
-      toast.error("Ошибка Meta: " + errorDescription);
-      // Очищаем URL от ошибок и возвращаемся в интеграции
-      navigate('/integrations', { replace: true });
-      return;
-    }
-
-    const isOAuthReturn = window.location.hash.includes('access_token') || window.location.search.includes('code=');
-    if (!loading && !user && !isOAuthReturn) {
+    const isOAuth = window.location.hash.includes('access_token') || window.location.search.includes('code=');
+    if (!loading && !user && !isOAuth) {
       navigate('/auth');
     }
-  }, [user, loading, navigate, location]);
+  }, [user, loading, navigate]);
 
   if (loading) {
     return (
@@ -55,20 +64,6 @@ const Index = () => {
       </div>
     );
   }
-
-  const isWaitingOAuth = window.location.hash.includes('access_token') || window.location.search.includes('code=');
-
-  if (!user && isWaitingOAuth) {
-    return (
-      <div className="min-h-screen bg-[#0B0E14] flex flex-col items-center justify-center text-white p-4 text-center">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-500 mb-6" />
-        <h2 className="text-xl font-bold mb-2">Связываем аккаунты MarkVision и Meta...</h2>
-        <p className="text-gray-400 max-w-sm">Это может занять несколько секунд. Пожалуйста, не закрывайте вкладку.</p>
-      </div>
-    );
-  }
-
-  if (!user) return null;
 
   return <AnalyticsPlatform />;
 };
