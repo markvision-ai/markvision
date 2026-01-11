@@ -1,17 +1,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from 'react';
-import { 
-  Facebook, CheckCircle, Loader2, Link2, Unlink, RefreshCw, Settings, MessageCircle 
-} from 'lucide-react';
+import { Facebook, CheckCircle, Loader2, Link2, Unlink, RefreshCw, Settings, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useAuth } from '@/hooks/useAuth';
 
-// Иконки SVG
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
 );
@@ -43,12 +39,8 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
 
   useEffect(() => {
     fetchStatuses();
-
-    // ЗАХВАТ ТОКЕНА ПОСЛЕ РЕДИРЕКТА
-    const handleCapture = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.provider_token) {
-        console.log("💎 MarkVision: Захват токена Meta...");
         await supabase.from('integrations').upsert({
           project_id: currentProjectId,
           platform: 'facebook',
@@ -56,15 +48,11 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
           status: 'active',
           updated_at: new Date().toISOString()
         }, { onConflict: 'project_id,platform' });
-        
-        toast.success("Facebook Ads успешно подключен!");
         fetchStatuses();
-        // Очищаем URL от мусора (токенов)
         window.history.replaceState({}, document.title, window.location.pathname);
       }
-    };
-
-    handleCapture();
+    });
+    return () => authListener.subscription.unsubscribe();
   }, [fetchStatuses, currentProjectId]);
 
   const handleConnect = async (id: string) => {
@@ -72,7 +60,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: window.location.origin + '/crm', // Редирект на CRM для стабильности
+          redirectTo: window.location.origin + '/crm',
           scopes: 'ads_read,ads_management,instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_read_engagement,pages_show_list',
         },
       });
@@ -88,13 +76,13 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
     toast.success("Интеграция отключена");
   };
 
-  if (loading) return <div className="flex justify-center p-20 text-white"><Loader2 className="animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-white" /></div>;
 
   return (
     <div className="p-6 space-y-6 text-white bg-[#0B0E14] min-h-screen">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-white">Центр интеграций</h2>
-        <Button variant="outline" size="sm" onClick={fetchStatuses} className="text-white border-white/20"><RefreshCw className="w-4 h-4 mr-2" /> Обновить</Button>
+        <h2 className="text-2xl font-bold">Центр интеграций</h2>
+        <Button variant="outline" size="sm" onClick={fetchStatuses} className="border-white/10 text-white"><RefreshCw className="w-4 h-4 mr-2" /> Обновить</Button>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -103,7 +91,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
             <CardHeader className="pb-4">
               <div className="flex justify-between items-start">
                 <div className={`p-3 rounded-xl ${item.color} text-white shadow-md`}>{item.icon}</div>
-                <Badge variant={statuses[item.id] === 'active' ? "default" : "secondary"} className={statuses[item.id] === 'active' ? "bg-green-500/20 text-green-500" : ""}>
+                <Badge variant={statuses[item.id] === 'active' ? "default" : "secondary"}>
                   {statuses[item.id] === 'active' ? 'Активно' : 'Не активно'}
                 </Badge>
               </div>
@@ -113,7 +101,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
             <CardContent>
               {statuses[item.id] === 'active' ? (
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1 border-[#1E2533]" size="sm"><Settings className="w-4 h-4 mr-2" /> Настроить</Button>
+                  <Button variant="outline" className="flex-1 border-[#1E2533] text-white" size="sm"><Settings className="w-4 h-4 mr-2" /> Настроить</Button>
                   <Button variant="ghost" size="icon" onClick={() => handleDisconnect(item.id)}><Unlink className="w-4 h-4 text-red-500" /></Button>
                 </div>
               ) : (
@@ -126,9 +114,11 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
         ))}
       </div>
       
-      {/* Исправление ошибки DialogTitle в консоли */}
-      <Dialog open={false} onOpenChange={() => {}}>
-        <DialogContent><DialogTitle className="sr-only">Hidden</DialogTitle></DialogContent>
+      {/* ПУСТОЙ ДИАЛОГ ДЛЯ УДАЛЕНИЯ ОШИБКИ В КОНСОЛИ */}
+      <Dialog open={false}>
+        <DialogContent>
+          <DialogTitle className="sr-only">Hidden Title</DialogTitle>
+        </DialogContent>
       </Dialog>
     </div>
   );
