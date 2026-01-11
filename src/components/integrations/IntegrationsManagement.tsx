@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { useState } from 'react';
 import { 
   Plug, 
@@ -37,7 +39,6 @@ import {
   TabsList,
   TabsTrigger,
 } from '@/components/ui/tabs';
-import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 
 // Icons for integrations
@@ -74,7 +75,6 @@ interface Integration {
   description: string;
   icon: React.ReactNode;
   color: string;
-  status: 'connected' | 'disconnected' | 'error';
   features: string[];
   configFields: { key: string; label: string; type: 'text' | 'password'; placeholder: string }[];
 }
@@ -86,7 +86,6 @@ const integrations: Integration[] = [
     description: 'Импорт данных о рекламных кампаниях, расходах и конверсиях',
     icon: <Facebook className="w-6 h-6" />,
     color: 'bg-blue-500',
-    status: 'disconnected',
     features: [
       'Автоматический импорт расходов',
       'Синхронизация конверсий',
@@ -104,7 +103,6 @@ const integrations: Integration[] = [
     description: 'Интеграция с TikTok Ads Manager для аналитики рекламы',
     icon: <TikTokIcon />,
     color: 'bg-black',
-    status: 'disconnected',
     features: [
       'Импорт данных по расходам',
       'Статистика по видео',
@@ -122,7 +120,6 @@ const integrations: Integration[] = [
     description: 'Синхронизация данных из Google Ads и Analytics',
     icon: <GoogleIcon />,
     color: 'bg-white border',
-    status: 'disconnected',
     features: [
       'Импорт данных из Google Ads',
       'Интеграция с Google Analytics',
@@ -141,7 +138,6 @@ const integrations: Integration[] = [
     description: 'Автоматизация workflows и интеграция с любыми сервисами',
     icon: <N8nIcon />,
     color: 'bg-orange-500',
-    status: 'disconnected',
     features: [
       'Кастомные автоматизации',
       'Интеграция с 400+ сервисами',
@@ -159,7 +155,6 @@ const integrations: Integration[] = [
     description: 'Интеграция с WhatsApp для отправки сообщений и уведомлений',
     icon: <WhatsAppIcon />,
     color: 'bg-green-500',
-    status: 'disconnected',
     features: [
       'Отправка сообщений в WhatsApp',
       'Уведомления о новых лидах',
@@ -173,11 +168,7 @@ const integrations: Integration[] = [
   }
 ];
 
-interface IntegrationsManagementProps {
-  projectId?: string;
-}
-
-export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProps) => {
+export const IntegrationsManagement = ({ projectId }: { projectId?: string }) => {
   const { isAdmin } = useAuth();
   const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -191,6 +182,25 @@ export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProp
     greenapi: 'disconnected'
   });
 
+  // Функция для подключения Facebook через Meta OAuth
+  const handleFBConnect = async () => {
+    try {
+      console.log("🚀 Запуск авторизации Meta...");
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'facebook',
+        options: {
+          redirectTo: window.location.origin + '/integrations',
+          scopes: 'ads_read,ads_management,business_management,instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_read_engagement,pages_show_list',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error: any) {
+      console.error('❌ Ошибка Meta Auth:', error.message);
+      toast.error('Ошибка подключения: ' + error.message);
+    }
+  };
+
   const handleConfigOpen = (integration: Integration) => {
     setSelectedIntegration(integration);
     setConfigValues({});
@@ -199,92 +209,112 @@ export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProp
 
   const handleConnect = async () => {
     if (!selectedIntegration) return;
-    
     setIsSaving(true);
-    
-    // Simulate API call
     await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIntegrationStatuses(prev => ({
-      ...prev,
-      [selectedIntegration.id]: 'connected'
-    }));
-    
+    setIntegrationStatuses(prev => ({ ...prev, [selectedIntegration.id]: 'connected' }));
     setIsSaving(false);
     setIsConfigOpen(false);
     toast.success(`${selectedIntegration.name} успешно подключён`);
   };
 
   const handleDisconnect = async (integrationId: string) => {
-    setIntegrationStatuses(prev => ({
-      ...prev,
-      [integrationId]: 'disconnected'
-    }));
+    setIntegrationStatuses(prev => ({ ...prev, [integrationId]: 'disconnected' }));
     toast.success('Интеграция отключена');
   };
 
   const getStatusBadge = (status: 'connected' | 'disconnected' | 'error') => {
     switch (status) {
       case 'connected':
-        return (
-          <Badge className="bg-success/20 text-success border-success/30">
-            <CheckCircle className="w-3 h-3 mr-1" />
-            Подключено
-          </Badge>
-        );
+        return <Badge className="bg-success/20 text-success border-success/30"><CheckCircle className="w-3 h-3 mr-1" />Подключено</Badge>;
       case 'error':
-        return (
-          <Badge variant="destructive">
-            <XCircle className="w-3 h-3 mr-1" />
-            Ошибка
-          </Badge>
-        );
+        return <Badge variant="destructive"><XCircle className="w-3 h-3 mr-1" />Ошибка</Badge>;
       default:
-        return (
-          <Badge variant="secondary">
-            Не подключено
-          </Badge>
-        );
+        return <Badge variant="secondary">Не подключено</Badge>;
     }
+  };
+
+  // Компонент отрисовки карточки, чтобы не дублировать логику кнопок
+  const IntegrationCard = ({ integration }: { integration: Integration }) => {
+    const status = integrationStatuses[integration.id];
+    return (
+      <Card className="overflow-hidden">
+        <CardHeader className="pb-3">
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`w-12 h-12 rounded-xl ${integration.color} flex items-center justify-center text-white`}>
+                {integration.icon}
+              </div>
+              <div>
+                <CardTitle className="text-lg">{integration.name}</CardTitle>
+                <CardDescription className="text-xs mt-0.5">{integration.description}</CardDescription>
+              </div>
+            </div>
+            {getStatusBadge(status)}
+          </div>
+        </CardHeader>
+        <CardContent className="pt-0">
+          <div className="space-y-3">
+            <div className="text-sm">
+              <p className="font-medium mb-2">Возможности:</p>
+              <ul className="space-y-1">
+                {integration.features.slice(0, 3).map((feature, idx) => (
+                  <li key={idx} className="flex items-center gap-2 text-muted-foreground text-xs">
+                    <CheckCircle className="w-3 h-3 text-success flex-shrink-0" />
+                    {feature}
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <div className="flex gap-2 pt-2">
+              {status === 'connected' ? (
+                <>
+                  <Button variant="outline" size="sm" className="flex-1">
+                    <Settings className="w-4 h-4 mr-2" /> Настроить
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => handleDisconnect(integration.id)}>
+                    <Unlink className="w-4 h-4" />
+                  </Button>
+                </>
+              ) : (
+                <Button 
+                  size="sm" 
+                  className="flex-1"
+                  onClick={() => integration.id === 'facebook' ? handleFBConnect() : handleConfigOpen(integration)}
+                  disabled={!isAdmin}
+                >
+                  <Link2 className="w-4 h-4 mr-2" /> Подключить
+                </Button>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h2 className="text-xl font-semibold">Интеграции</h2>
-        <p className="text-sm text-muted-foreground mt-1">
-          Подключите рекламные платформы для автоматического импорта данных
-        </p>
+        <p className="text-sm text-muted-foreground mt-1">Подключите рекламные платформы для автоматического импорта данных</p>
       </div>
 
-      {/* Status Overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {integrations.map(integration => {
-          const status = integrationStatuses[integration.id];
-          return (
-            <Card key={integration.id} className={status === 'connected' ? 'border-success/50' : ''}>
-              <CardContent className="p-4 flex items-center gap-3">
-                <div className={`w-10 h-10 rounded-lg ${integration.color} flex items-center justify-center text-white`}>
-                  {integration.icon}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{integration.name}</p>
-                  <div className="mt-1">
-                    {status === 'connected' ? (
-                      <span className="text-xs text-success">Активно</span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">Не активно</span>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+        {integrations.map(integration => (
+          <Card key={integration.id} className={integrationStatuses[integration.id] === 'connected' ? 'border-success/50' : ''}>
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className={`w-10 h-10 rounded-lg ${integration.color} flex items-center justify-center text-white`}>{integration.icon}</div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{integration.name}</p>
+                <span className={`text-xs ${integrationStatuses[integration.id] === 'connected' ? 'text-success' : 'text-muted-foreground'}`}>
+                  {integrationStatuses[integration.id] === 'connected' ? 'Активно' : 'Не активно'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
-      {/* Integration Cards */}
       <Tabs defaultValue="all" className="w-full">
         <TabsList>
           <TabsTrigger value="all">Все</TabsTrigger>
@@ -295,289 +325,39 @@ export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProp
         
         <TabsContent value="all" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {integrations.map(integration => {
-              const status = integrationStatuses[integration.id];
-              return (
-                <Card key={integration.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl ${integration.color} flex items-center justify-center text-white`}>
-                          {integration.icon}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <CardDescription className="text-xs mt-0.5">
-                            {integration.description}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {getStatusBadge(status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="text-sm">
-                        <p className="font-medium mb-2">Возможности:</p>
-                        <ul className="space-y-1">
-                          {integration.features.slice(0, 3).map((feature, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-muted-foreground text-xs">
-                              <CheckCircle className="w-3 h-3 text-success flex-shrink-0" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div className="flex gap-2 pt-2">
-                        {status === 'connected' ? (
-                          <>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              <Settings className="w-4 h-4 mr-2" />
-                              Настроить
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDisconnect(integration.id)}
-                            >
-                              <Unlink className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => handleConfigOpen(integration)}
-                            disabled={!isAdmin}
-                          >
-                            <Link2 className="w-4 h-4 mr-2" />
-                            Подключить
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {integrations.map(i => <IntegrationCard key={i.id} integration={i} />)}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="ads" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {integrations.filter(i => ['facebook', 'tiktok', 'google'].includes(i.id)).map(integration => {
-              const status = integrationStatuses[integration.id];
-              return (
-                <Card key={integration.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl ${integration.color} flex items-center justify-center text-white`}>
-                          {integration.icon}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <CardDescription className="text-xs mt-0.5">
-                            {integration.description}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {getStatusBadge(status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="flex gap-2 pt-2">
-                      {status === 'connected' ? (
-                        <>
-                          <Button variant="outline" size="sm" className="flex-1">
-                            <Settings className="w-4 h-4 mr-2" />
-                            Настроить
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm"
-                            onClick={() => handleDisconnect(integration.id)}
-                          >
-                            <Unlink className="w-4 h-4" />
-                          </Button>
-                        </>
-                      ) : (
-                        <Button 
-                          size="sm" 
-                          className="flex-1"
-                          onClick={() => handleConfigOpen(integration)}
-                          disabled={!isAdmin}
-                        >
-                          <Link2 className="w-4 h-4 mr-2" />
-                          Подключить
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {integrations.filter(i => ['facebook', 'tiktok', 'google'].includes(i.id)).map(i => <IntegrationCard key={i.id} integration={i} />)}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="messengers" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {integrations.filter(i => i.id === 'greenapi').map(integration => {
-              const status = integrationStatuses[integration.id];
-              return (
-                <Card key={integration.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl ${integration.color} flex items-center justify-center text-white`}>
-                          {integration.icon}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <CardDescription className="text-xs mt-0.5">
-                            {integration.description}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {getStatusBadge(status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="text-sm">
-                        <ul className="space-y-1">
-                          {integration.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-muted-foreground text-xs">
-                              <CheckCircle className="w-3 h-3 text-success flex-shrink-0" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div className="flex gap-2 pt-2">
-                        {status === 'connected' ? (
-                          <>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              <Settings className="w-4 h-4 mr-2" />
-                              Настроить
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDisconnect(integration.id)}
-                            >
-                              <Unlink className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => handleConfigOpen(integration)}
-                            disabled={!isAdmin}
-                          >
-                            <Link2 className="w-4 h-4 mr-2" />
-                            Подключить
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {integrations.filter(i => i.id === 'greenapi').map(i => <IntegrationCard key={i.id} integration={i} />)}
           </div>
         </TabsContent>
-        
+
         <TabsContent value="automation" className="mt-4">
           <div className="grid gap-4 md:grid-cols-2">
-            {integrations.filter(i => i.id === 'n8n').map(integration => {
-              const status = integrationStatuses[integration.id];
-              return (
-                <Card key={integration.id} className="overflow-hidden">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={`w-12 h-12 rounded-xl ${integration.color} flex items-center justify-center text-white`}>
-                          {integration.icon}
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">{integration.name}</CardTitle>
-                          <CardDescription className="text-xs mt-0.5">
-                            {integration.description}
-                          </CardDescription>
-                        </div>
-                      </div>
-                      {getStatusBadge(status)}
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      <div className="text-sm">
-                        <ul className="space-y-1">
-                          {integration.features.map((feature, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-muted-foreground text-xs">
-                              <CheckCircle className="w-3 h-3 text-success flex-shrink-0" />
-                              {feature}
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                      
-                      <div className="flex gap-2 pt-2">
-                        {status === 'connected' ? (
-                          <>
-                            <Button variant="outline" size="sm" className="flex-1">
-                              <Settings className="w-4 h-4 mr-2" />
-                              Настроить
-                            </Button>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDisconnect(integration.id)}
-                            >
-                              <Unlink className="w-4 h-4" />
-                            </Button>
-                          </>
-                        ) : (
-                          <Button 
-                            size="sm" 
-                            className="flex-1"
-                            onClick={() => handleConfigOpen(integration)}
-                            disabled={!isAdmin}
-                          >
-                            <Link2 className="w-4 h-4 mr-2" />
-                            Подключить
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
+            {integrations.filter(i => i.id === 'n8n').map(i => <IntegrationCard key={i.id} integration={i} />)}
           </div>
         </TabsContent>
       </Tabs>
 
-      {/* Info Card */}
       <Card className="bg-primary/5 border-primary/20">
         <CardContent className="p-4 flex items-start gap-3">
           <AlertTriangle className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-medium">Как это работает?</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              После подключения интеграции данные о расходах и конверсиях будут автоматически 
-              импортироваться в вашу аналитику. Вы сможете видеть полную картину эффективности 
-              рекламы в одном месте.
-            </p>
+            <p className="text-xs text-muted-foreground mt-1">Данные импортируются автоматически после подключения.</p>
           </div>
         </CardContent>
       </Card>
 
-      {/* Configuration Dialog */}
       <Dialog open={isConfigOpen} onOpenChange={setIsConfigOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -589,11 +369,7 @@ export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProp
               )}
               Подключить {selectedIntegration?.name}
             </DialogTitle>
-            <DialogDescription>
-              Введите данные для подключения интеграции
-            </DialogDescription>
           </DialogHeader>
-          
           <div className="space-y-4 py-4">
             {selectedIntegration?.configFields.map(field => (
               <div key={field.key} className="space-y-2">
@@ -602,34 +378,15 @@ export const IntegrationsManagement = ({ projectId }: IntegrationsManagementProp
                   type={field.type}
                   placeholder={field.placeholder}
                   value={configValues[field.key] || ''}
-                  onChange={(e) => setConfigValues(prev => ({
-                    ...prev,
-                    [field.key]: e.target.value
-                  }))}
+                  onChange={(e) => setConfigValues(prev => ({ ...prev, [field.key]: e.target.value }))}
                 />
               </div>
             ))}
-            
-            <div className="bg-secondary/50 rounded-lg p-3">
-              <p className="text-xs text-muted-foreground">
-                <strong>Где найти эти данные?</strong><br />
-                Перейдите в настройки разработчика {selectedIntegration?.name} для получения 
-                токенов доступа и идентификаторов.
-              </p>
-            </div>
           </div>
-          
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsConfigOpen(false)}>
-              Отмена
-            </Button>
+            <Button variant="outline" onClick={() => setIsConfigOpen(false)}>Отмена</Button>
             <Button onClick={handleConnect} disabled={isSaving}>
-              {isSaving ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : (
-                <Link2 className="w-4 h-4 mr-2" />
-              )}
-              Подключить
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null} Сохранить
             </Button>
           </DialogFooter>
         </DialogContent>
