@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth"; // Правильный путь импорта
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/AppSidebar";
 import DashboardHeader from "@/components/dashboard/DashboardHeader";
@@ -18,14 +18,15 @@ const Index = () => {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState("dashboard");
 
-  // 1. ЛОГИКА ЗАЩИТЫ ОТ ВЫЛЕТА (OAuth Guard)
+  // 1. ЗАЩИТА ОТ ПАНИЧЕСКОГО РЕДИРЕКТА (OAuth Guard)
   useEffect(() => {
-    const hasOAuthParams = window.location.hash.includes('access_token') || 
-                          window.location.search.includes('code=');
+    // Если в URL есть токены от Facebook/Supabase, НЕ ПЕРЕНАПРАВЛЯЕМ
+    const isOAuthCallback = window.location.hash.includes('access_token') || 
+                            window.location.search.includes('code=');
 
-    if (hasOAuthParams) {
-      console.log("⏳ MarkVision: Захват сессии... Ждем завершения входа.");
-      return;
+    if (isOAuthCallback) {
+      console.log("⏳ MarkVision: Захват OAuth сессии...");
+      return; 
     }
 
     if (!authLoading && !user) {
