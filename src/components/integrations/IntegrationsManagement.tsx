@@ -60,13 +60,12 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: window.location.origin + '/crm',
-          scopes: 'ads_read,ads_management,instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_read_engagement,pages_show_list',
+          // Возвращаемся в CRM, глобальный скрипт сам все сохранит
+          redirectTo: window.location.origin + '/crm', 
+          scopes: 'email,public_profile,ads_read,ads_management,instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_read_engagement,pages_show_list',
         },
       });
       if (error) toast.error(error.message);
-    } else {
-      toast.info(`Настройка для ${id} будет доступна в следующем обновлении.`);
     }
   };
 
