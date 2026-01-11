@@ -3,7 +3,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -39,6 +39,29 @@ export const LeadCard = ({
         transition: undefined, // Remove transition during drag
       }
     : {};
+
+  // Lead scoring visualization based on extra_data.budget_tier or lead_score
+  const getScoreTier = () => {
+    const extraData = lead.extra_data as any;
+    const budgetTier = extraData?.budget_tier?.toUpperCase?.();
+    const leadScore = (lead as any).lead_score;
+    
+    if (budgetTier === 'MEGA' || leadScore >= 90) {
+      return { tier: 'MEGA', color: 'border-l-4 border-l-purple-500 bg-purple-500/5', icon: <Crown className="w-4 h-4 text-purple-500" />, emoji: '👑' };
+    }
+    if (budgetTier === 'HIGH' || leadScore >= 70) {
+      return { tier: 'HIGH', color: 'border-l-4 border-l-orange-500 bg-orange-500/5', icon: <Flame className="w-4 h-4 text-orange-500" />, emoji: '🔥' };
+    }
+    if (budgetTier === 'MEDIUM' || leadScore >= 40) {
+      return { tier: 'MEDIUM', color: 'border-l-4 border-l-blue-500 bg-blue-500/5', icon: <Zap className="w-4 h-4 text-blue-500" />, emoji: '⚡️' };
+    }
+    return { tier: null, color: '', icon: null, emoji: '' };
+  };
+
+  const scoreTier = getScoreTier();
+
+  // Extract clinic name from extra_data if available
+  const clinicName = (lead.extra_data as any)?.clinic_name || (lead.extra_data as any)?.clinicName || null;
 
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
@@ -111,10 +134,26 @@ export const LeadCard = ({
         !showDragging && 'transition-shadow duration-200 hover:shadow-md hover:border-primary/30',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
         showDragging && 'shadow-xl opacity-95 z-50',
-        isSelected && 'ring-2 ring-primary bg-primary/5'
+        isSelected && 'ring-2 ring-primary bg-primary/5',
+        scoreTier.color // Apply tier-based styling
       )}
       onClick={handleCardClick}
     >
+      {/* Score Tier Badge */}
+      {scoreTier.tier && (
+        <div className="flex items-center gap-1.5 mb-2 pl-0">
+          <span className="text-base">{scoreTier.emoji}</span>
+          <span className={cn(
+            "text-xs font-bold uppercase tracking-wide",
+            scoreTier.tier === 'MEGA' && 'text-purple-500',
+            scoreTier.tier === 'HIGH' && 'text-orange-500',
+            scoreTier.tier === 'MEDIUM' && 'text-blue-500'
+          )}>
+            {scoreTier.tier}
+          </span>
+        </div>
+      )}
+
       {/* Header: Name + Drag Handle */}
       <div className="flex items-start gap-2 mb-3">
         {selectionMode ? (
@@ -134,7 +173,13 @@ export const LeadCard = ({
           </div>
         )}
         <div className="flex-1 min-w-0">
-          <p className="font-semibold text-sm leading-tight truncate">
+          {/* Clinic name bold if available */}
+          {clinicName && (
+            <p className="font-bold text-sm leading-tight truncate text-primary mb-0.5">
+              {clinicName}
+            </p>
+          )}
+          <p className={cn("text-sm leading-tight truncate", clinicName ? "text-muted-foreground" : "font-semibold")}>
             {lead.name || 'Без имени'}
           </p>
         </div>

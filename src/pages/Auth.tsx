@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Activity, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -284,12 +284,11 @@ export default function Auth() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center mb-4">
-            <BarChart3 className="w-10 h-10 text-primary-foreground" />
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-purple-600 mx-auto flex items-center justify-center mb-4 shadow-lg">
+            <Activity className="w-10 h-10 text-primary-foreground" />
           </div>
-          <h1 className="text-2xl font-bold">MarkVision AI</h1>
-          <p className="text-muted-foreground mt-1">  Умный маркетинг для клиник
-</p>
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">MarkVision AI</h1>
+          <p className="text-muted-foreground mt-1">Умный маркетинг для клиник</p>
         </div>
 
         {/* Form Card */}

@@ -75,33 +75,21 @@ export const KanbanBoard = ({
 
   const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-  // REALTIME 2.1: Стабильная подписка без лишних хуков
+  // Realtime подписка вынесена в Index.tsx — здесь только UI состояние
+  // Статус подключения синхронизируется через глобальный канал
   useEffect(() => {
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'leads' },
-        (payload) => {
-          const data = payload.new as any;
-          if (data && (data.project_id === effectiveProjectId || !data.project_id)) {
-            if (data.status === 'Записан' && payload.eventType === 'UPDATE') {
-              playSuccessSound();
-              toast.success(`Клиент ${data.name || ''} записан!`, { icon: '🩺' });
-            }
-            // Вызываем обновление через пропсы
-            onRefetch();
-          }
-        }
-      )
-      .subscribe((status) => {
-        setIsConnected(status === 'SUBSCRIBED');
-      });
-
-    return () => {
-      supabase.removeChannel(channel);
+    // Проверяем статус realtime соединения
+    const checkConnection = () => {
+      const channels = supabase.getChannels();
+      const isActive = channels.some(ch => ch.state === 'joined');
+      setIsConnected(isActive);
     };
-  }, [effectiveProjectId, onRefetch]);
+    
+    checkConnection();
+    const interval = setInterval(checkConnection, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -60,9 +60,6 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [pulseEffect, setPulseEffect] = useState<string | null>(null);
-  
-  const reconnectAttempts = useRef(0);
-  const maxReconnectAttempts = 5;
 
   // Fetch initial data
   useEffect(() => {
@@ -112,166 +109,88 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     fetchInitialData();
   }, [projectId]);
 
-  // Set up realtime subscriptions with reconnection logic
+  // Проверяем статус глобального realtime соединения (подписка в Index.tsx)
+  useEffect(() => {
+    const checkConnection = () => {
+      const channels = supabase.getChannels();
+      const isActive = channels.some(ch => ch.state === 'joined');
+      setIsConnected(isActive);
+    };
+    
+    checkConnection();
+    const interval = setInterval(checkConnection, 5000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Подписка на daily_data и transactions (специфичная для этой страницы)
   useEffect(() => {
     if (!projectId) return;
 
-    let channel: ReturnType<typeof supabase.channel> | null = null;
-
-    const setupChannel = () => {
-      channel = supabase
-        .channel(`realtime-dashboard-${projectId}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'daily_data',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            console.log('Daily data change:', payload);
-            setLastUpdate(new Date());
-            setPulseEffect('daily_data');
-            setTimeout(() => setPulseEffect(null), 1000);
+    const channel = supabase
+      .channel(`realtime-dashboard-local-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'daily_data',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          setLastUpdate(new Date());
+          setPulseEffect('daily_data');
+          setTimeout(() => setPulseEffect(null), 1000);
+          
+          if (payload.new && typeof payload.new === 'object') {
+            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number };
+            const conversion = (newData.leads || 0) > 0 ? ((newData.sales || 0) / (newData.leads || 1)) * 100 : 0;
             
-            if (payload.new && typeof payload.new === 'object') {
-              const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number };
-              const conversion = (newData.leads || 0) > 0 ? ((newData.sales || 0) / (newData.leads || 1)) * 100 : 0;
-              
+            setMetrics(prev => [
+              { ...prev[0], previousValue: prev[0].value, value: newData.leads || 0 },
+              { ...prev[1], previousValue: prev[1].value, value: Math.round(newData.revenue || 0) },
+              { ...prev[2], previousValue: prev[2].value, value: conversion },
+              { ...prev[3], previousValue: prev[3].value, value: newData.clicks || 0 },
+            ]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'transactions',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          setLastUpdate(new Date());
+          setPulseEffect('transactions');
+          setTimeout(() => setPulseEffect(null), 1000);
+          
+          if (payload.new) {
+            const newTransaction = payload.new as RealtimeTransaction;
+            setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 4)]);
+            
+            if (newTransaction.type === 'income') {
+              toast.success(`Новая выручка: +${new Intl.NumberFormat('ru-RU').format(Math.round(newTransaction.amount))} ₸`);
               setMetrics(prev => [
-                { ...prev[0], previousValue: prev[0].value, value: newData.leads || 0 },
-                { ...prev[1], previousValue: prev[1].value, value: newData.revenue || 0 },
-                { ...prev[2], previousValue: prev[2].value, value: conversion },
-                { ...prev[3], previousValue: prev[3].value, value: newData.clicks || 0 },
+                prev[0],
+                { ...prev[1], previousValue: prev[1].value, value: Math.round(prev[1].value + newTransaction.amount) },
+                ...prev.slice(2)
               ]);
             }
           }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'leads',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            console.log('New lead:', payload);
-            setLastUpdate(new Date());
-            setPulseEffect('leads');
-            setTimeout(() => setPulseEffect(null), 1000);
-            
-            if (payload.new) {
-              const newLead = payload.new as RealtimeLead;
-              setRecentLeads(prev => [newLead, ...prev.slice(0, 4)]);
-              
-              // Update leads count
-              setMetrics(prev => [
-                { ...prev[0], previousValue: prev[0].value, value: prev[0].value + 1 },
-                ...prev.slice(1)
-              ]);
-            }
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'leads',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            console.log('Lead updated:', payload);
-            const newLead = payload.new as RealtimeLead;
-            const oldLead = payload.old as RealtimeLead;
-            
-            // Check if deal_amount changed (revenue updated from diagnostics)
-            if (newLead && oldLead && newLead.deal_amount !== oldLead.deal_amount) {
-              setLastUpdate(new Date());
-              setPulseEffect('daily_data');
-              setTimeout(() => setPulseEffect(null), 1000);
-              
-              const amountDiff = (newLead.deal_amount || 0) - (oldLead.deal_amount || 0);
-              if (amountDiff > 0) {
-                toast.success(`Выручка увеличена на ${new Intl.NumberFormat('ru-RU').format(amountDiff)} ₸`);
-                
-                // Update revenue metric
-                setMetrics(prev => [
-                  prev[0],
-                  { ...prev[1], previousValue: prev[1].value, value: prev[1].value + amountDiff },
-                  ...prev.slice(2)
-                ]);
-              }
-            }
-            
-            // Update the lead in the list
-            setRecentLeads(prev => 
-              prev.map(lead => 
-                lead.id === newLead.id ? newLead : lead
-              )
-            );
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'transactions',
-            filter: `project_id=eq.${projectId}`
-          },
-          (payload) => {
-            console.log('New transaction:', payload);
-            setLastUpdate(new Date());
-            setPulseEffect('transactions');
-            setTimeout(() => setPulseEffect(null), 1000);
-            
-            if (payload.new) {
-              const newTransaction = payload.new as RealtimeTransaction;
-              setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 4)]);
-              
-              // If income transaction, update revenue metric instantly
-              if (newTransaction.type === 'income') {
-                toast.success(`Новая выручка: +${new Intl.NumberFormat('ru-RU').format(newTransaction.amount)} ₸`);
-                setMetrics(prev => [
-                  prev[0],
-                  { ...prev[1], previousValue: prev[1].value, value: prev[1].value + newTransaction.amount },
-                  ...prev.slice(2)
-                ]);
-              }
-            }
-          }
-        )
-        .subscribe((status) => {
-          console.log('Realtime subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            setIsConnected(true);
-            reconnectAttempts.current = 0;
-          } else if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-            setIsConnected(false);
-            // Auto-reconnect logic
-            if (reconnectAttempts.current < maxReconnectAttempts) {
-              reconnectAttempts.current += 1;
-              console.log(`Dashboard reconnecting... (${reconnectAttempts.current}/${maxReconnectAttempts})`);
-              setTimeout(() => {
-                if (channel) {
-                  supabase.removeChannel(channel);
-                }
-                setupChannel();
-              }, 2000 * reconnectAttempts.current);
-            }
-          }
-        });
-    };
-
-    setupChannel();
+        }
+      )
+      .subscribe((status) => {
+        if (status === 'SUBSCRIBED') {
+          setIsConnected(true);
+        }
+      });
 
     return () => {
-      if (channel) {
-        supabase.removeChannel(channel);
-      }
+      supabase.removeChannel(channel);
     };
   }, [projectId]);
 
