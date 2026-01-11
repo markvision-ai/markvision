@@ -2,21 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback } from 'react';
 import { 
-  Facebook, 
-  CheckCircle, 
-  Loader2, 
-  Link2, 
-  Unlink, 
-  RefreshCw, 
-  Settings,
-  MessageCircle
+  Facebook, CheckCircle, Loader2, Link2, Unlink, RefreshCw, Settings, MessageCircle 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Иконки для остальных платформ
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-6 h-6" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
 );
@@ -26,7 +19,7 @@ const GoogleIcon = () => (
 
 const integrationsList = [
   { id: 'facebook', name: 'Facebook Ads', color: 'bg-blue-600', icon: <Facebook />, desc: 'Реклама и аналитика Meta' },
-  { id: 'instagram', name: 'Instagram', color: 'bg-gradient-to-tr from-yellow-400 via-red-500 to-purple-600', icon: <MessageCircle />, desc: 'Direct, Комменты и Reels' },
+  { id: 'instagram', name: 'Instagram', color: 'bg-pink-600', icon: <MessageCircle />, desc: 'Direct, Комменты и Reels' },
   { id: 'tiktok', name: 'TikTok Ads', color: 'bg-black', icon: <TikTokIcon />, desc: 'Аналитика трафика TikTok' },
   { id: 'google', name: 'Google Ads', color: 'bg-white border text-black', icon: <GoogleIcon />, desc: 'Контекстная реклама' },
   { id: 'greenapi', name: 'WhatsApp (GreenAPI)', color: 'bg-green-500', icon: <MessageCircle />, desc: 'Автоответчик и рассылки' }
@@ -49,25 +42,18 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
   useEffect(() => {
     fetchStatuses();
 
-    // СЛУШАТЕЛЬ ДЛЯ ЗАХВАТА ТОКЕНА
+    // ЗАХВАТ ТОКЕНА
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth Event:", event);
-      if ((event === 'SIGNED_IN' || event === 'USER_UPDATED') && session?.provider_token) {
-        toast.loading("Связываем аккаунты...");
-        const { error } = await supabase.from('integrations').upsert({
+      if (session?.provider_token) {
+        console.log("💎 MarkVision: Токен Meta захвачен!");
+        await supabase.from('integrations').upsert({
           project_id: currentProjectId,
           platform: 'facebook',
           access_token: session.provider_token,
-          status: 'active',
-          updated_at: new Date().toISOString()
+          status: 'active'
         }, { onConflict: 'project_id,platform' });
-
-        if (!error) {
-          toast.success("Facebook подключен!");
-          fetchStatuses();
-          // Очищаем URL от токенов
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
+        fetchStatuses();
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     });
 
@@ -79,7 +65,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'facebook',
         options: {
-          redirectTo: window.location.href, // Возврат ровно сюда же
+          redirectTo: window.location.origin + '/crm',
           scopes: 'ads_read,ads_management,instagram_basic,instagram_manage_comments,instagram_manage_messages,pages_read_engagement,pages_show_list',
         },
       });
@@ -95,10 +81,10 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
     toast.success("Отключено");
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin" /></div>;
+  if (loading) return <div className="flex justify-center p-20 text-white"><Loader2 className="animate-spin" /></div>;
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 text-white bg-[#0B0E14]">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Центр интеграций</h2>
         <Button variant="outline" size="sm" onClick={fetchStatuses}><RefreshCw className="w-4 h-4 mr-1" /> Обновить</Button>
@@ -106,25 +92,25 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {integrationsList.map((item) => (
-          <Card key={item.id} className="border-2 transition-all hover:shadow-md">
-            <CardHeader className="pb-4">
+          <Card key={item.id} className="border-[#1E2533] bg-[#161B26] text-white transition-all hover:border-blue-500/50 shadow-xl">
+            <CardHeader className="pb-4 border-b border-[#1E2533]">
               <div className="flex justify-between items-start">
                 <div className={`p-3 rounded-xl ${item.color} text-white shadow-md`}>{item.icon}</div>
-                <Badge variant={statuses[item.id] === 'active' ? "default" : "secondary"}>
+                <Badge className={statuses[item.id] === 'active' ? "bg-green-500/20 text-green-500" : "bg-gray-500/20 text-gray-500"}>
                   {statuses[item.id] === 'active' ? 'Активно' : 'Не активно'}
                 </Badge>
               </div>
               <CardTitle className="mt-4">{item.name}</CardTitle>
-              <CardDescription>{item.desc}</CardDescription>
+              <CardDescription className="text-gray-400">{item.desc}</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               {statuses[item.id] === 'active' ? (
                 <div className="flex gap-2">
-                  <Button variant="outline" className="flex-1" size="sm"><Settings className="w-4 h-4 mr-2" /> Настроить</Button>
-                  <Button variant="ghost" size="icon" onClick={() => handleDisconnect(item.id)}><Unlink className="w-4 h-4 text-destructive" /></Button>
+                  <Button variant="outline" className="flex-1 border-[#1E2533] hover:bg-[#1E2533]" size="sm"><Settings className="w-4 h-4 mr-2" /> Настроить</Button>
+                  <Button variant="ghost" size="icon" onClick={() => handleDisconnect(item.id)}><Unlink className="w-4 h-4 text-red-500" /></Button>
                 </div>
               ) : (
-                <Button className="w-full" onClick={() => handleConnect(item.id)}>
+                <Button className="w-full bg-blue-600 hover:bg-blue-700" onClick={() => handleConnect(item.id)}>
                   <Link2 className="w-4 h-4 mr-2" /> Подключить
                 </Button>
               )}
@@ -132,6 +118,11 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
           </Card>
         ))}
       </div>
+
+      {/* Фантомный диалог чтобы убрать ошибку в консоли */}
+      <Dialog open={false}>
+         <DialogContent><DialogTitle className="sr-only">Hidden</DialogTitle></DialogContent>
+      </Dialog>
     </div>
   );
 };
