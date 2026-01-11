@@ -40,19 +40,23 @@ export const LeadCard = ({
       }
     : {};
 
-  // Lead scoring visualization based on extra_data.budget_tier or lead_score
+  // Lead scoring visualization based on extra_data.budget_tier, lead_score, or marketing_budget_total
   const getScoreTier = () => {
     const extraData = lead.extra_data as any;
     const budgetTier = extraData?.budget_tier?.toUpperCase?.();
     const leadScore = (lead as any).lead_score;
+    const marketingBudget = extraData?.marketing_budget_total || 0;
     
-    if (budgetTier === 'MEGA' || leadScore >= 90) {
+    // MEGA: budget_tier MEGA, lead_score >= 90, or marketing_budget >= 1,000,000
+    if (budgetTier === 'MEGA' || leadScore >= 90 || marketingBudget >= 1000000) {
       return { tier: 'MEGA', color: 'border-l-4 border-l-purple-500 bg-purple-500/5', icon: <Crown className="w-4 h-4 text-purple-500" />, emoji: '👑' };
     }
-    if (budgetTier === 'HIGH' || leadScore >= 70) {
+    // HIGH: budget_tier HIGH, lead_score >= 70, or marketing_budget >= 500,000
+    if (budgetTier === 'HIGH' || leadScore >= 70 || marketingBudget >= 500000) {
       return { tier: 'HIGH', color: 'border-l-4 border-l-orange-500 bg-orange-500/5', icon: <Flame className="w-4 h-4 text-orange-500" />, emoji: '🔥' };
     }
-    if (budgetTier === 'MEDIUM' || leadScore >= 40) {
+    // MEDIUM: budget_tier MEDIUM, lead_score >= 40, or marketing_budget >= 100,000
+    if (budgetTier === 'MEDIUM' || leadScore >= 40 || marketingBudget >= 100000) {
       return { tier: 'MEDIUM', color: 'border-l-4 border-l-blue-500 bg-blue-500/5', icon: <Zap className="w-4 h-4 text-blue-500" />, emoji: '⚡️' };
     }
     return { tier: null, color: '', icon: null, emoji: '' };
@@ -62,6 +66,12 @@ export const LeadCard = ({
 
   // Extract clinic name from extra_data if available
   const clinicName = (lead.extra_data as any)?.clinic_name || (lead.extra_data as any)?.clinicName || null;
+  
+  // Name mapping: prefer name, fallback to contact_name
+  const displayName = lead.name || (lead.extra_data as any)?.contact_name || 'Без имени';
+  
+  // Chat appointment date from selected_date
+  const selectedDate = (lead.extra_data as any)?.selected_date;
 
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
@@ -180,7 +190,7 @@ export const LeadCard = ({
             </p>
           )}
           <p className={cn("text-sm leading-tight truncate", clinicName ? "text-muted-foreground" : "font-semibold")}>
-            {lead.name || 'Без имени'}
+            {displayName}
           </p>
         </div>
       </div>
@@ -200,6 +210,16 @@ export const LeadCard = ({
           {format(new Date(lead.created_at), 'd MMM yyyy, HH:mm', { locale: ru })}
         </span>
       </div>
+
+      {/* Chat appointment date if available */}
+      {selectedDate && (
+        <div className="flex items-center gap-2 text-xs text-emerald-600 mb-2 pl-9">
+          <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+          <span className="truncate font-medium">
+            Запись из чата: {selectedDate}
+          </span>
+        </div>
+      )}
 
       {/* Source */}
       <div className="mb-3 pl-9">
