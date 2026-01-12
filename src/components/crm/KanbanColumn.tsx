@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { LeadCard } from './LeadCard';
@@ -5,6 +6,7 @@ import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DollarSign } from 'lucide-react';
 
 interface KanbanColumnProps {
   status: KanbanStatus;
@@ -35,6 +37,17 @@ export const KanbanColumn = ({
 
   const allInColumnSelected = leads.length > 0 && leads.every(lead => selectedLeads.has(lead.id));
 
+  // Calculate total revenue for "Записан" and "Оплачено" columns
+  const showRevenue = status.id === 'appointment' || status.id === 'paid';
+  const totalRevenue = useMemo(() => {
+    if (!showRevenue) return 0;
+    return leads.reduce((sum, lead) => sum + (lead.deal_amount || 0), 0);
+  }, [leads, showRevenue]);
+
+  const formatRevenue = (value: number) => {
+    return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
+  };
+
   const getColumnBg = () => {
     if (status.color === 'success') return 'bg-success/5 border-success/30';
     if (status.color === 'destructive') return 'bg-destructive/5 border-destructive/30';
@@ -60,24 +73,33 @@ export const KanbanColumn = ({
     >
       {/* Column Header */}
       <div className={cn(
-        'flex items-center justify-between mb-4 px-3 py-2 rounded-lg',
+        'flex flex-col gap-1 mb-4 px-3 py-2 rounded-lg',
         getHeaderBg()
       )}>
-        <div className="flex items-center gap-2">
-          {selectionMode && leads.length > 0 && (
-            <Checkbox
-              checked={allInColumnSelected}
-              onCheckedChange={(checked) => onSelectAllInColumn?.(status.id, !!checked)}
-              className="border-current/50"
-            />
-          )}
-          <h3 className="font-semibold text-sm">
-            {status.label}
-          </h3>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {selectionMode && leads.length > 0 && (
+              <Checkbox
+                checked={allInColumnSelected}
+                onCheckedChange={(checked) => onSelectAllInColumn?.(status.id, !!checked)}
+                className="border-current/50"
+              />
+            )}
+            <h3 className="font-semibold text-sm">
+              {status.label}
+            </h3>
+          </div>
+          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-background/30">
+            {leads.length}
+          </span>
         </div>
-        <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-background/30">
-          {leads.length}
-        </span>
+        {/* Revenue total for Записан and Оплачено */}
+        {showRevenue && totalRevenue > 0 && (
+          <div className="flex items-center gap-1 text-xs opacity-90">
+            <DollarSign className="w-3 h-3" />
+            <span className="font-semibold">{formatRevenue(totalRevenue)}</span>
+          </div>
+        )}
       </div>
 
       {/* Cards Container with AnimatePresence */}
