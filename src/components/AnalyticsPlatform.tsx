@@ -43,6 +43,8 @@ import { GamificationHub } from './gamification/GamificationHub';
 import { ABOptimizer } from './abtesting/ABOptimizer';
 import { TechnicalHealth } from './health/TechnicalHealth';
 import { RealtimeDashboard } from './dashboard/RealtimeDashboard';
+import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
+import { CalendarPage } from './calendar/CalendarPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -240,6 +242,7 @@ export const AnalyticsPlatform = () => {
       case 'health': return '🩺 Здоровье системы';
       case 'onboarding': return '🧭 Онбординг';
       case 'diagnostics': return '📋 Диагностика';
+      case 'calendar': return '📅 Календарь';
       default: return 'Раздел в разработке';
     }
   };
@@ -363,6 +366,11 @@ export const AnalyticsPlatform = () => {
 
           {/* Comparison */}
           <QuickStats stats={comparisonStats} />
+
+          {/* Upcoming Appointments Widget */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <UpcomingAppointmentsWidget projectId={currentProjectId} />
+          </div>
         </div>
       )}
 
@@ -480,7 +488,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar'].includes(activeTab) && (
         <div className="bg-card border rounded-xl p-12 text-center">
           <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-muted-foreground" />
@@ -488,6 +496,10 @@ export const AnalyticsPlatform = () => {
           <h3 className="text-lg font-semibold mb-2">Раздел в разработке</h3>
           <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
         </div>
+      )}
+
+      {activeTab === 'calendar' && currentProjectId && (
+        <CalendarPage projectId={currentProjectId} />
       )}
     </main>
   );
