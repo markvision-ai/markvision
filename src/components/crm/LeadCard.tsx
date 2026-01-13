@@ -3,13 +3,12 @@ import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-
 interface LeadCardProps {
   lead: Lead;
   onClick?: () => void;
@@ -41,15 +40,17 @@ export const LeadCard = ({
     : {};
 
   // Lead scoring visualization based on extra_data.budget_tier, lead_score, or marketing_budget_total
+  const extraData = lead.extra_data as any;
+  const marketingBudget = extraData?.marketing_budget_total || 0;
+  const isGoldenLead = marketingBudget > 1000000;
+  
   const getScoreTier = () => {
-    const extraData = lead.extra_data as any;
     const budgetTier = extraData?.budget_tier?.toUpperCase?.();
     const leadScore = (lead as any).lead_score;
-    const marketingBudget = extraData?.marketing_budget_total || 0;
     
     // MEGA: budget_tier MEGA, lead_score >= 90, or marketing_budget >= 1,000,000
     if (budgetTier === 'MEGA' || leadScore >= 90 || marketingBudget >= 1000000) {
-      return { tier: 'MEGA', color: 'border-l-4 border-l-purple-500 bg-purple-500/5', icon: <Crown className="w-4 h-4 text-purple-500" />, emoji: '👑' };
+      return { tier: 'MEGA', color: '', icon: <Crown className="w-4 h-4 text-amber-500" />, emoji: '👑' };
     }
     // HIGH: budget_tier HIGH, lead_score >= 70, or marketing_budget >= 500,000
     if (budgetTier === 'HIGH' || leadScore >= 70 || marketingBudget >= 500000) {
@@ -61,6 +62,9 @@ export const LeadCard = ({
     }
     return { tier: null, color: '', icon: null, emoji: '' };
   };
+
+  // Growth potential calculator
+  const growthPotential = marketingBudget * 3;
 
   const scoreTier = getScoreTier();
 
@@ -139,28 +143,44 @@ export const LeadCard = ({
       style={style}
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
-        'bg-card border border-border rounded-xl p-3 sm:p-4 group touch-none',
+        'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
+        // Golden background for MEGA leads (budget > 1M)
+        isGoldenLead 
+          ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 border-2 border-amber-300/60 shadow-[0_0_20px_rgba(251,191,36,0.3)]' 
+          : 'bg-card border border-border',
         // Only apply hover transitions when not dragging
-        !showDragging && 'transition-shadow duration-200 hover:shadow-md hover:border-primary/30',
+        !showDragging && 'transition-all duration-200 hover:shadow-lg',
+        !showDragging && !isGoldenLead && 'hover:border-primary/30',
+        !showDragging && isGoldenLead && 'hover:shadow-[0_0_30px_rgba(251,191,36,0.4)]',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
         showDragging && 'shadow-xl opacity-95 z-50',
         isSelected && 'ring-2 ring-primary bg-primary/5',
-        scoreTier.color // Apply tier-based styling
+        !isGoldenLead && scoreTier.color // Apply tier-based styling only for non-golden
       )}
       onClick={handleCardClick}
     >
-      {/* Score Tier Badge */}
+      {/* Golden shimmer effect for MEGA leads */}
+      {isGoldenLead && (
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-200/20 to-transparent animate-pulse pointer-events-none" />
+      )}
+      {/* Score Tier Badge - Premium styling for MEGA */}
       {scoreTier.tier && (
-        <div className="flex items-center gap-1.5 mb-2 pl-0">
+        <div className={cn(
+          "flex items-center gap-1.5 mb-2 pl-0",
+          isGoldenLead && "relative"
+        )}>
           <span className="text-base">{scoreTier.emoji}</span>
           <span className={cn(
             "text-xs font-bold uppercase tracking-wide",
-            scoreTier.tier === 'MEGA' && 'text-purple-500',
+            scoreTier.tier === 'MEGA' && 'text-amber-600 drop-shadow-sm',
             scoreTier.tier === 'HIGH' && 'text-orange-500',
             scoreTier.tier === 'MEDIUM' && 'text-blue-500'
           )}>
             {scoreTier.tier}
           </span>
+          {isGoldenLead && (
+            <Gem className="w-3.5 h-3.5 text-amber-500 ml-1 animate-pulse" />
+          )}
         </div>
       )}
 
@@ -233,6 +253,63 @@ export const LeadCard = ({
             <Sparkles className="w-3 h-3 mr-1" />
             {new Intl.NumberFormat('ru-RU').format(lead.deal_amount)} ₸
           </Badge>
+        </div>
+      )}
+
+      {/* Budget Qualification Block - Premium "Growth Potential" Calculator */}
+      {marketingBudget > 0 && (
+        <div className={cn(
+          "mb-3 pl-9",
+        )}>
+          <div className={cn(
+            "p-2.5 rounded-lg border",
+            isGoldenLead 
+              ? "bg-gradient-to-r from-amber-100/80 to-yellow-100/80 border-amber-300/50" 
+              : "bg-muted/50 border-border/50"
+          )}>
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <TrendingUp className={cn(
+                "w-3.5 h-3.5",
+                isGoldenLead ? "text-amber-600" : "text-muted-foreground"
+              )} />
+              <span className={cn(
+                "text-[10px] font-semibold uppercase tracking-wider",
+                isGoldenLead ? "text-amber-700" : "text-muted-foreground"
+              )}>
+                Бюджетная квалификация
+              </span>
+            </div>
+            <div className="flex items-baseline justify-between gap-2">
+              <div>
+                <p className={cn(
+                  "text-[10px]",
+                  isGoldenLead ? "text-amber-600" : "text-muted-foreground"
+                )}>
+                  Текущий бюджет
+                </p>
+                <p className={cn(
+                  "text-sm font-bold",
+                  isGoldenLead ? "text-amber-700" : "text-foreground"
+                )}>
+                  {new Intl.NumberFormat('ru-RU').format(marketingBudget)} ₸
+                </p>
+              </div>
+              <div className="text-right">
+                <p className={cn(
+                  "text-[10px]",
+                  isGoldenLead ? "text-amber-600" : "text-muted-foreground"
+                )}>
+                  Потенциал роста ×3
+                </p>
+                <p className={cn(
+                  "text-sm font-bold",
+                  isGoldenLead ? "text-amber-700" : "text-primary"
+                )}>
+                  {new Intl.NumberFormat('ru-RU').format(growthPotential)} ₸
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
