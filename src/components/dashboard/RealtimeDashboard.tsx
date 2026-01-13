@@ -11,12 +11,14 @@ import {
   Zap,
   Clock,
   WifiOff,
-  Wifi
+  Wifi,
+  ShoppingCart
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { useAnimatedCounter, formatAnimatedCurrency, formatAnimatedNumber } from '@/hooks/useAnimatedCounter';
 
 interface RealtimeMetric {
   label: string;
@@ -51,7 +53,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const [metrics, setMetrics] = useState<RealtimeMetric[]>([
     { label: 'Лиды сегодня', value: 0, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
     { label: 'Выручка сегодня', value: 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
-    { label: 'Конверсия', value: 0, previousValue: 0, format: 'percent', icon: <TrendingUp className="h-5 w-5" />, color: 'text-purple-500' },
+    { label: 'Продажи', value: 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
     { label: 'Активность', value: 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
   ]);
   
@@ -93,11 +95,10 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         .limit(5);
 
       if (dailyData) {
-        const conversion = dailyData.leads > 0 ? (dailyData.sales / dailyData.leads) * 100 : 0;
         setMetrics([
           { label: 'Лиды сегодня', value: dailyData.leads, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
           { label: 'Выручка сегодня', value: dailyData.revenue, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
-          { label: 'Конверсия', value: conversion, previousValue: 0, format: 'percent', icon: <TrendingUp className="h-5 w-5" />, color: 'text-purple-500' },
+          { label: 'Продажи', value: dailyData.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
           { label: 'Активность', value: dailyData.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
         ]);
       }
@@ -144,12 +145,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           
           if (payload.new && typeof payload.new === 'object') {
             const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number };
-            const conversion = (newData.leads || 0) > 0 ? ((newData.sales || 0) / (newData.leads || 1)) * 100 : 0;
             
             setMetrics(prev => [
               { ...prev[0], previousValue: prev[0].value, value: newData.leads || 0 },
               { ...prev[1], previousValue: prev[1].value, value: Math.round(newData.revenue || 0) },
-              { ...prev[2], previousValue: prev[2].value, value: conversion },
+              { ...prev[2], previousValue: prev[2].value, value: newData.sales || 0 },
               { ...prev[3], previousValue: prev[3].value, value: newData.clicks || 0 },
             ]);
           }
@@ -260,7 +260,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         </div>
       </div>
 
-      {/* Realtime Metrics Cards */}
+      {/* Realtime Metrics Cards with animated counters */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {metrics.map((metric, index) => {
           const change = metric.value - metric.previousValue;
@@ -277,7 +277,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div className={metric.color}>{metric.icon}</div>
-                    {change !== 0 && (
+                    {change !== 0 && metric.previousValue !== 0 && (
                       <Badge variant={isPositive ? 'default' : 'destructive'} className="text-xs">
                         {isPositive ? <ArrowUpRight className="h-3 w-3 mr-1" /> : <ArrowDownRight className="h-3 w-3 mr-1" />}
                         {Math.abs(change).toFixed(0)}
@@ -286,11 +286,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   </div>
                   <div className="mt-4">
                     <motion.p 
-                      className="text-3xl font-bold"
+                      className="text-3xl font-bold tabular-nums"
                       key={metric.value}
-                      initial={{ scale: 1.2, color: isPositive ? '#22c55e' : '#ef4444' }}
+                      initial={{ scale: 1.1, color: isPositive ? '#22c55e' : '#ef4444' }}
                       animate={{ scale: 1, color: 'inherit' }}
-                      transition={{ duration: 0.3 }}
+                      transition={{ duration: 0.5 }}
                     >
                       {formatValue(metric.value, metric.format)}
                     </motion.p>

@@ -16,7 +16,8 @@ import {
   Crown,
   Flame,
   Zap,
-  Loader2
+  Loader2,
+  MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
@@ -471,21 +472,54 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
                 </div>
               )}
 
+              {/* Chat History */}
+              {leadDetails?.extra_data && (leadDetails.extra_data as any)?.chat_history && (
+                <div className="pt-4 border-t">
+                  <label className="text-sm text-muted-foreground mb-2 block flex items-center gap-2">
+                    <MessageCircle className="w-4 h-4" />
+                    История переписки
+                  </label>
+                  <div className="bg-muted/30 rounded-lg p-3 space-y-3 max-h-[300px] overflow-y-auto">
+                    {Array.isArray((leadDetails.extra_data as any).chat_history) 
+                      ? (leadDetails.extra_data as any).chat_history.map((msg: any, idx: number) => (
+                          <div 
+                            key={idx} 
+                            className={cn(
+                              "p-2.5 rounded-lg text-sm",
+                              msg.role === 'assistant' || msg.sender === 'bot' 
+                                ? "bg-primary/10 border-l-2 border-primary" 
+                                : "bg-muted"
+                            )}
+                          >
+                            <p className="text-xs text-muted-foreground mb-1 font-medium">
+                              {msg.role === 'assistant' || msg.sender === 'bot' ? '🤖 MarkVision AI' : '👤 Клиент'}
+                            </p>
+                            <p className="whitespace-pre-wrap">{msg.content || msg.text || msg.message}</p>
+                          </div>
+                        ))
+                      : <p className="text-sm text-muted-foreground">История чата недоступна</p>
+                    }
+                  </div>
+                </div>
+              )}
+
               {/* Lead Extra Data */}
               {leadDetails?.extra_data && typeof leadDetails.extra_data === 'object' && (
                 <div className="pt-4 border-t">
                   <label className="text-sm text-muted-foreground mb-2 block">Анкета лида</label>
                   <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
-                    {Object.entries(leadDetails.extra_data as Record<string, any>).map(([key, value]) => (
-                      <div key={key} className="flex justify-between">
-                        <span className="text-muted-foreground capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </span>
-                        <span className="font-medium">
-                          {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                        </span>
-                      </div>
-                    ))}
+                    {Object.entries(leadDetails.extra_data as Record<string, any>)
+                      .filter(([key]) => key !== 'chat_history') // Exclude chat_history from general display
+                      .map(([key, value]) => (
+                        <div key={key} className="flex justify-between">
+                          <span className="text-muted-foreground capitalize">
+                            {key.replace(/_/g, ' ')}
+                          </span>
+                          <span className="font-medium text-right max-w-[200px] truncate">
+                            {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                          </span>
+                        </div>
+                      ))}
                   </div>
                 </div>
               )}
