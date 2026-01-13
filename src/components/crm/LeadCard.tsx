@@ -251,7 +251,7 @@ export const LeadCard = ({
         <div className="mb-3 pl-9">
           <Badge className="bg-success/20 text-success border-0 text-xs font-bold">
             <Sparkles className="w-3 h-3 mr-1" />
-            {new Intl.NumberFormat('ru-RU').format(lead.deal_amount)} ₸
+            {new Intl.NumberFormat('ru-RU').format(Math.round(lead.deal_amount))} ₸
           </Badge>
         </div>
       )}
@@ -291,7 +291,7 @@ export const LeadCard = ({
                   "text-sm font-bold",
                   isGoldenLead ? "text-amber-700" : "text-foreground"
                 )}>
-                  {new Intl.NumberFormat('ru-RU').format(marketingBudget)} ₸
+                  {new Intl.NumberFormat('ru-RU').format(Math.round(marketingBudget))} ₸
                 </p>
               </div>
               <div className="text-right">
@@ -305,7 +305,7 @@ export const LeadCard = ({
                   "text-sm font-bold",
                   isGoldenLead ? "text-amber-700" : "text-primary"
                 )}>
-                  {new Intl.NumberFormat('ru-RU').format(growthPotential)} ₸
+                  {new Intl.NumberFormat('ru-RU').format(Math.round(growthPotential))} ₸
                 </p>
               </div>
             </div>
