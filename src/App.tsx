@@ -12,6 +12,10 @@ import Signup from "./pages/Signup";
 // Lazy load non-critical pages
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Install = lazy(() => import("./pages/Install"));
+const Blog = lazy(() => import("./pages/Blog"));
+const Partners = lazy(() => import("./pages/Partners"));
+const Careers = lazy(() => import("./pages/Careers"));
+const LegalPage = lazy(() => import("./pages/LegalPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,6 +43,16 @@ const App = () => (
         <Route path="/signup" element={<Signup />} />
         <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
         <Route path="/install" element={<Suspense fallback={<PageLoader />}><Install /></Suspense>} />
+        
+        {/* New pages */}
+        <Route path="/blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
+        <Route path="/partners" element={<Suspense fallback={<PageLoader />}><Partners /></Suspense>} />
+        <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
+        <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+        <Route path="/terms" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+        <Route path="/compliance" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+        <Route path="/training" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+        
         {/* Все эти пути ведут в Index, где переключается вкладка по URL */}
         <Route path="/dashboard" element={<Index />} />
         <Route path="/realtime" element={<Index />} />
