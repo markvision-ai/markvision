@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { differenceInMinutes } from 'date-fns';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { isLeadAutomated } from '@/lib/webhooks';
 import { useState, useEffect } from 'react';
 import { safeFormat, safeParseDate } from '@/lib/dateUtils';
+import { WhatsAppDialog } from './WhatsAppDialog';
 
 interface LeadCardProps {
   lead: Lead;
@@ -19,6 +20,7 @@ interface LeadCardProps {
   isSelected?: boolean;
   onSelect?: (selected: boolean) => void;
   selectionMode?: boolean;
+  projectId?: string;
 }
 
 export const LeadCard = ({ 
@@ -27,7 +29,8 @@ export const LeadCard = ({
   isDragging = false,
   isSelected = false,
   onSelect,
-  selectionMode = false
+  selectionMode = false,
+  projectId
 }: LeadCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging: isCurrentlyDragging } = useDraggable({
     id: lead.id,
@@ -114,25 +117,25 @@ export const LeadCard = ({
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
     
-    const sourceStyles: Record<string, { bg: string; text: string }> = {
-      yandex: { bg: 'bg-yellow-500/20', text: 'text-yellow-600' },
-      google: { bg: 'bg-blue-500/20', text: 'text-blue-600' },
-      vk: { bg: 'bg-sky-500/20', text: 'text-sky-600' },
-      facebook: { bg: 'bg-indigo-500/20', text: 'text-indigo-600' },
-      instagram: { bg: 'bg-pink-500/20', text: 'text-pink-600' },
-      telegram: { bg: 'bg-cyan-500/20', text: 'text-cyan-600' },
+    const sourceStyles: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
+      yandex: { bg: 'bg-yellow-500/20', text: 'text-yellow-600', icon: <Globe className="w-3 h-3" /> },
+      google: { bg: 'bg-blue-500/20', text: 'text-blue-600', icon: <Globe className="w-3 h-3" /> },
+      vk: { bg: 'bg-sky-500/20', text: 'text-sky-600', icon: <Globe className="w-3 h-3" /> },
+      facebook: { bg: 'bg-indigo-500/20', text: 'text-indigo-600', icon: <Globe className="w-3 h-3" /> },
+      instagram: { bg: 'bg-pink-500/20', text: 'text-pink-600', icon: <Instagram className="w-3 h-3" /> },
+      telegram: { bg: 'bg-cyan-500/20', text: 'text-cyan-600', icon: <Globe className="w-3 h-3" /> },
     };
 
     const styleData = source && sourceStyles[source] 
       ? sourceStyles[source] 
-      : { bg: 'bg-muted', text: 'text-muted-foreground' };
+      : { bg: 'bg-muted', text: 'text-muted-foreground', icon: <Globe className="w-3 h-3" /> };
 
     return (
       <div className={cn(
         'flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium',
         styleData.bg, styleData.text
       )}>
-        <Globe className="w-3 h-3" />
+        {styleData.icon}
         <span className="truncate max-w-[80px]">
           {lead.utm_source || 'Прямой'}
         </span>
@@ -408,21 +411,29 @@ export const LeadCard = ({
 
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "h-7 px-2 rounded-md text-xs",
-                  lead.phone 
-                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-600" 
-                    : "bg-muted text-muted-foreground cursor-not-allowed"
-                )}
-                onClick={(e) => handleQuickAction(e, 'whatsapp')}
-                disabled={!lead.phone}
-              >
-                <MessageCircle className="w-3.5 h-3.5 mr-1" />
-                WhatsApp
-              </Button>
+              {projectId ? (
+                <WhatsAppDialog
+                  leadName={displayName}
+                  leadPhone={lead.phone || ''}
+                  projectId={projectId}
+                />
+              ) : (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "h-7 px-2 rounded-md text-xs",
+                    lead.phone 
+                      ? "bg-green-500/10 hover:bg-green-500/20 text-green-600" 
+                      : "bg-muted text-muted-foreground cursor-not-allowed"
+                  )}
+                  onClick={(e) => handleQuickAction(e, 'whatsapp')}
+                  disabled={!lead.phone}
+                >
+                  <MessageCircle className="w-3.5 h-3.5 mr-1" />
+                  WhatsApp
+                </Button>
+              )}
             </TooltipTrigger>
             <TooltipContent>
               <p>{lead.phone ? 'Написать в WhatsApp' : 'Нет телефона'}</p>

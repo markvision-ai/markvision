@@ -8,21 +8,29 @@ export interface DashboardWidget {
 }
 
 const DEFAULT_WIDGETS: DashboardWidget[] = [
-  { id: 'metrics', title: 'Метрики', order: 0, visible: true },
+  { id: 'metrics', title: 'Выручка и Метрики', order: 0, visible: true },
   { id: 'computed', title: 'Расчётные показатели', order: 1, visible: true },
-  { id: 'charts', title: 'Графики', order: 2, visible: true },
-  { id: 'comparison', title: 'Сравнение', order: 3, visible: true },
-  { id: 'appointments', title: 'Ближайшие записи', order: 4, visible: true },
+  { id: 'charts', title: 'Воронка и Графики', order: 2, visible: true },
+  { id: 'comparison', title: 'Сравнение с прошлым', order: 3, visible: true },
+  { id: 'appointments', title: 'Календарь и Записи', order: 4, visible: true },
+  { id: 'ai-assistant', title: 'ИИ-Аналитик', order: 5, visible: true },
 ];
 
-const STORAGE_KEY = 'markvision_dashboard_widgets';
+// Use the key from user's request
+const STORAGE_KEY = 'mvi_dashboard_layout';
 
 export const useDashboardWidgets = () => {
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        // Merge with defaults to handle new widgets
+        const mergedWidgets = DEFAULT_WIDGETS.map(defaultWidget => {
+          const savedWidget = parsed.find((w: DashboardWidget) => w.id === defaultWidget.id);
+          return savedWidget ? { ...defaultWidget, ...savedWidget } : defaultWidget;
+        });
+        return mergedWidgets;
       } catch {
         return DEFAULT_WIDGETS;
       }
@@ -30,6 +38,9 @@ export const useDashboardWidgets = () => {
     return DEFAULT_WIDGETS;
   });
 
+  const [isEditMode, setIsEditMode] = useState(false);
+
+  // Save to localStorage whenever widgets change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(widgets));
   }, [widgets]);
@@ -51,6 +62,16 @@ export const useDashboardWidgets = () => {
 
   const resetWidgets = useCallback(() => {
     setWidgets(DEFAULT_WIDGETS);
+    localStorage.removeItem(STORAGE_KEY);
+  }, []);
+
+  const applyLayout = useCallback(() => {
+    // Layout is auto-saved, this just exits edit mode
+    setIsEditMode(false);
+  }, []);
+
+  const startEditing = useCallback(() => {
+    setIsEditMode(true);
   }, []);
 
   const sortedWidgets = [...widgets].sort((a, b) => a.order - b.order);
@@ -60,5 +81,9 @@ export const useDashboardWidgets = () => {
     moveWidget,
     toggleWidget,
     resetWidgets,
+    isEditMode,
+    setIsEditMode,
+    applyLayout,
+    startEditing,
   };
 };

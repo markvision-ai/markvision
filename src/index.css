@@ -4,6 +4,39 @@
 @tailwind components;
 @tailwind utilities;
 
+/* VIP Shine Animation for MEGA tier leads */
+@keyframes vip-shine {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+.vip-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.vip-shine::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.3) 25%,
+    rgba(251, 191, 36, 0.5) 50%,
+    rgba(251, 191, 36, 0.3) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: vip-shine 3s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.vip-glow {
+  box-shadow: 0 0 20px rgba(251, 191, 36, 0.4), 0 0 40px rgba(251, 191, 36, 0.2);
+}
+
 @layer base {
   :root {
     /* Sterile White Theme - Medical Edition */

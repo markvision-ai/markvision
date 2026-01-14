@@ -2,19 +2,21 @@ import { useState } from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Settings2, RotateCcw, Eye, EyeOff } from 'lucide-react';
+import { GripVertical, Settings2, RotateCcw, Eye, EyeOff, Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface SortableWidgetProps {
   widget: DashboardWidget;
   children: React.ReactNode;
+  isEditMode: boolean;
 }
 
-const SortableWidget = ({ widget, children }: SortableWidgetProps) => {
+const SortableWidget = ({ widget, children, isEditMode }: SortableWidgetProps) => {
   const {
     attributes,
     listeners,
@@ -32,23 +34,42 @@ const SortableWidget = ({ widget, children }: SortableWidgetProps) => {
   if (!widget.visible) return null;
 
   return (
-    <div
+    <motion.div
       ref={setNodeRef}
       style={style}
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
       className={cn(
         'relative group',
-        isDragging && 'z-50 opacity-90'
+        isDragging && 'z-50 opacity-90',
+        isEditMode && 'ring-2 ring-dashed ring-primary/30 rounded-xl p-2'
       )}
     >
-      <div
-        {...attributes}
-        {...listeners}
-        className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-secondary hover:bg-muted z-10"
-      >
-        <GripVertical className="w-4 h-4 text-muted-foreground" />
-      </div>
+      {/* Edit Mode Drag Handle */}
+      {isEditMode && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 rounded-lg bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform z-20"
+        >
+          <GripVertical className="w-5 h-5" />
+        </div>
+      )}
+      
+      {/* Normal Hover Drag Handle */}
+      {!isEditMode && (
+        <div
+          {...attributes}
+          {...listeners}
+          className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-secondary hover:bg-muted z-10"
+        >
+          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        </div>
+      )}
       {children}
-    </div>
+    </motion.div>
   );
 };
 
@@ -104,7 +125,7 @@ interface DraggableDashboardProps {
 }
 
 export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
-  const { widgets, moveWidget, toggleWidget, resetWidgets } = useDashboardWidgets();
+  const { widgets, moveWidget, toggleWidget, resetWidgets, isEditMode, setIsEditMode, applyLayout, startEditing } = useDashboardWidgets();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   const sensors = useSensors(
@@ -133,7 +154,7 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
     if (!widget || !widget.visible) return null;
 
     return (
-      <SortableWidget key={widget.id} widget={widget}>
+      <SortableWidget key={widget.id} widget={widget} isEditMode={isEditMode}>
         {content}
       </SortableWidget>
     );
@@ -152,54 +173,97 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
               {hiddenCount} виджет(ов) скрыто
             </span>
           )}
+          {isEditMode && (
+            <span className="text-xs text-primary font-medium animate-pulse">
+              🔧 Режим редактирования — перетаскивайте виджеты
+            </span>
+          )}
         </div>
-        <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-          <SheetTrigger asChild>
-            <Button variant="outline" size="sm" className="gap-2">
-              <Settings2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Настроить виджеты</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>Настройка виджетов дашборда</SheetTitle>
-            </SheetHeader>
-            <div className="mt-6 space-y-4">
-              <p className="text-sm text-muted-foreground">
-                Перетаскивайте виджеты для изменения порядка. Используйте переключатели для скрытия/отображения.
-              </p>
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragEnd={handleDragEnd}
-              >
-                <SortableContext
-                  items={widgets.map((w) => w.id)}
-                  strategy={verticalListSortingStrategy}
-                >
-                  <div className="space-y-2">
-                    {widgets.map((widget) => (
-                      <WidgetSettingsItem
-                        key={widget.id}
-                        widget={widget}
-                        onToggle={toggleWidget}
-                      />
-                    ))}
-                  </div>
-                </SortableContext>
-              </DndContext>
+        
+        <div className="flex items-center gap-2">
+          {isEditMode ? (
+            <>
               <Button
-                variant="ghost"
+                variant="default"
                 size="sm"
-                onClick={resetWidgets}
-                className="w-full gap-2 mt-4"
+                onClick={applyLayout}
+                className="gap-2 bg-gradient-to-r from-primary to-accent"
               >
-                <RotateCcw className="w-4 h-4" />
-                Сбросить расположение
+                <Check className="w-4 h-4" />
+                <span className="hidden sm:inline">Применить</span>
               </Button>
-            </div>
-          </SheetContent>
-        </Sheet>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditMode(false)}
+                className="gap-2"
+              >
+                <X className="w-4 h-4" />
+                <span className="hidden sm:inline">Отмена</span>
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={startEditing}
+                className="gap-2 hover:border-primary"
+              >
+                <Settings2 className="w-4 h-4" />
+                <span className="hidden sm:inline">Настроить виджеты</span>
+              </Button>
+              
+              <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="sm" className="gap-2">
+                    <Eye className="w-4 h-4" />
+                    <span className="hidden sm:inline">Видимость</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent>
+                  <SheetHeader>
+                    <SheetTitle>Настройка виджетов дашборда</SheetTitle>
+                  </SheetHeader>
+                  <div className="mt-6 space-y-4">
+                    <p className="text-sm text-muted-foreground">
+                      Перетаскивайте виджеты для изменения порядка. Используйте переключатели для скрытия/отображения.
+                    </p>
+                    <DndContext
+                      sensors={sensors}
+                      collisionDetection={closestCenter}
+                      onDragEnd={handleDragEnd}
+                    >
+                      <SortableContext
+                        items={widgets.map((w) => w.id)}
+                        strategy={verticalListSortingStrategy}
+                      >
+                        <div className="space-y-2">
+                          {widgets.map((widget) => (
+                            <WidgetSettingsItem
+                              key={widget.id}
+                              widget={widget}
+                              onToggle={toggleWidget}
+                            />
+                          ))}
+                        </div>
+                      </SortableContext>
+                    </DndContext>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={resetWidgets}
+                      className="w-full gap-2 mt-4"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Сбросить расположение
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Draggable Widgets Container */}
