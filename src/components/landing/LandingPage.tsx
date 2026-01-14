@@ -536,7 +536,27 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 5: Guarantee */}
-      
+      <section id="guarantee" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-gradient-to-b from-white via-emerald-50/30 to-white relative overflow-hidden">
+        {/* Background decorations - hidden on mobile */}
+        <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-emerald-100/40 to-green-100/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto relative z-10">
+          <motion.div initial={{
+          opacity: 0,
+          y: 40
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }} transition={{
+          duration: 0.7
+        }} className="relative">
+            {/* Premium card wrapper */}
+            
+          </motion.div>
+        </div>
+      </section>
 
       {/* BLOCK 6: Registration Form - Neon Style */}
       <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-slate-950 relative overflow-hidden">
