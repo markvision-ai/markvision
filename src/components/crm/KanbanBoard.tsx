@@ -354,18 +354,19 @@ export const KanbanBoard = ({
       </div>
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
-        <div className="flex gap-4 overflow-x-auto pb-4 min-h-[600px]">
+        <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 -mx-3 px-3 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none scrollbar-thin min-h-[500px] md:min-h-[600px]">
           {KANBAN_STATUSES.map(status => (
-            <KanbanColumn
-              key={status.id}
-              status={status}
-              leads={leadsByStatus[status.id] || []}
-              onLeadClick={setSelectedLead}
-              isDropTarget={overId === status.id}
-              selectionMode={selectionMode}
-              selectedLeads={selectedLeads}
-              onSelectLead={onSelectLead}
-            />
+            <div key={status.id} className="snap-start">
+              <KanbanColumn
+                status={status}
+                leads={leadsByStatus[status.id] || []}
+                onLeadClick={setSelectedLead}
+                isDropTarget={overId === status.id}
+                selectionMode={selectionMode}
+                selectedLeads={selectedLeads}
+                onSelectLead={onSelectLead}
+              />
+            </div>
           ))}
         </div>
         <DragOverlay>{activeLead && <LeadCard lead={activeLead} isDragging />}</DragOverlay>

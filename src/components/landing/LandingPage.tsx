@@ -252,10 +252,10 @@ export const LandingPage = () => {
       </header>
 
       {/* BLOCK 1: Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
-        {/* Subtle gradient orbs */}
-        <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/40 to-indigo-100/40 rounded-full blur-3xl opacity-60" />
-        <div className="absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-cyan-100/30 to-blue-100/30 rounded-full blur-3xl opacity-50" />
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-24 sm:pt-32 pb-16 sm:pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
+        {/* Subtle gradient orbs - hidden on mobile for performance */}
+        <div className="hidden sm:block absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/40 to-indigo-100/40 rounded-full blur-3xl opacity-60" />
+        <div className="hidden sm:block absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-cyan-100/30 to-blue-100/30 rounded-full blur-3xl opacity-50" />
         
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Badge */}
@@ -274,7 +274,7 @@ export const LandingPage = () => {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.7 }}
-            className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-8"
+            className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-6 sm:mb-8"
           >
             Хватит терять
             <br />
@@ -288,17 +288,17 @@ export const LandingPage = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="max-w-3xl mx-auto mb-12 space-y-4"
+            className="max-w-3xl mx-auto mb-8 sm:mb-12 space-y-3 sm:space-y-4 px-2"
           >
-            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed">
               Мы берём на себя маркетинг, продажи и аналитику вашей клиники.
               <br className="hidden sm:block" />
               Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
-            <p className="text-xl sm:text-2xl font-semibold text-slate-800">
+            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800">
               Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
-            <p className="text-base sm:text-lg text-slate-400">
+            <p className="text-sm sm:text-base md:text-lg text-slate-400">
               без вложений в рекламу
             </p>
           </motion.div>
