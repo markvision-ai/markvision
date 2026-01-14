@@ -1,14 +1,17 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
-import { format } from 'date-fns';
+import { format, differenceInMinutes } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { isLeadAutomated } from '@/lib/webhooks';
+import { useState, useEffect } from 'react';
+
 interface LeadCardProps {
   lead: Lead;
   onClick?: () => void;
@@ -30,6 +33,31 @@ export const LeadCard = ({
     id: lead.id,
     disabled: selectionMode,
   });
+
+  // SLA Alert: Check if lead is in "Новая" status for more than 15 minutes
+  const [needsAttention, setNeedsAttention] = useState(false);
+  const [minutesWaiting, setMinutesWaiting] = useState(0);
+  
+  useEffect(() => {
+    const checkSLA = () => {
+      if (lead.status === 'Новая' || lead.status === 'new') {
+        const lastUpdate = lead.updated_at || lead.created_at;
+        const minutes = differenceInMinutes(new Date(), new Date(lastUpdate));
+        setMinutesWaiting(minutes);
+        setNeedsAttention(minutes >= 15);
+      } else {
+        setNeedsAttention(false);
+        setMinutesWaiting(0);
+      }
+    };
+    
+    checkSLA();
+    const interval = setInterval(checkSLA, 30000); // Check every 30 seconds
+    return () => clearInterval(interval);
+  }, [lead.status, lead.updated_at, lead.created_at]);
+
+  // Check if lead has active automation
+  const hasAutomation = isLeadAutomated(lead.extra_data);
 
   // Only apply transform, no transition during drag to prevent stickiness
   const style: React.CSSProperties = transform
@@ -147,23 +175,52 @@ export const LeadCard = ({
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
         'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
+        // SLA Alert - Pulsing red border for leads waiting > 15 min
+        needsAttention && 'animate-pulse ring-2 ring-red-500 border-red-500',
         // VIP Shine + Gold Glow for MEGA leads
-        isMegaTier && 'vip-shine vip-glow',
+        isMegaTier && !needsAttention && 'vip-shine vip-glow',
         // Golden background for MEGA leads (budget > 1M)
-        isGoldenLead 
+        isGoldenLead && !needsAttention
           ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-800/30 border-2 border-amber-400/70 dark:border-amber-500/50' 
-          : 'bg-card border border-border',
+          : !needsAttention && 'bg-card border border-border',
+        needsAttention && 'bg-red-50 dark:bg-red-950/30',
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg',
-        !showDragging && !isGoldenLead && 'hover:border-primary/30',
+        !showDragging && !isGoldenLead && !needsAttention && 'hover:border-primary/30',
         !showDragging && isGoldenLead && 'hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
         showDragging && 'shadow-xl opacity-95 z-50',
         isSelected && 'ring-2 ring-primary bg-primary/5',
-        !isGoldenLead && scoreTier.color // Apply tier-based styling only for non-golden
+        !isGoldenLead && !needsAttention && scoreTier.color // Apply tier-based styling only for non-golden
       )}
       onClick={handleCardClick}
     >
+      {/* SLA Alert Banner */}
+      {needsAttention && (
+        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[10px] font-bold py-1 px-2 flex items-center justify-center gap-1">
+          <AlertTriangle className="w-3 h-3" />
+          ⚠️ Требует внимания! ({minutesWaiting} мин)
+        </div>
+      )}
+
+      {/* Automation Badge */}
+      {hasAutomation && (
+        <div className="absolute top-2 right-2 z-10">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <BoltIcon className="w-3.5 h-3.5 text-blue-500" />
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>AI-автоматизация активна</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
+      )}
+
       {/* Score Tier Badge - Premium styling for MEGA */}
       {scoreTier.tier && (
         <div className={cn(

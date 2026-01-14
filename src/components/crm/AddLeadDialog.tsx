@@ -4,11 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { UserPlus, Loader2, Sparkles } from 'lucide-react';
+import { UserPlus, Loader2, Sparkles, UserCheck, Users } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useStaffForAssignment } from '@/hooks/useStaffAssignment';
+import { Switch } from '@/components/ui/switch';
 
 interface AddLeadDialogProps {
   projectId: string;
@@ -72,6 +74,8 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [autoAssign, setAutoAssign] = useState(true);
+  const { getRandomOnlineStaff, getOnlineStaff } = useStaffForAssignment(projectId);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -104,6 +108,15 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
 
     setLoading(true);
     try {
+      // Check if we should auto-assign to a staff member
+      let assignedTo: string | null = null;
+      if (autoAssign) {
+        const randomStaff = getRandomOnlineStaff();
+        if (randomStaff) {
+          assignedTo = randomStaff.id;
+        }
+      }
+
       const { error } = await supabase
         .from('leads')
         .insert({
@@ -112,10 +125,21 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           phone: formData.phone.trim() || null,
           utm_source: formData.source,
           utm_medium: 'manual',
-          status: 'new',
+          status: 'Новая',
+          assigned_to: assignedTo,
+          assigned_at: assignedTo ? new Date().toISOString() : null,
         });
 
       if (error) throw error;
+
+      const onlineCount = getOnlineStaff().length;
+      if (assignedTo) {
+        toast.success('Лид добавлен и назначен дежурному менеджеру');
+      } else if (autoAssign && onlineCount === 0) {
+        toast.success('Лид добавлен (нет онлайн менеджеров для назначения)');
+      } else {
+        toast.success('Лид успешно добавлен');
+      }
 
       toast.success('Лид успешно добавлен');
       setFormData({ name: '', phone: '', source: 'manual' });

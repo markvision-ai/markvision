@@ -15,11 +15,16 @@ import { KanbanColumn } from './KanbanColumn';
 import { LeadCard } from './LeadCard';
 import { LeadFullPage } from './LeadFullPage';
 import { PaymentDialog } from './PaymentDialog';
+import { AppointmentDialog } from './AppointmentDialog';
+import { RejectionDialog } from './RejectionDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { logStatusChange } from '@/hooks/useLeadStatusHistory';
+import { sendStatusChangeWebhook } from '@/lib/webhooks';
+import { triggerSuccessConfetti } from '@/lib/confetti';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
-import { playSuccessSound, playDragStartSound, playDropSound } from '@/lib/sounds';
 
 export interface KanbanStatus {
   id: string;
@@ -66,10 +71,14 @@ export const KanbanBoard = ({
   onSelectLead,
   onSelectAllInColumn
 }: KanbanBoardProps) => {
+  const { user } = useAuth();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
+  const [appointmentLead, setAppointmentLead] = useState<Lead | null>(null);
+  const [rejectionLead, setRejectionLead] = useState<Lead | null>(null);
+  const [pendingStatusChange, setPendingStatusChange] = useState<{ leadId: string; oldStatus: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
 
@@ -108,7 +117,6 @@ export const KanbanBoard = ({
   const handleDragStart = (event: DragStartEvent) => {
     if (selectionMode) return;
     setActiveId(event.active.id as string);
-    playDragStartSound();
   };
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -128,29 +136,182 @@ export const KanbanBoard = ({
 
     if (!lead || lead.status === newStatusLabel) return;
 
-    playDropSound();
+    const oldStatus = lead.status || 'new';
+    setPendingStatusChange({ leadId, oldStatus });
+
+    // Handle special status transitions with modals
     if (newStatusId === 'paid') {
       setPaymentLead(lead);
       return;
     }
-    await updateLeadStatus(leadId, newStatusLabel);
+    
+    if (newStatusId === 'appointment') {
+      setAppointmentLead(lead);
+      return;
+    }
+    
+    if (newStatusId === 'cancelled') {
+      setRejectionLead(lead);
+      return;
+    }
+
+    await updateLeadStatus(leadId, newStatusLabel, oldStatus);
   };
 
-  const updateLeadStatus = async (leadId: string, statusLabel: string) => {
+  const updateLeadStatus = async (
+    leadId: string, 
+    statusLabel: string, 
+    oldStatus?: string,
+    extraData?: { appointment_date?: string; rejection_reason?: string }
+  ) => {
     setIsUpdating(true);
     try {
+      const lead = leads.find(l => l.id === leadId);
+      const updateData: any = { 
+        status: statusLabel, 
+        updated_at: new Date().toISOString() 
+      };
+      
+      if (extraData?.appointment_date) {
+        updateData.appointment_date = extraData.appointment_date;
+      }
+      if (extraData?.rejection_reason) {
+        updateData.rejection_reason = extraData.rejection_reason;
+      }
+
       const { error } = await supabase
         .from('leads')
-        .update({ status: statusLabel, updated_at: new Date().toISOString() })
+        .update(updateData)
         .eq('id', leadId);
+      
       if (error) throw error;
+
+      // Log status change
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', user.id)
+          .single();
+
+        await logStatusChange(
+          leadId,
+          user.id,
+          profile?.name || user.email?.split('@')[0] || 'Пользователь',
+          oldStatus || null,
+          statusLabel
+        );
+      }
+
+      // Send webhook to n8n
+      await sendStatusChangeWebhook({
+        lead_id: leadId,
+        old_status: oldStatus || null,
+        new_status: statusLabel,
+        manager_id: user?.id || 'unknown',
+        timestamp: new Date().toISOString(),
+        project_id: projectId || undefined,
+        lead_name: lead?.name || undefined,
+        lead_phone: lead?.phone || undefined,
+        appointment_date: extraData?.appointment_date,
+        rejection_reason: extraData?.rejection_reason,
+      });
+
       toast.success('Статус обновлен');
       onRefetch();
     } catch (error) {
       toast.error('Ошибка сохранения');
     } finally {
       setIsUpdating(false);
+      setPendingStatusChange(null);
     }
+  };
+
+  // Payment confirmation handler
+  const handlePaymentConfirm = async (amount: number) => {
+    if (!paymentLead || !pendingStatusChange) return;
+    
+    setIsUpdating(true);
+    try {
+      const { error } = await supabase
+        .from('leads')
+        .update({ 
+          status: 'Оплачено', 
+          deal_amount: amount,
+          updated_at: new Date().toISOString() 
+        })
+        .eq('id', paymentLead.id);
+      
+      if (error) throw error;
+
+      // Log status change
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('name')
+          .eq('user_id', user.id)
+          .single();
+
+        await logStatusChange(
+          paymentLead.id,
+          user.id,
+          profile?.name || user.email?.split('@')[0] || 'Пользователь',
+          pendingStatusChange.oldStatus,
+          'paid',
+          amount
+        );
+      }
+
+      // Send webhook
+      await sendStatusChangeWebhook({
+        lead_id: paymentLead.id,
+        old_status: pendingStatusChange.oldStatus,
+        new_status: 'Оплачено',
+        manager_id: user?.id || 'unknown',
+        timestamp: new Date().toISOString(),
+        project_id: projectId || undefined,
+        lead_name: paymentLead.name || undefined,
+        lead_phone: paymentLead.phone || undefined,
+      });
+
+      // Trigger confetti celebration!
+      triggerSuccessConfetti();
+      
+      toast.success('Оплата зарегистрирована! 🎉');
+      onRefetch();
+    } catch (error) {
+      toast.error('Ошибка сохранения');
+    } finally {
+      setIsUpdating(false);
+      setPaymentLead(null);
+      setPendingStatusChange(null);
+    }
+  };
+
+  // Appointment confirmation handler
+  const handleAppointmentConfirm = async (appointmentDate: string) => {
+    if (!appointmentLead || !pendingStatusChange) return;
+    await updateLeadStatus(
+      appointmentLead.id, 
+      'Записан', 
+      pendingStatusChange.oldStatus,
+      { appointment_date: appointmentDate }
+    );
+    setAppointmentLead(null);
+    toast.success('Запись создана');
+  };
+
+  // Rejection confirmation handler
+  const handleRejectionConfirm = async (reasonId: string, reasonText: string) => {
+    if (!rejectionLead || !pendingStatusChange) return;
+    await updateLeadStatus(
+      rejectionLead.id, 
+      'Отказ', 
+      pendingStatusChange.oldStatus,
+      { rejection_reason: reasonText }
+    );
+    setRejectionLead(null);
+    toast.info('Причина отказа сохранена');
   };
 
   if (loading) {
@@ -201,12 +362,36 @@ export const KanbanBoard = ({
       {paymentLead && (
         <PaymentDialog
           open={!!paymentLead}
-          onClose={() => setPaymentLead(null)}
-          onConfirm={(amt) => {
-             updateLeadStatus(paymentLead.id, 'Оплачено');
-             setPaymentLead(null);
+          onClose={() => {
+            setPaymentLead(null);
+            setPendingStatusChange(null);
           }}
+          onConfirm={handlePaymentConfirm}
           leadName={paymentLead.name || 'Клиент'}
+        />
+      )}
+
+      {appointmentLead && (
+        <AppointmentDialog
+          open={!!appointmentLead}
+          onClose={() => {
+            setAppointmentLead(null);
+            setPendingStatusChange(null);
+          }}
+          onConfirm={handleAppointmentConfirm}
+          leadName={appointmentLead.name || 'Клиент'}
+        />
+      )}
+
+      {rejectionLead && (
+        <RejectionDialog
+          open={!!rejectionLead}
+          onClose={() => {
+            setRejectionLead(null);
+            setPendingStatusChange(null);
+          }}
+          onConfirm={handleRejectionConfirm}
+          leadName={rejectionLead.name || 'Клиент'}
         />
       )}
     </>
