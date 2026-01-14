@@ -55,14 +55,14 @@ export const useProjects = () => {
         // Админ видит все проекты
         const { data, error } = await supabase
           .from('projects')
-          .select('id, name, telegram_chat_id, onboarding_status');
+          .select('id, name, onboarding_status');
 
         if (error) {
           if (import.meta.env.DEV) {
             console.error('❌ Ошибка получения проектов (админ):', error);
           }
         } else {
-          projectsData = data || [];
+          projectsData = (data || []).map(p => ({ ...p, telegram_chat_id: null }));
         }
       } else {
         // Обычный пользователь - проверяем project_access
@@ -75,11 +75,11 @@ export const useProjects = () => {
           const projectIds = accessData.map(a => a.project_id);
           const { data, error } = await supabase
             .from('projects')
-            .select('id, name, telegram_chat_id, onboarding_status')
+            .select('id, name, onboarding_status')
             .in('id', projectIds);
 
           if (!error && data) {
-            projectsData = data;
+            projectsData = data.map(p => ({ ...p, telegram_chat_id: null }));
           }
         }
       }
@@ -96,12 +96,12 @@ export const useProjects = () => {
 
         const { data: fallbackProject, error: fallbackError } = await supabase
           .from('projects')
-          .select('id, name, telegram_chat_id, onboarding_status')
+          .select('id, name, onboarding_status')
           .eq('id', FALLBACK_PROJECT_ID)
           .maybeSingle();
 
         if (!fallbackError && fallbackProject) {
-          projectsData = [fallbackProject];
+          projectsData = [{ ...fallbackProject, telegram_chat_id: null }];
           if (import.meta.env.DEV) {
             console.log('✅ Fallback проект найден:', fallbackProject.name);
           }
