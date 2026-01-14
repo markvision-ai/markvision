@@ -7,6 +7,7 @@ export interface DashboardWidget {
   visible: boolean;
 }
 
+// Эталонный порядок виджетов
 const DEFAULT_WIDGETS: DashboardWidget[] = [
   { id: 'metrics', title: 'Выручка и Метрики', order: 0, visible: true },
   { id: 'computed', title: 'Расчётные показатели', order: 1, visible: true },
@@ -16,8 +17,8 @@ const DEFAULT_WIDGETS: DashboardWidget[] = [
   { id: 'ai-assistant', title: 'ИИ-Аналитик', order: 5, visible: true },
 ];
 
-// Use the key from user's request
-const STORAGE_KEY = 'mvi_dashboard_layout';
+// Новый ключ для localStorage
+const STORAGE_KEY = 'dashboard_order_v2';
 
 export const useDashboardWidgets = () => {
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {
@@ -30,7 +31,7 @@ export const useDashboardWidgets = () => {
           const savedWidget = parsed.find((w: DashboardWidget) => w.id === defaultWidget.id);
           return savedWidget ? { ...defaultWidget, ...savedWidget } : defaultWidget;
         });
-        return mergedWidgets;
+        return mergedWidgets.sort((a, b) => a.order - b.order);
       } catch {
         return DEFAULT_WIDGETS;
       }
@@ -38,25 +39,42 @@ export const useDashboardWidgets = () => {
     return DEFAULT_WIDGETS;
   });
 
-  const [isEditMode, setIsEditMode] = useState(false);
-
   // Save to localStorage whenever widgets change
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(widgets));
   }, [widgets]);
 
-  const moveWidget = useCallback((fromIndex: number, toIndex: number) => {
-    setWidgets((prev) => {
+  // Переместить виджет вверх
+  const moveUp = useCallback((widgetId: string) => {
+    setWidgets(prev => {
+      const index = prev.findIndex(w => w.id === widgetId);
+      if (index <= 0) return prev; // Уже наверху
+      
       const newWidgets = [...prev];
-      const [removed] = newWidgets.splice(fromIndex, 1);
-      newWidgets.splice(toIndex, 0, removed);
+      // Swap with previous
+      [newWidgets[index - 1], newWidgets[index]] = [newWidgets[index], newWidgets[index - 1]];
+      // Update order
+      return newWidgets.map((w, i) => ({ ...w, order: i }));
+    });
+  }, []);
+
+  // Переместить виджет вниз
+  const moveDown = useCallback((widgetId: string) => {
+    setWidgets(prev => {
+      const index = prev.findIndex(w => w.id === widgetId);
+      if (index < 0 || index >= prev.length - 1) return prev; // Уже внизу
+      
+      const newWidgets = [...prev];
+      // Swap with next
+      [newWidgets[index], newWidgets[index + 1]] = [newWidgets[index + 1], newWidgets[index]];
+      // Update order
       return newWidgets.map((w, i) => ({ ...w, order: i }));
     });
   }, []);
 
   const toggleWidget = useCallback((widgetId: string) => {
-    setWidgets((prev) =>
-      prev.map((w) => (w.id === widgetId ? { ...w, visible: !w.visible } : w))
+    setWidgets(prev =>
+      prev.map(w => (w.id === widgetId ? { ...w, visible: !w.visible } : w))
     );
   }, []);
 
@@ -65,25 +83,26 @@ export const useDashboardWidgets = () => {
     localStorage.removeItem(STORAGE_KEY);
   }, []);
 
-  const applyLayout = useCallback(() => {
-    // Layout is auto-saved, this just exits edit mode
-    setIsEditMode(false);
-  }, []);
-
-  const startEditing = useCallback(() => {
-    setIsEditMode(true);
-  }, []);
+  // Получить позицию виджета среди видимых
+  const getVisiblePosition = useCallback((widgetId: string) => {
+    const visibleWidgets = widgets.filter(w => w.visible);
+    const index = visibleWidgets.findIndex(w => w.id === widgetId);
+    return {
+      index,
+      isFirst: index === 0,
+      isLast: index === visibleWidgets.length - 1,
+      total: visibleWidgets.length
+    };
+  }, [widgets]);
 
   const sortedWidgets = [...widgets].sort((a, b) => a.order - b.order);
 
   return {
     widgets: sortedWidgets,
-    moveWidget,
+    moveUp,
+    moveDown,
     toggleWidget,
     resetWidgets,
-    isEditMode,
-    setIsEditMode,
-    applyLayout,
-    startEditing,
+    getVisiblePosition,
   };
 };

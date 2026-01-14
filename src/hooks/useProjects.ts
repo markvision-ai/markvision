@@ -12,7 +12,6 @@ const LOCAL_STORAGE_KEY = 'activeProjectId';
 interface Project {
   id: string;
   name: string;
-  owner_id: string;
   telegram_chat_id?: string | null;
   onboarding_status?: string | null;
 }
@@ -56,7 +55,7 @@ export const useProjects = () => {
         // Админ видит все проекты
         const { data, error } = await supabase
           .from('projects')
-          .select('id, name, owner_id, telegram_chat_id, onboarding_status');
+          .select('id, name, telegram_chat_id, onboarding_status');
 
         if (error) {
           if (import.meta.env.DEV) {
@@ -76,7 +75,7 @@ export const useProjects = () => {
           const projectIds = accessData.map(a => a.project_id);
           const { data, error } = await supabase
             .from('projects')
-            .select('id, name, owner_id, telegram_chat_id, onboarding_status')
+            .select('id, name, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
 
           if (!error && data) {
@@ -97,7 +96,7 @@ export const useProjects = () => {
 
         const { data: fallbackProject, error: fallbackError } = await supabase
           .from('projects')
-          .select('id, name, owner_id, telegram_chat_id, onboarding_status')
+          .select('id, name, telegram_chat_id, onboarding_status')
           .eq('id', FALLBACK_PROJECT_ID)
           .maybeSingle();
 
@@ -172,7 +171,6 @@ export const useProjects = () => {
       .from('projects')
       .insert({
         name: trimmedName,
-        owner_id: user.id,
         onboarding_status: 'pending',
       })
       .select()

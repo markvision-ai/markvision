@@ -289,7 +289,7 @@ export const AnalyticsPlatform = () => {
     );
   }
 
-  const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: p.owner_id }));
+  const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
 
   const mainContent = (
     <main className="p-3 md:p-6 pb-20 md:pb-6">
