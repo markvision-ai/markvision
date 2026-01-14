@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 import { MetaSyncButton } from '@/components/integrations/MetaSyncButton';
 import { GreenAPISettings } from '@/components/integrations/GreenAPISettings';

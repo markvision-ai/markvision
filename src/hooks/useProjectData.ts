@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, FALLBACK_PROJECT_ID } from '@/lib/externalSupabase';
 import { format, startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import { validateFieldValue, logError } from '@/lib/validation';
@@ -7,7 +7,7 @@ import { useAuth } from './useAuth';
 import { usePermissions } from './usePermissions';
 
 // Жёстко закодированный project_id для использования по умолчанию
-const DEFAULT_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+const DEFAULT_PROJECT_ID = FALLBACK_PROJECT_ID;
 
 interface DailyData {
   date: string;

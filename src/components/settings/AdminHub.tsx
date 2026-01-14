@@ -19,7 +19,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { KnowledgeBaseTab } from './tabs/KnowledgeBaseTab';
 import { SecurityTab } from './tabs/SecurityTab';
 import { HelpTab } from './tabs/HelpTab';

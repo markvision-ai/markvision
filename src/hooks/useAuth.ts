@@ -1,9 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
-
-// Super-Admin email for bypass (verified in useProjects.ts as well)
-const SUPER_ADMIN_EMAIL = 'zapoinov@bk.ru';
+import { supabase, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID, isSuperAdmin } from '@/lib/externalSupabase';
 
 interface UserProfile {
   id: string;

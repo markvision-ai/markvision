@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { useAuth } from './useAuth';
 
 export interface LeadMessage {

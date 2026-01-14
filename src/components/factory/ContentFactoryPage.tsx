@@ -12,7 +12,7 @@ import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
 import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
 import { InstagramStats } from '@/components/integrations/InstagramStats';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 
 interface ContentFactoryPageProps {
   projectId: string | null;

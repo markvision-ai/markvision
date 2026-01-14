@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, FALLBACK_PROJECT_ID, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID, isSuperAdmin } from '@/lib/externalSupabase';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { logError } from '@/lib/validation';
 
-// ID известного проекта для fallback
-const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-const ADMIN_EMAIL = 'zapoinov@bk.ru';
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
 interface Project {
@@ -47,7 +44,7 @@ export const useProjects = () => {
       }
 
       // Сначала пробуем получить все проекты (для админа)
-      const isAdminUser = user.email === ADMIN_EMAIL || isAdmin;
+      const isAdminUser = isSuperAdmin(user.id, user.email) || isAdmin;
       
       let projectsData: Project[] = [];
 
