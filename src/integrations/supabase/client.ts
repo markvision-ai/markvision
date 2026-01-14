@@ -10,17 +10,29 @@ export const supabase = createClient(url, key, {
   },
   realtime: {
     params: {
-      eventsPerSecond: 2, // Снижаем нагрузку
+      eventsPerSecond: 2,
     }
   }
 });
 
-// Умная подписка: если ошибка — ждем 30 секунд
+// Realtime connection management with silent reconnection
+let reconnectAttempts = 0;
+const MAX_RECONNECT_LOG = 3; // Only log first 3 reconnect attempts
+
 const channel = supabase.channel('leads-all');
 channel.subscribe((status) => {
-  if (status === 'SUBSCRIBED') console.log('✅ Realtime: Connected');
-  if (status === 'CLOSED') {
-    console.log('⚠️ Realtime: Connection lost. Retrying in 30s...');
-    setTimeout(() => channel.subscribe(), 30000);
+  if (status === 'SUBSCRIBED') {
+    reconnectAttempts = 0;
+    console.log('✅ Realtime: Connected');
+  }
+  if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
+    reconnectAttempts++;
+    // Silent reconnect - only log first few attempts to avoid console spam
+    if (reconnectAttempts <= MAX_RECONNECT_LOG) {
+      console.log(`⚠️ Realtime: Connection lost. Reconnecting in 30s... (attempt ${reconnectAttempts})`);
+    }
+    setTimeout(() => {
+      channel.subscribe();
+    }, 30000);
   }
 });

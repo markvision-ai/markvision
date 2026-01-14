@@ -1,73 +1,81 @@
 import { useState } from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { GripVertical, Settings2, RotateCcw, Eye, EyeOff, Check, X } from 'lucide-react';
+import { ChevronUp, ChevronDown, Settings2, RotateCcw, Eye } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
 import { Switch } from '@/components/ui/switch';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
-interface SortableWidgetProps {
+interface WidgetWrapperProps {
   widget: DashboardWidget;
   children: React.ReactNode;
-  isEditMode: boolean;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
-const SortableWidget = ({ widget, children, isEditMode }: SortableWidgetProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: widget.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
+const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast }: WidgetWrapperProps) => {
   if (!widget.visible) return null;
 
   return (
     <motion.div
-      ref={setNodeRef}
-      style={style}
       layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className={cn(
-        'relative group',
-        isDragging && 'z-50 opacity-90',
-        isEditMode && 'ring-2 ring-dashed ring-primary/30 rounded-xl p-2'
-      )}
+      transition={{ duration: 0.2 }}
+      className="relative group"
     >
-      {/* Edit Mode Drag Handle */}
-      {isEditMode && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-3 top-1/2 -translate-y-1/2 cursor-grab active:cursor-grabbing p-2 rounded-lg bg-primary text-primary-foreground shadow-lg hover:scale-110 transition-transform z-20"
-        >
-          <GripVertical className="w-5 h-5" />
-        </div>
-      )}
-      
-      {/* Normal Hover Drag Handle */}
-      {!isEditMode && (
-        <div
-          {...attributes}
-          {...listeners}
-          className="absolute -left-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab active:cursor-grabbing p-1.5 rounded-lg bg-secondary hover:bg-muted z-10"
-        >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
-        </div>
-      )}
+      {/* Arrow Controls - appear on hover */}
+      <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-20">
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
+                  isFirst && "opacity-30 cursor-not-allowed"
+                )}
+                onClick={onMoveUp}
+                disabled={isFirst}
+              >
+                <ChevronUp className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Переместить вверх</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className={cn(
+                  "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
+                  isLast && "opacity-30 cursor-not-allowed"
+                )}
+                onClick={onMoveDown}
+                disabled={isLast}
+              >
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">
+              <p>Переместить вниз</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+
       {children}
     </motion.div>
   );
@@ -76,39 +84,35 @@ const SortableWidget = ({ widget, children, isEditMode }: SortableWidgetProps) =
 interface WidgetSettingsItemProps {
   widget: DashboardWidget;
   onToggle: (id: string) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  isFirst: boolean;
+  isLast: boolean;
 }
 
-const WidgetSettingsItem = ({ widget, onToggle }: WidgetSettingsItemProps) => {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: widget.id });
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-  };
-
+const WidgetSettingsItem = ({ widget, onToggle, onMoveUp, onMoveDown, isFirst, isLast }: WidgetSettingsItemProps) => {
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={cn(
-        'flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border',
-        isDragging && 'opacity-50'
-      )}
-    >
+    <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
       <div className="flex items-center gap-3">
-        <div
-          {...attributes}
-          {...listeners}
-          className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-muted"
-        >
-          <GripVertical className="w-4 h-4 text-muted-foreground" />
+        <div className="flex flex-col gap-0.5">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={onMoveUp}
+            disabled={isFirst}
+          >
+            <ChevronUp className="h-3 w-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5"
+            onClick={onMoveDown}
+            disabled={isLast}
+          >
+            <ChevronDown className="h-3 w-3" />
+          </Button>
         </div>
         <span className="text-sm font-medium">{widget.title}</span>
       </div>
@@ -125,38 +129,26 @@ interface DraggableDashboardProps {
 }
 
 export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
-  const { widgets, moveWidget, toggleWidget, resetWidgets, isEditMode, setIsEditMode, applyLayout, startEditing } = useDashboardWidgets();
+  const { widgets, moveUp, moveDown, toggleWidget, resetWidgets, getVisiblePosition } = useDashboardWidgets();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-
-    if (over && active.id !== over.id) {
-      const oldIndex = widgets.findIndex((w) => w.id === active.id);
-      const newIndex = widgets.findIndex((w) => w.id === over.id);
-      moveWidget(oldIndex, newIndex);
-    }
-  };
-
   const renderWidget = (widgetId: string, content: React.ReactNode) => {
-    const widget = widgets.find((w) => w.id === widgetId);
+    const widget = widgets.find(w => w.id === widgetId);
     if (!widget || !widget.visible) return null;
 
+    const position = getVisiblePosition(widgetId);
+
     return (
-      <SortableWidget key={widget.id} widget={widget} isEditMode={isEditMode}>
+      <WidgetWrapper
+        key={widget.id}
+        widget={widget}
+        onMoveUp={() => moveUp(widgetId)}
+        onMoveDown={() => moveDown(widgetId)}
+        isFirst={position.isFirst}
+        isLast={position.isLast}
+      >
         {content}
-      </SortableWidget>
+      </WidgetWrapper>
     );
   };
 
@@ -164,121 +156,71 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   const hiddenCount = widgets.filter(w => !w.visible).length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pl-12">
       {/* Dashboard Settings Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between -ml-12">
         <div className="flex items-center gap-2">
           {hiddenCount > 0 && (
             <span className="text-xs text-muted-foreground">
               {hiddenCount} виджет(ов) скрыто
             </span>
           )}
-          {isEditMode && (
-            <span className="text-xs text-primary font-medium animate-pulse">
-              🔧 Режим редактирования — перетаскивайте виджеты
-            </span>
-          )}
+          <span className="text-xs text-muted-foreground hidden sm:inline">
+            💡 Наведите на виджет для управления порядком
+          </span>
         </div>
         
         <div className="flex items-center gap-2">
-          {isEditMode ? (
-            <>
-              <Button
-                variant="default"
-                size="sm"
-                onClick={applyLayout}
-                className="gap-2 bg-gradient-to-r from-primary to-accent"
-              >
-                <Check className="w-4 h-4" />
-                <span className="hidden sm:inline">Применить</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditMode(false)}
-                className="gap-2"
-              >
-                <X className="w-4 h-4" />
-                <span className="hidden sm:inline">Отмена</span>
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={startEditing}
-                className="gap-2 hover:border-primary"
-              >
+          <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="sm" className="gap-2 hover:border-primary">
                 <Settings2 className="w-4 h-4" />
                 <span className="hidden sm:inline">Настроить виджеты</span>
               </Button>
-              
-              <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-                <SheetTrigger asChild>
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Eye className="w-4 h-4" />
-                    <span className="hidden sm:inline">Видимость</span>
-                  </Button>
-                </SheetTrigger>
-                <SheetContent>
-                  <SheetHeader>
-                    <SheetTitle>Настройка виджетов дашборда</SheetTitle>
-                  </SheetHeader>
-                  <div className="mt-6 space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Перетаскивайте виджеты для изменения порядка. Используйте переключатели для скрытия/отображения.
-                    </p>
-                    <DndContext
-                      sensors={sensors}
-                      collisionDetection={closestCenter}
-                      onDragEnd={handleDragEnd}
-                    >
-                      <SortableContext
-                        items={widgets.map((w) => w.id)}
-                        strategy={verticalListSortingStrategy}
-                      >
-                        <div className="space-y-2">
-                          {widgets.map((widget) => (
-                            <WidgetSettingsItem
-                              key={widget.id}
-                              widget={widget}
-                              onToggle={toggleWidget}
-                            />
-                          ))}
-                        </div>
-                      </SortableContext>
-                    </DndContext>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={resetWidgets}
-                      className="w-full gap-2 mt-4"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Сбросить расположение
-                    </Button>
-                  </div>
-                </SheetContent>
-              </Sheet>
-            </>
-          )}
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>Настройка виджетов дашборда</SheetTitle>
+                <SheetDescription>
+                  Используйте стрелки для изменения порядка и переключатели для видимости
+                </SheetDescription>
+              </SheetHeader>
+              <div className="mt-6 space-y-4">
+                <div className="space-y-2">
+                  {widgets.map((widget, index) => (
+                    <WidgetSettingsItem
+                      key={widget.id}
+                      widget={widget}
+                      onToggle={toggleWidget}
+                      onMoveUp={() => moveUp(widget.id)}
+                      onMoveDown={() => moveDown(widget.id)}
+                      isFirst={index === 0}
+                      isLast={index === widgets.length - 1}
+                    />
+                  ))}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    resetWidgets();
+                    setIsSettingsOpen(false);
+                  }}
+                  className="w-full gap-2 mt-4"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Сбросить порядок
+                </Button>
+              </div>
+            </SheetContent>
+          </Sheet>
         </div>
       </div>
 
-      {/* Draggable Widgets Container */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext
-          items={visibleWidgets.map((w) => w.id)}
-          strategy={verticalListSortingStrategy}
-        >
-          {children(renderWidget)}
-        </SortableContext>
-      </DndContext>
+      {/* Widgets Container */}
+      <AnimatePresence mode="popLayout">
+        {children(renderWidget)}
+      </AnimatePresence>
     </div>
   );
 };

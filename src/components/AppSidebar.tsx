@@ -71,7 +71,6 @@ import { Button } from "@/components/ui/button";
 interface Project {
   id: string;
   name: string;
-  owner_id: string;
 }
 
 interface AppSidebarProps {
@@ -312,18 +311,17 @@ export const AppSidebar = ({
                             {project.name}
                           </span>
                         </div>
-                        {project.owner_id === userId && (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setProjectToDelete(project);
-                              setIsDeleteDialogOpen(true);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
-                          >
-                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
-                          </button>
-                        )}
+                        {/* Delete button - visible for all users on hover */}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setProjectToDelete(project);
+                            setIsDeleteDialogOpen(true);
+                          }}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                        </button>
                     </DropdownMenuItem>
                     ))}
                     <DropdownMenuSeparator className="bg-border" />

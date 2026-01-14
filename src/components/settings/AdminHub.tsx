@@ -34,7 +34,6 @@ import { TechnicalHealthTab } from './tabs/TechnicalHealthTab';
 interface Project {
   id: string;
   name: string;
-  owner_id: string;
 }
 
 interface AdminHubProps {
