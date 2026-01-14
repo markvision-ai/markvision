@@ -33,6 +33,12 @@ export interface Lead {
   extra_data: any;
   created_at: string;
   updated_at: string;
+  assigned_to: string | null;
+  assigned_at: string | null;
+  appointment_date: string | null;
+  rejection_reason: string | null;
+  lead_score: number | null;
+  score_label: string | null;
 }
 
 export interface LeadFilter {
@@ -43,13 +49,41 @@ export interface LeadFilter {
   search?: string;
 }
 
+// Select only needed fields for performance
+const LEAD_FIELDS = `
+  id,
+  project_id,
+  name,
+  email,
+  phone,
+  utm_source,
+  utm_medium,
+  utm_campaign,
+  utm_content,
+  utm_term,
+  status,
+  deal_amount,
+  created_at,
+  updated_at,
+  assigned_to,
+  assigned_at,
+  appointment_date,
+  rejection_reason,
+  lead_score,
+  score_label,
+  external_lead_id,
+  client_id,
+  visit_id,
+  extra_data
+`;
+
 export function useLeads(projectId: string | null) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<LeadFilter>({});
   const { logUpdate, logStatusChange } = useAuditLog();
 
-  const fetchLeads = async () => {
+  const fetchLeads = useCallback(async () => {
     if (!projectId) {
       setLeads([]);
       setLoading(false);
@@ -60,9 +94,10 @@ export function useLeads(projectId: string | null) {
     try {
       let query = supabase
         .from('leads')
-        .select('*')
+        .select(LEAD_FIELDS)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(500); // Limit for performance
 
       if (filters.utm_source) {
         query = query.eq('utm_source', filters.utm_source);
@@ -93,11 +128,44 @@ export function useLeads(projectId: string | null) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, filters]);
 
   useEffect(() => {
     fetchLeads();
-  }, [projectId, filters]);
+  }, [fetchLeads]);
+
+  // Set up realtime subscription
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel(`leads-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            setLeads(prev => [payload.new as Lead, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setLeads(prev => prev.map(l => 
+              l.id === payload.new.id ? { ...l, ...payload.new } as Lead : l
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setLeads(prev => prev.filter(l => l.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
 
   const getUniqueValues = (field: keyof Lead) => {
     const values = leads
