@@ -82,7 +82,7 @@ interface AppSidebarProps {
   projects?: Project[];
   currentProjectId?: string | null;
   onProjectChange?: (projectId: string) => void;
-  onCreateProject?: (name: string) => Promise<string | undefined>;
+  onCreateProject?: (name: string) => Promise<{ id: string; name: string } | null>;
   onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
   userId?: string;
   systemHasErrors?: boolean;
@@ -132,8 +132,8 @@ export const AppSidebar = ({
     if (!newProjectName.trim() || !onCreateProject) return;
     setIsCreating(true);
     try {
-      const projectId = await onCreateProject(newProjectName.trim());
-      if (projectId) {
+      const result = await onCreateProject(newProjectName.trim());
+      if (result) {
         toast.success("Проект создан!");
         setNewProjectName("");
         setIsCreateDialogOpen(false);
