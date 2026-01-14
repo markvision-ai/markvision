@@ -15,7 +15,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
 
-import { Sidebar } from './layout/Sidebar';
+import { AppSidebar } from './AppSidebar';
 import { Header } from './layout/Header';
 import { MetricCard } from './dashboard/MetricCard';
 import { PlanFactCard } from './dashboard/PlanFactCard';
@@ -49,6 +49,7 @@ import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
+import { cn } from '@/lib/utils';
 
 interface DailyData {
   date: string;
@@ -505,7 +506,9 @@ export const AnalyticsPlatform = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className={cn(
+      "min-h-screen bg-[#0B0E14] text-white flex flex-col md:flex-row w-full"
+    )}>
       {showOnboarding && (
         <OnboardingWizard 
           createProject={createProject}
@@ -517,20 +520,16 @@ export const AnalyticsPlatform = () => {
         />
       )}
       
-      <Sidebar 
+      {/* Premium Animated Sidebar */}
+      <AppSidebar 
         activeTab={activeTab} 
         onTabChange={handleTabChange}
-        currentProject={currentProjectId || undefined}
-        projects={projectsList}
-        onProjectChange={setCurrentProjectId}
-        onStartOnboarding={() => setShowOnboarding(true)}
-        onDeleteProject={deleteProject}
-        isMobileOpen={isMobileSidebarOpen}
-        onMobileClose={() => setIsMobileSidebarOpen(false)}
         userProfile={profile}
+        realtimeStatus="SUBSCRIBED"
       />
       
-      <div className="md:ml-64">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col overflow-hidden">
         <Header 
           title={getTabTitle()} 
           subtitle={currentProject?.name}
@@ -540,13 +539,15 @@ export const AnalyticsPlatform = () => {
           onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
         />
         
-        {isMobile ? (
-          <PullToRefresh onRefresh={handleRefresh}>
-            {mainContent}
-          </PullToRefresh>
-        ) : (
-          mainContent
-        )}
+        <div className="flex-1 overflow-y-auto">
+          {isMobile ? (
+            <PullToRefresh onRefresh={handleRefresh}>
+              {mainContent}
+            </PullToRefresh>
+          ) : (
+            mainContent
+          )}
+        </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
