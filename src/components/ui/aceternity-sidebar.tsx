@@ -103,7 +103,7 @@ export const DesktopSidebar = ({
     <motion.aside
       className={cn(
         "h-screen px-4 py-4 hidden md:flex md:flex-col flex-shrink-0 sticky top-0",
-        "bg-sidebar/95 backdrop-blur-xl border-r border-border/50",
+        "bg-sidebar border-r border-border/30",
         className
       )}
       animate={{
@@ -136,18 +136,18 @@ export const MobileSidebar = ({
   return (
     <>
       {/* Mobile Header with Burger */}
-      <div className="h-14 px-4 flex md:hidden items-center justify-between bg-sidebar/95 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40">
+      <div className="h-14 px-4 flex md:hidden items-center justify-between bg-sidebar border-b border-border/30 sticky top-0 z-40">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <span className="text-white font-bold text-sm">M</span>
           </div>
-          <span className="font-semibold text-foreground">MarkVision</span>
+          <span className="font-semibold text-sidebar-foreground">MarkVision</span>
         </div>
         <button
           onClick={() => setIsMobileOpen(true)}
-          className="p-2 rounded-lg hover:bg-muted transition-colors"
+          className="p-2 rounded-lg hover:bg-sidebar-muted transition-colors"
         >
-          <Menu className="w-6 h-6 text-foreground" />
+          <Menu className="w-6 h-6 text-sidebar-foreground" />
         </button>
       </div>
 

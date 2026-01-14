@@ -378,7 +378,7 @@ export const AnalyticsPlatform = () => {
                   />
                   <MetricCard
                     label="ROMI"
-                    value={`${romi.toFixed(1)}%`}
+                    value={`${Math.round(romi)}%`}
                     subValue="(Выручка - Расход) / Расход"
                     variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
                     icon={<TrendingUp className="w-5 h-5" />}
@@ -386,33 +386,33 @@ export const AnalyticsPlatform = () => {
                   <MetricCard
                     label="ROAS"
                     value={`${roas.toFixed(2)}x`}
-                    subValue={`₸1 → ₸${roas.toFixed(2)}`}
+                    subValue={`₸1 → ₸${Math.round(roas)}`}
                     variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
                   />
                 </div>
               ))}
 
-              {/* Quick Stats */}
+              {/* Quick Stats - Сравнение с прошлой неделей */}
               {renderWidget('quick-stats', (
                 <QuickStats stats={comparisonStats} />
               ))}
 
-              {/* Appointments Widget */}
-              {renderWidget('appointments', currentProjectId && (
-                <UpcomingAppointmentsWidget projectId={currentProjectId} />
-              ))}
-
-              {/* Revenue Chart */}
+              {/* Revenue Chart - Динамика показателей */}
               {renderWidget('revenue-chart', (
                 <RevenueChart data={dailyData} daysInMonth={daysInRange} />
               ))}
 
-              {/* Conversion Stats */}
+              {/* Conversion Stats - Воронка продаж */}
               {renderWidget('conversions', (
                 <ConversionStats steps={funnelSteps} />
               ))}
 
-              {/* AI Assistant */}
+              {/* Appointments Widget - Записи на неделю */}
+              {renderWidget('appointments', currentProjectId && (
+                <UpcomingAppointmentsWidget projectId={currentProjectId} />
+              ))}
+
+              {/* AI Assistant - ИИ-Аналитик */}
               {renderWidget('ai-assistant', currentProjectId && (
                 <AIAssistant />
               ))}
@@ -589,7 +589,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

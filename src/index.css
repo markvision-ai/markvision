@@ -39,24 +39,24 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme */
-    --background: 210 20% 98%;
-    --foreground: 222 20% 10%;
+    /* Premium Light Theme - Чисто белый фон */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 20% 10%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 20% 10%;
+    --popover-foreground: 222 47% 11%;
 
     --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 210 15% 96%;
-    --secondary-foreground: 222 20% 10%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 210 15% 94%;
-    --muted-foreground: 222 10% 40%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 220 9% 46%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -70,15 +70,16 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 210 15% 90%;
-    --input: 210 15% 90%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
-    --sidebar: 222 30% 8%;
-    --sidebar-foreground: 210 10% 95%;
-    --sidebar-muted: 222 25% 14%;
+    /* Sidebar - Dark even in light mode */
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 217 33% 17%;
 
     --chart-1: 221 83% 53%;
     --chart-2: 142 76% 36%;
@@ -92,25 +93,25 @@
   }
 
   .dark {
-    /* Premium Deep Dark Theme - #0B0E14 background */
-    --background: 220 35% 6%;
-    --foreground: 210 15% 95%;
+    /* Premium Deep Dark Theme - глубокий синий/черный */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
 
-    /* Cards - #161B26 */
-    --card: 220 28% 12%;
-    --card-foreground: 210 15% 95%;
+    /* Cards - чуть светлее фона */
+    --card: 217 33% 11%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 220 28% 10%;
-    --popover-foreground: 210 15% 95%;
+    --popover: 217 33% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 221 83% 58%;
+    --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 25% 14%;
-    --secondary-foreground: 210 15% 95%;
+    --secondary: 217 33% 15%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 220 22% 16%;
-    --muted-foreground: 210 12% 55%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -124,14 +125,14 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 20% 18%;
-    --input: 220 20% 18%;
-    --ring: 221 83% 58%;
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 217 91% 60%;
 
     /* Sidebar - ultra dark */
-    --sidebar: 220 40% 5%;
-    --sidebar-foreground: 210 12% 90%;
-    --sidebar-muted: 220 30% 10%;
+    --sidebar: 222 47% 5%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 217 33% 10%;
 
     /* Medical accent colors */
     --medical-blue: 200 80% 55%;
