@@ -616,7 +616,7 @@ export const AnalyticsPlatform = () => {
           />
         )}
         
-        {/* Premium Animated Sidebar - Fixed left */}
+        {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
           activeTab={activeTab} 
           onTabChange={handleTabChange}
@@ -631,10 +631,10 @@ export const AnalyticsPlatform = () => {
           systemHasErrors={systemHasErrors}
         />
         
-        {/* Main Content Area - Takes remaining space */}
-        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        {/* Main Content Area - Takes remaining space, no overlap */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
           {/* Header with backdrop blur */}
-          <div className="hidden md:block sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          <header className="hidden md:block sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border">
             <Header 
               title={getTabTitle()} 
               subtitle={currentProject?.name}
@@ -643,7 +643,7 @@ export const AnalyticsPlatform = () => {
               showDatePicker={activeTab === 'dashboard'}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
             />
-          </div>
+          </header>
           
           {/* Scrollable content area */}
           <div className="flex-1 overflow-y-auto scrollbar-thin">
@@ -655,7 +655,7 @@ export const AnalyticsPlatform = () => {
               mainContent
             )}
           </div>
-        </div>
+        </main>
 
         {/* Mobile Bottom Navigation */}
         <MobileBottomNav 

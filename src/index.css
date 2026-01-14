@@ -39,7 +39,7 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme - Чисто белый фон */
+    /* Premium Light Theme - Чисто белый фон, идеальный контраст */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
@@ -56,7 +56,7 @@
     --secondary-foreground: 222 47% 11%;
 
     --muted: 210 20% 94%;
-    --muted-foreground: 220 9% 46%;
+    --muted-foreground: 220 14% 40%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -70,13 +70,13 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
+    --border: 214 32% 85%;
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Dark even in light mode */
+    /* Sidebar - Dark even in light mode for contrast */
     --sidebar: 222 47% 11%;
     --sidebar-foreground: 210 40% 98%;
     --sidebar-muted: 217 33% 17%;
