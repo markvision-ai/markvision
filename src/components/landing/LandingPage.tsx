@@ -37,6 +37,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
 import founderWithMark from "@/assets/founder-with-mark.png";
+import markvisionLogo from "@/assets/markvision-logo.png";
 
 const modules = [
   {
@@ -221,9 +222,11 @@ export const LandingPage = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-2xl border-b border-slate-100/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
-              <span className="text-white font-bold text-xl">M</span>
-            </div>
+            <img 
+              src={markvisionLogo} 
+              alt="MarkVision AI" 
+              className="w-11 h-11 rounded-2xl object-cover shadow-lg shadow-blue-500/25"
+            />
             <span className="font-semibold text-xl text-slate-900 hidden sm:block tracking-tight">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </span>
@@ -352,17 +355,25 @@ export const LandingPage = () => {
             </AuroraText>
           </motion.h1>
 
-          {/* Subheadline */}
-          <motion.p
+          {/* Subheadline - Improved structure */}
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
-            className="text-xl sm:text-2xl text-slate-500 max-w-3xl mx-auto mb-12 leading-relaxed font-light"
+            className="max-w-3xl mx-auto mb-12 space-y-4"
           >
-            MarkVision AI — первая автономная система управления прибылью для клиник.
-            <br className="hidden sm:block" />
-            <span className="text-slate-700 font-medium">Увеличьте выручку на +500 000 ₸ в день</span> без вложений в рекламу.
-          </motion.p>
+            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed">
+              <span className="font-semibold text-slate-700">MarkVision AI</span> — первая автономная система 
+              <br className="hidden sm:block" />
+              управления прибылью для клиник.
+            </p>
+            <p className="text-xl sm:text-2xl font-semibold text-slate-800">
+              Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
+            </p>
+            <p className="text-base sm:text-lg text-slate-400">
+              без вложений в рекламу
+            </p>
+          </motion.div>
 
           {/* VSL Video with BackgroundGradient */}
           <motion.div
