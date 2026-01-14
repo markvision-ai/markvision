@@ -4,120 +4,244 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { LampContainer, LampContainerMini } from "@/components/ui/lamp";
 import { BackgroundGradient, BackgroundGradientLight } from "@/components/ui/background-gradient";
-import { MagneticCard } from "@/components/ui/magnetic-card";
 import { BeamVisualization } from "./BeamVisualization";
 import { 
   ArrowRight, 
-  Sparkles, 
   Play, 
-  Shield,
   Menu,
-  X
+  X,
+  Building2,
+  Mail,
+  Lock,
+  Gift,
+  Eye,
+  EyeOff,
+  CheckCircle2,
+  Loader2,
+  Sparkles
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { z } from "zod";
 
 const modules = [
   {
     number: "01",
     title: "Контент-Завод",
-    description: "200+ публикаций в месяц. ИИ берет на себя всю работу: от поиска идей до монтажа. Мы создаем такой объем контента в Instagram, YouTube и TikTok, который невозможно повторить вручную.",
+    description: "200+ публикаций в месяц. ИИ берет на себя всё: от идей до монтажа. Доминируйте в соцсетях без SMM-штата.",
     icon: "🎬",
-    gradient: "from-pink-500 to-rose-500",
   },
   {
     number: "02",
     title: "Воронка 24/7",
-    description: "Автоматическая запись. Каждый просмотр и каждый комментарий ведут пациента в воронку. Система сама консультирует лида, обрабатывает возражения и записывает на приём.",
+    description: "ИИ-ассистент, который сам консультирует, обрабатывает возражения и записывает на приём 24/7.",
     icon: "🤖",
-    gradient: "from-violet-500 to-purple-500",
   },
   {
     number: "03",
     title: "Сквозная аналитика",
-    description: "От показов до кассы. Вы видите четкую связь: что принесло запись и сколько прибыли пришло в клинику. Весь путь пациента оцифрован в одном окне.",
+    description: "Прозрачный путь от показа Reels до чека в кассе. Контроль ROI каждого тенге в реальном времени.",
     icon: "📊",
-    gradient: "from-cyan-500 to-blue-500",
   },
   {
     number: "04",
-    title: "Умная CRM и Финансы (PnL)",
-    description: "Полный учет пациентов и денег. Автоматический расчет чистой прибыли, окупаемости рекламы и контроль каждой оплаты. Ваш бизнес в телефоне 24/7.",
+    title: "Умная CRM и Финансы",
+    description: "PnL-отчеты и учет каждой копейки в вашем телефоне. Больше никаких Excel-таблиц.",
     icon: "💰",
-    gradient: "from-emerald-500 to-teal-500",
   },
   {
     number: "05",
-    title: "ИИ-РОП (Контроль работы)",
-    description: "Автоматический надзор за персоналом. ИИ анализирует все переписки и звонки, ставит задачи сотрудникам и следит за выполнением плана продаж.",
+    title: "ИИ-РОП",
+    description: "Автоматический контроль работы персонала. Анализ переписок, звонков и постановка задач 24/7.",
     icon: "👁️",
-    gradient: "from-orange-500 to-amber-500",
   },
   {
     number: "06",
     title: "Автоматические отчеты",
-    description: "Глубокая аналитика за 1 секунду. Получайте ежедневные и еженедельные отчеты о работе клиники, эффективности врачей и прогнозе выручки на основе ИИ-данных.",
+    description: "Глубокая аналитика за 1 секунду. Ежедневные разборы показателей и прогнозы роста от ИИ.",
     icon: "📈",
-    gradient: "from-blue-500 to-indigo-500",
   },
 ];
+
+// Validation schema
+const signupSchema = z.object({
+  clinicName: z.string().min(2, 'Название клиники должно быть минимум 2 символа'),
+  email: z.string().email('Введите корректный email'),
+  password: z.string().min(6, 'Пароль должен быть минимум 6 символов'),
+  promoCode: z.string().optional(),
+});
 
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [videoWatched, setVideoWatched] = useState(false);
+  const [videoProgress, setVideoProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
+  const signupRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll();
-  const opacity = useTransform(scrollYProgress, [0, 0.2], [1, 0]);
+  
+  // Registration form state
+  const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({
+    clinicName: '',
+    email: '',
+    password: '',
+    promoCode: '',
+  });
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [promoValid, setPromoValid] = useState<boolean | null>(null);
 
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
     setMobileMenuOpen(false);
   };
 
-  const openChatBot = () => {
-    // Placeholder for chatbot integration
-    window.open("https://wa.me/message/YOUR_WHATSAPP_LINK", "_blank");
+  // Simulate video progress
+  const handleVideoPlay = () => {
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += 2;
+      setVideoProgress(progress);
+      if (progress >= 100) {
+        clearInterval(interval);
+        setVideoWatched(true);
+      }
+    }, 100);
+  };
+
+  // Validate promo code
+  useEffect(() => {
+    if (formData.promoCode.toUpperCase() === 'MARK7') {
+      setPromoValid(true);
+    } else if (formData.promoCode.length > 0) {
+      setPromoValid(false);
+    } else {
+      setPromoValid(null);
+    }
+  }, [formData.promoCode]);
+
+  const handleChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }));
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrors({});
+
+    const result = signupSchema.safeParse(formData);
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) {
+          fieldErrors[err.path[0] as string] = err.message;
+        }
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            clinic_name: formData.clinicName,
+            promo_code: formData.promoCode.toUpperCase() === 'MARK7' ? 'MARK7' : null,
+          },
+        },
+      });
+
+      if (signUpError) {
+        if (signUpError.message.includes('already registered')) {
+          toast.error('Этот email уже зарегистрирован. Попробуйте войти.');
+        } else {
+          toast.error('Ошибка регистрации: ' + signUpError.message);
+        }
+        return;
+      }
+
+      if (signUpData.session && signUpData.user) {
+        // Create project
+        const { data: projectData, error: projectError } = await supabase
+          .from('projects')
+          .insert({
+            name: formData.clinicName,
+            owner_id: signUpData.user.id,
+          })
+          .select()
+          .single();
+
+        if (projectData) {
+          await supabase.from('project_access').insert({
+            user_id: signUpData.user.id,
+            project_id: projectData.id,
+          });
+        }
+
+        toast.success(promoValid ? '🎉 7 дней бесплатного доступа активировано!' : 'Регистрация успешна!');
+        navigate('/');
+        return;
+      }
+
+      if (signUpData.user && !signUpData.session) {
+        toast.info('Проверьте почту для подтверждения регистрации');
+      }
+    } catch (error: any) {
+      toast.error('Произошла ошибка при регистрации');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
-      {/* Sticky Navbar */}
+      {/* Sticky Navbar - Apple Style */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-xl border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 md:px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
               <span className="text-white font-bold text-lg">M</span>
             </div>
-            <span className="font-bold text-xl text-slate-900 hidden sm:block">MarkVision AI</span>
+            <span className="font-semibold text-xl text-slate-900 hidden sm:block">MarkVision AI</span>
           </div>
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8">
             <button 
               onClick={() => scrollToSection("brand")}
-              className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              className="text-slate-500 hover:text-slate-900 font-medium transition-colors"
             >
               О проекте
             </button>
             <button 
               onClick={() => scrollToSection("modules")}
-              className="text-slate-600 hover:text-slate-900 font-medium transition-colors"
+              className="text-slate-500 hover:text-slate-900 font-medium transition-colors"
             >
-              Как это работает
+              Модули
             </button>
             <Button 
               variant="ghost" 
               onClick={() => navigate("/auth")}
-              className="text-slate-600 hover:text-slate-900"
+              className="text-slate-600 hover:text-slate-900 font-medium"
             >
-              Вход
+              Вход в систему
             </Button>
             <Button 
-              onClick={() => navigate("/signup")}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-full px-6 shadow-lg shadow-cyan-500/20"
+              onClick={() => scrollToSection("signup")}
+              className="bg-slate-900 hover:bg-slate-800 text-white rounded-full px-6 font-medium"
             >
-              Начать бесплатно
+              Начать бесплатно 7 дней
             </Button>
           </nav>
 
@@ -147,26 +271,26 @@ export const LandingPage = () => {
               onClick={() => scrollToSection("modules")}
               className="block w-full text-left py-2 text-slate-600 hover:text-slate-900 font-medium"
             >
-              Как это работает
+              Модули
             </button>
             <Button 
               variant="outline" 
               onClick={() => navigate("/auth")}
-              className="w-full"
+              className="w-full rounded-full"
             >
-              Вход
+              Вход в систему
             </Button>
             <Button 
-              onClick={() => navigate("/signup")}
-              className="w-full bg-gradient-to-r from-cyan-500 to-blue-600"
+              onClick={() => scrollToSection("signup")}
+              className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-full"
             >
-              Начать бесплатно
+              Начать бесплатно 7 дней
             </Button>
           </motion.div>
         )}
       </header>
 
-      {/* Block 1: Hero with Lamp Effect */}
+      {/* Block 1: Hero with Lamp Effect + VSL */}
       <section ref={heroRef}>
         <LampContainer className="pt-20">
           <motion.h1
@@ -191,7 +315,8 @@ export const LandingPage = () => {
             }}
             className="mt-6 max-w-3xl text-center text-lg md:text-xl text-slate-300 px-4"
           >
-            Увеличьте количество визитов в клинику на 30% и получайте от 500 000 ₸ выручки в день дополнительно, без увеличения рекламного бюджета.
+            MarkVision AI — первая автономная система управления прибылью для клиник. 
+            Увеличьте выручку на +500 000 ₸ в день без вложений в рекламу.
           </motion.p>
           
           {/* VSL Video Player */}
@@ -201,64 +326,81 @@ export const LandingPage = () => {
             transition={{ delay: 0.7, duration: 0.6 }}
             className="mt-10 w-full max-w-3xl px-4"
           >
-            <BackgroundGradient containerClassName="w-full">
-              <div className="bg-slate-900 rounded-[22px] p-1">
-                <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-800">
-                  <div className="absolute inset-0 flex items-center justify-center">
+            <div className="bg-slate-900/50 backdrop-blur rounded-3xl p-1 border border-slate-700/50">
+              <div className="relative aspect-video rounded-2xl overflow-hidden bg-slate-800/80">
+                <div className="absolute inset-0 flex items-center justify-center">
+                  {!videoWatched ? (
                     <button 
-                      onClick={() => setVideoWatched(true)}
-                      className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-sm flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 group"
+                      onClick={handleVideoPlay}
+                      className="w-24 h-24 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center hover:bg-white/20 transition-all hover:scale-110 group border border-white/20"
                     >
-                      <Play className="w-8 h-8 text-white ml-1 group-hover:scale-110 transition-transform" />
+                      <Play className="w-10 h-10 text-white ml-1 group-hover:scale-110 transition-transform" />
                     </button>
-                  </div>
-                  <div className="absolute bottom-4 left-4 right-4 text-center">
-                    <p className="text-white/60 text-sm">
-                      Посмотрите видео до конца, чтобы получить бонус
-                    </p>
-                  </div>
+                  ) : (
+                    <div className="flex items-center gap-3 text-green-400">
+                      <CheckCircle2 className="w-8 h-8" />
+                      <span className="text-lg font-medium">Видео просмотрено!</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Progress bar */}
+                <div className="absolute bottom-0 left-0 right-0 h-1 bg-slate-700">
+                  <motion.div 
+                    className="h-full bg-gradient-to-r from-cyan-500 to-blue-500"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${videoProgress}%` }}
+                  />
                 </div>
               </div>
-            </BackgroundGradient>
+            </div>
+            
+            <p className="text-center text-slate-400 text-sm mt-4">
+              Посмотрите видео, чтобы разблокировать 7 дней бесплатного доступа
+            </p>
           </motion.div>
 
+          {/* CTA Buttons */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.9, duration: 0.6 }}
-            className="mt-8"
+            className="mt-10 flex flex-col sm:flex-row gap-4"
           >
             <Button
               size="lg"
-              onClick={() => scrollToSection("offer")}
+              onClick={() => scrollToSection("signup")}
               disabled={!videoWatched}
               className={`rounded-full px-8 py-6 text-lg font-semibold shadow-xl transition-all ${
                 videoWatched
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white shadow-cyan-500/30 hover:scale-105"
+                  ? "bg-white text-slate-900 hover:bg-slate-100 shadow-white/20 hover:scale-105"
                   : "bg-slate-700 text-slate-400 cursor-not-allowed"
               }`}
             >
-              Записаться на диагностику
+              Начать бесплатно 7 дней
               <ArrowRight className="ml-2 w-5 h-5" />
             </Button>
-            {!videoWatched && (
-              <p className="text-slate-500 text-sm mt-3">
-                Посмотрите видео, чтобы разблокировать кнопку
-              </p>
-            )}
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate("/auth")}
+              className="rounded-full px-8 py-6 text-lg font-semibold border-slate-600 text-slate-300 hover:bg-slate-800 hover:text-white"
+            >
+              Вход в систему
+            </Button>
           </motion.div>
         </LampContainer>
       </section>
 
       {/* Block 2: Brand Story */}
-      <section id="brand" className="py-20 md:py-32 px-4 md:px-6 bg-white">
+      <section id="brand" className="py-24 md:py-32 px-4 md:px-6 bg-white">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="grid lg:grid-cols-2 gap-12 items-center"
+            className="grid lg:grid-cols-2 gap-16 items-center"
           >
             <div className="order-2 lg:order-1">
               <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-8 leading-tight">
@@ -274,32 +416,36 @@ export const LandingPage = () => {
                 <p>
                   Я лично отвечаю за результат каждой клиники, которая работает с нами. Я строю эту систему так, чтобы за неё не было стыдно перед сыном.
                 </p>
-                <p className="text-xl font-semibold text-slate-800">
+                <p className="text-xl font-semibold text-slate-900 border-l-4 border-cyan-500 pl-4">
                   Мы не просто настраиваем рекламу — мы наводим порядок в вашем бизнесе.
                 </p>
               </div>
             </div>
             
             <div className="order-1 lg:order-2">
-              <BackgroundGradientLight containerClassName="max-w-md mx-auto lg:ml-auto">
-                <div className="p-8">
-                  <div className="aspect-square rounded-2xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
-                    <div className="text-center">
-                      <div className="w-32 h-32 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-4">
-                        <span className="text-6xl">👨‍👦</span>
-                      </div>
-                      <p className="text-slate-600 font-medium">Основатель с сыном Марком</p>
+              <motion.div 
+                whileHover={{ scale: 1.02 }}
+                className="relative"
+              >
+                <div className="aspect-square rounded-3xl bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50">
+                  <div className="text-center p-8">
+                    <div className="w-40 h-40 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-6 shadow-2xl shadow-cyan-500/30">
+                      <span className="text-7xl">👨‍👦</span>
                     </div>
+                    <p className="text-slate-600 font-medium text-lg">Основатель с сыном Марком</p>
                   </div>
                 </div>
-              </BackgroundGradientLight>
+                {/* Decorative elements */}
+                <div className="absolute -top-4 -right-4 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl" />
+                <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl" />
+              </motion.div>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* Block 3: Animated Beam Integration */}
-      <section className="py-20 md:py-32 px-4 md:px-6 bg-gradient-to-b from-slate-50 to-white">
+      <section className="py-24 md:py-32 px-4 md:px-6 bg-gradient-to-b from-slate-50 to-white">
         <div className="max-w-6xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -308,9 +454,9 @@ export const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-              Автоматизация, которая{" "}
+              Единый мозг{" "}
               <span className="bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
-                работает на вас
+                вашего маркетинга и продаж
               </span>
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
@@ -323,16 +469,15 @@ export const LandingPage = () => {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
+            className="rounded-3xl overflow-hidden border border-slate-200 shadow-2xl shadow-slate-200/50 bg-white"
           >
-            <BackgroundGradientLight containerClassName="w-full">
-              <BeamVisualization className="border border-slate-100" />
-            </BackgroundGradientLight>
+            <BeamVisualization />
           </motion.div>
         </div>
       </section>
 
-      {/* Block 4: Modules Grid */}
-      <section id="modules" className="py-20 md:py-32 px-4 md:px-6 bg-white">
+      {/* Block 4: 6 Modules Grid */}
+      <section id="modules" className="py-24 md:py-32 px-4 md:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -341,9 +486,9 @@ export const LandingPage = () => {
             className="text-center mb-16"
           >
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 mb-6">
-              6 инструментов для{" "}
+              6 модулей{" "}
               <span className="bg-gradient-to-r from-cyan-500 to-blue-600 bg-clip-text text-transparent">
-                доминирования на рынке
+                системы MarkVision
               </span>
             </h2>
             <p className="text-lg text-slate-600 max-w-2xl mx-auto">
@@ -360,104 +505,179 @@ export const LandingPage = () => {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1, duration: 0.5 }}
               >
-                <MagneticCard containerClassName="h-full">
-                  <BackgroundGradientLight containerClassName="h-full">
-                    <div className="p-6 md:p-8 h-full">
-                      <div className="flex items-center gap-4 mb-4">
-                        <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${module.gradient} flex items-center justify-center text-2xl shadow-lg`}>
-                          {module.icon}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium text-slate-400">{module.number}</span>
-                          <h3 className="text-lg font-bold text-slate-900">{module.title}</h3>
-                        </div>
+                <BackgroundGradientLight containerClassName="h-full">
+                  <div className="p-8 h-full bg-white rounded-3xl">
+                    <div className="flex items-start gap-4 mb-4">
+                      <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center text-3xl shadow-sm border border-slate-100">
+                        {module.icon}
                       </div>
-                      <p className="text-slate-600 leading-relaxed">
-                        {module.description}
-                      </p>
+                      <div className="flex-1">
+                        <span className="text-xs font-semibold text-cyan-600 bg-cyan-50 px-2 py-1 rounded-full">{module.number}</span>
+                        <h3 className="text-xl font-bold text-slate-900 mt-2">{module.title}</h3>
+                      </div>
                     </div>
-                  </BackgroundGradientLight>
-                </MagneticCard>
+                    <p className="text-slate-600 leading-relaxed">
+                      {module.description}
+                    </p>
+                  </div>
+                </BackgroundGradientLight>
               </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Block 5: Guarantee */}
-      <section className="py-20 md:py-32 px-4 md:px-6 bg-gradient-to-b from-white to-slate-50">
-        <div className="max-w-4xl mx-auto">
+      {/* Block 5: Registration Form */}
+      <section id="signup" ref={signupRef} className="py-24 md:py-32 px-4 md:px-6 bg-gradient-to-b from-white to-slate-50">
+        <div className="max-w-xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <BackgroundGradient containerClassName="w-full">
-              <div className="bg-slate-900 rounded-[22px] p-8 md:p-12 text-center">
-                <div className="w-20 h-20 mx-auto rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-8 shadow-lg shadow-cyan-500/30">
-                  <Shield className="w-10 h-10 text-white" />
-                </div>
-                <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">
-                  100% гарантия результата.
-                </h2>
-                <p className="text-lg md:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto">
-                  Я беру на себя ответственность за каждое действие. Если система не принесет вам обещанный результат в оговоренные сроки — я работаю бесплатно, пока не выполним план. Весь риск лежит на мне, а не на вашей клинике.
-                </p>
+            <div className="text-center mb-10">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 mx-auto flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/20">
+                <Sparkles className="w-8 h-8 text-white" />
               </div>
-            </BackgroundGradient>
+              <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+                Начните бесплатно
+              </h2>
+              <p className="text-slate-600">
+                7 дней полного доступа ко всем функциям системы
+              </p>
+            </div>
+
+            <div className="bg-white rounded-3xl p-8 shadow-2xl shadow-slate-200/50 border border-slate-100">
+              <form onSubmit={handleSubmit} className="space-y-5">
+                {/* Clinic Name */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Название клиники</label>
+                  <div className="relative">
+                    <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Input
+                      type="text"
+                      placeholder='Клиника "Здоровье"'
+                      value={formData.clinicName}
+                      onChange={(e) => handleChange('clinicName', e.target.value)}
+                      className={`pl-12 rounded-2xl h-14 border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20 ${errors.clinicName ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {errors.clinicName && <p className="text-xs text-red-500">{errors.clinicName}</p>}
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Input
+                      type="email"
+                      placeholder="email@example.com"
+                      value={formData.email}
+                      onChange={(e) => handleChange('email', e.target.value)}
+                      className={`pl-12 rounded-2xl h-14 border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20 ${errors.email ? 'border-red-500' : ''}`}
+                    />
+                  </div>
+                  {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+                </div>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Пароль</label>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={(e) => handleChange('password', e.target.value)}
+                      className={`pl-12 pr-12 rounded-2xl h-14 border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20 ${errors.password ? 'border-red-500' : ''}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    </button>
+                  </div>
+                  {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+                </div>
+
+                {/* Promo Code */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-slate-700">Промокод</label>
+                  <div className="relative">
+                    <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                    <Input
+                      type="text"
+                      placeholder="MARK7"
+                      value={formData.promoCode}
+                      onChange={(e) => handleChange('promoCode', e.target.value.toUpperCase())}
+                      className={`pl-12 rounded-2xl h-14 border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20 ${promoValid === true ? 'border-green-500 bg-green-50' : ''}`}
+                    />
+                    {promoValid === true && (
+                      <CheckCircle2 className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                    )}
+                  </div>
+                  {promoValid === true && (
+                    <motion.p 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm text-green-600 font-medium flex items-center gap-2"
+                    >
+                      <span>🎉</span> Активирован бесплатный доступ на 7 дней
+                    </motion.p>
+                  )}
+                </div>
+
+                {/* Submit Button */}
+                <Button 
+                  type="submit" 
+                  className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg mt-2"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      Регистрация...
+                    </>
+                  ) : (
+                    'Зарегистрироваться'
+                  )}
+                </Button>
+              </form>
+
+              {/* Login Link */}
+              <div className="mt-6 text-center">
+                <span className="text-slate-500">Уже есть аккаунт? </span>
+                <button
+                  onClick={() => navigate('/auth')}
+                  className="text-cyan-600 hover:text-cyan-700 font-medium"
+                >
+                  Войти
+                </button>
+              </div>
+            </div>
           </motion.div>
         </div>
       </section>
 
-      {/* Block 6: Offer CTA */}
-      <section id="offer" className="py-8 md:py-16 px-4 md:px-6">
-        <div className="max-w-5xl mx-auto">
-          <LampContainerMini>
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.6 }}
-              className="text-center"
-            >
-              <h2 className="text-2xl md:text-4xl lg:text-5xl font-bold text-white mb-6">
-                Стратегический разбор: план на{" "}
-                <span className="text-cyan-400">+500 000 ₸</span>{" "}
-                выручки в день
-              </h2>
-              <p className="text-lg text-slate-300 mb-8 max-w-2xl mx-auto leading-relaxed">
-                Разберем вашу текущую ситуацию и дадим пошаговый план на 2026 год. Вы узнаете, как увеличить доход клиники, без увеличения расходов.
-              </p>
-              <div className="mb-8">
-                <span className="text-4xl md:text-5xl font-bold text-white">9 900 ₸</span>
-                <span className="text-slate-400 ml-2 line-through">29 900 ₸</span>
-              </div>
-              <Button
-                size="lg"
-                onClick={openChatBot}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 text-white rounded-full px-12 py-7 text-lg font-semibold shadow-xl shadow-cyan-500/30 hover:scale-105 transition-transform"
-              >
-                Записаться на разбор
-                <ArrowRight className="ml-2 w-5 h-5" />
-              </Button>
-            </motion.div>
-          </LampContainerMini>
-        </div>
-      </section>
-
       {/* Footer */}
-      <footer className="py-12 px-4 md:px-6 bg-slate-900">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold">M</span>
+      <footer className="py-12 px-4 md:px-6 bg-slate-900 text-white">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
+                <span className="text-white font-bold">M</span>
+              </div>
+              <span className="font-semibold text-lg">MarkVision AI</span>
             </div>
-            <span className="font-bold text-xl text-white">MarkVision AI</span>
+            <p className="text-slate-400 text-sm">
+              © 2024 MarkVision AI. Все права защищены.
+            </p>
           </div>
-          <p className="text-slate-400">
-            © 2025 MarkVision AI. Все права защищены.
-          </p>
         </div>
       </footer>
     </div>
