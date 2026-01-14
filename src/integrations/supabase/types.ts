@@ -841,6 +841,74 @@ export type Database = {
           },
         ]
       }
+      instagram_content_stats: {
+        Row: {
+          caption: string | null
+          comments_count: number | null
+          created_at: string | null
+          engagement: number | null
+          id: string
+          likes_count: number | null
+          media_id: string
+          media_type: string | null
+          permalink: string | null
+          posted_at: string | null
+          project_id: string
+          reach: number | null
+          saves_count: number | null
+          shares_count: number | null
+          synced_at: string | null
+          thumbnail_url: string | null
+          views_count: number | null
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          engagement?: number | null
+          id?: string
+          likes_count?: number | null
+          media_id: string
+          media_type?: string | null
+          permalink?: string | null
+          posted_at?: string | null
+          project_id: string
+          reach?: number | null
+          saves_count?: number | null
+          shares_count?: number | null
+          synced_at?: string | null
+          thumbnail_url?: string | null
+          views_count?: number | null
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string | null
+          engagement?: number | null
+          id?: string
+          likes_count?: number | null
+          media_id?: string
+          media_type?: string | null
+          permalink?: string | null
+          posted_at?: string | null
+          project_id?: string
+          reach?: number | null
+          saves_count?: number | null
+          shares_count?: number | null
+          synced_at?: string | null
+          thumbnail_url?: string | null
+          views_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instagram_content_stats_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json | null
@@ -1300,6 +1368,80 @@ export type Database = {
             columns: ["webhook_log_id"]
             isOneToOne: false
             referencedRelation: "webhook_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      marketing_stats: {
+        Row: {
+          ad_account_id: string | null
+          campaign_id: string | null
+          campaign_name: string | null
+          clicks: number | null
+          cpc: number | null
+          cpm: number | null
+          created_at: string | null
+          ctr: number | null
+          date: string
+          id: string
+          impressions: number | null
+          leads: number | null
+          project_id: string
+          raw_data: Json | null
+          reach: number | null
+          source: string
+          spend: number | null
+          synced_at: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          ad_account_id?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          clicks?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date: string
+          id?: string
+          impressions?: number | null
+          leads?: number | null
+          project_id: string
+          raw_data?: Json | null
+          reach?: number | null
+          source: string
+          spend?: number | null
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          ad_account_id?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
+          clicks?: number | null
+          cpc?: number | null
+          cpm?: number | null
+          created_at?: string | null
+          ctr?: number | null
+          date?: string
+          id?: string
+          impressions?: number | null
+          leads?: number | null
+          project_id?: string
+          raw_data?: Json | null
+          reach?: number | null
+          source?: string
+          spend?: number | null
+          synced_at?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "marketing_stats_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
