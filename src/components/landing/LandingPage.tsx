@@ -281,7 +281,7 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.1,
           duration: 0.7
-        }} className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-6 sm:mb-8">
+        }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-6 sm:mb-8 text-5xl">
             Хватит терять
             <br />
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
@@ -300,12 +300,11 @@ export const LandingPage = () => {
           delay: 0.2,
           duration: 0.6
         }} className="max-w-3xl mx-auto mb-8 sm:mb-12 space-y-5 sm:space-y-6 px-4 sm:px-6">
-            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed sm:leading-loose">
-              Мы берём на себя маркетинг, продажи и аналитику вашей клиники.
-              <br className="hidden sm:block" />
+            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed sm:leading-loose">Мы берём на себя маркетинг, продажи и аналитику.
+Вы занимаетесь пациентами.<br className="hidden sm:block" />
               Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
-            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800 mt-6 sm:mt-8">
+            <p className="sm:text-xl md:text-2xl font-semibold text-slate-800 mt-6 sm:mt-8 text-2xl">
               Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
             <p className="text-sm sm:text-base md:text-lg text-slate-400 mt-2">
@@ -566,11 +565,11 @@ export const LandingPage = () => {
               <p>
                 Мы берём на себя <span className="text-slate-900 font-semibold">полную ответственность</span> за ваш результат.
               </p>
-              <p>Если в течение первого месяца работы вы не увидите прироста записей и выручки — мы продолжим работать бесплатно, пока не достигнем цели.<span className="text-emerald-600 font-semibold">мы продолжим работать бесплатно</span>, пока не достигнем целевых показателей.
+              <p>Если вы не увидите прироста записей и выручки
+мы продолжим работать бесплатно, пока не достигнем цели<span className="text-emerald-600 font-semibold">мы продолжим работать бесплатно</span>, пока не достигнем целевых показателей.
               </p>
-              <p className="text-2xl font-semibold text-slate-900">
-                Ваш риск — ноль. Наша ответственность — максимальная.
-              </p>
+              <p className="text-2xl font-semibold text-slate-900">Весь риск лежит на мне, 
+а не на вашей клинике</p>
             </div>
 
             <Button size="lg" onClick={openMarkChatbot} className="rounded-3xl px-12 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.02] transition-all">
