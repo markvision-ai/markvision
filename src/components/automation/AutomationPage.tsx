@@ -50,7 +50,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 import { useAutomationRules, AutomationRule, AutomationLog } from '@/hooks/useAutomationRules';
 
