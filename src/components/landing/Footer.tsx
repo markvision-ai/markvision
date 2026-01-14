@@ -3,6 +3,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuroraText } from "@/components/ui/aurora-text";
+import markvisionLogo from "@/assets/markvision-logo.png";
 import { 
   Instagram, 
   Send, 
@@ -48,104 +49,113 @@ export const Footer = () => {
   return (
     <footer className="relative bg-slate-50/80 backdrop-blur-xl border-t border-slate-200/50">
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 lg:gap-8">
-          {/* Column 1: Brand */}
-          <div className="lg:col-span-1">
-            <div className="flex items-center gap-3 mb-5">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/20">
-                <span className="text-white font-bold text-lg">M</span>
-              </div>
-              <span className="font-semibold text-lg">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
+        {/* Desktop: 2-column grid, Mobile: stacked */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12">
+          
+          {/* Left Side: Brand (full width on mobile, 4 cols on desktop) */}
+          <div className="lg:col-span-4">
+            <div className="flex items-center gap-3 mb-4">
+              <img 
+                src={markvisionLogo} 
+                alt="MarkVision AI" 
+                className="w-12 h-12 rounded-xl object-cover shadow-lg shadow-blue-500/20"
+              />
+              <span className="font-semibold text-xl">
                 <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
                   MarkVision AI
                 </AuroraText>
               </span>
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed">
+            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
               Первая автономная система управления прибылью для медицинского бизнеса. Наследие, созданное для будущего.
             </p>
           </div>
 
-          {/* Column 2: Platform */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4 text-sm uppercase tracking-wider">
-              Платформа
-            </h4>
-            <ul className="space-y-3">
-              {platformLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+          {/* Right Side: 4 columns of links (8 cols on desktop) */}
+          <div className="lg:col-span-8">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
+              {/* Column 1: Platform */}
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                  Платформа
+                </h4>
+                <ul className="space-y-2.5">
+                  {platformLinks.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        to={link.href}
+                        className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          {/* Column 3: Ecosystem */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4 text-sm uppercase tracking-wider">
-              Экосистема
-            </h4>
-            <ul className="space-y-3">
-              {ecosystemLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-slate-500 hover:text-blue-600 transition-colors text-sm flex items-center gap-2"
-                  >
-                    {link.name}
-                    {link.badge && (
-                      <span className="text-[10px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium">
-                        {link.badge}
-                      </span>
-                    )}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+              {/* Column 2: Ecosystem */}
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                  Экосистема
+                </h4>
+                <ul className="space-y-2.5">
+                  {ecosystemLinks.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        to={link.href}
+                        className="text-slate-500 hover:text-blue-600 transition-colors text-sm inline-flex flex-wrap items-center gap-1.5"
+                      >
+                        <span>{link.name}</span>
+                        {link.badge && (
+                          <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium whitespace-nowrap">
+                            {link.badge}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          {/* Column 4: Resources */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4 text-sm uppercase tracking-wider">
-              Ресурсы
-            </h4>
-            <ul className="space-y-3">
-              {resourceLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+              {/* Column 3: Resources */}
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                  Ресурсы
+                </h4>
+                <ul className="space-y-2.5">
+                  {resourceLinks.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        to={link.href}
+                        className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
-          {/* Column 5: Legal */}
-          <div>
-            <h4 className="font-semibold text-slate-900 mb-4 text-sm uppercase tracking-wider">
-              Юридическая информация
-            </h4>
-            <ul className="space-y-3">
-              {legalLinks.map((link) => (
-                <li key={link.name}>
-                  <Link
-                    to={link.href}
-                    className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
-                  >
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+              {/* Column 4: Legal */}
+              <div>
+                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                  Юридическое
+                </h4>
+                <ul className="space-y-2.5">
+                  {legalLinks.map((link) => (
+                    <li key={link.name}>
+                      <Link
+                        to={link.href}
+                        className="text-slate-500 hover:text-blue-600 transition-colors text-sm"
+                      >
+                        {link.name}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -154,28 +164,28 @@ export const Footer = () => {
       <div className="border-t border-slate-200/70" />
 
       {/* Bottom Bar */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-6">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Contact Info */}
-          <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 text-sm text-slate-500">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm text-slate-500">
             <a 
               href="tel:+77472842595" 
               className="flex items-center gap-2 hover:text-blue-600 transition-colors"
             >
               <Phone className="w-4 h-4" />
-              +7 747 284 2595
+              <span>+7 747 284 2595</span>
             </a>
             <a 
               href="mailto:markvision@mail.ru" 
               className="flex items-center gap-2 hover:text-blue-600 transition-colors"
             >
               <Mail className="w-4 h-4" />
-              markvision@mail.ru
+              <span>markvision@mail.ru</span>
             </a>
           </div>
 
           {/* Social Links */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {socialLinks.map((social) => (
               <motion.a
                 key={social.name}
@@ -184,17 +194,17 @@ export const Footer = () => {
                 rel="noopener noreferrer"
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.95 }}
-                className="w-10 h-10 rounded-full bg-slate-100 hover:bg-blue-100 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all"
+                className="w-9 h-9 rounded-full bg-slate-100 hover:bg-blue-100 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all"
                 aria-label={social.name}
               >
-                <social.icon className="w-5 h-5" />
+                <social.icon className="w-4 h-4" />
               </motion.a>
             ))}
           </div>
 
           {/* Copyright */}
-          <p className="text-sm text-slate-400 text-center md:text-right">
-            © 2026 MarkVision AI. Сделано с любовью для будущего.
+          <p className="text-xs text-slate-400 text-center sm:text-right">
+            © 2026 MarkVision AI
           </p>
         </div>
       </div>
