@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID, isSuperAdmin } from '@/lib/externalSupabase';
+import { supabase, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID } from '@/integrations/supabase/client';
 
 interface UserProfile {
   id: string;

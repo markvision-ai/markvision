@@ -1,5 +1,5 @@
 import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -16,6 +16,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const Partners = lazy(() => import("./pages/Partners"));
 const Careers = lazy(() => import("./pages/Careers"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -83,6 +84,9 @@ const App = () => (
         <Route path="/calendar" element={<Index />} />
         <Route path="/automation" element={<Index />} />
         <Route path="/rop" element={<Index />} />
+        
+        {/* Catch-all: неизвестные пути → главная */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
     <Toaster position="top-right" richColors closeButton />
