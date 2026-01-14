@@ -543,13 +543,17 @@ export const LandingPage = () => {
         <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-emerald-100/40 to-green-100/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
         
         <div className="max-w-4xl mx-auto relative z-10">
-          <motion.div 
-            initial={{ opacity: 0, y: 40 }} 
-            whileInView={{ opacity: 1, y: 0 }} 
-            viewport={{ once: true }} 
-            transition={{ duration: 0.7 }}
-            className="relative"
-          >
+          <motion.div initial={{
+          opacity: 0,
+          y: 40
+        }} whileInView={{
+          opacity: 1,
+          y: 0
+        }} viewport={{
+          once: true
+        }} transition={{
+          duration: 0.7
+        }} className="relative">
             {/* Premium card wrapper */}
             <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-[40px] border border-emerald-100/80 shadow-xl sm:shadow-2xl shadow-emerald-500/10 p-5 sm:p-8 md:p-12 lg:p-16">
               {/* Icon */}
@@ -569,13 +573,18 @@ export const LandingPage = () => {
               {/* Content blocks */}
               <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-w-2xl mx-auto mb-8 sm:mb-10 lg:mb-12">
                 {/* Block 1 */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2, duration: 0.5 }}
-                  className="flex items-start gap-3 sm:gap-4 text-left"
-                >
+                <motion.div initial={{
+                opacity: 0,
+                x: -20
+              }} whileInView={{
+                opacity: 1,
+                x: 0
+              }} viewport={{
+                once: true
+              }} transition={{
+                delay: 0.2,
+                duration: 0.5
+              }} className="flex items-start gap-3 sm:gap-4 text-left">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-1">
                     <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                   </div>
@@ -585,13 +594,18 @@ export const LandingPage = () => {
                 </motion.div>
 
                 {/* Block 2 */}
-                <motion.div 
-                  initial={{ opacity: 0, x: -20 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3, duration: 0.5 }}
-                  className="flex items-start gap-3 sm:gap-4 text-left"
-                >
+                <motion.div initial={{
+                opacity: 0,
+                x: -20
+              }} whileInView={{
+                opacity: 1,
+                x: 0
+              }} viewport={{
+                once: true
+              }} transition={{
+                delay: 0.3,
+                duration: 0.5
+              }} className="flex items-start gap-3 sm:gap-4 text-left">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-1">
                     <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                   </div>
@@ -601,13 +615,18 @@ export const LandingPage = () => {
                 </motion.div>
 
                 {/* Block 3 - Highlighted */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                  className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-emerald-200/60"
-                >
+                <motion.div initial={{
+                opacity: 0,
+                y: 20
+              }} whileInView={{
+                opacity: 1,
+                y: 0
+              }} viewport={{
+                once: true
+              }} transition={{
+                delay: 0.4,
+                duration: 0.5
+              }} className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-emerald-200/60">
                   <p className="text-base sm:text-xl lg:text-2xl font-bold text-slate-900 text-center leading-snug">
                     Весь риск лежит на мне,
                     <br />
@@ -617,18 +636,19 @@ export const LandingPage = () => {
               </div>
 
               {/* CTA Button */}
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="text-center"
-              >
-                <Button 
-                  size="lg" 
-                  onClick={openMarkChatbot} 
-                  className="w-full sm:w-auto rounded-2xl sm:rounded-3xl px-8 sm:px-10 lg:px-14 py-5 sm:py-6 lg:py-7 text-base sm:text-lg font-semibold bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-700 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl sm:shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all"
-                >
+              <motion.div initial={{
+              opacity: 0,
+              y: 20
+            }} whileInView={{
+              opacity: 1,
+              y: 0
+            }} viewport={{
+              once: true
+            }} transition={{
+              delay: 0.5,
+              duration: 0.5
+            }} className="text-center">
+                <Button size="lg" onClick={openMarkChatbot} className="w-full sm:w-auto rounded-2xl sm:rounded-3xl px-8 sm:px-10 lg:px-14 py-5 sm:py-6 lg:py-7 text-base sm:text-lg font-semibold bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-700 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl sm:shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all">
                   <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Связаться с Марком
                 </Button>
@@ -643,7 +663,9 @@ export const LandingPage = () => {
         {/* Neon Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{
+          animationDelay: '1s'
+        }} />
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]" />
         </div>
         
@@ -675,7 +697,7 @@ export const LandingPage = () => {
                 Начните бесплатно
               </h2>
               <p className="text-sm sm:text-lg text-slate-400 px-4">
-                7 дней полного доступа ко всем функциям системы
+                7 дней доступа ко всем функциям системы
               </p>
             </div>
 
