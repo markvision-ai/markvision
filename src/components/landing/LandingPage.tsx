@@ -299,16 +299,16 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.2,
           duration: 0.6
-        }} className="max-w-3xl mx-auto mb-8 sm:mb-12 space-y-3 sm:space-y-4 px-2">
-            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed">
+        }} className="max-w-3xl mx-auto mb-8 sm:mb-12 space-y-5 sm:space-y-6 px-4 sm:px-6">
+            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed sm:leading-loose">
               Мы берём на себя маркетинг, продажи и аналитику вашей клиники.
               <br className="hidden sm:block" />
               Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
-            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800">
+            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800 mt-6 sm:mt-8">
               Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
-            <p className="text-sm sm:text-base md:text-lg text-slate-400">
+            <p className="text-sm sm:text-base md:text-lg text-slate-400 mt-2">
               без вложений в рекламу
             </p>
           </motion.div>
