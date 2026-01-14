@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { BeamVisualization } from "./BeamVisualization";
 import { HoverEffect } from "@/components/ui/card-hover-effect";
+import { Footer } from "./Footer";
 import { AuroraText } from "@/components/ui/aurora-text";
 import { 
   ArrowRight, 
@@ -766,22 +767,8 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-16 px-6 bg-slate-900 text-white">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-8">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30">
-                <span className="text-white font-bold text-xl">M</span>
-              </div>
-              <span className="font-semibold text-xl tracking-tight">MarkVision AI</span>
-            </div>
-            <p className="text-slate-400 text-sm">
-              © 2024 MarkVision AI. Все права защищены.
-            </p>
-          </div>
-        </div>
-      </footer>
+      {/* Professional Footer */}
+      <Footer />
     </div>
   );
 };
