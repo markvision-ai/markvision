@@ -185,17 +185,17 @@ export const LandingPage = () => {
   };
   return <div className="min-h-screen bg-white overflow-x-hidden font-['Inter',sans-serif]">
       {/* Premium Sticky Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-2xl border-b border-slate-100/50">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex items-center justify-between">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-2xl border-b border-slate-100/50 safe-area-top">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" />
-            <span className="font-semibold text-base sm:text-xl text-slate-900 tracking-tight">
+            <img src={markvisionLogo} alt="MarkVision AI" className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" />
+            <span className="font-semibold text-sm sm:text-xl text-slate-900 tracking-tight">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </span>
           </div>
           
           {/* Desktop Nav */}
-          <nav className="hidden md:flex items-center gap-10">
+          <nav className="hidden md:flex items-center gap-8 lg:gap-10">
             <button onClick={() => scrollToSection("brand")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
               О проекте
             </button>
@@ -207,17 +207,17 @@ export const LandingPage = () => {
             </button>
           </nav>
 
-          <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="text-slate-600 hover:text-slate-900 font-medium rounded-2xl px-5">
+          <div className="hidden md:flex items-center gap-3 lg:gap-4">
+            <Button variant="ghost" onClick={() => navigate("/auth")} className="text-slate-600 hover:text-slate-900 font-medium rounded-2xl px-4 lg:px-5">
               Войти
             </Button>
-            <Button onClick={() => scrollToSection("signup")} className="bg-slate-900 hover:bg-slate-800 text-white rounded-2xl px-6 font-medium shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/25 transition-all">
+            <Button onClick={() => scrollToSection("signup")} className="bg-slate-900 hover:bg-slate-800 text-white rounded-2xl px-5 lg:px-6 font-medium shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/25 transition-all">
               Начать бесплатно
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden p-2 rounded-2xl hover:bg-slate-100 transition-colors" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          <button className="md:hidden p-2 -mr-2 rounded-xl hover:bg-slate-100 transition-colors active:bg-slate-200" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
             {mobileMenuOpen ? <X className="w-6 h-6 text-slate-700" /> : <Menu className="w-6 h-6 text-slate-700" />}
           </button>
         </div>
@@ -229,21 +229,21 @@ export const LandingPage = () => {
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="md:hidden bg-white border-t border-slate-100 px-6 py-8 space-y-4">
-            <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
+      }} className="md:hidden bg-white border-t border-slate-100 px-4 py-6 space-y-2">
+            <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
               О проекте
             </button>
-            <button onClick={() => scrollToSection("modules")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
+            <button onClick={() => scrollToSection("modules")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
               Возможности
             </button>
-            <button onClick={() => scrollToSection("guarantee")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
+            <button onClick={() => scrollToSection("guarantee")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
               Гарантия
             </button>
-            <div className="pt-4 space-y-3">
-              <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-2xl h-14 text-base font-medium border-slate-200">
+            <div className="pt-4 space-y-3 px-1">
+              <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-2xl h-12 text-base font-medium border-slate-200">
                 Войти в систему
               </Button>
-              <Button onClick={() => scrollToSection("signup")} className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-2xl h-14 text-base font-medium">
+              <Button onClick={() => scrollToSection("signup")} className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-2xl h-12 text-base font-medium">
                 Начать бесплатно
               </Button>
             </div>
@@ -251,12 +251,12 @@ export const LandingPage = () => {
       </header>
 
       {/* BLOCK 1: Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-24 sm:pt-32 pb-16 sm:pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-20 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
         {/* Subtle gradient orbs - hidden on mobile for performance */}
         <div className="hidden sm:block absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/40 to-indigo-100/40 rounded-full blur-3xl opacity-60" />
         <div className="hidden sm:block absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-cyan-100/30 to-blue-100/30 rounded-full blur-3xl opacity-50" />
         
-        <div className="relative z-10 max-w-5xl mx-auto text-center">
+        <div className="relative z-10 w-full max-w-5xl mx-auto text-center">
           {/* Badge */}
           <motion.div initial={{
           opacity: 0,
@@ -266,9 +266,9 @@ export const LandingPage = () => {
           y: 0
         }} transition={{
           duration: 0.6
-        }} className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 rounded-full mb-8">
-            <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">Умная система для клиник</span>
+        }} className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-50 rounded-full mb-5 sm:mb-8">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
+            <span className="text-xs sm:text-sm font-medium text-blue-700">Умная система для клиник</span>
           </motion.div>
 
           {/* Main Headline */}
@@ -281,7 +281,7 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.1,
           duration: 0.7
-        }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-6 sm:mb-8 text-5xl">
+        }} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8">
             Хватит терять
             <br />
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
@@ -299,15 +299,16 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.2,
           duration: 0.6
-        }} className="max-w-3xl mx-auto mb-8 sm:mb-12 space-y-5 sm:space-y-6 px-4 sm:px-6">
-            <p className="text-base sm:text-lg md:text-xl text-slate-500 leading-relaxed sm:leading-loose">Мы берём на себя маркетинг, продажи и аналитику.
-Вы занимаетесь пациентами.<br className="hidden sm:block" />
+        }} className="max-w-3xl mx-auto mb-6 sm:mb-10 md:mb-12 space-y-3 sm:space-y-5 px-2 sm:px-6">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">
+              Мы берём на себя маркетинг, продажи и аналитику.
+              <br className="hidden sm:block" />
               Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
-            <p className="sm:text-xl md:text-2xl font-semibold text-slate-800 mt-6 sm:mt-8 text-2xl">
+            <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800">
               Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
-            <p className="text-sm sm:text-base md:text-lg text-slate-400 mt-2">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400">
               без вложений в рекламу
             </p>
           </motion.div>
@@ -322,30 +323,30 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.3,
           duration: 0.7
-        }} className="w-full max-w-3xl mx-auto mb-12">
-            <BackgroundGradient containerClassName="rounded-[32px]" className="rounded-[28px] overflow-hidden">
-              <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] overflow-hidden">
+        }} className="w-full max-w-3xl mx-auto mb-8 sm:mb-12 px-1 sm:px-0">
+            <BackgroundGradient containerClassName="rounded-2xl sm:rounded-[32px]" className="rounded-xl sm:rounded-[28px] overflow-hidden">
+              <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl sm:rounded-[28px] overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   {!videoWatched ? <motion.button onClick={handleVideoPlay} whileHover={{
                   scale: 1.05
                 }} whileTap={{
                   scale: 0.98
-                }} disabled={isPlaying} className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/20 group transition-all disabled:opacity-70">
-                      {isPlaying ? <Loader2 className="w-10 h-10 text-blue-600 animate-spin" /> : <Play className="w-10 h-10 text-slate-900 ml-1.5 group-hover:text-blue-600 transition-colors" />}
+                }} disabled={isPlaying} className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/20 group transition-all disabled:opacity-70">
+                      {isPlaying ? <Loader2 className="w-7 h-7 sm:w-10 sm:h-10 text-blue-600 animate-spin" /> : <Play className="w-7 h-7 sm:w-10 sm:h-10 text-slate-900 ml-1 sm:ml-1.5 group-hover:text-blue-600 transition-colors" />}
                     </motion.button> : <motion.div initial={{
                   scale: 0.8,
                   opacity: 0
                 }} animate={{
                   scale: 1,
                   opacity: 1
-                }} className="flex items-center gap-3 text-emerald-400">
-                      <CheckCircle2 className="w-10 h-10" />
-                      <span className="text-xl font-semibold">Видео просмотрено!</span>
+                }} className="flex items-center gap-2 sm:gap-3 text-emerald-400 px-4">
+                      <CheckCircle2 className="w-6 h-6 sm:w-10 sm:h-10" />
+                      <span className="text-sm sm:text-xl font-semibold">Видео просмотрено!</span>
                     </motion.div>}
                 </div>
                 
                 {/* Progress bar */}
-                <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-700/50">
+                <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-slate-700/50">
                   <motion.div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" initial={{
                   width: 0
                 }} animate={{
@@ -360,7 +361,7 @@ export const LandingPage = () => {
               </div>
             </BackgroundGradient>
             
-            <p className="text-center text-slate-400 text-sm mt-5">Посмотрите видео, чтобы получить доступ</p>
+            <p className="text-center text-slate-400 text-xs sm:text-sm mt-3 sm:mt-5">Посмотрите видео, чтобы получить доступ</p>
           </motion.div>
 
           {/* CTA Button */}
@@ -373,13 +374,13 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.5,
           duration: 0.6
-        }} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" onClick={openMarkChatbot} className={`relative rounded-3xl px-10 py-8 text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${videoWatched ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`} disabled={!videoWatched}>
-              {videoWatched && <span className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 to-indigo-400 animate-pulse opacity-30" />}
-              <span className="relative flex items-center gap-3">
-                <MessageCircle className="w-5 h-5" />
-                Забронировать аудит
-                <ArrowRight className="w-5 h-5" />
+        }} className="flex flex-col items-center justify-center gap-4 px-2 sm:px-0">
+            <Button size="lg" onClick={openMarkChatbot} className={`relative rounded-2xl sm:rounded-3xl px-6 sm:px-10 py-6 sm:py-8 text-base sm:text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${videoWatched ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`} disabled={!videoWatched}>
+              {videoWatched && <span className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-400 to-indigo-400 animate-pulse opacity-30" />}
+              <span className="relative flex items-center justify-center gap-2 sm:gap-3">
+                <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <span>Забронировать аудит</span>
+                <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </span>
             </Button>
           </motion.div>
@@ -426,7 +427,7 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 3: Brand Story */}
-      <section id="brand" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-slate-50/80 to-white">
+      <section id="brand" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-gradient-to-b from-slate-50/80 to-white">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{
           opacity: 0,
@@ -438,7 +439,7 @@ export const LandingPage = () => {
           once: true
         }} transition={{
           duration: 0.7
-        }} className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+        }} className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
             {/* Photo */}
             <div className="order-2 lg:order-1">
               <motion.div whileHover={{
@@ -446,31 +447,31 @@ export const LandingPage = () => {
             }} transition={{
               duration: 0.3
             }} className="relative">
-                <div className="aspect-[4/5] rounded-[32px] overflow-hidden border border-slate-200/50 shadow-2xl shadow-slate-200/40">
+                <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-slate-200/50 shadow-xl sm:shadow-2xl shadow-slate-200/40">
                   <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" />
                 </div>
-                {/* Decorative elements */}
-                <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl" />
-                <div className="absolute -bottom-6 -left-6 w-40 h-40 bg-indigo-100/50 rounded-full blur-3xl" />
+                {/* Decorative elements - hidden on mobile */}
+                <div className="hidden sm:block absolute -top-6 -right-6 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl" />
+                <div className="hidden sm:block absolute -bottom-6 -left-6 w-40 h-40 bg-indigo-100/50 rounded-full blur-3xl" />
               </motion.div>
             </div>
             
             {/* Text Content */}
             <div className="order-1 lg:order-2">
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-10 leading-tight tracking-tight">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 sm:mb-10 leading-tight tracking-tight">
                 Почему я назвал проект{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   в честь сына?
                 </span>
               </h2>
-              <div className="space-y-6 text-lg text-slate-600 leading-relaxed">
+              <div className="space-y-4 sm:space-y-6 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed">
                 <p>
                   Проект MarkVision назван в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-slate-900 font-medium">это наследие</span>.
                 </p>
                 <p>
                   Я лично отвечаю за результат каждой клиники, которая работает с нами. Я строю эту систему так, чтобы за неё не было стыдно перед сыном.
                 </p>
-                <blockquote className="text-2xl font-medium text-slate-900 border-l-4 border-blue-500 pl-6 py-2 italic">
+                <blockquote className="text-lg sm:text-xl lg:text-2xl font-medium text-slate-900 border-l-4 border-blue-500 pl-4 sm:pl-6 py-2 italic">
                   «Мы не просто настраиваем рекламу — мы наводим порядок в вашем бизнесе»
                 </blockquote>
               </div>
@@ -480,7 +481,7 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 4: What's included */}
-      <section id="modules" className="py-24 lg:py-32 px-6 bg-white">
+      <section id="modules" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-white">
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{
           opacity: 0,
@@ -492,19 +493,19 @@ export const LandingPage = () => {
           once: true
         }} transition={{
           duration: 0.6
-        }} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+        }} className="text-center mb-8 sm:mb-12 lg:mb-16">
+            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 sm:mb-6 tracking-tight">
               Что входит в{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 систему
               </span>
             </h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-light">
+            <p className="text-sm sm:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-light px-4">
               Всё, что нужно для роста вашей клиники — в одном месте
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
             {modules.map((module, index) => <motion.div key={module.title} initial={{
             opacity: 0,
             y: 30
@@ -522,12 +523,12 @@ export const LandingPage = () => {
               scale: 1.02
             }} transition={{
               duration: 0.3
-            }} className="h-full p-6 sm:p-8 rounded-[28px] bg-white border border-slate-200/80 shadow-lg shadow-slate-100/50 hover:shadow-2xl hover:shadow-blue-100/50 hover:border-blue-200/80 transition-all cursor-pointer group">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 mb-5 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
+            }} className="h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200/80 shadow-md sm:shadow-lg shadow-slate-100/50 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-blue-100/50 hover:border-blue-200/80 transition-all cursor-pointer group">
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 mb-4 sm:mb-5 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
                     {module.icon}
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-3 group-hover:text-blue-600 transition-colors">{module.title}</h3>
-                  <p className="text-slate-500 leading-relaxed text-sm sm:text-base">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors">{module.title}</h3>
+                  <p className="text-slate-500 leading-relaxed text-xs sm:text-sm lg:text-base">
                     {module.description}
                   </p>
                 </motion.div>
@@ -537,9 +538,9 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 5: Guarantee */}
-      <section id="guarantee" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-white via-emerald-50/30 to-white relative overflow-hidden">
-        {/* Background decorations */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-emerald-100/40 to-green-100/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
+      <section id="guarantee" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-gradient-to-b from-white via-emerald-50/30 to-white relative overflow-hidden">
+        {/* Background decorations - hidden on mobile */}
+        <div className="hidden sm:block absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-emerald-100/40 to-green-100/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
         
         <div className="max-w-4xl mx-auto relative z-10">
           <motion.div 
@@ -550,15 +551,15 @@ export const LandingPage = () => {
             className="relative"
           >
             {/* Premium card wrapper */}
-            <div className="bg-white/80 backdrop-blur-xl rounded-[40px] border border-emerald-100/80 shadow-2xl shadow-emerald-500/10 p-8 sm:p-12 lg:p-16">
+            <div className="bg-white/80 backdrop-blur-xl rounded-2xl sm:rounded-[40px] border border-emerald-100/80 shadow-xl sm:shadow-2xl shadow-emerald-500/10 p-5 sm:p-8 md:p-12 lg:p-16">
               {/* Icon */}
-              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[32px] bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 mx-auto flex items-center justify-center mb-10 shadow-2xl shadow-emerald-500/40 relative">
-                <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/20 to-transparent" />
-                <Shield className="w-12 h-12 sm:w-14 sm:h-14 text-white relative z-10" />
+              <div className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 lg:w-28 lg:h-28 rounded-2xl sm:rounded-[32px] bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 mx-auto flex items-center justify-center mb-6 sm:mb-8 lg:mb-10 shadow-xl sm:shadow-2xl shadow-emerald-500/40 relative">
+                <div className="absolute inset-0 rounded-2xl sm:rounded-[32px] bg-gradient-to-br from-white/20 to-transparent" />
+                <Shield className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 lg:w-14 lg:h-14 text-white relative z-10" />
               </div>
               
               {/* Heading */}
-              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 mb-10 tracking-tight text-center">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 mb-6 sm:mb-8 lg:mb-10 tracking-tight text-center">
                 100% Гарантия{" "}
                 <span className="bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 bg-clip-text text-transparent">
                   результата
@@ -566,19 +567,19 @@ export const LandingPage = () => {
               </h2>
               
               {/* Content blocks */}
-              <div className="space-y-8 max-w-2xl mx-auto mb-12">
+              <div className="space-y-4 sm:space-y-6 lg:space-y-8 max-w-2xl mx-auto mb-8 sm:mb-10 lg:mb-12">
                 {/* Block 1 */}
                 <motion.div 
                   initial={{ opacity: 0, x: -20 }}
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.2, duration: 0.5 }}
-                  className="flex items-start gap-4 text-left"
+                  className="flex items-start gap-3 sm:gap-4 text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-1">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                   </div>
-                  <p className="text-lg sm:text-xl text-slate-600 leading-relaxed">
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 leading-relaxed">
                     Я беру на себя <span className="text-slate-900 font-semibold">полную ответственность</span> за каждое действие и ваш результат.
                   </p>
                 </motion.div>
@@ -589,12 +590,12 @@ export const LandingPage = () => {
                   whileInView={{ opacity: 1, x: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.3, duration: 0.5 }}
-                  className="flex items-start gap-4 text-left"
+                  className="flex items-start gap-3 sm:gap-4 text-left"
                 >
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-1">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-0.5 sm:mt-1">
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                   </div>
-                  <p className="text-lg sm:text-xl text-slate-600 leading-relaxed">
+                  <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-600 leading-relaxed">
                     Если система не принесёт вам обещанный результат в оговорённые сроки — <span className="text-emerald-600 font-semibold">я работаю бесплатно</span>, пока не выполним план.
                   </p>
                 </motion.div>
@@ -605,9 +606,9 @@ export const LandingPage = () => {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: 0.4, duration: 0.5 }}
-                  className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200/60"
+                  className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl sm:rounded-2xl p-4 sm:p-6 border border-emerald-200/60"
                 >
-                  <p className="text-xl sm:text-2xl font-bold text-slate-900 text-center leading-snug">
+                  <p className="text-base sm:text-xl lg:text-2xl font-bold text-slate-900 text-center leading-snug">
                     Весь риск лежит на мне,
                     <br />
                     <span className="text-emerald-600">а не на вашей клинике</span>
@@ -626,9 +627,9 @@ export const LandingPage = () => {
                 <Button 
                   size="lg" 
                   onClick={openMarkChatbot} 
-                  className="rounded-3xl px-10 sm:px-14 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-700 hover:via-green-600 hover:to-emerald-700 text-white shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all"
+                  className="w-full sm:w-auto rounded-2xl sm:rounded-3xl px-8 sm:px-10 lg:px-14 py-5 sm:py-6 lg:py-7 text-base sm:text-lg font-semibold bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-700 hover:via-green-600 hover:to-emerald-700 text-white shadow-xl sm:shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all"
                 >
-                  <MessageCircle className="w-5 h-5 mr-2" />
+                  <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   Связаться с Марком
                 </Button>
               </motion.div>
@@ -638,7 +639,7 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 6: Registration Form */}
-      <section id="signup" ref={signupRef} className="py-24 lg:py-32 px-6 bg-white">
+      <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-white">
         <div className="max-w-xl mx-auto">
           <motion.div initial={{
           opacity: 0,
@@ -651,60 +652,60 @@ export const LandingPage = () => {
         }} transition={{
           duration: 0.6
         }}>
-            <div className="text-center mb-12">
-              <div className="w-[72px] h-[72px] rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-8 shadow-2xl shadow-blue-500/25">
-                <Sparkles className="w-9 h-9 text-white" />
+            <div className="text-center mb-8 sm:mb-12">
+              <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-5 sm:mb-8 shadow-xl sm:shadow-2xl shadow-blue-500/25">
+                <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
               </div>
-              <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-5 tracking-tight">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-3 sm:mb-5 tracking-tight">
                 Начните бесплатно
               </h2>
-              <p className="text-lg text-slate-500">
+              <p className="text-sm sm:text-lg text-slate-500 px-4">
                 7 дней полного доступа ко всем функциям системы
               </p>
             </div>
 
-            <div className="bg-white rounded-[32px] p-8 sm:p-10 shadow-2xl shadow-slate-200/60 border border-slate-100">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="bg-white rounded-2xl sm:rounded-[32px] p-5 sm:p-8 md:p-10 shadow-xl sm:shadow-2xl shadow-slate-200/60 border border-slate-100">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                 {/* Clinic Name */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Название клиники</label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-slate-700">Название клиники</label>
                   <div className="relative">
-                    <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.clinicName ? 'border-red-500' : ''}`} />
+                    <Building2 className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                    <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.clinicName ? 'border-red-500' : ''}`} />
                   </div>
                   {errors.clinicName && <p className="text-xs text-red-500 ml-1">{errors.clinicName}</p>}
                 </div>
 
                 {/* Email */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Email</label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-slate-700">Email</label>
                   <div className="relative">
-                    <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.email ? 'border-red-500' : ''}`} />
+                    <Mail className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                    <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.email ? 'border-red-500' : ''}`} />
                   </div>
                   {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
                 </div>
 
                 {/* Password */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Пароль</label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-slate-700">Пароль</label>
                   <div className="relative">
-                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-14 pr-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.password ? 'border-red-500' : ''}`} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                    <Lock className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                    <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-11 sm:pl-14 pr-11 sm:pr-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.password ? 'border-red-500' : ''}`} />
+                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                      {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                     </button>
                   </div>
                   {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password}</p>}
                 </div>
 
                 {/* Promo Code */}
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-700">Промокод</label>
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-slate-700">Промокод</label>
                   <div className="relative">
-                    <Gift className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50/50' : ''}`} />
-                    {promoValid === true && <CheckCircle2 className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />}
+                    <Gift className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
+                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50/50' : ''}`} />
+                    {promoValid === true && <CheckCircle2 className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />}
                   </div>
                   {promoValid === true && <motion.p initial={{
                   opacity: 0,
@@ -712,24 +713,24 @@ export const LandingPage = () => {
                 }} animate={{
                   opacity: 1,
                   y: 0
-                }} className="text-sm text-emerald-600 font-medium flex items-center gap-2 ml-1">
+                }} className="text-xs sm:text-sm text-emerald-600 font-medium flex items-center gap-1.5 sm:gap-2 ml-1">
                       <span>🎉</span> Активирован бесплатный доступ на 7 дней
                     </motion.p>}
                 </div>
 
                 {/* Submit Button */}
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg mt-4 shadow-lg shadow-slate-900/15 hover:shadow-xl hover:shadow-slate-900/20 transition-all" disabled={loading}>
+                <Button type="submit" className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-base sm:text-lg mt-2 sm:mt-4 shadow-lg shadow-slate-900/15 hover:shadow-xl hover:shadow-slate-900/20 transition-all" disabled={loading}>
                   {loading ? <>
-                      <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
                       Регистрация...
                     </> : 'Зарегистрироваться'}
                 </Button>
               </form>
 
               {/* Login Link */}
-              <div className="mt-8 text-center">
-                <span className="text-slate-500">Уже есть аккаунт? </span>
-                <button onClick={() => navigate('/auth')} className="text-blue-600 hover:text-blue-700 font-medium transition-colors">
+              <div className="mt-6 sm:mt-8 text-center">
+                <span className="text-sm sm:text-base text-slate-500">Уже есть аккаунт? </span>
+                <button onClick={() => navigate('/auth')} className="text-sm sm:text-base text-blue-600 hover:text-blue-700 font-medium transition-colors">
                   Войти
                 </button>
               </div>
