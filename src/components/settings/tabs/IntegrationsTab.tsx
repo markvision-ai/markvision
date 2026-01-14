@@ -8,7 +8,8 @@ import {
   RefreshCw, 
   Settings,
   Plug2,
-  AlertCircle
+  AlertCircle,
+  Cloud
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { MetaSyncButton } from '@/components/integrations/MetaSyncButton';
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -109,6 +111,47 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
     }
   }, [projectId]);
 
+  // Handle OAuth callback
+  useEffect(() => {
+    const handleOAuthCallback = async () => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+        if (event === 'SIGNED_IN' && session?.provider_token) {
+          // Save the Facebook access token
+          const { error } = await supabase.from('integrations').upsert({
+            project_id: projectId,
+            type: 'facebook',
+            name: 'Facebook Ads',
+            status: 'active',
+            config: { 
+              access_token: session.provider_token,
+              user_id: session.user.id
+            },
+            updated_at: new Date().toISOString()
+          }, { 
+            onConflict: 'project_id,type' 
+          });
+
+          if (error) {
+            console.error('Error saving integration:', error);
+            toast.error('Ошибка сохранения интеграции');
+          } else {
+            toast.success('Facebook успешно подключен!');
+            fetchStatuses();
+          }
+
+          // Clean URL
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      });
+
+      return () => {
+        subscription.unsubscribe();
+      };
+    };
+
+    handleOAuthCallback();
+  }, [projectId, fetchStatuses]);
+
   useEffect(() => {
     fetchStatuses();
   }, [fetchStatuses]);
@@ -155,10 +198,13 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
               Подключите сервисы для автоматизации маркетинга
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchStatuses} className="gap-2">
-            <RefreshCw className="w-4 h-4" />
-            Обновить
-          </Button>
+          <div className="flex items-center gap-2">
+            <MetaSyncButton projectId={projectId} variant="compact" />
+            <Button variant="outline" size="sm" onClick={fetchStatuses} className="gap-2">
+              <RefreshCw className="w-4 h-4" />
+              Обновить
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

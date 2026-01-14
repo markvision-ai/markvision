@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, Eye, Plus, Sparkles } from 'lucide-react';
+import { Factory, Eye, Plus, Sparkles, Instagram } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { ContentPipeline } from './ContentPipeline';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { CreateContentDialog } from './CreateContentDialog';
+import { InstagramStats } from '@/components/integrations/InstagramStats';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface ContentFactoryPageProps {
@@ -83,10 +84,14 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full max-w-md grid-cols-2">
+        <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="pipeline" className="gap-2">
             <Factory className="w-4 h-4" />
             Пайплайн
+          </TabsTrigger>
+          <TabsTrigger value="instagram" className="gap-2">
+            <Instagram className="w-4 h-4" />
+            Instagram
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="gap-2">
             <Eye className="w-4 h-4" />
@@ -105,6 +110,10 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
             triggerEdit={triggerEdit}
             triggerPublish={triggerPublish}
           />
+        </TabsContent>
+
+        <TabsContent value="instagram" className="space-y-4">
+          <InstagramStats projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="monitoring" className="space-y-4">
