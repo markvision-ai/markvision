@@ -14,6 +14,7 @@ interface Project {
   name: string;
   owner_id: string;
   telegram_chat_id?: string | null;
+  onboarding_status?: string | null;
 }
 
 export const useProjects = () => {
@@ -55,7 +56,7 @@ export const useProjects = () => {
         // Админ видит все проекты
         const { data, error } = await supabase
           .from('projects')
-          .select('*');
+          .select('id, name, owner_id, telegram_chat_id, onboarding_status');
 
         if (error) {
           if (import.meta.env.DEV) {
@@ -75,7 +76,7 @@ export const useProjects = () => {
           const projectIds = accessData.map(a => a.project_id);
           const { data, error } = await supabase
             .from('projects')
-            .select('*')
+            .select('id, name, owner_id, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
 
           if (!error && data) {
@@ -96,7 +97,7 @@ export const useProjects = () => {
 
         const { data: fallbackProject, error: fallbackError } = await supabase
           .from('projects')
-          .select('*')
+          .select('id, name, owner_id, telegram_chat_id, onboarding_status')
           .eq('id', FALLBACK_PROJECT_ID)
           .maybeSingle();
 
@@ -172,6 +173,7 @@ export const useProjects = () => {
       .insert({
         name: trimmedName,
         owner_id: user.id,
+        onboarding_status: 'pending',
       })
       .select()
       .single();
@@ -214,7 +216,7 @@ export const useProjects = () => {
   const currentProject = projects.find(p => p.id === currentProjectId);
   
   if (import.meta.env.DEV && currentProject) {
-    console.log('🎯 ТЕКУЩИЙ ПРОЕКТ:', currentProject.name, '| ID:', currentProject.id);
+    console.log('🎯 ТЕКУЩИЙ ПРОЕКТ:', currentProject.name, '| ID:', currentProject.id, '| Onboarding:', currentProject.onboarding_status);
   }
 
   return {
