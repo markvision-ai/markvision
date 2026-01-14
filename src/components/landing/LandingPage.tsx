@@ -281,7 +281,7 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.1,
           duration: 0.7
-        }} className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8">
+        }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8 text-5xl">
             Хватит терять
             <br />
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
