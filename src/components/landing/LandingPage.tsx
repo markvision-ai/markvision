@@ -187,9 +187,9 @@ export const LandingPage = () => {
       {/* Premium Sticky Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-2xl border-b border-slate-100/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-11 h-11 rounded-2xl object-cover shadow-lg shadow-blue-500/25" />
-            <span className="font-semibold text-xl text-slate-900 hidden sm:block tracking-tight">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <img src={markvisionLogo} alt="MarkVision AI" className="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" />
+            <span className="font-semibold text-base sm:text-xl text-slate-900 tracking-tight">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </span>
           </div>
