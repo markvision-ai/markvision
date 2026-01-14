@@ -36,23 +36,42 @@ export default function Auth() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [checkingConnection, setCheckingConnection] = useState(true);
 
-  // Проверка подключения к базе при загрузке
+  // Проверка подключения к базе при загрузке с RETRY логикой (3 попытки)
   useEffect(() => {
     const verifyConnection = async () => {
       setCheckingConnection(true);
       
-      try {
-        // Простая проверка подключения
-        const { error } = await supabase.from('projects').select('count').limit(1);
-        if (error) {
-          setConnectionError(error.message);
-        } else {
-          setConnectionError(null);
+      const MAX_RETRIES = 3;
+      let lastError: string | null = null;
+      
+      for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+        try {
+          console.log(`🔄 Попытка подключения ${attempt}/${MAX_RETRIES}...`);
+          
+          const { error } = await supabase.from('projects').select('count').limit(1);
+          if (!error) {
+            console.log('✅ Подключение успешно!');
+            setConnectionError(null);
+            setCheckingConnection(false);
+            return;
+          }
+          
+          lastError = error.message;
+          console.warn(`⚠️ Попытка ${attempt} неудачна:`, error.message);
+          
+        } catch (e: any) {
+          lastError = e.message || 'Ошибка подключения к базе данных';
+          console.warn(`⚠️ Попытка ${attempt} ошибка:`, lastError);
         }
-      } catch (e: any) {
-        setConnectionError(e.message || 'Ошибка подключения к базе данных');
+        
+        // Ждём перед следующей попыткой (кроме последней)
+        if (attempt < MAX_RETRIES) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
       }
       
+      // Все попытки исчерпаны
+      setConnectionError(lastError);
       setCheckingConnection(false);
     };
     

@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Внешний Supabase - ПРИНУДИТЕЛЬНОЕ использование
+// НОВЫЙ КЛЮЧ от 14.01.2026
 const EXTERNAL_SUPABASE_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
-const EXTERNAL_SUPABASE_ANON_KEY = import.meta.env.VITE_EXTERNAL_SUPABASE_ANON_KEY || 
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NDY1MjksImV4cCI6MjA2NTEyMjUyOX0.d7Djf3Uvl2S5DjECCR8XUWUiAetNEP1xT8El7Nn3GpY';
+const EXTERNAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k';
 
 // Super Admin для обхода RLS
 export const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
