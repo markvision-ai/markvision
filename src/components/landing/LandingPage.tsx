@@ -537,45 +537,102 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 5: Guarantee */}
-      <section id="guarantee" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-slate-50 to-slate-100/80">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div initial={{
-          opacity: 0,
-          y: 40
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.7
-        }}>
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 mx-auto flex items-center justify-center mb-10 shadow-2xl shadow-emerald-500/30">
-              <Shield className="w-10 h-10 text-white" />
-            </div>
-            
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-8 tracking-tight">
-              100% Гарантия{" "}
-              <span className="bg-gradient-to-r from-emerald-600 to-green-600 bg-clip-text text-transparent">
-                результата
-              </span>
-            </h2>
-            
-            <div className="space-y-6 text-xl text-slate-600 leading-relaxed max-w-3xl mx-auto mb-12">
-              <p>
-                Мы берём на себя <span className="text-slate-900 font-semibold">полную ответственность</span> за ваш результат.
-              </p>
-              <p>Если вы не увидите прироста записей и выручки
-мы продолжим работать бесплатно, пока не достигнем цели<span className="text-emerald-600 font-semibold">мы продолжим работать бесплатно</span>, пока не достигнем целевых показателей.
-              </p>
-              <p className="text-2xl font-semibold text-slate-900">Весь риск лежит на мне, 
-а не на вашей клинике</p>
-            </div>
+      <section id="guarantee" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-white via-emerald-50/30 to-white relative overflow-hidden">
+        {/* Background decorations */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-emerald-100/40 to-green-100/40 rounded-full blur-3xl opacity-60 pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto relative z-10">
+          <motion.div 
+            initial={{ opacity: 0, y: 40 }} 
+            whileInView={{ opacity: 1, y: 0 }} 
+            viewport={{ once: true }} 
+            transition={{ duration: 0.7 }}
+            className="relative"
+          >
+            {/* Premium card wrapper */}
+            <div className="bg-white/80 backdrop-blur-xl rounded-[40px] border border-emerald-100/80 shadow-2xl shadow-emerald-500/10 p-8 sm:p-12 lg:p-16">
+              {/* Icon */}
+              <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-[32px] bg-gradient-to-br from-emerald-500 via-green-500 to-emerald-600 mx-auto flex items-center justify-center mb-10 shadow-2xl shadow-emerald-500/40 relative">
+                <div className="absolute inset-0 rounded-[32px] bg-gradient-to-br from-white/20 to-transparent" />
+                <Shield className="w-12 h-12 sm:w-14 sm:h-14 text-white relative z-10" />
+              </div>
+              
+              {/* Heading */}
+              <h2 className="text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-bold text-slate-900 mb-10 tracking-tight text-center">
+                100% Гарантия{" "}
+                <span className="bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 bg-clip-text text-transparent">
+                  результата
+                </span>
+              </h2>
+              
+              {/* Content blocks */}
+              <div className="space-y-8 max-w-2xl mx-auto mb-12">
+                {/* Block 1 */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.2, duration: 0.5 }}
+                  className="flex items-start gap-4 text-left"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <p className="text-lg sm:text-xl text-slate-600 leading-relaxed">
+                    Я беру на себя <span className="text-slate-900 font-semibold">полную ответственность</span> за каждое действие и ваш результат.
+                  </p>
+                </motion.div>
 
-            <Button size="lg" onClick={openMarkChatbot} className="rounded-3xl px-12 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.02] transition-all">
-              <MessageCircle className="w-5 h-5 mr-2" />
-              Связаться с Марком
-            </Button>
+                {/* Block 2 */}
+                <motion.div 
+                  initial={{ opacity: 0, x: -20 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.3, duration: 0.5 }}
+                  className="flex items-start gap-4 text-left"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center flex-shrink-0 mt-1">
+                    <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+                  </div>
+                  <p className="text-lg sm:text-xl text-slate-600 leading-relaxed">
+                    Если система не принесёт вам обещанный результат в оговорённые сроки — <span className="text-emerald-600 font-semibold">я работаю бесплатно</span>, пока не выполним план.
+                  </p>
+                </motion.div>
+
+                {/* Block 3 - Highlighted */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ delay: 0.4, duration: 0.5 }}
+                  className="bg-gradient-to-r from-emerald-50 to-green-50 rounded-2xl p-6 border border-emerald-200/60"
+                >
+                  <p className="text-xl sm:text-2xl font-bold text-slate-900 text-center leading-snug">
+                    Весь риск лежит на мне,
+                    <br />
+                    <span className="text-emerald-600">а не на вашей клинике</span>
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* CTA Button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="text-center"
+              >
+                <Button 
+                  size="lg" 
+                  onClick={openMarkChatbot} 
+                  className="rounded-3xl px-10 sm:px-14 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 via-green-500 to-emerald-600 hover:from-emerald-700 hover:via-green-600 hover:to-emerald-700 text-white shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/40 hover:scale-[1.02] transition-all"
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  Связаться с Марком
+                </Button>
+              </motion.div>
+            </div>
           </motion.div>
         </div>
       </section>
