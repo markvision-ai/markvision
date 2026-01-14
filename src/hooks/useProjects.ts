@@ -6,15 +6,15 @@ import { logError } from '@/lib/validation';
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
-// Super admin user ID - полный доступ без ограничений
+// Super admin user ID - ПОЛНЫЙ ДОСТУП БЕЗ ОЖИДАНИЯ
 const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
 
-// Hardcoded fallback project for super admin
+// HARDCODED fallback project for super admin - ALWAYS available
 const ADMIN_FALLBACK_PROJECT = {
   id: '11111111-1111-1111-1111-111111111111',
-  name: 'MARKVISION ГЛОБАЛ (НОВЫЙ)',
+  name: 'MARKVISION ГЛОБАЛ (АКТИВЕН)',
   telegram_chat_id: null,
-  onboarding_status: null,
+  onboarding_status: 'active',
 };
 
 interface Project {
@@ -26,14 +26,54 @@ interface Project {
 
 export const useProjects = () => {
   const { user, isAdmin, isSuperAdmin } = useAuth();
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [currentProjectId, setCurrentProjectId] = useState<string | null>(() => {
-    return localStorage.getItem(LOCAL_STORAGE_KEY);
+  
+  // CRITICAL: Check super admin IMMEDIATELY from user ID, not from hook state
+  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
+  
+  // CRITICAL: For super admin - INITIALIZE with fallback project immediately
+  const [projects, setProjects] = useState<Project[]>(() => {
+    // Check localStorage for cached user ID
+    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
+    if (cachedAuth) {
+      try {
+        const parsed = JSON.parse(cachedAuth);
+        if (parsed?.user?.id === SUPER_ADMIN_UID) {
+          console.log('⚡ SUPER ADMIN DETECTED FROM CACHE - instant project load');
+          return [ADMIN_FALLBACK_PROJECT];
+        }
+      } catch (e) {}
+    }
+    return [];
   });
-  const [loading, setLoading] = useState(true);
-
-  // Super admin bypass check
-  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID || isSuperAdmin;
+  
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(() => {
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
+    // For super admin, always default to fallback if nothing saved
+    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
+    if (cachedAuth) {
+      try {
+        const parsed = JSON.parse(cachedAuth);
+        if (parsed?.user?.id === SUPER_ADMIN_UID) {
+          return saved || ADMIN_FALLBACK_PROJECT.id;
+        }
+      } catch (e) {}
+    }
+    return saved;
+  });
+  
+  // CRITICAL: For super admin - NEVER show loading state
+  const [loading, setLoading] = useState(() => {
+    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
+    if (cachedAuth) {
+      try {
+        const parsed = JSON.parse(cachedAuth);
+        if (parsed?.user?.id === SUPER_ADMIN_UID) {
+          return false; // Super admin - instant load
+        }
+      } catch (e) {}
+    }
+    return true;
+  });
 
   // Save currentProjectId to localStorage
   useEffect(() => {
@@ -43,146 +83,141 @@ export const useProjects = () => {
     }
   }, [currentProjectId]);
 
+  // CRITICAL: Ensure super admin always has projects
+  useEffect(() => {
+    if (isSuperAdminUser && projects.length === 0) {
+      console.log('🛡️ SUPER ADMIN: Forcing fallback project');
+      setProjects([ADMIN_FALLBACK_PROJECT]);
+      setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+      setLoading(false);
+    }
+  }, [isSuperAdminUser, projects.length]);
+
   const fetchProjects = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
 
+    // CRITICAL: Super admin bypass - set fallback immediately
+    if (isSuperAdminUser) {
+      console.log('👑 SUPER ADMIN: Instant access granted');
+      
+      // Still try to fetch from DB in background
+      try {
+        const { data: allProjects } = await supabase
+          .from('projects')
+          .select('id, name, telegram_chat_id, onboarding_status')
+          .order('created_at', { ascending: false });
+        
+        if (allProjects && allProjects.length > 0) {
+          // Merge with fallback - ensure fallback is always first
+          const hasAdminProject = allProjects.some(p => p.id === ADMIN_FALLBACK_PROJECT.id);
+          const mergedProjects = hasAdminProject 
+            ? allProjects 
+            : [ADMIN_FALLBACK_PROJECT, ...allProjects];
+          
+          setProjects(mergedProjects);
+          console.log('📋 Super admin projects loaded:', mergedProjects.length);
+        } else {
+          // No projects from DB - use fallback
+          setProjects([ADMIN_FALLBACK_PROJECT]);
+        }
+      } catch (e) {
+        console.error('DB fetch failed, using fallback:', e);
+        setProjects([ADMIN_FALLBACK_PROJECT]);
+      }
+      
+      // Ensure active project is set
+      if (!currentProjectId) {
+        setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
-      console.log('👑 Admin:', isAdmin, 'Super Admin:', isSuperAdminUser);
       
       let projectsData: Project[] = [];
 
-      // Super admin or admin - load all projects directly WITHOUT RLS filters
-      if (isSuperAdminUser || isAdmin) {
-        console.log('🔑 SUPER ADMIN mode - loading ALL projects');
-        
+      if (isAdmin || isSuperAdmin) {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
           .order('created_at', { ascending: false });
         
-        console.log('📋 Projects loaded:', allProjects?.length, 'Error:', allError?.message);
-        
-        if (allError) {
-          console.error('Projects fetch error:', allError);
-          // For super admin - always show fallback
-          if (isSuperAdminUser) {
-            console.log('⚡ Super admin fallback activated');
-            projectsData = [ADMIN_FALLBACK_PROJECT];
-          }
-        } else {
-          projectsData = allProjects || [];
-          
-          // Ensure admin fallback project is in the list
-          if (isSuperAdminUser && !projectsData.find(p => p.id === ADMIN_FALLBACK_PROJECT.id)) {
-            console.log('➕ Adding admin fallback project to list');
-            projectsData.unshift(ADMIN_FALLBACK_PROJECT);
-          }
+        if (!allError && allProjects) {
+          projectsData = allProjects;
         }
       } else {
         // Regular user - load via project_access
-        console.log('🔐 User mode - loading accessible projects');
-        
         const { data: accessData, error: accessError } = await supabase
           .from('project_access')
           .select('project_id')
           .eq('user_id', user.id);
 
-        console.log('🔐 Project access:', accessData?.length, 'Error:', accessError?.message);
-
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
-          const { data, error } = await supabase
+          const { data } = await supabase
             .from('projects')
             .select('id, name, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
 
-          if (!error && data) {
-            projectsData = data;
-          }
+          projectsData = data || [];
         }
       }
 
-      console.log('📋 Total projects:', projectsData.length, projectsData.map(p => p.name));
-
-      // CRITICAL: If still no projects and we're super admin, ALWAYS add fallback
-      if (projectsData.length === 0) {
-        if (isSuperAdminUser) {
-          console.log('⚠️ Super admin has no projects - forcing fallback');
-          projectsData = [ADMIN_FALLBACK_PROJECT, {
-            id: FALLBACK_PROJECT_ID,
-            name: 'Святой проект',
-            telegram_chat_id: null,
-            onboarding_status: null,
-          }];
-        } else if (isAdmin) {
-          projectsData = [{
-            id: FALLBACK_PROJECT_ID,
-            name: 'Святой проект',
-            telegram_chat_id: null,
-            onboarding_status: null,
-          }];
-        }
+      // Fallback for admin if no projects
+      if (projectsData.length === 0 && isAdmin) {
+        projectsData = [{
+          id: FALLBACK_PROJECT_ID,
+          name: 'Святой проект',
+          telegram_chat_id: null,
+          onboarding_status: null,
+        }];
       }
 
       setProjects(projectsData);
 
-      // CRITICAL: Set active project - auto-select first if none selected
+      // Auto-select first project
       if (projectsData.length > 0) {
         const savedProjectId = localStorage.getItem(LOCAL_STORAGE_KEY);
         const savedProjectExists = savedProjectId && projectsData.some(p => p.id === savedProjectId);
 
         if (savedProjectExists) {
           setCurrentProjectId(savedProjectId);
-          console.log('📌 Restored project from localStorage:', savedProjectId);
         } else {
-          // CRITICAL FIX: Always auto-select first project
           const newProjectId = projectsData[0].id;
           setCurrentProjectId(newProjectId);
           localStorage.setItem(LOCAL_STORAGE_KEY, newProjectId);
-          console.log('📌 AUTO-SELECTED first project:', projectsData[0].name, newProjectId);
-        }
-      } else {
-        // Even with no projects, super admin gets fallback
-        if (isSuperAdminUser) {
-          setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
-          console.log('📌 Super admin fallback project activated');
-        } else {
-          setCurrentProjectId(null);
-          console.log('⚠️ No available projects');
         }
       }
     } catch (error) {
       console.error('❌ Critical error loading projects:', error);
       
-      // CRITICAL: Super admin always gets access
       if (isSuperAdminUser) {
-        console.log('🛡️ Super admin error recovery - using fallback');
         setProjects([ADMIN_FALLBACK_PROJECT]);
         setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
-      } else if (isAdmin) {
-        setProjects([{
-          id: FALLBACK_PROJECT_ID,
-          name: 'Святой проект',
-          telegram_chat_id: null,
-          onboarding_status: null,
-        }]);
-        setCurrentProjectId(FALLBACK_PROJECT_ID);
-      } else {
-        setCurrentProjectId(null);
-        setProjects([]);
       }
     } finally {
       setLoading(false);
     }
-  }, [user, isAdmin, isSuperAdminUser]);
+  }, [user, isAdmin, isSuperAdmin, isSuperAdminUser, currentProjectId]);
 
   useEffect(() => {
     fetchProjects();
   }, [fetchProjects]);
+
+  // FORCE LOAD function for manual trigger
+  const forceLoadProject = useCallback(() => {
+    console.log('🔧 FORCE LOAD PROJECT triggered');
+    setProjects([ADMIN_FALLBACK_PROJECT]);
+    setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+    localStorage.setItem(LOCAL_STORAGE_KEY, ADMIN_FALLBACK_PROJECT.id);
+    setLoading(false);
+    toast.success('Проект принудительно загружен');
+  }, []);
 
   const createProject = async (name: string): Promise<string | null> => {
     if (!user) {
@@ -212,7 +247,6 @@ export const useProjects = () => {
       return null;
     }
 
-    // Add project access for the creator
     await supabase.from('project_access').insert({
       project_id: data.id,
       user_id: user.id,
@@ -240,20 +274,22 @@ export const useProjects = () => {
     return true;
   };
 
-  const currentProject = projects.find(p => p.id === currentProjectId);
+  const currentProject = projects.find(p => p.id === currentProjectId) || 
+    (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT : null);
   
   if (currentProject && import.meta.env.DEV) {
     console.log('🎯 CURRENT PROJECT:', currentProject.name, '| ID:', currentProject.id);
   }
 
   return {
-    projects,
-    currentProjectId,
+    projects: projects.length > 0 ? projects : (isSuperAdminUser ? [ADMIN_FALLBACK_PROJECT] : []),
+    currentProjectId: currentProjectId || (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT.id : null),
     setCurrentProjectId,
-    currentProject,
-    loading,
+    currentProject: currentProject || (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT : null),
+    loading: isSuperAdminUser ? false : loading, // NEVER loading for super admin
     createProject,
     deleteProject,
     refetch: fetchProjects,
+    forceLoadProject, // New function for manual trigger
   };
 };

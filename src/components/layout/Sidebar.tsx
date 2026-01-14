@@ -65,13 +65,14 @@ interface SidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   currentProject?: string;
-  projects?: { id: string; name: string; owner_id: string }[];
+  projects?: { id: string; name: string; owner_id?: string }[];
   onProjectChange?: (projectId: string) => void;
   onStartOnboarding?: () => void;
   onDeleteProject?: (projectId: string) => Promise<boolean>;
   isMobileOpen?: boolean;
   onMobileClose?: () => void;
   userProfile?: { name: string | null; email: string | null } | null;
+  onForceLoadProject?: () => void; // NEW: Force load for super admin
 }
 
 // New 5-group structure with full Russian localization
@@ -146,7 +147,8 @@ export const Sidebar = ({
   onDeleteProject,
   isMobileOpen = false,
   onMobileClose,
-  userProfile
+  userProfile,
+  onForceLoadProject
 }: SidebarProps) => {
   const [isProjectDropdownOpen, setIsProjectDropdownOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -218,8 +220,8 @@ export const Sidebar = ({
     setIsProjectDropdownOpen(false);
   };
 
-  const canDeleteProject = (project: { id: string; owner_id: string }) => {
-    return isAdmin || project.owner_id === user?.id;
+  const canDeleteProject = (project: { id: string; owner_id?: string }) => {
+    return isAdmin || isSuperAdmin || project.owner_id === user?.id;
   };
 
   const handleTabChange = (tab: string) => {
@@ -259,8 +261,23 @@ export const Sidebar = ({
           {isProjectDropdownOpen && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-sidebar-muted rounded-lg shadow-lg overflow-hidden z-50">
               {projects.length === 0 ? (
-                <div className="px-3 py-4 text-center text-sm text-sidebar-foreground/60">
-                  Нет проектов
+                <div className="px-3 py-4 space-y-3">
+                  <p className="text-center text-sm text-sidebar-foreground/60">
+                    Нет проектов
+                  </p>
+                  {/* FORCE LOAD BUTTON for super admin */}
+                  {isSuperAdmin && onForceLoadProject && (
+                    <button
+                      onClick={() => {
+                        onForceLoadProject();
+                        setIsProjectDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 text-sm font-bold bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
+                    >
+                      <Zap className="w-4 h-4" />
+                      FORCE LOAD PROJECT
+                    </button>
+                  )}
                 </div>
               ) : (
                 projects.map((project) => (
@@ -317,6 +334,19 @@ export const Sidebar = ({
                 <Plus className="w-4 h-4" />
                 <span>Создать проект</span>
               </button>
+              {/* Force load button at bottom for super admin even when projects exist */}
+              {isSuperAdmin && onForceLoadProject && projects.length > 0 && (
+                <button
+                  onClick={() => {
+                    onForceLoadProject();
+                    setIsProjectDropdownOpen(false);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-warning hover:bg-warning/10 border-t border-sidebar-foreground/10"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Force Reload</span>
+                </button>
+              )}
             </div>
           )}
         </div>

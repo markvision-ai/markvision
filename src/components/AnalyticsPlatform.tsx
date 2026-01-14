@@ -153,9 +153,13 @@ export const AnalyticsPlatform = () => {
     }
   }, [location.pathname]);
   
-  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects } = useProjects();
+  const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
   const { hasErrors: systemHasErrors } = useSystemHealth(currentProjectId);
+  
+  // CRITICAL: Super admin UUID - bypass all loading states
+  const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
 
   // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
@@ -287,7 +291,8 @@ export const AnalyticsPlatform = () => {
     }
   };
 
-  if (projectsLoading || dataLoading) {
+  // CRITICAL: Super admin NEVER sees loading screen
+  if ((projectsLoading || dataLoading) && !isSuperAdminUser) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -295,7 +300,7 @@ export const AnalyticsPlatform = () => {
     );
   }
 
-  const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
+  const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: '' }));
 
   const mainContent = (
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-20 md:pb-8">
@@ -633,6 +638,7 @@ export const AnalyticsPlatform = () => {
           onDeleteProject={deleteProject}
           userId={user?.id}
           systemHasErrors={systemHasErrors}
+          onForceLoadProject={forceLoadProject}
         />
         
         {/* Main Content Area - Takes remaining space, no overlap */}
