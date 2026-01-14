@@ -55,11 +55,14 @@ import {
   Tooltip, 
   ResponsiveContainer,
   Legend,
-  Cell
+  Cell,
+  PieChart,
+  Pie
 } from 'recharts';
 import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWithinInterval, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
+import { PlatformSpendChart } from './PlatformSpendChart';
 
 interface Transaction {
   id: string;
@@ -438,6 +441,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       <Tabs defaultValue="dashboard">
         <TabsList>
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
+          <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
 
@@ -527,6 +531,11 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Platform Spend Tab - New Pie Chart */}
+        <TabsContent value="platforms" className="mt-4 space-y-6">
+          <PlatformSpendChart projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-4">

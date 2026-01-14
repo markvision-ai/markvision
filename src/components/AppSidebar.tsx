@@ -223,6 +223,12 @@ export const AppSidebar = ({
         icon: <IconTrophy className="h-5 w-5 flex-shrink-0" />,
         tab: "gamification",
       },
+      {
+        label: "Автоматизация",
+        href: "/automation",
+        icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
+        tab: "automation",
+      },
     ],
     analytics: [
       {

@@ -23,6 +23,7 @@ interface FunnelStep {
 export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
   const funnelData = useMemo(() => {
     const newCount = leads.filter(l => l.status === 'new' || !l.status).length;
+    const diagnosticCount = leads.filter(l => l.status === 'in_progress' || l.status === 'diagnostics_completed').length;
     const appointmentCount = leads.filter(l => l.status === 'appointment').length;
     const paidLeads = leads.filter(l => l.status === 'paid');
     const paidCount = paidLeads.length;
@@ -30,6 +31,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
     const steps: FunnelStep[] = [
       { id: 'new', label: 'Новые лиды', count: leads.length, amount: 0, gradient: 'from-blue-500 to-cyan-500', icon: Users },
+      { id: 'diagnostic', label: 'Прошли диагностику', count: diagnosticCount + appointmentCount + paidCount, amount: 0, gradient: 'from-orange-500 to-amber-500', icon: Target },
       { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: 0, gradient: 'from-purple-500 to-pink-500', icon: Calendar },
       { id: 'paid', label: 'Оплачено', count: paidCount, amount: totalAmount, gradient: 'from-emerald-500 to-green-500', icon: DollarSign },
     ];
