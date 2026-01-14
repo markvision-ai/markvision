@@ -39,7 +39,7 @@ import {
   IconPlus,
   IconCheck,
 } from "@tabler/icons-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
 import { Sparkles, Trash2 } from "lucide-react";
 import {
