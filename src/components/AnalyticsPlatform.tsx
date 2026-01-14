@@ -48,6 +48,7 @@ import { RealtimeDashboard } from './dashboard/RealtimeDashboard';
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { CalendarPage } from './calendar/CalendarPage';
 import { DiagnosticsPage } from './diagnostics/DiagnosticsPage';
+import { AutomationPage } from './automation/AutomationPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -512,6 +513,10 @@ export const AnalyticsPlatform = () => {
         <DiagnosticsPage projectId={currentProjectId} />
       )}
 
+      {activeTab === 'automation' && currentProjectId && (
+        <AutomationPage projectId={currentProjectId} />
+      )}
+
       {activeTab === 'help' && (
         <div className="bg-card border border-border rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">🆘 Центр помощи MarkVision AI Medical</h3>
@@ -521,7 +526,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

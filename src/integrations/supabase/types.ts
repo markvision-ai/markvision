@@ -673,6 +673,9 @@ export type Database = {
           revenue: number
           sales: number
           spend: number
+          spend_fb: number | null
+          spend_google: number | null
+          spend_tiktok: number | null
           updated_at: string
         }
         Insert: {
@@ -687,6 +690,9 @@ export type Database = {
           revenue?: number
           sales?: number
           spend?: number
+          spend_fb?: number | null
+          spend_google?: number | null
+          spend_tiktok?: number | null
           updated_at?: string
         }
         Update: {
@@ -701,11 +707,62 @@ export type Database = {
           revenue?: number
           sales?: number
           spend?: number
+          spend_fb?: number | null
+          spend_google?: number | null
+          spend_tiktok?: number | null
           updated_at?: string
         }
         Relationships: [
           {
             foreignKeyName: "daily_data_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      diagnostic_results: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          diagnostic_type: string | null
+          id: string
+          lead_id: string | null
+          notes: string | null
+          project_id: string
+          result: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          diagnostic_type?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          project_id: string
+          result?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          diagnostic_type?: string | null
+          id?: string
+          lead_id?: string | null
+          notes?: string | null
+          project_id?: string
+          result?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "diagnostic_results_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "diagnostic_results_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -1134,8 +1191,10 @@ export type Database = {
           external_lead_id: string | null
           extra_data: Json | null
           id: string
+          last_action_at: string | null
           last_automation_at: string | null
           lead_score: number | null
+          ltv: number | null
           name: string | null
           phone: string | null
           project_id: string
@@ -1163,8 +1222,10 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           id?: string
+          last_action_at?: string | null
           last_automation_at?: string | null
           lead_score?: number | null
+          ltv?: number | null
           name?: string | null
           phone?: string | null
           project_id: string
@@ -1192,8 +1253,10 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           id?: string
+          last_action_at?: string | null
           last_automation_at?: string | null
           lead_score?: number | null
+          ltv?: number | null
           name?: string | null
           phone?: string | null
           project_id?: string
