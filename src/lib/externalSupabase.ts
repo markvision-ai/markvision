@@ -1,37 +1,26 @@
-import { createClient } from '@supabase/supabase-js';
+// DEPRECATED: Используй src/integrations/supabase/client.ts
+// Этот файл оставлен для обратной совместимости
 
-// Внешний Supabase - ПРИНУДИТЕЛЬНОЕ использование
-// НОВЫЙ КЛЮЧ от 14.01.2026
-const EXTERNAL_SUPABASE_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
-const EXTERNAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k';
+export { 
+  supabase, 
+  SUPER_ADMIN_UID, 
+  SUPER_ADMIN_EMAIL, 
+  FALLBACK_PROJECT_ID 
+} from '@/integrations/supabase/client';
 
-// Super Admin для обхода RLS
-export const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
-export const SUPER_ADMIN_EMAIL = 'zapoinov@bk.ru';
-export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+// Алиас для обратной совместимости
+export { supabase as externalSupabase } from '@/integrations/supabase/client';
 
-// Создаём ВНЕШНИЙ клиент Supabase
-export const externalSupabase = createClient(
-  EXTERNAL_SUPABASE_URL,
-  EXTERNAL_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
-      storage: localStorage,
-      storageKey: 'external-supabase-auth',
-    },
-  }
-);
-
-// Экспортируем как основной клиент для использования во всём приложении
-export const supabase = externalSupabase;
+// Проверка является ли пользователь Super Admin
+export const isSuperAdmin = (userId?: string | null, email?: string | null): boolean => {
+  return userId === 'd94043b0-1c76-4017-84de-df0dbf00a2c9' || email === 'zapoinov@bk.ru';
+};
 
 // Функция проверки подключения
 export const checkConnection = async () => {
+  const { supabase } = await import('@/integrations/supabase/client');
   try {
-    const { data, error } = await externalSupabase.from('projects').select('count').limit(1);
+    const { data, error } = await supabase.from('projects').select('count').limit(1);
     if (error) throw error;
     return { ok: true };
   } catch (e: any) {
@@ -39,16 +28,11 @@ export const checkConnection = async () => {
   }
 };
 
-// Проверка является ли пользователь Super Admin
-export const isSuperAdmin = (userId?: string | null, email?: string | null): boolean => {
-  return userId === SUPER_ADMIN_UID || email === SUPER_ADMIN_EMAIL;
-};
-
 // Очистка сессии
 export const clearAuthData = () => {
+  localStorage.removeItem('sb-pyscczcuersdjvpmkiec-auth-token');
   localStorage.removeItem('external-supabase-auth');
-  localStorage.clear();
   console.log('🧹 Сессия очищена');
 };
 
-console.log('🔗 Supabase клиент инициализирован:', EXTERNAL_SUPABASE_URL);
+console.log('🔗 Supabase клиент: https://pyscczcuersdjvpmkiec.supabase.co');

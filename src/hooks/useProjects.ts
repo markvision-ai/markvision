@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, FALLBACK_PROJECT_ID, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID, isSuperAdmin } from '@/lib/externalSupabase';
+import { supabase, FALLBACK_PROJECT_ID, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { logError } from '@/lib/validation';
+
+// Проверка Super Admin
+const isSuperAdmin = (userId?: string | null, email?: string | null): boolean => {
+  return userId === SUPER_ADMIN_UID || email === SUPER_ADMIN_EMAIL;
+};
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
