@@ -139,13 +139,15 @@ export const AnalyticsPlatform = () => {
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
 
-  // Debug: выводим информацию о текущем проекте
+  // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
-    console.log('✅ MarkVision Core: Realtime Active');
-    console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
-    console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
-    console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
-    console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
+    if (import.meta.env.DEV) {
+      console.log('✅ MarkVision Core: Realtime Active');
+      console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
+      console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
+      console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
+      console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
+    }
   }, [currentProjectId, currentProject, user, projects]);
 
   const handleRefresh = useCallback(async () => {

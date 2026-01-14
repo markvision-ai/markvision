@@ -66,7 +66,7 @@ export const useProjectData = (projectId: string | null) => {
 
   // Fetch daily data
   const fetchDailyData = useCallback(async () => {
-    console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
+    if (import.meta.env.DEV) console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
 
     const { data, error } = await supabase
       .from('daily_data')
@@ -80,7 +80,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
 
-    console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
+    if (import.meta.env.DEV) console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
 
     const dataMap: Record<string, DailyData> = {};
     data?.forEach((row) => {
@@ -102,7 +102,7 @@ export const useProjectData = (projectId: string | null) => {
   // Fetch plan data - берём данные за 1-е число текущего месяца
   const fetchPlanData = useCallback(async () => {
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    console.log('📋 useProjectData | Загрузка ПЛАНА из daily_data за дату:', firstDayOfMonth);
+    if (import.meta.env.DEV) console.log('📋 useProjectData | Загрузка ПЛАНА из daily_data за дату:', firstDayOfMonth);
     
     const { data, error } = await supabase
       .from('daily_data')
@@ -118,7 +118,7 @@ export const useProjectData = (projectId: string | null) => {
     }
 
     if (data) {
-      console.log('✅ useProjectData | ПЛАН загружен:', data);
+      if (import.meta.env.DEV) console.log('✅ useProjectData | ПЛАН загружен:', data);
       setRawPlanData({
         date: data.date,
         spend: Number(data.spend) || 0,
@@ -130,7 +130,7 @@ export const useProjectData = (projectId: string | null) => {
         revenue: Number(data.revenue) || 0,
       });
     } else {
-      console.log('⚠️ useProjectData | ПЛАН не найден для даты:', firstDayOfMonth);
+      if (import.meta.env.DEV) console.log('⚠️ useProjectData | ПЛАН не найден для даты:', firstDayOfMonth);
       setRawPlanData(null);
     }
   }, [effectiveProjectId]);
@@ -144,7 +144,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
 
-    console.log('💾 updateDailyData | Сохраняем:', { date, field, value, project_id: effectiveProjectId });
+    if (import.meta.env.DEV) console.log('💾 updateDailyData | Сохраняем:', { date, field, value, project_id: effectiveProjectId });
 
     // Optimistically update local state
     setDailyData(prev => ({
@@ -178,7 +178,7 @@ export const useProjectData = (projectId: string | null) => {
       toast.error('Ошибка сохранения данных: ' + error.message);
       fetchDailyData(); // Revert on error
     } else {
-      console.log('✅ updateDailyData | Успешно сохранено');
+      if (import.meta.env.DEV) console.log('✅ updateDailyData | Успешно сохранено');
     }
   }, [effectiveProjectId, fetchDailyData]);
 
@@ -198,7 +198,7 @@ export const useProjectData = (projectId: string | null) => {
     }
 
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: firstDayOfMonth, field, value, project_id: effectiveProjectId });
+    if (import.meta.env.DEV) console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: firstDayOfMonth, field, value, project_id: effectiveProjectId });
 
     // Optimistically update local state
     setRawPlanData(prev => prev ? {
@@ -237,14 +237,14 @@ export const useProjectData = (projectId: string | null) => {
       toast.error('Ошибка сохранения плана: ' + error.message);
       fetchPlanData();
     } else {
-      console.log('✅ updatePlanData | ПЛАН успешно сохранён');
+      if (import.meta.env.DEV) console.log('✅ updatePlanData | ПЛАН успешно сохранён');
     }
   }, [effectiveProjectId, isAdmin, canEditPlan, fetchPlanData]);
 
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
-      console.log('🔄 useProjectData | Начинаем загрузку данных для project_id:', effectiveProjectId);
+      if (import.meta.env.DEV) console.log('🔄 useProjectData | Начинаем загрузку данных для project_id:', effectiveProjectId);
       await Promise.all([fetchDailyData(), fetchPlanData()]);
       setLoading(false);
     };

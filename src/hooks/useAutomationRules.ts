@@ -155,7 +155,7 @@ export function useAutomationRules(projectId: string | null) {
 
       if (response.error) throw response.error;
       
-      console.log('Automation triggered:', response.data);
+      if (import.meta.env.DEV) console.log('Automation triggered:', response.data);
     } catch (error) {
       console.error('Error triggering automation:', error);
     }
@@ -178,7 +178,7 @@ export function useAutomationRules(projectId: string | null) {
 
       if (response.error) throw response.error;
       
-      console.log('New lead automation triggered:', response.data);
+      if (import.meta.env.DEV) console.log('New lead automation triggered:', response.data);
     } catch (error) {
       console.error('Error triggering new lead automation:', error);
     }

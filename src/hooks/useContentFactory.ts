@@ -242,7 +242,7 @@ export const useContentFactory = (projectId: string | null) => {
   // Webhook triggers for n8n
   const triggerWebhook = async (action: string, payload: Record<string, unknown>) => {
     // This will be called by n8n webhooks configured in settings
-    console.log('Triggering webhook:', action, payload);
+    if (import.meta.env.DEV) console.log('Triggering webhook:', action, payload);
     toast.info(`Отправлено в n8n: ${action}`);
     // In production, this would POST to your n8n webhook URL
     return true;
