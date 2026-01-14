@@ -136,6 +136,9 @@ export const LeadCard = ({
   };
 
   const showDragging = isDragging || isCurrentlyDragging;
+  
+  // Check if lead is MEGA tier for VIP Shine effect
+  const isMegaTier = scoreTier.tier === 'MEGA';
 
   return (
     <div
@@ -144,14 +147,16 @@ export const LeadCard = ({
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
         'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
+        // VIP Shine + Gold Glow for MEGA leads
+        isMegaTier && 'vip-shine vip-glow',
         // Golden background for MEGA leads (budget > 1M)
         isGoldenLead 
-          ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 border-2 border-amber-300/60 shadow-[0_0_20px_rgba(251,191,36,0.3)]' 
+          ? 'bg-gradient-to-br from-amber-50 via-yellow-50 to-amber-100 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-800/30 border-2 border-amber-400/70 dark:border-amber-500/50' 
           : 'bg-card border border-border',
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg',
         !showDragging && !isGoldenLead && 'hover:border-primary/30',
-        !showDragging && isGoldenLead && 'hover:shadow-[0_0_30px_rgba(251,191,36,0.4)]',
+        !showDragging && isGoldenLead && 'hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
         showDragging && 'shadow-xl opacity-95 z-50',
         isSelected && 'ring-2 ring-primary bg-primary/5',
@@ -159,10 +164,6 @@ export const LeadCard = ({
       )}
       onClick={handleCardClick}
     >
-      {/* Golden shimmer effect for MEGA leads */}
-      {isGoldenLead && (
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-amber-200/20 to-transparent animate-pulse pointer-events-none" />
-      )}
       {/* Score Tier Badge - Premium styling for MEGA */}
       {scoreTier.tier && (
         <div className={cn(
