@@ -425,6 +425,8 @@ export const AnalyticsPlatform = () => {
         <DataTable 
           dailyData={dailyData}
           onDataChange={handleDataChange}
+          planData={planData}
+          onPlanChange={handlePlanChange}
         />
       )}
 
