@@ -2439,6 +2439,13 @@ export type Database = {
             referencedRelation: "webhook_configs"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "webhook_logs_webhook_config_id_fkey"
+            columns: ["webhook_config_id"]
+            isOneToOne: false
+            referencedRelation: "webhook_configs_safe"
+            referencedColumns: ["id"]
+          },
         ]
       }
     }
@@ -2505,9 +2512,55 @@ export type Database = {
           },
         ]
       }
+      webhook_configs_safe: {
+        Row: {
+          created_at: string | null
+          field_mapping: Json | null
+          id: string | null
+          is_active: boolean | null
+          name: string | null
+          project_id: string | null
+          updated_at: string | null
+          webhook_token_masked: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          field_mapping?: Json | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          project_id?: string | null
+          updated_at?: string | null
+          webhook_token_masked?: never
+        }
+        Update: {
+          created_at?: string | null
+          field_mapping?: Json | null
+          id?: string | null
+          is_active?: boolean | null
+          name?: string | null
+          project_id?: string | null
+          updated_at?: string | null
+          webhook_token_masked?: never
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_configs_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       extract_json_path: { Args: { data: Json; path: string }; Returns: string }
+      get_webhook_token: { Args: { config_id: string }; Returns: string }
+      get_webhook_url: {
+        Args: { base_url?: string; config_id: string }
+        Returns: string
+      }
       has_permission: {
         Args: { _permission: string; _project_id: string; _user_id: string }
         Returns: boolean

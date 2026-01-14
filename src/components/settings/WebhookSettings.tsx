@@ -283,13 +283,13 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
               ✓ Рекомендуемый: HTTP-заголовок
             </div>
             <code className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
-              X-Webhook-Token: {config?.webhook_token}
+              X-Webhook-Token: [используйте токен из URL выше]
             </code>
           </div>
           <div className="p-3 bg-secondary rounded-lg">
             <div className="font-medium mb-1">Альтернативный: Bearer токен</div>
             <code className="text-xs bg-muted px-2 py-1 rounded">
-              Authorization: Bearer {config?.webhook_token}
+              Authorization: Bearer [токен из URL]
             </code>
           </div>
           <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
@@ -300,7 +300,7 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
               Токен в URL может попасть в логи. Используйте только если другие методы недоступны.
             </p>
             <code className="text-xs bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">
-              ?token={config?.webhook_token}
+              Используйте полный URL выше
             </code>
           </div>
         </div>
