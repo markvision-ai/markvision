@@ -14,11 +14,12 @@ import {
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MetaSyncButton } from '@/components/integrations/MetaSyncButton';
 import { GreenAPISettings } from '@/components/integrations/GreenAPISettings';
+import { TelegramSettings } from '@/components/integrations/TelegramSettings';
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -176,6 +177,10 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
     setStatuses(prev => ({ ...prev, greenapi: isActive ? 'active' : 'disconnected' }));
   };
 
+  const handleTelegramStatusChange = (isActive: boolean) => {
+    setStatuses(prev => ({ ...prev, telegram: isActive ? 'active' : 'disconnected' }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -211,6 +216,12 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
             <GreenAPISettings 
               projectId={projectId} 
               onStatusChange={handleGreenAPIStatusChange}
+            />
+
+            {/* Telegram Bot - Special Card */}
+            <TelegramSettings
+              projectId={projectId}
+              onStatusChange={handleTelegramStatusChange}
             />
             
             {/* Other integrations */}

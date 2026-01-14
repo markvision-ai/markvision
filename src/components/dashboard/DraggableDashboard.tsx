@@ -29,8 +29,8 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
       transition={{ duration: 0.2 }}
       className="relative group"
     >
-      {/* Arrow Controls - appear on hover */}
-      <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 z-20">
+      {/* Arrow Controls - hidden on mobile, appear on hover on desktop */}
+      <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex-col gap-1 z-20 hidden md:flex">
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -156,16 +156,16 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   const hiddenCount = widgets.filter(w => !w.visible).length;
 
   return (
-    <div className="space-y-6 pl-12">
+    <div className="space-y-4 md:space-y-6 md:pl-12">
       {/* Dashboard Settings Header */}
-      <div className="flex items-center justify-between -ml-12">
+      <div className="flex items-center justify-between md:-ml-12 flex-wrap gap-2">
         <div className="flex items-center gap-2">
           {hiddenCount > 0 && (
             <span className="text-xs text-muted-foreground">
               {hiddenCount} виджет(ов) скрыто
             </span>
           )}
-          <span className="text-xs text-muted-foreground hidden sm:inline">
+          <span className="text-xs text-muted-foreground hidden md:inline">
             💡 Наведите на виджет для управления порядком
           </span>
         </div>

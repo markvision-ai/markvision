@@ -74,16 +74,16 @@ interface SidebarProps {
   userProfile?: { name: string | null; email: string | null } | null;
 }
 
-// New 5-group structure
+// New 5-group structure with full Russian localization
 const menuGroups = [
   {
     id: 'dashboard-group',
-    label: 'ДАШБОРД',
+    label: 'ПАНЕЛЬ УПРАВЛЕНИЯ',
     icon: LayoutDashboard,
     items: [
-      { id: 'dashboard', label: 'Главный дашборд', icon: LayoutDashboard },
-      { id: 'realtime', label: 'Realtime', icon: Activity },
-      { id: 'table', label: 'Таблица данных', icon: CalendarDays },
+      { id: 'dashboard', label: 'Главная панель', icon: LayoutDashboard },
+      { id: 'realtime', label: 'Живая лента', icon: Activity },
+      { id: 'table', label: 'Таблица показателей', icon: CalendarDays },
     ]
   },
   {
@@ -91,9 +91,9 @@ const menuGroups = [
     label: 'МАРКЕТИНГ',
     icon: Megaphone,
     items: [
-      { id: 'quantom-ads', label: 'Quantum Ads', icon: Megaphone },
-      { id: 'ab-testing', label: 'A/B Тесты', icon: FlaskConical },
-      { id: 'factory', label: 'Content Factory', icon: Factory },
+      { id: 'quantom-ads', label: 'Управление рекламой', icon: Megaphone },
+      { id: 'ab-testing', label: 'A/B Оптимизатор', icon: FlaskConical },
+      { id: 'factory', label: 'Центр контента', icon: Factory },
     ]
   },
   {
@@ -101,12 +101,12 @@ const menuGroups = [
     label: 'ПРОДАЖИ',
     icon: ShoppingCart,
     items: [
-      { id: 'crm', label: 'CRM', icon: Kanban },
+      { id: 'crm', label: 'База пациентов', icon: Kanban },
       { id: 'calendar', label: 'Календарь', icon: CalendarDays },
       { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
-      { id: 'inbox', label: 'Inbox', icon: Inbox },
-      { id: 'scoring', label: 'Lead Scoring', icon: FlameKindling },
-      { id: 'gamification', label: 'Геймификация', icon: Trophy },
+      { id: 'inbox', label: 'Входящие', icon: Inbox },
+      { id: 'scoring', label: 'Рейтинг заявок', icon: FlameKindling },
+      { id: 'gamification', label: 'Мотивация', icon: Trophy },
     ]
   },
   {
@@ -115,22 +115,22 @@ const menuGroups = [
     icon: BarChart3,
     items: [
       { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: Zap },
-      { id: 'finance', label: 'Финансы (P&L)', icon: Wallet },
+      { id: 'finance', label: 'Финансы и прибыль', icon: Wallet },
       { id: 'reports', label: 'Отчёты', icon: FileSpreadsheet },
     ]
   },
   {
     id: 'infrastructure-group',
-    label: 'ИНФРАСТРУКТУРА',
+    label: 'НАСТРОЙКИ',
     icon: Settings,
     items: [
       { id: 'settings', label: 'Настройки', icon: Settings },
-      { id: 'integrations', label: 'Интеграции', icon: Plug },
-      { id: 'team', label: 'Команда', icon: Users },
+      { id: 'integrations', label: 'Подключения', icon: Plug },
+      { id: 'team', label: 'Сотрудники и доступ', icon: Users },
       { id: 'staff', label: 'Персонал', icon: UserCog },
       { id: 'knowledge', label: 'База знаний', icon: BookOpen },
       { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
-      { id: 'health', label: 'Здоровье системы', icon: Activity },
+      { id: 'health', label: 'Состояние системы', icon: Activity },
       { id: 'help', label: 'Помощь', icon: HelpCircle },
     ]
   },
