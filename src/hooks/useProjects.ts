@@ -6,8 +6,16 @@ import { logError } from '@/lib/validation';
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
-// Super admin user ID
+// Super admin user ID - полный доступ без ограничений
 const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+
+// Hardcoded fallback project for super admin
+const ADMIN_FALLBACK_PROJECT = {
+  id: '11111111-1111-1111-1111-111111111111',
+  name: 'MARKVISION ГЛОБАЛ (НОВЫЙ)',
+  telegram_chat_id: null,
+  onboarding_status: null,
+};
 
 interface Project {
   id: string;
@@ -23,6 +31,9 @@ export const useProjects = () => {
     return localStorage.getItem(LOCAL_STORAGE_KEY);
   });
   const [loading, setLoading] = useState(true);
+
+  // Super admin bypass check
+  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID || isSuperAdmin;
 
   // Save currentProjectId to localStorage
   useEffect(() => {
@@ -40,13 +51,13 @@ export const useProjects = () => {
 
     try {
       console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
-      console.log('👑 Admin:', isAdmin, 'Super Admin:', isSuperAdmin);
+      console.log('👑 Admin:', isAdmin, 'Super Admin:', isSuperAdminUser);
       
       let projectsData: Project[] = [];
 
-      // Super admin or admin - load all projects directly
-      if (isSuperAdmin || isAdmin || user.id === SUPER_ADMIN_UID) {
-        console.log('🔑 Admin mode - loading ALL projects');
+      // Super admin or admin - load all projects directly WITHOUT RLS filters
+      if (isSuperAdminUser || isAdmin) {
+        console.log('🔑 SUPER ADMIN mode - loading ALL projects');
         
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
@@ -57,22 +68,19 @@ export const useProjects = () => {
         
         if (allError) {
           console.error('Projects fetch error:', allError);
-          // Fallback: try to load via project_access
-          const { data: accessData } = await supabase
-            .from('project_access')
-            .select('project_id')
-            .eq('user_id', user.id);
-          
-          if (accessData && accessData.length > 0) {
-            const projectIds = accessData.map(a => a.project_id);
-            const { data } = await supabase
-              .from('projects')
-              .select('id, name, telegram_chat_id, onboarding_status')
-              .in('id', projectIds);
-            projectsData = data || [];
+          // For super admin - always show fallback
+          if (isSuperAdminUser) {
+            console.log('⚡ Super admin fallback activated');
+            projectsData = [ADMIN_FALLBACK_PROJECT];
           }
         } else {
           projectsData = allProjects || [];
+          
+          // Ensure admin fallback project is in the list
+          if (isSuperAdminUser && !projectsData.find(p => p.id === ADMIN_FALLBACK_PROJECT.id)) {
+            console.log('➕ Adding admin fallback project to list');
+            projectsData.unshift(ADMIN_FALLBACK_PROJECT);
+          }
         }
       } else {
         // Regular user - load via project_access
@@ -100,20 +108,29 @@ export const useProjects = () => {
 
       console.log('📋 Total projects:', projectsData.length, projectsData.map(p => p.name));
 
-      // If still no projects and we're admin, add the fallback project
-      if (projectsData.length === 0 && (isAdmin || isSuperAdmin || user.id === SUPER_ADMIN_UID)) {
-        console.log('⚠️ No projects found, using fallback project');
-        projectsData = [{
-          id: FALLBACK_PROJECT_ID,
-          name: 'Святой проект',
-          telegram_chat_id: null,
-          onboarding_status: null,
-        }];
+      // CRITICAL: If still no projects and we're super admin, ALWAYS add fallback
+      if (projectsData.length === 0) {
+        if (isSuperAdminUser) {
+          console.log('⚠️ Super admin has no projects - forcing fallback');
+          projectsData = [ADMIN_FALLBACK_PROJECT, {
+            id: FALLBACK_PROJECT_ID,
+            name: 'Святой проект',
+            telegram_chat_id: null,
+            onboarding_status: null,
+          }];
+        } else if (isAdmin) {
+          projectsData = [{
+            id: FALLBACK_PROJECT_ID,
+            name: 'Святой проект',
+            telegram_chat_id: null,
+            onboarding_status: null,
+          }];
+        }
       }
 
       setProjects(projectsData);
 
-      // Set active project
+      // CRITICAL: Set active project - auto-select first if none selected
       if (projectsData.length > 0) {
         const savedProjectId = localStorage.getItem(LOCAL_STORAGE_KEY);
         const savedProjectExists = savedProjectId && projectsData.some(p => p.id === savedProjectId);
@@ -122,20 +139,31 @@ export const useProjects = () => {
           setCurrentProjectId(savedProjectId);
           console.log('📌 Restored project from localStorage:', savedProjectId);
         } else {
-          // Use first available project or fallback
+          // CRITICAL FIX: Always auto-select first project
           const newProjectId = projectsData[0].id;
           setCurrentProjectId(newProjectId);
-          console.log('📌 Set active project:', newProjectId);
+          localStorage.setItem(LOCAL_STORAGE_KEY, newProjectId);
+          console.log('📌 AUTO-SELECTED first project:', projectsData[0].name, newProjectId);
         }
       } else {
-        setCurrentProjectId(null);
-        console.log('⚠️ No available projects');
+        // Even with no projects, super admin gets fallback
+        if (isSuperAdminUser) {
+          setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+          console.log('📌 Super admin fallback project activated');
+        } else {
+          setCurrentProjectId(null);
+          console.log('⚠️ No available projects');
+        }
       }
     } catch (error) {
       console.error('❌ Critical error loading projects:', error);
       
-      // Fallback for admin users
-      if (isAdmin || isSuperAdmin || user.id === SUPER_ADMIN_UID) {
+      // CRITICAL: Super admin always gets access
+      if (isSuperAdminUser) {
+        console.log('🛡️ Super admin error recovery - using fallback');
+        setProjects([ADMIN_FALLBACK_PROJECT]);
+        setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+      } else if (isAdmin) {
         setProjects([{
           id: FALLBACK_PROJECT_ID,
           name: 'Святой проект',
@@ -150,7 +178,7 @@ export const useProjects = () => {
     } finally {
       setLoading(false);
     }
-  }, [user, isAdmin, isSuperAdmin]);
+  }, [user, isAdmin, isSuperAdminUser]);
 
   useEffect(() => {
     fetchProjects();
