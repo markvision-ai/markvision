@@ -86,7 +86,11 @@ interface AppSidebarProps {
   onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
   userId?: string;
   systemHasErrors?: boolean;
+  onForceLoadProject?: () => void; // NEW: Force load for super admin
 }
+
+// Super admin UUID
+const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
 
 export const AppSidebar = ({ 
   activeTab, 
@@ -100,7 +104,9 @@ export const AppSidebar = ({
   onDeleteProject,
   userId,
   systemHasErrors = false,
+  onForceLoadProject,
 }: AppSidebarProps) => {
+  const isSuperAdmin = userId === SUPER_ADMIN_UID;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -295,14 +301,14 @@ export const AppSidebar = ({
             </AnimatePresence>
 
             {/* Project Selector */}
-            {projects.length > 0 && (
-              <motion.div
-                animate={{
-                  opacity: open ? 1 : 0,
-                  height: open ? "auto" : 0,
-                }}
-                className="px-2 mt-4 overflow-hidden"
-              >
+            <motion.div
+              animate={{
+                opacity: open ? 1 : 0,
+                height: open ? "auto" : 0,
+              }}
+              className="px-2 mt-4 overflow-hidden"
+            >
+              {projects.length > 0 ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-sidebar-muted hover:bg-sidebar-muted/80 border border-border/30 transition-colors text-left">
@@ -348,10 +354,46 @@ export const AppSidebar = ({
                       <IconPlus className="w-4 h-4 mr-2" />
                       Создать проект
                     </DropdownMenuItem>
+                    {/* Force load option for super admin */}
+                    {isSuperAdmin && onForceLoadProject && (
+                      <>
+                        <DropdownMenuSeparator className="bg-border" />
+                        <DropdownMenuItem 
+                          onClick={onForceLoadProject}
+                          className="text-yellow-500 hover:text-yellow-400"
+                        >
+                          <IconActivity className="w-4 h-4 mr-2" />
+                          Force Reload Projects
+                        </DropdownMenuItem>
+                      </>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
-              </motion.div>
-            )}
+              ) : (
+                /* Empty state - show force load button for super admin */
+                <div className="space-y-2">
+                  <div className="text-center text-sm text-sidebar-foreground/50 py-2">
+                    Нет проектов
+                  </div>
+                  {isSuperAdmin && onForceLoadProject && (
+                    <button
+                      onClick={onForceLoadProject}
+                      className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 font-bold transition-colors"
+                    >
+                      <IconActivity className="w-4 h-4" />
+                      FORCE LOAD PROJECT
+                    </button>
+                  )}
+                  <button
+                    onClick={() => setIsCreateDialogOpen(true)}
+                    className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-primary/20 hover:bg-primary/30 text-primary transition-colors"
+                  >
+                    <IconPlus className="w-4 h-4" />
+                    Создать проект
+                  </button>
+                </div>
+              )}
+            </motion.div>
 
             {/* Realtime Indicator */}
             <div className="flex items-center gap-2 px-3 mt-4">
