@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { BeamVisualization } from "./BeamVisualization";
 import { HoverEffect } from "@/components/ui/card-hover-effect";
+import { AuroraText } from "@/components/ui/aurora-text";
 import { 
   ArrowRight, 
   Play, 
@@ -222,7 +223,9 @@ export const LandingPage = () => {
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/25">
               <span className="text-white font-bold text-xl">M</span>
             </div>
-            <span className="font-semibold text-xl text-slate-900 hidden sm:block tracking-tight">MarkVision</span>
+            <span className="font-semibold text-xl text-slate-900 hidden sm:block tracking-tight">
+              <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
+            </span>
           </div>
           
           {/* Desktop Nav */}
@@ -343,9 +346,9 @@ export const LandingPage = () => {
           >
             Хватит терять
             <br />
-            <span className="bg-gradient-to-r from-blue-600 via-indigo-600 to-violet-600 bg-clip-text text-transparent">
+            <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
               пациентов
-            </span>
+            </AuroraText>
           </motion.h1>
 
           {/* Subheadline */}
