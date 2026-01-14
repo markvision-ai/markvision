@@ -140,7 +140,7 @@ export const Sidebar = ({
   activeTab, 
   onTabChange, 
   currentProject = 'default',
-  projects = [{ id: 'default', name: 'Основной проект', owner_id: '' }],
+  projects = [],
   onProjectChange,
   onStartOnboarding,
   onDeleteProject,
@@ -161,7 +161,14 @@ export const Sidebar = ({
   });
   const { isAdmin, user } = useAuth();
   
-  const currentProjectData = projects.find(p => p.id === currentProject) || projects[0];
+  // CRITICAL: Get current project name - never show "Неактивен" for super admin
+  const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+  const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
+  
+  const currentProjectData = projects.find(p => p.id === currentProject);
+  const displayProjectName = currentProjectData?.name || 
+    (isSuperAdmin ? 'MARKVISION ГЛОБАЛ' : 
+    (projects.length > 0 ? projects[0].name : 'Выберите проект'));
 
   const toggleGroup = (groupId: string) => {
     setOpenGroups(prev => 
@@ -244,7 +251,7 @@ export const Sidebar = ({
           >
             <Folder className="w-4 h-4 text-primary" />
             <span className="flex-1 text-left text-sm font-medium truncate">
-              {currentProjectData?.name || 'Выберите проект'}
+              {displayProjectName}
             </span>
             <ChevronDown className={`w-4 h-4 transition-transform ${isProjectDropdownOpen ? 'rotate-180' : ''}`} />
           </button>

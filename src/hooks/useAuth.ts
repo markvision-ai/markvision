@@ -87,6 +87,9 @@ export const useAuth = () => {
   }, []);
 
   const fetchProfile = async (userId: string) => {
+    // CRITICAL: Super admin bypass - never block
+    const isSuperAdminUser = userId === SUPER_ADMIN_UID;
+    
     try {
       // Try to get profile by user_id
       const { data, error } = await supabase
@@ -97,6 +100,21 @@ export const useAuth = () => {
 
       if (error) {
         console.warn('Profile fetch error:', error.message);
+        // For super admin - create fallback profile, never block
+        if (isSuperAdminUser) {
+          setAuthState(prev => ({
+            ...prev,
+            profile: {
+              id: userId,
+              name: 'Super Admin',
+              email: 'zapoinov@bk.ru',
+            },
+            isAdmin: true,
+            isSuperAdmin: true,
+          }));
+          return;
+        }
+        
         // Create fallback profile from auth user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -113,10 +131,24 @@ export const useAuth = () => {
       }
 
       if (data) {
-        setAuthState(prev => ({
-          ...prev,
-          profile: data,
-        }));
+        // CRITICAL: Super admin is NEVER inactive, regardless of DB status
+        if (isSuperAdminUser) {
+          setAuthState(prev => ({
+            ...prev,
+            profile: {
+              ...data,
+              // Override any inactive status for super admin
+            },
+            isAdmin: true,
+            isSuperAdmin: true,
+          }));
+          console.log('👑 Super admin profile loaded - full access granted');
+        } else {
+          setAuthState(prev => ({
+            ...prev,
+            profile: data,
+          }));
+        }
       } else {
         // No profile found - use auth data
         const { data: { user } } = await supabase.auth.getUser();
@@ -128,11 +160,28 @@ export const useAuth = () => {
               name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
               email: user.email || null,
             },
+            // Super admin always gets access
+            isAdmin: isSuperAdminUser ? true : prev.isAdmin,
+            isSuperAdmin: isSuperAdminUser,
           }));
         }
       }
     } catch (error: any) {
       console.error('Error fetching profile:', error);
+      
+      // CRITICAL: Super admin never fails
+      if (isSuperAdminUser) {
+        setAuthState(prev => ({
+          ...prev,
+          profile: {
+            id: userId,
+            name: 'Super Admin',
+            email: 'zapoinov@bk.ru',
+          },
+          isAdmin: true,
+          isSuperAdmin: true,
+        }));
+      }
     }
   };
 
