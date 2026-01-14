@@ -255,28 +255,30 @@ export const AnalyticsPlatform = () => {
 
   const getTabTitle = () => {
     switch (activeTab) {
-      case 'dashboard': return '🏠 Дашборд';
-      case 'table': return '📅 Таблица данных';
-      case 'quantom-ads': return '🚀 Quantum Ads';
-      case 'crm': return '🤝 CRM';
-      case 'factory': return '🎬 Content Factory';
+      case 'dashboard': return '🏠 Главная панель';
+      case 'table': return '📊 Таблица показателей';
+      case 'quantom-ads': return '🚀 Управление рекламой';
+      case 'crm': return '🤝 База пациентов';
+      case 'factory': return '🎬 Центр контента';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
-      case 'reports': return 'Отчёты';
-      case 'team': return 'Команда';
-      case 'integrations': return 'Интеграции';
-      case 'audit': return 'Аудит';
-      case 'settings': return 'Настройки';
+      case 'reports': return '📄 Отчёты';
+      case 'team': return '👥 Сотрудники и доступ';
+      case 'integrations': return '🔌 Подключения';
+      case 'audit': return '🔒 Аудит';
+      case 'settings': return '⚙️ Настройки';
       case 'staff': return '👥 Персонал';
-      case 'inbox': return '📬 Inbox';
-      case 'finance': return '💰 Финансы';
-      case 'scoring': return '🔥 Lead Scoring';
-      case 'gamification': return '🏆 Геймификация';
-      case 'ab-testing': return '🧪 A/B Тесты';
+      case 'inbox': return '📬 Входящие';
+      case 'finance': return '💰 Финансы и прибыль';
+      case 'scoring': return '🔥 Рейтинг заявок';
+      case 'gamification': return '🏆 Мотивация';
+      case 'ab-testing': return '🧪 A/B Оптимизатор';
       case 'knowledge': return '📚 База знаний';
-      case 'health': return '🩺 Здоровье системы';
+      case 'health': return '🩺 Состояние системы';
+      case 'realtime': return '⚡ Живая лента';
       case 'onboarding': return '🧭 Онбординг';
       case 'diagnostics': return '📋 Диагностика';
       case 'calendar': return '📅 Календарь';
+      case 'automation': return '🤖 Автоматизация';
       default: return 'Раздел в разработке';
     }
   };
@@ -299,7 +301,7 @@ export const AnalyticsPlatform = () => {
             <div className="space-y-6">
               {/* Main Metrics with Plan/Fact */}
               {renderWidget('metrics', (
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                   <PlanFactCard
                     label="Расходы"
                     value={formatCurrency(totals.spend)}
@@ -353,7 +355,7 @@ export const AnalyticsPlatform = () => {
 
               {/* Computed Metrics */}
               {renderWidget('computed', (
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                   <MetricCard
                     label="Средний чек (AOV)"
                     value={formatCurrency(aov)}
@@ -390,7 +392,7 @@ export const AnalyticsPlatform = () => {
 
               {/* Charts Row */}
               {renderWidget('charts', (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                   <RevenueChart data={dailyData} daysInMonth={daysInRange} />
                   <ConversionStats steps={funnelSteps} />
                   <AIAssistant 

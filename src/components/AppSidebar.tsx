@@ -153,19 +153,19 @@ export const AppSidebar = ({
   const links = {
     dashboard: [
       {
-        label: "Главный дашборд",
+        label: "Главная панель",
         href: "/dashboard",
         icon: <IconBrandTabler className="h-5 w-5 flex-shrink-0" />,
         tab: "dashboard",
       },
       {
-        label: "Realtime",
+        label: "Живая лента",
         href: "/realtime",
         icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
         tab: "realtime",
       },
       {
-        label: "📅 Таблица данных",
+        label: "Таблица показателей",
         href: "/table",
         icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
         tab: "table",
@@ -173,19 +173,19 @@ export const AppSidebar = ({
     ],
     marketing: [
       {
-        label: "Quantum Ads",
+        label: "Управление рекламой",
         href: "/quantum-ads",
         icon: <IconAd2 className="h-5 w-5 flex-shrink-0" />,
         tab: "quantom-ads",
       },
       {
-        label: "A/B Optimizer",
+        label: "A/B Оптимизатор",
         href: "/ab-tests",
         icon: <IconFlask className="h-5 w-5 flex-shrink-0" />,
         tab: "ab-testing",
       },
       {
-        label: "Content Factory",
+        label: "Центр контента",
         href: "/content-factory",
         icon: <IconVideo className="h-5 w-5 flex-shrink-0" />,
         tab: "factory",
@@ -193,7 +193,7 @@ export const AppSidebar = ({
     ],
     sales: [
       {
-        label: "CRM (Канбан)",
+        label: "База пациентов",
         href: "/crm",
         icon: <IconUsers className="h-5 w-5 flex-shrink-0" />,
         tab: "crm",
@@ -205,19 +205,19 @@ export const AppSidebar = ({
         tab: "diagnostics",
       },
       {
-        label: "Inbox",
+        label: "Входящие",
         href: "/inbox",
         icon: <IconInbox className="h-5 w-5 flex-shrink-0" />,
         tab: "inbox",
       },
       {
-        label: "Lead Scoring",
+        label: "Рейтинг заявок",
         href: "/scoring",
         icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
         tab: "scoring",
       },
       {
-        label: "Геймификация",
+        label: "Мотивация",
         href: "/gamification",
         icon: <IconTrophy className="h-5 w-5 flex-shrink-0" />,
         tab: "gamification",
@@ -237,7 +237,7 @@ export const AppSidebar = ({
         tab: "e2e-analytics",
       },
       {
-        label: "Финансы (P&L)",
+        label: "Финансы и прибыль",
         href: "/finance",
         icon: <IconWallet className="h-5 w-5 flex-shrink-0" />,
         tab: "finance",
@@ -257,7 +257,19 @@ export const AppSidebar = ({
         tab: "settings",
       },
       {
-        label: "📅 Календарь",
+        label: "Подключения",
+        href: "/integrations",
+        icon: <IconPlugConnected className="h-5 w-5 flex-shrink-0" />,
+        tab: "integrations",
+      },
+      {
+        label: "Сотрудники и доступ",
+        href: "/team",
+        icon: <IconUsersGroup className="h-5 w-5 flex-shrink-0" />,
+        tab: "team",
+      },
+      {
+        label: "Календарь",
         href: "/calendar",
         icon: <IconCalendar className="h-5 w-5 flex-shrink-0" />,
         tab: "calendar",
