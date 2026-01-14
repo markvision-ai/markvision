@@ -188,6 +188,94 @@ export type Database = {
           },
         ]
       }
+      ai_rop_audits: {
+        Row: {
+          audit_date: string
+          bot_stats: Json | null
+          created_at: string
+          critical_errors: Json | null
+          growth_points: Json | null
+          id: string
+          overall_score: number
+          project_id: string
+          summary: string | null
+        }
+        Insert: {
+          audit_date?: string
+          bot_stats?: Json | null
+          created_at?: string
+          critical_errors?: Json | null
+          growth_points?: Json | null
+          id?: string
+          overall_score?: number
+          project_id: string
+          summary?: string | null
+        }
+        Update: {
+          audit_date?: string
+          bot_stats?: Json | null
+          created_at?: string
+          critical_errors?: Json | null
+          growth_points?: Json | null
+          id?: string
+          overall_score?: number
+          project_id?: string
+          summary?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_rop_audits_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_rop_tasks: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          error_message: string | null
+          id: string
+          project_id: string
+          result: string | null
+          status: string
+          task_text: string
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          project_id: string
+          result?: string | null
+          status?: string
+          task_text: string
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          error_message?: string | null
+          id?: string
+          project_id?: string
+          result?: string | null
+          status?: string
+          task_text?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_rop_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       attribution_results: {
         Row: {
           assisted_conversions: number | null

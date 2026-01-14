@@ -59,6 +59,7 @@ const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').the
 const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ default: m.CalendarPage })));
 const DiagnosticsPage = lazy(() => import('./diagnostics/DiagnosticsPage').then(m => ({ default: m.DiagnosticsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
+const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -570,6 +571,12 @@ export const AnalyticsPlatform = () => {
       {activeTab === 'calendar' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <CalendarPage projectId={currentProjectId} />
+        </Suspense>
+      )}
+
+      {activeTab === 'rop' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AIRopPage projectId={currentProjectId} />
         </Suspense>
       )}
 
