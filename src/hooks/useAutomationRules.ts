@@ -81,7 +81,7 @@ export function useAutomationRules(projectId: string | null) {
       setRules((data || []).map(mapDbToRule));
     } catch (error) {
       console.error('Error fetching automation rules:', error);
-      toast.error('Ошибка загрузки правил автоматизации');
+      // Silently fail - rules table may not exist or be empty
     } finally {
       setLoading(false);
     }

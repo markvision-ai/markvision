@@ -1,8 +1,5 @@
-import { useState } from 'react';
-import { ChevronUp, ChevronDown, Settings2, RotateCcw, Eye } from 'lucide-react';
+import { ChevronUp, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from '@/components/ui/sheet';
-import { Switch } from '@/components/ui/switch';
 import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidgets';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -29,8 +26,8 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
       transition={{ duration: 0.2 }}
       className="relative group"
     >
-      {/* Arrow Controls - hidden on mobile, appear on hover on desktop */}
-      <div className="absolute -left-12 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex-col gap-1 z-20 hidden md:flex">
+      {/* Arrow Controls - appear on right side on hover */}
+      <div className="absolute -right-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex-col gap-1 z-20 hidden md:flex">
         <TooltipProvider delayDuration={0}>
           <Tooltip>
             <TooltipTrigger asChild>
@@ -81,56 +78,12 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
   );
 };
 
-interface WidgetSettingsItemProps {
-  widget: DashboardWidget;
-  onToggle: (id: string) => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  isFirst: boolean;
-  isLast: boolean;
-}
-
-const WidgetSettingsItem = ({ widget, onToggle, onMoveUp, onMoveDown, isFirst, isLast }: WidgetSettingsItemProps) => {
-  return (
-    <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border">
-      <div className="flex items-center gap-3">
-        <div className="flex flex-col gap-0.5">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5"
-            onClick={onMoveUp}
-            disabled={isFirst}
-          >
-            <ChevronUp className="h-3 w-3" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-5 w-5"
-            onClick={onMoveDown}
-            disabled={isLast}
-          >
-            <ChevronDown className="h-3 w-3" />
-          </Button>
-        </div>
-        <span className="text-sm font-medium">{widget.title}</span>
-      </div>
-      <Switch
-        checked={widget.visible}
-        onCheckedChange={() => onToggle(widget.id)}
-      />
-    </div>
-  );
-};
-
 interface DraggableDashboardProps {
   children: (renderWidget: (widgetId: string, content: React.ReactNode) => React.ReactNode) => React.ReactNode;
 }
 
 export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
-  const { widgets, moveUp, moveDown, toggleWidget, resetWidgets, getVisiblePosition } = useDashboardWidgets();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { widgets, moveUp, moveDown, getVisiblePosition } = useDashboardWidgets();
 
   const renderWidget = (widgetId: string, content: React.ReactNode) => {
     const widget = widgets.find(w => w.id === widgetId);
@@ -152,70 +105,22 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
     );
   };
 
-  const visibleWidgets = widgets.filter(w => w.visible);
   const hiddenCount = widgets.filter(w => !w.visible).length;
 
   return (
-    <div className="space-y-4 md:space-y-6 md:pl-12">
-      {/* Dashboard Settings Header */}
-      <div className="flex items-center justify-between md:-ml-12 flex-wrap gap-2">
+    <div className="space-y-4 md:space-y-6 md:pr-12">
+      {/* Dashboard Info Header */}
+      {hiddenCount > 0 && (
         <div className="flex items-center gap-2">
-          {hiddenCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {hiddenCount} виджет(ов) скрыто
-            </span>
-          )}
-          <span className="text-xs text-muted-foreground hidden md:inline">
-            💡 Наведите на виджет для управления порядком
+          <span className="text-xs text-muted-foreground">
+            {hiddenCount} виджет(ов) скрыто
           </span>
         </div>
-        
-        <div className="flex items-center gap-2">
-          <Sheet open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
-            <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2 hover:border-primary">
-                <Settings2 className="w-4 h-4" />
-                <span className="hidden sm:inline">Настроить виджеты</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>Настройка виджетов дашборда</SheetTitle>
-                <SheetDescription>
-                  Используйте стрелки для изменения порядка и переключатели для видимости
-                </SheetDescription>
-              </SheetHeader>
-              <div className="mt-6 space-y-4">
-                <div className="space-y-2">
-                  {widgets.map((widget, index) => (
-                    <WidgetSettingsItem
-                      key={widget.id}
-                      widget={widget}
-                      onToggle={toggleWidget}
-                      onMoveUp={() => moveUp(widget.id)}
-                      onMoveDown={() => moveDown(widget.id)}
-                      isFirst={index === 0}
-                      isLast={index === widgets.length - 1}
-                    />
-                  ))}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    resetWidgets();
-                    setIsSettingsOpen(false);
-                  }}
-                  className="w-full gap-2 mt-4"
-                >
-                  <RotateCcw className="w-4 h-4" />
-                  Сбросить порядок
-                </Button>
-              </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-      </div>
+      )}
+      
+      <span className="text-xs text-muted-foreground hidden md:block">
+        💡 Наведите на виджет для управления порядком (стрелки справа)
+      </span>
 
       {/* Widgets Container */}
       <AnimatePresence mode="popLayout">

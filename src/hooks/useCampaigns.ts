@@ -73,7 +73,7 @@ export function useCampaigns(projectId: string | null) {
       })));
     } catch (error) {
       console.error('Error fetching campaigns:', error);
-      toast.error('Ошибка загрузки кампаний');
+      // Silently fail - table may not exist in external DB
     } finally {
       setLoading(false);
     }

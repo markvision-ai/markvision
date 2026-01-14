@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, Eye, Plus, Sparkles, Instagram, Workflow } from 'lucide-react';
+import { Factory, Eye, Plus, Sparkles, Instagram, Kanban } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useContentFactory } from '@/hooks/useContentFactory';
-import { WorkshopPipeline } from './WorkshopPipeline';
+import { ContentKanban } from './ContentKanban';
 import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
 import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
 import { InstagramStats } from '@/components/integrations/InstagramStats';
@@ -50,7 +50,6 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
           filter: `project_id=eq.${projectId}`,
         },
         (payload) => {
-          // Content will automatically update via the hook's subscription
           console.log('Content updated:', payload.new);
         }
       )
@@ -110,7 +109,7 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
               </Badge>
             </div>
             <p className="text-sm text-muted-foreground">
-              6 цехов производства • {content.length} в работе
+              Канбан-производство • {content.length} в работе
             </p>
           </div>
         </div>
@@ -125,7 +124,7 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="pipeline" className="gap-2">
-            <Workflow className="w-4 h-4" />
+            <Kanban className="w-4 h-4" />
             Пайплайн
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="gap-2">
@@ -138,9 +137,9 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
           </TabsTrigger>
         </TabsList>
 
-        {/* Pipeline Tab - 6 Workshops */}
+        {/* Pipeline Tab - Kanban Board */}
         <TabsContent value="pipeline" className="space-y-4">
-          <WorkshopPipeline
+          <ContentKanban
             content={content}
             projectId={projectId}
             onUpdate={updateContent}
