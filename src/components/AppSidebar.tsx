@@ -30,6 +30,7 @@ import {
   IconReport,
   IconPlugConnected,
   IconUserCircle,
+  IconShieldCheck,
   IconBook,
   IconShield,
   IconHeartbeat,
@@ -247,6 +248,12 @@ export const AppSidebar = ({
         href: "/reports",
         icon: <IconReport className="h-5 w-5 flex-shrink-0" />,
         tab: "reports",
+      },
+      {
+        label: "ИИ-РОП",
+        href: "/rop",
+        icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
+        tab: "rop",
       },
     ],
     infrastructure: [

@@ -68,6 +68,7 @@ const App = () => (
         <Route path="/onboarding" element={<Index />} />
         <Route path="/calendar" element={<Index />} />
         <Route path="/automation" element={<Index />} />
+        <Route path="/rop" element={<Index />} />
       </Routes>
     </BrowserRouter>
     <Toaster position="top-right" richColors closeButton />
