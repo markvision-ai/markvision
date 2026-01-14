@@ -42,9 +42,9 @@ interface KnowledgeBaseTabProps {
 const categories = [
   { id: 'all', label: 'Все', icon: Folder },
   { id: 'scripts', label: 'Скрипты', icon: FileText },
-  { id: 'products', label: 'Продукты', icon: BookOpen },
+  { id: 'products', label: 'Услуги', icon: BookOpen },
   { id: 'faq', label: 'FAQ', icon: BookOpen },
-  { id: 'training', label: 'Обучение', icon: Brain },
+  { id: 'procedures', label: 'Процедуры', icon: Brain },
 ];
 
 export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
@@ -334,9 +334,9 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                 onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value })}
               >
                 <option value="scripts">Скрипты</option>
-                <option value="products">Продукты</option>
+                <option value="products">Услуги</option>
                 <option value="faq">FAQ</option>
-                <option value="training">Обучение</option>
+                <option value="procedures">Процедуры</option>
               </select>
             </div>
             <div className="space-y-2">

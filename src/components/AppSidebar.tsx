@@ -305,14 +305,14 @@ export const AppSidebar = ({
               >
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-sidebar-muted hover:bg-sidebar-muted/80 border border-border transition-colors text-left">
+                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-sidebar-muted hover:bg-sidebar-muted/80 border border-border/30 transition-colors text-left">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
-                        <span className="text-sm text-white truncate">
+                        <span className="text-sm text-sidebar-foreground truncate">
                           {currentProject?.name || "Выберите проект"}
                         </span>
                       </div>
-                      <IconChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                      <IconChevronDown className="w-4 h-4 text-sidebar-foreground/60 flex-shrink-0" />
                     </button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="start" className="w-64 bg-card border-border">
@@ -365,10 +365,10 @@ export const AppSidebar = ({
                   display: open ? "inline-block" : "none",
                   opacity: open ? 1 : 0,
                 }}
-                className="text-xs text-neutral-500"
+                className="text-xs text-sidebar-foreground/50"
               >
-                {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 
-                 realtimeStatus === 'CONNECTING' ? 'Connecting...' : 'Offline'}
+                {realtimeStatus === 'SUBSCRIBED' ? 'Подключено' : 
+                 realtimeStatus === 'CONNECTING' ? 'Подключение...' : 'Офлайн'}
               </motion.span>
             </div>
 
@@ -538,7 +538,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
-        <span className="text-[10px] text-neutral-500 font-normal">
+        <span className="text-[10px] text-sidebar-foreground/50 font-normal">
           Умный маркетинг
         </span>
       </div>
