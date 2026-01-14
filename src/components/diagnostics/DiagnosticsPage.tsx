@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { HoverEffect } from '@/components/ui/card-hover-effect';
-import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2 } from 'lucide-react';
+import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2, CheckCircle, XCircle, Calendar, DollarSign } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -37,23 +38,63 @@ const diagnosticTypes = [
   },
 ];
 
+const getStatusConfig = (status: string | null) => {
+  switch (status) {
+    case 'paid':
+      return { label: 'Оплачено', icon: <DollarSign className="w-4 h-4" />, className: 'bg-green-500/20 text-green-500' };
+    case 'cancelled':
+      return { label: 'Отказ', icon: <XCircle className="w-4 h-4" />, className: 'bg-red-500/20 text-red-500' };
+    case 'appointment':
+      return { label: 'Записан на диагностику', icon: <Calendar className="w-4 h-4" />, className: 'bg-blue-500/20 text-blue-500' };
+    case 'diagnostics_completed':
+      return { label: 'Диагностика пройдена', icon: <CheckCircle className="w-4 h-4" />, className: 'bg-purple-500/20 text-purple-500' };
+    default:
+      return { label: 'В обработке', icon: <ClipboardCheck className="w-4 h-4" />, className: 'bg-yellow-500/20 text-yellow-500' };
+  }
+};
+
 export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   
-  const { data: leads, isLoading } = useQuery({
-    queryKey: ['diagnostics-leads', projectId],
+  const { data: diagnosticResults, isLoading } = useQuery({
+    queryKey: ['diagnostic-results', projectId],
     queryFn: async () => {
       if (!projectId) return [];
-      const { data, error } = await supabase
-        .from('leads')
-        .select('*')
+      
+      // First try to get from diagnostic_results table
+      const { data: diagResults, error: diagError } = await supabase
+        .from('diagnostic_results')
+        .select(`
+          *,
+          lead:leads(id, name, phone, status, deal_amount)
+        `)
         .eq('project_id', projectId)
-        .not('extra_data', 'is', null)
         .order('created_at', { ascending: false })
         .limit(50);
       
-      if (error) throw error;
-      return data || [];
+      if (!diagError && diagResults && diagResults.length > 0) {
+        return diagResults;
+      }
+      
+      // Fallback to leads with diagnostic-related statuses
+      const { data: leads, error: leadsError } = await supabase
+        .from('leads')
+        .select('*')
+        .eq('project_id', projectId)
+        .in('status', ['appointment', 'diagnostics_completed', 'paid', 'cancelled'])
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (leadsError) throw leadsError;
+      return (leads || []).map(lead => ({
+        id: lead.id,
+        lead_id: lead.id,
+        lead: lead,
+        diagnostic_type: 'Диагностика',
+        result: lead.status,
+        completed_at: lead.updated_at,
+        created_at: lead.created_at,
+      }));
     },
     enabled: !!projectId,
   });
@@ -70,11 +111,6 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
       </div>
     );
   }
-
-  const diagnosticLeads = leads?.filter(lead => {
-    const extra = lead.extra_data as Record<string, unknown> | null;
-    return extra && (extra.diagnostic_type || extra.questionnaire_type);
-  }) || [];
 
   return (
     <div className="space-y-8">
@@ -97,14 +133,14 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
       <div className="bg-card border border-border/50 rounded-2xl p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты диагностик</h3>
         
-        {diagnosticLeads.length === 0 ? (
+        {!diagnosticResults || diagnosticResults.length === 0 ? (
           <div className="bg-muted/30 rounded-xl p-12 text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <ClipboardCheck className="w-8 h-8 text-primary" />
             </div>
-            <h4 className="text-foreground font-medium mb-2">Нет заполненных анкет</h4>
+            <h4 className="text-foreground font-medium mb-2">Нет результатов диагностик</h4>
             <p className="text-muted-foreground text-sm">
-              Данные диагностик появятся здесь после заполнения клиентами анкет
+              Данные появятся здесь после прохождения диагностик клиентами
             </p>
           </div>
         ) : (
@@ -115,25 +151,34 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Клиент</th>
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Тип</th>
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Дата</th>
+                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Сумма</th>
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Статус</th>
                 </tr>
               </thead>
               <tbody>
-                {diagnosticLeads.map((lead) => {
-                  const extra = lead.extra_data as Record<string, unknown> | null;
+                {diagnosticResults.map((result: any) => {
+                  const lead = result.lead || result;
+                  const statusConfig = getStatusConfig(lead.status);
+                  
                   return (
-                    <tr key={lead.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-4 text-foreground">{lead.name || lead.phone || 'Без имени'}</td>
-                      <td className="py-3 px-4 text-muted-foreground">
-                        {String(extra?.diagnostic_type || extra?.questionnaire_type || 'Анкета')}
+                    <tr key={result.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 text-foreground font-medium">
+                        {lead.name || lead.phone || 'Без имени'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
-                        {new Date(lead.created_at).toLocaleDateString('ru-RU')}
+                        {result.diagnostic_type || 'Диагностика'}
+                      </td>
+                      <td className="py-3 px-4 text-muted-foreground">
+                        {new Date(result.created_at || lead.created_at).toLocaleDateString('ru-RU')}
+                      </td>
+                      <td className="py-3 px-4 text-foreground">
+                        {lead.deal_amount ? `${Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸` : '—'}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-500">
-                          Заполнено
-                        </span>
+                        <Badge className={`gap-1 ${statusConfig.className}`}>
+                          {statusConfig.icon}
+                          {statusConfig.label}
+                        </Badge>
                       </td>
                     </tr>
                   );
