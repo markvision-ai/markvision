@@ -11,34 +11,35 @@ import { HoverEffect } from "@/components/ui/card-hover-effect";
 import { Footer } from "./Footer";
 import { AuroraText } from "@/components/ui/aurora-text";
 import { ArrowRight, Play, Menu, X, Building2, Mail, Lock, Gift, Eye, EyeOff, CheckCircle2, Loader2, Sparkles, Video, Bot, BarChart3, Wallet, UserCheck, FileText, Shield, MessageCircle } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
 import { z } from "zod";
 import founderWithMark from "@/assets/founder-with-mark.png";
 import markvisionLogo from "@/assets/markvision-logo.png";
+
 const modules = [{
-  title: "Контент-Завод",
-  description: "200+ публикаций в месяц. ИИ берёт на себя всё: от идей до монтажа. Доминируйте в соцсетях без SMM-штата.",
+  title: "Контент за вас",
+  description: "200+ постов и видео в месяц. Мы сами придумываем, снимаем и публикуем. Вам не нужен SMM-специалист.",
   icon: <Video className="w-6 h-6" />
 }, {
-  title: "Воронка 24/7",
-  description: "ИИ-ассистент, который сам консультирует, обрабатывает возражения и записывает на приём круглосуточно.",
+  title: "Запись 24/7",
+  description: "Бот отвечает пациентам в любое время: консультирует, отвечает на вопросы и записывает на приём.",
   icon: <Bot className="w-6 h-6" />
 }, {
-  title: "Сквозная аналитика",
-  description: "Прозрачный путь от показа Reels до чека в кассе. Контроль ROI каждого тенге в реальном времени.",
+  title: "Понятная аналитика",
+  description: "Видите откуда пришёл каждый пациент и сколько принёс денег. Всё просто и наглядно.",
   icon: <BarChart3 className="w-6 h-6" />
 }, {
-  title: "Умная CRM",
-  description: "PnL-отчёты и учёт каждой копейки в вашем телефоне. Больше никаких Excel-таблиц.",
+  title: "Учёт финансов",
+  description: "Все доходы и расходы в одном месте. Прямо в телефоне. Никаких таблиц Excel.",
   icon: <Wallet className="w-6 h-6" />
 }, {
-  title: "ИИ-РОП",
-  description: "Автоматический контроль работы персонала. Анализ переписок, звонков и постановка задач 24/7.",
+  title: "Контроль команды",
+  description: "Система следит за работой администраторов: кто как отвечает, кто записал больше пациентов.",
   icon: <UserCheck className="w-6 h-6" />
 }, {
-  title: "Авто-Отчёты",
-  description: "Глубокая аналитика за 1 секунду. Ежедневные разборы показателей и прогнозы роста от ИИ.",
+  title: "Отчёты каждый день",
+  description: "Каждое утро получаете отчёт: сколько записей, сколько денег, что улучшить.",
   icon: <FileText className="w-6 h-6" />
 }];
 
@@ -49,6 +50,7 @@ const signupSchema = z.object({
   password: z.string().min(6, 'Пароль должен быть минимум 6 символов'),
   promoCode: z.string().optional()
 });
+
 export const LandingPage = () => {
   const navigate = useNavigate();
   const [videoWatched, setVideoWatched] = useState(false);
@@ -69,6 +71,7 @@ export const LandingPage = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [promoValid, setPromoValid] = useState<boolean | null>(null);
+
   const scrollToSection = (id: string) => {
     document.getElementById(id)?.scrollIntoView({
       behavior: "smooth"
@@ -106,6 +109,7 @@ export const LandingPage = () => {
       setPromoValid(null);
     }
   }, [formData.promoCode]);
+
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({
       ...prev,
@@ -118,6 +122,7 @@ export const LandingPage = () => {
       }));
     }
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
@@ -134,10 +139,7 @@ export const LandingPage = () => {
     }
     setLoading(true);
     try {
-      const {
-        data: signUpData,
-        error: signUpError
-      } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
@@ -157,10 +159,7 @@ export const LandingPage = () => {
         return;
       }
       if (signUpData.session && signUpData.user) {
-        const {
-          data: projectData,
-          error: projectError
-        } = await supabase.from('projects').insert({
+        const { data: projectData, error: projectError } = await supabase.from('projects').insert({
           name: formData.clinicName,
           owner_id: signUpData.user.id
         }).select().single();
@@ -183,7 +182,9 @@ export const LandingPage = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen bg-white overflow-x-hidden font-['Inter',sans-serif]">
+
+  return (
+    <div className="min-h-screen bg-white overflow-x-hidden font-['Inter',sans-serif]">
       {/* Premium Sticky Navbar */}
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-2xl border-b border-slate-100/50">
         <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5 flex items-center justify-between">
@@ -200,7 +201,7 @@ export const LandingPage = () => {
               О проекте
             </button>
             <button onClick={() => scrollToSection("modules")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
-              Модули
+              Возможности
             </button>
             <button onClick={() => scrollToSection("guarantee")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
               Гарантия
@@ -223,18 +224,17 @@ export const LandingPage = () => {
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && <motion.div initial={{
-        opacity: 0,
-        y: -10
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="md:hidden bg-white border-t border-slate-100 px-6 py-8 space-y-4">
+        {mobileMenuOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden bg-white border-t border-slate-100 px-6 py-8 space-y-4"
+          >
             <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
               О проекте
             </button>
             <button onClick={() => scrollToSection("modules")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
-              Модули
+              Возможности
             </button>
             <button onClick={() => scrollToSection("guarantee")} className="block w-full text-left py-3 text-slate-700 hover:text-slate-900 font-medium text-lg">
               Гарантия
@@ -247,10 +247,11 @@ export const LandingPage = () => {
                 Начать бесплатно
               </Button>
             </div>
-          </motion.div>}
+          </motion.div>
+        )}
       </header>
 
-      {/* BLOCK 1: Hero - WOW Effect */}
+      {/* BLOCK 1: Hero */}
       <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-6 pt-32 pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
         {/* Subtle gradient orbs */}
         <div className="absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/40 to-indigo-100/40 rounded-full blur-3xl opacity-60" />
@@ -258,30 +259,23 @@ export const LandingPage = () => {
         
         <div className="relative z-10 max-w-5xl mx-auto text-center">
           {/* Badge */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          duration: 0.6
-        }} className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 rounded-full mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-blue-50 rounded-full mb-8"
+          >
             <Sparkles className="w-4 h-4 text-blue-600" />
-            <span className="text-sm font-medium text-blue-700">Автономная система для клиник</span>
+            <span className="text-sm font-medium text-blue-700">Умная система для клиник</span>
           </motion.div>
 
           {/* Main Headline */}
-          <motion.h1 initial={{
-          opacity: 0,
-          y: 30
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.1,
-          duration: 0.7
-        }} className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-8">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.7 }}
+            className="text-5xl sm:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-8"
+          >
             Хватит терять
             <br />
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
@@ -289,25 +283,20 @@ export const LandingPage = () => {
             </AuroraText>
           </motion.h1>
 
-          {/* Subheadline - Improved structure */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.2,
-          duration: 0.6
-        }} className="max-w-3xl mx-auto mb-12 space-y-4">
-            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed">MarkVision AI — первая автономная система управления прибылью 
-для медицинских клиник.<span className="font-semibold text-slate-700">MarkVision AI</span> — первая автономная система 
+          {/* Subheadline */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="max-w-3xl mx-auto mb-12 space-y-4"
+          >
+            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed">
+              Мы берём на себя маркетинг, продажи и аналитику вашей клиники.
               <br className="hidden sm:block" />
-              управления прибылью для клиник.
+              Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
             <p className="text-xl sm:text-2xl font-semibold text-slate-800">
-              Увеличьте выручку на <span className="text-blue-600">
-+500 000 ₸ в день</span>
+              Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
             <p className="text-base sm:text-lg text-slate-400">
               без вложений в рекламу
@@ -315,46 +304,49 @@ export const LandingPage = () => {
           </motion.div>
 
           {/* VSL Video with BackgroundGradient */}
-          <motion.div initial={{
-          opacity: 0,
-          scale: 0.95
-        }} animate={{
-          opacity: 1,
-          scale: 1
-        }} transition={{
-          delay: 0.3,
-          duration: 0.7
-        }} className="w-full max-w-3xl mx-auto mb-12">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+            className="w-full max-w-3xl mx-auto mb-12"
+          >
             <BackgroundGradient containerClassName="rounded-[32px]" className="rounded-[28px] overflow-hidden">
               <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-[28px] overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
-                  {!videoWatched ? <motion.button onClick={handleVideoPlay} whileHover={{
-                  scale: 1.05
-                }} whileTap={{
-                  scale: 0.98
-                }} disabled={isPlaying} className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/20 group transition-all disabled:opacity-70">
-                      {isPlaying ? <Loader2 className="w-10 h-10 text-blue-600 animate-spin" /> : <Play className="w-10 h-10 text-slate-900 ml-1.5 group-hover:text-blue-600 transition-colors" />}
-                    </motion.button> : <motion.div initial={{
-                  scale: 0.8,
-                  opacity: 0
-                }} animate={{
-                  scale: 1,
-                  opacity: 1
-                }} className="flex items-center gap-3 text-emerald-400">
+                  {!videoWatched ? (
+                    <motion.button
+                      onClick={handleVideoPlay}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.98 }}
+                      disabled={isPlaying}
+                      className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/20 group transition-all disabled:opacity-70"
+                    >
+                      {isPlaying ? (
+                        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
+                      ) : (
+                        <Play className="w-10 h-10 text-slate-900 ml-1.5 group-hover:text-blue-600 transition-colors" />
+                      )}
+                    </motion.button>
+                  ) : (
+                    <motion.div
+                      initial={{ scale: 0.8, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex items-center gap-3 text-emerald-400"
+                    >
                       <CheckCircle2 className="w-10 h-10" />
                       <span className="text-xl font-semibold">Видео просмотрено!</span>
-                    </motion.div>}
+                    </motion.div>
+                  )}
                 </div>
                 
                 {/* Progress bar */}
                 <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-slate-700/50">
-                  <motion.div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" initial={{
-                  width: 0
-                }} animate={{
-                  width: `${videoProgress}%`
-                }} transition={{
-                  ease: "linear"
-                }} />
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${videoProgress}%` }}
+                    transition={{ ease: "linear" }}
+                  />
                 </div>
 
                 {/* Video thumbnail overlay */}
@@ -365,54 +357,29 @@ export const LandingPage = () => {
             <p className="text-center text-slate-400 text-sm mt-5">Посмотрите видео, чтобы получить доступ</p>
           </motion.div>
 
-          {/* CTA Button - Massive with pulse */}
-          <motion.div initial={{
-          opacity: 0,
-          y: 20
-        }} animate={{
-          opacity: 1,
-          y: 0
-        }} transition={{
-          delay: 0.5,
-          duration: 0.6
-        }} className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Button size="lg" onClick={openMarkChatbot} className={`relative rounded-3xl px-10 py-8 text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${videoWatched ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`} disabled={!videoWatched}>
-              {videoWatched && <span className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 to-indigo-400 animate-pulse opacity-30" />}
+          {/* CTA Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-4"
+          >
+            <Button
+              size="lg"
+              onClick={openMarkChatbot}
+              className={`relative rounded-3xl px-10 py-8 text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${
+                videoWatched
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]"
+                  : "bg-slate-200 text-slate-400 cursor-not-allowed"
+              }`}
+              disabled={!videoWatched}
+            >
+              {videoWatched && (
+                <span className="absolute inset-0 rounded-3xl bg-gradient-to-r from-blue-400 to-indigo-400 animate-pulse opacity-30" />
+              )}
               <span className="relative flex items-center gap-3">
                 <MessageCircle className="w-5 h-5" />
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
-                
                 Забронировать аудит
-                
-                
-                
-                
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
-                 
                 <ArrowRight className="w-5 h-5" />
               </span>
             </Button>
@@ -420,68 +387,52 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* BLOCK 2: Animated Beam - Autonomous Cycle */}
+      {/* BLOCK 2: How it works */}
       <section className="py-24 lg:py-32 px-6 bg-white">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{
-          opacity: 0,
-          y: 30
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.6
-        }} className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-              Автономный цикл{" "}
+              Как это{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                прибыли
+                работает
               </span>
             </h2>
             <p className="text-xl text-slate-500 max-w-2xl mx-auto font-light">
-              Система сама превращает трафик в деньги — без вашего участия
+              Система сама ведёт пациента от первого контакта до записи на приём
             </p>
           </motion.div>
 
-          <motion.div initial={{
-          opacity: 0,
-          scale: 0.96
-        }} whileInView={{
-          opacity: 1,
-          scale: 1
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.7
-        }} className="rounded-[32px] overflow-hidden border border-slate-200/80 shadow-2xl shadow-slate-200/50 bg-white">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="rounded-[32px] overflow-hidden border border-slate-200/80 shadow-2xl shadow-slate-200/50 bg-white"
+          >
             <BeamVisualization />
           </motion.div>
         </div>
       </section>
 
-      {/* BLOCK 3: Brand Story - Personal Touch */}
+      {/* BLOCK 3: Brand Story */}
       <section id="brand" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-slate-50/80 to-white">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{
-          opacity: 0,
-          y: 40
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.7
-        }} className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+            className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center"
+          >
             {/* Photo */}
             <div className="order-2 lg:order-1">
-              <motion.div whileHover={{
-              scale: 1.01
-            }} transition={{
-              duration: 0.3
-            }} className="relative">
+              <motion.div whileHover={{ scale: 1.01 }} transition={{ duration: 0.3 }} className="relative">
                 <div className="aspect-[4/5] rounded-[32px] overflow-hidden border border-slate-200/50 shadow-2xl shadow-slate-200/40">
                   <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" />
                 </div>
@@ -515,50 +466,41 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* BLOCK 4: 6 Modules Grid */}
+      {/* BLOCK 4: What's included */}
       <section id="modules" className="py-24 lg:py-32 px-6 bg-white">
         <div className="max-w-7xl mx-auto">
-          <motion.div initial={{
-          opacity: 0,
-          y: 30
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.6
-        }} className="text-center mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="text-center mb-16"
+          >
             <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
-              6 модулей{" "}
+              Что входит в{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                системы
+                систему
               </span>
             </h2>
             <p className="text-xl text-slate-500 max-w-2xl mx-auto font-light">
-              Полный набор инструментов для масштабирования вашей клиники
+              Всё, что нужно для роста вашей клиники — в одном месте
             </p>
           </motion.div>
 
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {modules.map((module, index) => <motion.div key={module.title} initial={{
-            opacity: 0,
-            y: 30
-          }} whileInView={{
-            opacity: 1,
-            y: 0
-          }} viewport={{
-            once: true
-          }} transition={{
-            delay: index * 0.08,
-            duration: 0.5
-          }}>
-                <motion.div whileHover={{
-              y: -8,
-              scale: 1.02
-            }} transition={{
-              duration: 0.3
-            }} className="h-full p-6 sm:p-8 rounded-[28px] bg-white border border-slate-200/80 shadow-lg shadow-slate-100/50 hover:shadow-2xl hover:shadow-blue-100/50 hover:border-blue-200/80 transition-all cursor-pointer group">
+            {modules.map((module, index) => (
+              <motion.div
+                key={module.title}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.08, duration: 0.5 }}
+              >
+                <motion.div
+                  whileHover={{ y: -8, scale: 1.02 }}
+                  transition={{ duration: 0.3 }}
+                  className="h-full p-6 sm:p-8 rounded-[28px] bg-white border border-slate-200/80 shadow-lg shadow-slate-100/50 hover:shadow-2xl hover:shadow-blue-100/50 hover:border-blue-200/80 transition-all cursor-pointer group"
+                >
                   <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 mb-5 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
                     {module.icon}
                   </div>
@@ -567,25 +509,21 @@ export const LandingPage = () => {
                     {module.description}
                   </p>
                 </motion.div>
-              </motion.div>)}
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* BLOCK 5: Guarantee - The Trust */}
+      {/* BLOCK 5: Guarantee */}
       <section id="guarantee" className="py-24 lg:py-32 px-6 bg-gradient-to-b from-slate-50 to-slate-100/80">
         <div className="max-w-4xl mx-auto text-center">
-          <motion.div initial={{
-          opacity: 0,
-          y: 40
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.7
-        }}>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
             <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-emerald-500 to-green-600 mx-auto flex items-center justify-center mb-10 shadow-2xl shadow-emerald-500/30">
               <Shield className="w-10 h-10 text-white" />
             </div>
@@ -609,7 +547,11 @@ export const LandingPage = () => {
               </p>
             </div>
 
-            <Button size="lg" onClick={openMarkChatbot} className="rounded-3xl px-12 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.02] transition-all">
+            <Button
+              size="lg"
+              onClick={openMarkChatbot}
+              className="rounded-3xl px-12 py-7 text-lg font-semibold bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white shadow-2xl shadow-emerald-500/25 hover:shadow-emerald-500/35 hover:scale-[1.02] transition-all"
+            >
               <MessageCircle className="w-5 h-5 mr-2" />
               Связаться с Марком
             </Button>
@@ -620,19 +562,14 @@ export const LandingPage = () => {
       {/* BLOCK 6: Registration Form */}
       <section id="signup" ref={signupRef} className="py-24 lg:py-32 px-6 bg-white">
         <div className="max-w-xl mx-auto">
-          <motion.div initial={{
-          opacity: 0,
-          y: 40
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.6
-        }}>
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
             <div className="text-center mb-12">
-              <div className="w-18 h-18 rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-8 shadow-2xl shadow-blue-500/25 w-[72px] h-[72px]">
+              <div className="w-[72px] h-[72px] rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-8 shadow-2xl shadow-blue-500/25">
                 <Sparkles className="w-9 h-9 text-white" />
               </div>
               <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-5 tracking-tight">
@@ -650,7 +587,13 @@ export const LandingPage = () => {
                   <label className="text-sm font-medium text-slate-700">Название клиники</label>
                   <div className="relative">
                     <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.clinicName ? 'border-red-500' : ''}`} />
+                    <Input
+                      type="text"
+                      placeholder='Клиника "Здоровье"'
+                      value={formData.clinicName}
+                      onChange={e => handleChange('clinicName', e.target.value)}
+                      className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.clinicName ? 'border-red-500' : ''}`}
+                    />
                   </div>
                   {errors.clinicName && <p className="text-xs text-red-500 ml-1">{errors.clinicName}</p>}
                 </div>
@@ -660,7 +603,13 @@ export const LandingPage = () => {
                   <label className="text-sm font-medium text-slate-700">Email</label>
                   <div className="relative">
                     <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.email ? 'border-red-500' : ''}`} />
+                    <Input
+                      type="email"
+                      placeholder="email@example.com"
+                      value={formData.email}
+                      onChange={e => handleChange('email', e.target.value)}
+                      className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.email ? 'border-red-500' : ''}`}
+                    />
                   </div>
                   {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
                 </div>
@@ -670,8 +619,18 @@ export const LandingPage = () => {
                   <label className="text-sm font-medium text-slate-700">Пароль</label>
                   <div className="relative">
                     <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-14 pr-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.password ? 'border-red-500' : ''}`} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={formData.password}
+                      onChange={e => handleChange('password', e.target.value)}
+                      className={`pl-14 pr-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${errors.password ? 'border-red-500' : ''}`}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                    >
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
@@ -683,26 +642,40 @@ export const LandingPage = () => {
                   <label className="text-sm font-medium text-slate-700">Промокод</label>
                   <div className="relative">
                     <Gift className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50/50' : ''}`} />
+                    <Input
+                      type="text"
+                      placeholder="MARK7"
+                      value={formData.promoCode}
+                      onChange={e => handleChange('promoCode', e.target.value.toUpperCase())}
+                      className={`pl-14 rounded-2xl h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50/50' : ''}`}
+                    />
                     {promoValid === true && <CheckCircle2 className="absolute right-5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />}
                   </div>
-                  {promoValid === true && <motion.p initial={{
-                  opacity: 0,
-                  y: -5
-                }} animate={{
-                  opacity: 1,
-                  y: 0
-                }} className="text-sm text-emerald-600 font-medium flex items-center gap-2 ml-1">
+                  {promoValid === true && (
+                    <motion.p
+                      initial={{ opacity: 0, y: -5 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="text-sm text-emerald-600 font-medium flex items-center gap-2 ml-1"
+                    >
                       <span>🎉</span> Активирован бесплатный доступ на 7 дней
-                    </motion.p>}
+                    </motion.p>
+                  )}
                 </div>
 
                 {/* Submit Button */}
-                <Button type="submit" className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg mt-4 shadow-lg shadow-slate-900/15 hover:shadow-xl hover:shadow-slate-900/20 transition-all" disabled={loading}>
-                  {loading ? <>
+                <Button
+                  type="submit"
+                  className="w-full h-14 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-lg mt-4 shadow-lg shadow-slate-900/15 hover:shadow-xl hover:shadow-slate-900/20 transition-all"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
                       Регистрация...
-                    </> : 'Зарегистрироваться'}
+                    </>
+                  ) : (
+                    'Зарегистрироваться'
+                  )}
                 </Button>
               </form>
 
@@ -720,6 +693,8 @@ export const LandingPage = () => {
 
       {/* Professional Footer */}
       <Footer />
-    </div>;
+    </div>
+  );
 };
+
 export default LandingPage;
