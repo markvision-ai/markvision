@@ -222,7 +222,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
                   <Button
                     onClick={handleSave}
                     disabled={saving || !idInstance || !apiToken}
-                    className="flex-1 bg-green-500 hover:bg-green-600"
+                    className="flex-1"
                   >
                     {saving ? (
                       <Loader2 className="w-4 h-4 animate-spin mr-2" />

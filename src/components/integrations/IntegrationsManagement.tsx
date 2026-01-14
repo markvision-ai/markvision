@@ -77,7 +77,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
     toast.success("Интеграция отключена");
   };
 
-  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-white" /></div>;
+  if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
 
   const hoverItems = integrationsList.map((item) => ({
     title: item.name,
@@ -87,13 +87,13 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
   }));
 
   return (
-    <div className="p-6 space-y-6 text-white bg-[#0B0E14] min-h-screen">
+    <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold">Центр интеграций</h2>
-          <p className="text-neutral-400 mt-1">Подключите сервисы для автоматизации маркетинга</p>
+          <h2 className="text-2xl font-bold text-foreground">Центр интеграций</h2>
+          <p className="text-muted-foreground mt-1">Подключите сервисы для автоматизации маркетинга</p>
         </div>
-        <Button variant="outline" size="sm" onClick={fetchStatuses} className="border-neutral-700 text-white hover:bg-neutral-800">
+        <Button variant="outline" size="sm" onClick={fetchStatuses}>
           <RefreshCw className="w-4 h-4 mr-2" /> Обновить
         </Button>
       </div>
@@ -102,11 +102,11 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
       
       {/* Config Dialog */}
       <Dialog open={!!selectedIntegration} onOpenChange={() => setSelectedIntegration(null)}>
-        <DialogContent className="bg-[#161B26] border-neutral-700">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Настройка интеграции</DialogTitle>
           </DialogHeader>
-          <p className="text-neutral-400 py-4">
+          <p className="text-muted-foreground py-4">
             Функционал настройки {selectedIntegration} скоро будет доступен.
           </p>
           <Button onClick={() => setSelectedIntegration(null)}>Закрыть</Button>

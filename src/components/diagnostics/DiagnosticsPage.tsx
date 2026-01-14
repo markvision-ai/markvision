@@ -66,7 +66,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-20">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -79,14 +79,14 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
   return (
     <div className="space-y-8">
       {/* Diagnostic Types Selection */}
-      <div className="bg-[#161B26] border border-neutral-800/50 rounded-2xl p-6">
+      <div className="bg-card border border-border/50 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500/20 to-purple-600/20">
-            <FileText className="w-6 h-6 text-blue-400" />
+          <div className="p-2 rounded-xl bg-primary/10">
+            <FileText className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-white">Типы диагностик</h2>
-            <p className="text-neutral-400 text-sm">Выберите тип анкеты для отправки клиенту</p>
+            <h2 className="text-xl font-bold text-foreground">Типы диагностик</h2>
+            <p className="text-muted-foreground text-sm">Выберите тип анкеты для отправки клиенту</p>
           </div>
         </div>
         
@@ -94,16 +94,16 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
       </div>
 
       {/* Results Table */}
-      <div className="bg-[#161B26] border border-neutral-800/50 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-white mb-4">📊 Результаты диагностик</h3>
+      <div className="bg-card border border-border/50 rounded-2xl p-6">
+        <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты диагностик</h3>
         
         {diagnosticLeads.length === 0 ? (
-          <div className="bg-neutral-800/30 rounded-xl p-12 text-center">
-            <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ClipboardCheck className="w-8 h-8 text-blue-400" />
+          <div className="bg-muted/30 rounded-xl p-12 text-center">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <ClipboardCheck className="w-8 h-8 text-primary" />
             </div>
-            <h4 className="text-white font-medium mb-2">Нет заполненных анкет</h4>
-            <p className="text-neutral-400 text-sm">
+            <h4 className="text-foreground font-medium mb-2">Нет заполненных анкет</h4>
+            <p className="text-muted-foreground text-sm">
               Данные диагностик появятся здесь после заполнения клиентами анкет
             </p>
           </div>
@@ -111,27 +111,27 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-neutral-800">
-                  <th className="text-left py-3 px-4 text-neutral-400 text-sm font-medium">Клиент</th>
-                  <th className="text-left py-3 px-4 text-neutral-400 text-sm font-medium">Тип</th>
-                  <th className="text-left py-3 px-4 text-neutral-400 text-sm font-medium">Дата</th>
-                  <th className="text-left py-3 px-4 text-neutral-400 text-sm font-medium">Статус</th>
+                <tr className="border-b border-border">
+                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Клиент</th>
+                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Тип</th>
+                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Дата</th>
+                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Статус</th>
                 </tr>
               </thead>
               <tbody>
                 {diagnosticLeads.map((lead) => {
                   const extra = lead.extra_data as Record<string, unknown> | null;
                   return (
-                    <tr key={lead.id} className="border-b border-neutral-800/50 hover:bg-neutral-800/30 transition-colors">
-                      <td className="py-3 px-4 text-white">{lead.name || lead.phone || 'Без имени'}</td>
-                      <td className="py-3 px-4 text-neutral-400">
+                    <tr key={lead.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                      <td className="py-3 px-4 text-foreground">{lead.name || lead.phone || 'Без имени'}</td>
+                      <td className="py-3 px-4 text-muted-foreground">
                         {String(extra?.diagnostic_type || extra?.questionnaire_type || 'Анкета')}
                       </td>
-                      <td className="py-3 px-4 text-neutral-400">
+                      <td className="py-3 px-4 text-muted-foreground">
                         {new Date(lead.created_at).toLocaleDateString('ru-RU')}
                       </td>
                       <td className="py-3 px-4">
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-400">
+                        <span className="px-2 py-1 rounded-full text-xs bg-green-500/20 text-green-500">
                           Заполнено
                         </span>
                       </td>
@@ -146,18 +146,18 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
 
       {/* Type Details Dialog */}
       <Dialog open={!!selectedType} onOpenChange={() => setSelectedType(null)}>
-        <DialogContent className="bg-[#161B26] border-neutral-700">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>
               {diagnosticTypes.find(t => t.id === selectedType)?.title}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
-            <p className="text-neutral-400">
+            <p className="text-muted-foreground">
               {diagnosticTypes.find(t => t.id === selectedType)?.description}
             </p>
-            <div className="bg-neutral-800/50 rounded-lg p-4">
-              <p className="text-sm text-neutral-300">
+            <div className="bg-muted/50 rounded-lg p-4">
+              <p className="text-sm text-foreground/80">
                 📎 Ссылка для клиента будет сгенерирована автоматически при создании лида в CRM.
               </p>
             </div>
@@ -166,7 +166,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
             <Button variant="outline" onClick={() => setSelectedType(null)} className="flex-1">
               Закрыть
             </Button>
-            <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+            <Button className="flex-1">
               Создать анкету
             </Button>
           </div>

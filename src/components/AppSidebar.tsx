@@ -490,7 +490,7 @@ export const AppSidebar = ({
 
       {/* Delete Project Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#161B26] border-neutral-700">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
             <AlertDialogTitle>Удалить проект?</AlertDialogTitle>
             <AlertDialogDescription>
@@ -518,7 +518,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="font-bold flex items-center gap-3 text-sm text-white py-1 relative z-20 px-2"
+      className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
         <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
@@ -551,7 +551,7 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="font-bold flex items-center gap-2 text-sm text-white py-1 relative z-20 px-2"
+      className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
         <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
