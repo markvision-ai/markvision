@@ -1,14 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, Eye, Plus, Sparkles, Instagram } from 'lucide-react';
+import { Factory, Eye, Plus, Sparkles, Instagram, Workflow } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useContentFactory } from '@/hooks/useContentFactory';
-import { ContentPipeline } from './ContentPipeline';
-import { CompetitorMonitoring } from './CompetitorMonitoring';
-import { CreateContentDialog } from './CreateContentDialog';
+import { WorkshopPipeline } from './WorkshopPipeline';
+import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
+import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
 import { InstagramStats } from '@/components/integrations/InstagramStats';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContentFactoryPageProps {
   projectId: string | null;
@@ -33,6 +34,40 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
     triggerEdit,
     triggerPublish,
   } = useContentFactory(projectId);
+
+  // Subscribe to realtime updates for content status changes
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('content_factory_realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'content_factory',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          // Content will automatically update via the hook's subscription
+          console.log('Content updated:', payload.new);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
+
+  const handleCreateFromIdea = async (title: string, sourceUrl?: string) => {
+    return await createContent({
+      title,
+      content_type: 'avatar_video',
+      source_url: sourceUrl,
+    });
+  };
 
   if (!projectId) {
     return (
@@ -60,72 +95,82 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-            <Factory className="w-5 h-5 text-primary-foreground" />
+          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
+            <Factory className="w-6 h-6 text-white" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Content Factory</h2>
+              <h2 className="text-2xl font-bold">Контент-Завод 2.0</h2>
               <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs">
                 <Sparkles className="w-3 h-3 mr-1" />
-                AI Powered
+                AI Production Suite
               </Badge>
             </div>
-            <p className="text-sm text-muted-foreground">Производственная линия контента</p>
+            <p className="text-sm text-muted-foreground">
+              6 цехов производства • {content.length} в работе
+            </p>
           </div>
         </div>
         
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2">
+        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600">
           <Plus className="w-4 h-4" />
           Создать контент
         </Button>
       </div>
 
+      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
         <TabsList className="grid w-full max-w-lg grid-cols-3">
           <TabsTrigger value="pipeline" className="gap-2">
-            <Factory className="w-4 h-4" />
+            <Workflow className="w-4 h-4" />
             Пайплайн
-          </TabsTrigger>
-          <TabsTrigger value="instagram" className="gap-2">
-            <Instagram className="w-4 h-4" />
-            Instagram
           </TabsTrigger>
           <TabsTrigger value="monitoring" className="gap-2">
             <Eye className="w-4 h-4" />
             Мониторинг
           </TabsTrigger>
+          <TabsTrigger value="instagram" className="gap-2">
+            <Instagram className="w-4 h-4" />
+            Instagram
+          </TabsTrigger>
         </TabsList>
 
+        {/* Pipeline Tab - 6 Workshops */}
         <TabsContent value="pipeline" className="space-y-4">
-          <ContentPipeline
+          <WorkshopPipeline
             content={content}
+            projectId={projectId}
             onUpdate={updateContent}
             onDelete={deleteContent}
             triggerVoice={triggerVoice}
             triggerAvatar={triggerAvatar}
-            triggerAiVideo={triggerAiVideo}
             triggerEdit={triggerEdit}
             triggerPublish={triggerPublish}
           />
         </TabsContent>
 
+        {/* Monitoring Tab */}
+        <TabsContent value="monitoring" className="space-y-4">
+          <CompetitorMonitoringEnhanced
+            competitors={competitors}
+            projectId={projectId}
+            onAdd={addCompetitor}
+            onRemove={removeCompetitor}
+            onCreateFromIdea={handleCreateFromIdea}
+          />
+        </TabsContent>
+
+        {/* Instagram Tab */}
         <TabsContent value="instagram" className="space-y-4">
           <InstagramStats projectId={projectId} />
         </TabsContent>
-
-        <TabsContent value="monitoring" className="space-y-4">
-          <CompetitorMonitoring
-            competitors={competitors}
-            onAdd={addCompetitor}
-            onRemove={removeCompetitor}
-          />
-        </TabsContent>
       </Tabs>
 
-      <CreateContentDialog
+      {/* Create Content Dialog */}
+      <CreateContentDialogEnhanced
         open={isCreateOpen}
         onOpenChange={setIsCreateOpen}
         onCreate={createContent}
