@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import AnalyticsPlatform from '@/components/AnalyticsPlatform';
+import LandingPage from '@/components/landing/LandingPage';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -49,22 +50,20 @@ const Index = () => {
     return () => authListener.subscription.unsubscribe();
   }, [queryClient]);
 
-  // Защита роутов
-  useEffect(() => {
-    const isOAuth = window.location.hash.includes('access_token') || window.location.search.includes('code=');
-    if (!loading && !user && !isOAuth) {
-      navigate('/auth');
-    }
-  }, [user, loading, navigate]);
-
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0B0E14] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
+  // Если пользователь не авторизован — показываем лендинг
+  if (!user) {
+    return <LandingPage />;
+  }
+
+  // Если авторизован — показываем платформу
   return <AnalyticsPlatform />;
 };
 
