@@ -21,7 +21,7 @@ export interface WebhookConfig {
   id: string;
   project_id: string;
   name: string;
-  webhook_token: string;
+  webhook_token_masked: string | null; // Token is now masked for display
   field_mapping: FieldMapping;
   is_active: boolean;
   created_at: string;
@@ -80,37 +80,89 @@ const defaultFieldMapping: FieldMapping = {
 export function useWebhookConfig(projectId: string | null) {
   const [config, setConfig] = useState<WebhookConfig | null>(null);
   const [loading, setLoading] = useState(true);
+  const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
 
   const fetchConfig = async () => {
     if (!projectId) {
       setConfig(null);
+      setWebhookUrl(null);
       setLoading(false);
       return;
     }
 
     setLoading(true);
     try {
+      // Use the safe view that masks the token
       const { data, error } = await supabase
-        .from('webhook_configs')
+        .from('webhook_configs_safe')
         .select('*')
         .eq('project_id', projectId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        // Fallback to direct table access if view doesn't exist yet
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('webhook_configs')
+          .select('id, project_id, name, is_active, field_mapping, created_at, updated_at')
+          .eq('project_id', projectId)
+          .maybeSingle();
+        
+        if (fallbackError) throw fallbackError;
+        
+        if (fallbackData) {
+          setConfig({
+            ...fallbackData,
+            webhook_token_masked: '********************************',
+            field_mapping: fallbackData.field_mapping as unknown as FieldMapping
+          });
+          // Fetch the URL securely
+          await fetchWebhookUrl(fallbackData.id);
+        } else {
+          setConfig(null);
+          setWebhookUrl(null);
+        }
+        return;
+      }
       
       if (data) {
         setConfig({
           ...data,
           field_mapping: data.field_mapping as unknown as FieldMapping
         });
+        // Fetch the URL securely via RPC function
+        await fetchWebhookUrl(data.id);
       } else {
         setConfig(null);
+        setWebhookUrl(null);
       }
     } catch (error) {
       console.error('Error fetching webhook config:', error);
       setConfig(null);
+      setWebhookUrl(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch webhook URL using secure RPC function
+  const fetchWebhookUrl = async (configId: string) => {
+    try {
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://grzqykegqgglekcxdtsu.supabase.co';
+      const { data, error } = await supabase.rpc('get_webhook_url', { 
+        config_id: configId,
+        base_url: supabaseUrl
+      });
+      
+      if (error) {
+        console.error('Error fetching webhook URL:', error);
+        setWebhookUrl(null);
+        return;
+      }
+      
+      setWebhookUrl(data);
+    } catch (error) {
+      console.error('Error fetching webhook URL:', error);
+      setWebhookUrl(null);
     }
   };
 
@@ -130,16 +182,21 @@ export function useWebhookConfig(projectId: string | null) {
           field_mapping: defaultFieldMapping as any,
           is_active: true
         }])
-        .select()
+        .select('id, project_id, name, is_active, field_mapping, created_at, updated_at')
         .single();
 
       if (error) throw error;
       
-      const newConfig = {
+      const newConfig: WebhookConfig = {
         ...data,
+        webhook_token_masked: '********************************',
         field_mapping: data.field_mapping as unknown as FieldMapping
       };
       setConfig(newConfig);
+      
+      // Fetch the URL for the new config
+      await fetchWebhookUrl(data.id);
+      
       toast.success('Вебхук создан');
       return newConfig;
     } catch (error) {
@@ -199,11 +256,8 @@ export function useWebhookConfig(projectId: string | null) {
     }
   };
 
-  const getWebhookUrl = () => {
-    if (!config) return null;
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    return `${supabaseUrl}/functions/v1/webhook-receiver?token=${config.webhook_token}`;
-  };
+  // Return the securely fetched webhook URL
+  const getWebhookUrl = () => webhookUrl;
 
   return {
     config,
