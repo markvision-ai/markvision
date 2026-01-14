@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { isLeadAutomated } from '@/lib/webhooks';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { safeFormat, safeParseDate } from '@/lib/dateUtils';
 import { WhatsAppDialog } from './WhatsAppDialog';
 
@@ -416,6 +416,7 @@ export const LeadCard = ({
                   leadName={displayName}
                   leadPhone={lead.phone || ''}
                   projectId={projectId}
+                  clinicName={clinicName}
                 />
               ) : (
                 <Button
