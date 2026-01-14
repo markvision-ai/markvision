@@ -492,13 +492,13 @@ export const LandingPage = () => {
         }} transition={{
           duration: 0.6
         }} className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 sm:mb-6 tracking-tight">
+            <h2 className="sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 sm:mb-6 tracking-tight text-3xl">
               Что входит в{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 систему
               </span>
             </h2>
-            <p className="text-sm sm:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-light px-4">
+            <p className="sm:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-light px-4 text-base">
               Всё, что нужно для роста вашей клиники — в одном месте
             </p>
           </motion.div>
