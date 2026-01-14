@@ -26,6 +26,23 @@ export interface Campaign {
   updated_at: string;
 }
 
+// Select only needed fields for performance
+const CAMPAIGN_FIELDS = `
+  id,
+  project_id,
+  platform,
+  external_id,
+  name,
+  status,
+  budget,
+  spent_today,
+  autopilot_enabled,
+  rules,
+  ai_log,
+  created_at,
+  updated_at
+`;
+
 export function useCampaigns(projectId: string | null) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -41,9 +58,10 @@ export function useCampaigns(projectId: string | null) {
     try {
       const { data, error } = await supabase
         .from('campaigns')
-        .select('*')
+        .select(CAMPAIGN_FIELDS)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) throw error;
       
@@ -64,6 +82,53 @@ export function useCampaigns(projectId: string | null) {
   useEffect(() => {
     fetchCampaigns();
   }, [fetchCampaigns]);
+
+  // Realtime subscription
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel(`campaigns-${projectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'campaigns',
+          filter: `project_id=eq.${projectId}`,
+        },
+        (payload) => {
+          if (payload.eventType === 'INSERT') {
+            const newCampaign = {
+              ...payload.new,
+              platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+              rules: (payload.new.rules || {}) as Campaign['rules'],
+              ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
+            } as Campaign;
+            setCampaigns(prev => [newCampaign, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setCampaigns(prev => prev.map(c => 
+              c.id === payload.new.id 
+                ? {
+                    ...c,
+                    ...payload.new,
+                    platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+                    rules: (payload.new.rules || {}) as Campaign['rules'],
+                    ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
+                  } as Campaign
+                : c
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setCampaigns(prev => prev.filter(c => c.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId]);
 
   const updateCampaign = async (id: string, updates: Partial<Campaign>) => {
     try {

@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
 import { 
@@ -25,35 +25,46 @@ import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
-import { TeamManagement } from './team/TeamManagement';
-import { ReportGenerator } from './reports/ReportGenerator';
-import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { AIAssistant } from './analytics/AIAssistant';
-import { AdminHub } from './settings/AdminHub';
-import { IntegrationsManagement } from './integrations/IntegrationsManagement';
-import { CRMPage } from './crm/CRMPage';
-import { AuditLogViewer } from './audit/AuditLogViewer';
-import { QuantomAdsPage } from './ads/QuantomAdsPage';
-import { ContentFactoryPage } from './factory/ContentFactoryPage';
 import { OnboardingWizard } from './onboarding/OnboardingWizard';
-import { StaffManagement } from './staff/StaffManagement';
-import { KnowledgeBase } from './knowledge/KnowledgeBase';
-import { FinanceDashboard } from './finance/FinanceDashboard';
-import { OmnichannelInbox } from './inbox/OmnichannelInbox';
-import { LeadScoring } from './scoring/LeadScoring';
-import { GamificationHub } from './gamification/GamificationHub';
-import { ABOptimizer } from './abtesting/ABOptimizer';
-import { TechnicalHealth } from './health/TechnicalHealth';
-import { RealtimeDashboard } from './dashboard/RealtimeDashboard';
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
-import { CalendarPage } from './calendar/CalendarPage';
-import { DiagnosticsPage } from './diagnostics/DiagnosticsPage';
-import { AutomationPage } from './automation/AutomationPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
+import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
+import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { cn } from '@/lib/utils';
+
+// Lazy load heavy modules for performance
+const TeamManagement = lazy(() => import('./team/TeamManagement').then(m => ({ default: m.TeamManagement })));
+const ReportGenerator = lazy(() => import('./reports/ReportGenerator').then(m => ({ default: m.ReportGenerator })));
+const E2EAnalytics = lazy(() => import('./analytics/E2EAnalytics').then(m => ({ default: m.E2EAnalytics })));
+const AdminHub = lazy(() => import('./settings/AdminHub').then(m => ({ default: m.AdminHub })));
+const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagement').then(m => ({ default: m.IntegrationsManagement })));
+const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
+const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
+const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
+const ContentFactoryPage = lazy(() => import('./factory/ContentFactoryPage').then(m => ({ default: m.ContentFactoryPage })));
+const StaffManagement = lazy(() => import('./staff/StaffManagement').then(m => ({ default: m.StaffManagement })));
+const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => ({ default: m.KnowledgeBase })));
+const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
+const OmnichannelInbox = lazy(() => import('./inbox/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
+const LeadScoring = lazy(() => import('./scoring/LeadScoring').then(m => ({ default: m.LeadScoring })));
+const GamificationHub = lazy(() => import('./gamification/GamificationHub').then(m => ({ default: m.GamificationHub })));
+const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ default: m.ABOptimizer })));
+const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
+const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })));
+const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ default: m.CalendarPage })));
+const DiagnosticsPage = lazy(() => import('./diagnostics/DiagnosticsPage').then(m => ({ default: m.DiagnosticsPage })));
+const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
+
+// Loading fallback component
+const ModuleLoader = () => (
+  <div className="flex items-center justify-center py-20">
+    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  </div>
+);
 
 interface DailyData {
   date: string;
@@ -421,53 +432,73 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'crm' && (
-        <CRMPage projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <CRMPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'realtime' && (
-        <RealtimeDashboard projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <RealtimeDashboard projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'quantom-ads' && (
-        <QuantomAdsPage projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <QuantomAdsPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'factory' && (
-        <ContentFactoryPage projectId={currentProjectId} />
+        <Suspense fallback={<AnalyticsSkeleton />}>
+          <ContentFactoryPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'e2e-analytics' && (
-        <E2EAnalytics totals={totals} projectId={currentProjectId} />
+        <Suspense fallback={<AnalyticsSkeleton />}>
+          <E2EAnalytics totals={totals} projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'reports' && (
-        <ReportGenerator 
-          data={{
-            projectId: currentProjectId || undefined,
-            projectName: currentProject?.name || 'Проект',
-            dateRange: dateRange,
-            totals,
-            planData,
-            funnelSteps,
-            metrics: { aov, cpl, cac, romi, roas }
-          }}
-        />
+        <Suspense fallback={<ModuleLoader />}>
+          <ReportGenerator 
+            data={{
+              projectId: currentProjectId || undefined,
+              projectName: currentProject?.name || 'Проект',
+              dateRange: dateRange,
+              totals,
+              planData,
+              funnelSteps,
+              metrics: { aov, cpl, cac, romi, roas }
+            }}
+          />
+        </Suspense>
       )}
 
       {activeTab === 'team' && (
-        <TeamManagement projects={projectsList} />
+        <Suspense fallback={<ModuleLoader />}>
+          <TeamManagement projects={projectsList} />
+        </Suspense>
       )}
 
       {activeTab === 'integrations' && (
-        <IntegrationsManagement projectId={currentProjectId || undefined} />
+        <Suspense fallback={<ModuleLoader />}>
+          <IntegrationsManagement projectId={currentProjectId || undefined} />
+        </Suspense>
       )}
 
       {activeTab === 'audit' && (
-        <AuditLogViewer />
+        <Suspense fallback={<ModuleLoader />}>
+          <AuditLogViewer />
+        </Suspense>
       )}
 
       {activeTab === 'settings' && currentProject && (
-        <AdminHub projectId={currentProject.id} projects={projects} />
+        <Suspense fallback={<ModuleLoader />}>
+          <AdminHub projectId={currentProject.id} projects={projects} />
+        </Suspense>
       )}
       
       {activeTab === 'settings' && !currentProject && (
@@ -478,43 +509,63 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'staff' && currentProjectId && (
-        <StaffManagement projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <StaffManagement projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'inbox' && currentProjectId && (
-        <OmnichannelInbox projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <OmnichannelInbox projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'finance' && currentProjectId && (
-        <FinanceDashboard projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <FinanceDashboard projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'scoring' && currentProjectId && (
-        <LeadScoring projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <LeadScoring projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'gamification' && currentProjectId && (
-        <GamificationHub projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <GamificationHub projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'ab-testing' && currentProjectId && (
-        <ABOptimizer projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <ABOptimizer projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'knowledge' && currentProjectId && (
-        <KnowledgeBase projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <KnowledgeBase projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'health' && currentProjectId && (
-        <TechnicalHealth projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <TechnicalHealth projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'diagnostics' && currentProjectId && (
-        <DiagnosticsPage projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <DiagnosticsPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'automation' && currentProjectId && (
-        <AutomationPage projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <AutomationPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'help' && (
@@ -537,7 +588,9 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'calendar' && currentProjectId && (
-        <CalendarPage projectId={currentProjectId} />
+        <Suspense fallback={<ModuleLoader />}>
+          <CalendarPage projectId={currentProjectId} />
+        </Suspense>
       )}
     </main>
   );
