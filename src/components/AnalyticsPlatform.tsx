@@ -28,7 +28,7 @@ import { TeamManagement } from './team/TeamManagement';
 import { ReportGenerator } from './reports/ReportGenerator';
 import { E2EAnalytics } from './analytics/E2EAnalytics';
 import { AIAssistant } from './analytics/AIAssistant';
-import { WebhookSettings } from './settings/WebhookSettings';
+import { AdminHub } from './settings/AdminHub';
 import { IntegrationsManagement } from './integrations/IntegrationsManagement';
 import { CRMPage } from './crm/CRMPage';
 import { AuditLogViewer } from './audit/AuditLogViewer';
@@ -464,7 +464,7 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'settings' && currentProject && (
-        <WebhookSettings projectId={currentProject.id} />
+        <AdminHub projectId={currentProject.id} projects={projects} />
       )}
       
       {activeTab === 'settings' && !currentProject && (
