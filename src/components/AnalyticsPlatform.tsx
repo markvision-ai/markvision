@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
+import { useSystemHealth } from '@/hooks/useSystemHealth';
 
 import { AppSidebar } from './AppSidebar';
 import { DraggableDashboard } from './dashboard/DraggableDashboard';
@@ -138,6 +139,7 @@ export const AnalyticsPlatform = () => {
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects } = useProjects();
   const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
+  const { hasErrors: systemHasErrors } = useSystemHealth(currentProjectId);
 
   // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
@@ -562,6 +564,7 @@ export const AnalyticsPlatform = () => {
         onCreateProject={createProject}
         onDeleteProject={deleteProject}
         userId={user?.id}
+        systemHasErrors={systemHasErrors}
       />
       
       {/* Main Content Area */}

@@ -13,7 +13,8 @@ import {
   Save,
   AlertCircle,
   MessageCircle,
-  ExternalLink
+  ExternalLink,
+  Activity
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -28,6 +29,7 @@ import { KnowledgeBaseTab } from './tabs/KnowledgeBaseTab';
 import { TeamTab } from './tabs/TeamTab';
 import { SecurityTab } from './tabs/SecurityTab';
 import { HelpTab } from './tabs/HelpTab';
+import { TechnicalHealthTab } from './tabs/TechnicalHealthTab';
 
 interface Project {
   id: string;
@@ -84,6 +86,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
     { id: 'knowledge', label: 'База знаний', icon: BookOpen },
     { id: 'team', label: 'Команда', icon: Users },
     { id: 'security', label: 'Безопасность', icon: Shield },
+    { id: 'health', label: 'Здоровье системы', icon: Activity },
     { id: 'help', label: 'Помощь', icon: HelpCircle },
   ];
 
@@ -227,7 +230,12 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
           <SecurityTab projectId={projectId} />
         </TabsContent>
 
-        {/* Tab 6: Help */}
+        {/* Tab 6: Technical Health */}
+        <TabsContent value="health" className="mt-0">
+          <TechnicalHealthTab projectId={projectId} />
+        </TabsContent>
+
+        {/* Tab 7: Help */}
         <TabsContent value="help" className="mt-0">
           <HelpTab projectId={projectId} />
         </TabsContent>

@@ -85,6 +85,7 @@ interface AppSidebarProps {
   onCreateProject?: (name: string) => Promise<string | undefined>;
   onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
   userId?: string;
+  systemHasErrors?: boolean;
 }
 
 export const AppSidebar = ({ 
@@ -98,6 +99,7 @@ export const AppSidebar = ({
   onCreateProject,
   onDeleteProject,
   userId,
+  systemHasErrors = false,
 }: AppSidebarProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -265,7 +267,7 @@ export const AppSidebar = ({
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo */}
             <AnimatePresence>
-              {open ? <Logo /> : <LogoIcon />}
+              {open ? <Logo hasErrors={systemHasErrors} /> : <LogoIcon hasErrors={systemHasErrors} />}
             </AnimatePresence>
 
             {/* Project Selector */}
@@ -484,15 +486,30 @@ export const AppSidebar = ({
   );
 };
 
-const Logo = () => {
+interface LogoProps {
+  hasErrors?: boolean;
+}
+
+const Logo = ({ hasErrors }: LogoProps) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="font-bold flex items-center gap-3 text-sm text-white py-1 relative z-20 px-2"
     >
-      <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-        <Sparkles className="h-5 w-5 text-white" />
+      <div className="relative">
+        <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <Sparkles className="h-5 w-5 text-white" />
+        </div>
+        {/* Global Health Indicator */}
+        <div className={cn(
+          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
+          hasErrors ? "bg-red-500" : "bg-green-500"
+        )}>
+          {!hasErrors && (
+            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+          )}
+        </div>
       </div>
       <div className="flex flex-col">
         <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold text-base">
@@ -506,15 +523,26 @@ const Logo = () => {
   );
 };
 
-const LogoIcon = () => {
+const LogoIcon = ({ hasErrors }: LogoProps) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       className="font-bold flex items-center gap-2 text-sm text-white py-1 relative z-20 px-2"
     >
-      <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-        <Sparkles className="h-5 w-5 text-white" />
+      <div className="relative">
+        <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
+          <Sparkles className="h-5 w-5 text-white" />
+        </div>
+        {/* Global Health Indicator */}
+        <div className={cn(
+          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
+          hasErrors ? "bg-red-500" : "bg-green-500"
+        )}>
+          {!hasErrors && (
+            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+          )}
+        </div>
       </div>
     </motion.div>
   );
