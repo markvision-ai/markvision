@@ -199,14 +199,14 @@ export const SidebarLink = ({
         "flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
         isActive 
           ? "bg-primary/15 text-primary border border-primary/30" 
-          : "hover:bg-muted/60 text-muted-foreground hover:text-foreground",
+          : "hover:bg-sidebar-muted text-sidebar-foreground/70 hover:text-sidebar-foreground",
         className
       )}
       {...props}
     >
       <div className={cn(
         "flex-shrink-0 transition-colors duration-200",
-        isActive ? "text-primary" : "text-muted-foreground group-hover/sidebar:text-foreground"
+        isActive ? "text-primary" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
       )}>
         {link.icon}
       </div>
@@ -218,7 +218,7 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium whitespace-pre transition-colors duration-200",
-          isActive ? "text-primary" : "text-foreground/80 group-hover/sidebar:text-foreground"
+          isActive ? "text-primary" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
         )}
       >
         {link.label}
@@ -243,7 +243,7 @@ export const SidebarLabel = ({
         opacity: animate ? (open ? 1 : 0) : 1,
       }}
       className={cn(
-        "text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 mt-6 first:mt-4",
+        "text-[10px] font-bold uppercase tracking-wider text-sidebar-foreground/50 px-3 mb-2 mt-6 first:mt-4",
         className
       )}
     >
