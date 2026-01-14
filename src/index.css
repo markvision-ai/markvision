@@ -39,11 +39,11 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme - Чисто белый фон, идеальный контраст */
+    /* Premium Light Theme - Чисто белый фон, максимальный контраст */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;
+    --card: 0 0% 99%;
     --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
@@ -56,7 +56,7 @@
     --secondary-foreground: 222 47% 11%;
 
     --muted: 210 20% 94%;
-    --muted-foreground: 220 14% 40%;
+    --muted-foreground: 220 14% 35%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -70,16 +70,16 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 214 32% 85%;
+    --border: 214 32% 80%;
     --input: 214 32% 91%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
-    /* Sidebar - Dark even in light mode for contrast */
-    --sidebar: 222 47% 11%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-muted: 217 33% 17%;
+    /* Sidebar - Light theme sidebar should also be light */
+    --sidebar: 210 20% 97%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-muted: 210 20% 90%;
 
     --chart-1: 221 83% 53%;
     --chart-2: 142 76% 36%;
@@ -146,8 +146,7 @@
   }
 
   html {
-    /* Default to dark theme */
-    @apply dark;
+    /* Theme is controlled by useTheme hook via class */
   }
 
   body {
