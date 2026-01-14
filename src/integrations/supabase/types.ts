@@ -1602,6 +1602,107 @@ export type Database = {
           },
         ]
       }
+      system_alerts: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_resolved: boolean
+          project_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          service_id: string | null
+          severity: string
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_resolved?: boolean
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          service_id?: string | null
+          severity?: string
+          title: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_resolved?: boolean
+          project_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          service_id?: string | null
+          severity?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "system_alerts_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "system_health"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      system_health: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          last_check_at: string | null
+          metadata: Json | null
+          project_id: string | null
+          service_name: string
+          service_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_check_at?: string | null
+          metadata?: Json | null
+          project_id?: string | null
+          service_name: string
+          service_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          last_check_at?: string | null
+          metadata?: Json | null
+          project_id?: string | null
+          service_name?: string
+          service_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "system_health_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       touchpoints: {
         Row: {
           campaign_name: string | null
