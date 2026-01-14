@@ -4,6 +4,7 @@ import { Toaster } from "sonner";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import ResetPassword from "./pages/ResetPassword";
+import Install from "./pages/Install";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -21,6 +22,7 @@ const App = () => (
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/install" element={<Install />} />
         {/* Все эти пути ведут в Index, где переключается вкладка по URL */}
         <Route path="/dashboard" element={<Index />} />
         <Route path="/realtime" element={<Index />} />
@@ -46,6 +48,7 @@ const App = () => (
         <Route path="/health" element={<Index />} />
         <Route path="/onboarding" element={<Index />} />
         <Route path="/calendar" element={<Index />} />
+        <Route path="/automation" element={<Index />} />
       </Routes>
     </BrowserRouter>
     <Toaster position="top-right" richColors closeButton />
