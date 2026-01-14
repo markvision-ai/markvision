@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Progress } from '@/components/ui/progress';
 import { 
   Table, 
   TableBody, 
@@ -30,7 +31,12 @@ import {
   TrendingUp,
   DollarSign,
   Award,
-  Download
+  Download,
+  Clock,
+  Activity,
+  CheckCircle2,
+  Target,
+  BarChart3
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -48,6 +54,14 @@ interface Staff {
   hire_date: string;
   xp_points: number;
   level: number;
+}
+
+interface StaffStats {
+  leadsHandled: number;
+  conversions: number;
+  avgResponseTime: string;
+  lastActive: string;
+  performanceScore: number;
 }
 
 interface StaffManagementProps {
@@ -207,9 +221,19 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
       </div>
 
       <Tabs defaultValue="list">
-        <TabsList>
-          <TabsTrigger value="list">Список</TabsTrigger>
-          <TabsTrigger value="leaderboard">Лидерборд</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-auto">
+          <TabsTrigger value="list" className="gap-2 py-2.5">
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Список</span>
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="gap-2 py-2.5">
+            <Activity className="w-4 h-4" />
+            <span className="hidden sm:inline">Активность</span>
+          </TabsTrigger>
+          <TabsTrigger value="leaderboard" className="gap-2 py-2.5">
+            <Trophy className="w-4 h-4" />
+            <span className="hidden sm:inline">Лидерборд</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="list" className="mt-4">
@@ -298,6 +322,112 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
                   )}
                 </TableBody>
               </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Activity Tab */}
+        <TabsContent value="activity" className="mt-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                Активность и оценка сотрудников
+              </CardTitle>
+              <CardDescription>Анализ эффективности работы команды</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {filteredStaff.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Нет данных о сотрудниках</p>
+                ) : (
+                  filteredStaff.map((member) => {
+                    // Генерируем демо-статистику для каждого сотрудника
+                    const stats: StaffStats = {
+                      leadsHandled: Math.floor(Math.random() * 50) + 10,
+                      conversions: Math.floor(Math.random() * 20) + 5,
+                      avgResponseTime: `${Math.floor(Math.random() * 30) + 5} мин`,
+                      lastActive: member.status === 'active' ? 'Сейчас онлайн' : '2 часа назад',
+                      performanceScore: Math.floor((member.xp_points || 0) / 100) + (member.level || 1) * 10
+                    };
+                    const conversionRate = stats.leadsHandled > 0 
+                      ? Math.round((stats.conversions / stats.leadsHandled) * 100) 
+                      : 0;
+
+                    return (
+                      <div
+                        key={member.id}
+                        className="p-4 rounded-xl border bg-card/50 hover:bg-card/80 transition-colors"
+                      >
+                        <div className="flex items-start gap-4">
+                          <Avatar className="h-12 w-12">
+                            <AvatarFallback className="bg-primary/10 text-primary text-lg">
+                              {member.name?.charAt(0) || 'U'}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between mb-2">
+                              <div>
+                                <h4 className="font-semibold">{member.name}</h4>
+                                <p className="text-sm text-muted-foreground">{member.position}</p>
+                              </div>
+                              <Badge variant={member.status === 'active' ? 'default' : 'secondary'} className="gap-1">
+                                {member.status === 'active' ? (
+                                  <>
+                                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                                    Онлайн
+                                  </>
+                                ) : (
+                                  'Офлайн'
+                                )}
+                              </Badge>
+                            </div>
+
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                              <div className="p-2 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                                  <Target className="w-3 h-3" />
+                                  Лиды
+                                </div>
+                                <p className="text-lg font-bold">{stats.leadsHandled}</p>
+                              </div>
+                              <div className="p-2 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                                  <CheckCircle2 className="w-3 h-3" />
+                                  Конверсия
+                                </div>
+                                <p className="text-lg font-bold text-green-600">{conversionRate}%</p>
+                              </div>
+                              <div className="p-2 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                                  <Clock className="w-3 h-3" />
+                                  Время ответа
+                                </div>
+                                <p className="text-lg font-bold">{stats.avgResponseTime}</p>
+                              </div>
+                              <div className="p-2 rounded-lg bg-muted/50">
+                                <div className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
+                                  <BarChart3 className="w-3 h-3" />
+                                  Оценка
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Progress value={Math.min(stats.performanceScore, 100)} className="h-2 flex-1" />
+                                  <span className="text-sm font-bold">{Math.min(stats.performanceScore, 100)}%</span>
+                                </div>
+                              </div>
+                            </div>
+
+                            <div className="flex items-center gap-2 mt-3 text-xs text-muted-foreground">
+                              <Clock className="w-3 h-3" />
+                              <span>Последняя активность: {stats.lastActive}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

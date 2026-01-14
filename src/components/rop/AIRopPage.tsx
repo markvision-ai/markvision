@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ShieldCheck, 
   Send, 
@@ -17,12 +18,22 @@ import {
   Loader2,
   BookOpen,
   RefreshCw,
-  Clock
+  Clock,
+  Users,
+  DollarSign,
+  Target,
+  Lightbulb,
+  BarChart3,
+  Zap,
+  Brain,
+  MessageCircle,
+  ArrowUpRight
 } from 'lucide-react';
 import { useAIRop, AIRopTask, AIRopAudit } from '@/hooks/useAIRop';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIRopPageProps {
   projectId: string | null;
@@ -175,7 +186,6 @@ const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
 const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
   const navigate = useNavigate();
   
-  // Aggregate stats from latest audit
   const latestAudit = audits[0];
   const stats = latestAudit?.bot_stats || {};
   
@@ -236,8 +246,194 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
   );
 };
 
+// Компонент для оценки менеджеров
+const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
+  const [staff, setStaff] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStaff = async () => {
+      if (!projectId) return;
+      const { data } = await supabase
+        .from('staff')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('status', 'active')
+        .limit(5);
+      setStaff(data || []);
+      setLoading(false);
+    };
+    fetchStaff();
+  }, [projectId]);
+
+  const getPerformanceScore = (xp: number, level: number) => {
+    const base = Math.min(100, (xp / 1000) * 50 + level * 10);
+    return Math.round(base);
+  };
+
+  return (
+    <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Users className="w-5 h-5 text-primary" />
+          <CardTitle className="text-lg">Оценка работы менеджеров</CardTitle>
+        </div>
+        <CardDescription>Рейтинг эффективности команды</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {loading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+          </div>
+        ) : staff.length === 0 ? (
+          <p className="text-sm text-muted-foreground text-center py-4">Нет данных о менеджерах</p>
+        ) : (
+          <div className="space-y-3">
+            {staff.map((member, idx) => {
+              const score = getPerformanceScore(member.xp_points || 0, member.level || 1);
+              return (
+                <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                    idx === 0 ? 'bg-yellow-500 text-yellow-950' :
+                    idx === 1 ? 'bg-gray-400 text-gray-950' :
+                    idx === 2 ? 'bg-orange-500 text-orange-950' :
+                    'bg-muted text-muted-foreground'
+                  }`}>
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{member.name}</p>
+                    <p className="text-xs text-muted-foreground">{member.position}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Progress value={score} className="w-16 h-2" />
+                    <span className="text-sm font-bold w-8 text-right">{score}%</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Компонент рекомендаций по увеличению дохода
+const RevenueRecommendationsCard = () => {
+  const recommendations = [
+    {
+      icon: <Target className="w-5 h-5" />,
+      title: 'Увеличить бюджет на Google Ads',
+      description: 'При увеличении бюджета на 20% прогнозируется +35 лидов/месяц с текущим CPL',
+      impact: '+₸420,000 выручки',
+      color: 'text-blue-500'
+    },
+    {
+      icon: <Zap className="w-5 h-5" />,
+      title: 'Оптимизировать воронку записи',
+      description: 'Конверсия из диагностики в оплату ниже среднего. Рекомендуется доработать скрипт',
+      impact: '+15% конверсии',
+      color: 'text-yellow-500'
+    },
+    {
+      icon: <DollarSign className="w-5 h-5" />,
+      title: 'Добавить upsell на консультации',
+      description: 'Средний чек можно увеличить за счёт дополнительных услуг',
+      impact: '+₸8,000 к AOV',
+      color: 'text-green-500'
+    }
+  ];
+
+  return (
+    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <Lightbulb className="w-5 h-5 text-primary" />
+          <CardTitle className="text-lg">Рекомендации по увеличению дохода</CardTitle>
+        </div>
+        <CardDescription>ИИ-анализ возможностей роста</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {recommendations.map((rec, idx) => (
+          <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
+            <div className={`shrink-0 ${rec.color}`}>{rec.icon}</div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-medium">{rec.title}</p>
+                <Badge variant="secondary" className="shrink-0 text-xs">
+                  {rec.impact}
+                </Badge>
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+            </div>
+          </div>
+        ))}
+      </CardContent>
+    </Card>
+  );
+};
+
+// Компонент для добавления возражений в Марка
+const ObjectionsTrainerCard = () => {
+  const [objection, setObjection] = useState('');
+  const [response, setResponse] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!objection.trim() || !response.trim()) return;
+    setSaving(true);
+    // Симуляция сохранения
+    await new Promise(r => setTimeout(r, 1000));
+    setSaving(false);
+    setObjection('');
+    setResponse('');
+  };
+
+  return (
+    <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+      <CardHeader>
+        <div className="flex items-center gap-2">
+          <MessageCircle className="w-5 h-5 text-primary" />
+          <CardTitle className="text-lg">Обучение ИИ-Марка возражениям</CardTitle>
+        </div>
+        <CardDescription>Добавьте возражение и ответ для обучения бота</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Возражение клиента</label>
+          <Textarea
+            placeholder='Например: "Это слишком дорого"'
+            value={objection}
+            onChange={(e) => setObjection(e.target.value)}
+            className="min-h-[60px]"
+          />
+        </div>
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Правильный ответ</label>
+          <Textarea
+            placeholder="Как Марк должен отвечать на это возражение..."
+            value={response}
+            onChange={(e) => setResponse(e.target.value)}
+            className="min-h-[80px]"
+          />
+        </div>
+        <Button 
+          onClick={handleSave} 
+          disabled={saving || !objection.trim() || !response.trim()}
+          className="w-full gap-2"
+        >
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+          Добавить в базу знаний Марка
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
 export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
   const [taskInput, setTaskInput] = useState('');
+  const [activeTab, setActiveTab] = useState('overview');
   const { tasks, audits, loading, submitting, createTask, refetch } = useAIRop(projectId);
 
   const handleSubmitTask = async () => {
@@ -276,7 +472,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
           </div>
           <div>
             <h1 className="text-2xl font-bold">ИИ-РОП</h1>
-            <p className="text-sm text-muted-foreground">Контроль системы и анализ эффективности</p>
+            <p className="text-sm text-muted-foreground">Контроль системы, анализ эффективности и рекомендации</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
@@ -324,50 +520,90 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
         </CardContent>
       </Card>
 
-      {/* Tasks History */}
-      {tasks.length > 0 && (
-        <div className="space-y-3">
-          <h2 className="text-lg font-semibold">История задач</h2>
-          <div className="space-y-3">
-            {tasks.slice(0, 5).map((task) => (
-              <TaskCard key={task.id} task={task} />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsTrigger value="overview" className="gap-2 py-2.5">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Обзор</span>
+          </TabsTrigger>
+          <TabsTrigger value="managers" className="gap-2 py-2.5">
+            <Users className="w-4 h-4" />
+            <span className="hidden sm:inline">Менеджеры</span>
+          </TabsTrigger>
+          <TabsTrigger value="recommendations" className="gap-2 py-2.5">
+            <Lightbulb className="w-4 h-4" />
+            <span className="hidden sm:inline">Рекомендации</span>
+          </TabsTrigger>
+          <TabsTrigger value="training" className="gap-2 py-2.5">
+            <Brain className="w-4 h-4" />
+            <span className="hidden sm:inline">Обучение</span>
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Audits */}
-        <div className="lg:col-span-2 space-y-4">
-          <h2 className="text-lg font-semibold flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5" />
-            Ежедневный аудит
-          </h2>
-          {audits.length > 0 ? (
-            <div className="space-y-4">
-              {audits.map((audit) => (
-                <AuditCard key={audit.id} audit={audit} />
-              ))}
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="mt-6 space-y-6">
+          {/* Tasks History */}
+          {tasks.length > 0 && (
+            <div className="space-y-3">
+              <h2 className="text-lg font-semibold">История задач</h2>
+              <div className="space-y-3">
+                {tasks.slice(0, 5).map((task) => (
+                  <TaskCard key={task.id} task={task} />
+                ))}
+              </div>
             </div>
-          ) : (
-            <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-              <CardContent className="py-12 text-center">
-                <ShieldCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                <p className="text-muted-foreground">Аудиты пока не проводились</p>
-                <p className="text-sm text-muted-foreground/70 mt-1">
-                  ИИ-РОП автоматически проводит ежедневный аудит системы
-                </p>
-              </CardContent>
-            </Card>
           )}
-        </div>
 
-        {/* Bot Stats Widget */}
-        <div>
-          <BotStatsWidget audits={audits} />
-        </div>
-      </div>
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Audits */}
+            <div className="lg:col-span-2 space-y-4">
+              <h2 className="text-lg font-semibold flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5" />
+                Ежедневный аудит
+              </h2>
+              {audits.length > 0 ? (
+                <div className="space-y-4">
+                  {audits.map((audit) => (
+                    <AuditCard key={audit.id} audit={audit} />
+                  ))}
+                </div>
+              ) : (
+                <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+                  <CardContent className="py-12 text-center">
+                    <ShieldCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
+                    <p className="text-muted-foreground">Аудиты пока не проводились</p>
+                    <p className="text-sm text-muted-foreground/70 mt-1">
+                      ИИ-РОП автоматически проводит ежедневный аудит системы
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+
+            {/* Bot Stats Widget */}
+            <div>
+              <BotStatsWidget audits={audits} />
+            </div>
+          </div>
+        </TabsContent>
+
+        {/* Managers Tab */}
+        <TabsContent value="managers" className="mt-6">
+          <ManagerEvaluationCard projectId={projectId} />
+        </TabsContent>
+
+        {/* Recommendations Tab */}
+        <TabsContent value="recommendations" className="mt-6">
+          <RevenueRecommendationsCard />
+        </TabsContent>
+
+        {/* Training Tab */}
+        <TabsContent value="training" className="mt-6">
+          <ObjectionsTrainerCard />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

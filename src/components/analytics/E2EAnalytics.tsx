@@ -482,10 +482,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         </div>
       </div>
 
-      {/* Main Layout: Content + AI Analyst */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Main Content - 3 columns */}
-        <div className="xl:col-span-3 space-y-6">
+      {/* Main Layout: Content only (AI Analyst removed - available on dashboard) */}
+      <div className="space-y-6">
           {/* Tabs */}
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
             <TabsList className="grid w-full grid-cols-3 h-auto">
@@ -852,14 +850,6 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             </TabsContent>
           </Tabs>
         </div>
-
-        {/* AI Analyst - Right Sidebar */}
-        <div className="xl:col-span-1">
-          <div className="sticky top-4">
-            <AIAssistant context={aiContext} />
-          </div>
-        </div>
-      </div>
     </div>
   );
 };
