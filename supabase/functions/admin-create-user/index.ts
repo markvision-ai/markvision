@@ -169,18 +169,12 @@ serve(async (req) => {
     const validationResult = CreateUserSchema.safeParse(rawBody);
     
     if (!validationResult.success) {
-      const errorMessages = validationResult.error.issues
-        .map(issue => issue.message)
-        .join("; ");
+      // Log detailed validation errors server-side only
       console.log("Validation failed:", validationResult.error.issues);
       return new Response(
         JSON.stringify({ 
           success: false, 
-          error: errorMessages,
-          validationErrors: validationResult.error.issues.map(i => ({
-            field: i.path.join('.'),
-            message: i.message
-          }))
+          error: "Некорректные данные. Проверьте все поля и попробуйте снова."
         }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
@@ -211,7 +205,7 @@ serve(async (req) => {
     if (createError) {
       console.error("Error creating user:", createError);
       return new Response(
-        JSON.stringify({ success: false, error: createError.message }),
+        JSON.stringify({ success: false, error: "Не удалось создать пользователя. Попробуйте позже." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -256,12 +250,13 @@ serve(async (req) => {
 
       if (recoveryError) {
         console.error("Error generating recovery link:", recoveryError);
-        emailResult = { success: false, error: recoveryError.message };
+        emailResult = { success: false, error: "Не удалось отправить приглашение" };
       } else if (recoveryData?.properties?.action_link) {
         // Send email with the setup link (NOT plaintext password)
         emailResult = await sendWelcomeEmail(email, name, recoveryData.properties.action_link);
       } else {
-        emailResult = { success: false, error: "Failed to generate setup link" };
+        console.error("Recovery link generation returned no action_link");
+        emailResult = { success: false, error: "Не удалось отправить приглашение" };
       }
     }
 
@@ -282,9 +277,9 @@ serve(async (req) => {
     );
 
   } catch (error: any) {
-    console.error("Error:", error);
+    console.error("Unexpected error in admin-create-user:", error);
     return new Response(
-      JSON.stringify({ success: false, error: error.message }),
+      JSON.stringify({ success: false, error: "Произошла внутренняя ошибка. Попробуйте позже." }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
