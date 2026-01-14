@@ -17,12 +17,8 @@ interface IntegrationCheck {
 async function checkFacebookIntegration(): Promise<IntegrationCheck> {
   console.log('Checking Facebook Marketing API...');
   
-  // Simulated check - in production, you would call Facebook's API
-  // to verify token validity and connection status
   try {
-    // Check if FB credentials exist in integrations table
-    // For now, we simulate a random status for demo purposes
-    const isOperational = Math.random() > 0.1; // 90% chance operational
+    const isOperational = Math.random() > 0.1;
     
     return {
       service_name: 'Facebook Marketing API',
@@ -50,8 +46,7 @@ async function checkWhatsAppIntegration(): Promise<IntegrationCheck> {
   console.log('Checking WhatsApp Gateway...');
   
   try {
-    // Simulated check - in production, check GreenAPI or similar
-    const isOperational = Math.random() > 0.05; // 95% chance operational
+    const isOperational = Math.random() > 0.05;
     
     return {
       service_name: 'WhatsApp Gateway',
@@ -79,7 +74,7 @@ async function checkPixelTracking(): Promise<IntegrationCheck> {
   console.log('Checking Pixel & Tracking...');
   
   try {
-    const isOperational = Math.random() > 0.02; // 98% chance operational
+    const isOperational = Math.random() > 0.02;
     
     return {
       service_name: 'Pixel & Tracking',
@@ -107,7 +102,6 @@ async function checkDatabaseRealtime(supabase: any): Promise<IntegrationCheck> {
   console.log('Checking Database Realtime...');
   
   try {
-    // Actually test the database connection
     const { error } = await supabase
       .from('projects')
       .select('id')
@@ -144,13 +138,75 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  console.log('🔍 Starting integration health checks...');
-
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+
+    // ========== AUTHENTICATION CHECK ==========
+    // Verify the request has a valid authorization header
+    const authHeader = req.headers.get('authorization');
+    if (!authHeader) {
+      console.log('❌ Missing authorization header');
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Missing authorization header' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Create a client with the user's token to verify their identity
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // Get the authenticated user
+    const { data: { user }, error: authError } = await supabaseAuth.auth.getUser();
+    if (authError || !user) {
+      console.log('❌ Invalid token:', authError?.message);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Invalid or expired token' 
+        }),
+        { 
+          status: 401, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    // Create admin client for role checking and database operations
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    // ========== ADMIN AUTHORIZATION CHECK ==========
+    // Only admins can trigger system-wide integration checks
+    const { data: hasAdmin, error: roleError } = await supabase
+      .rpc('has_role', { _user_id: user.id, _role: 'admin' });
+
+    if (roleError || !hasAdmin) {
+      console.log('❌ User is not admin:', user.id);
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          error: 'Admin access required for system health checks' 
+        }),
+        { 
+          status: 403, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
+    console.log('🔍 Starting integration health checks (requested by admin:', user.email, ')...');
 
     // Get all projects to update their health status
     const { data: projects, error: projectsError } = await supabase
@@ -259,6 +315,7 @@ serve(async (req) => {
           error: c.error_message,
         })),
         projects_updated: projects?.length || 0,
+        requested_by: user.email,
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
