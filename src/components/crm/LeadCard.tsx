@@ -1,8 +1,7 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
-import { format, differenceInMinutes } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { differenceInMinutes } from 'date-fns';
 import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -11,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { isLeadAutomated } from '@/lib/webhooks';
 import { useState, useEffect } from 'react';
+import { safeFormat, safeParseDate } from '@/lib/dateUtils';
 
 interface LeadCardProps {
   lead: Lead;
@@ -42,9 +42,15 @@ export const LeadCard = ({
     const checkSLA = () => {
       if (lead.status === 'Новая' || lead.status === 'new') {
         const lastUpdate = lead.updated_at || lead.created_at;
-        const minutes = differenceInMinutes(new Date(), new Date(lastUpdate));
-        setMinutesWaiting(minutes);
-        setNeedsAttention(minutes >= 15);
+        const parsedDate = safeParseDate(lastUpdate);
+        if (parsedDate) {
+          const minutes = differenceInMinutes(new Date(), parsedDate);
+          setMinutesWaiting(minutes);
+          setNeedsAttention(minutes >= 15);
+        } else {
+          setNeedsAttention(false);
+          setMinutesWaiting(0);
+        }
       } else {
         setNeedsAttention(false);
         setMinutesWaiting(0);
@@ -285,7 +291,7 @@ export const LeadCard = ({
       <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-9">
         <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
         <span className="truncate">
-          {format(new Date(lead.created_at), 'd MMM yyyy, HH:mm', { locale: ru })}
+          {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', 'Дата неизвестна')}
         </span>
       </div>
 

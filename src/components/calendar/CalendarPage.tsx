@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths, addWeeks, subWeeks } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Lead } from '@/hooks/useLeads';
+import { safeFormat, safeParseDate, isValidDate } from '@/lib/dateUtils';
 
 interface CalendarPageProps {
   projectId: string | null;
@@ -156,9 +157,14 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
   const eventsByDate = useMemo(() => {
     const grouped: Record<string, CalendarEvent[]> = {};
     events.forEach((event) => {
-      const dateKey = format(parseISO(event.appointment_date), 'yyyy-MM-dd');
-      if (!grouped[dateKey]) grouped[dateKey] = [];
-      grouped[dateKey].push(event);
+      const parsedDate = safeParseDate(event.appointment_date);
+      if (parsedDate) {
+        const dateKey = safeFormat(parsedDate, 'yyyy-MM-dd', '');
+        if (dateKey) {
+          if (!grouped[dateKey]) grouped[dateKey] = [];
+          grouped[dateKey].push(event);
+        }
+      }
     });
     return grouped;
   }, [events]);
@@ -255,8 +261,8 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
             </Button>
             <CardTitle className="text-lg">
               {viewMode === 'month' 
-                ? format(currentDate, 'LLLL yyyy', { locale: ru })
-                : `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM', { locale: ru })} - ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM yyyy', { locale: ru })}`
+                ? safeFormat(currentDate, 'LLLL yyyy', 'Месяц')
+                : `${safeFormat(startOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM', '')} - ${safeFormat(endOfWeek(currentDate, { weekStartsOn: 1 }), 'd MMM yyyy', '')}`
               }
             </CardTitle>
             <Button variant="ghost" size="icon" onClick={() => handleNavigate('next')}>
@@ -280,8 +286,8 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
             viewMode === 'week' ? 'min-h-[400px]' : ''
           )}>
             {displayDays.map((day) => {
-              const dateKey = format(day, 'yyyy-MM-dd');
-              const dayEvents = eventsByDate[dateKey] || [];
+              const dateKey = safeFormat(day, 'yyyy-MM-dd', '');
+              const dayEvents = dateKey ? (eventsByDate[dateKey] || []) : [];
               const isToday = isSameDay(day, new Date());
               const isCurrentMonth = isSameMonth(day, currentDate);
 
@@ -300,7 +306,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
                     "text-sm font-medium mb-1",
                     isToday && 'text-primary'
                   )}>
-                    {format(day, 'd')}
+                    {safeFormat(day, 'd', '?')}
                   </div>
 
                   <div className="space-y-1">
@@ -371,7 +377,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
                           {event.clinic_name || event.lead_name}
                         </p>
                         <p className="text-sm text-muted-foreground">
-                          {format(parseISO(event.appointment_date), 'd MMMM, HH:mm', { locale: ru })}
+                          {safeFormat(event.appointment_date, 'd MMMM, HH:mm', 'Дата неизвестна')}
                         </p>
                       </div>
                     </div>
@@ -446,7 +452,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
                 <div className="flex items-center gap-2">
                   <CalendarIcon className="w-4 h-4 text-muted-foreground" />
                   <p className="font-medium">
-                    {format(parseISO(selectedEvent.appointment_date), 'd MMMM yyyy, HH:mm', { locale: ru })}
+                    {safeFormat(selectedEvent.appointment_date, 'd MMMM yyyy, HH:mm', 'Дата неизвестна')}
                   </p>
                 </div>
               </div>
