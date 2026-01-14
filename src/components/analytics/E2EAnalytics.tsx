@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { 
   Zap, 
   TrendingUp, 
   TrendingDown,
   FileBarChart, 
   Globe, 
-  ArrowRight,
   BarChart3,
   Target,
   MousePointer,
@@ -15,21 +14,27 @@ import {
   ChevronRight,
   Loader2,
   Percent,
-  Clock,
   Award,
   AlertCircle,
   LineChart as LineChartIcon,
-  Link2
+  PieChart as PieChartIcon,
+  SplitSquareVertical,
+  Radio
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { UTMAnalytics } from '@/components/utm/UTMAnalytics';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
-import { format, parseISO, startOfDay } from 'date-fns';
+import { 
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  PieChart, Pie, Cell, BarChart, Bar
+} from 'recharts';
+import { format, parseISO, startOfDay, isWithinInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { AIAssistant } from './AIAssistant';
 
 interface E2EAnalyticsProps {
   totals: {
@@ -44,29 +49,41 @@ interface E2EAnalyticsProps {
   projectId?: string | null;
 }
 
-interface SourceStats {
-  source: string;
-  sourceLabel: string;
-  icon: string;
-  color: string;
+interface Lead {
+  id: string;
+  name: string | null;
+  status: string | null;
+  deal_amount: number | null;
+  utm_source: string | null;
+  utm_campaign: string | null;
+  created_at: string;
+  extra_data: { site_url?: string } | null;
+}
+
+interface DailyData {
+  id: string;
+  date: string;
+  spend: number;
+  clicks: number;
+  impressions: number;
   leads: number;
+  diagnostics: number;
   sales: number;
   revenue: number;
-  spend: number;
-  cpl: number;
-  romi: number;
-  conversionRate: number;
 }
 
-interface StatusStats {
-  status: string;
-  label: string;
-  count: number;
-  percentage: number;
-  color: string;
+interface DateRange {
+  from: Date;
+  to: Date;
 }
 
+// Format currency with rounding
 const formatCurrency = (value: number): string => {
+  const rounded = Math.round(value);
+  return new Intl.NumberFormat('ru-RU').format(rounded) + ' ₸';
+};
+
+const formatCurrencyShort = (value: number): string => {
   const rounded = Math.round(value);
   if (rounded >= 1000000) return (rounded / 1000000).toFixed(1) + 'M ₸';
   if (rounded >= 1000) return Math.round(rounded / 1000) + 'K ₸';
@@ -79,28 +96,22 @@ const formatNumber = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; order: number }> = {
-  new: { label: 'Новый', color: 'bg-blue-500', order: 1 },
-  contacted: { label: 'Связались', color: 'bg-purple-500', order: 2 },
-  diagnostic: { label: 'На диагностике', color: 'bg-yellow-500', order: 3 },
-  qualified: { label: 'Квалифицирован', color: 'bg-cyan-500', order: 4 },
-  proposal: { label: 'Предложение', color: 'bg-orange-500', order: 5 },
-  purchased: { label: 'Купил', color: 'bg-green-500', order: 6 },
-  rejected: { label: 'Отказ', color: 'bg-red-500', order: 7 },
+const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
+  google: { label: 'Google Ads', icon: '🔍', color: '#EA4335' },
+  facebook: { label: 'Facebook', icon: '📘', color: '#1877F2' },
+  instagram: { label: 'Instagram', icon: '📷', color: '#E4405F' },
+  tiktok: { label: 'TikTok', icon: '🎵', color: '#000000' },
+  youtube: { label: 'YouTube', icon: '▶️', color: '#FF0000' },
+  yandex: { label: 'Яндекс', icon: '🟡', color: '#FFCC00' },
+  vk: { label: 'VK', icon: '💬', color: '#4680C2' },
+  telegram: { label: 'Telegram', icon: '✈️', color: '#0088CC' },
+  whatsapp: { label: 'WhatsApp', icon: '💬', color: '#25D366' },
+  manual: { label: 'Ручной ввод', icon: '✍️', color: '#6B7280' },
+  direct: { label: 'Прямой трафик', icon: '🔗', color: '#6B7280' },
+  other: { label: 'Другое', icon: '📊', color: '#9CA3AF' },
 };
 
-const SOURCE_CONFIG: Record<string, { label: string; icon: string; color: string }> = {
-  google: { label: 'Google Ads', icon: '🔍', color: 'bg-red-500' },
-  facebook: { label: 'Facebook', icon: '📘', color: 'bg-blue-600' },
-  instagram: { label: 'Instagram', icon: '📷', color: 'bg-pink-500' },
-  tiktok: { label: 'TikTok', icon: '🎵', color: 'bg-slate-800' },
-  youtube: { label: 'YouTube', icon: '▶️', color: 'bg-red-600' },
-  yandex: { label: 'Яндекс', icon: '🟡', color: 'bg-yellow-500' },
-  vk: { label: 'VK', icon: '💬', color: 'bg-blue-500' },
-  telegram: { label: 'Telegram', icon: '✈️', color: 'bg-sky-500' },
-  direct: { label: 'Прямой трафик', icon: '🔗', color: 'bg-gray-500' },
-  other: { label: 'Другое', icon: '📊', color: 'bg-gray-400' },
-};
+const PIE_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
 
 const getSourceCategory = (utm_source: string | null): string => {
   if (!utm_source) return 'direct';
@@ -113,276 +124,357 @@ const getSourceCategory = (utm_source: string | null): string => {
   if (s.includes('yandex') || s.includes('ya')) return 'yandex';
   if (s.includes('vk') || s.includes('vkontakte')) return 'vk';
   if (s.includes('telegram') || s.includes('tg')) return 'telegram';
+  if (s.includes('whatsapp') || s.includes('wa')) return 'whatsapp';
+  if (s.includes('manual')) return 'manual';
   return 'other';
 };
 
+// Diagnostic statuses
+const DIAGNOSTIC_STATUSES = ['diagnostic', 'qualified', 'proposal', 'purchased'];
+const SALE_STATUSES = ['purchased'];
+
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
-  const [activeView, setActiveView] = useState<'e2e' | 'utm'>('e2e');
-  const [leads, setLeads] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState<'sales-roi' | 'split-tests' | 'sources'>('sales-roi');
+  const [leads, setLeads] = useState<Lead[]>([]);
+  const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [dateRange, setDateRange] = useState<DateRange>({
+    from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+    to: new Date()
+  });
 
-  useEffect(() => {
-    const fetchLeads = async () => {
-      if (!projectId) {
-        setLeads([]);
-        setLoading(false);
-        return;
+  // Fetch leads data
+  const fetchLeads = useCallback(async () => {
+    if (!projectId) {
+      setLeads([]);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, name, status, deal_amount, utm_source, utm_campaign, created_at, extra_data')
+        .eq('project_id', projectId);
+
+      if (error) throw error;
+      setLeads((data || []) as Lead[]);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error fetching leads:', error);
       }
-
-      setLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from('leads')
-          .select('*')
-          .eq('project_id', projectId);
-
-        if (error) throw error;
-        setLeads(data || []);
-      } catch (error) {
-        console.error('Error fetching leads for analytics:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchLeads();
+    }
   }, [projectId]);
 
-  // Calculate source statistics
-  const sourceStats = useMemo((): SourceStats[] => {
-    const grouped: Record<string, { leads: number; sales: number; revenue: number }> = {};
+  // Fetch daily marketing data
+  const fetchDailyData = useCallback(async () => {
+    if (!projectId) {
+      setDailyData([]);
+      return;
+    }
 
-    leads.forEach(lead => {
-      const source = getSourceCategory(lead.utm_source);
-      if (!grouped[source]) {
-        grouped[source] = { leads: 0, sales: 0, revenue: 0 };
+    try {
+      const { data, error } = await supabase
+        .from('daily_data')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('date', { ascending: true });
+
+      if (error) throw error;
+      setDailyData((data || []) as DailyData[]);
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error fetching daily data:', error);
       }
-      grouped[source].leads++;
-      if (lead.status === 'purchased') {
-        grouped[source].sales++;
-        grouped[source].revenue += lead.deal_amount || 0;
-      }
-    });
+    }
+  }, [projectId]);
 
-    // Distribute spend proportionally based on leads
-    const totalLeadsFromData = leads.length || 1;
-    
-    return Object.entries(grouped)
-      .map(([source, data]) => {
-        const config = SOURCE_CONFIG[source] || SOURCE_CONFIG.other;
-        const proportionalSpend = (data.leads / totalLeadsFromData) * totals.spend;
-        const profit = data.revenue - proportionalSpend;
-        const romi = proportionalSpend > 0 ? (profit / proportionalSpend) * 100 : 0;
-        const cpl = data.leads > 0 ? proportionalSpend / data.leads : 0;
-        const conversionRate = data.leads > 0 ? (data.sales / data.leads) * 100 : 0;
-
-        return {
-          source,
-          sourceLabel: config.label,
-          icon: config.icon,
-          color: config.color,
-          leads: data.leads,
-          sales: data.sales,
-          revenue: data.revenue,
-          spend: proportionalSpend,
-          cpl,
-          romi,
-          conversionRate
-        };
-      })
-      .sort((a, b) => b.leads - a.leads);
-  }, [leads, totals.spend]);
-
-  // Calculate status funnel stats
-  const statusStats = useMemo((): StatusStats[] => {
-    const totalLeads = leads.length || 1;
-    const statusCounts: Record<string, number> = {};
-
-    leads.forEach(lead => {
-      const status = lead.status || 'new';
-      statusCounts[status] = (statusCounts[status] || 0) + 1;
-    });
-
-    return Object.entries(STATUS_CONFIG)
-      .map(([status, config]) => ({
-        status,
-        label: config.label,
-        count: statusCounts[status] || 0,
-        percentage: ((statusCounts[status] || 0) / totalLeads) * 100,
-        color: config.color,
-        order: config.order
-      }))
-      .sort((a, b) => a.order - b.order);
-  }, [leads]);
-
-  // Calculate sales team metrics
-  const salesMetrics = useMemo(() => {
-    const totalLeads = leads.length;
-    const salesCount = leads.filter(l => l.status === 'purchased').length;
-    const rejectedCount = leads.filter(l => l.status === 'rejected').length;
-    const contactedCount = leads.filter(l => l.status !== 'new').length;
-    const diagCount = leads.filter(l => ['diagnostic', 'qualified', 'proposal', 'purchased'].includes(l.status || '')).length;
-    
-    const totalRevenue = leads
-      .filter(l => l.status === 'purchased')
-      .reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-    
-    const avgDeal = salesCount > 0 ? totalRevenue / salesCount : 0;
-    
-    return {
-      totalLeads,
-      salesCount,
-      rejectedCount,
-      contactedCount,
-      diagCount,
-      totalRevenue,
-      avgDeal,
-      contactRate: totalLeads > 0 ? (contactedCount / totalLeads) * 100 : 0,
-      diagRate: contactedCount > 0 ? (diagCount / contactedCount) * 100 : 0,
-      closeRate: totalLeads > 0 ? (salesCount / totalLeads) * 100 : 0,
-      rejectRate: totalLeads > 0 ? (rejectedCount / totalLeads) * 100 : 0,
+  // Initial data fetch
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchLeads(), fetchDailyData()]);
+      setLoading(false);
     };
-  }, [leads]);
+    loadData();
+  }, [fetchLeads, fetchDailyData]);
 
-  // Top campaigns by revenue
-  const topCampaigns = useMemo(() => {
-    const campaigns: Record<string, { leads: number; sales: number; revenue: number }> = {};
+  // Realtime subscription for leads
+  useEffect(() => {
+    if (!projectId) return;
 
-    leads.forEach(lead => {
-      const campaign = lead.utm_campaign || 'Без кампании';
-      if (!campaigns[campaign]) {
-        campaigns[campaign] = { leads: 0, sales: 0, revenue: 0 };
+    const channel = supabase
+      .channel('e2e-analytics-leads')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          fetchLeads();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, fetchLeads]);
+
+  // Filter data by date range
+  const filteredLeads = useMemo(() => {
+    return leads.filter(lead => {
+      const leadDate = parseISO(lead.created_at);
+      return isWithinInterval(leadDate, { start: dateRange.from, end: dateRange.to });
+    });
+  }, [leads, dateRange]);
+
+  const filteredDailyData = useMemo(() => {
+    return dailyData.filter(day => {
+      const dayDate = parseISO(day.date);
+      return isWithinInterval(dayDate, { start: dateRange.from, end: dateRange.to });
+    });
+  }, [dailyData, dateRange]);
+
+  // Aggregate totals from filtered data
+  const filteredTotals = useMemo(() => {
+    const t = filteredDailyData.reduce((acc, day) => ({
+      spend: acc.spend + Number(day.spend || 0),
+      clicks: acc.clicks + Number(day.clicks || 0),
+      impressions: acc.impressions + Number(day.impressions || 0),
+      leads: acc.leads + Number(day.leads || 0),
+      diagnostics: acc.diagnostics + Number(day.diagnostics || 0),
+      sales: acc.sales + Number(day.sales || 0),
+      revenue: acc.revenue + Number(day.revenue || 0),
+    }), { spend: 0, clicks: 0, impressions: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 });
+
+    // If no daily data, use leads data
+    if (filteredDailyData.length === 0) {
+      const leadsCount = filteredLeads.length;
+      const diagCount = filteredLeads.filter(l => DIAGNOSTIC_STATUSES.includes(l.status || '')).length;
+      const salesCount = filteredLeads.filter(l => SALE_STATUSES.includes(l.status || '')).length;
+      const revenueSum = filteredLeads.filter(l => l.status === 'purchased').reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+      
+      return {
+        ...totals,
+        leads: leadsCount || totals.leads,
+        diagnostics: diagCount || totals.diagnostics,
+        sales: salesCount || totals.sales,
+        revenue: revenueSum || totals.revenue,
+      };
+    }
+
+    return t;
+  }, [filteredDailyData, filteredLeads, totals]);
+
+  // ==================== TAB 1: Sales ROI (by site_url) ====================
+  const siteStats = useMemo(() => {
+    const sites: Record<string, { 
+      leads: number; 
+      diagnostics: number; 
+      sales: number; 
+      revenue: number;
+    }> = {};
+
+    filteredLeads.forEach(lead => {
+      const siteUrl = lead.extra_data?.site_url || lead.utm_campaign || 'Не указан';
+      if (!sites[siteUrl]) {
+        sites[siteUrl] = { leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
       }
-      campaigns[campaign].leads++;
+      sites[siteUrl].leads++;
+      if (DIAGNOSTIC_STATUSES.includes(lead.status || '')) {
+        sites[siteUrl].diagnostics++;
+      }
       if (lead.status === 'purchased') {
-        campaigns[campaign].sales++;
-        campaigns[campaign].revenue += lead.deal_amount || 0;
+        sites[siteUrl].sales++;
+        sites[siteUrl].revenue += lead.deal_amount || 0;
       }
     });
 
-    return Object.entries(campaigns)
-      .map(([name, data]) => ({
-        name,
-        ...data,
-        conversionRate: data.leads > 0 ? (data.sales / data.leads) * 100 : 0
-      }))
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
-  }, [leads]);
+    return Object.entries(sites).map(([site, data]) => ({
+      site,
+      leads: data.leads,
+      diagnostics: data.diagnostics,
+      sales: data.sales,
+      revenue: data.revenue,
+      cr2: data.leads > 0 ? (data.sales / data.leads) * 100 : 0,
+      roi: data.revenue > 0 ? ((data.revenue - (filteredTotals.spend * (data.leads / (filteredLeads.length || 1)))) / (filteredTotals.spend * (data.leads / (filteredLeads.length || 1)))) * 100 : 0
+    })).sort((a, b) => b.revenue - a.revenue);
+  }, [filteredLeads, filteredTotals]);
 
-  // Calculate daily dynamics for leads and sales
-  const dailyDynamics = useMemo(() => {
-    const dailyData: Record<string, { date: string; leads: number; sales: number; revenue: number }> = {};
+  const siteRevenuePieData = useMemo(() => {
+    return siteStats.filter(s => s.revenue > 0).map((s, i) => ({
+      name: s.site.length > 20 ? s.site.substring(0, 20) + '...' : s.site,
+      value: s.revenue,
+      fill: PIE_COLORS[i % PIE_COLORS.length]
+    }));
+  }, [siteStats]);
 
-    leads.forEach(lead => {
+  // ==================== TAB 2: Split Tests (by site_url / offer) ====================
+  const splitTestStats = useMemo(() => {
+    const offers: Record<string, { leads: number }> = {};
+    
+    filteredLeads.forEach(lead => {
+      const offer = lead.extra_data?.site_url || lead.utm_campaign || 'Не указан';
+      if (!offers[offer]) {
+        offers[offer] = { leads: 0 };
+      }
+      offers[offer].leads++;
+    });
+
+    const totalLeads = filteredLeads.length || 1;
+
+    return Object.entries(offers).map(([offer, data]) => {
+      const proportionalSpend = (data.leads / totalLeads) * filteredTotals.spend;
+      const proportionalClicks = (data.leads / totalLeads) * filteredTotals.clicks;
+      const cr1 = proportionalClicks > 0 ? (data.leads / proportionalClicks) * 100 : 0;
+      const cpl = data.leads > 0 ? proportionalSpend / data.leads : 0;
+      
+      return {
+        offer,
+        spend: proportionalSpend,
+        clicks: proportionalClicks,
+        leads: data.leads,
+        cr1,
+        cpl
+      };
+    }).sort((a, b) => b.leads - a.leads);
+  }, [filteredLeads, filteredTotals]);
+
+  // Daily leads dynamics for Split Tests tab
+  const dailyLeadsDynamics = useMemo(() => {
+    const daily: Record<string, { date: string; leads: number }> = {};
+
+    filteredLeads.forEach(lead => {
       const dateKey = format(startOfDay(parseISO(lead.created_at)), 'yyyy-MM-dd');
-      if (!dailyData[dateKey]) {
-        dailyData[dateKey] = { date: dateKey, leads: 0, sales: 0, revenue: 0 };
+      if (!daily[dateKey]) {
+        daily[dateKey] = { date: dateKey, leads: 0 };
       }
-      dailyData[dateKey].leads++;
-      if (lead.status === 'purchased') {
-        dailyData[dateKey].sales++;
-        dailyData[dateKey].revenue += lead.deal_amount || 0;
-      }
+      daily[dateKey].leads++;
     });
 
-    return Object.values(dailyData)
+    return Object.values(daily)
       .sort((a, b) => a.date.localeCompare(b.date))
       .map(day => ({
         ...day,
         dateLabel: format(parseISO(day.date), 'd MMM', { locale: ru })
       }));
-  }, [leads]);
+  }, [filteredLeads]);
 
-  const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
-  const leadConv = totals.clicks > 0 ? (totals.leads / totals.clicks) * 100 : 0;
-  const saleConv = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
-  const profit = totals.revenue - totals.spend;
-  const romi = totals.spend > 0 ? (profit / totals.spend) * 100 : 0;
+  // ==================== TAB 3: Traffic Sources (by utm_source) ====================
+  const sourceStats = useMemo(() => {
+    const sources: Record<string, { leads: number; diagnostics: number; sales: number; revenue: number }> = {};
 
-  const funnelSteps = [
-    { 
-      icon: Globe, 
-      label: 'Показы', 
-      value: totals.impressions, 
-      color: 'from-blue-500 to-blue-600',
-      bgColor: 'bg-blue-500/10',
-      textColor: 'text-blue-500'
-    },
-    { 
-      icon: MousePointer, 
-      label: 'Клики', 
-      value: totals.clicks, 
-      conversion: ctr,
-      color: 'from-cyan-500 to-cyan-600',
-      bgColor: 'bg-cyan-500/10',
-      textColor: 'text-cyan-500'
-    },
-    { 
-      icon: Users, 
-      label: 'Лиды', 
-      value: totals.leads, 
-      conversion: leadConv,
-      color: 'from-violet-500 to-violet-600',
-      bgColor: 'bg-violet-500/10',
-      textColor: 'text-violet-500'
-    },
-    { 
-      icon: Target, 
-      label: 'Диагностики', 
-      value: totals.diagnostics, 
-      conversion: totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : 0,
-      color: 'from-amber-500 to-amber-600',
-      bgColor: 'bg-amber-500/10',
-      textColor: 'text-amber-500'
-    },
-    { 
-      icon: ShoppingCart, 
-      label: 'Продажи', 
-      value: totals.sales, 
-      conversion: saleConv,
-      color: 'from-emerald-500 to-emerald-600',
-      bgColor: 'bg-emerald-500/10',
-      textColor: 'text-emerald-500'
-    },
-    { 
-      icon: DollarSign, 
-      label: 'Прибыль', 
-      value: profit, 
-      isCurrency: true,
-      color: 'from-green-500 to-green-600',
-      bgColor: 'bg-green-500/10',
-      textColor: 'text-green-500'
-    },
-  ];
+    filteredLeads.forEach(lead => {
+      const source = getSourceCategory(lead.utm_source);
+      if (!sources[source]) {
+        sources[source] = { leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+      }
+      sources[source].leads++;
+      if (DIAGNOSTIC_STATUSES.includes(lead.status || '')) {
+        sources[source].diagnostics++;
+      }
+      if (lead.status === 'purchased') {
+        sources[source].sales++;
+        sources[source].revenue += lead.deal_amount || 0;
+      }
+    });
+
+    const totalLeads = filteredLeads.length || 1;
+
+    return Object.entries(sources).map(([source, data]) => {
+      const config = SOURCE_CONFIG[source] || SOURCE_CONFIG.other;
+      const proportionalSpend = (data.leads / totalLeads) * filteredTotals.spend;
+      const costPerDiagnostic = data.diagnostics > 0 ? proportionalSpend / data.diagnostics : 0;
+      
+      return {
+        source,
+        label: config.label,
+        icon: config.icon,
+        color: config.color,
+        leads: data.leads,
+        diagnostics: data.diagnostics,
+        sales: data.sales,
+        revenue: data.revenue,
+        spend: proportionalSpend,
+        costPerDiagnostic
+      };
+    }).sort((a, b) => b.leads - a.leads);
+  }, [filteredLeads, filteredTotals]);
+
+  // Source conversion bar chart data
+  const sourceConversionData = useMemo(() => {
+    return sourceStats.map(s => ({
+      name: s.label,
+      leads: s.leads,
+      diagnostics: s.diagnostics,
+      sales: s.sales,
+      conversion: s.leads > 0 ? (s.diagnostics / s.leads) * 100 : 0
+    }));
+  }, [sourceStats]);
+
+  // AI context based on active tab
+  const aiContext = useMemo(() => {
+    const baseContext = {
+      spend: filteredTotals.spend,
+      impressions: filteredTotals.impressions,
+      clicks: filteredTotals.clicks,
+      leads: filteredTotals.leads,
+      diagnostics: filteredTotals.diagnostics,
+      sales: filteredTotals.sales,
+      revenue: filteredTotals.revenue,
+      cpl: filteredTotals.leads > 0 ? filteredTotals.spend / filteredTotals.leads : 0,
+      cac: filteredTotals.sales > 0 ? filteredTotals.spend / filteredTotals.sales : 0,
+      aov: filteredTotals.sales > 0 ? filteredTotals.revenue / filteredTotals.sales : 0,
+      romi: filteredTotals.spend > 0 ? ((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100 : 0,
+      projectId: projectId || undefined
+    };
+
+    // Add tab-specific context
+    if (activeTab === 'sales-roi') {
+      return {
+        ...baseContext,
+        tabName: 'Эффективность сайтов',
+        topSites: siteStats.slice(0, 3).map(s => `${s.site}: ${s.leads} лидов, ${formatCurrency(s.revenue)} выручки`).join('; ')
+      };
+    } else if (activeTab === 'split-tests') {
+      return {
+        ...baseContext,
+        tabName: 'Сплит-тесты маркетинга',
+        topOffers: splitTestStats.slice(0, 3).map(s => `${s.offer}: ${formatCurrency(s.cpl)} CPL`).join('; ')
+      };
+    } else {
+      return {
+        ...baseContext,
+        tabName: 'Источники трафика',
+        topSources: sourceStats.slice(0, 3).map(s => `${s.label}: ${s.leads} лидов`).join('; ')
+      };
+    }
+  }, [activeTab, filteredTotals, siteStats, splitTestStats, sourceStats, projectId]);
+
+  const romi = filteredTotals.spend > 0 ? ((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100 : 0;
 
   return (
     <div className="space-y-6">
-      {/* Header with Tabs */}
+      {/* Header */}
       <div className="bg-gradient-to-br from-primary/10 via-accent/5 to-background border rounded-2xl p-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
               <Zap className="w-6 h-6 text-primary" />
               <h2 className="text-2xl font-bold">Сквозная аналитика</h2>
             </div>
-            <p className="text-muted-foreground max-w-xl">
-              Анализируйте эффективность рекламы от показа до прибыли
+            <p className="text-muted-foreground">
+              Анализируйте эффективность рекламы от клика до прибыли
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Tabs value={activeView} onValueChange={(v) => setActiveView(v as 'e2e' | 'utm')}>
-              <TabsList className="bg-background/50">
-                <TabsTrigger value="e2e" className="gap-2">
-                  <BarChart3 className="w-4 h-4" />
-                  ROI
-                </TabsTrigger>
-                <TabsTrigger value="utm" className="gap-2">
-                  <Link2 className="w-4 h-4" />
-                  UTM
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center gap-3 flex-wrap">
+            <DateRangePicker 
+              dateRange={dateRange} 
+              onDateRangeChange={setDateRange} 
+            />
             <Badge variant="secondary" className="text-xs">
               ROMI: {romi.toFixed(0)}%
             </Badge>
@@ -390,373 +482,384 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         </div>
       </div>
 
-      {activeView === 'utm' && projectId ? (
-        <UTMAnalytics projectId={projectId} />
-      ) : activeView === 'utm' ? (
-        <div className="bg-card border rounded-xl p-12 text-center">
-          <AlertCircle className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-          <p className="text-muted-foreground">Выберите проект для просмотра UTM-аналитики</p>
-        </div>
-      ) : (
-        <>
+      {/* Main Layout: Content + AI Analyst */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Main Content - 3 columns */}
+        <div className="xl:col-span-3 space-y-6">
+          {/* Tabs */}
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="sales-roi" className="gap-2 py-3">
+                <DollarSign className="w-4 h-4" />
+                <span className="hidden sm:inline">Эффективность сайтов</span>
+                <span className="sm:hidden">Sales ROI</span>
+              </TabsTrigger>
+              <TabsTrigger value="split-tests" className="gap-2 py-3">
+                <SplitSquareVertical className="w-4 h-4" />
+                <span className="hidden sm:inline">Сплит-тесты</span>
+                <span className="sm:hidden">Сплит</span>
+              </TabsTrigger>
+              <TabsTrigger value="sources" className="gap-2 py-3">
+                <Radio className="w-4 h-4" />
+                <span className="hidden sm:inline">Источники трафика</span>
+                <span className="sm:hidden">Источники</span>
+              </TabsTrigger>
+            </TabsList>
 
-      {/* End-to-End Funnel */}
-      <div className="bg-card border rounded-xl p-6">
-        <h3 className="font-semibold mb-6 flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-primary" />
-          Путь клиента: от показа до прибыли
-        </h3>
-        
-        <div className="flex items-center justify-between gap-2 overflow-x-auto pb-4">
-          {funnelSteps.map((step, index) => {
-            const Icon = step.icon;
-            return (
-              <div key={step.label} className="flex items-center">
-                <div className="flex flex-col items-center min-w-[100px]">
-                  <div className={`w-14 h-14 rounded-2xl ${step.bgColor} flex items-center justify-center mb-3 transition-transform hover:scale-110`}>
-                    <Icon className={`w-7 h-7 ${step.textColor}`} />
-                  </div>
-                  <p className="text-xs text-muted-foreground mb-1">{step.label}</p>
-                  <p className="text-lg font-bold">
-                    {step.isCurrency ? formatCurrency(step.value) : formatNumber(step.value)}
-                  </p>
-                  {step.conversion !== undefined && (
-                    <Badge variant="outline" className="mt-1 text-xs">
-                      {step.conversion.toFixed(1)}%
-                    </Badge>
-                  )}
+            {/* TAB 1: Sales ROI */}
+            <TabsContent value="sales-roi" className="space-y-6 mt-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-                {index < funnelSteps.length - 1 && (
-                  <ChevronRight className="w-5 h-5 text-muted-foreground mx-2 flex-shrink-0" />
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Daily Dynamics Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Leads Dynamics Chart */}
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <LineChartIcon className="w-5 h-5 text-primary" />
-            Динамика лидов по дням
-          </h3>
-          
-          {loading ? (
-            <div className="flex items-center justify-center h-[250px]">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : dailyDynamics.length === 0 ? (
-            <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-              <div className="text-center">
-                <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Нет данных для отображения</p>
-              </div>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={dailyDynamics}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="dateLabel" 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  stroke="hsl(var(--border))"
-                />
-                <YAxis 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  stroke="hsl(var(--border))"
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="leads" 
-                  stroke="hsl(221.2 83.2% 53.3%)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(221.2 83.2% 53.3%)', r: 4 }}
-                  name="Лиды"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-
-        {/* Sales & Revenue Dynamics Chart */}
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <TrendingUp className="w-5 h-5 text-green-500" />
-            Динамика продаж по дням
-          </h3>
-          
-          {loading ? (
-            <div className="flex items-center justify-center h-[250px]">
-              <Loader2 className="w-6 h-6 animate-spin text-primary" />
-            </div>
-          ) : dailyDynamics.length === 0 ? (
-            <div className="flex items-center justify-center h-[250px] text-muted-foreground">
-              <div className="text-center">
-                <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p>Нет данных для отображения</p>
-              </div>
-            </div>
-          ) : (
-            <ResponsiveContainer width="100%" height={250}>
-              <LineChart data={dailyDynamics}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="dateLabel" 
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  stroke="hsl(var(--border))"
-                />
-                <YAxis 
-                  yAxisId="left"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  stroke="hsl(var(--border))"
-                />
-                <YAxis 
-                  yAxisId="right"
-                  orientation="right"
-                  tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
-                  stroke="hsl(var(--border))"
-                  tickFormatter={(value) => `${Math.round(value / 1000)}K`}
-                />
-                <Tooltip 
-                  contentStyle={{ 
-                    backgroundColor: 'hsl(var(--card))', 
-                    border: '1px solid hsl(var(--border))',
-                    borderRadius: '8px'
-                  }}
-                  labelStyle={{ color: 'hsl(var(--foreground))' }}
-                  formatter={(value: number, name: string) => {
-                    if (name === 'Выручка') return [formatCurrency(value), name];
-                    return [value, name];
-                  }}
-                />
-                <Legend />
-                <Line 
-                  type="monotone" 
-                  dataKey="sales" 
-                  stroke="hsl(142.1 76.2% 36.3%)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(142.1 76.2% 36.3%)', r: 4 }}
-                  name="Продажи"
-                  yAxisId="left"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="revenue" 
-                  stroke="hsl(262.1 83.3% 57.8%)" 
-                  strokeWidth={2}
-                  dot={{ fill: 'hsl(262.1 83.3% 57.8%)', r: 4 }}
-                  name="Выручка"
-                  yAxisId="right"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          )}
-        </div>
-      </div>
-
-      {/* Source Performance Table */}
-      <div className="bg-card border rounded-xl p-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Globe className="w-5 h-5 text-primary" />
-          Эффективность по источникам
-        </h3>
-        
-        {loading ? (
-          <div className="flex items-center justify-center py-8">
-            <Loader2 className="w-6 h-6 animate-spin text-primary" />
-          </div>
-        ) : sourceStats.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>Нет данных по источникам</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-secondary/50">
-                <tr>
-                  <th className="text-left p-3 text-sm font-medium text-muted-foreground">Источник</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Расход</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">CPL</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Продажи</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Конверсия</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">Выручка</th>
-                  <th className="text-right p-3 text-sm font-medium text-muted-foreground">ROMI</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-border">
-                {sourceStats.map((source) => (
-                  <tr key={source.source} className="hover:bg-secondary/30 transition-colors">
-                    <td className="p-3">
-                      <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-lg ${source.color} flex items-center justify-center`}>
-                          <span className="text-sm">{source.icon}</span>
+              ) : (
+                <>
+                  {/* Site Performance Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Globe className="w-5 h-5 text-primary" />
+                        Эффективность по сайтам (Sales ROI)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {siteStats.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных. Добавьте site_url в extra_data лидов</p>
                         </div>
-                        <span className="font-medium">{source.sourceLabel}</span>
-                      </div>
-                    </td>
-                    <td className="p-3 text-right font-medium">{source.leads}</td>
-                    <td className="p-3 text-right">{formatCurrency(source.spend)}</td>
-                    <td className="p-3 text-right">{formatCurrency(source.cpl)}</td>
-                    <td className="p-3 text-right font-medium text-green-500">{source.sales}</td>
-                    <td className="p-3 text-right">
-                      <Badge variant="outline">{source.conversionRate.toFixed(1)}%</Badge>
-                    </td>
-                    <td className="p-3 text-right font-medium text-green-500">{formatCurrency(source.revenue)}</td>
-                    <td className="p-3 text-right">
-                      <Badge className={source.romi >= 100 ? 'bg-green-500/20 text-green-500' : source.romi >= 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-500'}>
-                        {source.romi.toFixed(0)}%
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-secondary/50">
+                              <tr>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Сайт</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Диагностики</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">CR2 %</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Выручка</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">ROI</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                              {siteStats.map((site) => (
+                                <tr key={site.site} className="hover:bg-secondary/30 transition-colors">
+                                  <td className="p-3 font-medium max-w-[200px] truncate">{site.site}</td>
+                                  <td className="p-3 text-right">{site.leads}</td>
+                                  <td className="p-3 text-right">{site.diagnostics}</td>
+                                  <td className="p-3 text-right">
+                                    <Badge variant="outline">{site.cr2.toFixed(1)}%</Badge>
+                                  </td>
+                                  <td className="p-3 text-right font-medium text-green-500">
+                                    {formatCurrency(site.revenue)}
+                                  </td>
+                                  <td className="p-3 text-right">
+                                    <Badge className={site.roi >= 100 ? 'bg-green-500/20 text-green-500' : site.roi >= 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-500'}>
+                                      {site.roi.toFixed(0)}%
+                                    </Badge>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
 
-      {/* Sales Team Efficiency */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales Metrics */}
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Award className="w-5 h-5 text-primary" />
-            Эффективность отдела продаж
-          </h3>
-          
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-1">Всего лидов</p>
-                <p className="text-2xl font-bold">{salesMetrics.totalLeads}</p>
-              </div>
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-1">Продаж</p>
-                <p className="text-2xl font-bold text-green-500">{salesMetrics.salesCount}</p>
-              </div>
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-1">Средний чек</p>
-                <p className="text-2xl font-bold">{formatCurrency(salesMetrics.avgDeal)}</p>
-              </div>
-              <div className="bg-secondary/50 rounded-lg p-4">
-                <p className="text-sm text-muted-foreground mb-1">Выручка</p>
-                <p className="text-2xl font-bold text-green-500">{formatCurrency(salesMetrics.totalRevenue)}</p>
-              </div>
-            </div>
+                  {/* Revenue Pie Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <PieChartIcon className="w-5 h-5 text-primary" />
+                        Доля выручки по сайтам
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {siteRevenuePieData.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных о выручке</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <PieChart>
+                            <Pie
+                              data={siteRevenuePieData}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={60}
+                              outerRadius={100}
+                              paddingAngle={2}
+                              dataKey="value"
+                              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                            >
+                              {siteRevenuePieData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Pie>
+                            <Tooltip 
+                              formatter={(value: number) => formatCurrency(value)}
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </TabsContent>
 
-            <div className="space-y-3 pt-4">
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Конверсия в контакт</span>
-                  <span className="font-medium">{salesMetrics.contactRate.toFixed(1)}%</span>
+            {/* TAB 2: Split Tests */}
+            <TabsContent value="split-tests" className="space-y-6 mt-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-                <Progress value={salesMetrics.contactRate} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground">Конверсия в диагностику</span>
-                  <span className="font-medium">{salesMetrics.diagRate.toFixed(1)}%</span>
+              ) : (
+                <>
+                  {/* Split Test Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <SplitSquareVertical className="w-5 h-5 text-primary" />
+                        Сплит-тесты (Маркетинг)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {splitTestStats.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных по офферам</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-secondary/50">
+                              <tr>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Сайт (Оффер)</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Расходы</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Клики</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">CR1 %</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">CPL</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                              {splitTestStats.map((offer) => (
+                                <tr key={offer.offer} className="hover:bg-secondary/30 transition-colors">
+                                  <td className="p-3 font-medium max-w-[200px] truncate">{offer.offer}</td>
+                                  <td className="p-3 text-right">{formatCurrency(offer.spend)}</td>
+                                  <td className="p-3 text-right">{formatNumber(offer.clicks)}</td>
+                                  <td className="p-3 text-right font-medium">{offer.leads}</td>
+                                  <td className="p-3 text-right">
+                                    <Badge variant="outline">{offer.cr1.toFixed(1)}%</Badge>
+                                  </td>
+                                  <td className="p-3 text-right font-medium text-primary">
+                                    {formatCurrency(offer.cpl)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Leads Dynamics Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <LineChartIcon className="w-5 h-5 text-primary" />
+                        Динамика лидов по дням
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {dailyLeadsDynamics.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных для отображения</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <LineChart data={dailyLeadsDynamics}>
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              dataKey="dateLabel" 
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                            />
+                            <YAxis 
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <Line 
+                              type="monotone" 
+                              dataKey="leads" 
+                              stroke="hsl(221.2 83.2% 53.3%)" 
+                              strokeWidth={2}
+                              dot={{ fill: 'hsl(221.2 83.2% 53.3%)', r: 4 }}
+                              name="Лиды"
+                            />
+                          </LineChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </TabsContent>
+
+            {/* TAB 3: Traffic Sources */}
+            <TabsContent value="sources" className="space-y-6 mt-6">
+              {loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
                 </div>
-                <Progress value={salesMetrics.diagRate} className="h-2" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <TrendingUp className="w-3 h-3 text-green-500" />
-                    Конверсия в продажу
-                  </span>
-                  <span className="font-medium text-green-500">{salesMetrics.closeRate.toFixed(1)}%</span>
-                </div>
-                <Progress value={salesMetrics.closeRate} className="h-2 [&>div]:bg-green-500" />
-              </div>
-              <div>
-                <div className="flex justify-between text-sm mb-1">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <TrendingDown className="w-3 h-3 text-red-500" />
-                    Процент отказов
-                  </span>
-                  <span className="font-medium text-red-500">{salesMetrics.rejectRate.toFixed(1)}%</span>
-                </div>
-                <Progress value={salesMetrics.rejectRate} className="h-2 [&>div]:bg-red-500" />
-              </div>
-            </div>
-          </div>
+              ) : (
+                <>
+                  {/* Source Performance Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <Radio className="w-5 h-5 text-primary" />
+                        Эффективность по источникам трафика
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {sourceStats.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных по источникам</p>
+                        </div>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full">
+                            <thead className="bg-secondary/50">
+                              <tr>
+                                <th className="text-left p-3 text-sm font-medium text-muted-foreground">Источник</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Расход</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Диагностики</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Цена 1 диагностики</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-border">
+                              {sourceStats.map((source) => (
+                                <tr key={source.source} className="hover:bg-secondary/30 transition-colors">
+                                  <td className="p-3">
+                                    <div className="flex items-center gap-2">
+                                      <div 
+                                        className="w-8 h-8 rounded-lg flex items-center justify-center"
+                                        style={{ backgroundColor: source.color + '20' }}
+                                      >
+                                        <span className="text-sm">{source.icon}</span>
+                                      </div>
+                                      <span className="font-medium">{source.label}</span>
+                                    </div>
+                                  </td>
+                                  <td className="p-3 text-right">{formatCurrency(source.spend)}</td>
+                                  <td className="p-3 text-right font-medium">{source.leads}</td>
+                                  <td className="p-3 text-right">{source.diagnostics}</td>
+                                  <td className="p-3 text-right font-medium text-primary">
+                                    {formatCurrency(source.costPerDiagnostic)}
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Conversion Bar Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <BarChart3 className="w-5 h-5 text-primary" />
+                        Конверсия по источникам
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {sourceConversionData.length === 0 ? (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <AlertCircle className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                          <p>Нет данных для отображения</p>
+                        </div>
+                      ) : (
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={sourceConversionData} layout="vertical">
+                            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                            <XAxis 
+                              type="number"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                            />
+                            <YAxis 
+                              type="category"
+                              dataKey="name"
+                              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
+                              stroke="hsl(var(--border))"
+                              width={100}
+                            />
+                            <Tooltip 
+                              contentStyle={{ 
+                                backgroundColor: 'hsl(var(--card))', 
+                                border: '1px solid hsl(var(--border))',
+                                borderRadius: '8px'
+                              }}
+                            />
+                            <Legend />
+                            <Bar 
+                              dataKey="leads" 
+                              fill="hsl(221.2 83.2% 53.3%)" 
+                              name="Лиды"
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar 
+                              dataKey="diagnostics" 
+                              fill="hsl(262.1 83.3% 57.8%)" 
+                              name="Диагностики"
+                              radius={[0, 4, 4, 0]}
+                            />
+                            <Bar 
+                              dataKey="sales" 
+                              fill="hsl(142.1 76.2% 36.3%)" 
+                              name="Продажи"
+                              radius={[0, 4, 4, 0]}
+                            />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      )}
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* Status Distribution */}
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Percent className="w-5 h-5 text-primary" />
-            Распределение по статусам
-          </h3>
-          
-          <div className="space-y-3">
-            {statusStats.map((stat) => (
-              <div key={stat.status} className="flex items-center gap-3">
-                <div className={`w-3 h-3 rounded-full ${stat.color}`} />
-                <span className="flex-1 text-sm">{stat.label}</span>
-                <span className="text-sm font-medium w-12 text-right">{stat.count}</span>
-                <div className="w-24">
-                  <Progress value={stat.percentage} className="h-2" />
-                </div>
-                <span className="text-sm text-muted-foreground w-12 text-right">{stat.percentage.toFixed(0)}%</span>
-              </div>
-            ))}
+        {/* AI Analyst - Right Sidebar */}
+        <div className="xl:col-span-1">
+          <div className="sticky top-4">
+            <AIAssistant context={aiContext} />
           </div>
         </div>
       </div>
-
-      {/* Top Campaigns */}
-      <div className="bg-card border rounded-xl p-6">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Target className="w-5 h-5 text-primary" />
-          Топ кампании по выручке
-        </h3>
-        
-        {topCampaigns.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            <FileBarChart className="w-8 h-8 mx-auto mb-2 opacity-50" />
-            <p>Нет данных по кампаниям</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {topCampaigns.map((campaign, index) => (
-              <div key={campaign.name} className="flex items-center gap-4 p-4 bg-secondary/50 rounded-xl hover:bg-secondary transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center font-bold text-primary">
-                  {index + 1}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{campaign.name}</p>
-                  <p className="text-sm text-muted-foreground">{campaign.leads} лидов → {campaign.sales} продаж</p>
-                </div>
-                <div className="text-right">
-                  <p className="text-sm text-muted-foreground">Конверсия</p>
-                  <Badge variant="outline">{campaign.conversionRate.toFixed(1)}%</Badge>
-                </div>
-                <div className="text-right min-w-[100px]">
-                  <p className="text-sm text-muted-foreground">Выручка</p>
-                  <p className="font-semibold text-green-500">{formatCurrency(campaign.revenue)}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-      </>
-      )}
     </div>
   );
 };
