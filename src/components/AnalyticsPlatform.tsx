@@ -659,6 +659,11 @@ export const AnalyticsPlatform = () => {
               onDateRangeChange={setDateRange}
               showDatePicker={activeTab === 'dashboard'}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+              projects={projectsList}
+              currentProjectId={currentProjectId}
+              onProjectChange={setCurrentProjectId}
+              onCreateProject={createProject}
+              showProjectSelector={true}
             />
           </header>
           

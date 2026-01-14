@@ -219,7 +219,7 @@ export const useProjects = () => {
     toast.success('Проект принудительно загружен');
   }, []);
 
-  const createProject = async (name: string): Promise<string | null> => {
+  const createProject = async (name: string): Promise<{ id: string; name: string } | null> => {
     if (!user) {
       toast.error('Необходимо авторизоваться');
       return null;
@@ -254,7 +254,7 @@ export const useProjects = () => {
 
     await fetchProjects();
     setCurrentProjectId(data.id);
-    return data.id;
+    return { id: data.id, name: data.name };
   };
 
   const deleteProject = async (projectId: string): Promise<boolean> => {

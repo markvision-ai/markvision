@@ -2,10 +2,17 @@ import { Search, Moon, Sun, Menu } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
+import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
 
 interface DateRange {
   from: Date;
   to: Date;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  owner_id?: string;
 }
 
 interface HeaderProps {
@@ -15,6 +22,12 @@ interface HeaderProps {
   onDateRangeChange?: (range: DateRange) => void;
   showDatePicker?: boolean;
   onMobileMenuClick?: () => void;
+  // Project selector props
+  projects?: Project[];
+  currentProjectId?: string | null;
+  onProjectChange?: (projectId: string) => void;
+  onCreateProject?: (name: string) => Promise<{ id: string; name: string } | null>;
+  showProjectSelector?: boolean;
 }
 
 export const Header = ({ 
@@ -23,7 +36,12 @@ export const Header = ({
   dateRange, 
   onDateRangeChange,
   showDatePicker = false,
-  onMobileMenuClick
+  onMobileMenuClick,
+  projects = [],
+  currentProjectId,
+  onProjectChange,
+  onCreateProject,
+  showProjectSelector = false,
 }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
 
@@ -43,6 +61,18 @@ export const Header = ({
           <h1 className="text-base md:text-xl font-semibold truncate">{title}</h1>
           {subtitle && <p className="text-xs md:text-sm text-muted-foreground truncate hidden sm:block">{subtitle}</p>}
         </div>
+
+        {/* Project Selector - shown after title */}
+        {showProjectSelector && onProjectChange && (
+          <div className="hidden md:block ml-4">
+            <ProjectSelector
+              projects={projects}
+              currentProjectId={currentProjectId || null}
+              onProjectChange={onProjectChange}
+              onCreateProject={onCreateProject}
+            />
+          </div>
+        )}
       </div>
 
       <div className="flex items-center gap-2 md:gap-4">
