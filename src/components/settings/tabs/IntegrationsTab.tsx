@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MetaSyncButton } from '@/components/integrations/MetaSyncButton';
+import { GreenAPISettings } from '@/components/integrations/GreenAPISettings';
 
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
@@ -42,6 +43,7 @@ interface Integration {
   color: string;
 }
 
+// Non-GreenAPI integrations
 const integrations: Integration[] = [
   { 
     id: 'facebook', 
@@ -71,13 +73,6 @@ const integrations: Integration[] = [
     icon: <GoogleIcon />,
     color: 'bg-white border'
   },
-  { 
-    id: 'greenapi', 
-    name: 'WhatsApp (GreenAPI)', 
-    description: 'Автоответчик и рассылки',
-    icon: <MessageCircle className="w-5 h-5" />,
-    color: 'bg-green-500'
-  }
 ];
 
 interface IntegrationsTabProps {
@@ -177,6 +172,10 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
     toast.success('Интеграция отключена');
   };
 
+  const handleGreenAPIStatusChange = (isActive: boolean) => {
+    setStatuses(prev => ({ ...prev, greenapi: isActive ? 'active' : 'disconnected' }));
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -208,6 +207,13 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {/* WhatsApp GreenAPI - Special Card */}
+            <GreenAPISettings 
+              projectId={projectId} 
+              onStatusChange={handleGreenAPIStatusChange}
+            />
+            
+            {/* Other integrations */}
             {integrations.map((integration) => {
               const isConnected = statuses[integration.id] === 'active';
               
