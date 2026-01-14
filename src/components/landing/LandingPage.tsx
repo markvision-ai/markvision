@@ -638,9 +638,19 @@ export const LandingPage = () => {
         </div>
       </section>
 
-      {/* BLOCK 6: Registration Form */}
-      <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-white">
-        <div className="max-w-xl mx-auto">
+      {/* BLOCK 6: Registration Form - Neon Style */}
+      <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-slate-950 relative overflow-hidden">
+        {/* Neon Background Effects */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]" />
+        </div>
+        
+        {/* Grid Pattern */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.03)_1px,transparent_1px)] bg-[size:60px_60px]" />
+        
+        <div className="max-w-xl mx-auto relative z-10">
           <motion.div initial={{
           opacity: 0,
           y: 40
@@ -653,86 +663,116 @@ export const LandingPage = () => {
           duration: 0.6
         }}>
             <div className="text-center mb-8 sm:mb-12">
-              <div className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-2xl sm:rounded-3xl bg-gradient-to-br from-blue-500 to-indigo-600 mx-auto flex items-center justify-center mb-5 sm:mb-8 shadow-xl sm:shadow-2xl shadow-blue-500/25">
-                <Sparkles className="w-7 h-7 sm:w-9 sm:h-9 text-white" />
+              {/* Neon Icon */}
+              <div className="relative w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 sm:mb-8">
+                <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-blue-500 rounded-2xl sm:rounded-3xl blur-xl opacity-60 animate-pulse" />
+                <div className="relative w-full h-full rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-500 flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.5)]">
+                  <Sparkles className="w-8 h-8 sm:w-10 sm:h-10 text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                </div>
               </div>
-              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold text-slate-900 mb-3 sm:mb-5 tracking-tight">
+              
+              <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-5 tracking-tight bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(6,182,212,0.5)]">
                 Начните бесплатно
               </h2>
-              <p className="text-sm sm:text-lg text-slate-500 px-4">
+              <p className="text-sm sm:text-lg text-slate-400 px-4">
                 7 дней полного доступа ко всем функциям системы
               </p>
             </div>
 
-            <div className="bg-white rounded-2xl sm:rounded-[32px] p-5 sm:p-8 md:p-10 shadow-xl sm:shadow-2xl shadow-slate-200/60 border border-slate-100">
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
-                {/* Clinic Name */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-slate-700">Название клиники</label>
-                  <div className="relative">
-                    <Building2 className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                    <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.clinicName ? 'border-red-500' : ''}`} />
+            {/* Neon Form Card */}
+            <div className="relative group">
+              {/* Neon Glow Border */}
+              <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl sm:rounded-[32px] opacity-75 blur-sm group-hover:opacity-100 group-hover:blur-md transition-all duration-500" />
+              <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-2xl sm:rounded-[32px] opacity-50" />
+              
+              <div className="relative bg-slate-900/95 backdrop-blur-xl rounded-2xl sm:rounded-[32px] p-5 sm:p-8 md:p-10 border border-white/10">
+                <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+                  {/* Clinic Name */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-cyan-300/90">Название клиники</label>
+                    <div className="relative group/input">
+                      <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
+                      <div className="relative">
+                        <Building2 className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
+                        <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.clinicName ? 'border-red-500/50' : ''}`} />
+                      </div>
+                    </div>
+                    {errors.clinicName && <p className="text-xs text-red-400 ml-1">{errors.clinicName}</p>}
                   </div>
-                  {errors.clinicName && <p className="text-xs text-red-500 ml-1">{errors.clinicName}</p>}
-                </div>
 
-                {/* Email */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-slate-700">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                    <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.email ? 'border-red-500' : ''}`} />
+                  {/* Email */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-cyan-300/90">Email</label>
+                    <div className="relative group/input">
+                      <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
+                      <div className="relative">
+                        <Mail className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
+                        <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.email ? 'border-red-500/50' : ''}`} />
+                      </div>
+                    </div>
+                    {errors.email && <p className="text-xs text-red-400 ml-1">{errors.email}</p>}
                   </div>
-                  {errors.email && <p className="text-xs text-red-500 ml-1">{errors.email}</p>}
-                </div>
 
-                {/* Password */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-slate-700">Пароль</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                    <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-11 sm:pl-14 pr-11 sm:pr-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${errors.password ? 'border-red-500' : ''}`} />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
-                      {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
-                    </button>
+                  {/* Password */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-cyan-300/90">Пароль</label>
+                    <div className="relative group/input">
+                      <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
+                      <div className="relative">
+                        <Lock className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
+                        <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-11 sm:pl-14 pr-11 sm:pr-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.password ? 'border-red-500/50' : ''}`} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors">
+                          {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
+                        </button>
+                      </div>
+                    </div>
+                    {errors.password && <p className="text-xs text-red-400 ml-1">{errors.password}</p>}
                   </div>
-                  {errors.password && <p className="text-xs text-red-500 ml-1">{errors.password}</p>}
-                </div>
 
-                {/* Promo Code */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="text-xs sm:text-sm font-medium text-slate-700">Промокод</label>
-                  <div className="relative">
-                    <Gift className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 border-slate-200 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50/50' : ''}`} />
-                    {promoValid === true && <CheckCircle2 className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />}
+                  {/* Promo Code */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="text-xs sm:text-sm font-medium text-cyan-300/90">Промокод</label>
+                    <div className="relative group/input">
+                      <div className={`absolute -inset-[1px] rounded-xl sm:rounded-2xl blur-sm transition-opacity ${promoValid === true ? 'bg-gradient-to-r from-emerald-500/50 to-green-500/50 opacity-100' : 'bg-gradient-to-r from-cyan-500/50 to-blue-500/50 opacity-0 group-focus-within/input:opacity-100'}`} />
+                      <div className="relative">
+                        <Gift className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
+                        <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${promoValid === true ? 'border-emerald-500/50 bg-emerald-950/30' : ''}`} />
+                        {promoValid === true && <CheckCircle2 className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />}
+                      </div>
+                    </div>
+                    {promoValid === true && <motion.p initial={{
+                    opacity: 0,
+                    y: -5
+                  }} animate={{
+                    opacity: 1,
+                    y: 0
+                  }} className="text-xs sm:text-sm text-emerald-400 font-medium flex items-center gap-1.5 sm:gap-2 ml-1 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]">
+                        <span>🎉</span> Активирован бесплатный доступ на 7 дней
+                      </motion.p>}
                   </div>
-                  {promoValid === true && <motion.p initial={{
-                  opacity: 0,
-                  y: -5
-                }} animate={{
-                  opacity: 1,
-                  y: 0
-                }} className="text-xs sm:text-sm text-emerald-600 font-medium flex items-center gap-1.5 sm:gap-2 ml-1">
-                      <span>🎉</span> Активирован бесплатный доступ на 7 дней
-                    </motion.p>}
+
+                  {/* Neon Submit Button */}
+                  <div className="relative group/btn mt-2 sm:mt-4">
+                    <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 rounded-xl sm:rounded-2xl opacity-75 blur-sm group-hover/btn:opacity-100 group-hover/btn:blur-md transition-all" />
+                    <Button type="submit" className="relative w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 hover:from-cyan-400 hover:via-blue-400 hover:to-purple-400 text-white font-semibold text-base sm:text-lg shadow-[0_0_30px_rgba(6,182,212,0.4)] hover:shadow-[0_0_40px_rgba(6,182,212,0.6)] transition-all border-0" disabled={loading}>
+                      {loading ? <>
+                          <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
+                          Регистрация...
+                        </> : <>
+                          <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                          Зарегистрироваться
+                        </>}
+                    </Button>
+                  </div>
+                </form>
+
+                {/* Login Link */}
+                <div className="mt-6 sm:mt-8 text-center">
+                  <span className="text-sm sm:text-base text-slate-500">Уже есть аккаунт? </span>
+                  <button onClick={() => navigate('/auth')} className="text-sm sm:text-base text-cyan-400 hover:text-cyan-300 font-medium transition-colors drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] hover:drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
+                    Войти
+                  </button>
                 </div>
-
-                {/* Submit Button */}
-                <Button type="submit" className="w-full h-12 sm:h-14 rounded-xl sm:rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-semibold text-base sm:text-lg mt-2 sm:mt-4 shadow-lg shadow-slate-900/15 hover:shadow-xl hover:shadow-slate-900/20 transition-all" disabled={loading}>
-                  {loading ? <>
-                      <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
-                      Регистрация...
-                    </> : 'Зарегистрироваться'}
-                </Button>
-              </form>
-
-              {/* Login Link */}
-              <div className="mt-6 sm:mt-8 text-center">
-                <span className="text-sm sm:text-base text-slate-500">Уже есть аккаунт? </span>
-                <button onClick={() => navigate('/auth')} className="text-sm sm:text-base text-blue-600 hover:text-blue-700 font-medium transition-colors">
-                  Войти
-                </button>
               </div>
             </div>
           </motion.div>
