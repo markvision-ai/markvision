@@ -1416,11 +1416,53 @@ export type Database = {
           },
         ]
       }
+      project_context: {
+        Row: {
+          content: string | null
+          created_at: string
+          id: string
+          pricing_info: string | null
+          product_info: string | null
+          project_id: string
+          sales_scripts: string | null
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          pricing_info?: string | null
+          product_info?: string | null
+          project_id: string
+          sales_scripts?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          id?: string
+          pricing_info?: string | null
+          product_info?: string | null
+          project_id?: string
+          sales_scripts?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_context_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
           id: string
           name: string
+          onboarding_status: string | null
           owner_id: string
           telegram_chat_id: string | null
           updated_at: string
@@ -1429,6 +1471,7 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          onboarding_status?: string | null
           owner_id: string
           telegram_chat_id?: string | null
           updated_at?: string
@@ -1437,6 +1480,7 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          onboarding_status?: string | null
           owner_id?: string
           telegram_chat_id?: string | null
           updated_at?: string

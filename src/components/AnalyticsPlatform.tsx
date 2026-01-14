@@ -546,13 +546,14 @@ export const AnalyticsPlatform = () => {
     <div className={cn(
       "min-h-screen bg-background text-foreground flex flex-col md:flex-row w-full"
     )}>
-      {showOnboarding && (
+      {/* Onboarding Wizard - показывается если проект не завершил онбординг */}
+      {currentProject && currentProject.onboarding_status !== 'completed' && (
         <OnboardingWizard 
-          createProject={createProject}
-          onComplete={(projectId) => {
-            setShowOnboarding(false);
-            setCurrentProjectId(projectId);
-            setActiveTab('dashboard');
+          projectId={currentProjectId || ''}
+          projectName={currentProject.name}
+          onComplete={() => {
+            refetchProjects();
+            handleTabChange('dashboard');
           }}
         />
       )}
