@@ -135,8 +135,34 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     }
   };
 
+  // Fetch transactions and set up realtime subscription
   useEffect(() => {
     fetchTransactions();
+
+    // Realtime subscription for instant updates
+    const channel = supabase
+      .channel('finance-transactions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          if (import.meta.env.DEV) {
+            console.log('💰 Finance realtime update:', payload.eventType);
+          }
+          // Refetch on any change for consistency
+          fetchTransactions();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [projectId]);
 
   const fetchTransactions = async () => {
@@ -150,7 +176,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       if (error) throw error;
       setTransactions(data || []);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching transactions:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -182,9 +210,11 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       toast.success('Транзакция добавлена');
       setIsAddDialogOpen(false);
       setNewTransaction({ type: 'expense', category: 'salary', amount: 0, description: '' });
-      fetchTransactions();
+      // No need to fetchTransactions - realtime will handle it
     } catch (error) {
-      console.error('Error adding transaction:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error adding transaction:', error);
+      }
       toast.error('Ошибка при добавлении транзакции');
     }
   };
