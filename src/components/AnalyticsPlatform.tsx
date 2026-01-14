@@ -32,6 +32,8 @@ import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
+import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
+import { MobileHeader } from './mobile/MobileHeader';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
@@ -296,14 +298,14 @@ export const AnalyticsPlatform = () => {
   const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
 
   const mainContent = (
-    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
+    <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-20 md:pb-8">
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
           {(renderWidget) => (
-            <div className="space-y-6">
+            <div className="space-y-4 md:space-y-6">
               {/* Main Metrics with Plan/Fact */}
               {renderWidget('metrics', (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                   <PlanFactCard
                     label="Расходы"
                     value={formatCurrency(totals.spend)}
@@ -357,7 +359,7 @@ export const AnalyticsPlatform = () => {
 
               {/* Computed Metrics */}
               {renderWidget('computed', (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                   <MetricCard
                     label="Средний чек (AOV)"
                     value={formatCurrency(aov)}
@@ -635,7 +637,14 @@ export const AnalyticsPlatform = () => {
         
         {/* Main Content Area - Takes remaining space, no overlap */}
         <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          {/* Header with backdrop blur */}
+          {/* Mobile Header */}
+          <MobileHeader 
+            title={getTabTitle()}
+            subtitle={currentProject?.name}
+            onMenuClick={() => setIsMobileSidebarOpen(true)}
+          />
+          
+          {/* Desktop Header with backdrop blur */}
           <header className="hidden md:block sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border">
             <Header 
               title={getTabTitle()} 
@@ -664,6 +673,16 @@ export const AnalyticsPlatform = () => {
           activeTab={activeTab} 
           onTabChange={handleTabChange}
           onMoreClick={() => setIsMobileSidebarOpen(true)}
+        />
+
+        {/* Mobile Menu Drawer */}
+        <MobileMenuDrawer
+          open={isMobileSidebarOpen}
+          onOpenChange={setIsMobileSidebarOpen}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          userProfile={profile}
+          currentProjectName={currentProject?.name}
         />
       </div>
     </SidebarProvider>
