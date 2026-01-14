@@ -60,6 +60,10 @@ export default {
           foreground: "hsl(var(--sidebar-foreground))",
           muted: "hsl(var(--sidebar-muted))",
         },
+        medical: {
+          blue: "hsl(var(--medical-blue))",
+          teal: "hsl(var(--medical-teal))",
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

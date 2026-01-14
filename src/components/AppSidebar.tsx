@@ -297,7 +297,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-[#0B0E14] border-r border-neutral-800/50">
+        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-border">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo */}
             <AnimatePresence>
@@ -315,17 +315,17 @@ export const AppSidebar = ({
               >
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 border border-neutral-700/50 transition-colors text-left">
+                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-sidebar-muted hover:bg-sidebar-muted/80 border border-border transition-colors text-left">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
                         <span className="text-sm text-white truncate">
                           {currentProject?.name || "Выберите проект"}
                         </span>
                       </div>
-                      <IconChevronDown className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                      <IconChevronDown className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-64 bg-[#161B26] border-neutral-700">
+                  <DropdownMenuContent align="start" className="w-64 bg-card border-border">
                     {projects.map((project) => (
                       <DropdownMenuItem
                         key={project.id}
@@ -352,9 +352,9 @@ export const AppSidebar = ({
                             <Trash2 className="w-3.5 h-3.5 text-red-400" />
                           </button>
                         )}
-                      </DropdownMenuItem>
+                    </DropdownMenuItem>
                     ))}
-                    <DropdownMenuSeparator className="bg-neutral-700" />
+                    <DropdownMenuSeparator className="bg-border" />
                     <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)}>
                       <IconPlus className="w-4 h-4 mr-2" />
                       Создать проект
@@ -448,7 +448,7 @@ export const AppSidebar = ({
           </div>
 
           {/* User Profile & Logout */}
-          <div className="border-t border-neutral-800/50 pt-4">
+          <div className="border-t border-border pt-4">
             <SidebarLink
               link={{
                 label: userProfile?.name || "Пользователь",
@@ -476,16 +476,16 @@ export const AppSidebar = ({
 
       {/* Create Project Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-[#161B26] border-neutral-700">
+        <DialogContent className="bg-card border-border">
           <DialogHeader>
             <DialogTitle>Создать новый проект</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Название проекта"
+              placeholder="Название проекта (медицинская клиника)"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              className="bg-neutral-800 border-neutral-700"
+              className="bg-secondary border-border"
             />
           </div>
           <DialogFooter>

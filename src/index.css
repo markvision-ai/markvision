@@ -6,23 +6,24 @@
 
 @layer base {
   :root {
-    --background: 220 15% 96%;
-    --foreground: 220 20% 10%;
+    /* Sterile White Theme - Medical Edition */
+    --background: 210 20% 98%;
+    --foreground: 222 20% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 20% 10%;
+    --card-foreground: 222 20% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 20% 10%;
+    --popover-foreground: 222 20% 10%;
 
     --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 14% 94%;
-    --secondary-foreground: 220 20% 10%;
+    --secondary: 210 15% 96%;
+    --secondary-foreground: 222 20% 10%;
 
-    --muted: 220 14% 94%;
-    --muted-foreground: 220 10% 46%;
+    --muted: 210 15% 94%;
+    --muted-foreground: 222 10% 40%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -36,41 +37,46 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 220 13% 88%;
-    --input: 220 13% 88%;
+    --border: 210 15% 90%;
+    --input: 210 15% 90%;
     --ring: 221 83% 53%;
 
     --radius: 0.75rem;
 
-    --sidebar: 222 25% 10%;
-    --sidebar-foreground: 220 10% 90%;
-    --sidebar-muted: 222 20% 16%;
+    --sidebar: 222 20% 12%;
+    --sidebar-foreground: 210 10% 95%;
+    --sidebar-muted: 222 18% 18%;
 
     --chart-1: 221 83% 53%;
     --chart-2: 142 76% 36%;
     --chart-3: 0 84% 60%;
     --chart-4: 250 95% 64%;
     --chart-5: 38 92% 50%;
+    
+    /* Medical accent colors */
+    --medical-blue: 200 80% 50%;
+    --medical-teal: 174 72% 40%;
   }
 
   .dark {
-    --background: 222 25% 7%;
-    --foreground: 220 10% 95%;
+    /* Deep Cosmic Theme - Medical Edition */
+    --background: 222 30% 6%;
+    --foreground: 210 15% 95%;
 
-    --card: 222 22% 11%;
-    --card-foreground: 220 10% 95%;
+    --card: 222 25% 9%;
+    --card-foreground: 210 15% 95%;
 
-    --popover: 222 22% 11%;
-    --popover-foreground: 220 10% 95%;
+    --popover: 222 25% 9%;
+    --popover-foreground: 210 15% 95%;
 
-    --primary: 221 83% 53%;
+    --primary: 221 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 18% 15%;
-    --secondary-foreground: 220 10% 95%;
+    --secondary: 222 22% 12%;
+    --secondary-foreground: 210 15% 95%;
 
-    --muted: 222 18% 15%;
-    --muted-foreground: 220 10% 55%;
+    --muted: 222 22% 14%;
+    --muted-foreground: 210 12% 50%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -78,19 +84,23 @@
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
+    --success: 142 76% 40%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 222 15% 18%;
-    --input: 222 15% 18%;
-    --ring: 221 83% 53%;
+    --border: 222 18% 15%;
+    --input: 222 18% 15%;
+    --ring: 221 83% 58%;
 
-    --sidebar: 222 25% 6%;
-    --sidebar-foreground: 220 10% 85%;
-    --sidebar-muted: 222 20% 12%;
+    --sidebar: 222 30% 5%;
+    --sidebar-foreground: 210 12% 85%;
+    --sidebar-muted: 222 25% 10%;
+
+    /* Medical accent colors */
+    --medical-blue: 200 80% 55%;
+    --medical-teal: 174 72% 45%;
   }
 }
 
@@ -362,4 +372,64 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: gradient-shift 3s linear infinite;
+}
+
+/* VIP Shine Effect for MEGA leads */
+@keyframes vip-shine {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes gold-pulse {
+  0%, 100% {
+    box-shadow: 
+      0 0 10px rgba(251, 191, 36, 0.3),
+      0 0 20px rgba(251, 191, 36, 0.2),
+      inset 0 0 10px rgba(251, 191, 36, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 0 20px rgba(251, 191, 36, 0.5),
+      0 0 40px rgba(251, 191, 36, 0.3),
+      inset 0 0 20px rgba(251, 191, 36, 0.15);
+  }
+}
+
+.vip-shine {
+  position: relative;
+  overflow: hidden;
+}
+
+.vip-shine::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(251, 191, 36, 0.15) 25%,
+    rgba(251, 191, 36, 0.3) 50%,
+    rgba(251, 191, 36, 0.15) 75%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: vip-shine 2.5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.vip-glow {
+  animation: gold-pulse 2s ease-in-out infinite;
+}
+
+/* Medical theme utilities */
+.medical-gradient {
+  background: linear-gradient(135deg, hsl(var(--medical-blue)) 0%, hsl(var(--medical-teal)) 100%);
 }
