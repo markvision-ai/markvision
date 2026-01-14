@@ -2,6 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/externalSupabase';
 import { useAuth } from './useAuth';
 
+// Super admin user ID
+const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+
 export interface UserPermissions {
   can_edit_plan: boolean;
   can_edit_daily_data: boolean;
@@ -30,7 +33,7 @@ const ADMIN_PERMISSIONS: UserPermissions = {
 };
 
 export const usePermissions = (projectId: string | null) => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
   const [permissions, setPermissions] = useState<UserPermissions>(DEFAULT_PERMISSIONS);
   const [loading, setLoading] = useState(true);
 
@@ -41,8 +44,9 @@ export const usePermissions = (projectId: string | null) => {
       return;
     }
 
-    // Admins have full permissions
-    if (isAdmin) {
+    // Super admin and admins get full permissions
+    if (isSuperAdmin || isAdmin || user.id === SUPER_ADMIN_UID) {
+      console.log('👑 Admin permissions granted');
       setPermissions(ADMIN_PERMISSIONS);
       setLoading(false);
       return;
@@ -50,31 +54,36 @@ export const usePermissions = (projectId: string | null) => {
 
     setLoading(true);
 
-    const { data, error } = await supabase
-      .from('user_permissions')
-      .select('*')
-      .eq('user_id', user.id)
-      .eq('project_id', projectId)
-      .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('user_permissions')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('project_id', projectId)
+        .maybeSingle();
 
-    if (error) {
-      console.error('Error fetching permissions:', error);
-      setPermissions(DEFAULT_PERMISSIONS);
-    } else if (data) {
-      setPermissions({
-        can_edit_plan: data.can_edit_plan,
-        can_edit_daily_data: data.can_edit_daily_data,
-        can_view_sales: data.can_view_sales,
-        can_view_revenue: data.can_view_revenue,
-        can_manage_leads: data.can_manage_leads,
-        can_export_data: data.can_export_data,
-      });
-    } else {
+      if (error) {
+        console.error('Error fetching permissions:', error);
+        setPermissions(DEFAULT_PERMISSIONS);
+      } else if (data) {
+        setPermissions({
+          can_edit_plan: data.can_edit_plan,
+          can_edit_daily_data: data.can_edit_daily_data,
+          can_view_sales: data.can_view_sales,
+          can_view_revenue: data.can_view_revenue,
+          can_manage_leads: data.can_manage_leads,
+          can_export_data: data.can_export_data,
+        });
+      } else {
+        setPermissions(DEFAULT_PERMISSIONS);
+      }
+    } catch (error) {
+      console.error('Permissions error:', error);
       setPermissions(DEFAULT_PERMISSIONS);
     }
 
     setLoading(false);
-  }, [user, projectId, isAdmin]);
+  }, [user, projectId, isAdmin, isSuperAdmin]);
 
   useEffect(() => {
     fetchPermissions();
@@ -96,7 +105,7 @@ export const usePermissions = (projectId: string | null) => {
 
 // Hook to manage permissions for team members (admin only)
 export const useManagePermissions = () => {
-  const { isAdmin } = useAuth();
+  const { user, isAdmin, isSuperAdmin } = useAuth();
 
   const getPermissionsForUser = async (userId: string, projectId: string): Promise<UserPermissions | null> => {
     const { data, error } = await supabase
@@ -123,7 +132,8 @@ export const useManagePermissions = () => {
     projectId: string, 
     permissions: Partial<UserPermissions>
   ): Promise<boolean> => {
-    if (!isAdmin) return false;
+    // Only admins can update permissions
+    if (!isAdmin && !isSuperAdmin && user?.id !== SUPER_ADMIN_UID) return false;
 
     // Check if record exists
     const { data: existing } = await supabase

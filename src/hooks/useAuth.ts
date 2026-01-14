@@ -2,10 +2,14 @@ import { useState, useEffect } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
+// SUPER ADMIN - полный доступ без проверок RLS
+const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+
 interface UserProfile {
   id: string;
   name: string | null;
   email: string | null;
+  role?: string | null;
 }
 
 interface AuthState {
@@ -13,6 +17,7 @@ interface AuthState {
   session: Session | null;
   loading: boolean;
   isAdmin: boolean;
+  isSuperAdmin: boolean;
   profile: UserProfile | null;
 }
 
@@ -22,45 +27,59 @@ export const useAuth = () => {
     session: null,
     loading: true,
     isAdmin: false,
+    isSuperAdmin: false,
     profile: null,
   });
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
+        const currentUser = session?.user ?? null;
+        const isSuperAdmin = currentUser?.id === SUPER_ADMIN_UID;
+        
         setAuthState(prev => ({
           ...prev,
           session,
-          user: session?.user ?? null,
+          user: currentUser,
           loading: false,
+          // Super admin is always admin
+          isAdmin: isSuperAdmin ? true : prev.isAdmin,
+          isSuperAdmin,
         }));
 
-        if (session?.user) {
+        if (currentUser) {
+          // Defer to avoid blocking auth flow
           setTimeout(() => {
-            checkAdminRole(session.user.id);
-            fetchProfile(session.user.id);
+            checkAdminRole(currentUser.id);
+            fetchProfile(currentUser.id);
           }, 0);
         } else {
           setAuthState(prev => ({ 
             ...prev, 
             profile: null, 
             isAdmin: false,
+            isSuperAdmin: false,
           }));
         }
       }
     );
 
     supabase.auth.getSession().then(({ data: { session } }) => {
+      const currentUser = session?.user ?? null;
+      const isSuperAdmin = currentUser?.id === SUPER_ADMIN_UID;
+      
       setAuthState(prev => ({
         ...prev,
         session,
-        user: session?.user ?? null,
+        user: currentUser,
         loading: false,
+        isAdmin: isSuperAdmin ? true : prev.isAdmin,
+        isSuperAdmin,
       }));
 
-      if (session?.user) {
-        checkAdminRole(session.user.id);
-        fetchProfile(session.user.id);
+      if (currentUser) {
+        checkAdminRole(currentUser.id);
+        fetchProfile(currentUser.id);
       }
     });
 
@@ -69,48 +88,101 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     try {
-      const { data } = await supabase
+      // Try to get profile by user_id
+      const { data, error } = await supabase
         .from('profiles')
-        .select('id, name, email')
+        .select('id, name, email, status')
         .eq('user_id', userId)
         .maybeSingle();
+
+      if (error) {
+        console.warn('Profile fetch error:', error.message);
+        // Create fallback profile from auth user
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setAuthState(prev => ({
+            ...prev,
+            profile: {
+              id: user.id,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              email: user.email || null,
+            },
+          }));
+        }
+        return;
+      }
 
       if (data) {
         setAuthState(prev => ({
           ...prev,
           profile: data,
         }));
+      } else {
+        // No profile found - use auth data
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          setAuthState(prev => ({
+            ...prev,
+            profile: {
+              id: user.id,
+              name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+              email: user.email || null,
+            },
+          }));
+        }
       }
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error fetching profile:', error);
-      }
+    } catch (error: any) {
+      console.error('Error fetching profile:', error);
     }
   };
 
   /**
-   * NOTE: The isAdmin flag is for UI/UX purposes only (e.g., showing/hiding admin controls).
-   * All actual security enforcement happens server-side via RLS policies using the 
-   * has_role() SECURITY DEFINER function. Never rely solely on this client-side flag
-   * for security-critical operations.
+   * Check if user has admin role in user_roles table.
+   * Super admin is always granted admin privileges.
    */
   const checkAdminRole = async (userId: string) => {
+    // Super admin always has admin role
+    if (userId === SUPER_ADMIN_UID) {
+      setAuthState(prev => ({
+        ...prev,
+        isAdmin: true,
+        isSuperAdmin: true,
+      }));
+      console.log('👑 Super Admin detected:', userId);
+      return;
+    }
+
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', userId)
         .eq('role', 'admin')
         .maybeSingle();
 
+      if (error) {
+        console.warn('Role check error:', error.message);
+        // Default to non-admin on error
+        setAuthState(prev => ({
+          ...prev,
+          isAdmin: false,
+        }));
+        return;
+      }
+
+      const hasAdminRole = !!data;
+      console.log('🔐 Admin role check:', hasAdminRole ? 'ADMIN' : 'USER');
+      
       setAuthState(prev => ({
         ...prev,
-        isAdmin: !!data,
+        isAdmin: hasAdminRole,
       }));
     } catch (error) {
-      if (import.meta.env.DEV) {
-        console.error('Error checking admin role:', error);
-      }
+      console.error('Error checking admin role:', error);
+      setAuthState(prev => ({
+        ...prev,
+        isAdmin: false,
+      }));
     }
   };
 
@@ -121,6 +193,7 @@ export const useAuth = () => {
       session: null,
       loading: false,
       isAdmin: false,
+      isSuperAdmin: false,
       profile: null,
     });
   };
