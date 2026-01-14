@@ -2455,12 +2455,10 @@ export type Database = {
           avatar_url: string | null
           created_at: string | null
           department: string | null
-          email: string | null
           hire_date: string | null
           id: string | null
           level: number | null
           name: string | null
-          phone: string | null
           position: string | null
           project_id: string | null
           status: string | null
@@ -2472,12 +2470,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           department?: string | null
-          email?: string | null
           hire_date?: string | null
           id?: string | null
           level?: number | null
           name?: string | null
-          phone?: string | null
           position?: string | null
           project_id?: string | null
           status?: string | null
@@ -2489,12 +2485,10 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string | null
           department?: string | null
-          email?: string | null
           hire_date?: string | null
           id?: string | null
           level?: number | null
           name?: string | null
-          phone?: string | null
           position?: string | null
           project_id?: string | null
           status?: string | null
