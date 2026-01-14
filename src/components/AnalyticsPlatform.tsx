@@ -34,6 +34,7 @@ import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
+import { SidebarProvider } from './ui/aceternity-sidebar';
 import { cn } from '@/lib/utils';
 
 // Lazy load heavy modules for performance
@@ -294,14 +295,14 @@ export const AnalyticsPlatform = () => {
   const projectsList = projects.map(p => ({ id: p.id, name: p.name }));
 
   const mainContent = (
-    <main className="p-3 md:p-6 pb-20 md:pb-6">
+    <div className="w-full max-w-7xl mx-auto p-4 md:p-6 lg:p-8 pb-24 md:pb-8">
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
           {(renderWidget) => (
             <div className="space-y-6">
               {/* Main Metrics with Plan/Fact */}
               {renderWidget('metrics', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
                   <PlanFactCard
                     label="Расходы"
                     value={formatCurrency(totals.spend)}
@@ -355,7 +356,7 @@ export const AnalyticsPlatform = () => {
 
               {/* Computed Metrics */}
               {renderWidget('computed', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
                   <MetricCard
                     label="Средний чек (AOV)"
                     value={formatCurrency(aov)}
@@ -390,124 +391,94 @@ export const AnalyticsPlatform = () => {
                 </div>
               ))}
 
-              {/* Charts Row */}
-              {renderWidget('charts', (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                  <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-                  <ConversionStats steps={funnelSteps} />
-                  <AIAssistant 
-                    context={{
-                      ...totals,
-                      cpl,
-                      cac,
-                      aov,
-                      romi,
-                      projectId: currentProjectId || undefined,
-                    }}
-                  />
-                </div>
-              ))}
-
-              {/* Comparison */}
-              {renderWidget('comparison', (
+              {/* Quick Stats */}
+              {renderWidget('quick-stats', (
                 <QuickStats stats={comparisonStats} />
               ))}
 
-              {/* Upcoming Appointments Widget */}
-              {renderWidget('appointments', (
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  <UpcomingAppointmentsWidget projectId={currentProjectId} />
-                </div>
+              {/* Appointments Widget */}
+              {renderWidget('appointments', currentProjectId && (
+                <UpcomingAppointmentsWidget projectId={currentProjectId} />
+              ))}
+
+              {/* Revenue Chart */}
+              {renderWidget('revenue-chart', (
+                <RevenueChart data={dailyData} daysInMonth={daysInRange} />
+              ))}
+
+              {/* Conversion Stats */}
+              {renderWidget('conversions', (
+                <ConversionStats steps={funnelSteps} />
+              ))}
+
+              {/* AI Assistant */}
+              {renderWidget('ai-assistant', currentProjectId && (
+                <AIAssistant />
               ))}
             </div>
           )}
         </DraggableDashboard>
       )}
 
-      {activeTab === 'table' && (
+      {activeTab === 'table' && currentProjectId && (
         <DataTable 
-          dailyData={dailyData} 
+          dailyData={dailyData}
           onDataChange={handleDataChange}
-          planData={planData}
-          onPlanChange={handlePlanChange}
         />
       )}
 
-      {activeTab === 'crm' && (
-        <Suspense fallback={<ModuleLoader />}>
-          <CRMPage projectId={currentProjectId} />
-        </Suspense>
-      )}
-
-      {activeTab === 'realtime' && (
-        <Suspense fallback={<ModuleLoader />}>
-          <RealtimeDashboard projectId={currentProjectId} />
-        </Suspense>
-      )}
-
-      {activeTab === 'quantom-ads' && (
+      {activeTab === 'quantom-ads' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <QuantomAdsPage projectId={currentProjectId} />
         </Suspense>
       )}
 
-      {activeTab === 'factory' && (
-        <Suspense fallback={<AnalyticsSkeleton />}>
+      {activeTab === 'factory' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />
         </Suspense>
       )}
 
-      {activeTab === 'e2e-analytics' && (
+      {activeTab === 'crm' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <CRMPage projectId={currentProjectId} />
+        </Suspense>
+      )}
+
+      {activeTab === 'e2e-analytics' && currentProjectId && (
         <Suspense fallback={<AnalyticsSkeleton />}>
-          <E2EAnalytics totals={totals} projectId={currentProjectId} />
+          <E2EAnalytics projectId={currentProjectId} totals={totals} />
         </Suspense>
       )}
 
-      {activeTab === 'reports' && (
+      {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <ReportGenerator 
-            data={{
-              projectId: currentProjectId || undefined,
-              projectName: currentProject?.name || 'Проект',
-              dateRange: dateRange,
-              totals,
-              planData,
-              funnelSteps,
-              metrics: { aov, cpl, cac, romi, roas }
-            }}
-          />
+          <ReportGenerator data={{ totals, planData, dailyData, dateRange }} />
         </Suspense>
       )}
 
-      {activeTab === 'team' && (
+      {activeTab === 'team' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <TeamManagement projects={projectsList} />
+          <TeamManagement projects={projects} />
         </Suspense>
       )}
 
-      {activeTab === 'integrations' && (
+      {activeTab === 'integrations' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <IntegrationsManagement projectId={currentProjectId || undefined} />
+          <IntegrationsManagement projectId={currentProjectId} />
         </Suspense>
       )}
 
-      {activeTab === 'audit' && (
+      {activeTab === 'settings' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AdminHub projectId={currentProjectId} projects={projects} />
+        </Suspense>
+      )}
+
+      {activeTab === 'audit' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <AuditLogViewer />
         </Suspense>
-      )}
-
-      {activeTab === 'settings' && currentProject && (
-        <Suspense fallback={<ModuleLoader />}>
-          <AdminHub projectId={currentProject.id} projects={projects} />
-        </Suspense>
-      )}
-      
-      {activeTab === 'settings' && !currentProject && (
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="font-semibold mb-4">Настройки</h3>
-          <p className="text-muted-foreground">Выберите проект для просмотра настроек.</p>
-        </div>
       )}
 
       {activeTab === 'staff' && currentProjectId && (
@@ -546,6 +517,12 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
+      {activeTab === 'realtime' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <RealtimeDashboard projectId={currentProjectId} />
+        </Suspense>
+      )}
+
       {activeTab === 'knowledge' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <KnowledgeBase projectId={currentProjectId} />
@@ -570,6 +547,12 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
+      {activeTab === 'calendar' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <CalendarPage projectId={currentProjectId} />
+        </Suspense>
+      )}
+
       {activeTab === 'help' && (
         <div className="bg-card border border-border rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">🆘 Центр помощи MarkVision AI Medical</h3>
@@ -588,75 +571,73 @@ export const AnalyticsPlatform = () => {
           <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
         </div>
       )}
-
-      {activeTab === 'calendar' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <CalendarPage projectId={currentProjectId} />
-        </Suspense>
-      )}
-    </main>
+    </div>
   );
 
   return (
-    <div className={cn(
-      "min-h-screen bg-background text-foreground flex flex-col md:flex-row w-full"
-    )}>
-      {/* Onboarding Wizard - показывается если проект не завершил онбординг */}
-      {currentProject && currentProject.onboarding_status !== 'completed' && (
-        <OnboardingWizard 
-          projectId={currentProjectId || ''}
-          projectName={currentProject.name}
-          onComplete={() => {
-            refetchProjects();
-            handleTabChange('dashboard');
-          }}
-        />
-      )}
-      
-      {/* Premium Animated Sidebar */}
-      <AppSidebar 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        userProfile={profile}
-        realtimeStatus="SUBSCRIBED"
-        projects={projects}
-        currentProjectId={currentProjectId}
-        onProjectChange={setCurrentProjectId}
-        onCreateProject={createProject}
-        onDeleteProject={deleteProject}
-        userId={user?.id}
-        systemHasErrors={systemHasErrors}
-      />
-      
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header 
-          title={getTabTitle()} 
-          subtitle={currentProject?.name}
-          dateRange={dateRange}
-          onDateRangeChange={setDateRange}
-          showDatePicker={activeTab === 'dashboard'}
-          onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+    <SidebarProvider>
+      <div className="min-h-screen bg-background text-foreground flex w-full">
+        {/* Onboarding Wizard - показывается если проект не завершил онбординг */}
+        {currentProject && currentProject.onboarding_status !== 'completed' && (
+          <OnboardingWizard 
+            projectId={currentProjectId || ''}
+            projectName={currentProject.name}
+            onComplete={() => {
+              refetchProjects();
+              handleTabChange('dashboard');
+            }}
+          />
+        )}
+        
+        {/* Premium Animated Sidebar - Fixed left */}
+        <AppSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          userProfile={profile}
+          realtimeStatus="SUBSCRIBED"
+          projects={projects}
+          currentProjectId={currentProjectId}
+          onProjectChange={setCurrentProjectId}
+          onCreateProject={createProject}
+          onDeleteProject={deleteProject}
+          userId={user?.id}
+          systemHasErrors={systemHasErrors}
         />
         
-        <div className="flex-1 overflow-y-auto">
-          {isMobile ? (
-            <PullToRefresh onRefresh={handleRefresh}>
-              {mainContent}
-            </PullToRefresh>
-          ) : (
-            mainContent
-          )}
+        {/* Main Content Area - Takes remaining space */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          {/* Header with backdrop blur */}
+          <div className="hidden md:block sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+            <Header 
+              title={getTabTitle()} 
+              subtitle={currentProject?.name}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              showDatePicker={activeTab === 'dashboard'}
+              onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+            />
+          </div>
+          
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {isMobile ? (
+              <PullToRefresh onRefresh={handleRefresh}>
+                {mainContent}
+              </PullToRefresh>
+            ) : (
+              mainContent
+            )}
+          </div>
         </div>
-      </div>
 
-      {/* Mobile Bottom Navigation */}
-      <MobileBottomNav 
-        activeTab={activeTab} 
-        onTabChange={handleTabChange}
-        onMoreClick={() => setIsMobileSidebarOpen(true)}
-      />
-    </div>
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          onMoreClick={() => setIsMobileSidebarOpen(true)}
+        />
+      </div>
+    </SidebarProvider>
   );
 };
 

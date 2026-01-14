@@ -39,7 +39,7 @@
 
 @layer base {
   :root {
-    /* Sterile White Theme - Medical Edition */
+    /* Premium Light Theme */
     --background: 210 20% 98%;
     --foreground: 222 20% 10%;
 
@@ -76,9 +76,9 @@
 
     --radius: 0.75rem;
 
-    --sidebar: 222 20% 12%;
+    --sidebar: 222 30% 8%;
     --sidebar-foreground: 210 10% 95%;
-    --sidebar-muted: 222 18% 18%;
+    --sidebar-muted: 222 25% 14%;
 
     --chart-1: 221 83% 53%;
     --chart-2: 142 76% 36%;
@@ -92,24 +92,25 @@
   }
 
   .dark {
-    /* Deep Cosmic Theme - Medical Edition */
-    --background: 222 30% 6%;
+    /* Premium Deep Dark Theme - #0B0E14 background */
+    --background: 220 35% 6%;
     --foreground: 210 15% 95%;
 
-    --card: 222 25% 9%;
+    /* Cards - #161B26 */
+    --card: 220 28% 12%;
     --card-foreground: 210 15% 95%;
 
-    --popover: 222 25% 9%;
+    --popover: 220 28% 10%;
     --popover-foreground: 210 15% 95%;
 
     --primary: 221 83% 58%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 222 22% 12%;
+    --secondary: 220 25% 14%;
     --secondary-foreground: 210 15% 95%;
 
-    --muted: 222 22% 14%;
-    --muted-foreground: 210 12% 50%;
+    --muted: 220 22% 16%;
+    --muted-foreground: 210 12% 55%;
 
     --accent: 250 95% 64%;
     --accent-foreground: 0 0% 100%;
@@ -123,13 +124,14 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    --border: 222 18% 15%;
-    --input: 222 18% 15%;
+    --border: 220 20% 18%;
+    --input: 220 20% 18%;
     --ring: 221 83% 58%;
 
-    --sidebar: 222 30% 5%;
-    --sidebar-foreground: 210 12% 85%;
-    --sidebar-muted: 222 25% 10%;
+    /* Sidebar - ultra dark */
+    --sidebar: 220 40% 5%;
+    --sidebar-foreground: 210 12% 90%;
+    --sidebar-muted: 220 30% 10%;
 
     /* Medical accent colors */
     --medical-blue: 200 80% 55%;
@@ -140,6 +142,11 @@
 @layer base {
   * {
     @apply border-border;
+  }
+
+  html {
+    /* Default to dark theme */
+    @apply dark;
   }
 
   body {
@@ -166,6 +173,15 @@
   .scrollbar-thin::-webkit-scrollbar-thumb {
     background-color: hsl(var(--muted-foreground) / 0.3);
     border-radius: 3px;
+  }
+
+  /* Glass morphism utilities */
+  .glass {
+    @apply bg-card/80 backdrop-blur-xl border border-border/50;
+  }
+
+  .glass-strong {
+    @apply bg-card/95 backdrop-blur-2xl border border-border/50;
   }
 }
 
@@ -408,15 +424,6 @@
 }
 
 /* VIP Shine Effect for MEGA leads */
-@keyframes vip-shine {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
 @keyframes gold-pulse {
   0%, 100% {
     box-shadow: 
@@ -430,36 +437,6 @@
       0 0 40px rgba(251, 191, 36, 0.3),
       inset 0 0 20px rgba(251, 191, 36, 0.15);
   }
-}
-
-.vip-shine {
-  position: relative;
-  overflow: hidden;
-}
-
-.vip-shine::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(251, 191, 36, 0.15) 25%,
-    rgba(251, 191, 36, 0.3) 50%,
-    rgba(251, 191, 36, 0.15) 75%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  animation: vip-shine 2.5s ease-in-out infinite;
-  pointer-events: none;
-  z-index: 1;
-}
-
-.vip-glow {
-  animation: gold-pulse 2s ease-in-out infinite;
 }
 
 /* Medical theme utilities */
