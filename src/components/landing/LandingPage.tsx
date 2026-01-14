@@ -300,9 +300,7 @@ export const LandingPage = () => {
           delay: 0.2,
           duration: 0.6
         }} className="max-w-3xl mx-auto mb-6 sm:mb-10 md:mb-12 space-y-3 sm:space-y-5 px-2 sm:px-6">
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">
-              Мы берём на себя маркетинг, продажи и аналитику.
-              <br className="hidden sm:block" />
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">Мы берём на себя маркетинг, продажи и аналитику. Вы занимаетесь пациентами.<br className="hidden sm:block" />
               Вы занимаетесь пациентами — мы приводим их к вам.
             </p>
             <p className="text-lg sm:text-xl md:text-2xl font-semibold text-slate-800">
