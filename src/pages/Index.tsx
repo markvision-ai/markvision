@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase, FALLBACK_PROJECT_ID } from '@/lib/externalSupabase';
 import AnalyticsPlatform from '@/components/AnalyticsPlatform';
 import LandingPage from '@/components/landing/LandingPage';
 import { Loader2 } from 'lucide-react';
@@ -12,7 +12,7 @@ const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const currentProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const currentProjectId = FALLBACK_PROJECT_ID;
 
   // ГЛОБАЛЬНЫЙ ЗАХВАТ ТОКЕНОВ ИЗ ОПЛАТЫ И ОАUTH
   useEffect(() => {

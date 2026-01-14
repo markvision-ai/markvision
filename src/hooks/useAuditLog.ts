@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { useAuth } from './useAuth';
 import { Json } from '@/integrations/supabase/types';
 

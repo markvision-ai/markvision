@@ -8,7 +8,7 @@ import {
   Legend, 
   Tooltip 
 } from 'recharts';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/externalSupabase';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
