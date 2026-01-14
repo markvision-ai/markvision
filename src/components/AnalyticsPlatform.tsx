@@ -310,7 +310,7 @@ export const AnalyticsPlatform = () => {
             <div className="space-y-4 md:space-y-6">
               {/* Main Metrics with Plan/Fact */}
               {renderWidget('metrics', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
                   <PlanFactCard
                     label="Расходы"
                     value={formatCurrency(totals.spend)}
@@ -364,7 +364,7 @@ export const AnalyticsPlatform = () => {
 
               {/* Computed Metrics */}
               {renderWidget('computed', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
                   <MetricCard
                     label="Средний чек (AOV)"
                     value={formatCurrency(aov)}
@@ -648,6 +648,9 @@ export const AnalyticsPlatform = () => {
             title={getTabTitle()}
             subtitle={currentProject?.name}
             onMenuClick={() => setIsMobileSidebarOpen(true)}
+            projects={projectsList}
+            currentProjectId={currentProjectId}
+            onProjectChange={setCurrentProjectId}
           />
           
           {/* Desktop Header with backdrop blur */}
