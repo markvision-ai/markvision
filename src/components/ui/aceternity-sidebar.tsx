@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import React, { useState, createContext, useContext, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface Links {
   label: string;
@@ -16,6 +17,8 @@ interface SidebarContextProps {
   open: boolean;
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   animate: boolean;
+  isMobileOpen: boolean;
+  setIsMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const SidebarContext = createContext<SidebarContextProps | undefined>(
@@ -42,12 +45,13 @@ export const SidebarProvider = ({
   animate?: boolean;
 }) => {
   const [openState, setOpenState] = useState(false);
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
 
   const open = openProp !== undefined ? openProp : openState;
   const setOpen = setOpenProp !== undefined ? setOpenProp : setOpenState;
 
   return (
-    <SidebarContext.Provider value={{ open, setOpen, animate: animate }}>
+    <SidebarContext.Provider value={{ open, setOpen, animate, isMobileOpen, setIsMobileOpen }}>
       {children}
     </SidebarContext.Provider>
   );
@@ -94,17 +98,19 @@ export const DesktopSidebar = ({
   children?: React.ReactNode;
 }) => {
   const { open, setOpen, animate } = useSidebar();
+  
   return (
-    <motion.div
+    <motion.aside
       className={cn(
-        "h-full px-4 py-4 hidden md:flex md:flex-col bg-neutral-900 w-[300px] flex-shrink-0 border-r border-neutral-800",
+        "h-screen px-4 py-4 hidden md:flex md:flex-col flex-shrink-0 sticky top-0",
+        "bg-sidebar/95 backdrop-blur-xl border-r border-border/50",
         className
       )}
       animate={{
-        width: animate ? (open ? "280px" : "70px") : "280px",
+        width: animate ? (open ? 280 : 64) : 280,
       }}
       initial={{
-        width: animate ? "70px" : "280px",
+        width: animate ? 64 : 280,
       }}
       transition={{
         duration: 0.3,
@@ -114,7 +120,7 @@ export const DesktopSidebar = ({
       onMouseLeave={() => setOpen(false)}
     >
       {children}
-    </motion.div>
+    </motion.aside>
   );
 };
 
@@ -125,46 +131,40 @@ export const MobileSidebar = ({
   className?: string;
   children?: React.ReactNode;
 }) => {
-  const { open, setOpen } = useSidebar();
+  const { isMobileOpen, setIsMobileOpen } = useSidebar();
+  
   return (
     <>
-      <div
-        className={cn(
-          "h-10 px-4 py-4 flex flex-row md:hidden items-center justify-between bg-neutral-900 w-full border-b border-neutral-800"
-        )}
-      >
-        <div className="flex justify-end z-20 w-full">
-          <Menu
-            className="text-neutral-200 cursor-pointer"
-            onClick={() => setOpen(!open)}
-          />
+      {/* Mobile Header with Burger */}
+      <div className="h-14 px-4 flex md:hidden items-center justify-between bg-sidebar/95 backdrop-blur-xl border-b border-border/50 sticky top-0 z-40">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+            <span className="text-white font-bold text-sm">M</span>
+          </div>
+          <span className="font-semibold text-foreground">MarkVision</span>
         </div>
-        <AnimatePresence>
-          {open && (
-            <motion.div
-              initial={{ x: "-100%", opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              exit={{ x: "-100%", opacity: 0 }}
-              transition={{
-                duration: 0.3,
-                ease: "easeInOut",
-              }}
-              className={cn(
-                "fixed h-full w-full inset-0 bg-neutral-900 p-10 z-[100] flex flex-col justify-between",
-                className
-              )}
-            >
-              <div
-                className="absolute right-10 top-10 z-50 text-neutral-200 cursor-pointer"
-                onClick={() => setOpen(!open)}
-              >
-                <X />
-              </div>
-              {children}
-            </motion.div>
-          )}
-        </AnimatePresence>
+        <button
+          onClick={() => setIsMobileOpen(true)}
+          className="p-2 rounded-lg hover:bg-muted transition-colors"
+        >
+          <Menu className="w-6 h-6 text-foreground" />
+        </button>
       </div>
+
+      {/* Mobile Sidebar Sheet */}
+      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
+        <SheetContent 
+          side="left" 
+          className={cn(
+            "w-[300px] p-0 bg-sidebar border-r border-border/50",
+            className
+          )}
+        >
+          <div className="flex flex-col h-full overflow-y-auto">
+            {children}
+          </div>
+        </SheetContent>
+      </Sheet>
     </>
   );
 };
@@ -180,31 +180,33 @@ export const SidebarLink = ({
   isActive?: boolean;
   props?: React.AnchorHTMLAttributes<HTMLAnchorElement>;
 }) => {
-  const { open, animate } = useSidebar();
+  const { open, animate, setIsMobileOpen } = useSidebar();
 
   const handleClick = useCallback((e: React.MouseEvent) => {
     if (link.onClick) {
       e.preventDefault();
       link.onClick();
     }
-  }, [link]);
+    // Close mobile sidebar on navigation
+    setIsMobileOpen(false);
+  }, [link, setIsMobileOpen]);
 
   return (
     <Link
       to={link.href}
       onClick={handleClick}
       className={cn(
-        "flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-lg transition-all duration-200",
+        "flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
         isActive 
-          ? "bg-gradient-to-r from-blue-600/20 to-purple-600/20 text-white border border-blue-500/30" 
-          : "hover:bg-neutral-800/60 text-neutral-400 hover:text-white",
+          ? "bg-primary/15 text-primary border border-primary/30" 
+          : "hover:bg-muted/60 text-muted-foreground hover:text-foreground",
         className
       )}
       {...props}
     >
       <div className={cn(
         "flex-shrink-0 transition-colors duration-200",
-        isActive ? "text-blue-400" : "text-neutral-400 group-hover/sidebar:text-white"
+        isActive ? "text-primary" : "text-muted-foreground group-hover/sidebar:text-foreground"
       )}>
         {link.icon}
       </div>
@@ -216,7 +218,7 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium whitespace-pre transition-colors duration-200",
-          isActive ? "text-white" : "text-neutral-300 group-hover/sidebar:text-white"
+          isActive ? "text-primary" : "text-foreground/80 group-hover/sidebar:text-foreground"
         )}
       >
         {link.label}
@@ -241,7 +243,7 @@ export const SidebarLabel = ({
         opacity: animate ? (open ? 1 : 0) : 1,
       }}
       className={cn(
-        "text-[10px] font-bold uppercase tracking-wider text-neutral-500 px-3 mb-2 mt-4",
+        "text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60 px-3 mb-2 mt-6 first:mt-4",
         className
       )}
     >
