@@ -34,6 +34,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import founderWithMark from "@/assets/founder-with-mark.png";
 
 const modules = [
   {
@@ -495,13 +496,12 @@ export const LandingPage = () => {
                 transition={{ duration: 0.3 }}
                 className="relative"
               >
-                <div className="aspect-[4/5] rounded-[32px] bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center overflow-hidden border border-slate-200/50 shadow-2xl shadow-slate-200/40">
-                  <div className="text-center p-10">
-                    <div className="w-44 h-44 mx-auto rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center mb-8 shadow-2xl shadow-blue-500/30">
-                      <span className="text-8xl">👨‍👦</span>
-                    </div>
-                    <p className="text-slate-500 font-medium text-lg">Юрий с сыном Марком</p>
-                  </div>
+                <div className="aspect-[4/5] rounded-[32px] overflow-hidden border border-slate-200/50 shadow-2xl shadow-slate-200/40">
+                  <img 
+                    src={founderWithMark} 
+                    alt="Юрий с сыном Марком" 
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 {/* Decorative elements */}
                 <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl" />
