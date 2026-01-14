@@ -1,13 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, FALLBACK_PROJECT_ID, SUPER_ADMIN_EMAIL, SUPER_ADMIN_UID } from '@/integrations/supabase/client';
+import { supabase, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { logError } from '@/lib/validation';
-
-// Проверка Super Admin
-const isSuperAdmin = (userId?: string | null, email?: string | null): boolean => {
-  return userId === SUPER_ADMIN_UID || email === SUPER_ADMIN_EMAIL;
-};
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
@@ -45,42 +40,26 @@ export const useProjects = () => {
 
     try {
       console.log('🔍 Загружаем проекты для пользователя:', user.email, 'ID:', user.id);
-
-      const isAdminUser = isSuperAdmin(user.id, user.email) || isAdmin;
-      console.log('👑 Super Admin:', isAdminUser);
+      console.log('👑 Admin role:', isAdmin);
       
       let projectsData: Project[] = [];
 
-      // Для Super Admin - ПРИНУДИТЕЛЬНО добавляем fallback проект
-      if (isAdminUser) {
-        console.log('🔑 Super Admin режим - загружаем fallback проект напрямую');
+      // For admin users - try to load all accessible projects
+      if (isAdmin) {
+        console.log('🔑 Admin режим - загружаем все доступные проекты');
         
-        // Сначала пробуем получить fallback проект
-        const { data: fallbackProject, error: fallbackError } = await supabase
+        // Admins can access all projects via RLS has_project_access() which includes admin check
+        const { data: allProjects, error: allError } = await supabase
           .from('projects')
-          .select('id, name, telegram_chat_id, onboarding_status')
-          .eq('id', FALLBACK_PROJECT_ID)
-          .maybeSingle();
-
-        if (fallbackProject) {
-          console.log('✅ Fallback проект найден:', fallbackProject.name);
-          projectsData = [fallbackProject];
-        } else {
-          console.error('❌ Fallback проект не найден:', fallbackError);
-          
-          // Пробуем получить все проекты
-          const { data: allProjects, error: allError } = await supabase
-            .from('projects')
-            .select('id, name, telegram_chat_id, onboarding_status');
-          
-          console.log('📋 Все проекты:', allProjects, 'Ошибка:', allError);
-          
-          if (allProjects && allProjects.length > 0) {
-            projectsData = allProjects;
-          }
+          .select('id, name, telegram_chat_id, onboarding_status');
+        
+        console.log('📋 Проекты:', allProjects, 'Ошибка:', allError);
+        
+        if (allProjects && allProjects.length > 0) {
+          projectsData = allProjects;
         }
       } else {
-        // Обычный пользователь - проверяем project_access
+        // Regular user - check project_access
         const { data: accessData, error: accessError } = await supabase
           .from('project_access')
           .select('project_id')
@@ -103,17 +82,6 @@ export const useProjects = () => {
 
       console.log('📋 Итого проектов:', projectsData.length, projectsData);
 
-      // Если всё ещё пусто - создаём виртуальный проект для Super Admin
-      if (projectsData.length === 0 && isAdminUser) {
-        console.log('⚠️ Проектов нет - создаём виртуальный fallback для Super Admin');
-        projectsData = [{
-          id: FALLBACK_PROJECT_ID,
-          name: 'Святой проект',
-          telegram_chat_id: null,
-          onboarding_status: 'completed'
-        }];
-      }
-
       setProjects(projectsData);
 
       // Устанавливаем активный проект
@@ -125,27 +93,19 @@ export const useProjects = () => {
           setCurrentProjectId(savedProjectId);
           console.log('📌 Восстановлен проект из localStorage:', savedProjectId);
         } else {
-          // Приоритет fallback проекту
-          const fallbackExists = projectsData.some(p => p.id === FALLBACK_PROJECT_ID);
-          const newProjectId = fallbackExists ? FALLBACK_PROJECT_ID : projectsData[0].id;
+          // Use first available project
+          const newProjectId = projectsData[0].id;
           setCurrentProjectId(newProjectId);
           console.log('📌 Установлен активный проект:', newProjectId);
         }
       } else {
-        // Даже если проектов нет, устанавливаем fallback ID
-        setCurrentProjectId(FALLBACK_PROJECT_ID);
-        console.log('⚠️ Принудительно установлен fallback проект ID:', FALLBACK_PROJECT_ID);
+        setCurrentProjectId(null);
+        console.log('⚠️ Нет доступных проектов');
       }
     } catch (error) {
       console.error('❌ Критическая ошибка загрузки проектов:', error);
-      // В случае ошибки также пробуем fallback
-      setCurrentProjectId(FALLBACK_PROJECT_ID);
-      setProjects([{
-        id: FALLBACK_PROJECT_ID,
-        name: 'Святой проект',
-        telegram_chat_id: null,
-        onboarding_status: 'completed'
-      }]);
+      setCurrentProjectId(null);
+      setProjects([]);
     } finally {
       setLoading(false);
     }
@@ -214,7 +174,7 @@ export const useProjects = () => {
   // Debug: выводим текущий проект в консоль при изменении
   const currentProject = projects.find(p => p.id === currentProjectId);
   
-  if (currentProject) {
+  if (currentProject && import.meta.env.DEV) {
     console.log('🎯 ТЕКУЩИЙ ПРОЕКТ:', currentProject.name, '| ID:', currentProject.id);
   }
 

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase, SUPER_ADMIN_UID, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog } from './useAuditLog';
 import { Json } from '@/integrations/supabase/types';
 
