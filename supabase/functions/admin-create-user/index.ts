@@ -8,15 +8,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Input validation schema
+// Input validation schema - password is now optional since we use reset links
 const CreateUserSchema = z.object({
   email: z.string()
     .trim()
     .email({ message: "Некорректный формат email" })
     .max(255, { message: "Email слишком длинный (максимум 255 символов)" }),
-  password: z.string()
-    .min(6, { message: "Пароль должен быть минимум 6 символов" })
-    .max(128, { message: "Пароль слишком длинный (максимум 128 символов)" }),
   name: z.string()
     .trim()
     .min(1, { message: "Имя обязательно" })
@@ -32,7 +29,8 @@ const CreateUserSchema = z.object({
 
 type CreateUserRequest = z.infer<typeof CreateUserSchema>;
 
-async function sendWelcomeEmail(email: string, name: string, password: string) {
+// Send welcome email with password setup link (NOT plaintext password)
+async function sendWelcomeEmail(email: string, name: string, setupLink: string) {
   const resendApiKey = Deno.env.get("RESEND_API_KEY");
   if (!resendApiKey) {
     console.log("RESEND_API_KEY not configured, skipping email");
@@ -45,7 +43,7 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
     const { error } = await resend.emails.send({
       from: "AdMetrics <onboarding@resend.dev>",
       to: [email],
-      subject: "Добро пожаловать в AdMetrics!",
+      subject: "Добро пожаловать в AdMetrics! Установите ваш пароль",
       html: `
         <!DOCTYPE html>
         <html>
@@ -57,14 +55,11 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
             .header { text-align: center; padding: 30px 0; background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%); border-radius: 12px; margin-bottom: 30px; }
             .header h1 { color: white; margin: 0; font-size: 28px; }
             .content { background: #f8fafc; padding: 30px; border-radius: 12px; }
-            .credentials { background: white; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #e2e8f0; }
-            .credential-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
-            .credential-row:last-child { border-bottom: none; }
-            .label { color: #64748b; font-size: 14px; }
-            .value { font-weight: 600; color: #1e293b; font-family: monospace; background: #f1f5f9; padding: 4px 8px; border-radius: 4px; }
-            .button { display: inline-block; background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 20px; }
+            .button { display: inline-block; background: #6366f1; color: white !important; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; margin: 20px 0; }
+            .button:hover { background: #5558e6; }
             .footer { text-align: center; margin-top: 30px; color: #94a3b8; font-size: 12px; }
             .warning { background: #fef3c7; border: 1px solid #f59e0b; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #92400e; }
+            .info { background: #dbeafe; border: 1px solid #3b82f6; padding: 12px; border-radius: 8px; margin-top: 15px; font-size: 13px; color: #1e40af; }
           </style>
         </head>
         <body>
@@ -74,27 +69,25 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
             </div>
             <div class="content">
               <h2>Привет, ${name}!</h2>
-              <p>Вас добавили в систему AdMetrics. Ниже ваши данные для входа:</p>
+              <p>Вас добавили в систему AdMetrics. Для входа в систему вам нужно установить пароль.</p>
               
-              <div class="credentials">
-                <div class="credential-row">
-                  <span class="label">Email:</span>
-                  <span class="value">${email}</span>
-                </div>
-                <div class="credential-row">
-                  <span class="label">Пароль:</span>
-                  <span class="value">${password}</span>
-                </div>
+              <div style="text-align: center;">
+                <a href="${setupLink}" class="button">🔐 Установить пароль</a>
+              </div>
+              
+              <div class="info">
+                ℹ️ <strong>Email для входа:</strong> ${email}
               </div>
               
               <div class="warning">
-                ⚠️ <strong>Важно:</strong> Смените пароль сразу после первого входа. Удалите это письмо после использования.
+                ⚠️ <strong>Важно:</strong> Эта ссылка действительна в течение 24 часов. После этого срока запросите новую ссылку у администратора.
               </div>
               
               <p>С уважением,<br>Команда AdMetrics</p>
             </div>
             <div class="footer">
               <p>Это автоматическое сообщение. Не отвечайте на него.</p>
+              <p>Если вы не запрашивали доступ к AdMetrics, проигнорируйте это письмо.</p>
             </div>
           </div>
         </body>
@@ -107,7 +100,7 @@ async function sendWelcomeEmail(email: string, name: string, password: string) {
       return { success: false, error: error.message };
     }
 
-    console.log("Welcome email sent to:", email);
+    console.log("Welcome email with setup link sent to:", email);
     return { success: true };
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -193,7 +186,7 @@ serve(async (req) => {
       );
     }
 
-    const { email, password, name, role, projectAccess, sendEmail } = validationResult.data;
+    const { email, name, role, projectAccess, sendEmail } = validationResult.data;
 
     // Check if user already exists
     const { data: existingUsers } = await supabaseAdmin.auth.admin.listUsers();
@@ -206,12 +199,13 @@ serve(async (req) => {
       );
     }
 
-    // Create the user
+    // Create the user WITHOUT a password - they'll set it via the reset link
+    // This is more secure than sending plaintext passwords via email
     const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
       email,
-      password,
       email_confirm: true,
       user_metadata: { name }
+      // No password set - user will create their own via recovery link
     });
 
     if (createError) {
@@ -250,10 +244,25 @@ serve(async (req) => {
       }
     }
 
-    // Send welcome email if requested
+    // Generate password reset link for the new user to set their password
     let emailResult: { success: boolean; error?: string } = { success: false, error: "Email not requested" };
+    
     if (sendEmail) {
-      emailResult = await sendWelcomeEmail(email, name, password);
+      // Generate a secure password recovery link
+      const { data: recoveryData, error: recoveryError } = await supabaseAdmin.auth.admin.generateLink({
+        type: 'recovery',
+        email: email,
+      });
+
+      if (recoveryError) {
+        console.error("Error generating recovery link:", recoveryError);
+        emailResult = { success: false, error: recoveryError.message };
+      } else if (recoveryData?.properties?.action_link) {
+        // Send email with the setup link (NOT plaintext password)
+        emailResult = await sendWelcomeEmail(email, name, recoveryData.properties.action_link);
+      } else {
+        emailResult = { success: false, error: "Failed to generate setup link" };
+      }
     }
 
     return new Response(
