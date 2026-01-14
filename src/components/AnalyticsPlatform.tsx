@@ -45,6 +45,7 @@ import { TechnicalHealth } from './health/TechnicalHealth';
 import { RealtimeDashboard } from './dashboard/RealtimeDashboard';
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { CalendarPage } from './calendar/CalendarPage';
+import { DiagnosticsPage } from './diagnostics/DiagnosticsPage';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -95,7 +96,14 @@ export const AnalyticsPlatform = () => {
   const getTabFromPath = (pathname: string): string => {
     const path = pathname.replace('/', '');
     if (!path || path === 'dashboard') return 'dashboard';
-    return path;
+    // Маппинг URL к tab идентификаторам
+    const urlToTab: Record<string, string> = {
+      'quantum-ads': 'quantom-ads',
+      'content-factory': 'factory',
+      'ab-tests': 'ab-testing',
+      'analytics': 'e2e-analytics',
+    };
+    return urlToTab[path] || path;
   };
   
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
@@ -107,7 +115,15 @@ export const AnalyticsPlatform = () => {
   // Обновляем URL при смене вкладки
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
-    const path = tab === 'dashboard' ? '/' : `/${tab}`;
+    // Маппинг tab к URL
+    const tabToUrl: Record<string, string> = {
+      'dashboard': '/',
+      'quantom-ads': '/quantum-ads',
+      'factory': '/content-factory',
+      'ab-testing': '/ab-tests',
+      'e2e-analytics': '/analytics',
+    };
+    const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
   }, [navigate]);
   
@@ -474,28 +490,25 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'diagnostics' && currentProjectId && (
-        <div className="bg-card border rounded-xl p-6">
-          <h3 className="text-lg font-semibold mb-4">📋 Диагностика</h3>
-          <p className="text-muted-foreground mb-4">
-            Здесь будут отображаться анкеты и результаты диагностик клиентов, 
-            поступающие с внешнего сервиса diagnostoka.lovable.app
+        <DiagnosticsPage projectId={currentProjectId} />
+      )}
+
+      {activeTab === 'help' && (
+        <div className="bg-[#161B26] border border-neutral-800/50 rounded-2xl p-8">
+          <h3 className="text-xl font-bold text-white mb-4">🆘 Центр помощи</h3>
+          <p className="text-neutral-400">
+            Документация и поддержка MarkVision AI. Раздел в разработке.
           </p>
-          <div className="bg-muted/50 rounded-lg p-8 text-center">
-            <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-              <Target className="w-6 h-6 text-primary" />
-            </div>
-            <p className="text-sm text-muted-foreground">Ожидание данных диагностики...</p>
-          </div>
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar'].includes(activeTab) && (
-        <div className="bg-card border rounded-xl p-12 text-center">
-          <div className="w-16 h-16 bg-secondary rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-muted-foreground" />
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help'].includes(activeTab) && (
+        <div className="bg-[#161B26] border border-neutral-800/50 rounded-2xl p-12 text-center">
+          <div className="w-16 h-16 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-blue-400" />
           </div>
-          <h3 className="text-lg font-semibold mb-2">Раздел в разработке</h3>
-          <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
+          <h3 className="text-lg font-semibold text-white mb-2">Раздел в разработке</h3>
+          <p className="text-neutral-400">Этот функционал скоро будет доступен</p>
         </div>
       )}
 
@@ -526,6 +539,12 @@ export const AnalyticsPlatform = () => {
         onTabChange={handleTabChange}
         userProfile={profile}
         realtimeStatus="SUBSCRIBED"
+        projects={projects}
+        currentProjectId={currentProjectId}
+        onProjectChange={setCurrentProjectId}
+        onCreateProject={createProject}
+        onDeleteProject={deleteProject}
+        userId={user?.id}
       />
       
       {/* Main Content Area */}

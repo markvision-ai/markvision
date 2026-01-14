@@ -8,7 +8,6 @@ import {
   SidebarBody,
   SidebarLink,
   SidebarLabel,
-  useSidebar,
 } from "@/components/ui/aceternity-sidebar";
 import {
   IconBrandTabler,
@@ -24,26 +23,91 @@ import {
   IconUsersGroup,
   IconArrowLeft,
   IconActivity,
+  IconTable,
+  IconFlask,
+  IconTrophy,
+  IconTarget,
+  IconReport,
+  IconPlugConnected,
+  IconUserCircle,
+  IconBook,
+  IconShield,
+  IconHeartbeat,
+  IconHelp,
+  IconChevronDown,
+  IconPlus,
+  IconCheck,
 } from "@tabler/icons-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Crown } from "lucide-react";
+import { Sparkles, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+
+interface Project {
+  id: string;
+  name: string;
+  owner_id: string;
+}
 
 interface AppSidebarProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   userProfile?: { name: string | null; email: string | null } | null;
   realtimeStatus?: 'SUBSCRIBED' | 'CLOSED' | 'CONNECTING';
+  projects?: Project[];
+  currentProjectId?: string | null;
+  onProjectChange?: (projectId: string) => void;
+  onCreateProject?: (name: string) => Promise<string | undefined>;
+  onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
+  userId?: string;
 }
 
 export const AppSidebar = ({ 
   activeTab, 
   onTabChange,
   userProfile,
-  realtimeStatus = 'SUBSCRIBED'
+  realtimeStatus = 'SUBSCRIBED',
+  projects = [],
+  currentProjectId,
+  onProjectChange,
+  onCreateProject,
+  onDeleteProject,
+  userId,
 }: AppSidebarProps) => {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [newProjectName, setNewProjectName] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+
+  const currentProject = projects.find(p => p.id === currentProjectId);
 
   const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
@@ -56,11 +120,40 @@ export const AppSidebar = ({
     navigate(path, { replace: true });
   }, [onTabChange, navigate]);
 
+  const handleCreateProject = async () => {
+    if (!newProjectName.trim() || !onCreateProject) return;
+    setIsCreating(true);
+    try {
+      const projectId = await onCreateProject(newProjectName.trim());
+      if (projectId) {
+        toast.success("Проект создан!");
+        setNewProjectName("");
+        setIsCreateDialogOpen(false);
+      }
+    } catch (e) {
+      toast.error("Ошибка создания проекта");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete || !onDeleteProject) return;
+    try {
+      await onDeleteProject(projectToDelete.id);
+      toast.success("Проект удалён");
+      setProjectToDelete(null);
+      setIsDeleteDialogOpen(false);
+    } catch (e) {
+      toast.error("Ошибка удаления проекта");
+    }
+  };
+
   const links = {
     dashboard: [
       {
-        label: "Дашборд",
-        href: "/",
+        label: "Главный дашборд",
+        href: "/dashboard",
         icon: <IconBrandTabler className="h-5 w-5 flex-shrink-0" />,
         tab: "dashboard",
       },
@@ -70,33 +163,39 @@ export const AppSidebar = ({
         icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
         tab: "realtime",
       },
+      {
+        label: "📅 Таблица данных",
+        href: "/table",
+        icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
+        tab: "table",
+      },
     ],
     marketing: [
       {
         label: "Quantum Ads",
-        href: "/quantom-ads",
+        href: "/quantum-ads",
         icon: <IconAd2 className="h-5 w-5 flex-shrink-0" />,
         tab: "quantom-ads",
       },
       {
+        label: "A/B Optimizer",
+        href: "/ab-tests",
+        icon: <IconFlask className="h-5 w-5 flex-shrink-0" />,
+        tab: "ab-testing",
+      },
+      {
         label: "Content Factory",
-        href: "/factory",
+        href: "/content-factory",
         icon: <IconVideo className="h-5 w-5 flex-shrink-0" />,
         tab: "factory",
       },
     ],
     sales: [
       {
-        label: "CRM",
+        label: "CRM (Канбан)",
         href: "/crm",
         icon: <IconUsers className="h-5 w-5 flex-shrink-0" />,
         tab: "crm",
-      },
-      {
-        label: "Календарь",
-        href: "/calendar",
-        icon: <IconCalendar className="h-5 w-5 flex-shrink-0" />,
-        tab: "calendar",
       },
       {
         label: "Диагностика",
@@ -110,11 +209,23 @@ export const AppSidebar = ({
         icon: <IconInbox className="h-5 w-5 flex-shrink-0" />,
         tab: "inbox",
       },
+      {
+        label: "Lead Scoring",
+        href: "/scoring",
+        icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
+        tab: "scoring",
+      },
+      {
+        label: "Геймификация",
+        href: "/gamification",
+        icon: <IconTrophy className="h-5 w-5 flex-shrink-0" />,
+        tab: "gamification",
+      },
     ],
     analytics: [
       {
         label: "Сквозная аналитика",
-        href: "/e2e-analytics",
+        href: "/analytics",
         icon: <IconChartBar className="h-5 w-5 flex-shrink-0" />,
         tab: "e2e-analytics",
       },
@@ -123,6 +234,12 @@ export const AppSidebar = ({
         href: "/finance",
         icon: <IconWallet className="h-5 w-5 flex-shrink-0" />,
         tab: "finance",
+      },
+      {
+        label: "Отчёты",
+        href: "/reports",
+        icon: <IconReport className="h-5 w-5 flex-shrink-0" />,
+        tab: "reports",
       },
     ],
     infrastructure: [
@@ -133,132 +250,273 @@ export const AppSidebar = ({
         tab: "settings",
       },
       {
+        label: "Интеграции",
+        href: "/integrations",
+        icon: <IconPlugConnected className="h-5 w-5 flex-shrink-0" />,
+        tab: "integrations",
+      },
+      {
         label: "Команда",
         href: "/team",
         icon: <IconUsersGroup className="h-5 w-5 flex-shrink-0" />,
         tab: "team",
       },
+      {
+        label: "Персонал",
+        href: "/staff",
+        icon: <IconUserCircle className="h-5 w-5 flex-shrink-0" />,
+        tab: "staff",
+      },
+      {
+        label: "База знаний (Wiki)",
+        href: "/knowledge",
+        icon: <IconBook className="h-5 w-5 flex-shrink-0" />,
+        tab: "knowledge",
+      },
+      {
+        label: "Аудит безопасности",
+        href: "/audit",
+        icon: <IconShield className="h-5 w-5 flex-shrink-0" />,
+        tab: "audit",
+      },
+      {
+        label: "Здоровье системы",
+        href: "/health",
+        icon: <IconHeartbeat className="h-5 w-5 flex-shrink-0" />,
+        tab: "health",
+      },
+      {
+        label: "Помощь",
+        href: "/help",
+        icon: <IconHelp className="h-5 w-5 flex-shrink-0" />,
+        tab: "help",
+      },
     ],
   };
 
   return (
-    <Sidebar open={open} setOpen={setOpen}>
-      <SidebarBody className="justify-between gap-6 bg-[#0B0E14] border-r border-neutral-800/50">
-        <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
-          {/* Logo */}
-          <AnimatePresence>
-            {open ? <Logo /> : <LogoIcon />}
-          </AnimatePresence>
+    <>
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="justify-between gap-4 bg-[#0B0E14] border-r border-neutral-800/50">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+            {/* Logo */}
+            <AnimatePresence>
+              {open ? <Logo /> : <LogoIcon />}
+            </AnimatePresence>
 
-          {/* Realtime Indicator */}
-          <div className="flex items-center gap-2 px-3 mt-4">
-            <div className={cn(
-              "w-2 h-2 rounded-full animate-pulse",
-              realtimeStatus === 'SUBSCRIBED' ? "bg-green-500" : 
-              realtimeStatus === 'CONNECTING' ? "bg-yellow-500" : "bg-red-500"
-            )} />
-            <motion.span
-              animate={{
-                display: open ? "inline-block" : "none",
-                opacity: open ? 1 : 0,
+            {/* Project Selector */}
+            {projects.length > 0 && (
+              <motion.div
+                animate={{
+                  opacity: open ? 1 : 0,
+                  height: open ? "auto" : 0,
+                }}
+                className="px-2 mt-4 overflow-hidden"
+              >
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-neutral-800/50 hover:bg-neutral-800 border border-neutral-700/50 transition-colors text-left">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
+                        <span className="text-sm text-white truncate">
+                          {currentProject?.name || "Выберите проект"}
+                        </span>
+                      </div>
+                      <IconChevronDown className="w-4 h-4 text-neutral-400 flex-shrink-0" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start" className="w-64 bg-[#161B26] border-neutral-700">
+                    {projects.map((project) => (
+                      <DropdownMenuItem
+                        key={project.id}
+                        onClick={() => onProjectChange?.(project.id)}
+                        className="flex items-center justify-between group"
+                      >
+                        <div className="flex items-center gap-2">
+                          {currentProjectId === project.id && (
+                            <IconCheck className="w-4 h-4 text-green-500" />
+                          )}
+                          <span className={currentProjectId !== project.id ? "ml-6" : ""}>
+                            {project.name}
+                          </span>
+                        </div>
+                        {project.owner_id === userId && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setProjectToDelete(project);
+                              setIsDeleteDialogOpen(true);
+                            }}
+                            className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-500/20 rounded transition-all"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                          </button>
+                        )}
+                      </DropdownMenuItem>
+                    ))}
+                    <DropdownMenuSeparator className="bg-neutral-700" />
+                    <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)}>
+                      <IconPlus className="w-4 h-4 mr-2" />
+                      Создать проект
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </motion.div>
+            )}
+
+            {/* Realtime Indicator */}
+            <div className="flex items-center gap-2 px-3 mt-4">
+              <div className={cn(
+                "w-2 h-2 rounded-full animate-pulse",
+                realtimeStatus === 'SUBSCRIBED' ? "bg-green-500" : 
+                realtimeStatus === 'CONNECTING' ? "bg-yellow-500" : "bg-red-500"
+              )} />
+              <motion.span
+                animate={{
+                  display: open ? "inline-block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                className="text-xs text-neutral-500"
+              >
+                {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 
+                 realtimeStatus === 'CONNECTING' ? 'Connecting...' : 'Offline'}
+              </motion.span>
+            </div>
+
+            {/* Navigation Groups */}
+            <div className="mt-6 flex flex-col gap-1">
+              <SidebarLabel label="Дашборд" />
+              {links.dashboard.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Маркетинг" />
+              {links.marketing.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Продажи" />
+              {links.sales.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Аналитика" />
+              {links.analytics.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Инфраструктура" />
+              {links.infrastructure.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* User Profile & Logout */}
+          <div className="border-t border-neutral-800/50 pt-4">
+            <SidebarLink
+              link={{
+                label: userProfile?.name || "Пользователь",
+                href: "#",
+                icon: (
+                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                    {userProfile?.name?.charAt(0).toUpperCase() || 
+                     userProfile?.email?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                ),
               }}
-              className="text-xs text-neutral-500"
-            >
-              {realtimeStatus === 'SUBSCRIBED' ? 'Live' : 
-               realtimeStatus === 'CONNECTING' ? 'Connecting...' : 'Offline'}
-            </motion.span>
+            />
+            <SidebarLink
+              link={{
+                label: "Выйти",
+                href: "#",
+                icon: <IconArrowLeft className="h-5 w-5 flex-shrink-0 text-neutral-400" />,
+                onClick: handleLogout,
+              }}
+              className="hover:bg-red-500/10 hover:text-red-400"
+            />
           </div>
+        </SidebarBody>
+      </Sidebar>
 
-          {/* Navigation Groups */}
-          <div className="mt-8 flex flex-col gap-1">
-            <SidebarLabel label="Дашборд" />
-            {links.dashboard.map((link) => (
-              <SidebarLink
-                key={link.tab}
-                link={{
-                  ...link,
-                  onClick: () => handleNavigation(link.tab, link.href),
-                }}
-                isActive={activeTab === link.tab}
-              />
-            ))}
-
-            <SidebarLabel label="Маркетинг" />
-            {links.marketing.map((link) => (
-              <SidebarLink
-                key={link.tab}
-                link={{
-                  ...link,
-                  onClick: () => handleNavigation(link.tab, link.href),
-                }}
-                isActive={activeTab === link.tab}
-              />
-            ))}
-
-            <SidebarLabel label="Продажи" />
-            {links.sales.map((link) => (
-              <SidebarLink
-                key={link.tab}
-                link={{
-                  ...link,
-                  onClick: () => handleNavigation(link.tab, link.href),
-                }}
-                isActive={activeTab === link.tab}
-              />
-            ))}
-
-            <SidebarLabel label="Аналитика" />
-            {links.analytics.map((link) => (
-              <SidebarLink
-                key={link.tab}
-                link={{
-                  ...link,
-                  onClick: () => handleNavigation(link.tab, link.href),
-                }}
-                isActive={activeTab === link.tab}
-              />
-            ))}
-
-            <SidebarLabel label="Инфраструктура" />
-            {links.infrastructure.map((link) => (
-              <SidebarLink
-                key={link.tab}
-                link={{
-                  ...link,
-                  onClick: () => handleNavigation(link.tab, link.href),
-                }}
-                isActive={activeTab === link.tab}
-              />
-            ))}
+      {/* Create Project Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+        <DialogContent className="bg-[#161B26] border-neutral-700">
+          <DialogHeader>
+            <DialogTitle>Создать новый проект</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              placeholder="Название проекта"
+              value={newProjectName}
+              onChange={(e) => setNewProjectName(e.target.value)}
+              className="bg-neutral-800 border-neutral-700"
+            />
           </div>
-        </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleCreateProject} disabled={isCreating || !newProjectName.trim()}>
+              {isCreating ? "Создание..." : "Создать"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-        {/* User Profile & Logout */}
-        <div className="border-t border-neutral-800/50 pt-4">
-          <SidebarLink
-            link={{
-              label: userProfile?.name || "Пользователь",
-              href: "#",
-              icon: (
-                <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
-                  {userProfile?.name?.charAt(0).toUpperCase() || 
-                   userProfile?.email?.charAt(0).toUpperCase() || "U"}
-                </div>
-              ),
-            }}
-          />
-          <SidebarLink
-            link={{
-              label: "Выйти",
-              href: "#",
-              icon: <IconArrowLeft className="h-5 w-5 flex-shrink-0 text-neutral-400" />,
-              onClick: handleLogout,
-            }}
-            className="hover:bg-red-500/10 hover:text-red-400"
-          />
-        </div>
-      </SidebarBody>
-    </Sidebar>
+      {/* Delete Project Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent className="bg-[#161B26] border-neutral-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить проект?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Проект "{projectToDelete?.name}" будет удалён безвозвратно. Все данные будут потеряны.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProject} className="bg-red-600 hover:bg-red-700">
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 };
 
