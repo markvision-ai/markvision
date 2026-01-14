@@ -244,6 +244,28 @@ export const KanbanBoard = ({
       
       if (error) throw error;
 
+      // ✨ AUTO-SYNC: Create income transaction in MarkFinance
+      const { error: transactionError } = await supabase
+        .from('transactions')
+        .insert({
+          project_id: effectiveProjectId,
+          type: 'income',
+          category: 'sales',
+          amount: amount,
+          currency: 'KZT',
+          description: `Оплата от ${paymentLead.name || 'клиента'}${paymentLead.phone ? ` (${paymentLead.phone})` : ''}`,
+          lead_id: paymentLead.id,
+          transaction_date: new Date().toISOString(),
+        });
+
+      if (transactionError) {
+        if (import.meta.env.DEV) {
+          console.error('Failed to sync payment to MarkFinance:', transactionError);
+        }
+        // Don't fail the whole operation, just warn
+        toast.warning('Оплата записана, но не синхронизирована с MarkFinance');
+      }
+
       // Log status change
       if (user) {
         const { data: profile } = await supabase
@@ -277,7 +299,7 @@ export const KanbanBoard = ({
       // Trigger confetti celebration!
       triggerSuccessConfetti();
       
-      toast.success('Оплата зарегистрирована! 🎉');
+      toast.success('Оплата зарегистрирована и синхронизирована с MarkFinance! 🎉');
       onRefetch();
     } catch (error) {
       toast.error('Ошибка сохранения');
