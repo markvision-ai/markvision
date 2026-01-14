@@ -39,27 +39,40 @@ export const useProjects = () => {
     }
 
     try {
-      if (import.meta.env.DEV) {
-        console.log('🔍 Загружаем проекты для пользователя:', user.email);
-      }
+      console.log('🔍 Загружаем проекты для пользователя:', user.email, 'ID:', user.id);
 
-      // Сначала пробуем получить все проекты (для админа)
       const isAdminUser = isSuperAdmin(user.id, user.email) || isAdmin;
+      console.log('👑 Super Admin:', isAdminUser);
       
       let projectsData: Project[] = [];
 
+      // Для Super Admin - ПРИНУДИТЕЛЬНО добавляем fallback проект
       if (isAdminUser) {
-        // Админ видит все проекты
-        const { data, error } = await supabase
+        console.log('🔑 Super Admin режим - загружаем fallback проект напрямую');
+        
+        // Сначала пробуем получить fallback проект
+        const { data: fallbackProject, error: fallbackError } = await supabase
           .from('projects')
-          .select('id, name, onboarding_status');
+          .select('id, name, telegram_chat_id, onboarding_status')
+          .eq('id', FALLBACK_PROJECT_ID)
+          .maybeSingle();
 
-        if (error) {
-          if (import.meta.env.DEV) {
-            console.error('❌ Ошибка получения проектов (админ):', error);
-          }
+        if (fallbackProject) {
+          console.log('✅ Fallback проект найден:', fallbackProject.name);
+          projectsData = [fallbackProject];
         } else {
-          projectsData = (data || []).map(p => ({ ...p, telegram_chat_id: null }));
+          console.error('❌ Fallback проект не найден:', fallbackError);
+          
+          // Пробуем получить все проекты
+          const { data: allProjects, error: allError } = await supabase
+            .from('projects')
+            .select('id, name, telegram_chat_id, onboarding_status');
+          
+          console.log('📋 Все проекты:', allProjects, 'Ошибка:', allError);
+          
+          if (allProjects && allProjects.length > 0) {
+            projectsData = allProjects;
+          }
         }
       } else {
         // Обычный пользователь - проверяем project_access
@@ -68,43 +81,32 @@ export const useProjects = () => {
           .select('project_id')
           .eq('user_id', user.id);
 
+        console.log('🔐 Project access:', accessData, 'Ошибка:', accessError);
+
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
           const { data, error } = await supabase
             .from('projects')
-            .select('id, name, onboarding_status')
+            .select('id, name, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
 
           if (!error && data) {
-            projectsData = data.map(p => ({ ...p, telegram_chat_id: null }));
+            projectsData = data;
           }
         }
       }
 
-      if (import.meta.env.DEV) {
-        console.log('📋 Найдено проектов:', projectsData.length);
-      }
+      console.log('📋 Итого проектов:', projectsData.length, projectsData);
 
-      // Если проектов нет, пробуем получить fallback проект напрямую
-      if (projectsData.length === 0) {
-        if (import.meta.env.DEV) {
-          console.log('⚠️ Проектов не найдено, пробуем fallback проект:', FALLBACK_PROJECT_ID);
-        }
-
-        const { data: fallbackProject, error: fallbackError } = await supabase
-          .from('projects')
-          .select('id, name, onboarding_status')
-          .eq('id', FALLBACK_PROJECT_ID)
-          .maybeSingle();
-
-        if (!fallbackError && fallbackProject) {
-          projectsData = [{ ...fallbackProject, telegram_chat_id: null }];
-          if (import.meta.env.DEV) {
-            console.log('✅ Fallback проект найден:', fallbackProject.name);
-          }
-        } else if (import.meta.env.DEV) {
-          console.error('❌ Fallback проект не найден:', fallbackError);
-        }
+      // Если всё ещё пусто - создаём виртуальный проект для Super Admin
+      if (projectsData.length === 0 && isAdminUser) {
+        console.log('⚠️ Проектов нет - создаём виртуальный fallback для Super Admin');
+        projectsData = [{
+          id: FALLBACK_PROJECT_ID,
+          name: 'Святой проект',
+          telegram_chat_id: null,
+          onboarding_status: 'completed'
+        }];
       }
 
       setProjects(projectsData);
@@ -116,32 +118,29 @@ export const useProjects = () => {
 
         if (savedProjectExists) {
           setCurrentProjectId(savedProjectId);
-          if (import.meta.env.DEV) {
-            console.log('📌 Восстановлен проект из localStorage:', savedProjectId);
-          }
+          console.log('📌 Восстановлен проект из localStorage:', savedProjectId);
         } else {
           // Приоритет fallback проекту
           const fallbackExists = projectsData.some(p => p.id === FALLBACK_PROJECT_ID);
           const newProjectId = fallbackExists ? FALLBACK_PROJECT_ID : projectsData[0].id;
           setCurrentProjectId(newProjectId);
-          if (import.meta.env.DEV) {
-            console.log('📌 Установлен активный проект:', newProjectId);
-          }
+          console.log('📌 Установлен активный проект:', newProjectId);
         }
       } else {
-        // Даже если проектов нет, устанавливаем fallback ID для попытки загрузки данных
+        // Даже если проектов нет, устанавливаем fallback ID
         setCurrentProjectId(FALLBACK_PROJECT_ID);
-        if (import.meta.env.DEV) {
-          console.log('⚠️ Принудительно установлен fallback проект ID:', FALLBACK_PROJECT_ID);
-        }
+        console.log('⚠️ Принудительно установлен fallback проект ID:', FALLBACK_PROJECT_ID);
       }
     } catch (error) {
-      logError('Fetch projects failed', error);
+      console.error('❌ Критическая ошибка загрузки проектов:', error);
       // В случае ошибки также пробуем fallback
       setCurrentProjectId(FALLBACK_PROJECT_ID);
-      if (import.meta.env.DEV) {
-        console.error('❌ Критическая ошибка загрузки проектов, используем fallback:', error);
-      }
+      setProjects([{
+        id: FALLBACK_PROJECT_ID,
+        name: 'Святой проект',
+        telegram_chat_id: null,
+        onboarding_status: 'completed'
+      }]);
     } finally {
       setLoading(false);
     }
@@ -210,8 +209,8 @@ export const useProjects = () => {
   // Debug: выводим текущий проект в консоль при изменении
   const currentProject = projects.find(p => p.id === currentProjectId);
   
-  if (import.meta.env.DEV && currentProject) {
-    console.log('🎯 ТЕКУЩИЙ ПРОЕКТ:', currentProject.name, '| ID:', currentProject.id, '| Onboarding:', currentProject.onboarding_status);
+  if (currentProject) {
+    console.log('🎯 ТЕКУЩИЙ ПРОЕКТ:', currentProject.name, '| ID:', currentProject.id);
   }
 
   return {
