@@ -453,7 +453,27 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <ReportGenerator data={{ totals, planData, dailyData, dateRange }} />
+          <ReportGenerator data={{ 
+            projectId: currentProjectId, 
+            projectName: currentProject?.name || 'Проект', 
+            dateRange: { from: dateRange.from || new Date(), to: dateRange.to || new Date() }, 
+            totals, 
+            planData,
+            metrics: {
+              cpl: totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0,
+              cac: totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0,
+              aov: totals.sales > 0 ? Math.round(totals.revenue / totals.sales) : 0,
+              romi: totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0,
+              roas: totals.spend > 0 ? totals.revenue / totals.spend : 0,
+            },
+            funnelSteps: [
+              { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
+              { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
+              { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
+              { label: 'Диагностики', value: totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+              { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
+            ]
+          }} />
         </Suspense>
       )}
 
