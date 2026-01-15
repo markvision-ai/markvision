@@ -3,7 +3,10 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 // SUPER ADMIN - полный доступ без проверок RLS
-const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+const SUPER_ADMIN_UIDS = [
+  'd94043b0-1c76-4017-84de-df0dbf00a2c9', // Original
+  'ab433b01-06a8-46a6-b1d6-3461e442fe77', // Юрий zapoinov@bk.ru
+];
 
 interface UserProfile {
   id: string;
@@ -35,7 +38,7 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         const currentUser = session?.user ?? null;
-        const isSuperAdmin = currentUser?.id === SUPER_ADMIN_UID;
+        const isSuperAdmin = currentUser ? SUPER_ADMIN_UIDS.includes(currentUser.id) : false;
         
         setAuthState(prev => ({
           ...prev,
@@ -66,7 +69,7 @@ export const useAuth = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
-      const isSuperAdmin = currentUser?.id === SUPER_ADMIN_UID;
+      const isSuperAdmin = currentUser ? SUPER_ADMIN_UIDS.includes(currentUser.id) : false;
       
       setAuthState(prev => ({
         ...prev,
@@ -88,7 +91,7 @@ export const useAuth = () => {
 
   const fetchProfile = async (userId: string) => {
     // CRITICAL: Super admin bypass - never block
-    const isSuperAdminUser = userId === SUPER_ADMIN_UID;
+    const isSuperAdminUser = SUPER_ADMIN_UIDS.includes(userId);
     
     try {
       // Try to get profile by user_id
@@ -191,7 +194,7 @@ export const useAuth = () => {
    */
   const checkAdminRole = async (userId: string) => {
     // Super admin always has admin role
-    if (userId === SUPER_ADMIN_UID) {
+    if (SUPER_ADMIN_UIDS.includes(userId)) {
       setAuthState(prev => ({
         ...prev,
         isAdmin: true,
