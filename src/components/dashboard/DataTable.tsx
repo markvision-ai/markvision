@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Download, Target } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Target, Loader2 } from 'lucide-react';
+
 interface DailyData {
   date: string;
   spend: number;
@@ -12,6 +13,7 @@ interface DailyData {
   sales: number;
   revenue: number;
 }
+
 interface PlanData {
   spend: number;
   impressions: number;
@@ -21,22 +23,97 @@ interface PlanData {
   sales: number;
   revenue: number;
 }
+
 const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
 };
+
 const formatNumber = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(value);
 };
+
 const formatPercent = (value: number): string => {
   return value.toFixed(2) + '%';
 };
+
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+
+const getWeekDay = (date: Date): number => {
+  const day = getDay(date);
+  return day === 0 ? 6 : day - 1;
+};
+
 interface DataTableProps {
   dailyData: Record<string, DailyData>;
   onDataChange: (date: string, field: keyof DailyData, value: number) => void;
   planData?: PlanData;
   onPlanChange?: (field: keyof PlanData, value: number) => void;
 }
+
+// Editable cell component that only saves on blur
+const EditableCell = ({ 
+  value, 
+  onSave, 
+  className 
+}: { 
+  value: number | undefined; 
+  onSave: (value: number) => void;
+  className?: string;
+}) => {
+  const [localValue, setLocalValue] = useState(value?.toString() || '');
+  const [isSaving, setIsSaving] = useState(false);
+  const initialValueRef = useRef(value?.toString() || '');
+
+  // Sync with external value changes
+  useEffect(() => {
+    const newVal = value?.toString() || '';
+    setLocalValue(newVal);
+    initialValueRef.current = newVal;
+  }, [value]);
+
+  const handleBlur = useCallback(async () => {
+    const numValue = parseFloat(localValue) || 0;
+    const initialNum = parseFloat(initialValueRef.current) || 0;
+    
+    // Only save if value actually changed
+    if (numValue !== initialNum) {
+      setIsSaving(true);
+      try {
+        await onSave(numValue);
+        initialValueRef.current = localValue;
+      } finally {
+        setIsSaving(false);
+      }
+    }
+  }, [localValue, onSave]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      (e.target as HTMLInputElement).blur();
+    }
+  };
+
+  return (
+    <div className="relative">
+      <input
+        type="number"
+        placeholder="0"
+        value={localValue}
+        onChange={e => setLocalValue(e.target.value)}
+        onBlur={handleBlur}
+        onKeyDown={handleKeyDown}
+        className={className}
+        disabled={isSaving}
+      />
+      {isSaving && (
+        <div className="absolute right-2 top-1/2 -translate-y-1/2">
+          <Loader2 className="w-3 h-3 animate-spin text-primary" />
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const DataTable = ({
   dailyData,
   onDataChange,
@@ -50,6 +127,7 @@ export const DataTable = ({
     start: monthStart,
     end: monthEnd
   });
+
   const totals = useMemo(() => {
     const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
     const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
@@ -77,18 +155,7 @@ export const DataTable = ({
   const cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
   const ctr = totals.impressions > 0 ? totals.clicks / totals.impressions * 100 : 0;
   const cpm = totals.impressions > 0 ? totals.spend / totals.impressions * 1000 : 0;
-  const handleInputChange = (date: string, field: keyof DailyData, value: string) => {
-    const numValue = parseFloat(value) || 0;
-    onDataChange(date, field, numValue);
-  };
-  const getInputValue = (date: string, field: keyof DailyData): string => {
-    const value = dailyData[date]?.[field];
-    return value ? String(value) : '';
-  };
-  const getWeekDay = (date: Date): number => {
-    const day = getDay(date);
-    return day === 0 ? 6 : day - 1;
-  };
+
   const exportToCSV = () => {
     const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
     const rows = daysInMonth.map(day => {
@@ -112,7 +179,9 @@ export const DataTable = ({
     link.download = `analytics_${format(currentMonth, 'yyyy-MM')}.csv`;
     link.click();
   };
-  return <div className="space-y-3 md:space-y-4">
+
+  return (
+    <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <div className="bg-card border rounded-xl p-3 md:p-4">
@@ -141,9 +210,7 @@ export const DataTable = ({
               <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
             </button>
             <h2 className="text-sm md:text-lg font-semibold capitalize min-w-[120px] md:min-w-[180px] text-center">
-              {format(currentMonth, 'LLLL yyyy', {
-              locale: ru
-            })}
+              {format(currentMonth, 'LLLL yyyy', { locale: ru })}
             </h2>
             <button onClick={() => setCurrentMonth(prev => addMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
               <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
@@ -182,14 +249,9 @@ export const DataTable = ({
                   {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
                     <td key={field} className="p-1 md:p-2">
                       {onPlanChange ? (
-                        <input
-                          type="number"
-                          placeholder="0"
-                          value={planData[field] || ''}
-                          onChange={e => {
-                            const numValue = parseFloat(e.target.value) || 0;
-                            onPlanChange(field, numValue);
-                          }}
+                        <EditableCell
+                          value={planData[field]}
+                          onSave={(val) => onPlanChange(field, val)}
                           className="w-full text-right bg-primary/5 border border-primary/20 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm font-semibold"
                         />
                       ) : (
@@ -238,6 +300,8 @@ export const DataTable = ({
                 const weekDay = getWeekDay(day);
                 const isWeekend = weekDay >= 5;
                 const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+                const dayData = dailyData[dateKey];
+                
                 return (
                   <tr key={dateKey} className={`border-b hover:bg-secondary/30 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'bg-primary/5' : ''}`}>
                     <td className={`p-2 md:p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
@@ -251,11 +315,9 @@ export const DataTable = ({
                     </td>
                     {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
                       <td key={field} className="p-1 md:p-2">
-                        <input
-                          type="number"
-                          placeholder="0"
-                          value={getInputValue(dateKey, field)}
-                          onChange={e => handleInputChange(dateKey, field, e.target.value)}
+                        <EditableCell
+                          value={dayData?.[field] as number | undefined}
+                          onSave={(val) => onDataChange(dateKey, field, val)}
                           className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm"
                         />
                       </td>
@@ -267,5 +329,6 @@ export const DataTable = ({
           </table>
         </div>
       </div>
-    </div>;
+    </div>
+  );
 };
