@@ -1,14 +1,14 @@
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from './types';
 
-// ПРИНУДИТЕЛЬНО используем ВНЕШНИЙ Supabase (Analitika)
-// НЕ Lovable Cloud!
-const EXTERNAL_SUPABASE_URL = 'https://pyscczcuersdjvpmkiec.supabase.co';
-const EXTERNAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY2NTgyODUsImV4cCI6MjA4MjIzNDI4NX0.a2aHw_RwTj1_aLA-r-wOhE2Wn3Jcx8rLgFJyEQJ018k';
+// Используем Lovable Cloud Supabase
+const SUPABASE_URL = "https://grzqykegqgglekcxdtsu.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdyenF5a2VncWdnbGVrY3hkdHN1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxMDQzMjYsImV4cCI6MjA4MTY4MDMyNn0.4kUfyFD6I5RR6xRjO4R2uSY9hlb0x1suGeNrkUxVaIg";
 
-// Default project ID for fallback scenarios (public configuration, not a security credential)
+// Default project ID for fallback scenarios
 export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-export const supabase = createClient(EXTERNAL_SUPABASE_URL, EXTERNAL_SUPABASE_ANON_KEY, {
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: window.localStorage,
     persistSession: true,
@@ -21,9 +21,10 @@ export const supabase = createClient(EXTERNAL_SUPABASE_URL, EXTERNAL_SUPABASE_AN
     }
   }
 });
+
 // Realtime connection management with silent reconnection
 let reconnectAttempts = 0;
-const MAX_RECONNECT_LOG = 3; // Only log first 3 reconnect attempts
+const MAX_RECONNECT_LOG = 3;
 
 const channel = supabase.channel('leads-all');
 channel.subscribe((status) => {
@@ -33,7 +34,6 @@ channel.subscribe((status) => {
   }
   if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
     reconnectAttempts++;
-    // Silent reconnect - only log first few attempts to avoid console spam
     if (reconnectAttempts <= MAX_RECONNECT_LOG) {
       console.log(`⚠️ Realtime: Connection lost. Reconnecting in 30s... (attempt ${reconnectAttempts})`);
     }
@@ -42,3 +42,5 @@ channel.subscribe((status) => {
     }, 30000);
   }
 });
+
+console.log('🔗 Supabase: Lovable Cloud connected');

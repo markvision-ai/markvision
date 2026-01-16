@@ -156,17 +156,25 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
       }
 
       // Update lead with expert session data
+      const extraData = {
+        ...(lead.extra_data || {}),
+        currentRevenue: qualification.currentRevenue,
+        desiredRevenue: qualification.desiredRevenue,
+        mainProblem: qualification.mainProblem,
+        urgency: qualification.urgency,
+        budget: qualification.budget,
+        decisionMaker: qualification.decisionMaker,
+        timeframe: qualification.timeframe,
+        expertSession: JSON.parse(JSON.stringify(expertSession)),
+        gapValue: gapValue,
+        monthlyLoss: monthlyLoss,
+        diagnosticCompletedAt: new Date().toISOString(),
+      };
+      
       const { error: leadError } = await supabase
         .from('leads')
         .update({
-          extra_data: {
-            ...lead.extra_data,
-            ...qualification,
-            expertSession: expertSession,
-            gapValue: gapValue,
-            monthlyLoss: monthlyLoss,
-            diagnosticCompletedAt: new Date().toISOString(),
-          },
+          extra_data: extraData as any,
           status: 'diagnostics_completed',
           updated_at: new Date().toISOString(),
         })
