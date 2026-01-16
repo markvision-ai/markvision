@@ -25,11 +25,12 @@ const Index = () => {
         
         const { error } = await supabase.from('integrations').upsert({
           project_id: currentProjectId,
-          platform: 'facebook',
-          access_token: session.provider_token,
+          type: 'facebook',
+          name: 'Facebook Ads',
+          config: { access_token: session.provider_token },
           status: 'active',
           updated_at: new Date().toISOString()
-        }, { onConflict: 'project_id,platform' });
+        }, { onConflict: 'project_id,type' });
 
         if (!error) {
           toast.success("Интеграция с Meta успешно активирована!");

@@ -1,15 +1,13 @@
-// DEPRECATED: Используй src/integrations/supabase/client.ts
-// Этот файл оставлен для обратной совместимости
-
+// Re-export from main client for backwards compatibility
 export { 
   supabase, 
   FALLBACK_PROJECT_ID 
 } from '@/integrations/supabase/client';
 
-// Алиас для обратной совместимости
+// Alias for backwards compatibility
 export { supabase as externalSupabase } from '@/integrations/supabase/client';
 
-// Функция проверки подключения
+// Connection check function
 export const checkConnection = async () => {
   const { supabase } = await import('@/integrations/supabase/client');
   try {
@@ -21,11 +19,8 @@ export const checkConnection = async () => {
   }
 };
 
-// Очистка сессии
+// Clear session data
 export const clearAuthData = () => {
-  localStorage.removeItem('sb-pyscczcuersdjvpmkiec-auth-token');
-  localStorage.removeItem('external-supabase-auth');
-  console.log('🧹 Сессия очищена');
+  localStorage.removeItem('sb-grzqykegqgglekcxdtsu-auth-token');
+  console.log('🧹 Session cleared');
 };
-
-console.log('🔗 Supabase клиент: https://pyscczcuersdjvpmkiec.supabase.co');
