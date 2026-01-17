@@ -26,7 +26,7 @@ import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { AIAssistant } from './analytics/AIAssistant';
-import { OnboardingWizard } from './onboarding/OnboardingWizard';
+// OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
@@ -126,7 +126,6 @@ export const AnalyticsPlatform = () => {
   
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [showOnboarding, setShowOnboarding] = useState(false);
   const isMobile = useIsMobile();
   const { profile, user } = useAuth();
   
@@ -613,18 +612,6 @@ export const AnalyticsPlatform = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background text-foreground flex w-full">
-        {/* Onboarding Wizard - показывается если проект не завершил онбординг */}
-        {currentProject && currentProject.onboarding_status !== 'completed' && (
-          <OnboardingWizard 
-            projectId={currentProjectId || ''}
-            projectName={currentProject.name}
-            onComplete={() => {
-              refetchProjects();
-              handleTabChange('dashboard');
-            }}
-          />
-        )}
-        
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
           activeTab={activeTab} 

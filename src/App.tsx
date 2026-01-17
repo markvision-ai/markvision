@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Signup from "./pages/Signup";
+import Setup from "./pages/Setup";
 
 // Lazy load non-critical pages
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
@@ -42,6 +43,8 @@ const App = () => (
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/signup" element={<Signup />} />
+        <Route path="/setup" element={<Setup />} />
+        <Route path="/onboarding" element={<Setup />} />
         <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
         <Route path="/install" element={<Suspense fallback={<PageLoader />}><Install /></Suspense>} />
         
@@ -80,7 +83,6 @@ const App = () => (
         <Route path="/ab-tests" element={<Index />} />
         <Route path="/knowledge" element={<Index />} />
         <Route path="/health" element={<Index />} />
-        <Route path="/onboarding" element={<Index />} />
         <Route path="/calendar" element={<Index />} />
         <Route path="/automation" element={<Index />} />
         <Route path="/rop" element={<Index />} />
