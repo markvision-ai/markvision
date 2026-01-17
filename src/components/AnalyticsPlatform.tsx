@@ -303,20 +303,20 @@ export const AnalyticsPlatform = () => {
   const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: '' }));
 
   const mainContent = (
-    <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-20 md:pb-8">
+    <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
           {(renderWidget) => (
             <div className="space-y-4 md:space-y-6">
-              {/* Main Metrics with Plan/Fact */}
+              {/* Main Metrics with Plan/Fact - 2 columns on mobile, 3 on tablet, 6 on desktop */}
               {renderWidget('metrics', (
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
                   <PlanFactCard
                     label="Расходы"
                     value={formatCurrency(totals.spend)}
                     plan={planData.spend}
                     fact={totals.spend}
-                    icon={<DollarSign className="w-5 h-5 text-destructive" />}
+                    icon={<DollarSign className="w-4 h-4 md:w-5 md:h-5 text-destructive" />}
                     format="currency"
                   />
                   <PlanFactCard
@@ -324,7 +324,7 @@ export const AnalyticsPlatform = () => {
                     value={formatNumber(totals.impressions)}
                     plan={planData.impressions}
                     fact={totals.impressions}
-                    icon={<Eye className="w-5 h-5 text-primary" />}
+                    icon={<Eye className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
                     format="number"
                   />
                   <PlanFactCard
@@ -332,7 +332,7 @@ export const AnalyticsPlatform = () => {
                     value={formatNumber(totals.leads)}
                     plan={planData.leads}
                     fact={totals.leads}
-                    icon={<Users className="w-5 h-5 text-accent" />}
+                    icon={<Users className="w-4 h-4 md:w-5 md:h-5 text-accent" />}
                     format="number"
                   />
                   <PlanFactCard
@@ -340,7 +340,7 @@ export const AnalyticsPlatform = () => {
                     value={formatNumber(totals.diagnostics)}
                     plan={planData.diagnostics}
                     fact={totals.diagnostics}
-                    icon={<Target className="w-5 h-5 text-warning" />}
+                    icon={<Target className="w-4 h-4 md:w-5 md:h-5 text-warning" />}
                     format="number"
                   />
                   <PlanFactCard
@@ -348,7 +348,7 @@ export const AnalyticsPlatform = () => {
                     value={formatNumber(totals.sales)}
                     plan={planData.sales}
                     fact={totals.sales}
-                    icon={<ShoppingCart className="w-5 h-5 text-success" />}
+                    icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-success" />}
                     format="number"
                   />
                   <PlanFactCard
@@ -356,39 +356,39 @@ export const AnalyticsPlatform = () => {
                     value={formatCurrency(totals.revenue)}
                     plan={planData.revenue}
                     fact={totals.revenue}
-                    icon={<Wallet className="w-5 h-5 text-success" />}
+                    icon={<Wallet className="w-4 h-4 md:w-5 md:h-5 text-success" />}
                     format="currency"
                   />
                 </div>
               ))}
 
-              {/* Computed Metrics */}
+              {/* Computed Metrics - 2 columns on mobile */}
               {renderWidget('computed', (
-                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
                   <MetricCard
-                    label="Средний чек (AOV)"
+                    label="Средний чек"
                     value={formatCurrency(aov)}
-                    subValue="Выручка / Продажи"
-                    icon={<Calculator className="w-5 h-5 text-primary" />}
+                    subValue="AOV"
+                    icon={<Calculator className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
                     variant="primary"
                   />
                   <MetricCard
-                    label="Цена лида (CPL)"
+                    label="Цена лида"
                     value={formatCurrency(cpl)}
-                    subValue="Расходы / Лиды"
+                    subValue="CPL"
                     variant={cpl > 5000 ? 'danger' : 'default'}
                   />
                   <MetricCard
-                    label="Цена клиента (CAC)"
+                    label="Цена клиента"
                     value={formatCurrency(cac)}
-                    subValue="Расходы / Продажи"
+                    subValue="CAC"
                   />
                   <MetricCard
                     label="ROMI"
                     value={`${Math.round(romi)}%`}
-                    subValue="(Выручка - Расход) / Расход"
+                    subValue="Возврат инвестиций"
                     variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
-                    icon={<TrendingUp className="w-5 h-5" />}
+                    icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5" />}
                   />
                   <MetricCard
                     label="ROAS"

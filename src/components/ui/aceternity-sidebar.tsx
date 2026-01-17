@@ -84,8 +84,9 @@ export const SidebarBody = ({
 }) => {
   return (
     <>
+      {/* Desktop Sidebar only - hidden on mobile */}
       <DesktopSidebar className={className}>{children}</DesktopSidebar>
-      <MobileSidebar className={className}>{children}</MobileSidebar>
+      {/* Mobile sidebar is handled by MobileMenuDrawer in AnalyticsPlatform */}
     </>
   );
 };
@@ -124,50 +125,7 @@ export const DesktopSidebar = ({
   );
 };
 
-export const MobileSidebar = ({
-  className,
-  children,
-}: {
-  className?: string;
-  children?: React.ReactNode;
-}) => {
-  const { isMobileOpen, setIsMobileOpen } = useSidebar();
-  
-  return (
-    <>
-      {/* Mobile Header with Burger */}
-      <div className="h-14 px-4 flex md:hidden items-center justify-between bg-sidebar border-b border-border/30 sticky top-0 z-40">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-            <span className="text-white font-bold text-sm">M</span>
-          </div>
-          <span className="font-semibold text-sidebar-foreground">MarkVision</span>
-        </div>
-        <button
-          onClick={() => setIsMobileOpen(true)}
-          className="p-2 rounded-lg hover:bg-sidebar-muted transition-colors"
-        >
-          <Menu className="w-6 h-6 text-sidebar-foreground" />
-        </button>
-      </div>
-
-      {/* Mobile Sidebar Sheet */}
-      <Sheet open={isMobileOpen} onOpenChange={setIsMobileOpen}>
-        <SheetContent 
-          side="left" 
-          className={cn(
-            "w-[300px] p-0 bg-sidebar border-r border-border/50",
-            className
-          )}
-        >
-          <div className="flex flex-col h-full overflow-y-auto">
-            {children}
-          </div>
-        </SheetContent>
-      </Sheet>
-    </>
-  );
-};
+// Mobile sidebar removed - handled by MobileMenuDrawer
 
 export const SidebarLink = ({
   link,
