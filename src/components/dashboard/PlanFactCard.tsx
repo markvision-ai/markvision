@@ -37,13 +37,13 @@ export const PlanFactCard = ({
       : 'bg-destructive';
 
   return (
-    <div className="bg-card border rounded-xl p-3 md:p-4">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-xs md:text-sm text-muted-foreground">{label}</span>
-        <div className="hidden sm:block">{icon}</div>
+    <div className="bg-card border rounded-xl p-3 md:p-4 min-w-0">
+      <div className="flex items-center justify-between mb-2 gap-2">
+        <span className="text-xs md:text-sm text-muted-foreground truncate">{label}</span>
+        <div className="flex-shrink-0">{icon}</div>
       </div>
       
-      <div className="text-lg md:text-2xl font-bold mb-2">{value}</div>
+      <div className="text-lg md:text-2xl font-bold mb-2 truncate">{value}</div>
       
       {plan !== undefined && fact !== undefined && (
         <>
@@ -54,11 +54,11 @@ export const PlanFactCard = ({
             />
           </div>
           
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">
+          <div className="flex items-center justify-between text-xs gap-2">
+            <span className="text-muted-foreground truncate">
               План: {formatValue(plan, format)}
             </span>
-            <div className={`flex items-center gap-1 ${isOnTrack ? 'text-success' : 'text-destructive'}`}>
+            <div className={`flex items-center gap-1 flex-shrink-0 ${isOnTrack ? 'text-success' : 'text-destructive'}`}>
               {isOnTrack ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
               <span>{percentage.toFixed(0)}%</span>
             </div>

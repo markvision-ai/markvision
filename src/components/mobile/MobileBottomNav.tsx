@@ -17,10 +17,10 @@ const navItems = [
 
 export const MobileBottomNav = ({ activeTab, onTabChange, onMoreClick }: MobileBottomNavProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border md:hidden">
-      <div className="flex items-center justify-around h-16 max-w-lg mx-auto safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border md:hidden safe-area-bottom">
+      <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {navItems.map((item) => {
-          const isActive = activeTab === item.id;
+          const isActive = activeTab === item.id || (item.isMore && !['dashboard', 'crm', 'e2e-analytics', 'finance'].includes(activeTab));
           const Icon = item.icon;
           
           return (
@@ -34,14 +34,14 @@ export const MobileBottomNav = ({ activeTab, onTabChange, onMoreClick }: MobileB
                 }
               }}
               className={cn(
-                'flex flex-col items-center justify-center flex-1 h-full gap-1 transition-all touch-manipulation',
-                'active:scale-95',
+                'flex flex-col items-center justify-center flex-1 py-2 gap-1 transition-all touch-manipulation',
+                'active:scale-95 min-h-[56px]',
                 isActive ? 'text-primary' : 'text-muted-foreground'
               )}
             >
               <div className={cn(
-                'p-1.5 rounded-xl transition-all',
-                isActive && 'bg-primary/10'
+                'p-2 rounded-xl transition-all',
+                isActive && 'bg-primary/15'
               )}>
                 <Icon className={cn(
                   'w-5 h-5 transition-transform',
@@ -49,7 +49,7 @@ export const MobileBottomNav = ({ activeTab, onTabChange, onMoreClick }: MobileB
                 )} />
               </div>
               <span className={cn(
-                'text-[10px] leading-none',
+                'text-[10px] leading-none font-medium',
                 isActive && 'font-semibold'
               )}>
                 {item.label}

@@ -34,20 +34,20 @@ export const MetricCard = ({
   };
 
   return (
-    <div className={`bg-card border rounded-xl p-3 md:p-5 transition-all hover:shadow-md ${variantStyles[variant]}`}>
-      <div className="flex items-start justify-between mb-2 md:mb-3">
-        <p className="text-xs md:text-sm text-muted-foreground">{label}</p>
+    <div className={`bg-card border rounded-xl p-3 md:p-5 transition-all hover:shadow-md min-w-0 ${variantStyles[variant]}`}>
+      <div className="flex items-start justify-between mb-2 md:mb-3 gap-2">
+        <p className="text-xs md:text-sm text-muted-foreground truncate">{label}</p>
         {icon && (
-          <div className={`hidden sm:block p-2 rounded-lg ${variant === 'default' ? 'bg-secondary' : variantStyles[variant]}`}>
+          <div className={`flex-shrink-0 p-1.5 md:p-2 rounded-lg ${variant === 'default' ? 'bg-secondary' : variantStyles[variant]}`}>
             {icon}
           </div>
         )}
       </div>
       
-      <p className={`text-lg md:text-2xl font-bold ${valueStyles[variant]}`}>{value}</p>
+      <p className={`text-lg md:text-2xl font-bold truncate ${valueStyles[variant]}`}>{value}</p>
       
       <div className="flex items-center justify-between mt-1 md:mt-2 gap-2">
-        {subValue && <p className="text-[10px] md:text-xs text-muted-foreground truncate hidden sm:block">{subValue}</p>}
+        {subValue && <p className="text-[10px] md:text-xs text-muted-foreground truncate flex-1">{subValue}</p>}
         {trend && (
           <div className={`flex items-center gap-1 text-xs flex-shrink-0 ${trend.isPositive ? 'text-success' : 'text-destructive'}`}>
             {trend.isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}

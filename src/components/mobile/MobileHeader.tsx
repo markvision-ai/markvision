@@ -1,4 +1,4 @@
-import { Menu, Bell, ChevronDown, FolderOpen } from 'lucide-react';
+import { Menu, Bell, ChevronDown, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import {
@@ -33,56 +33,82 @@ export const MobileHeader = ({
   onProjectChange 
 }: MobileHeaderProps) => {
   const currentProject = projects.find(p => p.id === currentProjectId);
+  const showProjectSelector = projects.length > 0 && onProjectChange;
+
+  // Clean title - remove emoji prefix if present
+  const cleanTitle = title.replace(/^[^\s]+\s/, '');
 
   return (
     <header className={cn(
-      "sticky top-0 z-40 bg-background/95 backdrop-blur-xl border-b border-border md:hidden",
+      "sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border md:hidden",
+      "safe-area-top",
       className
     )}>
-      <div className="flex items-center justify-between h-14 px-4">
-        <div className="flex items-center gap-3 min-w-0 flex-1">
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="flex-shrink-0 -ml-2"
-            onClick={onMenuClick}
-          >
-            <Menu className="w-5 h-5" />
-          </Button>
-          <div className="min-w-0 flex-1">
-            <h1 className="text-base font-semibold truncate">{title}</h1>
-            {/* Project Selector for Mobile */}
-            {projects.length > 0 && onProjectChange ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-                    <FolderOpen className="w-3 h-3" />
-                    <span className="truncate max-w-[150px]">{currentProject?.name || 'Выберите проект'}</span>
-                    <ChevronDown className="w-3 h-3" />
-                  </button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-[200px]">
-                  {projects.map((project) => (
-                    <DropdownMenuItem
-                      key={project.id}
-                      onClick={() => onProjectChange(project.id)}
-                      className={cn(
-                        "cursor-pointer",
-                        project.id === currentProjectId && "bg-primary/10 text-primary"
-                      )}
-                    >
-                      <span className="truncate">{project.name}</span>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : subtitle ? (
-              <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
-            ) : null}
-          </div>
+      <div className="flex items-center justify-between h-14 px-3">
+        {/* Hamburger Menu Button - Left side */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-11 w-11 rounded-xl hover:bg-muted active:scale-95 transition-all touch-manipulation flex-shrink-0"
+          onClick={onMenuClick}
+          aria-label="Открыть меню"
+        >
+          <Menu className="w-6 h-6" />
+        </Button>
+
+        {/* Title & Project Selector - Center */}
+        <div className="flex-1 flex flex-col items-center justify-center min-w-0 px-2">
+          <h1 className="text-base font-semibold truncate max-w-[180px]">
+            {cleanTitle}
+          </h1>
+          
+          {showProjectSelector ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors touch-manipulation">
+                  <span className="truncate max-w-[140px]">
+                    {currentProject?.name || 'Выберите проект'}
+                  </span>
+                  <ChevronDown className="w-3 h-3 flex-shrink-0" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="center" className="w-56">
+                {projects.map((project) => (
+                  <DropdownMenuItem
+                    key={project.id}
+                    onClick={() => onProjectChange(project.id)}
+                    className="flex items-center gap-2 min-h-[44px] touch-manipulation cursor-pointer"
+                  >
+                    {currentProjectId === project.id && (
+                      <Check className="w-4 h-4 text-primary flex-shrink-0" />
+                    )}
+                    <span className={cn(
+                      "truncate",
+                      currentProjectId !== project.id && "ml-6"
+                    )}>
+                      {project.name}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : subtitle ? (
+            <p className="text-xs text-muted-foreground truncate max-w-[140px]">
+              {subtitle}
+            </p>
+          ) : null}
         </div>
-        <Button variant="ghost" size="icon" className="flex-shrink-0 -mr-2">
+
+        {/* Notification Bell - Right side */}
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="h-11 w-11 rounded-xl hover:bg-muted active:scale-95 transition-all touch-manipulation flex-shrink-0 relative"
+          aria-label="Уведомления"
+        >
           <Bell className="w-5 h-5" />
+          {/* Notification dot */}
+          <span className="absolute top-2 right-2 w-2 h-2 bg-destructive rounded-full" />
         </Button>
       </div>
     </header>
