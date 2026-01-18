@@ -25,8 +25,11 @@ import {
   Zap,
   LogOut,
   ChevronRight,
-  Sparkles
+  Sparkles,
+  Sun,
+  Moon
 } from 'lucide-react';
+import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -98,6 +101,7 @@ export const MobileMenuDrawer = ({
   currentProjectName
 }: MobileMenuDrawerProps) => {
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -173,7 +177,30 @@ export const MobileMenuDrawer = ({
         </ScrollArea>
         
         {/* User profile and logout - Fixed at bottom */}
-        <div className="p-4 border-t border-border bg-background mt-auto">
+        <div className="p-4 border-t border-border bg-background mt-auto space-y-3">
+          {/* Theme Toggle */}
+          <div className="flex items-center justify-between px-1">
+            <span className="text-sm text-muted-foreground">Тема оформления</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={toggleTheme}
+              className="h-9 gap-2 rounded-xl"
+            >
+              {theme === 'dark' ? (
+                <>
+                  <Sun className="w-4 h-4" />
+                  <span className="text-xs">Светлая</span>
+                </>
+              ) : (
+                <>
+                  <Moon className="w-4 h-4" />
+                  <span className="text-xs">Тёмная</span>
+                </>
+              )}
+            </Button>
+          </div>
+          
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-medium flex-shrink-0">

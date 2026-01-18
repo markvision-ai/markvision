@@ -305,125 +305,121 @@ export const AnalyticsPlatform = () => {
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
-          {(renderWidget) => (
-            <div className="space-y-4 md:space-y-6">
-              {/* Main Metrics with Plan/Fact - 2 columns on mobile, 3 on tablet, 6 on desktop */}
-              {renderWidget('metrics', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-                  <PlanFactCard
-                    label="Расходы"
-                    value={formatCurrency(totals.spend)}
-                    plan={planData.spend}
-                    fact={totals.spend}
-                    icon={<DollarSign className="w-4 h-4 md:w-5 md:h-5 text-destructive" />}
-                    format="currency"
-                  />
-                  <PlanFactCard
-                    label="Показы"
-                    value={formatNumber(totals.impressions)}
-                    plan={planData.impressions}
-                    fact={totals.impressions}
-                    icon={<Eye className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Лиды"
-                    value={formatNumber(totals.leads)}
-                    plan={planData.leads}
-                    fact={totals.leads}
-                    icon={<Users className="w-4 h-4 md:w-5 md:h-5 text-accent" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Диагностики"
-                    value={formatNumber(totals.diagnostics)}
-                    plan={planData.diagnostics}
-                    fact={totals.diagnostics}
-                    icon={<Target className="w-4 h-4 md:w-5 md:h-5 text-warning" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Продажи"
-                    value={formatNumber(totals.sales)}
-                    plan={planData.sales}
-                    fact={totals.sales}
-                    icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-success" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Выручка"
-                    value={formatCurrency(totals.revenue)}
-                    plan={planData.revenue}
-                    fact={totals.revenue}
-                    icon={<Wallet className="w-4 h-4 md:w-5 md:h-5 text-success" />}
-                    format="currency"
-                  />
-                </div>
-              ))}
+          {(registerWidget) => {
+            // Register all widgets - the DraggableDashboard will render them in sorted order
+            registerWidget('metrics', (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
+                <PlanFactCard
+                  label="Расходы"
+                  value={formatCurrency(totals.spend)}
+                  plan={planData.spend}
+                  fact={totals.spend}
+                  icon={<DollarSign className="w-4 h-4 md:w-5 md:h-5 text-destructive" />}
+                  format="currency"
+                />
+                <PlanFactCard
+                  label="Показы"
+                  value={formatNumber(totals.impressions)}
+                  plan={planData.impressions}
+                  fact={totals.impressions}
+                  icon={<Eye className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Лиды"
+                  value={formatNumber(totals.leads)}
+                  plan={planData.leads}
+                  fact={totals.leads}
+                  icon={<Users className="w-4 h-4 md:w-5 md:h-5 text-accent" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Диагностики"
+                  value={formatNumber(totals.diagnostics)}
+                  plan={planData.diagnostics}
+                  fact={totals.diagnostics}
+                  icon={<Target className="w-4 h-4 md:w-5 md:h-5 text-warning" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Продажи"
+                  value={formatNumber(totals.sales)}
+                  plan={planData.sales}
+                  fact={totals.sales}
+                  icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-success" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Выручка"
+                  value={formatCurrency(totals.revenue)}
+                  plan={planData.revenue}
+                  fact={totals.revenue}
+                  icon={<Wallet className="w-4 h-4 md:w-5 md:h-5 text-success" />}
+                  format="currency"
+                />
+              </div>
+            ));
 
-              {/* Computed Metrics - 2 columns on mobile */}
-              {renderWidget('computed', (
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
-                  <MetricCard
-                    label="Средний чек"
-                    value={formatCurrency(aov)}
-                    subValue="AOV"
-                    icon={<Calculator className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
-                    variant="primary"
-                  />
-                  <MetricCard
-                    label="Цена лида"
-                    value={formatCurrency(cpl)}
-                    subValue="CPL"
-                    variant={cpl > 5000 ? 'danger' : 'default'}
-                  />
-                  <MetricCard
-                    label="Цена клиента"
-                    value={formatCurrency(cac)}
-                    subValue="CAC"
-                  />
-                  <MetricCard
-                    label="ROMI"
-                    value={`${Math.round(romi)}%`}
-                    subValue="Возврат инвестиций"
-                    variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
-                    icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5" />}
-                  />
-                  <MetricCard
-                    label="ROAS"
-                    value={`${roas.toFixed(2)}x`}
-                    subValue={`₸1 → ₸${Math.round(roas)}`}
-                    variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
-                  />
-                </div>
-              ))}
+            registerWidget('computed', (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+                <MetricCard
+                  label="Средний чек"
+                  value={formatCurrency(aov)}
+                  subValue="AOV"
+                  icon={<Calculator className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
+                  variant="primary"
+                />
+                <MetricCard
+                  label="Цена лида"
+                  value={formatCurrency(cpl)}
+                  subValue="CPL"
+                  variant={cpl > 5000 ? 'danger' : 'default'}
+                />
+                <MetricCard
+                  label="Цена клиента"
+                  value={formatCurrency(cac)}
+                  subValue="CAC"
+                />
+                <MetricCard
+                  label="ROMI"
+                  value={`${Math.round(romi)}%`}
+                  subValue="Возврат инвестиций"
+                  variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
+                  icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5" />}
+                />
+                <MetricCard
+                  label="ROAS"
+                  value={`${roas.toFixed(2)}x`}
+                  subValue={`₸1 → ₸${Math.round(roas)}`}
+                  variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
+                />
+              </div>
+            ));
 
-              {/* Quick Stats - Сравнение с прошлой неделей */}
-              {renderWidget('quick-stats', (
-                <QuickStats stats={comparisonStats} />
-              ))}
+            registerWidget('quick-stats', (
+              <QuickStats stats={comparisonStats} />
+            ));
 
-              {/* Revenue Chart - Динамика показателей */}
-              {renderWidget('revenue-chart', (
-                <RevenueChart data={dailyData} daysInMonth={daysInRange} />
-              ))}
+            registerWidget('revenue-chart', (
+              <RevenueChart data={dailyData} daysInMonth={daysInRange} />
+            ));
 
-              {/* Conversion Stats - Воронка продаж */}
-              {renderWidget('conversions', (
-                <ConversionStats steps={funnelSteps} />
-              ))}
+            registerWidget('conversions', (
+              <ConversionStats steps={funnelSteps} />
+            ));
 
-              {/* Appointments Widget - Записи на неделю */}
-              {renderWidget('appointments', currentProjectId && (
+            if (currentProjectId) {
+              registerWidget('appointments', (
                 <UpcomingAppointmentsWidget projectId={currentProjectId} />
-              ))}
+              ));
 
-              {/* AI Assistant - ИИ-Аналитик */}
-              {renderWidget('ai-assistant', currentProjectId && (
+              registerWidget('ai-assistant', (
                 <AIAssistant />
-              ))}
-            </div>
-          )}
+              ));
+            }
+
+            return null; // DraggableDashboard handles rendering
+          }}
         </DraggableDashboard>
       )}
 
