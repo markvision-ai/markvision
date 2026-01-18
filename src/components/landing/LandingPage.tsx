@@ -309,7 +309,7 @@ export const LandingPage = () => {
               <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
             <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400">
-              без увеличения бюджета
+              без дополнительного бюджета
             </p>
           </motion.div>
 
