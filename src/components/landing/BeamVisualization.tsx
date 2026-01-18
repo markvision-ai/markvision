@@ -5,34 +5,30 @@ import { cn } from "@/lib/utils";
 import { AnimatedBeam } from "@/components/ui/animated-beam";
 import { motion } from "framer-motion";
 import markvisionLogo from "@/assets/markvision-logo.png";
-
-const Circle = forwardRef<
-  HTMLDivElement,
-  { className?: string; children?: React.ReactNode; label?: string }
->(({ className, children, label }, ref) => {
-  return (
-    <div className="flex flex-col items-center gap-2 sm:gap-3">
-      <div
-        ref={ref}
-        className={cn(
-          "z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-100/50 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-100/50",
-          className
-        )}
-      >
+const Circle = forwardRef<HTMLDivElement, {
+  className?: string;
+  children?: React.ReactNode;
+  label?: string;
+}>(({
+  className,
+  children,
+  label
+}, ref) => {
+  return <div className="flex flex-col items-center gap-2 sm:gap-3">
+      <div ref={ref} className={cn("z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-100/50 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-100/50", className)}>
         {children}
       </div>
-      {label && (
-        <span className="text-[10px] sm:text-xs font-medium text-slate-500 text-center max-w-[70px] sm:max-w-[90px] leading-tight">
+      {label && <span className="text-[10px] sm:text-xs font-medium text-slate-500 text-center max-w-[70px] sm:max-w-[90px] leading-tight">
           {label}
-        </span>
-      )}
-    </div>
-  );
+        </span>}
+    </div>;
 });
-
 Circle.displayName = "Circle";
-
-export function BeamVisualization({ className }: { className?: string }) {
+export function BeamVisualization({
+  className
+}: {
+  className?: string;
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const instagramRef = useRef<HTMLDivElement>(null);
   const tiktokRef = useRef<HTMLDivElement>(null);
@@ -41,15 +37,7 @@ export function BeamVisualization({ className }: { className?: string }) {
   const crmRef = useRef<HTMLDivElement>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
   const financeRef = useRef<HTMLDivElement>(null);
-
-  return (
-    <div
-      className={cn(
-        "relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-slate-50/50 to-white p-6 sm:p-10 lg:p-14",
-        className
-      )}
-      ref={containerRef}
-    >
+  return <div className={cn("relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-slate-50/50 to-white p-6 sm:p-10 lg:p-14", className)} ref={containerRef}>
       <div className="flex size-full max-w-5xl flex-row items-stretch justify-between gap-4 sm:gap-8 lg:gap-16">
         {/* Left side - Input sources */}
         <div className="flex flex-col justify-center gap-4 sm:gap-6 lg:gap-8">
@@ -69,13 +57,13 @@ export function BeamVisualization({ className }: { className?: string }) {
           </Circle>
           <Circle ref={tiktokRef} label="TikTok">
             <svg className="h-5 w-5 sm:h-7 sm:w-7" viewBox="0 0 24 24" fill="none">
-              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.88 2.89 2.89 0 01-2.88-2.88 2.89 2.89 0 012.88-2.88c.28 0 .54.04.79.1V9.4a6.35 6.35 0 00-.79-.05A6.34 6.34 0 003.15 15.7a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.05a8.26 8.26 0 004.76 1.52V7.11a4.85 4.85 0 01-1-.42z" fill="#000"/>
-              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.76 0 2.89 2.89 0 012.88-2.88c.28 0 .54.04.79.1V9.4a6.35 6.35 0 00-.79-.05A6.34 6.34 0 003.15 15.7a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.05a8.26 8.26 0 004.76 1.52V7.11a4.85 4.85 0 01-1-.42z" fill="url(#tiktok-gradient)"/>
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.88 2.89 2.89 0 01-2.88-2.88 2.89 2.89 0 012.88-2.88c.28 0 .54.04.79.1V9.4a6.35 6.35 0 00-.79-.05A6.34 6.34 0 003.15 15.7a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.05a8.26 8.26 0 004.76 1.52V7.11a4.85 4.85 0 01-1-.42z" fill="#000" />
+              <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-5.76 0 2.89 2.89 0 012.88-2.88c.28 0 .54.04.79.1V9.4a6.35 6.35 0 00-.79-.05A6.34 6.34 0 003.15 15.7a6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.34-6.34V9.05a8.26 8.26 0 004.76 1.52V7.11a4.85 4.85 0 01-1-.42z" fill="url(#tiktok-gradient)" />
               <defs>
                 <linearGradient id="tiktok-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor="#69C9D0"/>
-                  <stop offset="50%" stopColor="#EE1D52"/>
-                  <stop offset="100%" stopColor="#69C9D0"/>
+                  <stop offset="0%" stopColor="#69C9D0" />
+                  <stop offset="50%" stopColor="#EE1D52" />
+                  <stop offset="100%" stopColor="#69C9D0" />
                 </linearGradient>
               </defs>
             </svg>
@@ -92,24 +80,22 @@ export function BeamVisualization({ className }: { className?: string }) {
 
         {/* Center - MarkVision Logo */}
         <div className="flex flex-col justify-center items-center">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.5, duration: 0.5, type: "spring" }}
-            className="relative"
-          >
+          <motion.div initial={{
+          scale: 0.8,
+          opacity: 0
+        }} animate={{
+          scale: 1,
+          opacity: 1
+        }} transition={{
+          delay: 0.5,
+          duration: 0.5,
+          type: "spring"
+        }} className="relative">
             {/* Glow effect */}
             <div className="absolute inset-0 rounded-3xl sm:rounded-[28px] bg-gradient-to-br from-blue-400 to-cyan-500 blur-2xl opacity-30 scale-150" />
             
-            <div
-              ref={centerRef}
-              className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-white shadow-2xl shadow-blue-500/20 overflow-hidden p-2"
-            >
-              <img 
-                src={markvisionLogo} 
-                alt="MarkVision AI" 
-                className="w-full h-full object-contain"
-              />
+            <div ref={centerRef} className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-white shadow-2xl shadow-blue-500/20 overflow-hidden p-2">
+              <img alt="MarkVision AI" className="w-full h-full object-contain" src="/lovable-uploads/7c1465cd-28f3-4231-8ce3-d01f63e50270.jpg" />
             </div>
           </motion.div>
           <span className="mt-4 text-sm sm:text-base font-semibold text-slate-800 tracking-tight">
@@ -138,60 +124,13 @@ export function BeamVisualization({ className }: { className?: string }) {
       </div>
 
       {/* Animated beams - Left to Center */}
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={instagramRef}
-        toRef={centerRef}
-        curvature={-50}
-        gradientStartColor="#E4405F"
-        gradientStopColor="#3b82f6"
-        duration={2}
-      />
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={tiktokRef}
-        toRef={centerRef}
-        gradientStartColor="#69C9D0"
-        gradientStopColor="#3b82f6"
-        duration={2.2}
-      />
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={googleRef}
-        toRef={centerRef}
-        curvature={50}
-        gradientStartColor="#EA4335"
-        gradientStopColor="#3b82f6"
-        duration={2.4}
-      />
+      <AnimatedBeam containerRef={containerRef} fromRef={instagramRef} toRef={centerRef} curvature={-50} gradientStartColor="#E4405F" gradientStopColor="#3b82f6" duration={2} />
+      <AnimatedBeam containerRef={containerRef} fromRef={tiktokRef} toRef={centerRef} gradientStartColor="#69C9D0" gradientStopColor="#3b82f6" duration={2.2} />
+      <AnimatedBeam containerRef={containerRef} fromRef={googleRef} toRef={centerRef} curvature={50} gradientStartColor="#EA4335" gradientStopColor="#3b82f6" duration={2.4} />
       
       {/* Center to Right */}
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={centerRef}
-        toRef={crmRef}
-        curvature={-50}
-        gradientStartColor="#3b82f6"
-        gradientStopColor="#6366f1"
-        duration={2.3}
-      />
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={centerRef}
-        toRef={analyticsRef}
-        gradientStartColor="#3b82f6"
-        gradientStopColor="#8b5cf6"
-        duration={2.5}
-      />
-      <AnimatedBeam
-        containerRef={containerRef}
-        fromRef={centerRef}
-        toRef={financeRef}
-        curvature={50}
-        gradientStartColor="#3b82f6"
-        gradientStopColor="#10b981"
-        duration={2.7}
-      />
-    </div>
-  );
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={crmRef} curvature={-50} gradientStartColor="#3b82f6" gradientStopColor="#6366f1" duration={2.3} />
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={analyticsRef} gradientStartColor="#3b82f6" gradientStopColor="#8b5cf6" duration={2.5} />
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={financeRef} curvature={50} gradientStartColor="#3b82f6" gradientStopColor="#10b981" duration={2.7} />
+    </div>;
 }
