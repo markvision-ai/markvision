@@ -2358,6 +2358,7 @@ export type Database = {
           name: string
           project_id: string
           updated_at: string
+          webhook_secret: string | null
           webhook_token: string
         }
         Insert: {
@@ -2368,6 +2369,7 @@ export type Database = {
           name?: string
           project_id: string
           updated_at?: string
+          webhook_secret?: string | null
           webhook_token?: string
         }
         Update: {
@@ -2378,6 +2380,7 @@ export type Database = {
           name?: string
           project_id?: string
           updated_at?: string
+          webhook_secret?: string | null
           webhook_token?: string
         }
         Relationships: [
@@ -2557,6 +2560,7 @@ export type Database = {
           salary: number
         }[]
       }
+      get_webhook_secret: { Args: { p_config_id: string }; Returns: string }
       get_webhook_token: { Args: { config_id: string }; Returns: string }
       get_webhook_url: {
         Args: { base_url?: string; config_id: string }
@@ -2576,6 +2580,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      rotate_webhook_credentials: {
+        Args: { p_config_id: string }
+        Returns: Json
       }
     }
     Enums: {
