@@ -11,15 +11,16 @@ export interface DashboardWidget {
 const DEFAULT_WIDGETS: DashboardWidget[] = [
   { id: 'metrics', title: 'Выручка и Метрики', order: 0, visible: true },
   { id: 'computed', title: 'Расчётные показатели', order: 1, visible: true },
-  { id: 'quick-stats', title: 'Сравнение с прошлой неделей', order: 2, visible: true },
-  { id: 'revenue-chart', title: 'Динамика (Расходы vs Выручка)', order: 3, visible: true },
-  { id: 'conversions', title: 'Воронка продаж', order: 4, visible: true },
-  { id: 'appointments', title: 'Записи на неделю', order: 5, visible: true },
-  { id: 'ai-assistant', title: 'ИИ-Аналитик', order: 6, visible: true },
+  { id: 'ltv-widget', title: 'Средний LTV клиента', order: 2, visible: true },
+  { id: 'quick-stats', title: 'Сравнение с прошлой неделей', order: 3, visible: true },
+  { id: 'revenue-chart', title: 'Динамика (Расходы vs Выручка)', order: 4, visible: true },
+  { id: 'conversions', title: 'Воронка продаж', order: 5, visible: true },
+  { id: 'appointments', title: 'Записи на неделю', order: 6, visible: true },
+  { id: 'ai-assistant', title: 'ИИ-Аналитик', order: 7, visible: true },
 ];
 
-// Ключ для localStorage - v3 для полного списка виджетов
-const STORAGE_KEY = 'dashboard_order_v3';
+// Ключ для localStorage - v4 для добавления LTV виджета
+const STORAGE_KEY = 'dashboard_order_v4';
 
 export const useDashboardWidgets = () => {
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {

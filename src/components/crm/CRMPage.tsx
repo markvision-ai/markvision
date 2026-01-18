@@ -22,7 +22,9 @@ import {
   CheckSquare,
   Calendar,
   Users,
-  Bot
+  Bot,
+  ArrowUpDown,
+  TrendingDown
 } from 'lucide-react';
 import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -90,6 +92,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedDatePreset, setSelectedDatePreset] = useState<string | null>(null);
+  const [sortByLtv, setSortByLtv] = useState<'desc' | 'asc' | null>(null);
   
   // Selection mode
   const [selectionMode, setSelectionMode] = useState(false);
@@ -98,7 +101,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
   // Filter leads
   const filteredLeads = useMemo(() => {
-    return leads.filter((lead) => {
+    let result = leads.filter((lead) => {
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         const matchesSearch = 
@@ -144,15 +147,35 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
       return true;
     });
-  }, [leads, searchQuery, selectedStatuses, selectedSources, selectedDatePreset]);
 
-  const activeFiltersCount = selectedStatuses.length + selectedSources.length + (searchQuery ? 1 : 0) + (selectedDatePreset ? 1 : 0);
+    // Sort by LTV if enabled
+    if (sortByLtv) {
+      result = [...result].sort((a, b) => {
+        const ltvA = a.ltv || 0;
+        const ltvB = b.ltv || 0;
+        return sortByLtv === 'desc' ? ltvB - ltvA : ltvA - ltvB;
+      });
+    }
+
+    return result;
+  }, [leads, searchQuery, selectedStatuses, selectedSources, selectedDatePreset, sortByLtv]);
+
+  const activeFiltersCount = selectedStatuses.length + selectedSources.length + (searchQuery ? 1 : 0) + (selectedDatePreset ? 1 : 0) + (sortByLtv ? 1 : 0);
 
   const clearAllFilters = () => {
     setSearchQuery('');
     setSelectedStatuses([]);
     setSelectedSources([]);
     setSelectedDatePreset(null);
+    setSortByLtv(null);
+  };
+
+  const toggleLtvSort = () => {
+    setSortByLtv(prev => {
+      if (prev === null) return 'desc';
+      if (prev === 'desc') return 'asc';
+      return null;
+    });
   };
 
   const toggleDatePreset = (presetId: string) => {
@@ -520,6 +543,24 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 ))}
               </DropdownMenuContent>
             </DropdownMenu>
+
+            {/* LTV Sort Button */}
+            <Button 
+              variant="outline" 
+              onClick={toggleLtvSort}
+              className={cn(
+                "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
+                sortByLtv && "border-amber-500 bg-amber-500/10"
+              )}
+            >
+              <ArrowUpDown className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">LTV</span>
+              {sortByLtv && (
+                <Badge className="ml-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
+                  {sortByLtv === 'desc' ? '↓' : '↑'}
+                </Badge>
+              )}
+            </Button>
           </div>
         </div>
 
@@ -585,6 +626,18 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 >
                   <Calendar className="w-3 h-3" />
                   {datePresets.find(p => p.id === selectedDatePreset)?.label}
+                  <X className="w-3 h-3 ml-1" />
+                </Badge>
+              )}
+
+              {sortByLtv && (
+                <Badge 
+                  variant="secondary" 
+                  className="bg-amber-500/10 text-amber-600 gap-1 cursor-pointer hover:bg-amber-500/20"
+                  onClick={() => setSortByLtv(null)}
+                >
+                  <ArrowUpDown className="w-3 h-3" />
+                  LTV {sortByLtv === 'desc' ? '(убыв.)' : '(возр.)'}
                   <X className="w-3 h-3 ml-1" />
                 </Badge>
               )}

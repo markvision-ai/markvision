@@ -28,6 +28,7 @@ export interface Lead {
   utm_term: string | null;
   status: string | null;
   deal_amount: number | null;
+  ltv: number | null;
   client_id: string | null;
   visit_id: string | null;
   extra_data: any;
@@ -47,6 +48,7 @@ export interface LeadFilter {
   utm_campaign?: string;
   status?: string;
   search?: string;
+  sortByLtv?: 'asc' | 'desc';
 }
 
 // Select only needed fields for performance
@@ -63,6 +65,7 @@ const LEAD_FIELDS = `
   utm_term,
   status,
   deal_amount,
+  ltv,
   created_at,
   updated_at,
   assigned_to,
@@ -95,9 +98,16 @@ export function useLeads(projectId: string | null) {
       let query = supabase
         .from('leads')
         .select(LEAD_FIELDS)
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
-        .limit(500); // Limit for performance
+        .eq('project_id', projectId);
+      
+      // Apply LTV sorting if specified
+      if (filters.sortByLtv) {
+        query = query.order('ltv', { ascending: filters.sortByLtv === 'asc', nullsFirst: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
+      }
+      
+      query = query.limit(500); // Limit for performance
 
       if (filters.utm_source) {
         query = query.eq('utm_source', filters.utm_source);

@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { differenceInMinutes } from 'date-fns';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -276,9 +276,18 @@ export const LeadCard = ({
               {clinicName}
             </p>
           )}
-          <p className={cn("text-sm leading-tight truncate", clinicName ? "text-muted-foreground" : "font-semibold")}>
-            {displayName}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className={cn("text-sm leading-tight truncate", clinicName ? "text-muted-foreground" : "font-semibold")}>
+              {displayName}
+            </p>
+            {/* LTV Badge */}
+            {lead.ltv && lead.ltv > 0 && (
+              <Badge className="bg-emerald-500/20 text-emerald-600 border-0 text-[10px] font-bold px-1.5 py-0 h-5 flex-shrink-0">
+                <DollarSign className="w-2.5 h-2.5 mr-0.5" />
+                {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.ltv)}
+              </Badge>
+            )}
+          </div>
         </div>
       </div>
 
