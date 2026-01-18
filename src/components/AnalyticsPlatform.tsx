@@ -28,6 +28,7 @@ import { ConversionStats } from './dashboard/ConversionStats';
 import { AIAssistant } from './analytics/AIAssistant';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
+import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -395,6 +396,13 @@ export const AnalyticsPlatform = () => {
                 />
               </div>
             ));
+
+            // LTV Widget
+            if (currentProjectId) {
+              registerWidget('ltv-widget', (
+                <AverageLtvWidget projectId={currentProjectId} />
+              ));
+            }
 
             registerWidget('quick-stats', (
               <QuickStats stats={comparisonStats} />
