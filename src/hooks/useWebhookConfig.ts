@@ -22,6 +22,7 @@ export interface WebhookConfig {
   project_id: string;
   name: string;
   webhook_token_masked: string | null; // Token is now masked for display
+  webhook_secret?: string | null; // Secret for HMAC signing (fetched separately)
   field_mapping: FieldMapping;
   is_active: boolean;
   created_at: string;
@@ -81,6 +82,7 @@ export function useWebhookConfig(projectId: string | null) {
   const [config, setConfig] = useState<WebhookConfig | null>(null);
   const [loading, setLoading] = useState(true);
   const [webhookUrl, setWebhookUrl] = useState<string | null>(null);
+  const [webhookSecret, setWebhookSecret] = useState<string | null>(null);
 
   const fetchConfig = async () => {
     if (!projectId) {
@@ -258,6 +260,58 @@ export function useWebhookConfig(projectId: string | null) {
 
   // Return the securely fetched webhook URL
   const getWebhookUrl = () => webhookUrl;
+  
+  // Fetch webhook secret (only when needed, for setup instructions)
+  const fetchWebhookSecret = async () => {
+    if (!config?.id) return null;
+    
+    try {
+      const { data, error } = await supabase.rpc('get_webhook_secret', { 
+        p_config_id: config.id
+      });
+      
+      if (error) {
+        console.error('Error fetching webhook secret:', error);
+        return null;
+      }
+      
+      setWebhookSecret(data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching webhook secret:', error);
+      return null;
+    }
+  };
+  
+  // Rotate webhook credentials
+  const rotateCredentials = async () => {
+    if (!config?.id) return false;
+    
+    try {
+      const { data, error } = await supabase.rpc('rotate_webhook_credentials', {
+        p_config_id: config.id
+      });
+      
+      if (error) throw error;
+      
+      const result = data as { success?: boolean; error?: string } | null;
+      
+      if (result?.success) {
+        toast.success('Учётные данные обновлены. Обновите настройки в ваших системах.');
+        // Refetch config and URL
+        await fetchConfig();
+        return true;
+      } else {
+        throw new Error(result?.error || 'Unknown error');
+      }
+    } catch (error) {
+      console.error('Error rotating credentials:', error);
+      toast.error('Ошибка обновления учётных данных');
+      return false;
+    }
+  };
+  
+  const getWebhookSecret = () => webhookSecret;
 
   return {
     config,
@@ -266,6 +320,9 @@ export function useWebhookConfig(projectId: string | null) {
     updateFieldMapping,
     toggleActive,
     getWebhookUrl,
+    getWebhookSecret,
+    fetchWebhookSecret,
+    rotateCredentials,
     refetch: fetchConfig
   };
 }

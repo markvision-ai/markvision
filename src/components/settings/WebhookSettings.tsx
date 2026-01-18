@@ -9,7 +9,12 @@ import {
   Save,
   Info,
   ExternalLink,
-  Loader2
+  Loader2,
+  Key,
+  RefreshCw,
+  Eye,
+  EyeOff,
+  Shield
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -74,10 +79,23 @@ const examplePayload = {
 };
 
 export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
-  const { config, loading, createConfig, updateFieldMapping, toggleActive, getWebhookUrl } = useWebhookConfig(projectId);
+  const { 
+    config, 
+    loading, 
+    createConfig, 
+    updateFieldMapping, 
+    toggleActive, 
+    getWebhookUrl,
+    getWebhookSecret,
+    fetchWebhookSecret,
+    rotateCredentials
+  } = useWebhookConfig(projectId);
   const [copied, setCopied] = useState(false);
+  const [secretCopied, setSecretCopied] = useState(false);
   const [editedMapping, setEditedMapping] = useState<FieldMapping | null>(null);
   const [saving, setSaving] = useState(false);
+  const [showSecret, setShowSecret] = useState(false);
+  const [rotating, setRotating] = useState(false);
 
   const handleCopyUrl = () => {
     const url = getWebhookUrl();
@@ -86,6 +104,32 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
+  };
+  
+  const handleCopySecret = async () => {
+    let secret = getWebhookSecret();
+    if (!secret) {
+      secret = await fetchWebhookSecret();
+    }
+    if (secret) {
+      navigator.clipboard.writeText(secret);
+      setSecretCopied(true);
+      setTimeout(() => setSecretCopied(false), 2000);
+    }
+  };
+  
+  const handleShowSecret = async () => {
+    if (!showSecret) {
+      await fetchWebhookSecret();
+    }
+    setShowSecret(!showSecret);
+  };
+  
+  const handleRotateCredentials = async () => {
+    setRotating(true);
+    await rotateCredentials();
+    setRotating(false);
+    setShowSecret(false);
   };
 
   const handleCreateWebhook = async () => {

@@ -3,7 +3,7 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-token',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-token, x-webhook-signature, x-webhook-timestamp',
 };
 
 // Validation constants
@@ -11,6 +11,7 @@ const MAX_STRING_LENGTH = 255;
 const MAX_PAYLOAD_SIZE = 100000; // 100KB
 const MAX_DEAL_AMOUNT = 1000000000;
 const MAX_PATH_DEPTH = 5;
+const SIGNATURE_MAX_AGE_MS = 300000; // 5 minutes - prevent replay attacks
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
@@ -159,6 +160,78 @@ function validateFieldMapping(fieldMapping: Record<string, string>): boolean {
   return true;
 }
 
+// Convert hex string to Uint8Array
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+// Convert Uint8Array to hex string
+function bytesToHex(bytes: Uint8Array): string {
+  return Array.from(bytes).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// Constant-time comparison to prevent timing attacks
+function constantTimeEqual(a: Uint8Array, b: Uint8Array): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a[i] ^ b[i];
+  }
+  return result === 0;
+}
+
+// Verify HMAC signature using Web Crypto API (Deno-compatible)
+async function verifyHmacSignature(secret: string, timestamp: string, body: string, providedSignature: string): Promise<boolean> {
+  try {
+    // Import the secret key
+    const encoder = new TextEncoder();
+    const keyData = encoder.encode(secret);
+    const key = await crypto.subtle.importKey(
+      'raw',
+      keyData,
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    
+    // Create the message to sign
+    const message = encoder.encode(`${timestamp}.${body}`);
+    
+    // Generate expected signature
+    const signatureBuffer = await crypto.subtle.sign('HMAC', key, message);
+    const expectedSignature = bytesToHex(new Uint8Array(signatureBuffer));
+    
+    // Use constant-time comparison to prevent timing attacks
+    const expectedBytes = hexToBytes(expectedSignature);
+    const providedBytes = hexToBytes(providedSignature);
+    
+    return constantTimeEqual(expectedBytes, providedBytes);
+  } catch (error) {
+    console.error('Signature verification error');
+    return false;
+  }
+}
+
+// Log failed authentication attempts for security monitoring
+async function logFailedAuth(supabase: any, projectId: string | null, reason: string, ipAddress: string) {
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: '00000000-0000-0000-0000-000000000000', // System user
+      project_id: projectId,
+      action: 'webhook_auth_failed',
+      entity_type: 'webhook',
+      old_values: { reason, ip_address: ipAddress },
+      new_values: { timestamp: new Date().toISOString() }
+    });
+  } catch (error) {
+    console.error('Failed to log auth failure');
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -170,16 +243,27 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get webhook token from header (preferred) or URL params (fallback)
-    const url = new URL(req.url);
+    // Get IP address early for logging
+    const ipAddress = req.headers.get('x-forwarded-for') || 
+                      req.headers.get('x-real-ip') || 
+                      'unknown';
+
+    // Get webhook token from header (preferred) - REMOVED URL query param for security
     const token = req.headers.get('X-Webhook-Token') || 
-                  req.headers.get('Authorization')?.replace('Bearer ', '') ||
-                  url.searchParams.get('token');
+                  req.headers.get('Authorization')?.replace('Bearer ', '');
+    
+    // Get HMAC signature headers (optional but recommended)
+    const signature = req.headers.get('X-Webhook-Signature');
+    const timestamp = req.headers.get('X-Webhook-Timestamp');
     
     if (!token) {
       console.log('Auth failed: Missing webhook token');
+      await logFailedAuth(supabase, null, 'missing_token', ipAddress);
       return new Response(
-        JSON.stringify({ error: 'Missing webhook token. Provide via X-Webhook-Token header or ?token= query param' }),
+        JSON.stringify({ 
+          error: 'Missing webhook token',
+          hint: 'Provide token via X-Webhook-Token header or Authorization: Bearer <token>'
+        }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -207,7 +291,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Find webhook config by token
+    // Find webhook config by token (including secret for verification)
     const { data: webhookConfig, error: configError } = await supabase
       .from('webhook_configs')
       .select('*')
@@ -217,13 +301,14 @@ Deno.serve(async (req) => {
 
     if (configError || !webhookConfig) {
       console.log('Auth failed: Invalid webhook token');
+      await logFailedAuth(supabase, null, 'invalid_token', ipAddress);
       return new Response(
         JSON.stringify({ error: 'Invalid or inactive webhook' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Get raw body text for size check
+    // Get raw body text for size check and signature verification
     const bodyText = await req.text();
     
     // Check payload size limit
@@ -233,6 +318,48 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: 'Payload too large', max_size: MAX_PAYLOAD_SIZE }),
         { status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // Verify HMAC signature if provided (recommended for production)
+    const hasSignature = signature && timestamp;
+    let signatureValid = false;
+    
+    if (hasSignature && webhookConfig.webhook_secret) {
+      // Verify timestamp is not too old (prevent replay attacks)
+      const requestTime = parseInt(timestamp, 10);
+      const now = Date.now();
+      
+      if (isNaN(requestTime) || Math.abs(now - requestTime) > SIGNATURE_MAX_AGE_MS) {
+        console.log('Auth failed: Signature timestamp expired or invalid');
+        await logFailedAuth(supabase, webhookConfig.project_id, 'expired_timestamp', ipAddress);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Request expired or invalid timestamp',
+            hint: 'X-Webhook-Timestamp must be current Unix timestamp in milliseconds'
+          }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      // Verify HMAC signature
+      signatureValid = await verifyHmacSignature(webhookConfig.webhook_secret, timestamp, bodyText, signature);
+
+      if (!signatureValid) {
+        console.log('Auth failed: Invalid HMAC signature');
+        await logFailedAuth(supabase, webhookConfig.project_id, 'invalid_signature', ipAddress);
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid signature',
+            hint: 'Signature = HMAC-SHA256(secret, timestamp + "." + body)'
+          }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      console.log('HMAC signature verified successfully');
+    } else {
+      // Token-only authentication (legacy mode - log warning)
+      console.log('WARNING: Request authenticated with token only (no HMAC signature)');
     }
 
     // Parse JSON payload with error handling
@@ -250,12 +377,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Webhook received for project:', webhookConfig.project_id);
-
-    // Get IP address from headers
-    const ipAddress = req.headers.get('x-forwarded-for') || 
-                      req.headers.get('x-real-ip') || 
-                      'unknown';
+    console.log('Webhook received for project:', webhookConfig.project_id, 'signed:', signatureValid);
 
     // Validate field mapping before using it
     const fieldMapping = webhookConfig.field_mapping;
@@ -274,7 +396,12 @@ Deno.serve(async (req) => {
         project_id: webhookConfig.project_id,
         webhook_config_id: webhookConfig.id,
         raw_payload: payload,
-        headers: Object.fromEntries(req.headers.entries()),
+        headers: Object.fromEntries(
+          // Filter out sensitive headers from logs
+          Array.from(req.headers.entries()).filter(([key]) => 
+            !['x-webhook-token', 'x-webhook-signature', 'authorization'].includes(key.toLowerCase())
+          )
+        ),
         ip_address: sanitizeString(ipAddress, 45),
         status: 'received'
       })
@@ -460,7 +587,8 @@ Deno.serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         lead_id: lead.id,
-        message: 'Lead processed successfully'
+        message: 'Lead processed successfully',
+        signature_verified: signatureValid
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
