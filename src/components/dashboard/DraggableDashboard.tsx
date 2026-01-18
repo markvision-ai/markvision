@@ -4,6 +4,7 @@ import { useDashboardWidgets, DashboardWidget } from '@/hooks/useDashboardWidget
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import React, { useMemo } from 'react';
 
 interface WidgetWrapperProps {
   widget: DashboardWidget;
@@ -20,10 +21,11 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
   return (
     <motion.div
       layout
+      layoutId={widget.id}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
       className="relative group"
     >
       {/* Arrow Controls - appear on right side on hover */}
@@ -38,7 +40,11 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
                   "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
                   isFirst && "opacity-30 cursor-not-allowed"
                 )}
-                onClick={onMoveUp}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!isFirst) onMoveUp();
+                }}
                 disabled={isFirst}
               >
                 <ChevronUp className="h-4 w-4" />
@@ -60,7 +66,11 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
                   "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
                   isLast && "opacity-30 cursor-not-allowed"
                 )}
-                onClick={onMoveDown}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  if (!isLast) onMoveDown();
+                }}
                 disabled={isLast}
               >
                 <ChevronDown className="h-4 w-4" />
@@ -78,32 +88,38 @@ const WidgetWrapper = ({ widget, children, onMoveUp, onMoveDown, isFirst, isLast
   );
 };
 
+interface WidgetContent {
+  id: string;
+  content: React.ReactNode;
+}
+
 interface DraggableDashboardProps {
-  children: (renderWidget: (widgetId: string, content: React.ReactNode) => React.ReactNode) => React.ReactNode;
+  children: (registerWidget: (widgetId: string, content: React.ReactNode) => void) => React.ReactNode;
 }
 
 export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   const { widgets, moveUp, moveDown, getVisiblePosition } = useDashboardWidgets();
 
-  const renderWidget = (widgetId: string, content: React.ReactNode) => {
-    const widget = widgets.find(w => w.id === widgetId);
-    if (!widget || !widget.visible) return null;
+  // Collect all widget contents first
+  const widgetContents = useMemo(() => {
+    const contents: WidgetContent[] = [];
+    
+    const registerWidget = (widgetId: string, content: React.ReactNode) => {
+      contents.push({ id: widgetId, content });
+    };
+    
+    // Execute children to collect widget registrations
+    children(registerWidget);
+    
+    return contents;
+  }, [children]);
 
-    const position = getVisiblePosition(widgetId);
-
-    return (
-      <WidgetWrapper
-        key={widget.id}
-        widget={widget}
-        onMoveUp={() => moveUp(widgetId)}
-        onMoveDown={() => moveDown(widgetId)}
-        isFirst={position.isFirst}
-        isLast={position.isLast}
-      >
-        {content}
-      </WidgetWrapper>
-    );
-  };
+  // Sort widgets by their order and render
+  const sortedVisibleWidgets = useMemo(() => {
+    return widgets
+      .filter(w => w.visible)
+      .sort((a, b) => a.order - b.order);
+  }, [widgets]);
 
   const hiddenCount = widgets.filter(w => !w.visible).length;
 
@@ -122,10 +138,30 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
         💡 Наведите на виджет для управления порядком (стрелки справа)
       </span>
 
-      {/* Widgets Container */}
-      <AnimatePresence mode="popLayout">
-        {children(renderWidget)}
-      </AnimatePresence>
+      {/* Widgets Container - render in sorted order */}
+      <div className="space-y-4 md:space-y-6">
+        <AnimatePresence mode="popLayout">
+          {sortedVisibleWidgets.map((widget) => {
+            const widgetContent = widgetContents.find(wc => wc.id === widget.id);
+            if (!widgetContent || !widgetContent.content) return null;
+
+            const position = getVisiblePosition(widget.id);
+
+            return (
+              <WidgetWrapper
+                key={widget.id}
+                widget={widget}
+                onMoveUp={() => moveUp(widget.id)}
+                onMoveDown={() => moveDown(widget.id)}
+                isFirst={position.isFirst}
+                isLast={position.isLast}
+              >
+                {widgetContent.content}
+              </WidgetWrapper>
+            );
+          })}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
