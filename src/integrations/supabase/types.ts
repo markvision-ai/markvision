@@ -2550,6 +2550,13 @@ export type Database = {
     }
     Functions: {
       extract_json_path: { Args: { data: Json; path: string }; Returns: string }
+      get_staff_salary_data: {
+        Args: { p_staff_id: string }
+        Returns: {
+          commission_rate: number
+          salary: number
+        }[]
+      }
       get_webhook_token: { Args: { config_id: string }; Returns: string }
       get_webhook_url: {
         Args: { base_url?: string; config_id: string }
