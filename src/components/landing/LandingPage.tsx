@@ -188,7 +188,7 @@ export const LandingPage = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-2xl border-b border-slate-100/50 safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" />
+            <img alt="MarkVision AI" className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" src="/lovable-uploads/3263a132-db41-45fb-80ef-e0dddeb8aebc.png" />
             <span className="font-semibold text-sm sm:text-xl text-slate-900 tracking-tight">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </span>
