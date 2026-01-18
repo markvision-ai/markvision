@@ -303,11 +303,13 @@ export const LandingPage = () => {
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">Мы берём на себя маркетинг, продажи и аналитику. Вы занимаетесь пациентами.<br className="hidden sm:block" />
               ​
             </p>
-            <p className="sm:text-xl md:text-2xl font-semibold text-slate-800 text-2xl">
-              Увеличьте выручку на <span className="text-blue-600">+500 000 ₸ в день</span>
+            <p className="text-xl sm:text-xl md:text-2xl font-semibold text-slate-800">
+              Увеличьте выручку на
+              <br />
+              <span className="text-blue-600">+500 000 ₸ в день</span>
             </p>
             <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400">
-              без вложений в рекламу
+              без увеличения бюджета
             </p>
           </motion.div>
 
