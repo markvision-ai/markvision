@@ -15,7 +15,7 @@ import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
 import { z } from "zod";
 import founderWithMark from "@/assets/founder-with-mark.png";
-import markvisionLogo from "@/assets/markvision-logo.png";
+import markvisionLogo from "@/assets/markvision-logo-new.png";
 const modules = [{
   title: "Контент за вас",
   description: "200+ постов и видео в месяц. Мы сами придумываем, снимаем и публикуем. Вам не нужен SMM-специалист.",
