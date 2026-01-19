@@ -2453,6 +2453,53 @@ export type Database = {
       }
     }
     Views: {
+      integrations_safe: {
+        Row: {
+          config_summary: Json | null
+          created_at: string | null
+          error_message: string | null
+          id: string | null
+          last_sync_at: string | null
+          name: string | null
+          project_id: string | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          config_summary?: never
+          created_at?: string | null
+          error_message?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          name?: string | null
+          project_id?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          config_summary?: never
+          created_at?: string | null
+          error_message?: string | null
+          id?: string | null
+          last_sync_at?: string | null
+          name?: string | null
+          project_id?: string | null
+          status?: string | null
+          type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "integrations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_basic: {
         Row: {
           avatar_url: string | null
@@ -2553,11 +2600,23 @@ export type Database = {
     }
     Functions: {
       extract_json_path: { Args: { data: Json; path: string }; Returns: string }
+      get_integration_credentials: {
+        Args: { p_integration_id: string }
+        Returns: Json
+      }
       get_staff_salary_data: {
         Args: { p_staff_id: string }
         Returns: {
           commission_rate: number
           salary: number
+        }[]
+      }
+      get_webhook_credentials: {
+        Args: { p_project_id: string }
+        Returns: {
+          webhook_secret: string
+          webhook_token: string
+          webhook_url: string
         }[]
       }
       get_webhook_secret: { Args: { p_config_id: string }; Returns: string }
@@ -2581,13 +2640,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_project_admin: { Args: { p_project_id: string }; Returns: boolean }
       rotate_webhook_credentials: {
         Args: { p_config_id: string }
         Returns: Json
       }
     }
     Enums: {
-      app_role: "admin" | "manager"
+      app_role: "admin" | "manager" | "super_admin"
       attribution_model:
         | "first_click"
         | "last_click"
@@ -2738,7 +2798,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "manager"],
+      app_role: ["admin", "manager", "super_admin"],
       attribution_model: [
         "first_click",
         "last_click",
