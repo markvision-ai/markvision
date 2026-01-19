@@ -6,10 +6,10 @@ import { logError } from '@/lib/validation';
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
-// Super admin user ID - ПОЛНЫЙ ДОСТУП БЕЗ ОЖИДАНИЯ
-const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+// NOTE: Super admin status is now determined from the database user_roles table
+// No more hardcoded UIDs for security.
 
-// HARDCODED fallback project for super admin - ALWAYS available
+// HARDCODED fallback project for admins - ALWAYS available
 const ADMIN_FALLBACK_PROJECT = {
   id: '11111111-1111-1111-1111-111111111111',
   name: 'MARKVISION ГЛОБАЛ (АКТИВЕН)',
@@ -27,53 +27,18 @@ interface Project {
 export const useProjects = () => {
   const { user, isAdmin, isSuperAdmin } = useAuth();
   
-  // CRITICAL: Check super admin IMMEDIATELY from user ID, not from hook state
-  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
+  // Use isSuperAdmin from auth hook (database-driven)
+  const isSuperAdminUser = isSuperAdmin;
   
-  // CRITICAL: For super admin - INITIALIZE with fallback project immediately
-  const [projects, setProjects] = useState<Project[]>(() => {
-    // Check localStorage for cached user ID
-    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
-    if (cachedAuth) {
-      try {
-        const parsed = JSON.parse(cachedAuth);
-        if (parsed?.user?.id === SUPER_ADMIN_UID) {
-          console.log('⚡ SUPER ADMIN DETECTED FROM CACHE - instant project load');
-          return [ADMIN_FALLBACK_PROJECT];
-        }
-      } catch (e) {}
-    }
-    return [];
-  });
+  // For super admin - INITIALIZE with fallback project immediately
+  const [projects, setProjects] = useState<Project[]>([]);
   
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(() => {
-    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
-    // For super admin, always default to fallback if nothing saved
-    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
-    if (cachedAuth) {
-      try {
-        const parsed = JSON.parse(cachedAuth);
-        if (parsed?.user?.id === SUPER_ADMIN_UID) {
-          return saved || ADMIN_FALLBACK_PROJECT.id;
-        }
-      } catch (e) {}
-    }
-    return saved;
+    return localStorage.getItem(LOCAL_STORAGE_KEY);
   });
   
-  // CRITICAL: For super admin - NEVER show loading state
-  const [loading, setLoading] = useState(() => {
-    const cachedAuth = localStorage.getItem('sb-pyscczcuersdjvpmkiec-auth-token');
-    if (cachedAuth) {
-      try {
-        const parsed = JSON.parse(cachedAuth);
-        if (parsed?.user?.id === SUPER_ADMIN_UID) {
-          return false; // Super admin - instant load
-        }
-      } catch (e) {}
-    }
-    return true;
-  });
+  // Loading state
+  const [loading, setLoading] = useState(true);
 
   // Save currentProjectId to localStorage
   useEffect(() => {

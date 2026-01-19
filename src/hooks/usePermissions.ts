@@ -2,11 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/externalSupabase';
 import { useAuth } from './useAuth';
 
-// Super admin user IDs
-const SUPER_ADMIN_UIDS = [
-  'd94043b0-1c76-4017-84de-df0dbf00a2c9',
-  'ab433b01-06a8-46a6-b1d6-3461e442fe77', // Юрий zapoinov@bk.ru
-];
+// NOTE: Super admin status is now determined from the database user_roles table
+// No more hardcoded UIDs for security.
 
 export interface UserPermissions {
   can_edit_plan: boolean;
@@ -47,8 +44,8 @@ export const usePermissions = (projectId: string | null) => {
       return;
     }
 
-    // Super admin and admins get full permissions
-    if (isSuperAdmin || isAdmin || SUPER_ADMIN_UIDS.includes(user.id)) {
+    // Super admin and admins get full permissions (from database)
+    if (isSuperAdmin || isAdmin) {
       console.log('👑 Admin permissions granted');
       setPermissions(ADMIN_PERMISSIONS);
       setLoading(false);
@@ -135,8 +132,8 @@ export const useManagePermissions = () => {
     projectId: string, 
     permissions: Partial<UserPermissions>
   ): Promise<boolean> => {
-    // Only admins can update permissions
-    if (!isAdmin && !isSuperAdmin && !SUPER_ADMIN_UIDS.includes(user?.id || '')) return false;
+    // Only admins can update permissions (from database)
+    if (!isAdmin && !isSuperAdmin) return false;
 
     // Check if record exists
     const { data: existing } = await supabase
