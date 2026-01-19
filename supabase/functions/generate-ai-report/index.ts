@@ -6,6 +6,60 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMITS = {
+  default: { requests: 10, windowSeconds: 3600 }, // 10 reports per hour
+  admin: { requests: 50, windowSeconds: 3600 },
+};
+
+// Check rate limit and log usage
+async function checkRateLimitAndLog(
+  userId: string, 
+  projectId: string | null,
+  service: string
+): Promise<{ allowed: boolean }> {
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!serviceRoleKey) {
+    return { allowed: true };
+  }
+
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    serviceRoleKey
+  );
+
+  const { data: isAdmin } = await supabaseAdmin.rpc('has_role', { 
+    _user_id: userId, 
+    _role: 'admin' 
+  });
+
+  const limit = isAdmin ? RATE_LIMITS.admin : RATE_LIMITS.default;
+  const windowStart = new Date(Date.now() - limit.windowSeconds * 1000).toISOString();
+
+  const { count } = await supabaseAdmin
+    .from('api_key_usage')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('service', service)
+    .gte('created_at', windowStart);
+
+  const currentCount = count || 0;
+  const allowed = currentCount < limit.requests;
+
+  // Log usage
+  await supabaseAdmin.from('api_key_usage').insert({
+    service,
+    user_id: userId,
+    project_id: projectId,
+    endpoint: 'generate-ai-report',
+    request_count: 1
+  });
+
+  console.log(`Rate limit: user=${userId}, service=${service}, count=${currentCount}/${limit.requests}`);
+
+  return { allowed };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -52,6 +106,19 @@ serve(async (req) => {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
+    }
+
+    // Check rate limit
+    const { allowed } = await checkRateLimitAndLog(user.id, projectId || null, 'lovable_ai_report');
+
+    if (!allowed) {
+      return new Response(JSON.stringify({ 
+        error: 'Превышен лимит генерации отчётов. Попробуйте позже.',
+        retryAfter: 3600
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '3600' },
+      });
     }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');

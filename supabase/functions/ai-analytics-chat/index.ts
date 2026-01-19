@@ -6,6 +6,72 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Rate limiting configuration
+const RATE_LIMITS = {
+  default: { requests: 20, windowSeconds: 3600 }, // 20 requests per hour
+  admin: { requests: 100, windowSeconds: 3600 },  // 100 requests per hour for admins
+};
+
+// Check rate limit and log usage
+async function checkRateLimitAndLog(
+  supabase: any, 
+  userId: string, 
+  projectId: string | null,
+  service: string,
+  endpoint: string
+): Promise<{ allowed: boolean; remaining: number }> {
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+  if (!serviceRoleKey) {
+    console.log('Service role key not available, skipping rate limit check');
+    return { allowed: true, remaining: -1 };
+  }
+
+  const supabaseAdmin = createClient(
+    Deno.env.get('SUPABASE_URL')!,
+    serviceRoleKey
+  );
+
+  // Check if user is admin for higher limits
+  const { data: isAdmin } = await supabaseAdmin.rpc('has_role', { 
+    _user_id: userId, 
+    _role: 'admin' 
+  });
+
+  const limit = isAdmin ? RATE_LIMITS.admin : RATE_LIMITS.default;
+  const windowStart = new Date(Date.now() - limit.windowSeconds * 1000).toISOString();
+
+  // Count recent requests
+  const { count, error: countError } = await supabaseAdmin
+    .from('api_key_usage')
+    .select('*', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('service', service)
+    .gte('created_at', windowStart);
+
+  if (countError) {
+    console.error('Rate limit check error:', countError);
+    // Allow request on error but log it
+    return { allowed: true, remaining: -1 };
+  }
+
+  const currentCount = count || 0;
+  const allowed = currentCount < limit.requests;
+  const remaining = Math.max(0, limit.requests - currentCount - 1);
+
+  // Log the usage attempt
+  await supabaseAdmin.from('api_key_usage').insert({
+    service,
+    user_id: userId,
+    project_id: projectId,
+    endpoint,
+    request_count: 1
+  });
+
+  console.log(`Rate limit check: user=${userId}, service=${service}, count=${currentCount}/${limit.requests}, allowed=${allowed}`);
+
+  return { allowed, remaining };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -53,13 +119,38 @@ serve(async (req) => {
         });
       }
     }
+
+    // Check rate limit and log usage
+    const { allowed, remaining } = await checkRateLimitAndLog(
+      supabase, 
+      user.id, 
+      projectId || null,
+      'lovable_ai_chat',
+      'ai-analytics-chat'
+    );
+
+    if (!allowed) {
+      console.log('Rate limit exceeded for user:', user.id);
+      return new Response(JSON.stringify({ 
+        error: 'Превышен лимит запросов. Попробуйте позже.',
+        retryAfter: 3600
+      }), {
+        status: 429,
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'X-RateLimit-Remaining': '0',
+          'Retry-After': '3600'
+        },
+      });
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '', stream ? '(streaming)' : '');
+    console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '', stream ? '(streaming)' : '', `remaining: ${remaining}`);
 
     const systemPrompt = `Ты — AI-аналитик платформы AdMetrics. Ты работаешь только с данными проекта и даёшь конкретные рекомендации на основе реальных цифр.
 
