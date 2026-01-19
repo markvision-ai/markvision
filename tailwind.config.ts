@@ -80,6 +80,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "calc(var(--radius) + 4px)",
+        "2xl": "calc(var(--radius) + 8px)",
+        "3xl": "1.5rem",
       },
       keyframes: {
         "accordion-down": {
@@ -94,11 +97,26 @@ export default {
           from: { width: "0%" },
           to: { width: "var(--progress-width)" },
         },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(20px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.8" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "progress": "progress 1s ease-out forwards",
+        "fade-in-up": "fade-in-up 0.5s ease-out forwards",
+        "glow-pulse": "glow-pulse 4s ease-in-out infinite",
+      },
+      boxShadow: {
+        'glow': '0 0 20px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--primary) / 0.1)',
+        'glow-lg': '0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.15)',
+        'card-hover': '0 8px 30px hsl(var(--primary) / 0.08), 0 0 60px hsl(var(--primary) / 0.05)',
       },
     },
   },

@@ -386,17 +386,17 @@ export const Sidebar = ({
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
                   return (
-                    <button
+                <button
                       key={item.id}
                       onClick={() => handleTabChange(item.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-all text-sm ${
+                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
                         isActive 
-                          ? 'bg-primary text-primary-foreground' 
-                          : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
+                          ? 'sidebar-item-active text-primary font-medium' 
+                          : 'text-sidebar-foreground/60 hover:bg-sidebar-muted hover:text-sidebar-foreground'
                       }`}
                     >
-                      <Icon className="w-4 h-4" />
-                      <span className="font-medium">{item.label}</span>
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
+                      <span>{item.label}</span>
                     </button>
                   );
                 })}
@@ -435,8 +435,8 @@ export const Sidebar = ({
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40">
+      {/* Desktop Sidebar - Narrower and minimalist */}
+      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r-0">
         <SidebarContent />
       </aside>
 
