@@ -276,6 +276,39 @@ export type Database = {
           },
         ]
       }
+      api_key_usage: {
+        Row: {
+          created_at: string | null
+          endpoint: string | null
+          id: string
+          project_id: string | null
+          request_count: number | null
+          service: string
+          tokens_used: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: string
+          project_id?: string | null
+          request_count?: number | null
+          service: string
+          tokens_used?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          endpoint?: string | null
+          id?: string
+          project_id?: string | null
+          request_count?: number | null
+          service?: string
+          tokens_used?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       attribution_results: {
         Row: {
           assisted_conversions: number | null

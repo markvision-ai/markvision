@@ -58,6 +58,26 @@ const getPlanFactEmoji = (fact: number, plan: number): string => {
   return '🔴';
 };
 
+// Log API usage for audit trail
+async function logApiUsage(
+  supabaseAdmin: any, 
+  userId: string, 
+  projectId: string,
+  service: string
+) {
+  try {
+    await supabaseAdmin.from('api_key_usage').insert({
+      service,
+      user_id: userId,
+      project_id: projectId,
+      endpoint: 'weekly-report',
+      request_count: 1
+    });
+  } catch (error) {
+    console.error('Failed to log API usage:', error);
+  }
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -252,6 +272,9 @@ serve(async (req) => {
 
         if (LOVABLE_API_KEY) {
           try {
+            // Log AI usage for audit trail
+            await logApiUsage(supabase, user.id, project.id, 'lovable_ai_weekly_report');
+
             const aiPrompt = `Ты — маркетинговый аналитик. Сделай краткий еженедельный анализ (максимум 5 предложений).
 
 ДАННЫЕ ЗА НЕДЕЛЮ:
@@ -348,6 +371,9 @@ serve(async (req) => {
         const TELEGRAM_BOT_TOKEN = Deno.env.get('TELEGRAM_BOT_TOKEN');
         
         if (TELEGRAM_BOT_TOKEN && project.telegram_chat_id) {
+          // Log Telegram usage
+          await logApiUsage(supabase, user.id, project.id, 'telegram_bot');
+          
           const telegramResponse = await fetch(
             `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`,
             {
