@@ -3,6 +3,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface DailyData {
   date: string;
@@ -29,8 +30,8 @@ const formatCurrency = (value: number): string => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card/95 backdrop-blur-sm border rounded-xl p-4 shadow-xl">
-        <p className="font-semibold text-sm mb-2">{label}</p>
+      <div className="bg-card/95 backdrop-blur-xl rounded-2xl p-4 shadow-glow-lg border-0">
+        <p className="font-semibold text-sm mb-2 text-foreground">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-sm">
             <div 
@@ -40,16 +41,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
             <span className="text-muted-foreground">
               {entry.name === 'revenue' ? 'Выручка' : 'Расходы'}:
             </span>
-            <span className="font-medium">
+            <span className="font-medium text-foreground">
               {new Intl.NumberFormat('ru-RU').format(entry.value)} ₸
             </span>
           </div>
         ))}
         {payload.length === 2 && (
-          <div className="mt-2 pt-2 border-t border-border">
+          <div className="mt-2 pt-2 border-t border-border/30">
             <div className="flex items-center gap-2 text-sm">
               <span className="text-muted-foreground">Прибыль:</span>
-              <span className={`font-medium ${payload[0].value - payload[1].value >= 0 ? 'text-success' : 'text-destructive'}`}>
+              <span className={cn(
+                "font-medium",
+                payload[0].value - payload[1].value >= 0 ? 'text-success' : 'text-destructive'
+              )}>
                 {new Intl.NumberFormat('ru-RU').format(payload[0].value - payload[1].value)} ₸
               </span>
             </div>
@@ -87,8 +91,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-card border rounded-xl p-6">
-        <h3 className="font-semibold mb-4">Динамика показателей</h3>
+      <div className="bg-card rounded-[20px] p-6">
+        <h3 className="font-semibold mb-4 text-foreground">Динамика показателей</h3>
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
           Нет данных для отображения
         </div>
@@ -97,12 +101,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="bg-card border rounded-xl p-4 sm:p-6">
-      {/* Header with totals - responsive layout */}
+    <div className="bg-card rounded-[20px] p-4 sm:p-6 group hover:shadow-card-hover transition-all duration-400">
+      {/* Header with totals */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex-shrink-0">
-          <h3 className="font-semibold text-base sm:text-lg">Динамика показателей</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">Выручка vs Расходы</p>
+          <h3 className="font-semibold text-base sm:text-lg text-foreground">Динамика показателей</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground/60">Выручка vs Расходы</p>
         </div>
         <div className="flex gap-4 sm:gap-6 flex-wrap">
           <div 
@@ -112,10 +116,10 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             onMouseLeave={() => setHoveredMetric(null)}
           >
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-success flex-shrink-0" />
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary flex-shrink-0" />
               <span className="text-xs sm:text-sm text-muted-foreground">Выручка</span>
             </div>
-            <p className="text-sm sm:text-lg font-bold text-success truncate">
+            <p className="text-sm sm:text-lg font-bold text-primary truncate">
               {formatCurrency(totals.revenue)} ₸
             </p>
           </div>
@@ -126,10 +130,10 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             onMouseLeave={() => setHoveredMetric(null)}
           >
             <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-destructive flex-shrink-0" />
+              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary/40 flex-shrink-0" />
               <span className="text-xs sm:text-sm text-muted-foreground">Расходы</span>
             </div>
-            <p className="text-sm sm:text-lg font-bold text-destructive truncate">
+            <p className="text-sm sm:text-lg font-bold text-muted-foreground truncate">
               {formatCurrency(totals.spend)} ₸
             </p>
           </div>
@@ -137,11 +141,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
       </div>
 
       {/* Profit indicator */}
-      <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4 ${
+      <div className={cn(
+        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4",
         totals.profit >= 0 
           ? 'bg-success/10 text-success' 
           : 'bg-destructive/10 text-destructive'
-      }`}>
+      )}>
         {totals.profit >= 0 ? (
           <TrendingUp className="w-4 h-4" />
         ) : (
@@ -151,18 +156,19 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
         <span className="opacity-70">({totals.profitPercent.toFixed(1)}%)</span>
       </div>
 
-      {/* Chart */}
+      {/* Chart - Blue gradient theme */}
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--success))" stopOpacity={0.3} />
-                <stop offset="100%" stopColor="hsl(var(--success))" stopOpacity={0} />
+              <linearGradient id="revenueGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4} />
+                <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(var(--destructive))" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+              <linearGradient id="spendGradientBlue" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(217, 50%, 40%)" stopOpacity={0.2} />
+                <stop offset="100%" stopColor="hsl(217, 50%, 40%)" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid 
@@ -187,17 +193,17 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             <Area 
               type="monotone" 
               dataKey="revenue" 
-              stroke="hsl(var(--success))" 
+              stroke="hsl(217, 91%, 60%)" 
               strokeWidth={2.5}
-              fill="url(#revenueGradient)"
+              fill="url(#revenueGradientBlue)"
               style={{ opacity: hoveredMetric === 'spend' ? 0.3 : 1 }}
             />
             <Area 
               type="monotone" 
               dataKey="spend" 
-              stroke="hsl(var(--destructive))" 
-              strokeWidth={2.5}
-              fill="url(#spendGradient)"
+              stroke="hsl(217, 50%, 45%)" 
+              strokeWidth={2}
+              fill="url(#spendGradientBlue)"
               style={{ opacity: hoveredMetric === 'revenue' ? 0.3 : 1 }}
             />
           </AreaChart>

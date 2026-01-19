@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { TrendingUp, TrendingDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PlanFactCardProps {
   label: string;
@@ -8,6 +8,7 @@ interface PlanFactCardProps {
   fact?: number;
   icon?: ReactNode;
   format?: 'number' | 'currency' | 'percent';
+  className?: string;
 }
 
 const formatValue = (value: number, format: 'number' | 'currency' | 'percent'): string => {
@@ -26,43 +27,61 @@ export const PlanFactCard = ({
   plan, 
   fact, 
   icon,
-  format = 'number' 
+  format = 'number',
+  className
 }: PlanFactCardProps) => {
   const percentage = plan && fact ? (fact / plan) * 100 : 0;
   const isOnTrack = percentage >= 100;
-  const progressColor = percentage >= 100 
-    ? 'bg-success' 
-    : percentage >= 75 
-      ? 'bg-warning' 
-      : 'bg-destructive';
 
   return (
-    <div className="bg-card border rounded-xl p-3 md:p-4 min-w-0">
-      <div className="flex items-center justify-between mb-2 gap-2">
-        <span className="text-xs md:text-sm text-muted-foreground truncate">{label}</span>
-        <div className="flex-shrink-0">{icon}</div>
+    <div className={cn(
+      "relative overflow-hidden rounded-[20px] p-4 md:p-6 transition-all duration-400",
+      "bg-card hover:shadow-card-hover hover:-translate-y-0.5",
+      "group min-w-0",
+      className
+    )}>
+      {/* Glow border on hover */}
+      <div className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
+        style={{
+          background: 'linear-gradient(135deg, hsl(var(--primary) / 0.2) 0%, transparent 50%, hsl(var(--primary) / 0.2) 100%)',
+          padding: '1px',
+          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+          maskComposite: 'exclude',
+        }}
+      />
+
+      <div className="flex items-center justify-between mb-3 gap-2">
+        <span className="text-xs md:text-sm text-muted-foreground font-medium truncate">{label}</span>
+        {icon && (
+          <div className="flex-shrink-0 p-2 md:p-2.5 rounded-xl bg-primary/10 text-primary">
+            {icon}
+          </div>
+        )}
       </div>
       
-      <div className="text-lg md:text-2xl font-bold mb-2 truncate">{value}</div>
+      {/* Large value - prominent typography */}
+      <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-3 truncate">{value}</div>
       
       {plan !== undefined && fact !== undefined && (
         <>
-          <div className="h-2 bg-secondary rounded-full overflow-hidden mb-2">
+          {/* Progress bar - subtle */}
+          <div className="h-1.5 bg-secondary rounded-full overflow-hidden mb-2">
             <div 
-              className={`h-full ${progressColor} transition-all duration-500`}
-              style={{ width: `${Math.min(percentage, 100)}%` }}
+              className={cn(
+                "h-full rounded-full transition-all duration-700",
+                isOnTrack ? "bg-success" : "bg-primary"
+              )}
+              style={{ 
+                width: `${Math.min(percentage, 100)}%`,
+                boxShadow: isOnTrack ? '0 0 8px hsl(var(--success) / 0.5)' : '0 0 8px hsl(var(--primary) / 0.5)'
+              }}
             />
           </div>
           
-          <div className="flex items-center justify-between text-xs gap-2">
-            <span className="text-muted-foreground truncate">
-              План: {formatValue(plan, format)}
-            </span>
-            <div className={`flex items-center gap-1 flex-shrink-0 ${isOnTrack ? 'text-success' : 'text-destructive'}`}>
-              {isOnTrack ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-              <span>{percentage.toFixed(0)}%</span>
-            </div>
-          </div>
+          {/* Plan text - muted and smaller */}
+          <p className="text-[10px] md:text-xs text-muted-foreground/50 truncate">
+            План: {formatValue(plan, format)} • {percentage.toFixed(0)}%
+          </p>
         </>
       )}
     </div>
