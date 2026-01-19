@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Activity, Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase, checkConnection } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
+import { motion } from 'framer-motion';
+import markvisionLogo from '@/assets/markvision-logo-new.png';
 
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 
@@ -46,22 +48,17 @@ export default function Auth() {
       
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          console.log(`🔄 Попытка подключения ${attempt}/${MAX_RETRIES}...`);
-          
           const { error } = await supabase.from('projects').select('count').limit(1);
           if (!error) {
-            console.log('✅ Подключение успешно!');
             setConnectionError(null);
             setCheckingConnection(false);
             return;
           }
           
           lastError = error.message;
-          console.warn(`⚠️ Попытка ${attempt} неудачна:`, error.message);
           
         } catch (e: any) {
           lastError = e.message || 'Ошибка подключения к базе данных';
-          console.warn(`⚠️ Попытка ${attempt} ошибка:`, lastError);
         }
         
         // Ждём перед следующей попыткой (кроме последней)
@@ -81,9 +78,6 @@ export default function Auth() {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session?.user) {
-        if (import.meta.env.DEV) {
-          console.log('✅ Пользователь авторизован, редирект на /');
-        }
         // Редирект на главную страницу (CRM будет выбран через activeTab)
         navigate('/');
       }
@@ -91,9 +85,6 @@ export default function Auth() {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        if (import.meta.env.DEV) {
-          console.log('✅ Сессия найдена, редирект на /');
-        }
         navigate('/');
       }
     });
@@ -128,7 +119,6 @@ export default function Auth() {
         });
 
         if (error) {
-          console.error('Reset password error:', error.code || error.message);
           toast.error('Ошибка отправки письма. Попробуйте позже.');
           return;
         }
@@ -142,16 +132,6 @@ export default function Auth() {
         });
 
         if (error) {
-          // Подробное логирование ошибки только в dev режиме
-          if (import.meta.env.DEV) {
-            console.error('❌ Login error details:', {
-              code: error.code,
-              message: error.message,
-              status: error.status,
-              name: error.name
-            });
-          }
-          
           // Показываем точный текст ошибки пользователю
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Неверный email или пароль');
@@ -188,7 +168,6 @@ export default function Auth() {
         });
 
         if (signUpError) {
-          console.error('Signup error:', signUpError.code || signUpError.message);
           if (signUpError.message.includes('already registered') || signUpError.message.includes('User already registered')) {
             toast.error('Этот email уже зарегистрирован. Попробуйте войти.');
           } else if (signUpError.message.includes('Password')) {
@@ -241,9 +220,9 @@ export default function Auth() {
 
   const getTitle = () => {
     switch (mode) {
-      case 'login': return 'Вход в аккаунт';
-      case 'signup': return 'Регистрация';
-      case 'forgot-password': return 'Восстановление пароля';
+      case 'login': return 'Вход в систему';
+      case 'signup': return 'Создание аккаунта';
+      case 'forgot-password': return 'Восстановление';
     }
   };
 
@@ -259,10 +238,19 @@ export default function Auth() {
   if (checkingConnection) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="text-center">
-          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Проверка подключения к базе данных...</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <div className="relative mx-auto mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+            <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-3xl blur-xl opacity-50 animate-pulse" />
+          </div>
+          <p className="text-muted-foreground">Подключение к базе данных...</p>
+        </motion.div>
       </div>
     );
   }
@@ -270,7 +258,11 @@ export default function Auth() {
   if (connectionError) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-destructive/10 border border-destructive rounded-2xl p-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md bg-destructive/10 border border-destructive/30 rounded-3xl p-6"
+        >
           <div className="flex items-center gap-3 mb-4">
             <AlertTriangle className="w-8 h-8 text-destructive" />
             <h2 className="text-xl font-semibold text-destructive">Ошибка подключения</h2>
@@ -293,133 +285,219 @@ export default function Auth() {
           >
             Попробовать снова
           </Button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 safe-area-top safe-area-bottom">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-6 sm:mb-8">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary to-purple-600 mx-auto flex items-center justify-center mb-3 sm:mb-4 shadow-lg">
-            <Activity className="w-8 h-8 sm:w-10 sm:h-10 text-primary-foreground" />
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
+      {/* Background Effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-full blur-3xl" />
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-md relative z-10"
+      >
+        {/* Logo Section */}
+        <motion.div 
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <div className="relative inline-block mb-4">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative">
+              <img 
+                src={markvisionLogo} 
+                alt="MarkVision AI" 
+                className="w-full h-full object-contain drop-shadow-2xl"
+              />
+              {/* Glow effect */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full -z-10 scale-150" />
+            </div>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">MarkVision AI</h1>
-          <p className="text-muted-foreground mt-1 text-sm sm:text-base">Умный маркетинг для клиник</p>
-        </div>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent">
+              MarkVision AI
+            </span>
+          </h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+            Умный маркетинг для медицинских клиник
+          </p>
+        </motion.div>
 
         {/* Form Card */}
-        <div className="bg-card border rounded-2xl p-5 sm:p-6 shadow-lg">
-          {mode === 'forgot-password' && (
-            <button
-              type="button"
-              onClick={() => setMode('login')}
-              className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Назад к входу
-            </button>
-          )}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="relative"
+        >
+          {/* Card Glow */}
+          <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/50 via-purple-500/50 to-primary/50 rounded-3xl blur-sm opacity-50" />
+          
+          <div className="relative bg-card/95 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-primary/5">
+            {mode === 'forgot-password' && (
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                type="button"
+                onClick={() => setMode('login')}
+                className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Назад к входу
+              </motion.button>
+            )}
 
-          <h2 className="text-xl font-semibold text-center mb-6">
-            {getTitle()}
-          </h2>
-
-          {mode === 'forgot-password' && (
-            <p className="text-sm text-muted-foreground text-center mb-4">
-              Введите email, привязанный к вашему аккаунту. Мы отправим ссылку для сброса пароля.
+            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-2">
+              {getTitle()}
+            </h2>
+            
+            <p className="text-sm text-muted-foreground text-center mb-6">
+              {mode === 'login' && 'Войдите в свой аккаунт для продолжения'}
+              {mode === 'signup' && 'Создайте аккаунт для начала работы'}
+              {mode === 'forgot-password' && 'Введите email для получения ссылки восстановления'}
             </p>
-          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {mode === 'signup' && (
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {mode === 'signup' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2"
+                >
+                  <label className="text-sm font-medium text-foreground/80">Имя</label>
+                  <div className="relative group">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                      type="text"
+                      placeholder="Ваше имя"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                  </div>
+                </motion.div>
+              )}
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">Имя</label>
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <label className="text-sm font-medium text-foreground/80">Email</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
                   <Input
-                    type="text"
-                    placeholder="Ваше имя"
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="pl-10"
+                    type="email"
+                    placeholder="email@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
                   />
                 </div>
               </div>
-            )}
 
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Email</label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  type="email"
-                  placeholder="email@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
+              {mode !== 'forgot-password' && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-2"
+                >
+                  <label className="text-sm font-medium text-foreground/80">Пароль</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-11 pr-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </motion.div>
+              )}
 
-            {mode !== 'forgot-password' && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Пароль</label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10"
-                  />
+              {mode === 'login' && (
+                <div className="text-right">
                   <button
                     type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    onClick={() => setMode('forgot-password')}
+                    className="text-sm text-primary hover:text-primary/80 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    Забыли пароль?
                   </button>
                 </div>
-              </div>
-            )}
+              )}
 
-            {mode === 'login' && (
-              <div className="text-right">
+              <Button 
+                type="submit" 
+                className="w-full h-12 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white font-medium rounded-xl shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5" 
+                disabled={loading}
+              >
+                {loading ? (
+                  <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : (
+                  <Sparkles className="w-4 h-4 mr-2" />
+                )}
+                {getButtonText()}
+              </Button>
+            </form>
+
+            {mode !== 'forgot-password' && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-6 text-center"
+              >
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-border/50"></div>
+                  </div>
+                  <div className="relative flex justify-center text-xs">
+                    <span className="px-2 bg-card text-muted-foreground">или</span>
+                  </div>
+                </div>
+                
                 <button
                   type="button"
-                  onClick={() => setMode('forgot-password')}
-                  className="text-sm text-primary hover:underline"
+                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
+                  className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  Забыли пароль?
+                  {mode === 'login' ? (
+                    <>Нет аккаунта? <span className="text-primary font-medium">Зарегистрироваться</span></>
+                  ) : (
+                    <>Уже есть аккаунт? <span className="text-primary font-medium">Войти</span></>
+                  )}
                 </button>
-              </div>
+              </motion.div>
             )}
+          </div>
+        </motion.div>
 
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-              ) : null}
-              {getButtonText()}
-            </Button>
-          </form>
-
-          {mode !== 'forgot-password' && (
-            <div className="mt-6 text-center">
-              <button
-                type="button"
-                onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                className="text-sm text-primary hover:underline"
-              >
-                {mode === 'login' ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+        {/* Footer */}
+        <motion.p 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-center text-xs text-muted-foreground mt-6"
+        >
+          © 2025 MarkVision AI. Все права защищены.
+        </motion.p>
+      </motion.div>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
+import markvisionLogo from "@/assets/markvision-logo-new.png";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -41,7 +42,7 @@ import {
 } from "@tabler/icons-react";
 import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
-import { Sparkles, Trash2 } from "lucide-react";
+import { Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,8 +90,11 @@ interface AppSidebarProps {
   onForceLoadProject?: () => void; // NEW: Force load for super admin
 }
 
-// Super admin UUID
-const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+// Super admin UIDs - these users should be in user_roles table with super_admin role
+const SUPER_ADMIN_UIDS = [
+  'd94043b0-1c76-4017-84de-df0dbf00a2c9',
+  '71d54527-0eb1-461b-a51a-a49905c0c92e'
+];
 
 export const AppSidebar = ({ 
   activeTab, 
@@ -106,7 +110,7 @@ export const AppSidebar = ({
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
-  const isSuperAdmin = userId === SUPER_ADMIN_UID;
+  const isSuperAdmin = userId ? SUPER_ADMIN_UIDS.includes(userId) : false;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -563,9 +567,11 @@ const Logo = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-          <Sparkles className="h-5 w-5 text-white" />
-        </div>
+        <img 
+          src={markvisionLogo} 
+          alt="MarkVision AI" 
+          className="h-9 w-9 object-contain"
+        />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
@@ -577,7 +583,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent font-bold text-base">
+        <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
         <span className="text-[10px] text-sidebar-foreground/50 font-normal">
@@ -596,9 +602,11 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <div className="h-9 w-9 bg-gradient-to-br from-blue-500 via-purple-500 to-pink-500 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/30">
-          <Sparkles className="h-5 w-5 text-white" />
-        </div>
+        <img 
+          src={markvisionLogo} 
+          alt="MarkVision AI" 
+          className="h-9 w-9 object-contain"
+        />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
