@@ -7,7 +7,7 @@ interface DailyData {
   date: string;
   spend: number;
   impressions: number;
-  clicks?: number;
+  clicks: number;
   leads: number;
   diagnostics: number;
   sales: number;
