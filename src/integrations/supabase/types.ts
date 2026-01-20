@@ -188,6 +188,56 @@ export type Database = {
           },
         ]
       }
+      agency_finances: {
+        Row: {
+          additional_costs: number
+          created_at: string
+          id: string
+          month: string
+          notes: string | null
+          package_cost: number
+          project_id: string
+          tariff: string
+          team_costs: number
+          team_members: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          additional_costs?: number
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string | null
+          package_cost?: number
+          project_id: string
+          tariff?: string
+          team_costs?: number
+          team_members?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          additional_costs?: number
+          created_at?: string
+          id?: string
+          month?: string
+          notes?: string | null
+          package_cost?: number
+          project_id?: string
+          tariff?: string
+          team_costs?: number
+          team_members?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_finances_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_rop_audits: {
         Row: {
           audit_date: string

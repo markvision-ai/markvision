@@ -63,6 +63,7 @@ import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWi
 import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
+import { AgencyAnalytics } from './AgencyAnalytics';
 
 interface Transaction {
   id: string;
@@ -439,11 +440,16 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       </div>
 
       <Tabs defaultValue="dashboard">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
+          <TabsTrigger value="agency">Аналитика Агентства</TabsTrigger>
           <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="agency" className="mt-4">
+          <AgencyAnalytics />
+        </TabsContent>
 
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           {/* Bar Chart */}
