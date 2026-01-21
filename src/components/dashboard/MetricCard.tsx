@@ -11,6 +11,29 @@ interface MetricCardProps {
   className?: string;
 }
 
+// Format large numbers to compact form
+const formatCompact = (value: string): string => {
+  // Extract numeric part and currency
+  const numMatch = value.match(/^([\d\s]+)/);
+  if (!numMatch) return value;
+  
+  const numStr = numMatch[1].replace(/\s/g, '');
+  const num = parseInt(numStr, 10);
+  
+  if (isNaN(num)) return value;
+  
+  const suffix = value.replace(numStr, '').replace(/^\s+/, '');
+  
+  if (num >= 1000000) {
+    return (num / 1000000).toFixed(1).replace('.0', '') + ' млн' + (suffix ? ' ' + suffix : '');
+  }
+  if (num >= 100000) {
+    return (num / 1000).toFixed(0) + ' тыс' + (suffix ? ' ' + suffix : '');
+  }
+  
+  return value;
+};
+
 export const MetricCard = ({ 
   label, 
   value, 
@@ -20,38 +43,30 @@ export const MetricCard = ({
   variant = 'default',
   className
 }: MetricCardProps) => {
+  const displayValue = formatCompact(value);
+  
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-[20px] p-4 md:p-6 transition-all duration-400",
-      "bg-card hover:shadow-card-hover hover:-translate-y-0.5",
-      "group",
+      "premium-card p-5 md:p-6 group",
       className
     )}>
-      {/* Glow border on hover */}
-      <div className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, hsl(var(--primary) / 0.2) 0%, transparent 50%, hsl(var(--primary) / 0.2) 100%)',
-          padding: '1px',
-          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          maskComposite: 'exclude',
-        }}
-      />
-      
-      <div className="flex items-start justify-between mb-3 md:mb-4 gap-2">
-        <p className="text-xs md:text-sm text-muted-foreground font-medium truncate">{label}</p>
+      <div className="flex items-start justify-between mb-4 gap-2">
+        <p className="text-xs md:text-sm text-muted-foreground font-medium">{label}</p>
         {icon && (
-          <div className="flex-shrink-0 p-2 md:p-2.5 rounded-xl bg-primary/10 text-primary">
+          <div className="flex-shrink-0 p-2 md:p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
             {icon}
           </div>
         )}
       </div>
       
-      {/* Large value - prominent typography */}
-      <p className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight truncate">{value}</p>
+      {/* Large value - prominent typography with proper spacing */}
+      <p className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-none">
+        {displayValue}
+      </p>
       
-      <div className="flex items-center justify-between mt-2 md:mt-3 gap-2">
+      <div className="flex items-center justify-between mt-3 gap-2">
         {subValue && (
-          <p className="text-[10px] md:text-xs text-muted-foreground/60 truncate flex-1">{subValue}</p>
+          <p className="text-[10px] md:text-xs text-muted-foreground/50">{subValue}</p>
         )}
         {trend && (
           <div className={cn(

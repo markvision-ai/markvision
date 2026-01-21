@@ -28,15 +28,15 @@ interface QuickStatsProps {
 
 export const QuickStats = ({ stats }: QuickStatsProps) => {
   return (
-    <div className="bg-card border rounded-xl p-4 sm:p-6">
-      <div className="flex items-center justify-between mb-4 sm:mb-6">
+    <div className="premium-card p-5 md:p-6">
+      <div className="flex items-center justify-between mb-5">
         <div>
-          <h3 className="font-semibold text-sm sm:text-lg">Сравнение с прошлой неделей</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">Динамика ключевых показателей</p>
+          <h3 className="font-semibold text-sm sm:text-base text-foreground">Сравнение с прошлой неделей</h3>
+          <p className="text-xs text-muted-foreground/60 mt-0.5">Динамика ключевых показателей</p>
         </div>
       </div>
       
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {stats.map((stat) => {
           const change = stat.previous > 0 
             ? ((stat.current - stat.previous) / stat.previous) * 100 
@@ -47,29 +47,33 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
           return (
             <div 
               key={stat.label} 
-              className="relative bg-gradient-to-br from-secondary/80 to-secondary/40 rounded-xl p-3 sm:p-4 overflow-hidden group hover:shadow-lg transition-all duration-300"
+              className="relative bg-muted/30 rounded-xl p-4 overflow-hidden border border-border/30 transition-all duration-300 hover:border-primary/20 group"
             >
               {/* Accent bar */}
               <div 
-                className={`absolute top-0 left-0 right-0 h-1 sm:h-1.5 ${
-                  isPositive ? 'bg-gradient-to-r from-success to-success/60' : isNeutral ? 'bg-muted' : 'bg-gradient-to-r from-destructive to-destructive/60'
+                className={`absolute top-0 left-0 right-0 h-1 transition-all duration-300 ${
+                  isPositive 
+                    ? 'bg-success group-hover:shadow-[0_0_10px_hsl(var(--success)/0.5)]' 
+                    : isNeutral 
+                      ? 'bg-muted-foreground/30' 
+                      : 'bg-destructive group-hover:shadow-[0_0_10px_hsl(var(--destructive)/0.5)]'
                 }`}
               />
               
-              <div className="space-y-2 sm:space-y-3">
-                <p className="text-xs sm:text-sm text-muted-foreground font-medium truncate">{stat.label}</p>
+              <div className="space-y-2.5">
+                <p className="text-xs text-muted-foreground font-medium">{stat.label}</p>
                 
-                <p className="text-lg sm:text-2xl font-bold tracking-tight truncate">
+                <p className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
                   {formatValue(stat.current, stat.format)}
                 </p>
                 
-                <div className="flex items-center justify-between gap-1 sm:gap-2 flex-wrap">
-                  <div className={`flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-1 rounded-md sm:rounded-lg text-[10px] sm:text-xs font-bold ${
+                <div className="flex items-center justify-between gap-2">
+                  <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
                     isPositive 
-                      ? 'bg-success/20 text-success' 
+                      ? 'bg-success/10 text-success' 
                       : isNeutral 
                         ? 'bg-muted text-muted-foreground'
-                        : 'bg-destructive/20 text-destructive'
+                        : 'bg-destructive/10 text-destructive'
                   }`}>
                     {isPositive ? (
                       <ArrowUpRight className="w-3 h-3" />
@@ -81,10 +85,9 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
                     {Math.abs(Math.round(change))}%
                   </div>
 
-                  {/* Previous value - hidden on very small screens */}
-                  <div className="hidden sm:block text-[10px] sm:text-xs text-muted-foreground truncate">
-                    <span>Было: </span>
-                    <span className="font-semibold">{formatValue(stat.previous, stat.format)}</span>
+                  {/* Previous value */}
+                  <div className="hidden sm:block text-[10px] text-muted-foreground/50">
+                    {formatValue(stat.previous, stat.format)}
                   </div>
                 </div>
               </div>

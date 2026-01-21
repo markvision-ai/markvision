@@ -13,12 +13,46 @@ interface PlanFactCardProps {
 
 const formatValue = (value: number, format: 'number' | 'currency' | 'percent'): string => {
   if (format === 'currency') {
-    return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
+    if (value >= 1000000) {
+      return (value / 1000000).toFixed(1).replace('.0', '') + ' млн ₸';
+    }
+    if (value >= 100000) {
+      return (value / 1000).toFixed(0) + ' тыс ₸';
+    }
+    return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
   }
   if (format === 'percent') {
     return value.toFixed(1) + '%';
   }
-  return new Intl.NumberFormat('ru-RU').format(value);
+  if (value >= 1000000) {
+    return (value / 1000000).toFixed(1).replace('.0', '') + ' млн';
+  }
+  if (value >= 100000) {
+    return (value / 1000).toFixed(0) + ' тыс';
+  }
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value));
+};
+
+const formatDisplayValue = (value: string | number, format: 'number' | 'currency' | 'percent'): string => {
+  if (typeof value === 'string') {
+    // Try to extract number and format it compactly
+    const numMatch = value.match(/^([\d\s]+)/);
+    if (numMatch) {
+      const numStr = numMatch[1].replace(/\s/g, '');
+      const num = parseInt(numStr, 10);
+      if (!isNaN(num)) {
+        const suffix = value.replace(numStr, '').replace(/^\s+/, '');
+        if (num >= 1000000) {
+          return (num / 1000000).toFixed(1).replace('.0', '') + ' млн' + (suffix ? ' ' + suffix : '');
+        }
+        if (num >= 100000) {
+          return (num / 1000).toFixed(0) + ' тыс' + (suffix ? ' ' + suffix : '');
+        }
+      }
+    }
+    return value;
+  }
+  return formatValue(value, format);
 };
 
 export const PlanFactCard = ({ 
@@ -32,40 +66,31 @@ export const PlanFactCard = ({
 }: PlanFactCardProps) => {
   const percentage = plan && fact ? (fact / plan) * 100 : 0;
   const isOnTrack = percentage >= 100;
+  const displayValue = formatDisplayValue(value, format);
 
   return (
     <div className={cn(
-      "relative overflow-hidden rounded-[20px] p-4 md:p-6 transition-all duration-400",
-      "bg-card hover:shadow-card-hover hover:-translate-y-0.5",
-      "group min-w-0",
+      "premium-card p-5 md:p-6 group",
       className
     )}>
-      {/* Glow border on hover */}
-      <div className="absolute inset-0 rounded-[20px] opacity-0 group-hover:opacity-100 transition-opacity duration-400 pointer-events-none"
-        style={{
-          background: 'linear-gradient(135deg, hsl(var(--primary) / 0.2) 0%, transparent 50%, hsl(var(--primary) / 0.2) 100%)',
-          padding: '1px',
-          mask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-          maskComposite: 'exclude',
-        }}
-      />
-
-      <div className="flex items-center justify-between mb-3 gap-2">
-        <span className="text-xs md:text-sm text-muted-foreground font-medium truncate">{label}</span>
+      <div className="flex items-center justify-between mb-4 gap-2">
+        <span className="text-xs md:text-sm text-muted-foreground font-medium">{label}</span>
         {icon && (
-          <div className="flex-shrink-0 p-2 md:p-2.5 rounded-xl bg-primary/10 text-primary">
+          <div className="flex-shrink-0 p-2 md:p-2.5 rounded-xl bg-primary/10 text-primary group-hover:bg-primary/20 transition-colors">
             {icon}
           </div>
         )}
       </div>
       
       {/* Large value - prominent typography */}
-      <div className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight mb-3 truncate">{value}</div>
+      <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight leading-none mb-4">
+        {displayValue}
+      </div>
       
       {plan !== undefined && fact !== undefined && (
-        <>
-          {/* Progress bar - subtle */}
-          <div className="h-1.5 bg-secondary rounded-full overflow-hidden mb-2">
+        <div className="space-y-2">
+          {/* Progress bar */}
+          <div className="h-1.5 bg-muted rounded-full overflow-hidden">
             <div 
               className={cn(
                 "h-full rounded-full transition-all duration-700",
@@ -73,16 +98,26 @@ export const PlanFactCard = ({
               )}
               style={{ 
                 width: `${Math.min(percentage, 100)}%`,
-                boxShadow: isOnTrack ? '0 0 8px hsl(var(--success) / 0.5)' : '0 0 8px hsl(var(--primary) / 0.5)'
+                boxShadow: isOnTrack 
+                  ? '0 0 10px hsl(var(--success) / 0.5)' 
+                  : '0 0 10px hsl(var(--primary) / 0.5)'
               }}
             />
           </div>
           
           {/* Plan text - muted and smaller */}
-          <p className="text-[10px] md:text-xs text-muted-foreground/50 truncate">
-            План: {formatValue(plan, format)} • {percentage.toFixed(0)}%
-          </p>
-        </>
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] md:text-xs text-muted-foreground/50">
+              План: {formatValue(plan, format)}
+            </span>
+            <span className={cn(
+              "text-[10px] md:text-xs font-medium",
+              isOnTrack ? "text-success" : "text-muted-foreground/50"
+            )}>
+              {percentage.toFixed(0)}%
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );

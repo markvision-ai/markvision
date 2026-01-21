@@ -615,7 +615,36 @@ export const AnalyticsPlatform = () => {
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen bg-background text-foreground flex w-full">
+      <div className="min-h-screen bg-background text-foreground flex w-full relative">
+        {/* Aceternity UI: Ambient Glow Effects */}
+        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+          {/* Blue glow - top left */}
+          <div 
+            className="absolute top-[5%] left-[10%] w-[500px] h-[500px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, hsl(217 91% 60% / 0.08) 0%, transparent 70%)',
+              filter: 'blur(80px)',
+            }}
+          />
+          {/* Purple glow - bottom right */}
+          <div 
+            className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] rounded-full"
+            style={{
+              background: 'radial-gradient(circle, hsl(270 70% 50% / 0.06) 0%, transparent 70%)',
+              filter: 'blur(80px)',
+            }}
+          />
+        </div>
+
+        {/* Dot pattern overlay */}
+        <div 
+          className="fixed inset-0 pointer-events-none z-0 opacity-40"
+          style={{
+            backgroundImage: 'radial-gradient(circle, hsl(217 33% 30% / 0.5) 1px, transparent 1px)',
+            backgroundSize: '24px 24px',
+          }}
+        />
+
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
           activeTab={activeTab} 
@@ -633,7 +662,7 @@ export const AnalyticsPlatform = () => {
         />
         
         {/* Main Content Area - Takes remaining space, no overlap */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
           {/* Mobile Header */}
           <MobileHeader 
             title={getTabTitle()}
@@ -645,7 +674,7 @@ export const AnalyticsPlatform = () => {
           />
           
           {/* Desktop Header with backdrop blur */}
-          <header className="hidden md:block sticky top-0 z-30 bg-background/95 backdrop-blur-lg border-b border-border">
+          <header className="hidden md:block sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
             <Header 
               title={getTabTitle()} 
               subtitle={currentProject?.name}
