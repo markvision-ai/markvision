@@ -312,7 +312,7 @@ export const AnalyticsPlatform = () => {
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 stagger-children animate">
                 <PlanFactCard
                   label="Расходы"
-                  value={formatCurrency(totals.spend)}
+                  value={totals.spend}
                   plan={planData.spend}
                   fact={totals.spend}
                   icon={<DollarSign className="w-4 h-4 md:w-5 md:h-5" />}
@@ -320,7 +320,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <PlanFactCard
                   label="Показы"
-                  value={formatNumber(totals.impressions)}
+                  value={totals.impressions}
                   plan={planData.impressions}
                   fact={totals.impressions}
                   icon={<Eye className="w-4 h-4 md:w-5 md:h-5" />}
@@ -328,7 +328,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <PlanFactCard
                   label="Лиды"
-                  value={formatNumber(totals.leads)}
+                  value={totals.leads}
                   plan={planData.leads}
                   fact={totals.leads}
                   icon={<Users className="w-4 h-4 md:w-5 md:h-5" />}
@@ -336,7 +336,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <PlanFactCard
                   label="Диагностики"
-                  value={formatNumber(totals.diagnostics)}
+                  value={totals.diagnostics}
                   plan={planData.diagnostics}
                   fact={totals.diagnostics}
                   icon={<Target className="w-4 h-4 md:w-5 md:h-5" />}
@@ -344,7 +344,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <PlanFactCard
                   label="Продажи"
-                  value={formatNumber(totals.sales)}
+                  value={totals.sales}
                   plan={planData.sales}
                   fact={totals.sales}
                   icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />}
@@ -352,7 +352,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <PlanFactCard
                   label="Выручка"
-                  value={formatCurrency(totals.revenue)}
+                  value={totals.revenue}
                   plan={planData.revenue}
                   fact={totals.revenue}
                   icon={<Wallet className="w-4 h-4 md:w-5 md:h-5" />}
