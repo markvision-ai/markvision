@@ -16,8 +16,8 @@ export const FunnelChart = ({ steps }: FunnelChartProps) => {
   const maxValue = Math.max(...steps.map(s => s.value));
 
   return (
-    <div className="bg-card border rounded-xl p-6">
-      <h3 className="font-semibold mb-6">Воронка продаж</h3>
+    <div className="premium-card p-6">
+      <h3 className="font-semibold text-foreground mb-6">Воронка продаж</h3>
       
       <div className="space-y-4">
         {steps.map((step, index) => {
@@ -28,23 +28,24 @@ export const FunnelChart = ({ steps }: FunnelChartProps) => {
           
           return (
             <div key={step.label} className="relative">
-              <div className="flex items-center justify-between mb-1">
-                <span className="text-sm font-medium">{step.label}</span>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-sm font-medium text-foreground">{step.label}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-sm font-semibold">{formatNumber(step.value)}</span>
+                  <span className="text-sm font-semibold text-foreground">{formatNumber(step.value)}</span>
                   {conversionFromPrev && (
-                    <span className="text-xs text-muted-foreground bg-secondary px-2 py-0.5 rounded">
+                    <span className="text-xs text-muted-foreground bg-muted/50 px-2 py-0.5 rounded-full">
                       {conversionFromPrev}%
                     </span>
                   )}
                 </div>
               </div>
-              <div className="h-10 bg-secondary rounded-lg overflow-hidden">
+              <div className="h-10 bg-muted/30 rounded-lg overflow-hidden">
                 <div 
                   className="h-full rounded-lg transition-all duration-1000 ease-out flex items-center justify-end pr-3"
                   style={{ 
                     width: `${width}%`, 
                     backgroundColor: step.color,
+                    boxShadow: `0 0 20px ${step.color}40`
                   }}
                 >
                   {width > 20 && (

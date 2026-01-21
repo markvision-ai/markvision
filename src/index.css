@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* ============================================
-   MODERN PREMIUM SAAS THEME
+   ACETERNITY UI PREMIUM THEME
    Deep Dark Mode with Electric Blue Accent
    ============================================ */
 
@@ -63,26 +63,26 @@
   }
 
   .dark {
-    /* Deep Dark Mode - Graphite/Navy Background */
-    --background: 222 47% 2.5%;
+    /* Deep Dark Mode - #020617 equivalent */
+    --background: 222 47% 2%;
     --foreground: 210 40% 98%;
 
-    /* Cards - Slightly lighter than background, no borders needed */
-    --card: 217 33% 6%;
+    /* Cards - Glassmorphism base #0f172a */
+    --card: 217 33% 8%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 217 33% 8%;
+    --popover: 217 33% 10%;
     --popover-foreground: 210 40% 98%;
 
     /* Electric Blue - Single Accent Color */
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 10%;
+    --secondary: 217 33% 12%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 12%;
-    --muted-foreground: 215 20% 55%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 50%;
 
     /* Accent = Primary for consistency */
     --accent: 217 91% 60%;
@@ -97,15 +97,15 @@
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* No visible borders - use shadows instead */
-    --border: 217 33% 12%;
-    --input: 217 33% 12%;
+    /* Subtle borders - barely visible */
+    --border: 217 33% 15%;
+    --input: 217 33% 15%;
     --ring: 217 91% 60%;
 
     /* Sidebar - Ultra dark */
     --sidebar: 222 47% 3%;
     --sidebar-foreground: 210 40% 98%;
-    --sidebar-muted: 217 33% 8%;
+    --sidebar-muted: 217 33% 10%;
 
     /* Monochrome blue chart colors */
     --chart-1: 217 91% 60%;
@@ -131,64 +131,90 @@
 }
 
 /* ============================================
-   MODERN PREMIUM CARD STYLES
+   ACETERNITY UI DOT PATTERN BACKGROUND
+   ============================================ */
+
+.dot-pattern {
+  background-image: radial-gradient(circle, hsl(217 33% 25% / 0.4) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.grid-pattern {
+  background-image: 
+    linear-gradient(hsl(217 33% 20% / 0.15) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(217 33% 20% / 0.15) 1px, transparent 1px);
+  background-size: 60px 60px;
+}
+
+/* ============================================
+   AMBIENT GLOW EFFECTS
+   ============================================ */
+
+.ambient-glow {
+  position: relative;
+}
+
+.ambient-glow::before {
+  content: '';
+  position: fixed;
+  top: 10%;
+  left: 10%;
+  width: 500px;
+  height: 500px;
+  background: radial-gradient(circle, hsl(217 91% 60% / 0.08) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ambient-glow::after {
+  content: '';
+  position: fixed;
+  bottom: 10%;
+  right: 10%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, hsl(270 70% 50% / 0.06) 0%, transparent 70%);
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================
+   ACETERNITY PREMIUM CARD STYLES
    Glassmorphism with soft glow on hover
    ============================================ */
 
 @layer components {
-  /* Premium Card - No borders, soft shadows, glassmorphism */
+  /* Premium Glassmorphism Card */
   .premium-card {
     @apply relative overflow-hidden;
-    background: hsl(var(--card));
+    background: hsl(217 33% 8% / 0.8);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: 20px;
-    border: none;
-    box-shadow: 
-      0 4px 20px hsl(var(--primary) / 0.03),
-      0 0 40px hsl(var(--primary) / 0.02);
+    border: 1px solid hsl(0 0% 100% / 0.08);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .premium-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 20px;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary) / 0) 0%,
-      hsl(var(--primary) / 0) 100%
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    transition: all 0.4s ease;
   }
 
   .premium-card:hover {
     transform: translateY(-2px);
+    border-color: hsl(217 91% 60% / 0.3);
     box-shadow: 
-      0 8px 30px hsl(var(--primary) / 0.08),
-      0 0 60px hsl(var(--primary) / 0.05);
-  }
-
-  .premium-card:hover::before {
-    background: linear-gradient(
-      135deg,
-      hsl(var(--primary) / 0.3) 0%,
-      hsl(var(--primary) / 0.1) 50%,
-      hsl(var(--primary) / 0.3) 100%
-    );
+      0 0 30px hsl(217 91% 60% / 0.15),
+      0 0 60px hsl(217 91% 60% / 0.08),
+      0 20px 40px hsl(0 0% 0% / 0.2);
   }
 
   /* Metric card with large typography */
   .metric-card-premium {
-    @apply premium-card p-6;
+    @apply premium-card p-5 md:p-6;
   }
 
   .metric-card-premium .metric-value {
-    @apply text-3xl md:text-4xl font-bold text-foreground tracking-tight;
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight;
   }
 
   .metric-card-premium .metric-label {
@@ -196,7 +222,7 @@
   }
 
   .metric-card-premium .metric-subtext {
-    @apply text-xs text-muted-foreground/60 mt-1;
+    @apply text-xs text-muted-foreground/50 mt-1;
   }
 
   /* Sidebar active glow effect */
