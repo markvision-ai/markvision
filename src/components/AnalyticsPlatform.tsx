@@ -616,34 +616,6 @@ export const AnalyticsPlatform = () => {
   return (
     <SidebarProvider>
       <div className="min-h-screen bg-background text-foreground flex w-full relative">
-        {/* Aceternity UI: Ambient Glow Effects */}
-        <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-          {/* Blue glow - top left */}
-          <div 
-            className="absolute top-[5%] left-[10%] w-[500px] h-[500px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, hsl(217 91% 60% / 0.08) 0%, transparent 70%)',
-              filter: 'blur(80px)',
-            }}
-          />
-          {/* Purple glow - bottom right */}
-          <div 
-            className="absolute bottom-[10%] right-[5%] w-[400px] h-[400px] rounded-full"
-            style={{
-              background: 'radial-gradient(circle, hsl(270 70% 50% / 0.06) 0%, transparent 70%)',
-              filter: 'blur(80px)',
-            }}
-          />
-        </div>
-
-        {/* Dot pattern overlay */}
-        <div 
-          className="fixed inset-0 pointer-events-none z-0 opacity-40"
-          style={{
-            backgroundImage: 'radial-gradient(circle, hsl(217 33% 30% / 0.5) 1px, transparent 1px)',
-            backgroundSize: '24px 24px',
-          }}
-        />
 
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
