@@ -2,17 +2,27 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FacebookAdsStatsProps {
   projectId: string;
 }
 
+interface AdAccount {
+  id: string;
+  name: string;
+  account_id: string;
+}
+
 export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
   const [loading, setLoading] = useState(false);
+  const [loadingAccounts, setLoadingAccounts] = useState(false);
   const [stats, setStats] = useState<any>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<string>('');
 
   useEffect(() => {
     fetchToken();
@@ -20,19 +30,56 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
 
   const fetchToken = async () => {
     try {
+      const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+      
       const { data } = await supabase
         .from('ad_accounts')
         .select('access_token')
-        .eq('project_id', projectId)
+        .eq('project_id', targetProjectId)
         .eq('platform', 'facebook')
         .eq('status', 'active')
         .single();
 
       if (data?.access_token) {
         setAccessToken(data.access_token);
+        await fetchAdAccounts(data.access_token);
       }
     } catch (error) {
       console.error('Error fetching token:', error);
+    }
+  };
+
+  const fetchAdAccounts = async (token: string) => {
+    setLoadingAccounts(true);
+    try {
+      const response = await fetch(
+        `https://graph.facebook.com/v18.0/me/adaccounts?fields=id,name,account_id&access_token=${token}`
+      );
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch ad accounts');
+      }
+
+      const data = await response.json();
+      console.log('Ad Accounts:', data);
+
+      if (data.data && data.data.length > 0) {
+        setAdAccounts(data.data);
+        
+        // Автоматически выбираем первый кабинет
+        setSelectedAccount(data.data[0].id);
+        
+        toast.success(`Найдено ${data.data.length} рекламных кабинетов`);
+      } else {
+        toast.warning('Рекламные кабинеты не найдены');
+      }
+    } catch (error: any) {
+      console.error('Error fetching ad accounts:', error);
+      toast.error('Ошибка загрузки кабинетов', {
+        description: error.message
+      });
+    } finally {
+      setLoadingAccounts(false);
     }
   };
 
@@ -42,29 +89,15 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
       return;
     }
 
+    if (!selectedAccount) {
+      toast.error('Выберите рекламный кабинет');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      // 1. Получаем Ad Accounts
-      const accountsResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/adaccounts?fields=id,name&access_token=${accessToken}`
-      );
-
-      if (!accountsResponse.ok) {
-        throw new Error('Failed to fetch ad accounts');
-      }
-
-      const accountsData = await accountsResponse.json();
-      console.log('Ad Accounts:', accountsData);
-
-      if (!accountsData.data || accountsData.data.length === 0) {
-        toast.warning('Рекламные аккаунты не найдены');
-        return;
-      }
-
-      const adAccountId = accountsData.data[0].id;
-
-      // 2. Получаем статистику за последние 30 дней
+      // Получаем статистику за последние 30 дней
       const today = new Date();
       const thirtyDaysAgo = new Date(today);
       thirtyDaysAgo.setDate(today.getDate() - 30);
@@ -73,7 +106,7 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
       const dateEnd = today.toISOString().split('T')[0];
 
       const insightsResponse = await fetch(
-        `https://graph.facebook.com/v18.0/${adAccountId}/insights?` +
+        `https://graph.facebook.com/v18.0/${selectedAccount}/insights?` +
         `fields=spend,impressions,clicks,actions&` +
         `time_range={'since':'${dateStart}','until':'${dateEnd}'}&` +
         `access_token=${accessToken}`
@@ -127,21 +160,53 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
     <Card className="p-6 space-y-4">
       <div className="flex items-center justify-between">
         <h3 className="font-semibold">Facebook Ads - Статистика (30 дней)</h3>
-        <Button
-          onClick={fetchAdsStats}
-          disabled={loading}
-          size="sm"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Загрузка...
-            </>
-          ) : (
-            'Обновить'
-          )}
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => accessToken && fetchAdAccounts(accessToken)}
+            disabled={loadingAccounts || !accessToken}
+            variant="outline"
+            size="sm"
+          >
+            {loadingAccounts ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4" />
+            )}
+          </Button>
+          <Button
+            onClick={fetchAdsStats}
+            disabled={loading || !selectedAccount}
+            size="sm"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Загрузка...
+              </>
+            ) : (
+              'Загрузить статистику'
+            )}
+          </Button>
+        </div>
       </div>
+
+      {adAccounts.length > 0 && (
+        <div className="space-y-2">
+          <label className="text-sm font-medium">Рекламный кабинет</label>
+          <Select value={selectedAccount} onValueChange={setSelectedAccount}>
+            <SelectTrigger>
+              <SelectValue placeholder="Выберите кабинет" />
+            </SelectTrigger>
+            <SelectContent>
+              {adAccounts.map((account) => (
+                <SelectItem key={account.id} value={account.id}>
+                  {account.name} (ID: {account.account_id})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
 
       {stats && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
