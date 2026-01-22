@@ -227,68 +227,29 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     setConnecting(true);
     
     try {
-      // Проверяем текущую сессию
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      console.log('🔍 Current session:', currentSession?.user?.email);
-      
-      // Если пользователь уже авторизован - используем linkIdentity
-      if (currentSession?.user) {
-        console.log('👤 User already logged in, using linkIdentity');
+      // Если токен уже есть в базе - просто активируем
+      if (connection && connection.access_token) {
+        console.log('✅ Token already in database, activating...');
         
-        // Определяем правильный redirect URL
-        const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
-        const redirectUrl = isProduction 
-          ? 'https://markvision-alpha.vercel.app/integrations'
-          : `${window.location.origin}/integrations`;
-        
-        console.log('🔗 OAuth redirect URL:', redirectUrl);
-        
-        // Используем linkIdentity для связывания аккаунтов
-        const { data, error } = await supabase.auth.linkIdentity({
-          provider: 'facebook',
-          options: {
-            redirectTo: redirectUrl,
-            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
-          },
-        });
+        const { error } = await supabase
+          .from('ad_accounts')
+          .update({ status: 'active' })
+          .eq('id', connection.id);
 
-        if (error) {
-          // Если identity уже привязан - это нормально, просто обновляем токен
-          if (error.message?.includes('Identity is already linked')) {
-            console.log('✅ Facebook identity already linked, will update token on callback');
-            toast.success('Переход на Facebook для обновления токена...', { duration: 2000 });
-          } else {
-            console.error('❌ linkIdentity error:', error);
-            toast.error('Ошибка связывания аккаунта: ' + error.message);
-          }
-        } else {
-          console.log('✅ linkIdentity success:', data);
-        }
-      } else {
-        // Если пользователь не авторизован - используем signInWithOAuth
-        console.log('🆕 No user session, using signInWithOAuth');
-        
-        const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
-        const redirectUrl = isProduction 
-          ? 'https://markvision-alpha.vercel.app/integrations'
-          : `${window.location.origin}/integrations`;
-        
-        console.log('🔗 OAuth redirect URL:', redirectUrl);
-        
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'facebook',
-          options: {
-            redirectTo: redirectUrl,
-            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
-          },
-        });
+        if (error) throw error;
 
-        if (error) {
-          console.error('❌ OAuth error:', error);
-          toast.error('Ошибка подключения к Facebook: ' + error.message);
-        }
+        toast.success('Facebook & Instagram активированы!');
+        fetchConnection();
+        return;
       }
+
+      // Если токена нет - показываем инструкцию
+      toast.info('Добавьте токен через Graph API Explorer', {
+        description: 'См. документацию: GET_FACEBOOK_TOKEN.md',
+        duration: 5000
+      });
+      
+      console.log('ℹ️ No token in database. User needs to add token via Graph API Explorer');
     } catch (error: any) {
       console.error('❌ Connection error:', error);
       toast.error('Ошибка подключения: ' + (error.message || 'Неизвестная ошибка'));
@@ -303,15 +264,25 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     setDisconnecting(true);
     
     try {
+      // Вместо удаления - деактивируем
       const { error } = await supabase
         .from('ad_accounts')
-        .delete()
+        .update({ status: 'inactive' })
         .eq('id', connection.id);
 
       if (error) throw error;
 
-      setConnection(null);
-      toast.success('Facebook & Instagram отключены');
+      // Обновляем локальное состояние
+      setConnection({ ...connection, status: 'inactive' });
+      setFacebookProfile(null);
+      setInstagramAccounts([]);
+      
+      toast.success('Facebook & Instagram деактивированы', {
+        description: 'Токен сохранён, можно активировать заново'
+      });
+      
+      // Перезагружаем данные
+      fetchConnection();
     } catch (error) {
       console.error('Error disconnecting:', error);
       toast.error('Ошибка отключения');
@@ -320,7 +291,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     }
   };
 
-  const isConnected = !!connection;
+  const isConnected = !!connection && connection.access_token && connection.access_token.length > 0;
 
   if (loading) {
     return (
@@ -570,10 +541,15 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Подключение...
                 </>
+              ) : connection ? (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  <span>Активировать</span>
+                </>
               ) : (
                 <>
                   <MetaLogo />
-                  <span className="ml-2">Шаг 1: Привязать аккаунт</span>
+                  <span className="ml-2">Добавить токен</span>
                 </>
               )}
             </Button>
@@ -612,12 +588,14 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
                     <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
                     Отключение...
                   </>
-                ) : (
-                  <>
-                    <Unlink className="w-3.5 h-3.5 mr-2" />
-                    Отключить
-                  </>
-                )}
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Деактивировать
+                </>
+              )}
               </Button>
             </div>
           )}
