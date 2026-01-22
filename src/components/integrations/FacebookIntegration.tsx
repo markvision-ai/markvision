@@ -175,159 +175,37 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     }
   }, []);
 
-  // Обработка OAuth callback
+  // Обработка OAuth callback (упрощенная версия - токен вставляется вручную через SQL)
   useEffect(() => {
     const handleOAuthCallback = async () => {
+      // Проверяем, есть ли Facebook identity (значит, OAuth прошёл)
       const { data: { session } } = await supabase.auth.getSession();
       
-      // КРИТИЧЕСКИЙ ЛОГ для отладки
-      console.log('🔍 AuthProvider Session:', session);
-      console.log('👤 User:', session?.user);
-      console.log('📧 Email:', session?.user?.email || 'NO EMAIL');
-      console.log('🆔 User ID:', session?.user?.id || 'NO ID');
-      console.log('🔗 Identities:', session?.user?.identities);
-      console.log('🎫 Provider Token:', session?.provider_token ? 'FOUND ✅' : 'NOT FOUND ❌');
-      console.log('🔄 Refresh Token:', session?.provider_refresh_token ? 'FOUND ✅' : 'NOT FOUND ❌');
-      
-      // СУПЕР-ДЕТАЛЬНЫЙ ЛОГ для Facebook identity
-      if (session?.user?.identities) {
-        const fbIdentity = session.user.identities.find((id: any) => id.provider === 'facebook');
-        if (fbIdentity) {
-          console.log('📱 Facebook Identity FULL DATA:', JSON.stringify(fbIdentity, null, 2));
-        }
-      }
-      
-      // Ищем Facebook токен в нескольких местах
-      let facebookToken = null;
-      
-      // 1. Сначала проверяем provider_token (новые OAuth логины)
-      if (session?.provider_token) {
-        console.log('✅ Found provider_token');
-        facebookToken = session.provider_token;
-      }
-      
-      // 2. Если нет, ищем в identities (linkIdentity или старые сессии)
-      if (!facebookToken && session?.user?.identities) {
-        const facebookIdentity = session.user.identities.find((id: any) => id.provider === 'facebook');
-        if (facebookIdentity) {
-          console.log('🔍 Found Facebook identity:', facebookIdentity);
-          console.log('🔍 Identity data keys:', Object.keys(facebookIdentity.identity_data || {}));
-          
-          // Пробуем разные возможные места для токена
-          facebookToken = 
-            facebookIdentity.identity_data?.access_token || 
-            facebookIdentity.identity_data?.provider_token ||
-            facebookIdentity.last_sign_in_at; // Это фолбэк, не токен, но для отладки
-          
-          console.log('🔍 Token from identity_data:', facebookToken ? 'FOUND' : 'NOT FOUND');
-        }
-      }
-      
-      // 3. Проверяем app_metadata (для некоторых OAuth провайдеров)
-      if (!facebookToken && session?.user?.app_metadata?.provider_token) {
-        console.log('✅ Found in app_metadata');
-        facebookToken = session.user.app_metadata.provider_token;
-      }
-      
-      console.log('🎯 Final Facebook token:', facebookToken ? `FOUND ✅ (length: ${facebookToken.length})` : 'NOT FOUND ❌');
-      
-      // Если есть сессия с токеном (даже без email)
-      if (facebookToken && session?.user) {
-        console.log('📱 Facebook OAuth успешен, сохраняем токен...');
-        console.log('💾 Saving to project:', projectId);
+      if (session?.user?.identities?.some((id: any) => id.provider === 'facebook')) {
+        console.log('✅ Facebook identity linked successfully');
         
-        try {
-          // Используем user.id как уникальный идентификатор
-          const userId = session.user.id;
-          const userEmail = session.user.email || `facebook_user_${userId}`;
-          
-          console.log('✍️ User identifier:', userId);
-          console.log('📧 Using email:', userEmail);
-          
-          // Сохраняем в ad_accounts для твоего проекта
-          const targetProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-          
-          // СТРАТЕГИЯ: Сначала пытаемся найти существующую запись
-          const { data: existing } = await supabase
-            .from('ad_accounts')
-            .select('id')
-            .eq('project_id', targetProjectId)
-            .eq('platform', 'facebook')
-            .maybeSingle();
-          
-          let data, error;
-          
-          if (existing) {
-            // Если запись существует - обновляем токен
-            console.log('📝 Updating existing Facebook connection:', existing.id);
-            const result = await supabase
-              .from('ad_accounts')
-              .update({
-                access_token: facebookToken,
-                status: 'active'
-              })
-              .eq('id', existing.id)
-              .select()
-              .single();
-            
-            data = result.data;
-            error = result.error;
-          } else {
-            // Если записи нет - создаём новую
-            console.log('➕ Creating new Facebook connection');
-            const result = await supabase
-              .from('ad_accounts')
-              .insert({
-                project_id: targetProjectId,
-                platform: 'facebook',
-                external_id: `facebook_oauth_${userId}`,
-                access_token: facebookToken,
-                status: 'active'
-              })
-              .select()
-              .single();
-            
-            data = result.data;
-            error = result.error;
-          }
-
-          if (error) {
-            console.error('❌ Supabase error:', error);
-            throw error;
-          }
-
-          if (data) {
-            console.log('✅ Token saved successfully:', data.id);
-            setConnection({
-              id: data.id,
-              access_token: data.access_token || '',
-              connected_at: data.created_at,
-              platform: 'facebook'
-            });
-            
-            // Загружаем профили сразу после сохранения
-            if (data.access_token) {
-              fetchProfiles(data.access_token);
-            }
-          }
-
-          toast.success('Facebook & Instagram подключены! 🎉', {
-            description: 'Загружаем данные профилей...'
+        // Показываем инструкцию, как добавить токен
+        const hasToken = connection?.access_token;
+        
+        if (!hasToken) {
+          console.log('ℹ️ Facebook аккаунт привязан, но токен нужно добавить вручную');
+          toast.info('Facebook аккаунт привязан!', {
+            description: 'Токен добавьте через Graph API Explorer (см. документацию)',
+            duration: 5000
           });
-
-          // Очистка URL от OAuth параметров
-          window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (error: any) {
-          console.error('❌ Error saving Facebook token:', error);
-          toast.error('Ошибка сохранения токена: ' + (error.message || 'Неизвестная ошибка'));
+        } else {
+          // Токен уже есть в базе - просто перезагружаем данные
+          console.log('✅ Token already in database, refreshing profiles...');
+          fetchConnection();
         }
-      } else if (session?.user && !session?.provider_token) {
-        console.log('⚠️ User found but NO provider token');
+        
+        // Очистка URL от OAuth параметров
+        window.history.replaceState({}, document.title, window.location.pathname);
       }
     };
 
     handleOAuthCallback();
-  }, [projectId]);
+  }, [projectId, connection?.access_token, fetchConnection]);
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -642,6 +520,27 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           </motion.div>
         )}
 
+        {/* Help text for manual token */}
+        {!isConnected && (
+          <div className="text-xs text-muted-foreground bg-blue-500/5 rounded-lg p-3 border border-blue-500/20">
+            <p className="flex items-start gap-2">
+              <span className="text-blue-500">ℹ️</span>
+              <span>
+                После привязки аккаунта добавьте токен через{' '}
+                <a 
+                  href="https://developers.facebook.com/tools/explorer/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-blue-500 hover:underline"
+                >
+                  Graph API Explorer
+                </a>
+                {' '}и выполните SQL из файла <code className="text-xs bg-background/50 px-1 rounded">EXECUTE_THIS_SQL.sql</code>
+              </span>
+            </p>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="flex gap-2 pt-2">
           {!isConnected ? (
@@ -658,7 +557,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
               ) : (
                 <>
                   <MetaLogo />
-                  <span className="ml-2">Привязать Facebook & Instagram</span>
+                  <span className="ml-2">Шаг 1: Привязать аккаунт</span>
                 </>
               )}
             </Button>
