@@ -5,7 +5,7 @@ import { Facebook, CheckCircle, Loader2, Link2, Unlink, RefreshCw, Settings, Mes
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { HoverEffect } from '@/components/ui/card-hover-effect';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FacebookIntegration } from './FacebookIntegration';
 
 const TikTokIcon = () => (
@@ -143,10 +143,10 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Настройка интеграции</DialogTitle>
+            <DialogDescription>
+              Функционал настройки {selectedIntegration} скоро будет доступен.
+            </DialogDescription>
           </DialogHeader>
-          <p className="text-muted-foreground py-4">
-            Функционал настройки {selectedIntegration} скоро будет доступен.
-          </p>
           <Button onClick={() => setSelectedIntegration(null)}>Закрыть</Button>
         </DialogContent>
       </Dialog>
