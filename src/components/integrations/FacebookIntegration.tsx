@@ -227,9 +227,9 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     setConnecting(true);
     
     try {
-      // Если токен уже есть в базе - просто активируем
-      if (connection && connection.access_token) {
-        console.log('✅ Token already in database, activating...');
+      // Если токен уже есть в базе и статус inactive - просто активируем
+      if (connection && connection.access_token && connection.status === 'inactive') {
+        console.log('✅ Token exists but inactive, activating...');
         
         const { error } = await supabase
           .from('ad_accounts')
@@ -243,13 +243,69 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         return;
       }
 
-      // Если токена нет - показываем инструкцию
-      toast.info('Добавьте токен через Graph API Explorer', {
-        description: 'См. документацию: GET_FACEBOOK_TOKEN.md',
-        duration: 5000
-      });
+      // Иначе - запускаем OAuth flow
+      console.log('🚀 Starting OAuth flow...');
       
-      console.log('ℹ️ No token in database. User needs to add token via Graph API Explorer');
+      // Проверяем текущую сессию
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      console.log('🔍 Current session:', currentSession?.user?.email);
+      
+      // Определяем правильный redirect URL
+      const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
+      const redirectUrl = isProduction 
+        ? 'https://markvision-alpha.vercel.app/integrations'
+        : `${window.location.origin}/integrations`;
+      
+      console.log('🔗 OAuth redirect URL:', redirectUrl);
+      
+      // Если пользователь уже авторизован - используем linkIdentity
+      if (currentSession?.user) {
+        console.log('👤 User already logged in, using linkIdentity');
+        
+        const { data, error } = await supabase.auth.linkIdentity({
+          provider: 'facebook',
+          options: {
+            redirectTo: redirectUrl,
+            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
+          },
+        });
+
+        if (error) {
+          if (error.message?.includes('Identity is already linked')) {
+            console.log('✅ Facebook identity already linked');
+            toast.success('Facebook уже привязан!', { 
+              description: 'Проверьте базу данных или обновите токен',
+              duration: 3000 
+            });
+            fetchConnection(); // Перезагружаем данные
+          } else {
+            console.error('❌ linkIdentity error:', error);
+            toast.error('Ошибка связывания: ' + error.message);
+          }
+        } else {
+          console.log('✅ linkIdentity initiated');
+          toast.success('Переход на Facebook...', { duration: 2000 });
+        }
+      } else {
+        // Если пользователь не авторизован - используем signInWithOAuth
+        console.log('🆕 No user session, using signInWithOAuth');
+        
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'facebook',
+          options: {
+            redirectTo: redirectUrl,
+            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
+          },
+        });
+
+        if (error) {
+          console.error('❌ OAuth error:', error);
+          toast.error('Ошибка подключения: ' + error.message);
+        } else {
+          toast.success('Переход на Facebook...', { duration: 2000 });
+        }
+      }
     } catch (error: any) {
       console.error('❌ Connection error:', error);
       toast.error('Ошибка подключения: ' + (error.message || 'Неизвестная ошибка'));
@@ -541,7 +597,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Подключение...
                 </>
-              ) : connection ? (
+              ) : connection && connection.access_token && connection.status === 'inactive' ? (
                 <>
                   <CheckCircle className="w-4 h-4 mr-2" />
                   <span>Активировать</span>
@@ -549,7 +605,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
               ) : (
                 <>
                   <MetaLogo />
-                  <span className="ml-2">Добавить токен</span>
+                  <span className="ml-2">Привязать аккаунт</span>
                 </>
               )}
             </Button>
