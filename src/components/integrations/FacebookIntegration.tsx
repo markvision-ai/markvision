@@ -18,6 +18,22 @@ interface FacebookConnection {
   platform: 'facebook';
 }
 
+interface FacebookProfile {
+  id: string;
+  name: string;
+  picture?: {
+    data: {
+      url: string;
+    };
+  };
+}
+
+interface InstagramAccount {
+  id: string;
+  username: string;
+  profile_picture_url?: string;
+}
+
 const MetaLogo = () => (
   <svg viewBox="0 0 36 36" className="w-6 h-6" fill="currentColor">
     <path d="M20.664 1.872l-8.986 13.5c-.419.628.04 1.478.828 1.478h5.997v17.278c0 .911 1.108 1.363 1.75.714l8.986-13.5c.419-.628-.04-1.478-.828-1.478h-5.997V2.586c0-.911-1.108-1.363-1.75-.714z"/>
@@ -29,6 +45,9 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connection, setConnection] = useState<FacebookConnection | null>(null);
+  const [facebookProfile, setFacebookProfile] = useState<FacebookProfile | null>(null);
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
+  const [loadingProfiles, setLoadingProfiles] = useState(false);
 
   const fetchConnection = useCallback(async () => {
     if (!projectId) return;
@@ -52,8 +71,15 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           connected_at: data.created_at,
           platform: 'facebook'
         });
+        
+        // Загружаем профили сразу после получения токена
+        if (data.access_token) {
+          fetchProfiles(data.access_token);
+        }
       } else {
         setConnection(null);
+        setFacebookProfile(null);
+        setInstagramAccounts([]);
       }
     } catch (error) {
       console.error('Error fetching connection:', error);
@@ -61,6 +87,68 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       setLoading(false);
     }
   }, [projectId]);
+
+  const fetchProfiles = async (accessToken: string) => {
+    if (!accessToken) return;
+    
+    setLoadingProfiles(true);
+    
+    try {
+      // 1. Получаем Facebook профиль
+      const fbResponse = await fetch(
+        `https://graph.facebook.com/v18.0/me?fields=id,name,picture&access_token=${accessToken}`
+      );
+      
+      if (fbResponse.ok) {
+        const fbData = await fbResponse.json();
+        console.log('📱 Facebook Profile:', fbData);
+        setFacebookProfile(fbData);
+      } else {
+        console.error('Failed to fetch Facebook profile:', await fbResponse.text());
+      }
+
+      // 2. Получаем Instagram аккаунты через Pages
+      const pagesResponse = await fetch(
+        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
+      );
+      
+      if (pagesResponse.ok) {
+        const pagesData = await pagesResponse.json();
+        console.log('📄 Pages Data:', pagesData);
+        
+        // Собираем Instagram аккаунты
+        const igAccounts: InstagramAccount[] = [];
+        
+        for (const page of pagesData.data || []) {
+          if (page.instagram_business_account) {
+            const igId = page.instagram_business_account.id;
+            
+            // Получаем детали Instagram аккаунта
+            const igResponse = await fetch(
+              `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
+            );
+            
+            if (igResponse.ok) {
+              const igData = await igResponse.json();
+              console.log('📸 Instagram Account:', igData);
+              igAccounts.push(igData);
+            }
+          }
+        }
+        
+        setInstagramAccounts(igAccounts);
+      } else {
+        console.error('Failed to fetch pages:', await pagesResponse.text());
+      }
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+      toast.error('Не удалось загрузить профили', {
+        description: 'Возможно, токен устарел или отсутствуют права доступа'
+      });
+    } finally {
+      setLoadingProfiles(false);
+    }
+  };
 
   useEffect(() => {
     fetchConnection();
@@ -216,10 +304,15 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
               connected_at: data.created_at,
               platform: 'facebook'
             });
+            
+            // Загружаем профили сразу после сохранения
+            if (data.access_token) {
+              fetchProfiles(data.access_token);
+            }
           }
 
           toast.success('Facebook & Instagram подключены! 🎉', {
-            description: 'Теперь можно синхронизировать данные о рекламе'
+            description: 'Загружаем данные профилей...'
           });
 
           // Очистка URL от OAuth параметров
@@ -459,20 +552,93 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           </div>
         </div>
 
-        {/* Connection Info */}
+        {/* Connection Info & Profiles */}
         {isConnected && connection && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="text-xs text-muted-foreground bg-background/30 rounded-lg p-3 border border-border/30"
+            className="space-y-3"
           >
-            <div className="flex items-center justify-between">
-              <span>Подключено:</span>
-              <span className="font-mono">
-                {new Date(connection.connected_at).toLocaleDateString('ru-RU')}
-              </span>
+            {/* Connection Date */}
+            <div className="text-xs text-muted-foreground bg-background/30 rounded-lg p-3 border border-border/30">
+              <div className="flex items-center justify-between">
+                <span>Подключено:</span>
+                <span className="font-mono">
+                  {new Date(connection.connected_at).toLocaleDateString('ru-RU')}
+                </span>
+              </div>
             </div>
+
+            {/* Facebook Profile */}
+            {loadingProfiles ? (
+              <div className="flex items-center justify-center py-4">
+                <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-xs text-muted-foreground">Загрузка профилей...</span>
+              </div>
+            ) : (
+              <>
+                {facebookProfile && (
+                  <div className="bg-background/30 rounded-lg p-3 border border-border/30">
+                    <div className="flex items-center gap-3">
+                      {facebookProfile.picture?.data?.url && (
+                        <img 
+                          src={facebookProfile.picture.data.url} 
+                          alt={facebookProfile.name}
+                          className="w-10 h-10 rounded-full border-2 border-blue-500/30"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <Facebook className="w-3.5 h-3.5 text-blue-500" />
+                          <p className="text-sm font-medium truncate">{facebookProfile.name}</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Facebook Personal</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Instagram Accounts */}
+                {instagramAccounts.length > 0 && (
+                  <div className="space-y-2">
+                    {instagramAccounts.map((igAccount) => (
+                      <div 
+                        key={igAccount.id}
+                        className="bg-background/30 rounded-lg p-3 border border-border/30"
+                      >
+                        <div className="flex items-center gap-3">
+                          {igAccount.profile_picture_url && (
+                            <img 
+                              src={igAccount.profile_picture_url} 
+                              alt={igAccount.username}
+                              className="w-10 h-10 rounded-full border-2 border-pink-500/30"
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Instagram className="w-3.5 h-3.5 text-pink-500" />
+                              <p className="text-sm font-medium truncate">@{igAccount.username}</p>
+                            </div>
+                            <p className="text-xs text-muted-foreground">Instagram Business</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* No profiles found */}
+                {!facebookProfile && instagramAccounts.length === 0 && !loadingProfiles && (
+                  <div className="text-xs text-muted-foreground bg-amber-500/10 rounded-lg p-3 border border-amber-500/20">
+                    <p className="flex items-center gap-2">
+                      <span>⚠️</span>
+                      <span>Профили не найдены. Возможно, токен устарел.</span>
+                    </p>
+                  </div>
+                )}
+              </>
+            )}
           </motion.div>
         )}
 
@@ -497,24 +663,48 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
               )}
             </Button>
           ) : (
-            <Button
-              onClick={handleDisconnect}
-              disabled={disconnecting}
-              variant="outline"
-              className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
-            >
-              {disconnecting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Отключение...
-                </>
-              ) : (
-                <>
-                  <Unlink className="w-4 h-4 mr-2" />
-                  Отключить
-                </>
-              )}
-            </Button>
+            <div className="flex gap-2 w-full">
+              <Button
+                onClick={() => connection?.access_token && fetchProfiles(connection.access_token)}
+                disabled={loadingProfiles}
+                variant="outline"
+                className="flex-1 border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
+                size="sm"
+              >
+                {loadingProfiles ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    Обновление...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-3.5 h-3.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Обновить
+                  </>
+                )}
+              </Button>
+              <Button
+                onClick={handleDisconnect}
+                disabled={disconnecting}
+                variant="outline"
+                className="flex-1 border-destructive/30 text-destructive hover:bg-destructive/10"
+                size="sm"
+              >
+                {disconnecting ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                    Отключение...
+                  </>
+                ) : (
+                  <>
+                    <Unlink className="w-3.5 h-3.5 mr-2" />
+                    Отключить
+                  </>
+                )}
+              </Button>
+            </div>
           )}
         </div>
       </div>
