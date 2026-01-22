@@ -102,65 +102,83 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
   const fetchProfiles = async (accessToken: string) => {
     if (!accessToken) {
-      console.log('❌ No access token provided to fetchProfiles');
+      console.log('No access token');
       return;
     }
     
-    console.log('🔑 Access token length:', accessToken.length);
+    console.log('Token length:', accessToken.length);
     setLoadingProfiles(true);
     
     try {
-      console.log('📡 Calling Edge Function: fetch-facebook-profiles');
-      console.log('📦 Payload:', { accessToken: accessToken.substring(0, 20) + '...' });
+      // ПРЯМОЙ запрос к Graph API (без Edge Function)
+      console.log('Fetching Facebook profile...');
       
-      // Используем Edge Function для обхода CORS
-      const { data, error } = await supabase.functions.invoke('fetch-facebook-profiles', {
-        body: { accessToken }
+      const fbResponse = await fetch(
+        `https://graph.facebook.com/v18.0/me?fields=id,name,picture&access_token=${accessToken}`
+      );
+
+      let facebookProfile = null;
+      if (fbResponse.ok) {
+        facebookProfile = await fbResponse.json();
+        console.log('Facebook profile:', facebookProfile.name);
+        setFacebookProfile(facebookProfile);
+      } else {
+        const error = await fbResponse.json();
+        console.error('Facebook error:', error);
+        throw new Error(error.error?.message || 'Facebook API error');
+      }
+
+      // Получаем Pages для Instagram
+      console.log('Fetching Pages...');
+      const pagesResponse = await fetch(
+        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
+      );
+
+      const instagramAccounts: any[] = [];
+
+      if (pagesResponse.ok) {
+        const pagesData = await pagesResponse.json();
+        console.log('Found pages:', pagesData.data?.length || 0);
+
+        for (const page of pagesData.data || []) {
+          if (page.instagram_business_account) {
+            const igId = page.instagram_business_account.id;
+            
+            const igResponse = await fetch(
+              `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
+            );
+
+            if (igResponse.ok) {
+              const igData = await igResponse.json();
+              console.log('Instagram account:', igData.username);
+              instagramAccounts.push(igData);
+            }
+          }
+        }
+      }
+
+      setInstagramAccounts(instagramAccounts);
+
+      const fbText = facebookProfile ? `${facebookProfile.name}` : '';
+      const igText = instagramAccounts.length ? `${instagramAccounts.length} Instagram` : '';
+      const separator = fbText && igText ? ' + ' : '';
+      
+      toast.success('Подключено!', {
+        description: fbText + separator + igText
       });
-
-      console.log('📬 Edge Function raw response:', { data, error });
-
-      if (error) {
-        console.error('❌ Edge Function error:', error);
-        throw error;
-      }
-
-      console.log('✅ Edge Function response:', data);
-
-      if (data.facebookProfile) {
-        console.log('📱 Facebook Profile found:', data.facebookProfile.name);
-        setFacebookProfile(data.facebookProfile);
-      } else {
-        console.log('⚠️ No Facebook profile in response');
-      }
-
-      if (data.instagramAccounts && data.instagramAccounts.length > 0) {
-        console.log('📸 Instagram Accounts found:', data.instagramAccounts.map((ig: any) => ig.username).join(', '));
-        setInstagramAccounts(data.instagramAccounts);
-      } else {
-        console.log('⚠️ No Instagram accounts in response');
-      }
-
-      if (!data.facebookProfile && (!data.instagramAccounts || data.instagramAccounts.length === 0)) {
-        console.log('⚠️ No profiles found in response');
-        toast.warning('Профили не найдены', {
-          description: 'Возможно, токен устарел или отсутствуют права доступа'
-        });
-      } else {
-        const fbText = data.facebookProfile ? `👤 ${data.facebookProfile.name}` : '';
-        const igText = data.instagramAccounts?.length ? `📸 ${data.instagramAccounts.length} Instagram` : '';
-        const separator = fbText && igText ? ' + ' : '';
-        
-        toast.success('Профили загружены!', {
-          description: fbText + separator + igText
-        });
-      }
     } catch (error: any) {
-      console.error('❌ Error fetching profiles:', error);
-      console.error('Error details:', JSON.stringify(error, null, 2));
-      toast.error('Не удалось загрузить профили', {
-        description: error.message || 'Проверьте токен и права доступа'
+      console.error('Error:', error);
+      toast.error('Ошибка подключения', {
+        description: error.message || 'Попробуйте переподключить'
       });
+      
+      // Деактивируем токен
+      if (connection) {
+        await supabase
+          .from('ad_accounts')
+          .update({ status: 'inactive' })
+          .eq('id', connection.id);
+      }
     } finally {
       setLoadingProfiles(false);
     }
