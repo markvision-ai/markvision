@@ -63,7 +63,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
   const statCards = [
     { icon: Users, label: 'Всего лидов', value: stats.totalLeads.toString(), gradient: 'from-blue-500 to-cyan-500', glow: 'shadow-blue-500/20' },
     { icon: Target, label: 'Оплачено', value: stats.paidLeads.toString(), gradient: 'from-emerald-500 to-green-500', glow: 'shadow-emerald-500/20' },
-    { icon: DollarSign, label: 'Выручка', value: `${new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(stats.totalRevenue)} ₸`, gradient: 'from-amber-500 to-orange-500', glow: 'shadow-amber-500/20' },
+    { icon: DollarSign, label: 'Выручка', value: `${new Intl.NumberFormat('ru-RU').format(stats.totalRevenue)} ₸`, gradient: 'from-amber-500 to-orange-500', glow: 'shadow-amber-500/20' },
     { icon: TrendingUp, label: 'Конверсия', value: `${stats.conversionRate.toFixed(1)}%`, gradient: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/20' },
   ];
 
@@ -83,7 +83,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className={cn('crm-card-glass crm-stat-card overflow-hidden hover:scale-[1.02] transition-all duration-300', stat.glow, 'shadow-lg')}>
+            <Card className={cn('overflow-hidden hover:shadow-md transition-all duration-300', stat.glow, 'shadow-sm')}>
               <CardContent className="p-4 md:p-5">
                 <div className="flex items-center gap-3">
                   <div className={cn('w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-lg', stat.gradient)}>
@@ -106,7 +106,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
-        <Card className="crm-card-glass overflow-hidden">
+        <Card className="overflow-hidden shadow-sm">
           <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
@@ -147,7 +147,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                         )}
                         {step.amount > 0 && (
                           <span className="font-bold text-success bg-success/10 px-3 py-1 rounded-full text-sm">
-                            {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(step.amount)} ₸
+                            {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
                           </span>
                         )}
                       </div>

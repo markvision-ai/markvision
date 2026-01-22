@@ -75,13 +75,7 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1).replace('.0', '') + ' млн ₸';
     }
-    if (value >= 100000) {
-      return (value / 1000).toFixed(0) + ' тыс ₸';
-    }
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'decimal',
-      maximumFractionDigits: 0,
-    }).format(value) + ' ₸';
+    return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
   };
 
   if (loading) {
@@ -100,10 +94,10 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
   if (!data) return null;
 
   return (
-    <div className="premium-card p-6 overflow-hidden relative group">
+    <div className="bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
       {/* Header */}
       <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
           <TrendingUp className="w-5 h-5 text-primary" />
         </div>
         <h3 className="text-sm font-semibold text-foreground">Средний LTV клиента</h3>
@@ -121,7 +115,7 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="p-3 rounded-xl bg-secondary border border-border">
           <div className="flex items-center gap-2 mb-1.5">
             <DollarSign className="w-4 h-4 text-primary" />
             <span className="text-xs text-muted-foreground">Общий LTV</span>
@@ -129,7 +123,7 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
           <p className="text-lg font-bold text-foreground">{formatCurrency(data.totalLtv)}</p>
         </div>
         
-        <div className="p-3 rounded-xl bg-muted/30 border border-border/30">
+        <div className="p-3 rounded-xl bg-secondary border border-border">
           <div className="flex items-center gap-2 mb-1.5">
             <Users className="w-4 h-4 text-primary" />
             <span className="text-xs text-muted-foreground">Оплативших</span>

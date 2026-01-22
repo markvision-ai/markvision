@@ -22,15 +22,14 @@ interface RevenueChartProps {
 }
 
 const formatCurrency = (value: number): string => {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
-  if (value >= 1000) return `${(value / 1000).toFixed(0)}K`;
-  return `${value}`;
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн`;
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card/95 backdrop-blur-xl rounded-2xl p-4 shadow-glow-lg border-0">
+      <div className="bg-card rounded-xl p-4 shadow-lg border border-border">
         <p className="font-semibold text-sm mb-2 text-foreground">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-sm">
@@ -91,7 +90,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-card rounded-[20px] p-6">
+      <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
         <h3 className="font-semibold mb-4 text-foreground">Динамика показателей</h3>
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
           Нет данных для отображения
@@ -101,12 +100,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="bg-card rounded-[20px] p-4 sm:p-6 group hover:shadow-card-hover transition-all duration-400">
+    <div className="bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
       {/* Header with totals */}
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex-shrink-0">
           <h3 className="font-semibold text-base sm:text-lg text-foreground">Динамика показателей</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground/60">Выручка vs Расходы</p>
+          <p className="text-xs sm:text-sm text-muted-foreground">Выручка vs Расходы</p>
         </div>
         <div className="flex gap-4 sm:gap-6 flex-wrap">
           <div 

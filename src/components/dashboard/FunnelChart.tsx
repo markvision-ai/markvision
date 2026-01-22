@@ -16,7 +16,7 @@ export const FunnelChart = ({ steps }: FunnelChartProps) => {
   const maxValue = Math.max(...steps.map(s => s.value));
 
   return (
-    <div className="premium-card p-6">
+    <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
       <h3 className="font-semibold text-foreground mb-6">Воронка продаж</h3>
       
       <div className="space-y-4">

@@ -10,14 +10,13 @@ interface StatItem {
 const formatValue = (value: number, format: string): string => {
   switch (format) {
     case 'currency':
-      // Округляем без копеек
       const rounded = Math.round(value);
-      if (rounded >= 1000000) return (rounded / 1000000).toFixed(1) + 'M ₸';
-      if (rounded >= 1000) return Math.round(rounded / 1000) + 'K ₸';
+      if (rounded >= 1000000) return (rounded / 1000000).toFixed(1) + ' млн ₸';
       return new Intl.NumberFormat('ru-RU').format(rounded) + ' ₸';
     case 'percent':
       return Math.round(value) + '%';
     default:
+      if (value >= 1000000) return (value / 1000000).toFixed(1) + ' млн';
       return new Intl.NumberFormat('ru-RU').format(Math.round(value));
   }
 };
@@ -28,11 +27,11 @@ interface QuickStatsProps {
 
 export const QuickStats = ({ stats }: QuickStatsProps) => {
   return (
-    <div className="premium-card p-5 md:p-6">
+    <div className="bg-card border border-border rounded-xl p-5 md:p-6 shadow-sm">
       <div className="flex items-center justify-between mb-5">
         <div>
           <h3 className="font-semibold text-sm sm:text-base text-foreground">Сравнение с прошлой неделей</h3>
-          <p className="text-xs text-muted-foreground/60 mt-0.5">Динамика ключевых показателей</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Динамика ключевых показателей</p>
         </div>
       </div>
       
@@ -47,7 +46,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
           return (
             <div 
               key={stat.label} 
-              className="relative bg-muted/30 rounded-xl p-4 overflow-hidden border border-border/30 transition-all duration-300 hover:border-primary/20 group"
+              className="relative bg-secondary rounded-xl p-4 overflow-hidden border border-border transition-all duration-300 hover:border-primary/20 group"
             >
               {/* Accent bar */}
               <div 

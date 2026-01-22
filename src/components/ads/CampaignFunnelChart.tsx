@@ -26,9 +26,8 @@ interface FunnelStage {
 type PeriodFilter = 'all' | 'today' | 'yesterday' | '7days';
 
 const formatCurrency = (value: number) => {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M ₸`;
-  if (value >= 1000) return `${(value / 1000).toFixed(0)}K ₸`;
-  return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн ₸`;
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
 };
 
 function getPlatformColor(platform: string) {
