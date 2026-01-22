@@ -1,11 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Facebook, CheckCircle, Loader2, Unlink, Instagram, Zap, ExternalLink } from 'lucide-react';
+import { Facebook, CheckCircle, Loader2, Unlink, Instagram, Zap } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -50,9 +48,6 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   const [facebookProfile, setFacebookProfile] = useState<FacebookProfile | null>(null);
   const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
   const [loadingProfiles, setLoadingProfiles] = useState(false);
-  const [showTokenDialog, setShowTokenDialog] = useState(false);
-  const [manualToken, setManualToken] = useState('');
-  const [savingToken, setSavingToken] = useState(false);
 
   const fetchConnection = useCallback(async () => {
     if (!projectId) return;
@@ -209,12 +204,10 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         const hasToken = connection?.access_token;
         
         if (!hasToken) {
-          console.log('ℹ️ Facebook аккаунт привязан, но токен нужно добавить вручную');
-          // Открываем модалку для ввода токена
-          setShowTokenDialog(true);
-          toast.success('Facebook аккаунт привязан!', {
-            description: 'Теперь добавьте токен из Graph API Explorer',
-            duration: 3000
+          console.log('ℹ️ Facebook аккаунт привязан через Supabase OAuth, но токен не получен');
+          toast.info('Facebook привязан, но токен не получен', {
+            description: 'Используйте кнопку "Привязать аккаунт" для прямой авторизации',
+            duration: 5000
           });
         } else {
           // Токен уже есть в базе - просто перезагружаем данные
@@ -250,119 +243,67 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         return;
       }
 
-      // Иначе - запускаем OAuth flow
-      console.log('🚀 Starting OAuth flow...');
+      // ПРЯМАЯ авторизация через Facebook JS SDK
+      console.log('🚀 Starting Facebook Login...');
       
-      // Проверяем текущую сессию
-      const { data: { session: currentSession } } = await supabase.auth.getSession();
-      
-      console.log('🔍 Current session:', currentSession?.user?.email);
-      
-      // Определяем правильный redirect URL
-      const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
-      const redirectUrl = isProduction 
-        ? 'https://markvision-alpha.vercel.app/integrations'
-        : `${window.location.origin}/integrations`;
-      
-      console.log('🔗 OAuth redirect URL:', redirectUrl);
-      
-      // Если пользователь уже авторизован - используем linkIdentity
-      if (currentSession?.user) {
-        console.log('👤 User already logged in, using linkIdentity');
-        
-        const { data, error } = await supabase.auth.linkIdentity({
-          provider: 'facebook',
-          options: {
-            redirectTo: redirectUrl,
-            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
-          },
+      // @ts-ignore - Facebook SDK загружен через index.html
+      if (typeof FB === 'undefined') {
+        toast.error('Facebook SDK не загружен', {
+          description: 'Перезагрузите страницу'
         });
-
-        if (error) {
-          if (error.message?.includes('Identity is already linked')) {
-            console.log('✅ Facebook identity already linked');
-            toast.success('Facebook уже привязан!', { 
-              description: 'Проверьте базу данных или обновите токен',
-              duration: 3000 
-            });
-            fetchConnection(); // Перезагружаем данные
-          } else {
-            console.error('❌ linkIdentity error:', error);
-            toast.error('Ошибка связывания: ' + error.message);
-          }
-        } else {
-          console.log('✅ linkIdentity initiated');
-          toast.success('Переход на Facebook...', { duration: 2000 });
-        }
-      } else {
-        // Если пользователь не авторизован - используем signInWithOAuth
-        console.log('🆕 No user session, using signInWithOAuth');
-        
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'facebook',
-          options: {
-            redirectTo: redirectUrl,
-            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
-          },
-        });
-
-        if (error) {
-          console.error('❌ OAuth error:', error);
-          toast.error('Ошибка подключения: ' + error.message);
-        } else {
-          toast.success('Переход на Facebook...', { duration: 2000 });
-        }
+        return;
       }
+
+      // @ts-ignore
+      FB.login(function(response: any) {
+        console.log('📱 Facebook Login response:', response);
+        
+        if (response.authResponse) {
+          const accessToken = response.authResponse.accessToken;
+          console.log('✅ Got access token from Facebook!', accessToken.substring(0, 20) + '...');
+          
+          // Сохраняем токен в базу
+          const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+          
+          supabase
+            .from('ad_accounts')
+            .upsert({
+              project_id: targetProjectId,
+              platform: 'facebook',
+              external_id: 'facebook_sdk_token',
+              access_token: accessToken,
+              status: 'active'
+            }, {
+              onConflict: 'project_id,platform,external_id'
+            })
+            .then(({ error }) => {
+              if (error) {
+                console.error('❌ Error saving token:', error);
+                toast.error('Ошибка сохранения токена');
+              } else {
+                console.log('✅ Token saved to database!');
+                toast.success('Facebook подключен!', {
+                  description: 'Загружаем профили...'
+                });
+                
+                // Перезагружаем данные
+                fetchConnection();
+              }
+              
+              setConnecting(false);
+            });
+        } else {
+          console.log('❌ User cancelled login or did not fully authorize.');
+          toast.error('Авторизация отменена');
+          setConnecting(false);
+        }
+      }, {
+        scope: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement'
+      });
     } catch (error: any) {
       console.error('❌ Connection error:', error);
       toast.error('Ошибка подключения: ' + (error.message || 'Неизвестная ошибка'));
-    } finally {
       setConnecting(false);
-    }
-  };
-
-  const handleSaveToken = async () => {
-    if (!manualToken.trim()) {
-      toast.error('Введите токен');
-      return;
-    }
-
-    setSavingToken(true);
-
-    try {
-      const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
-      // Сохраняем токен в базу
-      const { error } = await supabase
-        .from('ad_accounts')
-        .upsert({
-          project_id: targetProjectId,
-          platform: 'facebook',
-          external_id: 'facebook_manual_token',
-          access_token: manualToken.trim(),
-          status: 'active'
-        }, {
-          onConflict: 'project_id,platform,external_id'
-        });
-
-      if (error) throw error;
-
-      toast.success('Токен сохранён!', {
-        description: 'Загружаем профили...'
-      });
-
-      setShowTokenDialog(false);
-      setManualToken('');
-      
-      // Перезагружаем данные
-      await fetchConnection();
-    } catch (error: any) {
-      console.error('Error saving token:', error);
-      toast.error('Ошибка сохранения токена', {
-        description: error.message
-      });
-    } finally {
-      setSavingToken(false);
     }
   };
 
@@ -710,83 +651,6 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         </div>
       </div>
 
-      {/* Token Dialog */}
-      <Dialog open={showTokenDialog} onOpenChange={setShowTokenDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Facebook className="w-5 h-5 text-[#1877F2]" />
-              Добавьте токен Facebook Graph API
-            </DialogTitle>
-            <DialogDescription>
-              OAuth авторизация прошла успешно! Теперь получите токен доступа через Graph API Explorer.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Как получить токен:</h4>
-              <ol className="list-decimal list-inside space-y-1 text-sm text-muted-foreground">
-                <li>Откройте <a 
-                  href="https://developers.facebook.com/tools/explorer/" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-primary hover:underline inline-flex items-center gap-1"
-                >
-                  Graph API Explorer <ExternalLink className="w-3 h-3" />
-                </a></li>
-                <li>Выберите свой App ID</li>
-                <li>Нажмите "Generate Access Token"</li>
-                <li>Добавьте права: ads_read, instagram_basic, pages_show_list</li>
-                <li>Скопируйте токен и вставьте ниже</li>
-              </ol>
-            </div>
-
-            <div className="space-y-2">
-              <label htmlFor="token-input" className="text-sm font-medium">
-                Access Token
-              </label>
-              <Input
-                id="token-input"
-                type="text"
-                placeholder="EAAa3xKWvHHYBQ..."
-                value={manualToken}
-                onChange={(e) => setManualToken(e.target.value)}
-                className="font-mono text-xs"
-              />
-            </div>
-
-            <div className="flex justify-end gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setShowTokenDialog(false);
-                  setManualToken('');
-                }}
-              >
-                Отмена
-              </Button>
-              <Button
-                onClick={handleSaveToken}
-                disabled={!manualToken.trim() || savingToken}
-                className="bg-[#1877F2] hover:bg-[#1877F2]/90"
-              >
-                {savingToken ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Сохранение...
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle className="w-4 h-4 mr-2" />
-                    Сохранить токен
-                  </>
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </motion.div>
   );
 };

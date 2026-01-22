@@ -50,6 +50,22 @@
 
   <body>
     <div id="root"></div>
+    
+    <!-- Facebook SDK -->
+    <script>
+      window.fbAsyncInit = function() {
+        FB.init({
+          appId      : '1890905081453686',
+          cookie     : true,
+          xfbml      : true,
+          version    : 'v18.0'
+        });
+      };
+    </script>
+    <script async defer crossorigin="anonymous" 
+      src="https://connect.facebook.net/en_US/sdk.js">
+    </script>
+    
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
