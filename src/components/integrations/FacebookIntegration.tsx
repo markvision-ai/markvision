@@ -138,7 +138,6 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
               project_id: targetProjectId,
               platform: 'facebook',
               external_id: `facebook_oauth_${userId}`,
-              name: 'Facebook & Instagram',
               access_token: facebookToken, // Используем найденный токен
               status: 'active'
             }, { 
