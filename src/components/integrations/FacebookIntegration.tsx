@@ -240,8 +240,14 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         });
 
         if (error) {
-          console.error('❌ linkIdentity error:', error);
-          toast.error('Ошибка связывания аккаунта: ' + error.message);
+          // Если identity уже привязан - это нормально, просто обновляем токен
+          if (error.message?.includes('Identity is already linked')) {
+            console.log('✅ Facebook identity already linked, will update token on callback');
+            toast.success('Переход на Facebook для обновления токена...', { duration: 2000 });
+          } else {
+            console.error('❌ linkIdentity error:', error);
+            toast.error('Ошибка связывания аккаунта: ' + error.message);
+          }
         } else {
           console.log('✅ linkIdentity success:', data);
         }
