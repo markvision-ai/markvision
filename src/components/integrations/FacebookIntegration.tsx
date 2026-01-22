@@ -53,6 +53,8 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     if (!projectId) return;
     
     try {
+      console.log('📡 Fetching Facebook connection from database...');
+      
       const { data, error } = await supabase
         .from('ad_accounts')
         .select('id, access_token, created_at, platform')
@@ -65,6 +67,12 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       }
 
       if (data) {
+        console.log('✅ Facebook connection found:', {
+          id: data.id,
+          hasToken: !!data.access_token,
+          tokenLength: data.access_token?.length || 0
+        });
+        
         setConnection({
           id: data.id,
           access_token: data.access_token || '',
@@ -74,9 +82,13 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         
         // Загружаем профили сразу после получения токена
         if (data.access_token) {
-          fetchProfiles(data.access_token);
+          console.log('🚀 Starting profile fetch with token...');
+          await fetchProfiles(data.access_token);
+        } else {
+          console.log('⚠️ No access token found in database');
         }
       } else {
+        console.log('❌ No Facebook connection found');
         setConnection(null);
         setFacebookProfile(null);
         setInstagramAccounts([]);
@@ -89,46 +101,63 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   }, [projectId]);
 
   const fetchProfiles = async (accessToken: string) => {
-    if (!accessToken) return;
+    if (!accessToken) {
+      console.log('❌ No access token provided to fetchProfiles');
+      return;
+    }
     
+    console.log('🔑 Access token length:', accessToken.length);
     setLoadingProfiles(true);
     
     try {
-      console.log('📡 Fetching profiles via Edge Function...');
+      console.log('📡 Calling Edge Function: fetch-facebook-profiles');
+      console.log('📦 Payload:', { accessToken: accessToken.substring(0, 20) + '...' });
       
       // Используем Edge Function для обхода CORS
       const { data, error } = await supabase.functions.invoke('fetch-facebook-profiles', {
         body: { accessToken }
       });
 
+      console.log('📬 Edge Function raw response:', { data, error });
+
       if (error) {
-        console.error('Edge Function error:', error);
+        console.error('❌ Edge Function error:', error);
         throw error;
       }
 
       console.log('✅ Edge Function response:', data);
 
       if (data.facebookProfile) {
-        console.log('📱 Facebook Profile:', data.facebookProfile.name);
+        console.log('📱 Facebook Profile found:', data.facebookProfile.name);
         setFacebookProfile(data.facebookProfile);
+      } else {
+        console.log('⚠️ No Facebook profile in response');
       }
 
       if (data.instagramAccounts && data.instagramAccounts.length > 0) {
-        console.log('📸 Instagram Accounts:', data.instagramAccounts.map((ig: any) => ig.username).join(', '));
+        console.log('📸 Instagram Accounts found:', data.instagramAccounts.map((ig: any) => ig.username).join(', '));
         setInstagramAccounts(data.instagramAccounts);
+      } else {
+        console.log('⚠️ No Instagram accounts in response');
       }
 
       if (!data.facebookProfile && (!data.instagramAccounts || data.instagramAccounts.length === 0)) {
+        console.log('⚠️ No profiles found in response');
         toast.warning('Профили не найдены', {
           description: 'Возможно, токен устарел или отсутствуют права доступа'
         });
       } else {
+        const fbText = data.facebookProfile ? `👤 ${data.facebookProfile.name}` : '';
+        const igText = data.instagramAccounts?.length ? `📸 ${data.instagramAccounts.length} Instagram` : '';
+        const separator = fbText && igText ? ' + ' : '';
+        
         toast.success('Профили загружены!', {
-          description: `${data.facebookProfile ? 'Facebook' : ''}${data.facebookProfile && data.instagramAccounts?.length ? ' + ' : ''}${data.instagramAccounts?.length || 0} Instagram`
+          description: fbText + separator + igText
         });
       }
     } catch (error: any) {
-      console.error('Error fetching profiles:', error);
+      console.error('❌ Error fetching profiles:', error);
+      console.error('Error details:', JSON.stringify(error, null, 2));
       toast.error('Не удалось загрузить профили', {
         description: error.message || 'Проверьте токен и права доступа'
       });
