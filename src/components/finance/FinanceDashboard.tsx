@@ -44,8 +44,9 @@ import {
   Zap,
   Loader2
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   BarChart, 
   Bar, 
@@ -116,7 +117,10 @@ const getCategoryLabel = (category: string, type: string): string => {
   return categories.find(c => c.value === category)?.label || category;
 };
 
+const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+
 export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -128,6 +132,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     amount: 0,
     description: '',
   });
+
+  // Check if user is super admin (Yuri)
+  const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
 
   // QuantumAds sync hook
   const { syncing, syncAdSpend } = useAdSpendSync(projectId);
@@ -442,14 +449,18 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       <Tabs defaultValue="dashboard">
         <TabsList className="flex-wrap">
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
-          <TabsTrigger value="agency">Аналитика Агентства</TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="agency">💰 Мои Проекты (Агентство)</TabsTrigger>
+          )}
           <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="agency" className="mt-4">
-          <AgencyAnalytics />
-        </TabsContent>
+        {isSuperAdmin && (
+          <TabsContent value="agency" className="mt-4">
+            <AgencyAnalytics />
+          </TabsContent>
+        )}
 
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           {/* Bar Chart */}

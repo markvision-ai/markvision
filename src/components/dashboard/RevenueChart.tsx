@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useCallback } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -21,15 +21,16 @@ interface RevenueChartProps {
   daysInMonth: Date[];
 }
 
+// ИСПРАВЛЕНО: Только "млн" для миллионов
 const formatCurrency = (value: number): string => {
-  if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн`;
+  if (value >= 1000000) return `${(value / 1000000).toFixed(1).replace('.0', '')} млн`;
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card rounded-xl p-4 shadow-lg border border-border">
+      <div className="bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border">
         <p className="font-semibold text-sm mb-2 text-foreground">{label}</p>
         {payload.map((entry: any, index: number) => (
           <div key={index} className="flex items-center gap-2 text-sm">
@@ -88,9 +89,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
     return { revenue, spend, profit, profitPercent };
   }, [chartData]);
 
+  const handleMouseEnter = useCallback((metric: string) => setHoveredMetric(metric), []);
+  const handleMouseLeave = useCallback(() => setHoveredMetric(null), []);
+
   if (chartData.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-6 shadow-sm">
+      <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-6 shadow-sm">
         <h3 className="font-semibold mb-4 text-foreground">Динамика показателей</h3>
         <div className="h-[300px] flex items-center justify-center text-muted-foreground">
           Нет данных для отображения
@@ -100,9 +104,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 sm:p-6 shadow-sm hover:shadow-md transition-all">
+    <div className="group bg-card/80 backdrop-blur-xl border border-border/50 hover:border-primary/30 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-500">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+
       {/* Header with totals */}
-      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div className="flex-shrink-0">
           <h3 className="font-semibold text-base sm:text-lg text-foreground">Динамика показателей</h3>
           <p className="text-xs sm:text-sm text-muted-foreground">Выручка vs Расходы</p>
@@ -111,8 +118,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
           <div 
             className="cursor-pointer transition-opacity min-w-0"
             style={{ opacity: hoveredMetric === 'spend' ? 0.5 : 1 }}
-            onMouseEnter={() => setHoveredMetric('revenue')}
-            onMouseLeave={() => setHoveredMetric(null)}
+            onMouseEnter={() => handleMouseEnter('revenue')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary flex-shrink-0" />
@@ -125,8 +132,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
           <div 
             className="cursor-pointer transition-opacity min-w-0"
             style={{ opacity: hoveredMetric === 'revenue' ? 0.5 : 1 }}
-            onMouseEnter={() => setHoveredMetric('spend')}
-            onMouseLeave={() => setHoveredMetric(null)}
+            onMouseEnter={() => handleMouseEnter('spend')}
+            onMouseLeave={handleMouseLeave}
           >
             <div className="flex items-center gap-1.5">
               <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary/40 flex-shrink-0" />
@@ -155,19 +162,19 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
         <span className="opacity-70">({totals.profitPercent.toFixed(1)}%)</span>
       </div>
 
-      {/* Chart - Blue gradient theme */}
+      {/* Chart */}
       <div className="h-[280px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
-              <linearGradient id="revenueGradientBlue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.4} />
-                <stop offset="50%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0.15} />
-                <stop offset="100%" stopColor="hsl(217, 91%, 60%)" stopOpacity={0} />
+              <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.6} />
+                <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="spendGradientBlue" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="hsl(217, 50%, 40%)" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="hsl(217, 50%, 40%)" stopOpacity={0} />
+              <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="hsl(var(--secondary))" stopOpacity={0.4} />
+                <stop offset="100%" stopColor="hsl(var(--secondary))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid 
@@ -192,17 +199,17 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             <Area 
               type="monotone" 
               dataKey="revenue" 
-              stroke="hsl(217, 91%, 60%)" 
+              stroke="hsl(var(--primary))" 
               strokeWidth={2.5}
-              fill="url(#revenueGradientBlue)"
+              fill="url(#revenueGradient)"
               style={{ opacity: hoveredMetric === 'spend' ? 0.3 : 1 }}
             />
             <Area 
               type="monotone" 
               dataKey="spend" 
-              stroke="hsl(217, 50%, 45%)" 
+              stroke="hsl(var(--secondary))" 
               strokeWidth={2}
-              fill="url(#spendGradientBlue)"
+              fill="url(#spendGradient)"
               style={{ opacity: hoveredMetric === 'revenue' ? 0.3 : 1 }}
             />
           </AreaChart>

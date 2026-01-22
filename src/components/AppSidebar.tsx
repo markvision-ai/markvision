@@ -319,7 +319,7 @@ export const AppSidebar = ({
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
                         <span className="text-sm text-sidebar-foreground truncate">
-                          {currentProject?.name || "Выберите проект"}
+                          {currentProject?.name || projects[0]?.name || "Проект"}
                         </span>
                       </div>
                       <IconChevronDown className="w-4 h-4 text-sidebar-foreground/60 flex-shrink-0" />

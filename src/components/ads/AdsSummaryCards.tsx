@@ -58,12 +58,12 @@ export const AdsSummaryCards = ({
       {cards.map((card) => (
         <div
           key={card.title}
-          className="relative overflow-hidden rounded-xl bg-card border border-border p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
+          className="relative overflow-hidden rounded-xl bg-background dark:bg-card border border-border p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
               <p className="text-[10px] sm:text-xs text-muted-foreground mb-1">{card.title}</p>
-              <p className={`text-base sm:text-xl font-bold ${card.color} truncate`}>{card.value}</p>
+              <p className={`text-base sm:text-xl font-bold ${card.color} break-words`} title={card.value}>{card.value}</p>
             </div>
             <div className={`p-1.5 sm:p-2 rounded-lg ${card.bgColor} flex-shrink-0`}>
               <card.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${card.color}`} />

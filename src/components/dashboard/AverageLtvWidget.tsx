@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DollarSign, TrendingUp, Users, Crown } from 'lucide-react';
+import { Banknote } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { cn } from '@/lib/utils';
 
 interface AverageLtvWidgetProps {
   projectId: string;
@@ -72,6 +70,7 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
   }, [projectId]);
 
   const formatCurrency = (value: number) => {
+    // Только "млн" для миллионов, остальное полностью
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1).replace('.0', '') + ' млн ₸';
     }
@@ -80,12 +79,13 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
 
   if (loading) {
     return (
-      <div className="premium-card p-6">
-        <Skeleton className="h-5 w-40 mb-4" />
-        <Skeleton className="h-12 w-32 mb-4" />
-        <div className="grid grid-cols-2 gap-4">
-          <Skeleton className="h-16 w-full rounded-xl" />
-          <Skeleton className="h-16 w-full rounded-xl" />
+      <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-5 shadow-sm">
+        <Skeleton className="h-4 w-32 mb-3" />
+        <Skeleton className="h-8 w-24 mb-3" />
+        <div className="grid grid-cols-3 gap-3">
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
         </div>
       </div>
     );
@@ -94,87 +94,42 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
   if (!data) return null;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
-          <TrendingUp className="w-5 h-5 text-primary" />
-        </div>
-        <h3 className="text-sm font-semibold text-foreground">Средний LTV клиента</h3>
-      </div>
-      
-      {/* Main LTV Value */}
-      <div className="flex items-baseline gap-3 mb-5">
-        <span className="text-3xl md:text-4xl font-bold text-primary">
-          {formatCurrency(data.averageLtv)}
-        </span>
-        <Badge className="bg-primary/10 text-primary border-0 text-xs">
-          AVG
-        </Badge>
-      </div>
+    <div className="group bg-card/80 backdrop-blur-xl border border-border/50 hover:border-primary/30 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-500">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-5">
-        <div className="p-3 rounded-xl bg-secondary border border-border">
-          <div className="flex items-center gap-2 mb-1.5">
-            <DollarSign className="w-4 h-4 text-primary" />
-            <span className="text-xs text-muted-foreground">Общий LTV</span>
-          </div>
-          <p className="text-lg font-bold text-foreground">{formatCurrency(data.totalLtv)}</p>
+      {/* Компактный горизонтальный layout */}
+      <div className="relative z-10 flex items-center gap-4">
+        {/* Icon */}
+        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 backdrop-blur-sm flex items-center justify-center">
+          <Banknote className="w-6 h-6 text-primary" />
         </div>
-        
-        <div className="p-3 rounded-xl bg-secondary border border-border">
-          <div className="flex items-center gap-2 mb-1.5">
-            <Users className="w-4 h-4 text-primary" />
-            <span className="text-xs text-muted-foreground">Оплативших</span>
+
+        {/* Main Value */}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-xs font-medium text-muted-foreground mb-1">Средний LTV</h3>
+          <span className="text-xl md:text-2xl font-bold text-foreground whitespace-nowrap">
+            {formatCurrency(data.averageLtv)}
+          </span>
+        </div>
+
+        {/* Compact Stats */}
+        <div className="flex gap-4 flex-shrink-0">
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Общий</p>
+            <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+              {formatCurrency(data.totalLtv)}
+            </p>
           </div>
-          <p className="text-lg font-bold text-foreground">{data.paidCustomersCount}</p>
+          
+          <div className="text-right">
+            <p className="text-[10px] text-muted-foreground mb-0.5">Клиентов</p>
+            <p className="text-sm font-semibold text-foreground">
+              {data.paidCustomersCount}
+            </p>
+          </div>
         </div>
       </div>
-
-      {/* Top Customers */}
-      {data.topCustomers.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-            <Crown className="w-3.5 h-3.5 text-amber-500" />
-            Топ клиенты по LTV
-          </p>
-          <div className="space-y-1.5">
-            {data.topCustomers.map((customer, index) => (
-              <div 
-                key={index} 
-                className={cn(
-                  "flex items-center justify-between p-2.5 rounded-lg transition-colors",
-                  index === 0 
-                    ? "bg-amber-500/10 border border-amber-500/20" 
-                    : "bg-muted/20 border border-border/20"
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <span className={cn(
-                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold",
-                    index === 0 ? "bg-amber-500 text-white" : "bg-muted text-muted-foreground"
-                  )}>
-                    {index + 1}
-                  </span>
-                  <span className="text-sm font-medium text-foreground truncate max-w-[140px]">
-                    {customer.name}
-                  </span>
-                </div>
-                <Badge 
-                  variant="secondary" 
-                  className={cn(
-                    "text-xs font-bold",
-                    index === 0 && "bg-amber-500/20 text-amber-500 border-0"
-                  )}
-                >
-                  {formatCurrency(customer.ltv)}
-                </Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

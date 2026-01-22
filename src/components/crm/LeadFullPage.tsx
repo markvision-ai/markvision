@@ -21,7 +21,9 @@ import {
   History,
   MessageCircle,
   Activity,
-  RefreshCw
+  RefreshCw,
+  Gift,
+  Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -39,6 +41,8 @@ import {
 import { LeadChat } from './LeadChat';
 import { LeadTasks } from './LeadTasks';
 import { LeadStatusHistory } from './LeadStatusHistory';
+import { ViralLoopDialog } from './ViralLoopDialog';
+import { ReferralsList } from './ReferralsList';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -92,6 +96,8 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [viralLoopOpen, setViralLoopOpen] = useState(false);
+  const [refreshReferrals, setRefreshReferrals] = useState(0);
 
   // Check if diagnosis has already been done (status is appointment or paid)
   const isDiagnosisDone = formData.status === 'appointment' || formData.status === 'paid';
@@ -386,6 +392,31 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+
+                      {/* Viral Loop Button */}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              onClick={() => setViralLoopOpen(true)}
+                              disabled={isDiagnosisDisabled}
+                              className={cn(
+                                'w-full text-white transition-all shadow-lg',
+                                'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500',
+                                'hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600',
+                                'hover:shadow-blue-500/50 hover:scale-[1.02]',
+                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                              )}
+                            >
+                              <Gift className="w-4 h-4 mr-2" />
+                              Подарить 3 сертификата друзьям 🎁
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent side="bottom" className="max-w-xs">
+                            <p>Запустить виральную петлю: отправить сертификаты на 10 000 ₸ друзьям пациента</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                     </div>
                   </div>
                 </motion.section>
@@ -495,6 +526,23 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   <LeadTasks leadId={lead.id} />
                 </motion.section>
 
+                {/* Referrals Section */}
+                <motion.section
+                  key={refreshReferrals}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.55 }}
+                  className="crm-card-glass rounded-xl p-5"
+                >
+                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                      <Users className="w-4 h-4 text-white" />
+                    </div>
+                    Приглашенные друзья
+                  </h2>
+                  <ReferralsList leadId={lead.id} projectId={projectId || lead.project_id} />
+                </motion.section>
+
                 {/* Status History Section */}
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
@@ -537,6 +585,15 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
             <LeadChat leadId={lead.id} />
           </motion.div>
         </div>
+
+        {/* Viral Loop Dialog */}
+        <ViralLoopDialog
+          open={viralLoopOpen}
+          onOpenChange={setViralLoopOpen}
+          lead={lead}
+          projectId={projectId || lead.project_id}
+          onSuccess={() => setRefreshReferrals(prev => prev + 1)}
+        />
       </motion.div>
     </AnimatePresence>
   );

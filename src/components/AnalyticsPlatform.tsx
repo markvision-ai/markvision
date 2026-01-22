@@ -38,6 +38,7 @@ import { MobileHeader } from './mobile/MobileHeader';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
+import { DotPatternBackground } from './ui/dot-pattern-background';
 import { cn } from '@/lib/utils';
 
 // Lazy load heavy modules for performance
@@ -614,8 +615,9 @@ export const AnalyticsPlatform = () => {
   );
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background text-foreground flex w-full relative">
+    <DotPatternBackground>
+      <SidebarProvider>
+        <div className="min-h-screen flex w-full relative">
 
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
@@ -690,8 +692,9 @@ export const AnalyticsPlatform = () => {
           userProfile={profile}
           currentProjectName={currentProject?.name}
         />
-      </div>
-    </SidebarProvider>
+        </div>
+      </SidebarProvider>
+    </DotPatternBackground>
   );
 };
 

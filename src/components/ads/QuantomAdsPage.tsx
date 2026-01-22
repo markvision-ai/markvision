@@ -9,7 +9,12 @@ import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { RefreshCw, Plus, Loader2, Zap } from 'lucide-react';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { RefreshCw, Plus, Loader2, Zap, CalendarIcon } from 'lucide-react';
+import { format, subDays } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { DateRange } from 'react-day-picker';
 
 interface QuantomAdsPageProps {
   projectId: string | null;
@@ -20,7 +25,10 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   const { leads } = useLeads(projectId);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [periodFilter, setPeriodFilter] = useState<'today' | 'yesterday' | '7days'>('today');
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date(),
+  });
   const [platformTab, setPlatformTab] = useState<'all' | 'facebook' | 'google' | 'tiktok' | 'creative'>('all');
 
   // Filter campaigns by platform
@@ -87,17 +95,25 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     );
   }
 
+  const handleQuickDate = (days: number) => {
+    const today = new Date();
+    setDateRange({
+      from: days === 0 ? today : subDays(today, days),
+      to: today,
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-background text-foreground">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 rounded-lg">
+          <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
             <Zap className="w-6 h-6 text-primary" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold">Quantum Ads</h1>
+              <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
               <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs animate-pulse">
                 <Zap className="w-3 h-3 mr-1" />
                 AI Active
@@ -109,29 +125,91 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Tabs value={periodFilter} onValueChange={(v) => setPeriodFilter(v as any)}>
-            <TabsList>
-              <TabsTrigger value="today">Сегодня</TabsTrigger>
-              <TabsTrigger value="yesterday">Вчера</TabsTrigger>
-              <TabsTrigger value="7days">7 дней</TabsTrigger>
-            </TabsList>
-          </Tabs>
+        {/* Control Panel */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 dark:bg-card/50 rounded-lg border border-border">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickDate(0)}
+              className="text-xs"
+            >
+              Сегодня
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickDate(1)}
+              className="text-xs"
+            >
+              Вчера
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickDate(7)}
+              className="text-xs"
+            >
+              7 дней
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handleQuickDate(30)}
+              className="text-xs"
+            >
+              30 дней
+            </Button>
+          </div>
 
-          <Button 
-            variant="outline" 
-            size="icon" 
-            onClick={handleRefresh} 
-            disabled={refreshing}
-            className="relative"
-          >
-            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          </Button>
+          <div className="flex items-center gap-2 flex-1">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="justify-start text-left font-normal text-sm">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, 'dd MMM', { locale: ru })} -{' '}
+                        {format(dateRange.to, 'dd MMM yyyy', { locale: ru })}
+                      </>
+                    ) : (
+                      format(dateRange.from, 'dd MMM yyyy', { locale: ru })
+                    )
+                  ) : (
+                    <span>Выберите период</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={setDateRange}
+                  numberOfMonths={2}
+                  locale={ru}
+                  className="rounded-md bg-background"
+                />
+              </PopoverContent>
+            </Popover>
 
-          <Button className="hidden sm:flex">
-            <Plus className="w-4 h-4 mr-2" />
-            Добавить кампанию
-          </Button>
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleRefresh} 
+              disabled={refreshing}
+            >
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            </Button>
+
+            <Button className="ml-auto">
+              <Plus className="w-4 h-4 mr-2" />
+              <span className="hidden sm:inline">Добавить кампанию</span>
+              <span className="sm:hidden">Добавить</span>
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -148,28 +226,28 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
       {/* Platform Tabs */}
       <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
-        <TabsList className="w-full justify-start bg-muted/50 p-1 overflow-x-auto flex-nowrap">
-          <TabsTrigger value="all" className="gap-2 shrink-0">
+        <TabsList className="w-full justify-start bg-muted/50 dark:bg-muted/30 p-1 overflow-x-auto flex-nowrap border border-border">
+          <TabsTrigger value="all" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
             Все платформы
           </TabsTrigger>
-          <TabsTrigger value="facebook" className="gap-2 shrink-0">
+          <TabsTrigger value="facebook" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
             <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
             <span className="hidden sm:inline">Facebook / Instagram</span>
             <span className="sm:hidden">FB</span>
           </TabsTrigger>
-          <TabsTrigger value="google" className="gap-2 shrink-0">
+          <TabsTrigger value="google" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
             <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
             <span className="hidden sm:inline">Google Ads</span>
             <span className="sm:hidden">Google</span>
           </TabsTrigger>
-          <TabsTrigger value="tiktok" className="gap-2 shrink-0">
-            <div className="w-4 h-4 bg-foreground rounded text-[10px] text-background font-bold flex items-center justify-center">T</div>
+          <TabsTrigger value="tiktok" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
+            <div className="w-4 h-4 bg-black dark:bg-white rounded text-[10px] text-white dark:text-black font-bold flex items-center justify-center">T</div>
             <span className="hidden sm:inline">TikTok Ads</span>
             <span className="sm:hidden">TikTok</span>
           </TabsTrigger>
-          <TabsTrigger value="creative" className="gap-2 shrink-0">
+          <TabsTrigger value="creative" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
             <Zap className="w-4 h-4 text-success" />
-            <span className="hidden sm:inline">Креатив-Центр</span>
+            <span className="hidden sm:inline">Центр Запуска и Тестирования</span>
             <span className="sm:hidden">Креативы</span>
           </TabsTrigger>
         </TabsList>

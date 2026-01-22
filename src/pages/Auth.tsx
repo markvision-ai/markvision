@@ -70,25 +70,56 @@ export default function Auth() {
     verifyConnection();
   }, []);
   useEffect(() => {
+    const checkUserProjects = async (userId: string) => {
+      try {
+        // Check if user has any projects
+        const { data: accessData } = await supabase
+          .from('project_access')
+          .select('project_id')
+          .eq('user_id', userId)
+          .limit(1);
+
+        // Check if user is admin/super_admin
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        const isAdmin = roleData?.role === 'admin' || roleData?.role === 'super_admin';
+
+        // Redirect to setup if no projects and not admin
+        if (!isAdmin && (!accessData || accessData.length === 0)) {
+          navigate('/setup');
+        } else {
+          navigate('/');
+        }
+      } catch (error) {
+        console.error('Error checking user projects:', error);
+        navigate('/');
+      }
+    };
+
     const {
       data: {
         subscription
       }
-    } = supabase.auth.onAuthStateChange((event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        // Редирект на главную страницу (CRM будет выбран через activeTab)
-        navigate('/');
+        await checkUserProjects(session.user.id);
       }
     });
-    supabase.auth.getSession().then(({
+    
+    supabase.auth.getSession().then(async ({
       data: {
         session
       }
     }) => {
       if (session?.user) {
-        navigate('/');
+        await checkUserProjects(session.user.id);
       }
     });
+    
     return () => subscription.unsubscribe();
   }, [navigate]);
   const handleSubmit = async (e: React.FormEvent) => {
@@ -360,6 +391,34 @@ export default function Auth() {
                 Назад к входу
               </motion.button>}
 
+            {/* Mode Switcher */}
+            {mode !== 'forgot-password' && (
+              <div className="flex gap-2 mb-6 p-1 bg-muted/50 dark:bg-muted/30 rounded-xl">
+                <button
+                  type="button"
+                  onClick={() => setMode('login')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                    mode === 'login'
+                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Вход
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode('signup')}
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                    mode === 'signup'
+                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Регистрация
+                </button>
+              </div>
+            )}
+
             <h2 className="text-xl sm:text-2xl font-semibold text-center mb-2">
               {getTitle()}
             </h2>
@@ -423,26 +482,6 @@ export default function Auth() {
               </Button>
             </form>
 
-            {mode !== 'forgot-password' && <motion.div initial={{
-            opacity: 0
-          }} animate={{
-            opacity: 1
-          }} transition={{
-            delay: 0.3
-          }} className="mt-6 text-center">
-                <div className="relative">
-                  <div className="absolute inset-0 flex items-center">
-                    <div className="w-full border-t border-border/50"></div>
-                  </div>
-                  <div className="relative flex justify-center text-xs">
-                    <span className="px-2 bg-card text-muted-foreground">или</span>
-                  </div>
-                </div>
-                
-                <button type="button" onClick={() => setMode(mode === 'login' ? 'signup' : 'login')} className="mt-4 text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  {mode === 'login' ? <>Нет аккаунта? <span className="text-primary font-medium">Зарегистрироваться</span></> : <>Уже есть аккаунт? <span className="text-primary font-medium">Войти</span></>}
-                </button>
-              </motion.div>}
           </div>
         </motion.div>
 

@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, User, Trash2, Sparkles, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target, Church } from 'lucide-react';
+import { Send, User, Trash2, Church, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface AIAssistantProps {
   context?: {
@@ -26,10 +26,10 @@ interface AIAssistantProps {
 }
 
 const suggestedQuestions = [
-  { text: 'Проанализируй текущие показатели', icon: TrendingUp },
+  { text: 'Проанализируй мою воронку', icon: TrendingUp },
   { text: 'Как улучшить конверсию?', icon: Target },
   { text: 'Какие метрики требуют внимания?', icon: Lightbulb },
-  { text: 'Оптимален ли мой CPL и CAC?', icon: MessageSquare },
+  { text: 'Дай совет по бюджету', icon: MessageSquare },
 ];
 
 export const AIAssistant = ({ context }: AIAssistantProps) => {
@@ -37,7 +37,6 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
   const { messages, isLoading, sendMessage, clearChat, stopGeneration } = useAIChat();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const isMobileLayout = typeof window !== 'undefined' && window.innerWidth < 640;
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -71,81 +70,103 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
   const hasContext = context && (context.spend || context.revenue || context.leads);
 
   return (
-    <Card className="flex flex-col h-[400px] sm:h-[600px] bg-gradient-to-b from-card to-card/95">
-      <CardHeader className="flex-shrink-0 pb-2 sm:pb-3 border-b px-3 sm:px-6">
-        <div className="flex items-center justify-between gap-2">
-          <CardTitle className="flex items-center gap-2 sm:gap-3 text-sm sm:text-lg">
-            <div className="p-1.5 sm:p-2 rounded-lg sm:rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30">
-              <Church className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500" />
+    <div className="group flex flex-col h-[400px] sm:h-[600px] bg-[#0f172a]/50 backdrop-blur-xl border border-transparent hover:border-blue-500/30 rounded-2xl shadow-sm hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-500 overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/[0.02] via-transparent to-purple-500/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
+
+      {/* Header - ChatGPT style */}
+      <div className="relative z-10 flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700/30">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30 shadow-lg shadow-amber-500/20">
+              <Church className="w-5 h-5 text-amber-400" />
             </div>
             <div className="min-w-0">
-              <span className="block truncate">Святой AI аналитик</span>
+              <h3 className="text-base sm:text-lg font-semibold bg-gradient-to-br from-white via-slate-100 to-slate-300 bg-clip-text text-transparent truncate">
+                Святой AI аналитик
+              </h3>
               {hasContext && (
-                <p className="text-[10px] sm:text-xs font-normal text-muted-foreground mt-0.5 hidden sm:block">
+                <p className="text-xs text-slate-500 hidden sm:block">
                   Благословляет ваши метрики
                 </p>
               )}
             </div>
-          </CardTitle>
+          </div>
           {messages.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
               onClick={clearChat}
-              className="text-muted-foreground hover:text-destructive h-7 w-7 sm:h-8 sm:w-8 p-0 flex-shrink-0"
+              className="text-slate-400 hover:text-red-400 hover:bg-red-500/10 h-8 w-8 p-0 flex-shrink-0 rounded-lg transition-colors"
             >
-              <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+              <Trash2 className="w-4 h-4" />
             </Button>
           )}
         </div>
-      </CardHeader>
+      </div>
 
-      <CardContent className="flex-1 flex flex-col min-h-0 pt-3 sm:pt-4 px-3 sm:px-6">
-        <ScrollArea className="flex-1 pr-2 sm:pr-4" ref={scrollRef}>
-          {messages.length === 0 ? (
-            <div className="space-y-4 sm:space-y-6 py-2 sm:py-4">
-              <div className="text-center">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 mx-auto mb-3 sm:mb-4 flex items-center justify-center ring-1 ring-amber-500/20">
-                  <Church className="w-6 h-6 sm:w-8 sm:h-8 text-amber-500" />
-                </div>
-                <h3 className="font-medium mb-1 text-sm sm:text-base">Мир вам!</h3>
-                <p className="text-xs sm:text-sm text-muted-foreground max-w-xs mx-auto">
-                  {hasContext 
-                    ? 'Готов анализировать ваши метрики'
-                    : 'Загрузите данные для анализа'
-                  }
-                </p>
+      {/* Messages Area */}
+      <ScrollArea ref={scrollRef} className="relative z-10 flex-1 px-4 sm:px-6 py-4">
+        {messages.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-full text-center px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-6"
+            >
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-amber-600/5 ring-1 ring-amber-500/30 flex items-center justify-center mx-auto mb-4 shadow-lg shadow-amber-500/20">
+                <Church className="w-8 h-8 text-amber-400" />
               </div>
-              
-              <div className="space-y-1.5 sm:space-y-2">
-                <p className="text-[10px] sm:text-xs text-muted-foreground text-center mb-2 sm:mb-3">Попробуйте спросить:</p>
-                <div className="grid gap-1.5 sm:gap-2">
-                  {suggestedQuestions.slice(0, isMobileLayout ? 2 : 4).map(({ text, icon: Icon }) => (
-                    <Button
-                      key={text}
-                      variant="outline"
-                      size="sm"
-                      className="h-auto py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm text-left justify-start gap-2 sm:gap-3 hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      onClick={() => handleSuggestion(text)}
-                      disabled={isLoading}
-                    >
-                      <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary/70 flex-shrink-0" />
-                      <span className="truncate">{text}</span>
-                    </Button>
-                  ))}
-                </div>
-              </div>
+              <h4 className="text-lg font-semibold text-slate-200 mb-2">
+                Добро пожаловать в AI-аналитику
+              </h4>
+              <p className="text-sm text-slate-500 max-w-md">
+                Задайте любой вопрос о ваших метриках, и я помогу найти точки роста
+              </p>
+            </motion.div>
+
+            {/* Suggested Questions - Styled buttons */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
+              {suggestedQuestions.map((q, index) => {
+                const Icon = q.icon;
+                return (
+                  <motion.button
+                    key={index}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => handleSuggestion(q.text)}
+                    disabled={isLoading}
+                    className="group/btn relative overflow-hidden bg-slate-800/30 hover:bg-slate-800/50 border border-slate-700/30 hover:border-blue-500/50 rounded-xl p-3 text-left transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {/* Glow effect on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/10 to-purple-500/0 opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300" />
+                    
+                    <div className="relative flex items-center gap-2">
+                      <Icon className="w-4 h-4 text-blue-400 flex-shrink-0" />
+                      <span className="text-xs sm:text-sm text-slate-300 group-hover/btn:text-slate-100 transition-colors">
+                        {q.text}
+                      </span>
+                    </div>
+                  </motion.button>
+                );
+              })}
             </div>
-          ) : (
-            <div className="space-y-3 sm:space-y-4 py-2">
-              {messages.map((msg) => (
-                <MessageBubble key={msg.id} message={msg} />
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <AnimatePresence>
+              {messages.map((msg, index) => (
+                <MessageBubble key={index} message={msg} />
               ))}
-            </div>
-          )}
-        </ScrollArea>
+            </AnimatePresence>
+          </div>
+        )}
+      </ScrollArea>
 
-        <div className="flex gap-2 pt-3 sm:pt-4 border-t mt-2 sm:mt-3">
+      {/* Input Area - ChatGPT style */}
+      <div className="relative z-10 flex-shrink-0 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-700/30">
+        <div className="flex gap-2">
           <Input
             ref={inputRef}
             value={input}
@@ -153,14 +174,14 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
             onKeyDown={handleKeyDown}
             placeholder="Задайте вопрос..."
             disabled={isLoading}
-            className="flex-1 bg-secondary/50 text-sm"
+            className="flex-1 bg-slate-800/50 border-slate-700/50 focus:border-blue-500/50 text-sm text-slate-200 placeholder:text-slate-500"
           />
           {isLoading ? (
             <Button
               onClick={stopGeneration}
               size="icon"
               variant="destructive"
-              className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+              className="flex-shrink-0 h-10 w-10 rounded-xl"
             >
               <Square className="w-4 h-4" />
             </Button>
@@ -169,14 +190,14 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
               onClick={handleSend}
               disabled={!input.trim()}
               size="icon"
-              className="flex-shrink-0 h-9 w-9 sm:h-10 sm:w-10"
+              className="flex-shrink-0 h-10 w-10 rounded-xl bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 shadow-lg shadow-blue-500/30 disabled:opacity-50"
             >
               <Send className="w-4 h-4" />
             </Button>
           )}
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </div>
   );
 };
 
@@ -184,47 +205,59 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
   const isUser = message.role === 'user';
 
   return (
-    <div className={cn('flex gap-3', isUser && 'flex-row-reverse')}>
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className={cn('flex gap-3', isUser && 'flex-row-reverse')}
+    >
+      {/* Avatar */}
       <div
         className={cn(
-          'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ring-1',
+          'w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ring-1 shadow-lg',
           isUser 
-            ? 'bg-primary text-primary-foreground ring-primary/20' 
-            : 'bg-gradient-to-br from-amber-500/20 to-amber-500/5 ring-amber-500/20'
+            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 ring-blue-500/20 shadow-blue-500/30' 
+            : 'bg-gradient-to-br from-amber-500/20 to-amber-500/5 ring-amber-500/20 shadow-amber-500/20'
         )}
       >
-        {isUser ? <User className="w-4 h-4" /> : <Church className="w-4 h-4 text-amber-500" />}
+        {isUser ? (
+          <User className="w-4 h-4 text-white" />
+        ) : (
+          <Church className="w-4 h-4 text-amber-400" />
+        )}
       </div>
+
+      {/* Bubble - with blur effect */}
       <div
         className={cn(
-          'rounded-2xl px-4 py-3 max-w-[85%] text-sm',
+          'rounded-2xl px-4 py-3 max-w-[85%] text-sm backdrop-blur-sm',
           isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-secondary/70'
+            ? 'bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg shadow-blue-500/20'
+            : 'bg-slate-800/50 text-slate-200 border border-slate-700/30'
         )}
       >
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2">
+          <div className="prose prose-sm prose-invert max-w-none prose-p:my-1 prose-ul:my-1 prose-li:my-0.5 prose-headings:my-2">
             <ReactMarkdown
               components={{
                 p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
                 ul: ({ children }) => <ul className="list-disc pl-4 mb-2">{children}</ul>,
                 ol: ({ children }) => <ol className="list-decimal pl-4 mb-2">{children}</ol>,
                 li: ({ children }) => <li className="mb-0.5">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                code: ({ children }) => <code className="bg-background/50 px-1 py-0.5 rounded text-xs">{children}</code>,
+                strong: ({ children }) => <strong className="font-semibold text-white">{children}</strong>,
+                code: ({ children }) => <code className="bg-slate-900/50 px-1.5 py-0.5 rounded text-xs text-blue-300">{children}</code>,
               }}
             >
               {message.content || ''}
             </ReactMarkdown>
             {message.isStreaming && (
-              <span className="inline-block w-2 h-4 bg-primary/50 animate-pulse ml-0.5" />
+              <span className="inline-block w-2 h-4 bg-amber-400/50 animate-pulse ml-0.5 rounded-sm" />
             )}
           </div>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 };
