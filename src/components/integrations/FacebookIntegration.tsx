@@ -132,19 +132,49 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           // Сохраняем в ad_accounts для твоего проекта
           const targetProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
           
-          const { data, error } = await supabase
+          // СТРАТЕГИЯ: Сначала пытаемся найти существующую запись
+          const { data: existing } = await supabase
             .from('ad_accounts')
-            .upsert({
-              project_id: targetProjectId,
-              platform: 'facebook',
-              external_id: `facebook_oauth_${userId}`,
-              access_token: facebookToken, // Используем найденный токен
-              status: 'active'
-            }, { 
-              onConflict: 'project_id,platform,external_id'
-            })
-            .select()
-            .single();
+            .select('id')
+            .eq('project_id', targetProjectId)
+            .eq('platform', 'facebook')
+            .maybeSingle();
+          
+          let data, error;
+          
+          if (existing) {
+            // Если запись существует - обновляем токен
+            console.log('📝 Updating existing Facebook connection:', existing.id);
+            const result = await supabase
+              .from('ad_accounts')
+              .update({
+                access_token: facebookToken,
+                status: 'active'
+              })
+              .eq('id', existing.id)
+              .select()
+              .single();
+            
+            data = result.data;
+            error = result.error;
+          } else {
+            // Если записи нет - создаём новую
+            console.log('➕ Creating new Facebook connection');
+            const result = await supabase
+              .from('ad_accounts')
+              .insert({
+                project_id: targetProjectId,
+                platform: 'facebook',
+                external_id: `facebook_oauth_${userId}`,
+                access_token: facebookToken,
+                status: 'active'
+              })
+              .select()
+              .single();
+            
+            data = result.data;
+            error = result.error;
+          }
 
           if (error) {
             console.error('❌ Supabase error:', error);
