@@ -246,15 +246,15 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       // ПРЯМАЯ авторизация через Facebook JS SDK
       console.log('🚀 Starting Facebook Login...');
       
-      // @ts-ignore - Facebook SDK загружен через index.html
-      if (typeof FB === 'undefined') {
+      // Проверяем FB SDK
+      const FB = (window as any).FB;
+      if (!FB) {
         toast.error('Facebook SDK не загружен', {
           description: 'Перезагрузите страницу'
         });
         return;
       }
 
-      // @ts-ignore
       FB.login(function(response: any) {
         console.log('📱 Facebook Login response:', response);
         

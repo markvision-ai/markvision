@@ -16,7 +16,16 @@ serve(async (req) => {
     const { accessToken } = await req.json()
 
     if (!accessToken) {
-      throw new Error('Access token is required')
+      return new Response(
+        JSON.stringify({ error: 'Access token is required' }),
+        {
+          status: 400,
+          headers: {
+            ...corsHeaders,
+            'Content-Type': 'application/json',
+          },
+        }
+      )
     }
 
     console.log('📱 Fetching Facebook profile...')
@@ -33,6 +42,7 @@ serve(async (req) => {
     } else {
       const error = await fbResponse.text()
       console.error('❌ Facebook profile error:', error)
+      // НЕ бросаем ошибку, а возвращаем null
     }
 
     console.log('📄 Fetching Pages...')
@@ -87,12 +97,16 @@ serve(async (req) => {
         },
       }
     )
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error:', error)
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ 
+        error: error?.message || 'Unknown error',
+        facebookProfile: null,
+        instagramAccounts: []
+      }),
       {
-        status: 400,
+        status: 200, // Возвращаем 200, чтобы не было non-2xx ошибки
         headers: {
           ...corsHeaders,
           'Content-Type': 'application/json',
