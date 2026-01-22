@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { HoverEffect } from '@/components/ui/card-hover-effect';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { FacebookIntegration } from './FacebookIntegration';
+import { InstagramIntegration } from './InstagramIntegration';
 import { FacebookAdsStats } from './FacebookAdsStats';
 import { InstagramPosts } from './InstagramPosts';
 
@@ -128,7 +129,12 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
           <span className="w-1 h-5 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full" />
           Рекламные платформы
         </h3>
-        <FacebookIntegration projectId={currentProjectId} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <FacebookIntegration projectId={currentProjectId} />
+          <InstagramIntegration projectId={currentProjectId} />
+        </div>
+        
         <FacebookAdsStats projectId={currentProjectId} />
         <InstagramPosts projectId={currentProjectId} />
       </div>
