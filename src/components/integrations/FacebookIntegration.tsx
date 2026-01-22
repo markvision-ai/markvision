@@ -94,56 +94,43 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     setLoadingProfiles(true);
     
     try {
-      // 1. Получаем Facebook профиль
-      const fbResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me?fields=id,name,picture&access_token=${accessToken}`
-      );
+      console.log('📡 Fetching profiles via Edge Function...');
       
-      if (fbResponse.ok) {
-        const fbData = await fbResponse.json();
-        console.log('📱 Facebook Profile:', fbData);
-        setFacebookProfile(fbData);
-      } else {
-        console.error('Failed to fetch Facebook profile:', await fbResponse.text());
+      // Используем Edge Function для обхода CORS
+      const { data, error } = await supabase.functions.invoke('fetch-facebook-profiles', {
+        body: { accessToken }
+      });
+
+      if (error) {
+        console.error('Edge Function error:', error);
+        throw error;
       }
 
-      // 2. Получаем Instagram аккаунты через Pages
-      const pagesResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
-      );
-      
-      if (pagesResponse.ok) {
-        const pagesData = await pagesResponse.json();
-        console.log('📄 Pages Data:', pagesData);
-        
-        // Собираем Instagram аккаунты
-        const igAccounts: InstagramAccount[] = [];
-        
-        for (const page of pagesData.data || []) {
-          if (page.instagram_business_account) {
-            const igId = page.instagram_business_account.id;
-            
-            // Получаем детали Instagram аккаунта
-            const igResponse = await fetch(
-              `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
-            );
-            
-            if (igResponse.ok) {
-              const igData = await igResponse.json();
-              console.log('📸 Instagram Account:', igData);
-              igAccounts.push(igData);
-            }
-          }
-        }
-        
-        setInstagramAccounts(igAccounts);
-      } else {
-        console.error('Failed to fetch pages:', await pagesResponse.text());
+      console.log('✅ Edge Function response:', data);
+
+      if (data.facebookProfile) {
+        console.log('📱 Facebook Profile:', data.facebookProfile.name);
+        setFacebookProfile(data.facebookProfile);
       }
-    } catch (error) {
+
+      if (data.instagramAccounts && data.instagramAccounts.length > 0) {
+        console.log('📸 Instagram Accounts:', data.instagramAccounts.map((ig: any) => ig.username).join(', '));
+        setInstagramAccounts(data.instagramAccounts);
+      }
+
+      if (!data.facebookProfile && (!data.instagramAccounts || data.instagramAccounts.length === 0)) {
+        toast.warning('Профили не найдены', {
+          description: 'Возможно, токен устарел или отсутствуют права доступа'
+        });
+      } else {
+        toast.success('Профили загружены!', {
+          description: `${data.facebookProfile ? 'Facebook' : ''}${data.facebookProfile && data.instagramAccounts?.length ? ' + ' : ''}${data.instagramAccounts?.length || 0} Instagram`
+        });
+      }
+    } catch (error: any) {
       console.error('Error fetching profiles:', error);
       toast.error('Не удалось загрузить профили', {
-        description: 'Возможно, токен устарел или отсутствуют права доступа'
+        description: error.message || 'Проверьте токен и права доступа'
       });
     } finally {
       setLoadingProfiles(false);
