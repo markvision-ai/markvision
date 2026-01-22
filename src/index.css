@@ -190,22 +190,15 @@
 @layer components {
   /* Premium Glassmorphism Card */
   .premium-card {
-    @apply relative overflow-hidden;
-    background: hsl(217 33% 8% / 0.8);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-radius: 20px;
-    border: 1px solid hsl(0 0% 100% / 0.08);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    @apply relative overflow-hidden rounded-xl;
+    @apply bg-card text-card-foreground;
+    @apply border border-border;
+    @apply shadow-sm;
+    @apply transition-all duration-300;
   }
 
   .premium-card:hover {
-    transform: translateY(-2px);
-    border-color: hsl(217 91% 60% / 0.3);
-    box-shadow: 
-      0 0 30px hsl(217 91% 60% / 0.15),
-      0 0 60px hsl(217 91% 60% / 0.08),
-      0 20px 40px hsl(0 0% 0% / 0.2);
+    @apply shadow-md border-primary/20;
   }
 
   /* Metric card with large typography */

@@ -14,9 +14,8 @@ export const AdsSummaryCards = ({
   overallROAS 
 }: AdsSummaryCardsProps) => {
   const formatCurrency = (value: number) => {
-    if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M ₸`;
-    if (value >= 1000) return `${Math.round(value / 1000)}K ₸`;
-    return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
+    if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн ₸`;
+    return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
   };
 
   const cards = [
@@ -59,7 +58,7 @@ export const AdsSummaryCards = ({
       {cards.map((card) => (
         <div
           key={card.title}
-          className={`relative overflow-hidden rounded-xl border ${card.borderColor} ${card.bgColor} p-3 sm:p-4 transition-all hover:scale-[1.02]`}
+          className="relative overflow-hidden rounded-xl bg-card border border-border p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">
@@ -70,8 +69,6 @@ export const AdsSummaryCards = ({
               <card.icon className={`w-4 h-4 sm:w-5 sm:h-5 ${card.color}`} />
             </div>
           </div>
-          {/* Decorative glow effect */}
-          <div className={`absolute -bottom-4 -right-4 w-16 sm:w-24 h-16 sm:h-24 rounded-full ${card.bgColor} blur-2xl opacity-50`} />
         </div>
       ))}
     </div>
