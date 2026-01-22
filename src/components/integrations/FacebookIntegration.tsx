@@ -101,20 +101,47 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       console.log('🎫 Provider Token:', session?.provider_token ? 'FOUND ✅' : 'NOT FOUND ❌');
       console.log('🔄 Refresh Token:', session?.provider_refresh_token ? 'FOUND ✅' : 'NOT FOUND ❌');
       
-      // Проверяем наличие Facebook identity
-      let facebookToken = session?.provider_token;
+      // СУПЕР-ДЕТАЛЬНЫЙ ЛОГ для Facebook identity
+      if (session?.user?.identities) {
+        const fbIdentity = session.user.identities.find((id: any) => id.provider === 'facebook');
+        if (fbIdentity) {
+          console.log('📱 Facebook Identity FULL DATA:', JSON.stringify(fbIdentity, null, 2));
+        }
+      }
       
-      // Если нет provider_token, ищем в identities
+      // Ищем Facebook токен в нескольких местах
+      let facebookToken = null;
+      
+      // 1. Сначала проверяем provider_token (новые OAuth логины)
+      if (session?.provider_token) {
+        console.log('✅ Found provider_token');
+        facebookToken = session.provider_token;
+      }
+      
+      // 2. Если нет, ищем в identities (linkIdentity или старые сессии)
       if (!facebookToken && session?.user?.identities) {
         const facebookIdentity = session.user.identities.find((id: any) => id.provider === 'facebook');
         if (facebookIdentity) {
           console.log('🔍 Found Facebook identity:', facebookIdentity);
-          // Токен может быть в identity_data
-          facebookToken = facebookIdentity.identity_data?.access_token;
+          console.log('🔍 Identity data keys:', Object.keys(facebookIdentity.identity_data || {}));
+          
+          // Пробуем разные возможные места для токена
+          facebookToken = 
+            facebookIdentity.identity_data?.access_token || 
+            facebookIdentity.identity_data?.provider_token ||
+            facebookIdentity.last_sign_in_at; // Это фолбэк, не токен, но для отладки
+          
+          console.log('🔍 Token from identity_data:', facebookToken ? 'FOUND' : 'NOT FOUND');
         }
       }
       
-      console.log('🎯 Final Facebook token:', facebookToken ? 'FOUND ✅' : 'NOT FOUND ❌');
+      // 3. Проверяем app_metadata (для некоторых OAuth провайдеров)
+      if (!facebookToken && session?.user?.app_metadata?.provider_token) {
+        console.log('✅ Found in app_metadata');
+        facebookToken = session.user.app_metadata.provider_token;
+      }
+      
+      console.log('🎯 Final Facebook token:', facebookToken ? `FOUND ✅ (length: ${facebookToken.length})` : 'NOT FOUND ❌');
       
       // Если есть сессия с токеном (даже без email)
       if (facebookToken && session?.user) {
