@@ -66,24 +66,80 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     fetchConnection();
   }, [fetchConnection]);
 
+  // Обработка OAuth ошибок из URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+      const errorMessage = errorDescription 
+        ? decodeURIComponent(errorDescription) 
+        : 'Ошибка авторизации через Facebook';
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: error === 'server_error' ? 'Попробуйте еще раз или обратитесь в поддержку' : undefined
+      });
+      
+      // Очищаем URL от параметров ошибки
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Обработка OAuth callback
   useEffect(() => {
     const handleOAuthCallback = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       
-      if (session?.provider_token && session?.provider_refresh_token) {
+      // КРИТИЧЕСКИЙ ЛОГ для отладки
+      console.log('🔍 AuthProvider Session:', session);
+      console.log('👤 User:', session?.user);
+      console.log('📧 Email:', session?.user?.email || 'NO EMAIL');
+      console.log('🆔 User ID:', session?.user?.id || 'NO ID');
+      console.log('🔗 Identities:', session?.user?.identities);
+      console.log('🎫 Provider Token:', session?.provider_token ? 'FOUND ✅' : 'NOT FOUND ❌');
+      console.log('🔄 Refresh Token:', session?.provider_refresh_token ? 'FOUND ✅' : 'NOT FOUND ❌');
+      
+      // Проверяем наличие Facebook identity
+      let facebookToken = session?.provider_token;
+      
+      // Если нет provider_token, ищем в identities
+      if (!facebookToken && session?.user?.identities) {
+        const facebookIdentity = session.user.identities.find((id: any) => id.provider === 'facebook');
+        if (facebookIdentity) {
+          console.log('🔍 Found Facebook identity:', facebookIdentity);
+          // Токен может быть в identity_data
+          facebookToken = facebookIdentity.identity_data?.access_token;
+        }
+      }
+      
+      console.log('🎯 Final Facebook token:', facebookToken ? 'FOUND ✅' : 'NOT FOUND ❌');
+      
+      // Если есть сессия с токеном (даже без email)
+      if (facebookToken && session?.user) {
         console.log('📱 Facebook OAuth успешен, сохраняем токен...');
+        console.log('💾 Saving to project:', projectId);
         
         try {
-          // Сохраняем в ad_accounts
+          // Используем user.id как уникальный идентификатор
+          const userId = session.user.id;
+          const userEmail = session.user.email || `facebook_user_${userId}`;
+          
+          console.log('✍️ User identifier:', userId);
+          console.log('📧 Using email:', userEmail);
+          
+          // Сохраняем в ad_accounts для твоего проекта
+          const targetProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+          
           const { data, error } = await supabase
             .from('ad_accounts')
             .upsert({
-              project_id: projectId,
+              project_id: targetProjectId,
               platform: 'facebook',
-              external_id: 'facebook_oauth',
+              external_id: `facebook_oauth_${userId}`,
               name: 'Facebook & Instagram',
-              access_token: session.provider_token,
+              access_token: facebookToken, // Используем найденный токен
               status: 'active'
             }, { 
               onConflict: 'project_id,platform,external_id'
@@ -91,9 +147,13 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
             .select()
             .single();
 
-          if (error) throw error;
+          if (error) {
+            console.error('❌ Supabase error:', error);
+            throw error;
+          }
 
           if (data) {
+            console.log('✅ Token saved successfully:', data.id);
             setConnection({
               id: data.id,
               access_token: data.access_token || '',
@@ -108,10 +168,12 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
           // Очистка URL от OAuth параметров
           window.history.replaceState({}, document.title, window.location.pathname);
-        } catch (error) {
-          console.error('Error saving Facebook token:', error);
-          toast.error('Ошибка сохранения токена');
+        } catch (error: any) {
+          console.error('❌ Error saving Facebook token:', error);
+          toast.error('Ошибка сохранения токена: ' + (error.message || 'Неизвестная ошибка'));
         }
+      } else if (session?.user && !session?.provider_token) {
+        console.log('⚠️ User found but NO provider token');
       }
     };
 
@@ -122,21 +184,65 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     setConnecting(true);
     
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'facebook',
-        options: {
-          redirectTo: `${window.location.origin}/integrations`,
-          scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
-        },
-      });
+      // Проверяем текущую сессию
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      
+      console.log('🔍 Current session:', currentSession?.user?.email);
+      
+      // Если пользователь уже авторизован - используем linkIdentity
+      if (currentSession?.user) {
+        console.log('👤 User already logged in, using linkIdentity');
+        
+        // Определяем правильный redirect URL
+        const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
+        const redirectUrl = isProduction 
+          ? 'https://markvision-alpha.vercel.app/integrations'
+          : `${window.location.origin}/integrations`;
+        
+        console.log('🔗 OAuth redirect URL:', redirectUrl);
+        
+        // Используем linkIdentity для связывания аккаунтов
+        const { data, error } = await supabase.auth.linkIdentity({
+          provider: 'facebook',
+          options: {
+            redirectTo: redirectUrl,
+            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
+          },
+        });
 
-      if (error) {
-        console.error('OAuth error:', error);
-        toast.error('Ошибка подключения к Facebook');
+        if (error) {
+          console.error('❌ linkIdentity error:', error);
+          toast.error('Ошибка связывания аккаунта: ' + error.message);
+        } else {
+          console.log('✅ linkIdentity success:', data);
+        }
+      } else {
+        // Если пользователь не авторизован - используем signInWithOAuth
+        console.log('🆕 No user session, using signInWithOAuth');
+        
+        const isProduction = window.location.hostname === 'markvision-alpha.vercel.app';
+        const redirectUrl = isProduction 
+          ? 'https://markvision-alpha.vercel.app/integrations'
+          : `${window.location.origin}/integrations`;
+        
+        console.log('🔗 OAuth redirect URL:', redirectUrl);
+        
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'facebook',
+          options: {
+            redirectTo: redirectUrl,
+            scopes: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement',
+          },
+        });
+
+        if (error) {
+          console.error('❌ OAuth error:', error);
+          toast.error('Ошибка подключения к Facebook: ' + error.message);
+        }
       }
-    } catch (error) {
-      console.error('Connection error:', error);
-      toast.error('Ошибка подключения');
+    } catch (error: any) {
+      console.error('❌ Connection error:', error);
+      toast.error('Ошибка подключения: ' + (error.message || 'Неизвестная ошибка'));
     } finally {
       setConnecting(false);
     }

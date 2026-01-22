@@ -14,6 +14,29 @@ const Index = () => {
   const queryClient = useQueryClient();
   const [checkingProjects, setCheckingProjects] = useState(true);
 
+  // КРИТИЧНО: Проверка OAuth параметров ПЕРЕД любыми редиректами
+  useEffect(() => {
+    const checkOAuthParams = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      const hasAccessToken = hashParams.has('access_token') || searchParams.has('access_token');
+      const hasCode = searchParams.has('code');
+      const hasError = searchParams.has('error');
+      
+      if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
+        console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
+        navigate('/integrations', { replace: true });
+        return true;
+      }
+      return false;
+    };
+
+    if (checkOAuthParams()) {
+      return; // Останавливаем выполнение других useEffect
+    }
+  }, [navigate]);
+
   // Check if user has projects with completed onboarding
   useEffect(() => {
     const checkUserProjects = async () => {

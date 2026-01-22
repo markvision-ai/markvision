@@ -13,10 +13,9 @@ interface PlanFactCardProps {
   className?: string;
 }
 
-// ИСПРАВЛЕНО: Полные числа БЕЗ сокращений (К, млн)
+// Apple-style formatting: clean, minimal
 const formatValue = (value: number, format: 'number' | 'currency' | 'percent'): string => {
   if (format === 'currency') {
-    // Только "млн" для миллионов, остальное - полностью
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1).replace('.0', '') + ' млн ₸';
     }
@@ -25,14 +24,12 @@ const formatValue = (value: number, format: 'number' | 'currency' | 'percent'): 
   if (format === 'percent') {
     return value.toFixed(1) + '%';
   }
-  // Number format - только "млн", остальное полностью
   if (value >= 1000000) {
     return (value / 1000000).toFixed(1).replace('.0', '') + ' млн';
   }
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-// Форматирование для строки плана (БЕЗ валюты)
 const formatPlanValue = (value: number, format: 'number' | 'currency' | 'percent'): string => {
   if (format === 'currency') {
     if (value >= 1000000) {
@@ -66,45 +63,41 @@ export const PlanFactCard = ({
 
   return (
     <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
       className={cn(
-        "group relative overflow-hidden rounded-2xl p-5",
-        // Glassmorphism для ОБЕИХ тем
-        "bg-card/80 backdrop-blur-xl",
-        "border border-border/50",
-        // Glow on hover
-        "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/10",
-        // Golden border для overperformance > 200%
-        isOverPerforming && "border-amber-400/50 shadow-lg shadow-amber-500/20",
-        "transition-all duration-500",
+        "group relative overflow-hidden rounded-xl p-4",
+        // Apple-style: subtle, clean
+        "bg-card/50 backdrop-blur-sm",
+        "border border-border/40",
+        "hover:border-border/60 hover:bg-card/60",
+        isOverPerforming && "border-amber-400/40",
+        "transition-all duration-200",
         className
       )}
     >
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-      <div className="relative z-10 space-y-3">
-        {/* Icon & Label */}
+      <div className="space-y-2.5">
+        {/* Header: Icon, Label, Badge */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="text-primary/80 transition-colors group-hover:text-primary">
-              {icon}
-            </div>
-            <span className="text-xs md:text-sm font-medium text-muted-foreground whitespace-nowrap">
+            {icon && (
+              <div className="text-muted-foreground/70 w-4 h-4">
+                {icon}
+              </div>
+            )}
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
               {label}
             </span>
           </div>
           
-          {/* Glow Badge для Percentage */}
           {showProgress && (
             <Badge 
               className={cn(
-                "text-xs font-semibold px-2 py-0.5 whitespace-nowrap",
+                "text-[10px] font-semibold px-1.5 py-0 h-5",
                 isOnTrack 
-                  ? "bg-success/20 text-success border-success/30 shadow-[0_0_12px_rgba(16,185,129,0.4)]"
-                  : "bg-warning/20 text-warning border-warning/30"
+                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
               )}
               variant="outline"
             >
@@ -113,42 +106,36 @@ export const PlanFactCard = ({
           )}
         </div>
 
-        {/* Main Value */}
-        <div className="space-y-2">
-          <p className={cn(
-            "text-2xl md:text-3xl font-bold whitespace-nowrap",
-            "text-foreground",
-            "transition-all duration-300"
-          )}>
+        {/* Main Value - Apple typography */}
+        <div className="space-y-1">
+          <p className="text-2xl font-semibold text-foreground tracking-tight leading-none">
             {displayValue}
           </p>
 
-          {/* Plan Line */}
+          {/* Plan - minimal, clean */}
           {plan !== undefined && plan > 0 && (
-            <p className="text-sm md:text-base font-semibold text-muted-foreground whitespace-nowrap">
-              План: {formatPlanValue(plan, format)}
+            <p className="text-[11px] text-muted-foreground/70 font-medium">
+              План {formatPlanValue(plan, format)}
             </p>
           )}
         </div>
 
-        {/* Progress Bar */}
+        {/* Progress Bar - thin, elegant */}
         {showProgress && (
-          <div className="space-y-1.5">
-            <div className="w-full bg-muted/50 rounded-full h-2.5 overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(percentage, 100)}%` }}
-                transition={{ duration: 1, ease: "easeOut" }}
-                className={cn(
-                  "h-full rounded-full transition-all duration-500",
-                  isOverPerforming 
-                    ? "bg-gradient-to-r from-amber-400 via-amber-500 to-indigo-500"
-                    : isOnTrack
-                      ? "bg-gradient-to-r from-success to-success/80 shadow-[0_0_10px_rgba(16,185,129,0.5)]"
-                      : "bg-gradient-to-r from-primary to-primary/80"
-                )}
-              />
-            </div>
+          <div className="w-full bg-muted/30 rounded-full h-1 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(percentage, 100)}%` }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className={cn(
+                "h-full rounded-full",
+                isOverPerforming 
+                  ? "bg-gradient-to-r from-amber-400 to-amber-500"
+                  : isOnTrack
+                    ? "bg-emerald-500"
+                    : "bg-primary"
+              )}
+            />
           </div>
         )}
       </div>

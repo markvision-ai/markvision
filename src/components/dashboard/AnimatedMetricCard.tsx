@@ -64,10 +64,10 @@ export const AnimatedMetricCard = ({
             )}
           </div>
           <div className="mt-4">
-            <p className="text-3xl font-bold tabular-nums">
+            <p className="text-xl md:text-2xl font-semibold tabular-nums">
               {formatValue(animatedValue)}
             </p>
-            <p className="text-sm text-muted-foreground mt-1">{label}</p>
+            <p className="text-xs text-muted-foreground mt-1">{label}</p>
           </div>
           {isConnected && (
             <div className="absolute top-2 right-2">

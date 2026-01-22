@@ -36,6 +36,27 @@ export default function Auth() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [checkingConnection, setCheckingConnection] = useState(true);
 
+  // Обработка OAuth ошибок из URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+      const errorMessage = errorDescription 
+        ? decodeURIComponent(errorDescription) 
+        : 'Ошибка авторизации через Facebook';
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: error === 'server_error' ? 'Попробуйте еще раз или обратитесь в поддержку' : undefined
+      });
+      
+      // Очищаем URL от параметров ошибки
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   // Проверка подключения к базе при загрузке с RETRY логикой (3 попытки)
   useEffect(() => {
     const verifyConnection = async () => {
@@ -72,6 +93,17 @@ export default function Auth() {
   useEffect(() => {
     const checkUserProjects = async (userId: string) => {
       try {
+        // КРИТИЧНО: Проверка OAuth параметров перед редиректом
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        const searchParams = new URLSearchParams(window.location.search);
+        const hasOAuthParams = hashParams.has('access_token') || searchParams.has('code') || searchParams.has('error');
+        
+        if (hasOAuthParams) {
+          console.log('🚨 OAuth params detected in Auth.tsx, redirecting to /integrations');
+          navigate('/integrations');
+          return;
+        }
+
         // Check if user has any projects
         const { data: accessData } = await supabase
           .from('project_access')

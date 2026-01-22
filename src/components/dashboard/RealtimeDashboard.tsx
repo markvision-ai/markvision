@@ -286,7 +286,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   </div>
                   <div className="mt-4">
                     <motion.p 
-                      className="text-3xl font-bold tabular-nums"
+                      className="text-xl md:text-2xl font-semibold tabular-nums"
                       key={metric.value}
                       initial={{ scale: 1.1, color: isPositive ? '#22c55e' : '#ef4444' }}
                       animate={{ scale: 1, color: 'inherit' }}
@@ -294,7 +294,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                     >
                       {formatValue(metric.value, metric.format)}
                     </motion.p>
-                    <p className="text-sm text-muted-foreground mt-1">{metric.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
                   </div>
                   {isConnected && (
                     <div className="absolute top-2 right-2">

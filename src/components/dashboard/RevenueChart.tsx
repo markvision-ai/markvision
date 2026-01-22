@@ -30,29 +30,29 @@ const formatCurrency = (value: number): string => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card/95 backdrop-blur-sm rounded-xl p-4 shadow-lg border border-border">
-        <p className="font-semibold text-sm mb-2 text-foreground">{label}</p>
+      <div className="bg-card/95 backdrop-blur-sm rounded-lg p-3 shadow-lg border border-border/40">
+        <p className="font-medium text-[11px] mb-2 text-foreground">{label}</p>
         {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center gap-2 text-sm">
+          <div key={index} className="flex items-center gap-2 text-xs mb-1">
             <div 
-              className="w-2 h-2 rounded-full" 
+              className="w-1.5 h-1.5 rounded-full" 
               style={{ backgroundColor: entry.color }}
             />
-            <span className="text-muted-foreground">
+            <span className="text-muted-foreground/70">
               {entry.name === 'revenue' ? 'Выручка' : 'Расходы'}:
             </span>
-            <span className="font-medium text-foreground">
+            <span className="font-semibold text-foreground">
               {new Intl.NumberFormat('ru-RU').format(entry.value)} ₸
             </span>
           </div>
         ))}
         {payload.length === 2 && (
           <div className="mt-2 pt-2 border-t border-border/30">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-muted-foreground">Прибыль:</span>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground/70">Прибыль:</span>
               <span className={cn(
-                "font-medium",
-                payload[0].value - payload[1].value >= 0 ? 'text-success' : 'text-destructive'
+                "font-semibold",
+                payload[0].value - payload[1].value >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'
               )}>
                 {new Intl.NumberFormat('ru-RU').format(payload[0].value - payload[1].value)} ₸
               </span>
@@ -94,38 +94,35 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-6 shadow-sm">
-        <h3 className="font-semibold mb-4 text-foreground">Динамика показателей</h3>
-        <div className="h-[300px] flex items-center justify-center text-muted-foreground">
-          Нет данных для отображения
+      <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4">
+        <h3 className="text-sm font-medium text-foreground mb-3">Динамика показателей</h3>
+        <div className="h-[200px] flex items-center justify-center text-xs text-muted-foreground/70">
+          Нет данных
         </div>
       </div>
     );
   }
 
   return (
-    <div className="group bg-card/80 backdrop-blur-xl border border-border/50 hover:border-primary/30 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-500">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
-
+    <div className="group bg-card/50 backdrop-blur-sm border border-border/40 hover:border-border/60 hover:bg-card/60 rounded-xl p-4 transition-all duration-200">
       {/* Header with totals */}
-      <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-4">
         <div className="flex-shrink-0">
-          <h3 className="font-semibold text-base sm:text-lg text-foreground">Динамика показателей</h3>
-          <p className="text-xs sm:text-sm text-muted-foreground">Выручка vs Расходы</p>
+          <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Динамика показателей</h3>
+          <p className="text-xs text-muted-foreground/70">Выручка vs Расходы</p>
         </div>
-        <div className="flex gap-4 sm:gap-6 flex-wrap">
+        <div className="flex gap-4 flex-wrap">
           <div 
             className="cursor-pointer transition-opacity min-w-0"
             style={{ opacity: hoveredMetric === 'spend' ? 0.5 : 1 }}
             onMouseEnter={() => handleMouseEnter('revenue')}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Выручка</span>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0" />
+              <span className="text-[10px] text-muted-foreground/70 font-medium">Выручка</span>
             </div>
-            <p className="text-sm sm:text-lg font-bold text-primary truncate">
+            <p className="text-sm font-semibold text-primary truncate">
               {formatCurrency(totals.revenue)} ₸
             </p>
           </div>
@@ -135,35 +132,35 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             onMouseEnter={() => handleMouseEnter('spend')}
             onMouseLeave={handleMouseLeave}
           >
-            <div className="flex items-center gap-1.5">
-              <div className="w-2 h-2 sm:w-3 sm:h-3 rounded-full bg-primary/40 flex-shrink-0" />
-              <span className="text-xs sm:text-sm text-muted-foreground">Расходы</span>
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <div className="w-2 h-2 rounded-full bg-secondary flex-shrink-0" />
+              <span className="text-[10px] text-muted-foreground/70 font-medium">Расходы</span>
             </div>
-            <p className="text-sm sm:text-lg font-bold text-muted-foreground truncate">
+            <p className="text-sm font-semibold text-muted-foreground truncate">
               {formatCurrency(totals.spend)} ₸
             </p>
           </div>
         </div>
       </div>
 
-      {/* Profit indicator */}
+      {/* Profit indicator - minimal */}
       <div className={cn(
-        "inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium mb-4",
+        "inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-medium mb-3",
         totals.profit >= 0 
-          ? 'bg-success/10 text-success' 
-          : 'bg-destructive/10 text-destructive'
+          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400' 
+          : 'bg-red-500/10 text-red-600 dark:text-red-400'
       )}>
         {totals.profit >= 0 ? (
-          <TrendingUp className="w-4 h-4" />
+          <TrendingUp className="w-3 h-3" />
         ) : (
-          <TrendingDown className="w-4 h-4" />
+          <TrendingDown className="w-3 h-3" />
         )}
-        Прибыль: {new Intl.NumberFormat('ru-RU').format(totals.profit)} ₸ 
-        <span className="opacity-70">({totals.profitPercent.toFixed(1)}%)</span>
+        {new Intl.NumberFormat('ru-RU').format(totals.profit)} ₸
+        <span className="opacity-70 text-[10px]">({totals.profitPercent.toFixed(1)}%)</span>
       </div>
 
-      {/* Chart */}
-      <div className="h-[280px]">
+      {/* Chart - compact */}
+      <div className="h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>

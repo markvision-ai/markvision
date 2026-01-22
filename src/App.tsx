@@ -1,8 +1,9 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "sonner";
 import { Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Eager load critical pages
 import Index from "./pages/Index";
@@ -36,9 +37,75 @@ const PageLoader = () => (
   </div>
 );
 
+// OAuth Handler Component
+const OAuthHandler = () => {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // КРИТИЧЕСКАЯ ПРОВЕРКА: OAuth параметры в URL
+    const handleOAuthRedirect = () => {
+      const hashParams = new URLSearchParams(window.location.hash.substring(1));
+      const searchParams = new URLSearchParams(window.location.search);
+      
+      const hasAccessToken = hashParams.has('access_token') || searchParams.has('access_token');
+      const hasCode = searchParams.has('code');
+      const hasError = searchParams.has('error');
+      const hasOAuthParams = hasAccessToken || hasCode || hasError;
+
+      console.log('🔍 Checking OAuth params:', {
+        pathname: window.location.pathname,
+        hasAccessToken,
+        hasCode,
+        hasError,
+        hash: window.location.hash.substring(0, 50),
+        search: window.location.search.substring(0, 100)
+      });
+
+      if (hasOAuthParams && window.location.pathname !== '/integrations') {
+        console.log('🚨 FORCING redirect to /integrations!');
+        // Используем setTimeout для гарантии выполнения
+        setTimeout(() => {
+          navigate('/integrations', { replace: true });
+        }, 0);
+        return true;
+      }
+      return false;
+    };
+
+    handleOAuthRedirect();
+
+    // Слушатель изменений авторизации
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔐 Auth event:', event);
+      console.log('👤 Session:', session);
+
+      if (event === 'SIGNED_IN') {
+        const currentUrl = window.location.href;
+        const hasOAuthHash = currentUrl.includes('#access_token') || currentUrl.includes('code=');
+        
+        if (hasOAuthHash && window.location.pathname !== '/integrations') {
+          console.log('✅ SIGNED_IN with OAuth params, redirecting to /integrations');
+          navigate('/integrations', { replace: true });
+        }
+
+        if (session?.provider_token) {
+          console.log('🎫 Provider token found:', session.provider_token.substring(0, 20) + '...');
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [navigate]);
+
+  return null;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <BrowserRouter>
+      <OAuthHandler />
       <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />

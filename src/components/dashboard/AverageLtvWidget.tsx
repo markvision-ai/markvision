@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Banknote } from 'lucide-react';
+import { Wallet } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface AverageLtvWidgetProps {
   projectId: string;
@@ -70,7 +71,6 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
   }, [projectId]);
 
   const formatCurrency = (value: number) => {
-    // Только "млн" для миллионов, остальное полностью
     if (value >= 1000000) {
       return (value / 1000000).toFixed(1).replace('.0', '') + ' млн ₸';
     }
@@ -79,14 +79,9 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
 
   if (loading) {
     return (
-      <div className="bg-card/80 backdrop-blur-xl border border-border/50 rounded-2xl p-5 shadow-sm">
-        <Skeleton className="h-4 w-32 mb-3" />
-        <Skeleton className="h-8 w-24 mb-3" />
-        <div className="grid grid-cols-3 gap-3">
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-          <Skeleton className="h-12 w-full rounded-lg" />
-        </div>
+      <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4">
+        <Skeleton className="h-4 w-24 mb-2" />
+        <Skeleton className="h-6 w-32" />
       </div>
     );
   }
@@ -94,37 +89,35 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
   if (!data) return null;
 
   return (
-    <div className="group bg-card/80 backdrop-blur-xl border border-border/50 hover:border-primary/30 rounded-2xl p-5 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-500">
-      {/* Background gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl" />
-
-      {/* Компактный горизонтальный layout */}
-      <div className="relative z-10 flex items-center gap-4">
+    <div className="group bg-card/50 backdrop-blur-sm border border-border/40 hover:border-border/60 hover:bg-card/60 rounded-xl p-4 transition-all duration-200">
+      <div className="flex items-center gap-3">
         {/* Icon */}
-        <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-primary/10 backdrop-blur-sm flex items-center justify-center">
-          <Banknote className="w-6 h-6 text-primary" />
+        <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+          <Wallet className="w-5 h-5 text-primary" />
         </div>
 
         {/* Main Value */}
         <div className="flex-1 min-w-0">
-          <h3 className="text-xs font-medium text-muted-foreground mb-1">Средний LTV</h3>
-          <span className="text-xl md:text-2xl font-bold text-foreground whitespace-nowrap">
+          <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-1">
+            Средний LTV
+          </p>
+          <p className="text-xl font-semibold text-foreground tracking-tight leading-none">
             {formatCurrency(data.averageLtv)}
-          </span>
+          </p>
         </div>
 
         {/* Compact Stats */}
-        <div className="flex gap-4 flex-shrink-0">
+        <div className="flex gap-3 flex-shrink-0">
           <div className="text-right">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Общий</p>
-            <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+            <p className="text-[10px] font-medium text-muted-foreground/70 mb-0.5">Общий</p>
+            <p className="text-xs font-semibold text-foreground">
               {formatCurrency(data.totalLtv)}
             </p>
           </div>
           
           <div className="text-right">
-            <p className="text-[10px] text-muted-foreground mb-0.5">Клиентов</p>
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-[10px] font-medium text-muted-foreground/70 mb-0.5">Клиентов</p>
+            <p className="text-xs font-semibold text-foreground">
               {data.paidCustomersCount}
             </p>
           </div>

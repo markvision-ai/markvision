@@ -38,6 +38,27 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
     setLoading(false);
   }, [currentProjectId]);
 
+  // Обработка OAuth ошибок из URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const error = urlParams.get('error');
+    const errorDescription = urlParams.get('error_description');
+    
+    if (error) {
+      const errorMessage = errorDescription 
+        ? decodeURIComponent(errorDescription) 
+        : 'Ошибка авторизации через Facebook';
+      
+      toast.error(errorMessage, {
+        duration: 5000,
+        description: error === 'server_error' ? 'Попробуйте еще раз или обратитесь в поддержку' : undefined
+      });
+      
+      // Очищаем URL от параметров ошибки
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
+
   useEffect(() => {
     fetchStatuses();
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
