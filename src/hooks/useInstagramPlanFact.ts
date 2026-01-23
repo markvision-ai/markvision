@@ -86,7 +86,6 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalReach = periodPosts.reduce((sum, p) => sum + (p.reach || 0), 0);
     const totalImpressions = periodPosts.reduce((sum, p) => sum + (p.impressions || 0), 0);
     const totalLikes = periodPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
-    const totalComments = periodPosts.reduce((sum, p) => sum + (p.comments || 0), 0);
     const totalShares = periodPosts.reduce((sum, p) => sum + (p.shares || 0), 0);
 
     // Комментарии = сумма всех комментариев
