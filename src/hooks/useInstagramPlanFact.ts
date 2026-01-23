@@ -36,23 +36,6 @@ export const useInstagramPlanFact = (projectId: string | null) => {
 
   // Автоматически считаем факт из агрегированных данных или из постов
   const calculatedFact = useMemo(() => {
-    console.log('📊 useInstagramPlanFact - Расчет факта:', {
-      periodStart,
-      periodEnd,
-      hasAggregatedStats: !!aggregatedStats,
-      statsLoading,
-      postsCount: posts?.length || 0,
-      aggregatedStats: aggregatedStats ? {
-        publications: aggregatedStats.publications,
-        stories: aggregatedStats.stories,
-        reach: aggregatedStats.reach,
-        comments: aggregatedStats.comments,
-        diagnostics: aggregatedStats.diagnostics,
-        sales: aggregatedStats.sales,
-        revenue: aggregatedStats.revenue,
-      } : null
-    });
-
     // Если есть агрегированные данные - используем их
     if (aggregatedStats && !statsLoading) {
       console.log('✅ Используем агрегированные метрики из content_production_stats');
@@ -88,17 +71,17 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     }
 
     // Период: с 1 января по вчерашний день (как в workflow)
-    const periodStart = new Date('2026-01-01T00:00:00.000Z');
-    const yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1); // Вчерашний день
-    yesterday.setHours(23, 59, 59, 999); // Конец вчерашнего дня
-    const periodEnd = yesterday;
+    const periodStartDate = new Date('2026-01-01T00:00:00.000Z');
+    const yesterdayDate = new Date();
+    yesterdayDate.setDate(yesterdayDate.getDate() - 1); // Вчерашний день
+    yesterdayDate.setHours(23, 59, 59, 999); // Конец вчерашнего дня
+    const periodEndDate = yesterdayDate;
 
     // Фильтруем посты за период
     const periodPosts = posts.filter(post => {
       if (!post.posted_at) return false;
       const postDate = new Date(post.posted_at);
-      return postDate >= periodStart && postDate <= periodEnd;
+      return postDate >= periodStartDate && postDate <= periodEndDate;
     });
 
     // Считаем Stories (только Stories)
@@ -127,7 +110,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalSales = periodPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
     const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
-    const periodEndStr = periodEnd.toISOString().split('T')[0];
+    const periodEndStr = periodEndDate.toISOString().split('T')[0];
     console.log(`📊 Период 1 января - ${periodEndStr} (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}, комментарии: ${totalComments}`);
     console.log('   Всего постов в базе:', posts.length);
     console.log('   Постов в периоде:', periodPosts.length);
