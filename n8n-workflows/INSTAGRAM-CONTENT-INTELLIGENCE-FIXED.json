@@ -99,7 +99,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем данные из предыдущей ноды\nconst allInputs = $input.all();\nconsole.log('\\n🔍 ПОДГОТОВКА ДЛЯ SUPABASE - Входные данные:');\nconsole.log('   Количество элементов:', allInputs.length);\n\nif (allInputs.length === 0) {\n  console.log('❌ Нет входных данных');\n  return { json: { error: 'no_input_data' } };\n}\n\n// Берем первый элемент\nconst input = allInputs[0].json;\n\nconsole.log('\\n📋 Полные входные данные:');\nconsole.log(JSON.stringify(input, null, 2));\n\n// Проверяем, что post_id не пустой\nif (!input.post_id || input.post_id === '') {\n  console.log('❌ ОШИБКА: post_id пустой!');\n  console.log('   Входные данные:', JSON.stringify(input, null, 2));\n  console.log('   Попытка получить post_id из других полей...');\n  \n  // Пробуем найти post_id в других полях\n  const possiblePostId = input.id || input.post_id || input.media_id || '';\n  if (possiblePostId) {\n    console.log(`   Найден post_id в другом поле: ${possiblePostId}`);\n    input.post_id = possiblePostId;\n  } else {\n    console.log('   ❌ post_id не найден ни в одном поле');\n    return { json: { error: 'empty_post_id', input: input } };\n  }\n}\n\nconsole.log('\\n💾 Формирование данных для Supabase:');\nconsole.log('   Post ID:', input.post_id);\nconsole.log('   Caption length:', input.caption ? input.caption.length : 0);\nconsole.log('   Media URL:', input.media_url ? input.media_url.substring(0, 50) + '...' : 'empty');\nconsole.log('   Permalink:', input.permalink ? input.permalink.substring(0, 50) + '...' : 'empty');\n\n// Формируем объект для Supabase\nconst supabaseData = {\n  post_id: input.post_id || '',\n  caption: input.caption || '',\n  media_type: input.media_type || 'UNKNOWN',\n  media_url: input.media_url || '',\n  permalink: input.permalink || '',\n  posted_at: input.posted_at || new Date().toISOString(),\n  impressions: input.impressions || 0,\n  reach: input.reach || 0,\n  likes: input.likes || 0,\n  comments: input.comments || 0,\n  shares: input.shares || 0,\n  saves: input.saves || 0,\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0,\n  updated_at: new Date().toISOString()\n};\n\nconsole.log('\\n✅ Финальные данные для Supabase:');\nconsole.log(JSON.stringify(supabaseData, null, 2));\n\nreturn { json: supabaseData };"
+        "jsCode": "// Получаем данные из предыдущей ноды\nconst allInputs = $input.all();\nconsole.log('\\n🔍 ПОДГОТОВКА ДЛЯ SUPABASE - Входные данные:');\nconsole.log('   Количество элементов:', allInputs.length);\n\nif (allInputs.length === 0) {\n  console.log('❌ Нет входных данных');\n  return { json: { error: 'no_input_data' } };\n}\n\n// Берем первый элемент\nconst input = allInputs[0].json;\n\nconsole.log('\\n📋 Полные входные данные:');\nconsole.log(JSON.stringify(input, null, 2));\n\n// Проверяем, что post_id не пустой\nif (!input.post_id || input.post_id === '') {\n  console.log('❌ ОШИБКА: post_id пустой!');\n  console.log('   Входные данные:', JSON.stringify(input, null, 2));\n  console.log('   Попытка получить post_id из других полей...');\n  \n  // Пробуем найти post_id в других полях\n  const possiblePostId = input.id || input.post_id || input.media_id || '';\n  if (possiblePostId) {\n    console.log(`   Найден post_id в другом поле: ${possiblePostId}`);\n    input.post_id = possiblePostId;\n  } else {\n    console.log('   ❌ post_id не найден ни в одном поле');\n    return { json: { error: 'empty_post_id', input: input } };\n  }\n}\n\nconsole.log('\\n💾 Формирование данных для Supabase:');\nconsole.log('   Post ID:', input.post_id);\nconsole.log('   Caption length:', input.caption ? input.caption.length : 0);\nconsole.log('   Media URL:', input.media_url ? input.media_url.substring(0, 50) + '...' : 'empty');\nconsole.log('   Permalink:', input.permalink ? input.permalink.substring(0, 50) + '...' : 'empty');\n\n// Формируем объект для Supabase\nconst supabaseData = {\n  post_id: input.post_id || '',\n  caption: input.caption || '',\n  media_type: input.media_type || 'UNKNOWN',\n  media_url: input.media_url || '',\n  permalink: input.permalink || '',\n  posted_at: input.posted_at || new Date().toISOString(),\n  impressions: input.impressions || 0,\n  reach: input.reach || 0,\n  likes: input.likes || 0,\n  comments: input.comments || 0,\n  shares: input.shares || 0,\n  saves: input.saves || 0,\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0,\n  updated_at: new Date().toISOString()\n};\n\nconsole.log('\\n✅ Финальные данные для Supabase:');\nconsole.log(JSON.stringify(supabaseData, null, 2));\n\n// Проверяем, что все обязательные поля заполнены\nif (!supabaseData.post_id || supabaseData.post_id === '') {\n  console.log('\\n❌ КРИТИЧЕСКАЯ ОШИБКА: post_id пустой!');\n  console.log('   Данные:', JSON.stringify(supabaseData, null, 2));\n}\n\nconsole.log(`\\n📤 Готово к отправке в Supabase:`);\nconsole.log(`   URL: https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?on_conflict=post_id`);\nconsole.log(`   Post ID: ${supabaseData.post_id}`);\nconsole.log(`   Media Type: ${supabaseData.media_type}`);\nconsole.log(`   Posted At: ${supabaseData.posted_at}`);\n\nreturn { json: supabaseData };"
       },
       "id": "prepare-supabase-01",
       "name": "📦 Подготовить для Supabase",
@@ -110,7 +110,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?on_conflict=post_id",
+        "url": "=https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?on_conflict=post_id",
         "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
@@ -149,13 +149,23 @@
     },
     {
       "parameters": {
-        "jsCode": "const items = $input.all();\nconst successCount = items.length;\n\nconsole.log(`\\n✅ УСПЕШНО СОХРАНЕНО: ${successCount} постов\\n`);\n\nreturn {\n  json: {\n    success: true,\n    posts_processed: successCount,\n    timestamp: new Date().toISOString()\n  }\n};"
+        "jsCode": "// Обрабатываем ответ от Supabase\nconst input = $input.first().json;\n\nconsole.log('\\n🔍 ОБРАБОТКА ОТВЕТА ОТ SUPABASE:');\nconsole.log('   Response type:', typeof input);\nconsole.log('   Response keys:', input ? Object.keys(input) : 'null');\nconsole.log('   Full response:', JSON.stringify(input, null, 2).substring(0, 1000));\n\n// Проверяем, есть ли ошибка\nif (input.error || input.message) {\n  console.log('\\n❌ ОШИБКА ОТ SUPABASE:');\n  console.log('   Error:', input.error || input.message);\n  console.log('   Details:', input.details || input.hint || '');\n  \n  return {\n    json: {\n      success: false,\n      error: input.error || input.message,\n      details: input.details || input.hint || '',\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Если ответ успешный (обычно это массив с одним объектом или пустой массив)\nif (Array.isArray(input)) {\n  console.log(`\\n✅ УСПЕШНО СОХРАНЕНО в Supabase!`);\n  console.log(`   Количество записей: ${input.length}`);\n  if (input.length > 0) {\n    console.log('   Сохраненная запись:', JSON.stringify(input[0], null, 2).substring(0, 500));\n  }\n  \n  return {\n    json: {\n      success: true,\n      posts_processed: input.length,\n      data: input[0] || null,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Если это объект (может быть успешный ответ)\nif (input && typeof input === 'object') {\n  console.log(`\\n✅ УСПЕШНО СОХРАНЕНО в Supabase!`);\n  console.log('   Сохраненная запись:', JSON.stringify(input, null, 2).substring(0, 500));\n  \n  return {\n    json: {\n      success: true,\n      posts_processed: 1,\n      data: input,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Неизвестный формат ответа\nconsole.log('\\n⚠️ Неизвестный формат ответа от Supabase');\nreturn {\n  json: {\n    success: false,\n    error: 'unknown_response_format',\n    response: input,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "process-response-01",
+      "name": "🔍 Обработать ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst successCount = items.filter(item => item.json.success === true).length;\nconst errorCount = items.filter(item => item.json.success === false).length;\n\nconsole.log(`\\n✅ ИТОГОВЫЙ РЕЗУЛЬТАТ:`);\nconsole.log(`   Успешно сохранено: ${successCount} постов`);\nconsole.log(`   Ошибок: ${errorCount}`);\n\nif (errorCount > 0) {\n  console.log('\\n❌ Ошибки при сохранении:');\n  items.filter(item => item.json.success === false).forEach((item, idx) => {\n    console.log(`   ${idx + 1}. ${item.json.error || 'Unknown error'}`);\n  });\n}\n\nreturn {\n  json: {\n    success: errorCount === 0,\n    posts_processed: successCount,\n    errors: errorCount,\n    timestamp: new Date().toISOString()\n  }\n};"
       },
       "id": "success-log-01",
       "name": "✅ Success Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1780, 300]
+      "position": [2000, 300]
     }
   ],
   "connections": {
@@ -178,6 +188,9 @@
       "main": [[{ "node": "💾 Save to Supabase", "type": "main", "index": 0 }]]
     },
     "💾 Save to Supabase": {
+      "main": [[{ "node": "🔍 Обработать ответ", "type": "main", "index": 0 }]]
+    },
+    "🔍 Обработать ответ": {
       "main": [[{ "node": "✅ Success Log", "type": "main", "index": 0 }]]
     }
   },
