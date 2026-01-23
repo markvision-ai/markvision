@@ -112,29 +112,51 @@ export const useInstagramPlanFact = (projectId: string | null) => {
 
   // Обновляем факт автоматически
   useEffect(() => {
+    console.log('📊 useInstagramPlanFact - Обновление факта:', {
+      calculatedFact,
+      postsCount: posts?.length || 0,
+      aggregatedStats,
+      statsLoading
+    });
+    
     setPlanData(prev => prev.map(item => {
+      let newFact = item.fact;
       switch (item.metric) {
         case 'Публикации':
-          return { ...item, fact: calculatedFact.publications };
+          newFact = calculatedFact.publications;
+          break;
         case 'Сторис':
-          return { ...item, fact: calculatedFact.stories };
+          newFact = calculatedFact.stories;
+          break;
         case 'Охват':
-          return { ...item, fact: calculatedFact.reach };
+          newFact = calculatedFact.reach;
+          break;
         case 'Комментарии':
-          return { ...item, fact: calculatedFact.comments };
+          newFact = calculatedFact.comments;
+          break;
         case 'Новые подписчики':
-          return { ...item, fact: calculatedFact.followers };
+          newFact = calculatedFact.followers;
+          break;
         case 'Диагностики':
-          return { ...item, fact: calculatedFact.diagnostics };
+          newFact = calculatedFact.diagnostics;
+          break;
         case 'Продажи':
-          return { ...item, fact: calculatedFact.sales };
+          newFact = calculatedFact.sales;
+          break;
         case 'Сумма продаж':
-          return { ...item, fact: calculatedFact.revenue };
+          newFact = calculatedFact.revenue;
+          break;
         default:
           return item;
       }
+      
+      if (newFact !== item.fact) {
+        console.log(`✅ ${item.metric}: ${item.fact} → ${newFact}`);
+      }
+      
+      return { ...item, fact: newFact };
     }));
-  }, [calculatedFact]);
+  }, [calculatedFact, posts, aggregatedStats, statsLoading]);
 
   const updatePlan = (metric: string, plan: number) => {
     setPlanData(prev => prev.map(item => 
