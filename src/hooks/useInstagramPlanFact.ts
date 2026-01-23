@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInstagramPostsStats } from './useInstagramPostsStats';
-import { startOfMonth, endOfMonth } from 'date-fns';
 
 export interface ContentPlanFactData {
   metric: string;
@@ -12,9 +11,8 @@ export interface ContentPlanFactData {
 export const useInstagramPlanFact = (projectId: string | null) => {
   const { posts } = useInstagramPostsStats(projectId);
   const [planData, setPlanData] = useState<ContentPlanFactData[]>([
-    { metric: 'Reels/месяц', plan: 30, fact: 0, unit: 'шт' },
-    { metric: 'Stories/месяц', plan: 90, fact: 0, unit: 'шт' },
-    { metric: 'Карусели/месяц', plan: 12, fact: 0, unit: 'шт' },
+    { metric: 'Публикации', plan: 0, fact: 0, unit: 'шт' },
+    { metric: 'Сторис', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Охват', plan: 500000, fact: 0, unit: '' },
     { metric: 'Вовлеченность', plan: 8, fact: 0, unit: '%' },
     { metric: 'Новые подписчики', plan: 5000, fact: 0, unit: '' },
@@ -23,55 +21,50 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     { metric: 'Сумма продаж', plan: 0, fact: 0, unit: '₸' },
   ]);
 
-  // Автоматически считаем факт из Instagram данных за текущий месяц
+  // Автоматически считаем факт из Instagram данных за период с 1 по 22 января 2026
   const calculatedFact = useMemo(() => {
     if (!posts || posts.length === 0) {
       return {
-        reels: 0,
+        publications: 0,
         stories: 0,
-        carousels: 0,
         reach: 0,
         engagement: 0,
-        followers: 0, // Это нужно из другого источника
+        followers: 0,
         diagnostics: 0,
         sales: 0,
         revenue: 0,
       };
     }
 
-    const now = new Date();
-    const monthStart = startOfMonth(now);
-    const monthEnd = endOfMonth(now);
+    // Период: с 1 января по 22 января 2026
+    const periodStart = new Date('2026-01-01T00:00:00.000Z');
+    const periodEnd = new Date('2026-01-22T23:59:59.999Z');
 
-    // Фильтруем посты за текущий месяц
-    const monthPosts = posts.filter(post => {
+    // Фильтруем посты за период
+    const periodPosts = posts.filter(post => {
       if (!post.posted_at) return false;
       const postDate = new Date(post.posted_at);
-      return postDate >= monthStart && postDate <= monthEnd;
+      return postDate >= periodStart && postDate <= periodEnd;
     });
 
-    // Считаем по типам
-    const reels = monthPosts.filter(p => 
-      p.media_type?.toLowerCase().includes('reel') || 
-      p.media_type === 'REELS'
-    ).length;
+    // Считаем Stories (только Stories)
+    const stories = periodPosts.filter(p => {
+      const mediaType = (p.media_type || '').toLowerCase();
+      return mediaType.includes('story') || mediaType === 'stories';
+    }).length;
 
-    const stories = monthPosts.filter(p => 
-      p.media_type?.toLowerCase().includes('story') || 
-      p.media_type === 'STORIES'
-    ).length;
+    // Считаем Публикации (все остальное: Reels, Carousels, обычные посты)
+    const publications = periodPosts.filter(p => {
+      const mediaType = (p.media_type || '').toLowerCase();
+      return !mediaType.includes('story') && mediaType !== 'stories';
+    }).length;
 
-    const carousels = monthPosts.filter(p => 
-      p.media_type?.toLowerCase().includes('carousel') || 
-      p.media_type === 'CAROUSEL_ALBUM'
-    ).length;
-
-    // Суммируем метрики
-    const totalReach = monthPosts.reduce((sum, p) => sum + (p.reach || 0), 0);
-    const totalImpressions = monthPosts.reduce((sum, p) => sum + (p.impressions || 0), 0);
-    const totalLikes = monthPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
-    const totalComments = monthPosts.reduce((sum, p) => sum + (p.comments || 0), 0);
-    const totalShares = monthPosts.reduce((sum, p) => sum + (p.shares || 0), 0);
+    // Суммируем метрики за весь период
+    const totalReach = periodPosts.reduce((sum, p) => sum + (p.reach || 0), 0);
+    const totalImpressions = periodPosts.reduce((sum, p) => sum + (p.impressions || 0), 0);
+    const totalLikes = periodPosts.reduce((sum, p) => sum + (p.likes || 0), 0);
+    const totalComments = periodPosts.reduce((sum, p) => sum + (p.comments || 0), 0);
+    const totalShares = periodPosts.reduce((sum, p) => sum + (p.shares || 0), 0);
 
     // Вовлеченность = (лайки + комментарии + репосты) / показы * 100
     const engagement = totalImpressions > 0 
@@ -79,14 +72,15 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       : 0;
 
     // Бизнес-метрики (из постов, если есть)
-    const totalDiagnostics = monthPosts.reduce((sum, p) => sum + (p.leads_count || 0), 0); // Пока используем leads_count как диагностики
-    const totalSales = monthPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
-    const totalRevenue = monthPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
+    const totalDiagnostics = periodPosts.reduce((sum, p) => sum + (p.leads_count || 0), 0);
+    const totalSales = periodPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
+    const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
+
+    console.log(`📊 Период 1-22 января 2026: ${publications} публикаций, ${stories} сторис, охват: ${totalReach}`);
 
     return {
-      reels,
+      publications,
       stories,
-      carousels,
       reach: totalReach,
       engagement: Math.round(engagement * 100) / 100, // 2 знака после запятой
       followers: 0, // TODO: получить из Instagram Insights API
@@ -100,12 +94,10 @@ export const useInstagramPlanFact = (projectId: string | null) => {
   useEffect(() => {
     setPlanData(prev => prev.map(item => {
       switch (item.metric) {
-        case 'Reels/месяц':
-          return { ...item, fact: calculatedFact.reels };
-        case 'Stories/месяц':
+        case 'Публикации':
+          return { ...item, fact: calculatedFact.publications };
+        case 'Сторис':
           return { ...item, fact: calculatedFact.stories };
-        case 'Карусели/месяц':
-          return { ...item, fact: calculatedFact.carousels };
         case 'Охват':
           return { ...item, fact: calculatedFact.reach };
         case 'Вовлеченность':
