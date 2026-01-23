@@ -127,8 +127,8 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
       <div className="border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-muted/50">
-            <tr>
-              <th className="text-left p-3 text-sm font-medium text-muted-foreground">Контент</th>
+              <tr>
+              <th className="text-left p-3 text-sm font-medium text-muted-foreground w-80">Контент</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Охват</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Комментарии</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Результат</th>
@@ -142,17 +142,54 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                 key={post.id}
                 className="border-t hover:bg-muted/30 transition-colors"
               >
-                {/* Контент - только текст */}
+                {/* Контент - превью + текст */}
                 <td className="p-3">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-foreground line-clamp-2">
-                      {post.caption || 'Без описания'}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {post.posted_at
-                        ? formatDistanceToNow(new Date(post.posted_at), { addSuffix: true, locale: ru })
-                        : 'Дата неизвестна'}
-                    </p>
+                  <div className="flex gap-3 items-start">
+                    {/* Компактное превью */}
+                    <div 
+                      className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                      onClick={() => post.permalink && window.open(post.permalink, '_blank')}
+                    >
+                      {post.media_url ? (
+                        <>
+                          {post.media_type?.toLowerCase().includes('video') ? (
+                            <video
+                              src={post.media_url}
+                              className="w-full h-full object-cover"
+                              muted
+                              loop
+                            />
+                          ) : (
+                            <img
+                              src={post.media_url}
+                              alt="Post thumbnail"
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end justify-center pb-0.5">
+                            {post.media_type?.toLowerCase().includes('video') && (
+                              <Play className="w-3 h-3 text-white" fill="white" />
+                            )}
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Play className="w-4 h-4 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Текст */}
+                    <div className="flex-1 min-w-0 space-y-1">
+                      <p className="text-sm font-medium text-foreground line-clamp-2">
+                        {truncateText(post.caption, 60)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {post.posted_at
+                          ? formatDistanceToNow(new Date(post.posted_at), { addSuffix: true, locale: ru })
+                          : 'Дата неизвестна'}
+                      </p>
+                    </div>
                   </div>
                 </td>
 
