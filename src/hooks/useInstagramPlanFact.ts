@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useInstagramPostsStats } from './useInstagramPostsStats';
+import { useContentProductionStats } from './useContentProductionStats';
 
 export interface ContentPlanFactData {
   metric: string;
@@ -10,6 +11,12 @@ export interface ContentPlanFactData {
 
 export const useInstagramPlanFact = (projectId: string | null) => {
   const { posts } = useInstagramPostsStats(projectId);
+  // Получаем агрегированные метрики из content_production_stats
+  const { stats: aggregatedStats, loading: statsLoading } = useContentProductionStats(
+    projectId,
+    '2026-01-01',
+    '2026-01-22'
+  );
   const [planData, setPlanData] = useState<ContentPlanFactData[]>([
     { metric: 'Публикации', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Сторис', plan: 0, fact: 0, unit: 'шт' },
@@ -21,8 +28,24 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     { metric: 'Сумма продаж', plan: 0, fact: 0, unit: '₸' },
   ]);
 
-  // Автоматически считаем факт из Instagram данных за период с 1 по 22 января 2026
+  // Автоматически считаем факт из агрегированных данных или из постов
   const calculatedFact = useMemo(() => {
+    // Если есть агрегированные данные - используем их
+    if (aggregatedStats && !statsLoading) {
+      console.log('✅ Используем агрегированные метрики из content_production_stats');
+      return {
+        publications: aggregatedStats.publications || 0,
+        stories: aggregatedStats.stories || 0,
+        reach: aggregatedStats.reach || 0,
+        engagement: aggregatedStats.engagement || 0,
+        followers: aggregatedStats.followers || 0,
+        diagnostics: aggregatedStats.diagnostics || 0,
+        sales: aggregatedStats.sales || 0,
+        revenue: aggregatedStats.revenue || 0,
+      };
+    }
+
+    // Иначе считаем из постов
     if (!posts || posts.length === 0) {
       return {
         publications: 0,
@@ -76,7 +99,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalSales = periodPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
     const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
-    console.log(`📊 Период 1-22 января 2026: ${publications} публикаций, ${stories} сторис, охват: ${totalReach}`);
+    console.log(`📊 Период 1-22 января 2026 (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}`);
 
     return {
       publications,
@@ -88,7 +111,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       sales: totalSales,
       revenue: totalRevenue,
     };
-  }, [posts]);
+  }, [posts, aggregatedStats, statsLoading]);
 
   // Обновляем факт автоматически
   useEffect(() => {

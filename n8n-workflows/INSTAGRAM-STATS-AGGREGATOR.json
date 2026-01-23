@@ -1,0 +1,139 @@
+{
+  "name": "Instagram Stats Aggregator (1-22 Jan)",
+  "nodes": [
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?posted_at=gte.2026-01-01&posted_at=lte.2026-01-22T23:59:59&order=posted_at.asc",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-posts-01",
+      "name": "📊 Get Posts (1-22 Jan)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nif (!Array.isArray(input)) {\n  console.log('⚠️ Нет данных от Supabase');\n  return { json: { skip: true, reason: 'no_data' } };\n}\n\nconst posts = input;\nconsole.log(`📊 Получено постов за период 1-22 января: ${posts.length}`);\n\nif (posts.length === 0) {\n  return { json: { skip: true, reason: 'no_posts' } };\n}\n\n// Считаем метрики\nconst stories = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return mediaType.includes('story') || mediaType === 'stories';\n}).length;\n\nconst publications = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return !mediaType.includes('story') && mediaType !== 'stories';\n}).length;\n\n// Суммируем метрики\nconst totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);\nconst totalImpressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);\nconst totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);\nconst totalComments = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\nconst totalShares = posts.reduce((sum, p) => sum + (p.shares || 0), 0);\n\n// Вовлеченность = (лайки + комментарии + репосты) / показы * 100\nconst engagement = totalImpressions > 0 \n  ? ((totalLikes + totalComments + totalShares) / totalImpressions) * 100 \n  : 0;\n\n// Бизнес-метрики\nconst totalDiagnostics = posts.reduce((sum, p) => sum + (p.leads_count || 0), 0);\nconst totalSales = posts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);\nconst totalRevenue = posts.reduce((sum, p) => sum + (p.revenue || 0), 0);\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nconst result = {\n  project_id: projectId,\n  period_start: '2026-01-01',\n  period_end: '2026-01-22',\n  publications: publications,\n  stories: stories,\n  reach: totalReach,\n  engagement: Math.round(engagement * 100) / 100, // 2 знака после запятой\n  followers: 0, // TODO: получить из Instagram Insights API\n  diagnostics: totalDiagnostics,\n  sales: totalSales,\n  revenue: Math.round(totalRevenue), // БЕЗ КОПЕЕК\n};\n\nconsole.log(`\\n✅ Агрегированные метрики за 1-22 января:`);\nconsole.log(`   Публикации: ${publications}`);\nconsole.log(`   Сторис: ${stories}`);\nconsole.log(`   Охват: ${totalReach.toLocaleString('ru-RU')}`);\nconsole.log(`   Вовлеченность: ${result.engagement}%`);\nconsole.log(`   Диагностики: ${totalDiagnostics}`);\nconsole.log(`   Продажи: ${totalSales}`);\nconsole.log(`   Выручка: ${totalRevenue.toLocaleString('ru-RU')}₸`);\n\nreturn { json: result };"
+      },
+      "id": "calculate-stats-01",
+      "name": "🧮 Calculate Stats",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{ $json.skip }}",
+              "value2": false
+            }
+          ]
+        }
+      },
+      "id": "check-skip-01",
+      "name": "❓ Check Skip",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/content_production_stats?on_conflict=project_id,period_start,period_end",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI8NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"period_start\": \"{{ $json.period_start }}\",\n  \"period_end\": \"{{ $json.period_end }}\",\n  \"publications\": {{ $json.publications }},\n  \"stories\": {{ $json.stories }},\n  \"reach\": {{ $json.reach }},\n  \"engagement\": {{ $json.engagement }},\n  \"followers\": {{ $json.followers }},\n  \"diagnostics\": {{ $json.diagnostics }},\n  \"sales\": {{ $json.sales }},\n  \"revenue\": {{ $json.revenue }},\n  \"updated_at\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "id": "save-stats-01",
+      "name": "💾 Save to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\n\nconsole.log(`\\n✅ УСПЕШНО СОХРАНЕНО в content_production_stats!\\n`);\nconsole.log(`   Период: ${result.period_start} - ${result.period_end}`);\nconsole.log(`   Публикации: ${result.publications}`);\nconsole.log(`   Сторис: ${result.stories}`);\nconsole.log(`   Охват: ${result.reach.toLocaleString('ru-RU')}`);\nconsole.log(`   Вовлеченность: ${result.engagement}%`);\n\nreturn {\n  json: {\n    success: true,\n    message: 'Статистика за 1-22 января успешно сохранена',\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "success-log-01",
+      "name": "✅ Success Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "📊 Get Posts (1-22 Jan)": {
+      "main": [[{ "node": "🧮 Calculate Stats", "type": "main", "index": 0 }]]
+    },
+    "🧮 Calculate Stats": {
+      "main": [[{ "node": "❓ Check Skip", "type": "main", "index": 0 }]]
+    },
+    "❓ Check Skip": {
+      "main": [
+        [
+          {
+            "node": "💾 Save to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Save to Supabase": {
+      "main": [[{ "node": "✅ Success Log", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-23T00:00:00.000Z",
+  "versionId": "1"
+}
