@@ -115,7 +115,8 @@
           ]
         },
         "options": {
-          "timeout": 30000
+          "timeout": 30000,
+          "alwaysOutputData": true
         }
       },
       "id": "supabase-query-01",
@@ -126,7 +127,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const postData = $input.first().json;\nconst leadsData = $input.last().json;\n\nif (!Array.isArray(leadsData)) {\n  console.log(`⚠️ Нет лидов для поста ${postData.post_id}`);\n  return {\n    json: {\n      ...postData,\n      leads_count: 0,\n      revenue: 0,\n      paid_leads: 0\n    }\n  };\n}\n\nconst leadsCount = leadsData.length;\nconst paidLeads = leadsData.filter(l => l.status === 'purchased' || l.status === 'paid');\nconst revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);\n\nconsole.log(`💰 Post ${postData.post_id}: ${leadsCount} лидов, ${paidLeads.length} оплачено, ${revenue}₸ выручки`);\n\nreturn {\n  json: {\n    ...postData,\n    leads_count: leadsCount,\n    revenue: Math.round(revenue), // БЕЗ КОПЕЕК\n    paid_leads: paidLeads.length\n  }\n};"
+        "jsCode": "// Получаем все inputs\nconst allInputs = $input.all();\n\n// Данные поста всегда в первом input (от Merge Insights)\nlet postData = null;\nlet leadsData = [];\n\n// Ищем данные поста (должны быть в любом input)\nfor (const item of allInputs) {\n  const data = item.json;\n  // Если есть post_id - это данные поста\n  if (data.post_id) {\n    postData = data;\n  }\n  // Если это массив - это лиды\n  else if (Array.isArray(data)) {\n    leadsData = data;\n  }\n  // Если это объект с массивом data - извлекаем\n  else if (data && Array.isArray(data.data)) {\n    leadsData = data.data;\n  }\n}\n\n// Если данных поста нет - ошибка\nif (!postData) {\n  console.error('❌ Нет данных поста!');\n  return { json: { error: 'No post data' } };\n}\n\n// Если лидов нет - это нормально, продолжаем с нулями\nif (leadsData.length === 0) {\n  console.log(`⚠️ Нет лидов для поста ${postData.post_id} - это нормально, продолжаем`);\n  return {\n    json: {\n      ...postData,\n      leads_count: 0,\n      revenue: 0,\n      paid_leads: 0\n    }\n  };\n}\n\n// Считаем метрики\nconst leadsCount = leadsData.length;\nconst paidLeads = leadsData.filter(l => l.status === 'purchased' || l.status === 'paid');\nconst revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);\n\nconsole.log(`💰 Post ${postData.post_id}: ${leadsCount} лидов, ${paidLeads.length} оплачено, ${revenue}₸ выручки`);\n\nreturn {\n  json: {\n    ...postData,\n    leads_count: leadsCount,\n    revenue: Math.round(revenue), // БЕЗ КОПЕЕК\n    paid_leads: paidLeads.length\n  }\n};"
       },
       "id": "calc-leads-01",
       "name": "🧮 Calculate Leads & Revenue",
@@ -197,7 +198,10 @@
       "main": [[{ "node": "🔀 Merge Insights", "type": "main", "index": 0 }]]
     },
     "🔀 Merge Insights": {
-      "main": [[{ "node": "💾 Query Leads", "type": "main", "index": 0 }]]
+      "main": [
+        [{ "node": "💾 Query Leads", "type": "main", "index": 0 }],
+        [{ "node": "🧮 Calculate Leads & Revenue", "type": "main", "index": 0 }]
+      ]
     },
     "💾 Query Leads": {
       "main": [[{ "node": "🧮 Calculate Leads & Revenue", "type": "main", "index": 0 }]]
