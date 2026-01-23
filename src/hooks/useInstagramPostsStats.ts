@@ -8,7 +8,7 @@ export interface InstagramPostStat {
   media_type: string | null;
   media_url: string | null;
   permalink: string | null;
-  timestamp: string | null;
+  posted_at: string | null;
   impressions: number;
   reach: number;
   likes: number;
@@ -42,7 +42,7 @@ export const useInstagramPostsStats = (projectId: string | null) => {
         const { data, error: fetchError } = await supabase
           .from('instagram_posts_stats')
           .select('*')
-          .order('timestamp', { ascending: false })
+          .order('posted_at', { ascending: false })
           .limit(50);
 
         if (fetchError) throw fetchError;

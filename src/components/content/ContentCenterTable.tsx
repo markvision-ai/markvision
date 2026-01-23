@@ -151,8 +151,8 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                         {truncateText(post.caption, 80)}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {post.timestamp
-                          ? formatDistanceToNow(new Date(post.timestamp), { addSuffix: true, locale: ru })
+                        {post.posted_at
+                          ? formatDistanceToNow(new Date(post.posted_at), { addSuffix: true, locale: ru })
                           : 'Дата неизвестна'}
                       </p>
                     </div>

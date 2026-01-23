@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.instagram_posts_stats (
   media_type TEXT,
   media_url TEXT,
   permalink TEXT,
-  timestamp TIMESTAMPTZ,
+  posted_at TIMESTAMPTZ,
   
   -- Метрики Instagram
   impressions INTEGER DEFAULT 0,
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS public.instagram_posts_stats (
 
 -- Индексы для быстрого поиска
 CREATE INDEX IF NOT EXISTS idx_instagram_posts_post_id ON public.instagram_posts_stats(post_id);
-CREATE INDEX IF NOT EXISTS idx_instagram_posts_timestamp ON public.instagram_posts_stats(timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_instagram_posts_posted_at ON public.instagram_posts_stats(posted_at DESC);
 CREATE INDEX IF NOT EXISTS idx_instagram_posts_revenue ON public.instagram_posts_stats(revenue DESC);
 
 -- RLS (Row Level Security)
