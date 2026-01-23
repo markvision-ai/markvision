@@ -13,30 +13,18 @@ import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
 import { ContentCenterTable } from '@/components/content/ContentCenterTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/externalSupabase';
+import { useInstagramPlanFact } from '@/hooks/useInstagramPlanFact';
 
 interface ContentFactoryPageProps {
   projectId: string | null;
 }
 
-// План/Факт данные для контент-производства
-interface ContentPlanData {
-  metric: string;
-  plan: number;
-  fact: number;
-  unit: string;
-}
-
 export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
   const [activeTab, setActiveTab] = useState('workshops');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [planData, setPlanData] = useState<ContentPlanData[]>([
-    { metric: 'Reels/месяц', plan: 30, fact: 24, unit: 'шт' },
-    { metric: 'Stories/месяц', plan: 90, fact: 78, unit: 'шт' },
-    { metric: 'Карусели/месяц', plan: 12, fact: 10, unit: 'шт' },
-    { metric: 'Охват', plan: 500000, fact: 423000, unit: '' },
-    { metric: 'Вовлеченность', plan: 8, fact: 6.5, unit: '%' },
-    { metric: 'Новые подписчики', plan: 5000, fact: 4200, unit: '' },
-  ]);
+  
+  // Автоматический расчет факта из Instagram данных
+  const { planData, updatePlan } = useInstagramPlanFact(projectId);
   
   const {
     content,
@@ -88,9 +76,13 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
   };
 
   const handlePlanChange = (index: number, field: 'plan' | 'fact', value: number) => {
-    setPlanData(prev => prev.map((item, i) => 
-      i === index ? { ...item, [field]: value } : item
-    ));
+    if (field === 'plan') {
+      const metric = planData[index]?.metric;
+      if (metric) {
+        updatePlan(metric, value);
+      }
+    }
+    // fact обновляется автоматически из Instagram данных
   };
 
   const getProgress = (plan: number, fact: number) => {
@@ -188,8 +180,9 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
                         <Input
                           type="number"
                           value={row.fact}
-                          onChange={(e) => handlePlanChange(index, 'fact', Number(e.target.value))}
-                          className="w-24 h-8 text-center mx-auto"
+                          readOnly
+                          className="w-24 h-8 text-center mx-auto bg-muted/50 cursor-not-allowed"
+                          title="Автоматически рассчитывается из Instagram данных"
                         />
                       </td>
                       <td className="py-2 px-3 text-center">

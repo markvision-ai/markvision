@@ -143,9 +143,11 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
               <div className="p-4">
                 <div className="flex flex-col md:flex-row gap-4">
                   {/* Thumbnail + Content */}
-                  <div className="flex gap-3 flex-1">
-                    {/* Thumbnail */}
-                    <div className="relative w-20 h-20 flex-shrink-0 rounded-xl overflow-hidden border-2 border-violet-200/50 dark:border-violet-800/50 shadow-lg">
+                  <div className="flex gap-4 flex-1">
+                    {/* Thumbnail - УВЕЛИЧЕН */}
+                    <div className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0 rounded-xl overflow-hidden border-2 border-violet-200/50 dark:border-violet-800/50 shadow-lg group-hover:shadow-xl transition-shadow cursor-pointer"
+                      onClick={() => post.permalink && window.open(post.permalink, '_blank')}
+                    >
                       {post.media_url ? (
                         <>
                           {post.media_type?.toLowerCase().includes('video') ? (
