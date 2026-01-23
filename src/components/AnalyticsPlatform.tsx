@@ -254,12 +254,13 @@ export const AnalyticsPlatform = () => {
     { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
   ];
 
-  // Сравнение с прошлой неделей
+  // Сравнение с прошлой неделей (все ключевые показатели)
   const comparisonStats = [
-    { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
+    { label: 'Расходы', current: totals.spend, previous: previousWeekTotals.spend, format: 'currency' as const },
     { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
-    { label: 'Конверсия', current: conversionRate, previous: prevConversionRate, format: 'percent' as const },
-    { label: 'ROMI', current: romi, previous: prevRomi, format: 'percent' as const },
+    { label: 'Диагностики', current: totals.diagnostics, previous: previousWeekTotals.diagnostics, format: 'number' as const },
+    { label: 'Продажи', current: totals.sales, previous: previousWeekTotals.sales, format: 'number' as const },
+    { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
   ];
 
   const getTabTitle = () => {
