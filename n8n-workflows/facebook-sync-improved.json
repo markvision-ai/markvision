@@ -1,0 +1,467 @@
+{
+  "name": "MarkVision_FB_Sync_Improved_v2",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v21.0/act_1890905081453686/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "={{ $credentials.facebookGraphApi.accessToken }}"
+            },
+            {
+              "name": "fields",
+              "value": "spend,impressions,clicks,reach,ctr,cpc,cpm"
+            },
+            {
+              "name": "level",
+              "value": "account"
+            },
+            {
+              "name": "date_preset",
+              "value": "today"
+            },
+            {
+              "name": "time_increment",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "fb-request",
+      "name": "Get FB Stats",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "facebookGraphApi": {
+          "id": "your_facebook_credential_id",
+          "name": "Facebook Graph API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Input validation\nconst input = $input.first().json;\n\nif (!input || !input.data || input.data.length === 0) {\n  console.log('No data from Facebook API');\n  return { json: { skip: true, reason: 'no_data' } };\n}\n\nconst fbData = input.data[0];\n\n// Use environment variable or fallback\nconst projectId = $env.PROJECT_ID || '64c94e87-630c-470e-8ab1-8f7c8c835efa';\nconst today = new Date().toISOString().split('T')[0];\n\n// Safe number parsing\nfunction safeParse(value, decimals = 2) {\n  const num = parseFloat(value || 0);\n  return isNaN(num) ? 0 : parseFloat(num.toFixed(decimals));\n}\n\nfunction safeInt(value) {\n  const num = parseInt(value || 0, 10);\n  return isNaN(num) ? 0 : num;\n}\n\n// Transform data\nconst result = {\n  project_id: projectId,\n  date: today,\n  spend: safeParse(fbData.spend, 2),\n  impressions: safeInt(fbData.impressions),\n  clicks: safeInt(fbData.clicks),\n  reach: safeInt(fbData.reach),\n  ctr: safeParse(fbData.ctr, 4),\n  cpc: safeParse(fbData.cpc, 2),\n  cpm: safeParse(fbData.cpm, 2),\n  source: 'facebook_ads',\n  skip: false\n};\n\nconsole.log('✅ Transformed data:', JSON.stringify(result));\n\nreturn { json: result };"
+      },
+      "id": "transform",
+      "name": "Transform Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "skip-check",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-skip",
+      "name": "Check If Data Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "marketing_stats",
+        "returnAll": false,
+        "limit": 1,
+        "options": {
+          "filter": {
+            "conditions": [
+              {
+                "column": "project_id",
+                "operator": "eq",
+                "value": "={{ $json.project_id }}"
+              },
+              {
+                "column": "date",
+                "operator": "eq",
+                "value": "={{ $json.date }}"
+              },
+              {
+                "column": "source",
+                "operator": "eq",
+                "value": "facebook_ads"
+              }
+            ]
+          }
+        }
+      },
+      "id": "check-exists",
+      "name": "Check If Exists",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1120, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your_supabase_credential_id",
+          "name": "MarkVision Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Merge data from Transform and Check nodes\nconst transformData = $('Transform Data').first().json;\nconst existingRecords = $input.all();\n\nconst result = {\n  ...transformData,\n  exists: existingRecords.length > 0,\n  recordId: existingRecords.length > 0 ? existingRecords[0].json.id : null\n};\n\nconsole.log('Record check result:', { \n  exists: result.exists, \n  recordId: result.recordId,\n  date: result.date \n});\n\nreturn { json: result };"
+      },
+      "id": "merge-data",
+      "name": "Merge Data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "exists-check",
+              "leftValue": "={{ $json.exists }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-exists",
+      "name": "If Record Exists",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1560, 200]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "tableId": "marketing_stats",
+        "filterType": "manual",
+        "matchBy": "id",
+        "options": {},
+        "dataMode": "defineBelow",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "column": "id",
+              "value": "={{ $json.recordId }}"
+            },
+            {
+              "column": "spend",
+              "value": "={{ $json.spend }}"
+            },
+            {
+              "column": "impressions",
+              "value": "={{ $json.impressions }}"
+            },
+            {
+              "column": "clicks",
+              "value": "={{ $json.clicks }}"
+            },
+            {
+              "column": "reach",
+              "value": "={{ $json.reach }}"
+            },
+            {
+              "column": "ctr",
+              "value": "={{ $json.ctr }}"
+            },
+            {
+              "column": "cpc",
+              "value": "={{ $json.cpc }}"
+            },
+            {
+              "column": "cpm",
+              "value": "={{ $json.cpm }}"
+            },
+            {
+              "column": "updated_at",
+              "value": "={{ $now.toISO() }}"
+            }
+          ]
+        }
+      },
+      "id": "update-record",
+      "name": "Update Record",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1780, 100],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your_supabase_credential_id",
+          "name": "MarkVision Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "tableId": "marketing_stats",
+        "options": {},
+        "dataMode": "defineBelow",
+        "columnsUi": {
+          "columnValues": [
+            {
+              "column": "project_id",
+              "value": "={{ $json.project_id }}"
+            },
+            {
+              "column": "date",
+              "value": "={{ $json.date }}"
+            },
+            {
+              "column": "spend",
+              "value": "={{ $json.spend }}"
+            },
+            {
+              "column": "impressions",
+              "value": "={{ $json.impressions }}"
+            },
+            {
+              "column": "clicks",
+              "value": "={{ $json.clicks }}"
+            },
+            {
+              "column": "reach",
+              "value": "={{ $json.reach }}"
+            },
+            {
+              "column": "ctr",
+              "value": "={{ $json.ctr }}"
+            },
+            {
+              "column": "cpc",
+              "value": "={{ $json.cpc }}"
+            },
+            {
+              "column": "cpm",
+              "value": "={{ $json.cpm }}"
+            },
+            {
+              "column": "source",
+              "value": "facebook_ads"
+            }
+          ]
+        }
+      },
+      "id": "create-record",
+      "name": "Create Record",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1780, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your_supabase_credential_id",
+          "name": "MarkVision Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nconst result = {\n  success: true,\n  action: input.id ? 'updated' : 'created',\n  recordId: input.id,\n  date: input.date,\n  spend: input.spend,\n  message: `✅ Facebook stats ${input.id ? 'updated' : 'created'} successfully`\n};\n\nconsole.log(result.message, result);\n\nreturn { json: result };"
+      },
+      "id": "log-success",
+      "name": "Log Success",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const errorData = $input.first().json;\n\nconsole.error('❌ Facebook sync failed:', errorData);\n\n// You can add notification logic here (email, Slack, etc)\n\nreturn { json: { \n  success: false, \n  error: errorData,\n  message: 'Facebook sync failed - check logs'\n} };"
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 500],
+      "onError": "continueErrorOutput"
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get FB Stats",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get FB Stats": {
+      "main": [
+        [
+          {
+            "node": "Transform Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform Data": {
+      "main": [
+        [
+          {
+            "node": "Check If Data Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Data Valid": {
+      "main": [
+        [
+          {
+            "node": "Check If Exists",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Exists": {
+      "main": [
+        [
+          {
+            "node": "Merge Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge Data": {
+      "main": [
+        [
+          {
+            "node": "If Record Exists",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If Record Exists": {
+      "main": [
+        [
+          {
+            "node": "Update Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create Record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Record": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Record": {
+      "main": [
+        [
+          {
+            "node": "Log Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner",
+    "errorWorkflow": ""
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "facebook",
+      "id": "fb-sync"
+    },
+    {
+      "name": "marketing",
+      "id": "marketing"
+    }
+  ],
+  "meta": {
+    "instanceId": "markvision"
+  },
+  "pinData": {},
+  "versionId": "2.0.0"
+}

@@ -58,12 +58,21 @@
           appId      : '1890905081453686',
           cookie     : true,
           xfbml      : true,
-          version    : 'v18.0'
+          version    : 'v21.0'
+        });
+        
+        // Проверяем статус авторизации при загрузке
+        FB.getLoginStatus(function(response) {
+          if (response.status === 'connected') {
+            console.log('✅ Facebook SDK loaded, user connected');
+          } else {
+            console.log('📱 Facebook SDK loaded, user not connected');
+          }
         });
       };
     </script>
     <script async defer crossorigin="anonymous" 
-      src="https://connect.facebook.net/en_US/sdk.js">
+      src="https://connect.facebook.net/ru_RU/sdk.js">
     </script>
     
     <script type="module" src="/src/main.tsx"></script>

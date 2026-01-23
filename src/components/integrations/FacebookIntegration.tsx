@@ -16,6 +16,7 @@ interface FacebookConnection {
   access_token: string;
   connected_at: string;
   platform: 'facebook';
+  status?: 'active' | 'inactive';
 }
 
 interface FacebookProfile {
@@ -57,7 +58,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       
       const { data, error } = await supabase
         .from('ad_accounts')
-        .select('id, access_token, created_at, platform')
+        .select('id, access_token, created_at, platform, status')
         .eq('project_id', projectId)
         .eq('platform', 'facebook')
         .maybeSingle();
@@ -77,7 +78,8 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           id: data.id,
           access_token: data.access_token || '',
           connected_at: data.created_at,
-          platform: 'facebook'
+          platform: 'facebook',
+          status: data.status || 'active'
         });
         
         // Загружаем профили сразу после получения токена
@@ -120,11 +122,28 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       let facebookProfile = null;
       if (fbResponse.ok) {
         facebookProfile = await fbResponse.json();
-        console.log('Facebook profile:', facebookProfile.name);
+        console.log('✅ Facebook profile:', facebookProfile.name);
         setFacebookProfile(facebookProfile);
       } else {
         const error = await fbResponse.json();
-        console.error('Facebook error:', error);
+        console.error('⚠️ Facebook error:', error);
+        
+        // Проверяем, истек ли токен (код 190)
+        if (error.error?.code === 190) {
+          console.warn('🔄 Token expired (code 190)');
+          
+          // Только для реально истекших токенов
+          if (error.error?.error_subcode === 463) {
+            toast.error('Токен истек', {
+              description: 'Получите новый через Graph API Explorer'
+            });
+          }
+          
+          throw new Error('Токен истек. Получите новый через Graph API Explorer');
+        }
+        
+        // Для других ошибок - просто показываем, но НЕ деактивируем
+        console.warn('Facebook API error (non-critical):', error.error?.message);
         throw new Error(error.error?.message || 'Facebook API error');
       }
 
@@ -316,7 +335,8 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           setConnecting(false);
         }
       }, {
-        scope: 'ads_read,instagram_basic,instagram_manage_insights,pages_show_list,pages_read_engagement'
+        scope: 'ads_read,ads_management,business_management,instagram_basic,instagram_manage_insights,instagram_content_publish,pages_show_list,pages_read_engagement,pages_manage_ads,leads_retrieval',
+        auth_type: 'rerequest'
       });
     } catch (error: any) {
       console.error('❌ Connection error:', error);
@@ -358,7 +378,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     }
   };
 
-  const isConnected = !!connection && connection.access_token && connection.access_token.length > 0;
+  const isConnected = !!connection && connection.access_token && connection.access_token.length > 0 && connection.status === 'active';
 
   if (loading) {
     return (
