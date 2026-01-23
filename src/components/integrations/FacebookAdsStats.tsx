@@ -212,7 +212,7 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-muted-foreground">Расходы</p>
-            <p className="text-2xl font-bold">{stats.spend.toFixed(2)} ₸</p>
+            <p className="text-2xl font-bold">{Math.round(stats.spend).toLocaleString('ru-RU')} ₸</p>
           </div>
           <div>
             <p className="text-xs text-muted-foreground">Показы</p>

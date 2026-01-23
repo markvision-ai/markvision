@@ -1046,7 +1046,7 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
                   <div className="bg-gray-50 rounded-lg p-4 text-center">
                     <p className="text-xs text-gray-500 mb-1">ROAS</p>
                     <p className={`text-lg font-bold ${computedMetrics.roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
-                      {computedMetrics.roas.toFixed(2)}x
+                      {Math.round(computedMetrics.roas)}x
                     </p>
                   </div>
                 </div>

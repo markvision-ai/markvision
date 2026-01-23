@@ -476,7 +476,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
               onDateRangeChange={setDateRange} 
             />
             <Badge variant="secondary" className="text-xs">
-              ROMI: {romi.toFixed(0)}%
+              ROMI: {Math.round(romi)}%
             </Badge>
           </div>
         </div>
@@ -546,14 +546,14 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                                   <td className="p-3 text-right">{site.leads}</td>
                                   <td className="p-3 text-right">{site.diagnostics}</td>
                                   <td className="p-3 text-right">
-                                    <Badge variant="outline">{site.cr2.toFixed(1)}%</Badge>
+                                    <Badge variant="outline">{Math.round(site.cr2)}%</Badge>
                                   </td>
                                   <td className="p-3 text-right font-medium text-green-500">
                                     {formatCurrency(site.revenue)}
                                   </td>
                                   <td className="p-3 text-right">
                                     <Badge className={site.roi >= 100 ? 'bg-green-500/20 text-green-500' : site.roi >= 0 ? 'bg-yellow-500/20 text-yellow-500' : 'bg-red-500/20 text-red-500'}>
-                                      {site.roi.toFixed(0)}%
+                                      {Math.round(site.roi)}%
                                     </Badge>
                                   </td>
                                 </tr>
@@ -590,7 +590,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                               outerRadius={100}
                               paddingAngle={2}
                               dataKey="value"
-                              label={({ name, percent }) => `${name} (${(percent * 100).toFixed(0)}%)`}
+                              label={({ name, percent }) => `${name} (${Math.round(percent * 100)}%)`}
                             >
                               {siteRevenuePieData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.fill} />
@@ -656,7 +656,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                                   <td className="p-3 text-right">{formatNumber(offer.clicks)}</td>
                                   <td className="p-3 text-right font-medium">{offer.leads}</td>
                                   <td className="p-3 text-right">
-                                    <Badge variant="outline">{offer.cr1.toFixed(1)}%</Badge>
+                                    <Badge variant="outline">{Math.round(offer.cr1)}%</Badge>
                                   </td>
                                   <td className="p-3 text-right font-medium text-primary">
                                     {formatCurrency(offer.cpl)}

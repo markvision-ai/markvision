@@ -399,7 +399,7 @@ export const AnalyticsPlatform = () => {
                 />
                 <MetricCard
                   label="ROAS"
-                  value={`${roas.toFixed(2)}x`}
+                  value={`${Math.round(roas)}x`}
                   subValue={`₸1 → ₸${Math.round(roas)}`}
                   variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
                 />
