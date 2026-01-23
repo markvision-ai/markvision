@@ -10,7 +10,7 @@ import { ContentKanban } from './ContentKanban';
 import { WorkshopPipeline } from './WorkshopPipeline';
 import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
 import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
-import { InstagramStats } from '@/components/integrations/InstagramStats';
+import { ContentCenterTable } from '@/components/content/ContentCenterTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/externalSupabase';
 
@@ -274,9 +274,9 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
           />
         </TabsContent>
 
-        {/* Instagram Tab */}
+        {/* Instagram Tab - Content Intelligence */}
         <TabsContent value="instagram" className="space-y-4">
-          <InstagramStats projectId={projectId} />
+          <ContentCenterTable projectId={projectId} />
         </TabsContent>
       </Tabs>
 
