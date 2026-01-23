@@ -1,11 +1,11 @@
-import { useState } from 'react';
-import { Play, Rocket } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { Play, Rocket, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useInstagramPostsStats } from '@/hooks/useInstagramPostsStats';
 import { LaunchOrbitalModal } from './LaunchOrbitalModal';
-import { formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow, format, startOfDay, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 interface ContentCenterTableProps {
@@ -16,6 +16,38 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
   const { posts, loading, error } = useInstagramPostsStats(projectId);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentDayIndex, setCurrentDayIndex] = useState(0);
+
+  // Группируем посты по дням
+  const postsByDay = useMemo(() => {
+    if (!posts || posts.length === 0) return [];
+    
+    const grouped: { [key: string]: typeof posts } = {};
+    
+    posts.forEach(post => {
+      if (!post.posted_at) return;
+      const postDate = startOfDay(new Date(post.posted_at));
+      const dateKey = format(postDate, 'yyyy-MM-dd');
+      
+      if (!grouped[dateKey]) {
+        grouped[dateKey] = [];
+      }
+      grouped[dateKey].push(post);
+    });
+    
+    // Сортируем дни по убыванию (новые сначала)
+    const sortedDays = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
+    
+    return sortedDays.map(day => ({
+      date: day,
+      dateLabel: format(new Date(day), 'd MMMM', { locale: ru }),
+      posts: grouped[day]
+    }));
+  }, [posts]);
+
+  // Текущий день для отображения
+  const currentDay = postsByDay[currentDayIndex];
+  const currentPosts = currentDay?.posts || [];
 
   const handlePromote = (post: any) => {
     setSelectedPost({
@@ -122,8 +154,36 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
     );
   }
 
+  if (postsByDay.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
+        <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
+          <Play className="w-8 h-8 text-violet-600" />
+        </div>
+        <div className="text-center space-y-2 max-w-md">
+          <p className="font-semibold text-lg">Нет постов с датами</p>
+          <p className="text-sm text-muted-foreground">
+            Все посты не имеют даты публикации.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
+      {/* Заголовок с информацией о текущем дне */}
+      {currentDay && (
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">{currentDay.dateLabel}</h3>
+            <p className="text-sm text-muted-foreground">
+              {currentPosts.length} {currentPosts.length === 1 ? 'публикация' : currentPosts.length < 5 ? 'публикации' : 'публикаций'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="border rounded-lg overflow-hidden">
         <table className="w-full">
           <thead className="bg-muted/50">
@@ -138,7 +198,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
             </tr>
           </thead>
           <tbody>
-            {posts.map((post, index) => (
+            {currentPosts.map((post, index) => (
               <tr
                 key={post.id}
                 className="border-t hover:bg-muted/30 transition-colors"
@@ -245,6 +305,58 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
           </tbody>
         </table>
       </div>
+
+      {/* Пагинация по дням */}
+      {postsByDay.length > 0 && (
+        <div className="flex items-center justify-between mt-4 px-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentDayIndex(prev => Math.max(0, prev - 1))}
+            disabled={currentDayIndex === 0}
+            className="gap-1"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Предыдущий день
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              {currentDayIndex + 1} из {postsByDay.length}
+            </span>
+            <div className="flex gap-1">
+              {postsByDay.map((day, index) => (
+                <button
+                  key={day.date}
+                  onClick={() => setCurrentDayIndex(index)}
+                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                    index === currentDayIndex
+                      ? 'bg-primary text-primary-foreground font-medium'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                  }`}
+                  title={day.dateLabel}
+                >
+                  {index + 1}
+                </button>
+              ))}
+            </div>
+            <span className="text-sm text-muted-foreground">
+              {currentDay?.dateLabel}
+            </span>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentDayIndex(prev => Math.min(postsByDay.length - 1, prev + 1))}
+            disabled={currentDayIndex === postsByDay.length - 1}
+            className="gap-1"
+          >
+            Следующий день
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+      )}
 
       {/* Launch Modal */}
       {selectedPost && (
