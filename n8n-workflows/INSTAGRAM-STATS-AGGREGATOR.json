@@ -134,8 +134,10 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"period_start\": \"{{ $json.period_start }}\",\n  \"period_end\": \"{{ $json.period_end }}\",\n  \"publications\": {{ $json.publications }},\n  \"stories\": {{ $json.stories }},\n  \"reach\": {{ $json.reach }},\n  \"comments\": {{ $json.comments }},\n  \"followers\": {{ $json.followers }},\n  \"diagnostics\": {{ $json.diagnostics }},\n  \"sales\": {{ $json.sales }},\n  \"revenue\": {{ $json.revenue }},\n  \"updated_at\": \"{{ $now.toISO() }}\"\n}",
-        "options": {}
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "alwaysOutputData": true
+        }
       },
       "id": "save-stats-01",
       "name": "💾 Сохранить в Supabase",
