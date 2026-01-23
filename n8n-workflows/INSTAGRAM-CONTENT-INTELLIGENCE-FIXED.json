@@ -52,7 +52,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const input = $input.first().json;\n\nconsole.log('\\n🔍 АНАЛИЗ ОТВЕТА ОТ INSTAGRAM:');\nconsole.log('   Input type:', typeof input);\nconsole.log('   Input keys:', input ? Object.keys(input) : 'null');\nconsole.log('   Has data:', input && input.data ? 'yes' : 'no');\nconsole.log('   Data length:', input && input.data ? input.data.length : 0);\nconsole.log('   Has paging:', input && input.paging ? 'yes' : 'no');\n\nif (!input) {\n  console.log('❌ Нет ответа от Instagram API');\n  return { json: { skip: true, reason: 'no_response' } };\n}\n\nif (!input.data || input.data.length === 0) {\n  console.log('⚠️ Нет постов в ответе от Instagram');\n  console.log('   Full response:', JSON.stringify(input).substring(0, 500));\n  return { json: { skip: true, reason: 'no_posts' } };\n}\n\nconst posts = input.data;\nconsole.log(`\\n✅ Получено постов: ${posts.length}`);\n\n// Показываем первые несколько постов для отладки\nif (posts.length > 0) {\n  console.log('\\n📋 Примеры постов:');\n  posts.slice(0, 3).forEach((post, idx) => {\n    const date = post.timestamp ? new Date(post.timestamp).toISOString().split('T')[0] : 'нет даты';\n    console.log(`   ${idx + 1}. ID: ${post.id}, Дата: ${date}, Тип: ${post.media_type || 'unknown'}`);\n  });\n}\n\n// Проверяем пагинацию\nif (input.paging && input.paging.next) {\n  console.log('\\n⚠️ Есть еще посты! URL следующей страницы:', input.paging.next.substring(0, 100) + '...');\n  console.log('   Для загрузки всех постов нужно добавить пагинацию');\n}\n\n// Возвращаем массив постов для дальнейшей обработки\nreturn posts.map(post => ({\n  json: {\n    post_id: post.id,\n    caption: post.caption || '',\n    media_type: post.media_type,\n    media_url: post.media_url,\n    posted_at: post.timestamp,\n    permalink: post.permalink\n  }\n}));"
+        "jsCode": "const input = $input.first().json;\n\nconsole.log('\\n🔍 АНАЛИЗ ОТВЕТА ОТ INSTAGRAM:');\nconsole.log('   Input type:', typeof input);\nconsole.log('   Input keys:', input ? Object.keys(input) : 'null');\nconsole.log('   Has data:', input && input.data ? 'yes' : 'no');\nconsole.log('   Data length:', input && input.data ? input.data.length : 0);\nconsole.log('   Has paging:', input && input.paging ? 'yes' : 'no');\n\nif (!input) {\n  console.log('❌ Нет ответа от Instagram API');\n  return { json: { skip: true, reason: 'no_response' } };\n}\n\nif (!input.data || input.data.length === 0) {\n  console.log('⚠️ Нет постов в ответе от Instagram');\n  console.log('   Full response:', JSON.stringify(input).substring(0, 500));\n  return { json: { skip: true, reason: 'no_posts' } };\n}\n\nconst posts = input.data;\nconsole.log(`\\n✅ Получено постов: ${posts.length}`);\n\n// Показываем ПЕРВЫЙ пост полностью для отладки\nif (posts.length > 0) {\n  console.log('\\n📋 ПЕРВЫЙ ПОСТ (полностью):');\n  console.log(JSON.stringify(posts[0], null, 2));\n  console.log('\\n📋 Ключи первого поста:', Object.keys(posts[0]));\n}\n\n// Проверяем пагинацию\nif (input.paging && input.paging.next) {\n  console.log('\\n⚠️ Есть еще посты! URL следующей страницы:', input.paging.next.substring(0, 100) + '...');\n  console.log('   Для загрузки всех постов нужно добавить пагинацию');\n}\n\n// Возвращаем массив постов для дальнейшей обработки\n// ВАЖНО: проверяем все возможные варианты названий полей\nreturn posts.map(post => {\n  const result = {\n    json: {\n      post_id: post.id || post.post_id || '',\n      caption: post.caption || post.caption_text || '',\n      media_type: post.media_type || post.type || 'UNKNOWN',\n      media_url: post.media_url || post.thumbnail_url || post.image_url || '',\n      posted_at: post.timestamp || post.created_time || post.posted_at || '',\n      permalink: post.permalink || post.link || ''\n    }\n  };\n  \n  // Логируем, если какие-то поля пустые\n  if (!result.json.caption && post.caption) {\n    console.log(`⚠️ Post ${result.json.post_id}: caption не найден, но есть в исходных данных`);\n  }\n  if (!result.json.media_url && (post.media_url || post.thumbnail_url)) {\n    console.log(`⚠️ Post ${result.json.post_id}: media_url не найден, но есть в исходных данных`);\n  }\n  \n  return result;\n});"
       },
       "id": "transform-01",
       "name": "🔄 Transform Posts",
@@ -89,13 +89,23 @@
     },
     {
       "parameters": {
-        "jsCode": "const postData = $input.first().json;\nconst insights = $input.last().json;\n\nfunction extractMetric(data, metricName) {\n  if (!data || !data.data || !Array.isArray(data.data)) return 0;\n  const metric = data.data.find(m => m.name === metricName);\n  return metric?.values?.[0]?.value || 0;\n}\n\nconst reach = extractMetric(insights, 'reach');\n\n// Обрабатываем posted_at - конвертируем в правильный формат\nlet postedAt = postData.posted_at;\nif (!postedAt || postedAt === '') {\n  postedAt = new Date().toISOString();\n  console.log(`⚠️ Post ${postData.post_id}: нет timestamp, используем текущую дату`);\n} else {\n  // Убеждаемся, что это валидная дата\n  try {\n    const date = new Date(postedAt);\n    if (isNaN(date.getTime())) {\n      console.log(`⚠️ Post ${postData.post_id}: невалидная дата ${postedAt}, используем текущую`);\n      postedAt = new Date().toISOString();\n    } else {\n      postedAt = date.toISOString();\n    }\n  } catch (e) {\n    console.log(`⚠️ Post ${postData.post_id}: ошибка парсинга даты ${postedAt}:`, e.message);\n    postedAt = new Date().toISOString();\n  }\n}\n\n// Проверяем, попадает ли пост в период 1-22 января\nconst postDate = new Date(postedAt);\nconst periodStart = new Date('2026-01-01T00:00:00.000Z');\nconst periodEnd = new Date('2026-01-22T23:59:59.999Z');\nconst isInPeriod = postDate >= periodStart && postDate <= periodEnd;\n\nconst result = {\n  post_id: postData.post_id,\n  caption: postData.caption || '',\n  media_type: postData.media_type || 'UNKNOWN',\n  media_url: postData.media_url || '',\n  posted_at: postedAt,\n  permalink: postData.permalink || '',\n  reach: reach,\n  impressions: extractMetric(insights, 'impressions') || reach, // Используем reach как fallback\n  likes: extractMetric(insights, 'likes'),\n  comments: extractMetric(insights, 'comments'),\n  shares: extractMetric(insights, 'shares'),\n  saves: extractMetric(insights, 'saved'),\n  // Лиды и выручка - по умолчанию 0 (можно считать отдельно позже)\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0\n};\n\nconst dateStr = postDate.toISOString().split('T')[0];\nconst periodStatus = isInPeriod ? '✅ В ПЕРИОДЕ 1-22 янв' : '❌ ВНЕ ПЕРИОДА';\nconsole.log(`✅ Post ${result.post_id}: Дата ${dateStr} | ${periodStatus} | ${result.impressions} показов, ${result.reach} охват, ${result.likes} лайков`);\n\nreturn { json: result };"
+        "jsCode": "// Получаем данные из предыдущих нод\nconst allInputs = $input.all();\nconsole.log('\\n🔍 MERGE INSIGHTS - Входные данные:');\nconsole.log('   Количество входных элементов:', allInputs.length);\n\n// Первый элемент - данные поста, последний - insights\nconst postData = allInputs[0]?.json || {};\nconst insights = allInputs[allInputs.length - 1]?.json || {};\n\nconsole.log('\\n📋 Post Data (первый элемент):');\nconsole.log(JSON.stringify(postData, null, 2));\nconsole.log('\\n📊 Insights (последний элемент):');\nconsole.log(JSON.stringify(insights, null, 2).substring(0, 500));\n\nfunction extractMetric(data, metricName) {\n  if (!data || !data.data || !Array.isArray(data.data)) return 0;\n  const metric = data.data.find(m => m.name === metricName);\n  return metric?.values?.[0]?.value || 0;\n}\n\nconst reach = extractMetric(insights, 'reach');\n\n// Обрабатываем posted_at - конвертируем в правильный формат\nlet postedAt = postData.posted_at;\nif (!postedAt || postedAt === '') {\n  postedAt = new Date().toISOString();\n  console.log(`⚠️ Post ${postData.post_id}: нет timestamp, используем текущую дату`);\n} else {\n  // Убеждаемся, что это валидная дата\n  try {\n    const date = new Date(postedAt);\n    if (isNaN(date.getTime())) {\n      console.log(`⚠️ Post ${postData.post_id}: невалидная дата ${postedAt}, используем текущую`);\n      postedAt = new Date().toISOString();\n    } else {\n      postedAt = date.toISOString();\n    }\n  } catch (e) {\n    console.log(`⚠️ Post ${postData.post_id}: ошибка парсинга даты ${postedAt}:`, e.message);\n    postedAt = new Date().toISOString();\n  }\n}\n\n// Проверяем, попадает ли пост в период 1-22 января\nconst postDate = new Date(postedAt);\nconst periodStart = new Date('2026-01-01T00:00:00.000Z');\nconst periodEnd = new Date('2026-01-22T23:59:59.999Z');\nconst isInPeriod = postDate >= periodStart && postDate <= periodEnd;\n\nconst result = {\n  post_id: postData.post_id,\n  caption: postData.caption || '',\n  media_type: postData.media_type || 'UNKNOWN',\n  media_url: postData.media_url || '',\n  posted_at: postedAt,\n  permalink: postData.permalink || '',\n  reach: reach,\n  impressions: extractMetric(insights, 'impressions') || reach, // Используем reach как fallback\n  likes: extractMetric(insights, 'likes'),\n  comments: extractMetric(insights, 'comments'),\n  shares: extractMetric(insights, 'shares'),\n  saves: extractMetric(insights, 'saved'),\n  // Лиды и выручка - по умолчанию 0 (можно считать отдельно позже)\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0\n};\n\nconst dateStr = postDate.toISOString().split('T')[0];\nconst periodStatus = isInPeriod ? '✅ В ПЕРИОДЕ 1-22 янв' : '❌ ВНЕ ПЕРИОДА';\nconsole.log(`✅ Post ${result.post_id}: Дата ${dateStr} | ${periodStatus} | ${result.impressions} показов, ${result.reach} охват, ${result.likes} лайков`);\n\nreturn { json: result };"
       },
       "id": "merge-01",
       "name": "🔀 Merge Insights",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Формируем финальный JSON для Supabase\nconst input = $input.first().json;\n\nconsole.log('\\n💾 Формирование данных для Supabase:');\nconsole.log('   Post ID:', input.post_id);\nconsole.log('   Caption length:', input.caption ? input.caption.length : 0);\nconsole.log('   Media URL:', input.media_url ? input.media_url.substring(0, 50) + '...' : 'empty');\nconsole.log('   Permalink:', input.permalink ? input.permalink.substring(0, 50) + '...' : 'empty');\n\n// Формируем объект для Supabase\nconst supabaseData = {\n  post_id: input.post_id || '',\n  caption: input.caption || '',\n  media_type: input.media_type || 'UNKNOWN',\n  media_url: input.media_url || '',\n  permalink: input.permalink || '',\n  posted_at: input.posted_at || new Date().toISOString(),\n  impressions: input.impressions || 0,\n  reach: input.reach || 0,\n  likes: input.likes || 0,\n  comments: input.comments || 0,\n  shares: input.shares || 0,\n  saves: input.saves || 0,\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0,\n  updated_at: new Date().toISOString()\n};\n\nconsole.log('\\n✅ Финальные данные для Supabase:');\nconsole.log(JSON.stringify(supabaseData, null, 2));\n\nreturn { json: supabaseData };"
+      },
+      "id": "prepare-supabase-01",
+      "name": "📦 Подготовить для Supabase",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
     },
     {
       "parameters": {
@@ -126,14 +136,14 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={\n  \"post_id\": \"{{ $json.post_id }}\",\n  \"caption\": \"{{ $json.caption }}\",\n  \"media_type\": \"{{ $json.media_type }}\",\n  \"media_url\": \"{{ $json.media_url }}\",\n  \"permalink\": \"{{ $json.permalink }}\",\n  \"posted_at\": \"{{ $json.posted_at }}\",\n  \"impressions\": {{ $json.impressions }},\n  \"reach\": {{ $json.reach }},\n  \"likes\": {{ $json.likes }},\n  \"comments\": {{ $json.comments }},\n  \"shares\": {{ $json.shares }},\n  \"saves\": {{ $json.saves }},\n  \"leads_count\": 0,\n  \"paid_leads\": 0,\n  \"revenue\": 0,\n  \"updated_at\": \"{{ $now.toISO() }}\"\n}",
+        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {}
       },
       "id": "supabase-upsert-01",
       "name": "💾 Save to Supabase",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1340, 300]
+      "position": [1560, 300]
     },
     {
       "parameters": {
@@ -143,7 +153,7 @@
       "name": "✅ Success Log",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 300]
+      "position": [1780, 300]
     }
   ],
   "connections": {
@@ -160,6 +170,9 @@
       "main": [[{ "node": "🔀 Merge Insights", "type": "main", "index": 0 }]]
     },
     "🔀 Merge Insights": {
+      "main": [[{ "node": "📦 Подготовить для Supabase", "type": "main", "index": 0 }]]
+    },
+    "📦 Подготовить для Supabase": {
       "main": [[{ "node": "💾 Save to Supabase", "type": "main", "index": 0 }]]
     },
     "💾 Save to Supabase": {
