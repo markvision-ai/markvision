@@ -72,7 +72,7 @@
             },
             {
               "name": "metric",
-              "value": "impressions,reach,likes,comments,shares,saves"
+              "value": "impressions,reach,likes,comments,shares,saved"
             }
           ]
         },
@@ -88,7 +88,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const postData = $input.first().json;\nconst insights = $input.last().json;\n\nfunction extractMetric(data, metricName) {\n  if (!data || !data.data || !Array.isArray(data.data)) return 0;\n  const metric = data.data.find(m => m.name === metricName);\n  return metric?.values?.[0]?.value || 0;\n}\n\nconst result = {\n  post_id: postData.post_id,\n  caption: postData.caption,\n  media_type: postData.media_type,\n  media_url: postData.media_url,\n  posted_at: postData.posted_at,\n  permalink: postData.permalink,\n  impressions: extractMetric(insights, 'impressions'),\n  reach: extractMetric(insights, 'reach'),\n  likes: extractMetric(insights, 'likes'),\n  comments: extractMetric(insights, 'comments'),\n  shares: extractMetric(insights, 'shares'),\n  saves: extractMetric(insights, 'saves'),\n};\n\nconsole.log(`✅ Post ${result.post_id}: ${result.impressions} показов, ${result.reach} охват`);\n\nreturn { json: result };"
+        "jsCode": "const postData = $input.first().json;\nconst insights = $input.last().json;\n\nfunction extractMetric(data, metricName) {\n  if (!data || !data.data || !Array.isArray(data.data)) return 0;\n  const metric = data.data.find(m => m.name === metricName);\n  return metric?.values?.[0]?.value || 0;\n}\n\nconst result = {\n  post_id: postData.post_id,\n  caption: postData.caption,\n  media_type: postData.media_type,\n  media_url: postData.media_url,\n  posted_at: postData.posted_at,\n  permalink: postData.permalink,\n  impressions: extractMetric(insights, 'impressions'),\n  reach: extractMetric(insights, 'reach'),\n  likes: extractMetric(insights, 'likes'),\n  comments: extractMetric(insights, 'comments'),\n  shares: extractMetric(insights, 'shares'),\n  saves: extractMetric(insights, 'saved'),\n};\n\nconsole.log(`✅ Post ${result.post_id}: ${result.impressions} показов, ${result.reach} охват`);\n\nreturn { json: result };"
       },
       "id": "merge-01",
       "name": "🔀 Merge Insights",
