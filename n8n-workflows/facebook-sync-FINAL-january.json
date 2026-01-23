@@ -1,0 +1,125 @@
+{
+  "name": "MarkVision_FB_January_2026_Full_Import",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/act_1005197113823722/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAT8DcsZBww8BQuZA1cWLWN4TzMVGd6E8cNK5jexC6O2BE12sBs8dPuFmZBFPhPJEMcw9Y7Dz6ZBbOPqSsnYm2o408swDmIZAQxpZAJTaJNz4YN2CSWQEA15LuF8g84EgEbnbPmXOBGQGHBSUekvOxyLDlsW8eSyOZCWWPf9bWQWW8UBfJdQbrpxp8OuWSZBaZAwIeAs33UfZA4exxlCnTufzCqGz5XVyKPJZBzbqI77eNnn51lZCscr3UtpvYNoWECUknPpWnza9CjYL2tEYgorJGTU"
+            },
+            {
+              "name": "fields",
+              "value": "spend,impressions,clicks,reach,ctr,cpc,cpm,actions"
+            },
+            {
+              "name": "level",
+              "value": "account"
+            },
+            {
+              "name": "time_range",
+              "value": "{\"since\":\"2026-01-01\",\"until\":\"2026-01-23\"}"
+            },
+            {
+              "name": "time_increment",
+              "value": "1"
+            },
+            {
+              "name": "breakdowns",
+              "value": "[]"
+            }
+          ]
+        },
+        "options": {"timeout": 60000}
+      },
+      "id": "fb-request",
+      "name": "Get FB Stats January",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nif (!input || !input.data || input.data.length === 0) {\n  return { json: { error: 'No data from Facebook' } };\n}\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nfunction safeParse(value, decimals = 2) {\n  const num = parseFloat(value || 0);\n  return isNaN(num) ? 0 : parseFloat(num.toFixed(decimals));\n}\n\nfunction safeInt(value) {\n  const num = parseInt(value || 0, 10);\n  return isNaN(num) ? 0 : num;\n}\n\nfunction extractAction(actions, actionTypes) {\n  if (!actions || !Array.isArray(actions)) return 0;\n  \n  for (const type of actionTypes) {\n    const action = actions.find(a => a.action_type === type);\n    if (action) return safeInt(action.value);\n  }\n  return 0;\n}\n\nconst results = input.data.map(fbData => {\n  // Извлекаем лиды\n  const leads = extractAction(fbData.actions, ['lead', 'leadgen_grouped']);\n  \n  // Извлекаем переписки (начало разговора)\n  const conversations = extractAction(fbData.actions, [\n    'onsite_conversion.messaging_conversation_started_7d',\n    'onsite_conversion.messaging_first_reply',\n    'onsite_conversion.post_save'\n  ]);\n  \n  return {\n    project_id: projectId,\n    date: fbData.date_start,\n    spend: safeParse(fbData.spend, 2),\n    impressions: safeInt(fbData.impressions),\n    clicks: safeInt(fbData.clicks),\n    reach: safeInt(fbData.reach),\n    ctr: safeParse(fbData.ctr, 4),\n    cpc: safeParse(fbData.cpc, 2),\n    cpm: safeParse(fbData.cpm, 2),\n    leads: leads,\n    conversations: conversations,\n    source: 'facebook_ads',\n    account_id: 'act_1005197113823722'\n  };\n});\n\nconsole.log(`✅ Transformed ${results.length} days of data`);\nconsole.log('Sample:', results[0]);\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "transform",
+      "name": "Transform All Days",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "tableId": "marketing_stats",
+        "dataMode": "defineBelow",
+        "columnsUi": {
+          "columnValues": [
+            {"column": "project_id", "value": "={{ $json.project_id }}"},
+            {"column": "date", "value": "={{ $json.date }}"},
+            {"column": "spend", "value": "={{ $json.spend }}"},
+            {"column": "impressions", "value": "={{ $json.impressions }}"},
+            {"column": "clicks", "value": "={{ $json.clicks }}"},
+            {"column": "reach", "value": "={{ $json.reach }}"},
+            {"column": "ctr", "value": "={{ $json.ctr }}"},
+            {"column": "cpc", "value": "={{ $json.cpc }}"},
+            {"column": "cpm", "value": "={{ $json.cpm }}"},
+            {"column": "leads", "value": "={{ $json.leads }}"},
+            {"column": "conversations", "value": "={{ $json.conversations }}"},
+            {"column": "source", "value": "facebook_ads"}
+          ]
+        }
+      },
+      "id": "create-record",
+      "name": "Insert to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your_supabase_credential_id",
+          "name": "MarkVision Supabase"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst totalDays = items.length;\nconst totalSpend = items.reduce((sum, item) => sum + (item.json.spend || 0), 0);\nconst totalLeads = items.reduce((sum, item) => sum + (item.json.leads || 0), 0);\nconst totalConversations = items.reduce((sum, item) => sum + (item.json.conversations || 0), 0);\n\nconst result = {\n  success: true,\n  imported_days: totalDays,\n  total_spend: totalSpend.toFixed(2),\n  total_leads: totalLeads,\n  total_conversations: totalConversations,\n  message: `✅ Импортировано ${totalDays} дней данных. Расходы: ${totalSpend.toFixed(2)}, Лиды: ${totalLeads}, Переписки: ${totalConversations}`\n};\n\nconsole.log('🎉 Import complete:', result);\nreturn { json: result };"
+      },
+      "id": "log-success",
+      "name": "Summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [[{"node": "Get FB Stats January", "type": "main", "index": 0}]]
+    },
+    "Get FB Stats January": {
+      "main": [[{"node": "Transform All Days", "type": "main", "index": 0}]]
+    },
+    "Transform All Days": {
+      "main": [[{"node": "Insert to Supabase", "type": "main", "index": 0}]]
+    },
+    "Insert to Supabase": {
+      "main": [[{"node": "Summary", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
