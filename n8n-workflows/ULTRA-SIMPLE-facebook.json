@@ -1,0 +1,164 @@
+{
+  "name": "Facebook_to_Supabase_NO_CREDENTIALS",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "start-001",
+      "name": "▶️ Запустить",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/act_1005197113823722/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQshvUsdNTmzgOpZCVcxnmI4k8nuZBC67A7ZB2MuEkQ6KA5mseAQppIBX5Ygu5maswoJwJdWAMv0zjCoIoARBXfIp6QaLz6HhTKPZC1JunkQqcD5AXN3pRg4apVrJb3MyglHagHl0PQWLOeCKukx3edrTvrG20PTXC0XotRMslaHjCkZClOuPMSs4q3iAnYtwIOgGmrw9UiGZB5VrDT7zU5EId8gkTvluxywnBaJd629AOtEM2AZCpk9Xgcs6IR8XEAZA6UYEwbLs"
+            },
+            {
+              "name": "fields",
+              "value": "date_start,spend,impressions,clicks,reach,ctr,cpc,cpm,actions"
+            },
+            {
+              "name": "level",
+              "value": "account"
+            },
+            {
+              "name": "time_range",
+              "value": "{\"since\":\"2026-01-01\",\"until\":\"2026-01-23\"}"
+            },
+            {
+              "name": "time_increment",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "facebook-002",
+      "name": "📱 Facebook API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nif (!input || !input.data || input.data.length === 0) {\n  throw new Error('❌ Нет данных от Facebook API');\n}\n\nconsole.log(`📊 Получено ${input.data.length} дней данных`);\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nfunction safeParse(value, decimals = 2) {\n  const num = parseFloat(value || 0);\n  return isNaN(num) ? 0 : parseFloat(num.toFixed(decimals));\n}\n\nfunction safeInt(value) {\n  const num = parseInt(value || 0, 10);\n  return isNaN(num) ? 0 : num;\n}\n\nfunction extractAction(actions, actionTypes) {\n  if (!actions || !Array.isArray(actions)) return 0;\n  \n  for (const type of actionTypes) {\n    const action = actions.find(a => a.action_type === type);\n    if (action) {\n      const val = safeInt(action.value);\n      if (val > 0) console.log(`   ✅ ${type}: ${val}`);\n      return val;\n    }\n  }\n  return 0;\n}\n\nconst results = input.data.map(fbData => {\n  console.log(`\\n📅 ${fbData.date_start}`);\n  \n  const leads = extractAction(fbData.actions, [\n    'lead',\n    'leadgen_grouped',\n    'onsite_conversion.lead_grouped'\n  ]);\n  \n  const conversations = extractAction(fbData.actions, [\n    'onsite_conversion.messaging_conversation_started_7d',\n    'onsite_conversion.messaging_first_reply',\n    'onsite_conversion.messaging_conversation_started_1d'\n  ]);\n  \n  const result = {\n    project_id: projectId,\n    date: fbData.date_start,\n    spend: safeParse(fbData.spend, 2),\n    impressions: safeInt(fbData.impressions),\n    clicks: safeInt(fbData.clicks),\n    reach: safeInt(fbData.reach),\n    ctr: safeParse(fbData.ctr, 4),\n    cpc: safeParse(fbData.cpc, 2),\n    cpm: safeParse(fbData.cpm, 2),\n    leads: leads,\n    conversations: conversations,\n    source: 'facebook_ads'\n  };\n  \n  console.log(`   💰 spend=${result.spend}, 👁️ impressions=${result.impressions}, 📝 leads=${result.leads}, 💬 conversations=${result.conversations}`);\n  \n  return result;\n});\n\nconsole.log(`\\n✅ Трансформировано: ${results.length} дней\\n`);\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "transform-003",
+      "name": "🔄 Обработка",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"date\": \"{{ $json.date }}\",\n  \"spend\": {{ $json.spend }},\n  \"impressions\": {{ $json.impressions }},\n  \"clicks\": {{ $json.clicks }},\n  \"leads\": {{ $json.leads + $json.conversations }},\n  \"diagnostics\": 0,\n  \"sales\": 0,\n  \"revenue\": 0\n}",
+        "options": {}
+      },
+      "id": "supabase-004",
+      "name": "💾 Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst totalDays = items.length;\nconst totalSpend = items.reduce((sum, item) => {\n  const spend = item.json[0]?.spend || item.json?.spend || 0;\n  return sum + spend;\n}, 0);\n\nconst totalLeads = items.reduce((sum, item) => {\n  const leads = item.json[0]?.leads || item.json?.leads || 0;\n  return sum + leads;\n}, 0);\n\nconst totalConversations = items.reduce((sum, item) => {\n  const conversations = item.json[0]?.conversations || item.json?.conversations || 0;\n  return sum + conversations;\n}, 0);\n\nconst totalImpressions = items.reduce((sum, item) => {\n  const impressions = item.json[0]?.impressions || item.json?.impressions || 0;\n  return sum + impressions;\n}, 0);\n\nconst totalClicks = items.reduce((sum, item) => {\n  const clicks = item.json[0]?.clicks || item.json?.clicks || 0;\n  return sum + clicks;\n}, 0);\n\nconst result = {\n  success: true,\n  days: totalDays,\n  spend: `${totalSpend.toFixed(2)} ₸`,\n  impressions: totalImpressions.toLocaleString(),\n  clicks: totalClicks.toLocaleString(),\n  leads: totalLeads,\n  conversations: totalConversations,\n  cpl: totalLeads > 0 ? `${(totalSpend / totalLeads).toFixed(2)} ₸` : 'N/A',\n  cpc: totalClicks > 0 ? `${(totalSpend / totalClicks).toFixed(2)} ₸` : 'N/A',\n  message: `✅ ИМПОРТИРОВАНО ${totalDays} ДНЕЙ!`\n};\n\nconsole.log('\\n\\n🎉 ИМПОРТ ЗАВЕРШЕН! 🎉');\nconsole.log('========================');\nconsole.log(`📊 Дней: ${totalDays}`);\nconsole.log(`💰 Расходы: ${result.spend}`);\nconsole.log(`👁️  Показы: ${result.impressions}`);\nconsole.log(`🖱️  Клики: ${result.clicks}`);\nconsole.log(`📝 Лиды: ${totalLeads}`);\nconsole.log(`💬 Переписки: ${totalConversations}`);\nconsole.log(`📈 CPL: ${result.cpl}`);\nconsole.log(`📈 CPC: ${result.cpc}`);\nconsole.log('========================\\n\\n');\n\nreturn { json: result };"
+      },
+      "id": "summary-005",
+      "name": "✅ Итог",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "▶️ Запустить": {
+      "main": [
+        [
+          {
+            "node": "📱 Facebook API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Facebook API": {
+      "main": [
+        [
+          {
+            "node": "🔄 Обработка",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Обработка": {
+      "main": [
+        [
+          {
+            "node": "💾 Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Supabase": {
+      "main": [
+        [
+          {
+            "node": "✅ Итог",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-23T15:30:00.000Z",
+  "versionId": "3.0"
+}

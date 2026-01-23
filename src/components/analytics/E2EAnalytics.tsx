@@ -330,7 +330,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       const proportionalSpend = (data.leads / totalLeads) * filteredTotals.spend;
       const proportionalClicks = (data.leads / totalLeads) * filteredTotals.clicks;
       const cr1 = proportionalClicks > 0 ? (data.leads / proportionalClicks) * 100 : 0;
-      const cpl = data.leads > 0 ? proportionalSpend / data.leads : 0;
+      const cpl = data.leads > 0 ? Math.round(proportionalSpend / data.leads) : 0;
       
       return {
         offer,

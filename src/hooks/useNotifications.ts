@@ -109,8 +109,8 @@ export const useNotifications = (projectId?: string) => {
 
         if (!current) continue;
 
-        const cpl = current.leads > 0 ? current.spend / current.leads : 0;
-        const prevCpl = prev && prev.leads > 0 ? prev.spend / prev.leads : 0;
+        const cpl = current.leads > 0 ? Math.round(current.spend / current.leads) : 0;
+        const prevCpl = prev && prev.leads > 0 ? Math.round(prev.spend / prev.leads) : 0;
         const conversionRate = current.leads > 0 ? (current.sales / current.leads) * 100 : 0;
         const prevConversionRate = prev && prev.leads > 0 ? (prev.sales / prev.leads) * 100 : 0;
 

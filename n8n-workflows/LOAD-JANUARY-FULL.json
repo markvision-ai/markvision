@@ -1,0 +1,215 @@
+{
+  "name": "Facebook_January_1-22_Full_Load",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-001",
+      "name": "▶️ ЗАПУСК",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://nationalbank.kz/rss/get_rates.cfm?fdate=22.01.2026",
+        "options": {
+          "timeout": 15000,
+          "response": {
+            "response": {
+              "responseFormat": "text"
+            }
+          }
+        }
+      },
+      "id": "nbk-002",
+      "name": "🏦 Курс НБК (22.01)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const xmlData = $input.first().json.data || $input.first().json;\n\nlet exchangeRate = 480;\n\ntry {\n  const usdMatch = xmlData.match(/<item>.*?<title>USD<\\/title>.*?<description>(\\d+\\.?\\d*)<\\/description>.*?<\\/item>/s);\n  \n  if (usdMatch && usdMatch[1]) {\n    exchangeRate = parseFloat(usdMatch[1]);\n    console.log(`✅ НБК курс: ${exchangeRate}₸`);\n  } else {\n    console.warn('⚠️ Используем резервный курс: 480₸');\n  }\n} catch (error) {\n  console.error('❌ Ошибка:', error.message);\n  console.warn('⚠️ Используем резервный курс: 480₸');\n}\n\nreturn { json: { exchangeRate } };"
+      },
+      "id": "parse-003",
+      "name": "🔍 Парсинг курса",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/act_1005197113823722/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQshvUsdNTmzgOpZCVcxnmI4k8nuZBC67A7ZB2MuEkQ6KA5mseAQppIBX5Ygu5maswoJwJdWAMv0zjCoIoARBXfIp6QaLz6HhTKPZC1JunkQqcD5AXN3pRg4apVrJb3MyglHagHl0PQWLOeCKukx3edrTvrG20PTXC0XotRMslaHjCkZClOuPMSs4q3iAnYtwIOgGmrw9UiGZB5VrDT7zU5EId8gkTvluxywnBaJd629AOtEM2AZCpk9Xgcs6IR8XEAZA6UYEwbLs"
+            },
+            {
+              "name": "fields",
+              "value": "date_start,spend,impressions,clicks,actions"
+            },
+            {
+              "name": "level",
+              "value": "account"
+            },
+            {
+              "name": "time_range",
+              "value": "{\"since\":\"2026-01-01\",\"until\":\"2026-01-22\"}"
+            },
+            {
+              "name": "time_increment",
+              "value": "1"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "facebook-004",
+      "name": "📱 Facebook (1-22 января)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fbInput = $input.first().json;\nconst currencyInput = $input.all()[0].json;\n\nif (!fbInput || !fbInput.data || fbInput.data.length === 0) {\n  throw new Error('❌ Нет данных от Facebook');\n}\n\nconst exchangeRate = currencyInput?.exchangeRate || 480;\nconsole.log(`💱 Курс НБК: ${exchangeRate}₸`);\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nfunction safeInt(value) {\n  const num = parseInt(value || 0, 10);\n  return isNaN(num) ? 0 : num;\n}\n\nfunction extractAction(actions, actionTypes) {\n  if (!actions || !Array.isArray(actions)) return 0;\n  \n  for (const type of actionTypes) {\n    const action = actions.find(a => a.action_type === type);\n    if (action) return safeInt(action.value);\n  }\n  return 0;\n}\n\nconsole.log(`\\n📊 Обработка ${fbInput.data.length} дней\\n`);\n\nconst results = fbInput.data.map(fbData => {\n  const leads = extractAction(fbData.actions, [\n    'lead',\n    'leadgen_grouped',\n    'onsite_conversion.lead_grouped'\n  ]);\n  \n  const conversations = extractAction(fbData.actions, [\n    'onsite_conversion.messaging_conversation_started_7d',\n    'onsite_conversion.messaging_first_reply',\n    'onsite_conversion.messaging_conversation_started_1d'\n  ]);\n  \n  const totalLeads = leads + conversations;\n  \n  // Конвертация с округлением БЕЗ КОПЕЕК\n  const spendUSD = parseFloat(fbData.spend || 0);\n  const spendKZT = Math.round(spendUSD * exchangeRate); // Округляем!\n  \n  const result = {\n    project_id: projectId,\n    date: fbData.date_start,\n    spend: spendKZT,  // БЕЗ КОПЕЕК!\n    impressions: safeInt(fbData.impressions),\n    clicks: safeInt(fbData.clicks),\n    leads: totalLeads,\n    diagnostics: 0,\n    sales: 0,\n    revenue: 0\n  };\n  \n  console.log(`${result.date}: ${spendKZT}₸ (${spendUSD.toFixed(2)}$), leads: ${totalLeads}`);\n  \n  return result;\n});\n\nconsole.log(`\\n✅ Обработано ${results.length} дней\\n`);\n\nreturn results.map(r => ({ json: r }));"
+      },
+      "id": "transform-005",
+      "name": "🔄 Обработка (БЕЗ КОПЕЕК)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data?on_conflict=project_id,date",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates,return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"date\": \"{{ $json.date }}\",\n  \"spend\": {{ $json.spend }},\n  \"impressions\": {{ $json.impressions }},\n  \"clicks\": {{ $json.clicks }},\n  \"leads\": {{ $json.leads }},\n  \"diagnostics\": 0,\n  \"sales\": 0,\n  \"revenue\": 0\n}",
+        "options": {}
+      },
+      "id": "supabase-006",
+      "name": "💾 Save to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst totalDays = items.length;\nconst totalSpend = items.reduce((sum, item) => {\n  const spend = item.json[0]?.spend || item.json?.spend || 0;\n  return sum + spend;\n}, 0);\n\nconst totalLeads = items.reduce((sum, item) => {\n  const leads = item.json[0]?.leads || item.json?.leads || 0;\n  return sum + leads;\n}, 0);\n\nconst totalImpressions = items.reduce((sum, item) => {\n  const impressions = item.json[0]?.impressions || item.json?.impressions || 0;\n  return sum + impressions;\n}, 0);\n\nconst totalClicks = items.reduce((sum, item) => {\n  const clicks = item.json[0]?.clicks || item.json?.clicks || 0;\n  return sum + clicks;\n}, 0);\n\nconst cpl = totalLeads > 0 ? Math.round(totalSpend / totalLeads) : 0;\nconst cpc = totalClicks > 0 ? Math.round(totalSpend / totalClicks) : 0;\n\nconsole.log('\\n\\n🎉 ИМПОРТ ЗАВЕРШЕН! 🎉');\nconsole.log('========================');\nconsole.log(`📊 Дней: ${totalDays}`);\nconsole.log(`💰 Расходы: ${totalSpend}₸`);\nconsole.log(`👁️  Показы: ${totalImpressions.toLocaleString()}`);\nconsole.log(`🖱️  Клики: ${totalClicks.toLocaleString()}`);\nconsole.log(`📝 Лиды: ${totalLeads}`);\nconsole.log(`📈 CPL: ${cpl}₸`);\nconsole.log(`📈 CPC: ${cpc}₸`);\nconsole.log('========================\\n\\n');\n\nreturn { \n  json: { \n    success: true,\n    days: totalDays,\n    spend: totalSpend,\n    leads: totalLeads,\n    cpl: cpl,\n    message: `✅ Загружено ${totalDays} дней данных за январь`\n  } \n};"
+      },
+      "id": "summary-007",
+      "name": "✅ Итог",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    }
+  ],
+  "connections": {
+    "▶️ ЗАПУСК": {
+      "main": [
+        [
+          {
+            "node": "🏦 Курс НБК (22.01)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🏦 Курс НБК (22.01)": {
+      "main": [
+        [
+          {
+            "node": "🔍 Парсинг курса",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Парсинг курса": {
+      "main": [
+        [
+          {
+            "node": "📱 Facebook (1-22 января)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Facebook (1-22 января)": {
+      "main": [
+        [
+          {
+            "node": "🔄 Обработка (БЕЗ КОПЕЕК)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Обработка (БЕЗ КОПЕЕК)": {
+      "main": [
+        [
+          {
+            "node": "💾 Save to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Save to Supabase": {
+      "main": [
+        [
+          {
+            "node": "✅ Итог",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-23T17:00:00.000Z",
+  "versionId": "5.0"
+}

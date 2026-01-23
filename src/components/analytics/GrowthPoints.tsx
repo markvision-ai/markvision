@@ -50,7 +50,7 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
   const leadConv = totals.clicks > 0 ? (totals.leads / totals.clicks) * 100 : 0;
   const diagConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : 0;
   const saleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : 0;
-  const cpl = totals.leads > 0 ? totals.spend / totals.leads : 0;
+  const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
   const cac = totals.sales > 0 ? totals.spend / totals.sales : 0;
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
   const aov = totals.sales > 0 ? totals.revenue / totals.sales : 0;

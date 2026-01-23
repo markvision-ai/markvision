@@ -150,11 +150,11 @@ export const DataTable = ({
     });
   }, [dailyData, daysInMonth]);
 
-  // Calculated metrics
-  const cpl = totals.leads > 0 ? totals.spend / totals.leads : 0;
-  const cpc = totals.clicks > 0 ? totals.spend / totals.clicks : 0;
-  const ctr = totals.impressions > 0 ? totals.clicks / totals.impressions * 100 : 0;
-  const cpm = totals.impressions > 0 ? totals.spend / totals.impressions * 1000 : 0;
+  // Calculated metrics (БЕЗ КОПЕЕК!)
+  const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
+  const cpc = totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0;
+  const ctr = totals.impressions > 0 ? Math.round(totals.clicks / totals.impressions * 100 * 100) / 100 : 0; // 2 знака после запятой
+  const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
 
   const exportToCSV = () => {
     const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
@@ -163,10 +163,10 @@ export const DataTable = ({
       const data = dailyData[dateKey];
       const dayClicks = data?.clicks || 0;
       const dayImpressions = data?.impressions || 0;
-      const dayCtr = dayImpressions > 0 ? dayClicks / dayImpressions * 100 : 0;
+      const dayCtr = dayImpressions > 0 ? Math.round(dayClicks / dayImpressions * 100 * 100) / 100 : 0;
       const dayLeads = data?.leads || 0;
       const daySpend = data?.spend || 0;
-      const dayCpl = dayLeads > 0 ? daySpend / dayLeads : 0;
+      const dayCpl = dayLeads > 0 ? Math.round(daySpend / dayLeads) : 0;
       return [format(day, 'dd.MM.yyyy'), WEEKDAYS[getWeekDay(day)], data?.spend || 0, data?.impressions || 0, dayClicks, dayCtr.toFixed(2), dayLeads, dayCpl.toFixed(0), data?.diagnostics || 0, data?.sales || 0, data?.revenue || 0].join(',');
     });
     const csv = [headers.join(','), ...rows].join('\n');
