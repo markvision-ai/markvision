@@ -58,7 +58,8 @@
           ]
         },
         "options": {
-          "timeout": 30000
+          "timeout": 30000,
+          "alwaysOutputData": true
         }
       },
       "id": "get-posts-01",
@@ -69,13 +70,23 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем период из предыдущего узла\nconst periodData = $('📅 Рассчитать период (1-22 янв)').first().json;\nconst periodStart = periodData.period_start;\nconst periodEnd = periodData.period_end;\n\n// Получаем посты из Supabase\n// Supabase возвращает массив напрямую\nconst input = $input.first().json;\n\nconsole.log('🔍 Input type:', typeof input);\nconsole.log('🔍 Is array:', Array.isArray(input));\nconsole.log('🔍 Input:', JSON.stringify(input).substring(0, 200));\n\n// Проверяем, что это массив\nlet posts = [];\nif (Array.isArray(input)) {\n  posts = input;\n} else if (input && Array.isArray(input.data)) {\n  posts = input.data;\n} else if (input && typeof input === 'object') {\n  // Может быть один объект\n  posts = [input];\n} else {\n  console.log('⚠️ Нет данных от Supabase или неправильный формат');\n  console.log('Input:', input);\n  return { json: { skip: true, reason: 'no_data', input_type: typeof input } };\n}\n\nconsole.log(`📊 Получено постов за период ${periodStart} - ${periodEnd}: ${posts.length}`);\n\nif (posts.length === 0) {\n  console.log('⚠️ Нет постов за этот период');\n  return { json: { skip: true, reason: 'no_posts' } };\n}\n\n// Считаем метрики\nconst stories = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return mediaType.includes('story') || mediaType === 'stories';\n}).length;\n\nconst publications = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return !mediaType.includes('story') && mediaType !== 'stories';\n}).length;\n\n// Суммируем метрики\nconst totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);\nconst totalImpressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);\nconst totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);\nconst totalComments = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\nconst totalShares = posts.reduce((sum, p) => sum + (p.shares || 0), 0);\n\n// Комментарии = сумма всех комментариев\nconst totalCommentsCount = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\n\n// Бизнес-метрики\nconst totalDiagnostics = posts.reduce((sum, p) => sum + (p.leads_count || 0), 0);\nconst totalSales = posts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);\nconst totalRevenue = posts.reduce((sum, p) => sum + (p.revenue || 0), 0);\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nconst result = {\n  project_id: projectId,\n  period_start: periodStart,\n  period_end: periodEnd,\n  publications: publications,\n  stories: stories,\n  reach: totalReach,\n  comments: totalCommentsCount, // Заменяем engagement на comments\n  followers: 0, // TODO: получить из Instagram Insights API\n  diagnostics: totalDiagnostics,\n  sales: totalSales,\n  revenue: Math.round(totalRevenue), // БЕЗ КОПЕЕК\n};\n\nconsole.log(`\\n✅ Агрегированные метрики за ${periodStart} - ${periodEnd}:`);\nconsole.log(`   Публикации: ${publications}`);\nconsole.log(`   Сторис: ${stories}`);\nconsole.log(`   Охват: ${totalReach.toLocaleString('ru-RU')}`);\nconsole.log(`   Комментарии: ${totalCommentsCount}`);\nconsole.log(`   Диагностики: ${totalDiagnostics}`);\nconsole.log(`   Продажи: ${totalSales}`);\nconsole.log(`   Выручка: ${totalRevenue.toLocaleString('ru-RU')}₸`);\n\nreturn { json: result };"
+        "jsCode": "// Обрабатываем ответ от Supabase\nconst input = $input.first().json;\n\nconsole.log('\\n🔍 ОБРАБОТКА ОТВЕТА ОТ SUPABASE:');\nconsole.log('   Input type:', typeof input);\nconsole.log('   Input keys:', input ? Object.keys(input) : 'null');\n\n// Supabase может вернуть данные в разных форматах\nlet posts = [];\n\n// Вариант 1: Прямой массив\nif (Array.isArray(input)) {\n  posts = input;\n  console.log('✅ Данные получены как массив, длина:', posts.length);\n}\n// Вариант 2: Объект с полем data\nelse if (input && Array.isArray(input.data)) {\n  posts = input.data;\n  console.log('✅ Данные получены из input.data, длина:', posts.length);\n}\n// Вариант 3: Объект с полем body (строка JSON)\nelse if (input && input.body) {\n  try {\n    const parsed = typeof input.body === 'string' ? JSON.parse(input.body) : input.body;\n    posts = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);\n    console.log('✅ Данные получены из input.body, длина:', posts.length);\n  } catch (e) {\n    console.log('❌ Ошибка парсинга input.body:', e.message);\n  }\n}\n// Вариант 4: Один объект\nelse if (input && typeof input === 'object' && !Array.isArray(input)) {\n  posts = [input];\n  console.log('✅ Данные получены как один объект');\n}\nelse {\n  console.log('❌ Не удалось извлечь данные из ответа');\n  console.log('   Input:', JSON.stringify(input).substring(0, 500));\n}\n\nconsole.log(`\\n📊 Итого постов: ${posts.length}`);\n\n// Возвращаем посты для следующей ноды\nreturn posts.map(post => ({ json: post }));"
+      },
+      "id": "parse-response-01",
+      "name": "🔍 Обработать ответ",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем период из предыдущего узла\nconst periodData = $('📅 Рассчитать период (1-22 янв)').first().json;\nconst periodStart = periodData.period_start;\nconst periodEnd = periodData.period_end;\n\n// Получаем посты из ноды \"🔍 Обработать ответ\"\n// Теперь это массив объектов { json: {...} }\nconst allItems = $input.all();\nconst posts = allItems.map(item => item.json);\n\nconsole.log(`\\n📊 Получено постов за период ${periodStart} - ${periodEnd}: ${posts.length}`);\n\nif (posts.length === 0) {\n  console.log('⚠️ Нет постов за этот период в instagram_posts_stats');\n  console.log('   Проверь, что данные загружены через INSTAGRAM-CONTENT-INTELLIGENCE-FIXED.json');\n  console.log('   Или проверь, что в таблице есть посты за период 1-22 января 2026');\n  return { json: { skip: true, reason: 'no_posts', message: 'Нет постов за период 1-22 января' } };\n}\n\n// Считаем метрики\nconst stories = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return mediaType.includes('story') || mediaType === 'stories';\n}).length;\n\nconst publications = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return !mediaType.includes('story') && mediaType !== 'stories';\n}).length;\n\n// Суммируем метрики\nconst totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);\nconst totalImpressions = posts.reduce((sum, p) => sum + (p.impressions || 0), 0);\nconst totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);\nconst totalComments = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\nconst totalShares = posts.reduce((sum, p) => sum + (p.shares || 0), 0);\n\n// Комментарии = сумма всех комментариев\nconst totalCommentsCount = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\n\n// Бизнес-метрики\nconst totalDiagnostics = posts.reduce((sum, p) => sum + (p.leads_count || 0), 0);\nconst totalSales = posts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);\nconst totalRevenue = posts.reduce((sum, p) => sum + (p.revenue || 0), 0);\n\nconst projectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\nconst result = {\n  project_id: projectId,\n  period_start: periodStart,\n  period_end: periodEnd,\n  publications: publications,\n  stories: stories,\n  reach: totalReach,\n  comments: totalCommentsCount, // Заменяем engagement на comments\n  followers: 0, // TODO: получить из Instagram Insights API\n  diagnostics: totalDiagnostics,\n  sales: totalSales,\n  revenue: Math.round(totalRevenue), // БЕЗ КОПЕЕК\n};\n\nconsole.log(`\\n✅ Агрегированные метрики за ${periodStart} - ${periodEnd}:`);\nconsole.log(`   Публикации: ${publications}`);\nconsole.log(`   Сторис: ${stories}`);\nconsole.log(`   Охват: ${totalReach.toLocaleString('ru-RU')}`);\nconsole.log(`   Комментарии: ${totalCommentsCount}`);\nconsole.log(`   Диагностики: ${totalDiagnostics}`);\nconsole.log(`   Продажи: ${totalSales}`);\nconsole.log(`   Выручка: ${totalRevenue.toLocaleString('ru-RU')}₸`);\n\nreturn { json: result };"
       },
       "id": "calculate-stats-01",
       "name": "🧮 Рассчитать метрики",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [900, 300]
+      "position": [1120, 300]
     },
     {
       "parameters": {
@@ -92,7 +103,7 @@
       "name": "❓ Проверить пропуск",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2,
-      "position": [1120, 300]
+      "position": [1340, 300]
     },
     {
       "parameters": {
@@ -130,7 +141,7 @@
       "name": "💾 Сохранить в Supabase",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1340, 300]
+      "position": [1560, 300]
     },
     {
       "parameters": {
@@ -140,7 +151,7 @@
       "name": "✅ Лог успеха",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 300]
+      "position": [1780, 300]
     }
   ],
   "connections": {
@@ -154,6 +165,9 @@
       "main": [[{ "node": "📊 Получить посты из Supabase", "type": "main", "index": 0 }]]
     },
     "📊 Получить посты из Supabase": {
+      "main": [[{ "node": "🔍 Обработать ответ", "type": "main", "index": 0 }]]
+    },
+    "🔍 Обработать ответ": {
       "main": [[{ "node": "🧮 Рассчитать метрики", "type": "main", "index": 0 }]]
     },
     "🧮 Рассчитать метрики": {
