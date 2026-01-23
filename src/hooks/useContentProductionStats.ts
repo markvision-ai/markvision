@@ -18,7 +18,11 @@ export interface ContentProductionStats {
   updated_at: string;
 }
 
-export const useContentProductionStats = (projectId: string | null, periodStart: string = '2026-01-01', periodEnd: string = '2026-01-22') => {
+export const useContentProductionStats = (projectId: string | null, periodStart: string = '2026-01-01', periodEnd?: string) => {
+  // Если periodEnd не указан, используем вчерашний день
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const effectivePeriodEnd = periodEnd || yesterday.toISOString().split('T')[0];
   const [stats, setStats] = useState<ContentProductionStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +42,7 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
         console.log('🔍 useContentProductionStats - Запрос данных:', {
           projectId,
           periodStart,
-          periodEnd
+          periodEnd: effectivePeriodEnd
         });
 
         const { data, error: fetchError } = await supabase
@@ -46,7 +50,7 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
           .select('*')
           .eq('project_id', projectId)
           .eq('period_start', periodStart)
-          .eq('period_end', periodEnd)
+          .eq('period_end', effectivePeriodEnd)
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
@@ -65,7 +69,7 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
             revenue: data.revenue
           });
         } else {
-          console.log('⚠️ Нет данных в content_production_stats для периода:', periodStart, '-', periodEnd);
+          console.log('⚠️ Нет данных в content_production_stats для периода:', periodStart, '-', effectivePeriodEnd);
         }
 
         setStats(data || null);
@@ -100,7 +104,7 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [projectId, periodStart, periodEnd]);
+  }, [projectId, periodStart, effectivePeriodEnd]);
 
   return { stats, loading, error };
 };
