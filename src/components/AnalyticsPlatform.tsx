@@ -205,11 +205,18 @@ export const AnalyticsPlatform = () => {
     );
   }, [dailyData, daysInRange]);
 
-  // Данные за прошлую неделю для сравнения
+  // Данные за прошлую неделю для сравнения (7 дней назад от ПОСЛЕДНЕГО дня текущего диапазона)
   const previousWeekTotals = useMemo(() => {
-    const weekAgoStart = subWeeks(dateRange.from, 1);
-    const weekAgoEnd = subWeeks(dateRange.to, 1);
-    const prevDays = eachDayOfInterval({ start: weekAgoStart, end: weekAgoEnd });
+    // Берем последний день текущего диапазона и отнимаем 7 дней
+    const lastDayOfRange = dateRange.to;
+    const sevenDaysAgo = subWeeks(lastDayOfRange, 1);
+    
+    // Берем данные за 7 дней назад (от sevenDaysAgo минус 6 дней до sevenDaysAgo)
+    const prevEnd = sevenDaysAgo;
+    const prevStart = new Date(prevEnd);
+    prevStart.setDate(prevStart.getDate() - 6); // 7 дней включая текущий
+    
+    const prevDays = eachDayOfInterval({ start: prevStart, end: prevEnd });
     const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
     const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
 
