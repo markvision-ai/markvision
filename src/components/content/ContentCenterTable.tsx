@@ -174,12 +174,14 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
     <>
       {/* Заголовок с информацией о текущем дне */}
       {currentDay && (
-        <div className="mb-4 flex items-center justify-between">
-          <div>
-            <h3 className="text-lg font-semibold">{currentDay.dateLabel}</h3>
-            <p className="text-sm text-muted-foreground">
-              {currentPosts.length} {currentPosts.length === 1 ? 'публикация' : currentPosts.length < 5 ? 'публикации' : 'публикаций'}
-            </p>
+        <div className="mb-4 p-4 bg-card border rounded-lg">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">{currentDay.dateLabel}</h3>
+              <p className="text-sm text-muted-foreground mt-1">
+                {currentPosts.length} {currentPosts.length === 1 ? 'публикация' : currentPosts.length < 5 ? 'публикации' : 'публикаций'}
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -308,7 +310,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
 
       {/* Пагинация по дням */}
       {postsByDay.length > 0 && (
-        <div className="flex items-center justify-between mt-4 px-2">
+        <div className="flex items-center justify-between mt-4 px-4 py-3 bg-card border rounded-lg">
           <Button
             variant="outline"
             size="sm"
@@ -317,22 +319,22 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
             className="gap-1"
           >
             <ChevronLeft className="w-4 h-4" />
-            Предыдущий день
+            Предыдущий
           </Button>
 
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              {currentDayIndex + 1} из {postsByDay.length}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-foreground">
+              {currentDayIndex + 1} / {postsByDay.length}
             </span>
-            <div className="flex gap-1">
+            <div className="flex gap-1.5">
               {postsByDay.map((day, index) => (
                 <button
                   key={day.date}
                   onClick={() => setCurrentDayIndex(index)}
-                  className={`px-3 py-1 text-xs rounded-md transition-colors ${
+                  className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-md transition-all ${
                     index === currentDayIndex
-                      ? 'bg-primary text-primary-foreground font-medium'
-                      : 'bg-muted hover:bg-muted/80 text-muted-foreground'
+                      ? 'bg-primary text-primary-foreground shadow-sm scale-105'
+                      : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
                   }`}
                   title={day.dateLabel}
                 >
@@ -340,7 +342,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                 </button>
               ))}
             </div>
-            <span className="text-sm text-muted-foreground">
+            <span className="text-sm text-muted-foreground min-w-[120px] text-right">
               {currentDay?.dateLabel}
             </span>
           </div>
@@ -352,7 +354,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
             disabled={currentDayIndex === postsByDay.length - 1}
             className="gap-1"
           >
-            Следующий день
+            Следующий
             <ChevronRight className="w-4 h-4" />
           </Button>
         </div>

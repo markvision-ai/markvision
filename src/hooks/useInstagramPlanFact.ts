@@ -12,10 +12,11 @@ export interface ContentPlanFactData {
 export const useInstagramPlanFact = (projectId: string | null) => {
   const { posts } = useInstagramPostsStats(projectId);
   // Получаем агрегированные метрики из content_production_stats
-  // Период: с 1 января по сегодняшний день
-  const today = new Date();
+  // Период: с 1 января по вчерашний день (как в workflow)
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1); // Вчерашний день
   const periodStart = '2026-01-01';
-  const periodEnd = today.toISOString().split('T')[0]; // Сегодняшняя дата
+  const periodEnd = yesterday.toISOString().split('T')[0]; // Вчерашняя дата
   
   const { stats: aggregatedStats, loading: statsLoading } = useContentProductionStats(
     projectId,
@@ -64,11 +65,12 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       };
     }
 
-    // Период: с 1 января по сегодняшний день
+    // Период: с 1 января по вчерашний день (как в workflow)
     const periodStart = new Date('2026-01-01T00:00:00.000Z');
-    const today = new Date();
-    today.setHours(23, 59, 59, 999); // Конец сегодняшнего дня
-    const periodEnd = today;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1); // Вчерашний день
+    yesterday.setHours(23, 59, 59, 999); // Конец вчерашнего дня
+    const periodEnd = yesterday;
 
     // Фильтруем посты за период
     const periodPosts = posts.filter(post => {

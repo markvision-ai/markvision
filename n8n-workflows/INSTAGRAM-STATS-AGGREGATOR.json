@@ -73,7 +73,7 @@
         "jsCode": "// Обрабатываем ответ от Supabase\nconst input = $input.first().json;\n\nconsole.log('\\n🔍 ОБРАБОТКА ОТВЕТА ОТ SUPABASE:');\nconsole.log('   Input type:', typeof input);\nconsole.log('   Input keys:', input ? Object.keys(input) : 'null');\n\n// Supabase может вернуть данные в разных форматах\nlet posts = [];\n\n// Вариант 1: Прямой массив\nif (Array.isArray(input)) {\n  posts = input;\n  console.log('✅ Данные получены как массив, длина:', posts.length);\n}\n// Вариант 2: Объект с полем data\nelse if (input && Array.isArray(input.data)) {\n  posts = input.data;\n  console.log('✅ Данные получены из input.data, длина:', posts.length);\n}\n// Вариант 3: Объект с полем body (строка JSON)\nelse if (input && input.body) {\n  try {\n    const parsed = typeof input.body === 'string' ? JSON.parse(input.body) : input.body;\n    posts = Array.isArray(parsed) ? parsed : (parsed ? [parsed] : []);\n    console.log('✅ Данные получены из input.body, длина:', posts.length);\n  } catch (e) {\n    console.log('❌ Ошибка парсинга input.body:', e.message);\n  }\n}\n// Вариант 4: Один объект\nelse if (input && typeof input === 'object' && !Array.isArray(input)) {\n  posts = [input];\n  console.log('✅ Данные получены как один объект');\n}\nelse {\n  console.log('❌ Не удалось извлечь данные из ответа');\n  console.log('   Input:', JSON.stringify(input).substring(0, 500));\n}\n\nconsole.log(`\\n📊 Итого постов: ${posts.length}`);\n\n// Возвращаем посты для следующей ноды\nreturn posts.map(post => ({ json: post }));"
       },
       "id": "parse-response-01",
-      "name": "🔍 Обработать ответ",
+      "name": "🔍 Обработать ответ (посты)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [900, 300]
@@ -155,7 +155,7 @@
         "jsCode": "// Обрабатываем ответ от Supabase\nconst input = $input.first();\nconst responseData = input.json;\nconst statusCode = input.statusCode || (input.headers && input.headers.status) || null;\n\nconsole.log('\\n🔍 ОБРАБОТКА ОТВЕТА ОТ SUPABASE:');\nconsole.log('   HTTP Status Code:', statusCode);\nconsole.log('   Response type:', typeof responseData);\n\n// Проверяем HTTP статус\nif (statusCode && statusCode >= 200 && statusCode < 300) {\n  console.log(`\\n✅ HTTP Status ${statusCode} - Запрос успешен!`);\n} else if (statusCode && statusCode >= 400) {\n  console.log(`\\n❌ HTTP Status ${statusCode} - Ошибка запроса!`);\n}\n\n// Проверяем, есть ли ошибка в теле ответа\nif (responseData && (responseData.error || responseData.message)) {\n  console.log('\\n❌ ОШИБКА ОТ SUPABASE:');\n  console.log('   Error:', responseData.error || responseData.message);\n  console.log('   Details:', responseData.details || responseData.hint || '');\n  \n  return {\n    json: {\n      success: false,\n      error: responseData.error || responseData.message,\n      details: responseData.details || responseData.hint || '',\n      status_code: statusCode,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Если HTTP статус успешный, считаем это успехом\nif (statusCode && statusCode >= 200 && statusCode < 300) {\n  // Получаем исходные данные из предыдущей ноды\n  const originalData = $('🧮 Рассчитать метрики').first().json;\n  \n  console.log(`\\n✅ УСПЕШНО СОХРАНЕНО в content_production_stats!\\n`);\n  console.log(`   Период: ${originalData.period_start} - ${originalData.period_end}`);\n  console.log(`   Публикации: ${originalData.publications || 0}`);\n  console.log(`   Сторис: ${originalData.stories || 0}`);\n  console.log(`   Охват: ${(originalData.reach || 0).toLocaleString('ru-RU')}`);\n  console.log(`   Комментарии: ${originalData.comments || 0}`);\n  \n  return {\n    json: {\n      success: true,\n      message: `Статистика за ${originalData.period_start} - ${originalData.period_end} успешно сохранена`,\n      period_start: originalData.period_start,\n      period_end: originalData.period_end,\n      publications: originalData.publications || 0,\n      stories: originalData.stories || 0,\n      reach: originalData.reach || 0,\n      comments: originalData.comments || 0,\n      status_code: statusCode,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Если нет статуса, но нет ошибки - тоже считаем успехом (пустой ответ от Supabase)\nif (!responseData || (Array.isArray(responseData) && responseData.length === 0) || (typeof responseData === 'object' && Object.keys(responseData).length === 0)) {\n  const originalData = $('🧮 Рассчитать метрики').first().json;\n  \n  console.log(`\\n✅ УСПЕШНО СОХРАНЕНО (пустой ответ от Supabase - это нормально для UPSERT)`);\n  console.log(`   Период: ${originalData.period_start} - ${originalData.period_end}`);\n  \n  return {\n    json: {\n      success: true,\n      message: `Статистика за ${originalData.period_start} - ${originalData.period_end} успешно сохранена (пустой ответ)`,\n      period_start: originalData.period_start,\n      period_end: originalData.period_end,\n      timestamp: new Date().toISOString()\n    }\n  };\n}\n\n// Неизвестный формат ответа\nconsole.log('\\n⚠️ Неизвестный формат ответа от Supabase');\nreturn {\n  json: {\n    success: false,\n    error: 'unknown_response_format',\n    status_code: statusCode,\n    response: responseData,\n    timestamp: new Date().toISOString()\n  }\n};"
       },
       "id": "process-response-01",
-      "name": "🔍 Обработать ответ",
+      "name": "🔍 Обработать ответ (Supabase)",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1780, 300]
@@ -182,9 +182,9 @@
       "main": [[{ "node": "📊 Получить посты из Supabase", "type": "main", "index": 0 }]]
     },
     "📊 Получить посты из Supabase": {
-      "main": [[{ "node": "🔍 Обработать ответ", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "🔍 Обработать ответ (посты)", "type": "main", "index": 0 }]]
     },
-    "🔍 Обработать ответ": {
+    "🔍 Обработать ответ (посты)": {
       "main": [[{ "node": "🧮 Рассчитать метрики", "type": "main", "index": 0 }]]
     },
     "🧮 Рассчитать метрики": {
@@ -202,9 +202,9 @@
       ]
     },
     "💾 Сохранить в Supabase": {
-      "main": [[{ "node": "🔍 Обработать ответ", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "🔍 Обработать ответ (Supabase)", "type": "main", "index": 0 }]]
     },
-    "🔍 Обработать ответ": {
+    "🔍 Обработать ответ (Supabase)": {
       "main": [[{ "node": "✅ Лог успеха", "type": "main", "index": 0 }]]
     }
   },
