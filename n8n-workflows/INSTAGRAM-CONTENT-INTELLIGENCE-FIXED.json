@@ -1,0 +1,177 @@
+{
+  "name": "Instagram Content Intelligence (FIXED)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-01",
+      "name": "⏰ Ежедневно 01:05",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425/media",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQiBIpZAlq7wLCrHpaprzQxoORky0vGRFsxOTSVW4uPEm1Sc7njSfuZBzUzxC87dqU8dr1ru0UZADrJTK8Qi1RlPgZCDWfoTVYxT9QqgoKVMqI6mcDEObnxElrnOIS3QZA7fUfeuplrZCbKnEAuGZAqelr2nP0F13oZACJQTpLBc7rWXZBI0ti"
+            },
+            {
+              "name": "fields",
+              "value": "id,caption,media_type,media_url,timestamp,permalink"
+            },
+            {
+              "name": "limit",
+              "value": "20"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "ig-media-01",
+      "name": "📸 Get IG Posts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json;\n\nif (!input || !input.data || input.data.length === 0) {\n  console.log('⚠️ Нет постов от Instagram');\n  return { json: { skip: true, reason: 'no_posts' } };\n}\n\nconst posts = input.data;\nconsole.log(`📊 Получено постов: ${posts.length}`);\n\n// Возвращаем массив постов для дальнейшей обработки\nreturn posts.map(post => ({\n  json: {\n    post_id: post.id,\n    caption: post.caption || '',\n    media_type: post.media_type,\n    media_url: post.media_url,\n    posted_at: post.timestamp,\n    permalink: post.permalink\n  }\n}));"
+      },
+      "id": "transform-01",
+      "name": "🔄 Transform Posts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.post_id }}/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQiBIpZAlq7wLCrHpaprzQxoORky0vGRFsxOTSVW4uPEm1Sc7njSfuZBzUzxC87dqU8dr1ru0UZADrJTK8Qi1RlPgZCDWfoTVYxT9QqgoKVMqI6mcDEObnxElrnOIS3QZA7fUfeuplrZCbKnEAuGZAqelr2nP0F13oZACJQTpLBc7rWXZBI0ti"
+            },
+            {
+              "name": "metric",
+              "value": "reach,likes,comments,shares,saved"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "ig-insights-01",
+      "name": "📊 Get Insights",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const postData = $input.first().json;\nconst insights = $input.last().json;\n\nfunction extractMetric(data, metricName) {\n  if (!data || !data.data || !Array.isArray(data.data)) return 0;\n  const metric = data.data.find(m => m.name === metricName);\n  return metric?.values?.[0]?.value || 0;\n}\n\nconst reach = extractMetric(insights, 'reach');\nconst result = {\n  post_id: postData.post_id,\n  caption: postData.caption,\n  media_type: postData.media_type,\n  media_url: postData.media_url,\n  posted_at: postData.posted_at,\n  permalink: postData.permalink,\n  reach: reach,\n  impressions: extractMetric(insights, 'impressions') || reach, // Используем reach как fallback\n  likes: extractMetric(insights, 'likes'),\n  comments: extractMetric(insights, 'comments'),\n  shares: extractMetric(insights, 'shares'),\n  saves: extractMetric(insights, 'saved'),\n  // Лиды и выручка - по умолчанию 0 (можно считать отдельно позже)\n  leads_count: 0,\n  paid_leads: 0,\n  revenue: 0\n};\n\nconsole.log(`✅ Post ${result.post_id}: ${result.impressions} показов, ${result.reach} охват, ${result.likes} лайков`);\n\nreturn { json: result };"
+      },
+      "id": "merge-01",
+      "name": "🔀 Merge Insights",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?on_conflict=post_id",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"post_id\": \"{{ $json.post_id }}\",\n  \"caption\": \"{{ $json.caption }}\",\n  \"media_type\": \"{{ $json.media_type }}\",\n  \"media_url\": \"{{ $json.media_url }}\",\n  \"permalink\": \"{{ $json.permalink }}\",\n  \"posted_at\": \"{{ $json.posted_at }}\",\n  \"impressions\": {{ $json.impressions }},\n  \"reach\": {{ $json.reach }},\n  \"likes\": {{ $json.likes }},\n  \"comments\": {{ $json.comments }},\n  \"shares\": {{ $json.shares }},\n  \"saves\": {{ $json.saves }},\n  \"leads_count\": 0,\n  \"paid_leads\": 0,\n  \"revenue\": 0,\n  \"updated_at\": \"{{ $now.toISO() }}\"\n}",
+        "options": {}
+      },
+      "id": "supabase-upsert-01",
+      "name": "💾 Save to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\nconst successCount = items.length;\n\nconsole.log(`\\n✅ УСПЕШНО СОХРАНЕНО: ${successCount} постов\\n`);\n\nreturn {\n  json: {\n    success: true,\n    posts_processed: successCount,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "success-log-01",
+      "name": "✅ Success Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    }
+  ],
+  "connections": {
+    "⏰ Ежедневно 01:05": {
+      "main": [[{ "node": "📸 Get IG Posts", "type": "main", "index": 0 }]]
+    },
+    "📸 Get IG Posts": {
+      "main": [[{ "node": "🔄 Transform Posts", "type": "main", "index": 0 }]]
+    },
+    "🔄 Transform Posts": {
+      "main": [[{ "node": "📊 Get Insights", "type": "main", "index": 0 }]]
+    },
+    "📊 Get Insights": {
+      "main": [[{ "node": "🔀 Merge Insights", "type": "main", "index": 0 }]]
+    },
+    "🔀 Merge Insights": {
+      "main": [[{ "node": "💾 Save to Supabase", "type": "main", "index": 0 }]]
+    },
+    "💾 Save to Supabase": {
+      "main": [[{ "node": "✅ Success Log", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0,
+  "updatedAt": "2026-01-23T00:00:00.000Z",
+  "versionId": "1"
+}
