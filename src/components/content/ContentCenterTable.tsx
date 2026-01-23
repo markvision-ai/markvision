@@ -132,6 +132,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Охват</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Комментарии</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Результат</th>
+              <th className="text-right p-3 text-sm font-medium text-muted-foreground">Диагностики</th>
               <th className="text-right p-3 text-sm font-medium text-muted-foreground">Выручка</th>
               <th className="text-center p-3 text-sm font-medium text-muted-foreground">Действие</th>
             </tr>
@@ -145,9 +146,9 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                 {/* Контент - превью + текст */}
                 <td className="p-3">
                   <div className="flex gap-3 items-start">
-                    {/* Компактное превью */}
+                    {/* Улучшенное превью */}
                     <div 
-                      className="relative w-16 h-16 flex-shrink-0 rounded-md overflow-hidden border border-border cursor-pointer hover:opacity-80 transition-opacity"
+                      className="relative w-20 h-20 flex-shrink-0 rounded-lg overflow-hidden border-2 border-border/50 cursor-pointer hover:border-primary/50 hover:scale-105 transition-all shadow-sm"
                       onClick={() => post.permalink && window.open(post.permalink, '_blank')}
                     >
                       {post.media_url ? (
@@ -158,23 +159,27 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                               className="w-full h-full object-cover"
                               muted
                               loop
+                              playsInline
                             />
                           ) : (
                             <img
                               src={post.media_url}
                               alt="Post thumbnail"
                               className="w-full h-full object-cover"
+                              loading="lazy"
                             />
                           )}
-                          <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent flex items-end justify-center pb-0.5">
-                            {post.media_type?.toLowerCase().includes('video') && (
-                              <Play className="w-3 h-3 text-white" fill="white" />
-                            )}
-                          </div>
+                          {post.media_type?.toLowerCase().includes('video') && (
+                            <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
+                              <div className="w-8 h-8 rounded-full bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                                <Play className="w-4 h-4 text-white" fill="white" />
+                              </div>
+                            </div>
+                          )}
                         </>
                       ) : (
-                        <div className="w-full h-full bg-muted flex items-center justify-center">
-                          <Play className="w-4 h-4 text-muted-foreground" />
+                        <div className="w-full h-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center">
+                          <Play className="w-6 h-6 text-muted-foreground" />
                         </div>
                       )}
                     </div>
@@ -209,6 +214,11 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                     <div>Лиды: {post.leads_count || 0}</div>
                     <div className="text-xs text-muted-foreground">Оплачено: {post.paid_leads || 0}</div>
                   </div>
+                </td>
+
+                {/* Диагностики */}
+                <td className="p-3 text-right">
+                  <span className="text-sm font-medium">{post.leads_count || 0}</span>
                 </td>
 
                 {/* Выручка */}

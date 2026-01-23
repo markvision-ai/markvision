@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Фиксированный период: с 1 по 22 января 2026\nconst periodStart = '2026-01-01';\nconst periodEnd = '2026-01-22';\nconst periodEndFull = '2026-01-22T23:59:59.999Z';\n\nconsole.log(`📅 Период: ${periodStart} - ${periodEnd}`);\nconsole.log(`📅 Полный период для фильтра: ${periodStart} - ${periodEndFull}`);\n\nreturn {\n  json: {\n    period_start: periodStart,\n    period_end: periodEnd,\n    period_end_full: periodEndFull\n  }\n};"
+        "jsCode": "// Период: с 1 января по сегодняшний день\nconst periodStart = '2026-01-01';\nconst today = new Date();\nconst periodEnd = today.toISOString().split('T')[0]; // Сегодняшняя дата YYYY-MM-DD\nconst periodEndFull = new Date(today);\nperiodEndFull.setHours(23, 59, 59, 999);\nconst periodEndFullISO = periodEndFull.toISOString();\n\nconsole.log(`📅 Период: ${periodStart} - ${periodEnd} (сегодня)`);\nconsole.log(`📅 Полный период для фильтра: ${periodStart} - ${periodEndFullISO}`);\n\nreturn {\n  json: {\n    period_start: periodStart,\n    period_end: periodEnd,\n    period_end_full: periodEndFullISO\n  }\n};"
       },
       "id": "calculate-period-01",
       "name": "📅 Рассчитать период (1-22 янв)",

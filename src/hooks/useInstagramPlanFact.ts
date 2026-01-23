@@ -12,10 +12,15 @@ export interface ContentPlanFactData {
 export const useInstagramPlanFact = (projectId: string | null) => {
   const { posts } = useInstagramPostsStats(projectId);
   // Получаем агрегированные метрики из content_production_stats
+  // Период: с 1 января по сегодняшний день
+  const today = new Date();
+  const periodStart = '2026-01-01';
+  const periodEnd = today.toISOString().split('T')[0]; // Сегодняшняя дата
+  
   const { stats: aggregatedStats, loading: statsLoading } = useContentProductionStats(
     projectId,
-    '2026-01-01',
-    '2026-01-22'
+    periodStart,
+    periodEnd
   );
   const [planData, setPlanData] = useState<ContentPlanFactData[]>([
     { metric: 'Публикации', plan: 0, fact: 0, unit: 'шт' },
@@ -59,9 +64,11 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       };
     }
 
-    // Период: с 1 января по 22 января 2026
+    // Период: с 1 января по сегодняшний день
     const periodStart = new Date('2026-01-01T00:00:00.000Z');
-    const periodEnd = new Date('2026-01-22T23:59:59.999Z');
+    const today = new Date();
+    today.setHours(23, 59, 59, 999); // Конец сегодняшнего дня
+    const periodEnd = today;
 
     // Фильтруем посты за период
     const periodPosts = posts.filter(post => {
@@ -96,7 +103,8 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalSales = periodPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
     const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
-    console.log(`📊 Период 1-22 января 2026 (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}, комментарии: ${totalComments}`);
+    const periodEndStr = periodEnd.toISOString().split('T')[0];
+    console.log(`📊 Период 1 января - ${periodEndStr} (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}, комментарии: ${totalComments}`);
 
     return {
       publications,
