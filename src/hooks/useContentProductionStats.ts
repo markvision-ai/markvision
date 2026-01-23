@@ -9,7 +9,7 @@ export interface ContentProductionStats {
   publications: number;
   stories: number;
   reach: number;
-  engagement: number;
+  comments: number;
   followers: number;
   diagnostics: number;
   sales: number;
