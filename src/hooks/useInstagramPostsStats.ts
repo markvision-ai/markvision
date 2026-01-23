@@ -45,12 +45,26 @@ export const useInstagramPostsStats = (projectId: string | null) => {
           .order('posted_at', { ascending: false })
           .limit(50);
 
-        if (fetchError) throw fetchError;
+        if (fetchError) {
+          console.error('Supabase fetch error:', fetchError);
+          // Если таблица не существует или RLS блокирует
+          if (fetchError.code === 'PGRST116' || fetchError.message?.includes('does not exist')) {
+            setError('Таблица instagram_posts_stats не найдена. Выполни SQL миграцию в Supabase.');
+          } else if (fetchError.code === 'PGRST301' || fetchError.message?.includes('permission denied')) {
+            setError('Нет доступа к таблице. Проверь RLS политики в Supabase.');
+          } else {
+            setError(fetchError.message || 'Ошибка загрузки данных');
+          }
+          setPosts([]);
+          return;
+        }
 
+        console.log(`✅ Загружено постов: ${data?.length || 0}`);
         setPosts(data || []);
       } catch (err: any) {
         console.error('Error fetching Instagram posts stats:', err);
         setError(err.message || 'Failed to load Instagram posts');
+        setPosts([]);
       } finally {
         setLoading(false);
       }

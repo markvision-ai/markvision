@@ -72,23 +72,53 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-destructive">{error}</p>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
+        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+          <Play className="w-8 h-8 text-red-600" />
+        </div>
+        <div className="text-center space-y-2 max-w-md">
+          <p className="font-semibold text-lg text-destructive">Ошибка загрузки</p>
+          <p className="text-sm text-muted-foreground">{error}</p>
+          {error.includes('не найдена') && (
+            <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800 text-left">
+              <p className="text-xs font-semibold text-red-900 dark:text-red-100 mb-2">
+                🔧 Решение:
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Выполни SQL скрипт <code className="bg-red-100 dark:bg-red-900/30 px-1 rounded">CREATE-INSTAGRAM-TABLE.sql</code> в Supabase SQL Editor
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     );
   }
 
   if (posts.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
         <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
           <Play className="w-8 h-8 text-violet-600" />
         </div>
-        <div className="text-center">
+        <div className="text-center space-y-2 max-w-md">
           <p className="font-semibold text-lg">Нет данных</p>
           <p className="text-sm text-muted-foreground">
-            Импортируйте workflow в n8n и активируйте его
+            Таблица создана, но данные еще не загружены.
           </p>
+          <div className="mt-4 p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg border border-violet-200 dark:border-violet-800 text-left">
+            <p className="text-xs font-semibold text-violet-900 dark:text-violet-100 mb-2">
+              📋 Что делать:
+            </p>
+            <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+              <li>Открой n8n и найди workflow "Instagram Content Intelligence"</li>
+              <li>Нажми "Execute Workflow" (запуск вручную)</li>
+              <li>Дождись завершения выполнения</li>
+              <li>Обнови эту страницу (F5)</li>
+            </ol>
+            <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-violet-200 dark:border-violet-800">
+              💡 Workflow также запускается автоматически каждый день в 01:05
+            </p>
+          </div>
         </div>
       </div>
     );
