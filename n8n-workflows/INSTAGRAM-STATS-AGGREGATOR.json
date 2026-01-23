@@ -127,11 +127,11 @@
             },
             {
               "name": "since",
-              "value": "={{ $('📅 Рассчитать период (1 янв - вчера)').first().json.period_start_timestamp }}"
+              "value": "={{ $json.period_start_timestamp }}"
             },
             {
               "name": "until",
-              "value": "={{ $('📅 Рассчитать период (1 янв - вчера)').first().json.period_end_timestamp }}"
+              "value": "={{ $json.period_end_timestamp }}"
             }
           ]
         },
@@ -244,14 +244,14 @@
       "main": [[{ "node": "📅 Рассчитать период (1 янв - вчера)", "type": "main", "index": 0 }]]
     },
     "📅 Рассчитать период (1 янв - вчера)": {
-      "main": [[{ "node": "🔗 Сформировать URL", "type": "main", "index": 0 }]]
-    },
-    "🔗 Сформировать URL": {
       "main": [
-        [{ "node": "📊 Получить посты из Supabase", "type": "main", "index": 0 }],
+        [{ "node": "🔗 Сформировать URL", "type": "main", "index": 0 }],
         [{ "node": "👥 Получить подписчиков", "type": "main", "index": 0 }],
         [{ "node": "👥 Получить новых подписчиков", "type": "main", "index": 0 }]
       ]
+    },
+    "🔗 Сформировать URL": {
+      "main": [[{ "node": "📊 Получить посты из Supabase", "type": "main", "index": 0 }]]
     },
     "📊 Получить посты из Supabase": {
       "main": [[{ "node": "🔍 Обработать ответ (посты)", "type": "main", "index": 0 }]]
