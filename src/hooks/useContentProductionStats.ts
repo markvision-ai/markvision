@@ -35,6 +35,12 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
         setLoading(true);
         setError(null);
 
+        console.log('🔍 useContentProductionStats - Запрос данных:', {
+          projectId,
+          periodStart,
+          periodEnd
+        });
+
         const { data, error: fetchError } = await supabase
           .from('content_production_stats')
           .select('*')
@@ -44,7 +50,22 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
           .single();
 
         if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
+          console.error('❌ Ошибка загрузки content_production_stats:', fetchError);
           throw fetchError;
+        }
+
+        if (data) {
+          console.log('✅ Данные загружены из content_production_stats:', {
+            publications: data.publications,
+            stories: data.stories,
+            reach: data.reach,
+            comments: data.comments,
+            diagnostics: data.diagnostics,
+            sales: data.sales,
+            revenue: data.revenue
+          });
+        } else {
+          console.log('⚠️ Нет данных в content_production_stats для периода:', periodStart, '-', periodEnd);
         }
 
         setStats(data || null);

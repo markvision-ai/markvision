@@ -36,9 +36,31 @@ export const useInstagramPlanFact = (projectId: string | null) => {
 
   // Автоматически считаем факт из агрегированных данных или из постов
   const calculatedFact = useMemo(() => {
+    console.log('📊 useInstagramPlanFact - Расчет факта:', {
+      periodStart,
+      periodEnd,
+      hasAggregatedStats: !!aggregatedStats,
+      statsLoading,
+      postsCount: posts?.length || 0,
+      aggregatedStats: aggregatedStats ? {
+        publications: aggregatedStats.publications,
+        stories: aggregatedStats.stories,
+        reach: aggregatedStats.reach,
+        comments: aggregatedStats.comments,
+        diagnostics: aggregatedStats.diagnostics,
+        sales: aggregatedStats.sales,
+        revenue: aggregatedStats.revenue,
+      } : null
+    });
+
     // Если есть агрегированные данные - используем их
     if (aggregatedStats && !statsLoading) {
       console.log('✅ Используем агрегированные метрики из content_production_stats');
+      console.log('   Период:', aggregatedStats.period_start, '-', aggregatedStats.period_end);
+      console.log('   Публикации:', aggregatedStats.publications);
+      console.log('   Сторис:', aggregatedStats.stories);
+      console.log('   Охват:', aggregatedStats.reach);
+      console.log('   Комментарии:', aggregatedStats.comments);
       return {
         publications: aggregatedStats.publications || 0,
         stories: aggregatedStats.stories || 0,
@@ -107,6 +129,10 @@ export const useInstagramPlanFact = (projectId: string | null) => {
 
     const periodEndStr = periodEnd.toISOString().split('T')[0];
     console.log(`📊 Период 1 января - ${periodEndStr} (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}, комментарии: ${totalComments}`);
+    console.log('   Всего постов в базе:', posts.length);
+    console.log('   Постов в периоде:', periodPosts.length);
+    console.log('   Публикации (не Stories):', publications);
+    console.log('   Stories:', stories);
 
     return {
       publications,
