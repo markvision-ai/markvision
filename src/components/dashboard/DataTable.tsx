@@ -9,6 +9,7 @@ interface DailyData {
   impressions: number;
   clicks: number;
   leads: number;
+  followers: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -19,6 +20,7 @@ interface PlanData {
   impressions: number;
   clicks: number;
   leads: number;
+  followers: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -136,6 +138,7 @@ export const DataTable = ({
       impressions: acc.impressions + (day.impressions || 0),
       clicks: acc.clicks + (day.clicks || 0),
       leads: acc.leads + (day.leads || 0),
+      followers: acc.followers + (day.followers || 0),
       diagnostics: acc.diagnostics + (day.diagnostics || 0),
       sales: acc.sales + (day.sales || 0),
       revenue: acc.revenue + (day.revenue || 0)
@@ -144,6 +147,7 @@ export const DataTable = ({
       impressions: 0,
       clicks: 0,
       leads: 0,
+      followers: 0,
       diagnostics: 0,
       sales: 0,
       revenue: 0
@@ -157,7 +161,7 @@ export const DataTable = ({
   const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
     const rows = daysInMonth.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
@@ -165,9 +169,10 @@ export const DataTable = ({
       const dayImpressions = data?.impressions || 0;
       const dayCtr = dayImpressions > 0 ? Math.round(dayClicks / dayImpressions * 100) : 0;
       const dayLeads = data?.leads || 0;
+      const dayFollowers = data?.followers || 0;
       const daySpend = data?.spend || 0;
       const dayCpl = dayLeads > 0 ? Math.round(daySpend / dayLeads) : 0;
-      return [format(day, 'dd.MM.yyyy'), WEEKDAYS[getWeekDay(day)], data?.spend || 0, data?.impressions || 0, dayClicks, dayCtr, dayLeads, dayCpl, data?.diagnostics || 0, data?.sales || 0, data?.revenue || 0].join(',');
+      return [format(day, 'dd.MM.yyyy'), WEEKDAYS[getWeekDay(day)], data?.spend || 0, data?.impressions || 0, dayClicks, dayCtr, dayLeads, dayFollowers, dayCpl, data?.diagnostics || 0, data?.sales || 0, data?.revenue || 0].join(',');
     });
     const csv = [headers.join(','), ...rows].join('\n');
     const blob = new Blob(['\ufeff' + csv], {
@@ -233,6 +238,7 @@ export const DataTable = ({
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Клики</th>
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[80px] md:min-w-[100px]">Подписчики</th>
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[80px] md:min-w-[100px]">Диагностики</th>
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[80px]">Продажи</th>
                 <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[90px] md:min-w-[120px]">Выручка</th>
@@ -246,7 +252,7 @@ export const DataTable = ({
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                     <span>ПЛАН</span>
                   </td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
                     <td key={field} className="p-1 md:p-2">
                       {onPlanChange ? (
                         <EditableCell
@@ -271,6 +277,7 @@ export const DataTable = ({
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
                 <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
@@ -313,7 +320,7 @@ export const DataTable = ({
                         {isToday && <span className="text-[10px] md:text-xs text-primary hidden sm:inline">(сегодня)</span>}
                       </div>
                     </td>
-                    {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                    {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
                       <td key={field} className="p-1 md:p-2">
                         <EditableCell
                           value={dayData?.[field] as number | undefined}

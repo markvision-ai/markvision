@@ -18,6 +18,7 @@ interface DailyData {
   impressions: number;
   clicks: number;
   leads: number;
+  followers: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -28,6 +29,7 @@ interface PlanData {
   impressions: number;
   clicks: number;
   leads: number;
+  followers: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -55,6 +57,7 @@ export const useProjectData = (projectId: string | null) => {
         impressions: 0,
         clicks: 0,
         leads: 0,
+        followers: 0,
         diagnostics: 0,
         sales: 0,
         revenue: 0,
@@ -65,6 +68,7 @@ export const useProjectData = (projectId: string | null) => {
       impressions: rawPlanData.impressions || 0,
       clicks: rawPlanData.clicks || 0,
       leads: rawPlanData.leads || 0,
+      followers: rawPlanData.followers || 0,
       diagnostics: rawPlanData.diagnostics || 0,
       sales: rawPlanData.sales || 0,
       revenue: rawPlanData.revenue || 0,
@@ -109,6 +113,7 @@ export const useProjectData = (projectId: string | null) => {
           impressions: Number(row.impressions) || 0,
           clicks: Number(row.clicks) || 0,
           leads: Number(row.leads) || 0,
+          followers: Number(row.followers) || 0,
           diagnostics: Number(row.diagnostics) || 0,
           sales: Number(row.sales) || 0,
           revenue: Number(row.revenue) || 0,
@@ -155,6 +160,7 @@ export const useProjectData = (projectId: string | null) => {
           impressions: Number(data.impressions) || 0,
           clicks: Number(data.clicks) || 0,
           leads: Number(data.leads) || 0,
+          followers: Number(data.followers) || 0,
           diagnostics: Number(data.diagnostics) || 0,
           sales: Number(data.sales) || 0,
           revenue: Number(data.revenue) || 0,
@@ -191,6 +197,7 @@ export const useProjectData = (projectId: string | null) => {
         impressions: prev[date]?.impressions || 0,
         clicks: prev[date]?.clicks || 0,
         leads: prev[date]?.leads || 0,
+        followers: prev[date]?.followers || 0,
         diagnostics: prev[date]?.diagnostics || 0,
         sales: prev[date]?.sales || 0,
         revenue: prev[date]?.revenue || 0,
@@ -208,6 +215,7 @@ export const useProjectData = (projectId: string | null) => {
         impressions: field === 'impressions' ? value : (dailyData[date]?.impressions || 0),
         clicks: field === 'clicks' ? value : (dailyData[date]?.clicks || 0),
         leads: field === 'leads' ? value : (dailyData[date]?.leads || 0),
+        followers: field === 'followers' ? value : (dailyData[date]?.followers || 0),
         diagnostics: field === 'diagnostics' ? value : (dailyData[date]?.diagnostics || 0),
         sales: field === 'sales' ? value : (dailyData[date]?.sales || 0),
         revenue: field === 'revenue' ? value : (dailyData[date]?.revenue || 0),
@@ -267,6 +275,7 @@ export const useProjectData = (projectId: string | null) => {
       impressions: field === 'impressions' ? value : 0,
       clicks: field === 'clicks' ? value : 0,
       leads: field === 'leads' ? value : 0,
+      followers: field === 'followers' ? value : 0,
       diagnostics: field === 'diagnostics' ? value : 0,
       sales: field === 'sales' ? value : 0,
       revenue: field === 'revenue' ? value : 0,
@@ -281,6 +290,7 @@ export const useProjectData = (projectId: string | null) => {
         impressions: field === 'impressions' ? value : (rawPlanData?.impressions || 0),
         clicks: field === 'clicks' ? value : (rawPlanData?.clicks || 0),
         leads: field === 'leads' ? value : (rawPlanData?.leads || 0),
+        followers: field === 'followers' ? value : (rawPlanData?.followers || 0),
         diagnostics: field === 'diagnostics' ? value : (rawPlanData?.diagnostics || 0),
         sales: field === 'sales' ? value : (rawPlanData?.sales || 0),
         revenue: field === 'revenue' ? value : (rawPlanData?.revenue || 0),
