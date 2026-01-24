@@ -1,0 +1,143 @@
+{
+  "name": "Alternative Followers Tracking",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            },
+            {
+              "name": "fields",
+              "value": "followers_count"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-current-followers",
+      "name": "Get Current Followers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/followers_history",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jsonBody",
+              "value": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "save-to-db",
+      "name": "Save to Database",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const currentData = $('Get Current Followers').first().json;\nconst saveResponse = $('Save to Database').first().json;\n\nconst currentFollowers = currentData.followers_count || 0;\nconst today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD\n\nconsole.log(`=== FOLLOWERS TRACKING ===`);\nconsole.log(`📅 Date: ${today}`);\nconsole.log(`👥 Current Followers: ${currentFollowers}`);\nconsole.log(`💾 Save Status: ${saveResponse.statusCode >= 200 && saveResponse.statusCode < 300 ? 'SUCCESS' : 'FAILED'}`);\n\n// Для расчета новых подписчиков нужно будет сравнивать с предыдущими днями\n// Пока просто сохраняем текущее количество\nreturn {\n  json: {\n    date: today,\n    followers_count: currentFollowers,\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    saved: saveResponse.statusCode >= 200 && saveResponse.statusCode < 300\n  }\n};"
+      },
+      "id": "process-and-log",
+      "name": "Process and Log",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Daily Check": {
+      "main": [
+        [
+          {
+            "node": "Get Current Followers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Current Followers": {
+      "main": [
+        [
+          {
+            "node": "Save to Database",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save to Database": {
+      "main": [
+        [
+          {
+            "node": "Process and Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

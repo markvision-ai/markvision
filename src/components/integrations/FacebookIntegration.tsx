@@ -33,6 +33,7 @@ interface InstagramAccount {
   id: string;
   username: string;
   profile_picture_url?: string;
+  connected_page?: string;
 }
 
 const MetaLogo = () => (
@@ -52,10 +53,10 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
   const fetchConnection = useCallback(async () => {
     if (!projectId) return;
-    
+
     try {
-      console.log('📡 Fetching Facebook connection from database...');
-      
+      console.log('📡 Проверяем наличие токена в таблице ad_accounts...');
+
       const { data, error } = await supabase
         .from('ad_accounts')
         .select('id, access_token, created_at, platform, status')
@@ -64,39 +65,34 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
-        console.error('Error fetching Facebook connection:', error);
+        console.error('Ошибка получения подключения:', error);
       }
 
-      if (data) {
-        console.log('✅ Facebook connection found:', {
+      if (data && data.access_token) {
+        console.log('✅ Токен найден в базе данных:', {
           id: data.id,
-          hasToken: !!data.access_token,
-          tokenLength: data.access_token?.length || 0
+          tokenLength: data.access_token.length
         });
-        
+
         setConnection({
           id: data.id,
-          access_token: data.access_token || '',
+          access_token: data.access_token,
           connected_at: data.created_at,
           platform: 'facebook',
           status: data.status || 'active'
         });
-        
-        // Загружаем профили сразу после получения токена
-        if (data.access_token) {
-          console.log('🚀 Starting profile fetch with token...');
-          await fetchProfiles(data.access_token);
-        } else {
-          console.log('⚠️ No access token found in database');
-        }
+
+        // ПРИНУДИТЕЛЬНО загружаем профили сразу при загрузке
+        console.log('🚀 Автоматическая загрузка профилей из Meta API...');
+        await fetchProfiles(data.access_token);
       } else {
-        console.log('❌ No Facebook connection found');
+        console.log('❌ Токен не найден в базе данных');
         setConnection(null);
         setFacebookProfile(null);
         setInstagramAccounts([]);
       }
     } catch (error) {
-      console.error('Error fetching connection:', error);
+      console.error('Ошибка при проверке подключения:', error);
     } finally {
       setLoading(false);
     }
@@ -104,73 +100,59 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
   const fetchProfiles = async (accessToken: string) => {
     if (!accessToken) {
-      console.log('No access token');
+      console.log('Токен отсутствует');
       return;
     }
-    
-    console.log('Token length:', accessToken.length);
+
+    console.log('🔄 Загружаем данные из Meta API...');
     setLoadingProfiles(true);
-    
+
     try {
-      // ПРЯМОЙ запрос к Graph API (без Edge Function)
-      console.log('Fetching Facebook profile...');
-      
+      // Получаем Facebook профиль
       const fbResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me?fields=id,name,picture&access_token=${accessToken}`
+        `https://graph.facebook.com/v21.0/me?fields=id,name,picture&access_token=${accessToken}`
       );
 
       let facebookProfile = null;
       if (fbResponse.ok) {
         facebookProfile = await fbResponse.json();
-        console.log('✅ Facebook profile:', facebookProfile.name);
+        console.log('✅ Facebook профиль:', facebookProfile.name);
         setFacebookProfile(facebookProfile);
       } else {
-        const error = await fbResponse.json();
-        console.error('⚠️ Facebook error:', error);
-        
-        // Проверяем, истек ли токен (код 190)
-        if (error.error?.code === 190) {
-          console.warn('🔄 Token expired (code 190)');
-          
-          // Только для реально истекших токенов
-          if (error.error?.error_subcode === 463) {
-            toast.error('Токен истек', {
-              description: 'Получите новый через Graph API Explorer'
-            });
-          }
-          
-          throw new Error('Токен истек. Получите новый через Graph API Explorer');
-        }
-        
-        // Для других ошибок - просто показываем, но НЕ деактивируем
-        console.warn('Facebook API error (non-critical):', error.error?.message);
-        throw new Error(error.error?.message || 'Facebook API error');
+        console.error('❌ Ошибка Facebook API:', await fbResponse.text());
+        // Убираем деактивацию токена - доверяем базе данных
+        return;
       }
 
-      // Получаем Pages для Instagram
-      console.log('Fetching Pages...');
+      // Получаем Facebook Pages и связанные Instagram аккаунты
       const pagesResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
       );
 
       const instagramAccounts: any[] = [];
 
       if (pagesResponse.ok) {
         const pagesData = await pagesResponse.json();
-        console.log('Found pages:', pagesData.data?.length || 0);
+        console.log('Найдено страниц:', pagesData.data?.length || 0);
 
         for (const page of pagesData.data || []) {
+          // Сохраняем информацию о странице
+          console.log('Страница:', page.name);
+
           if (page.instagram_business_account) {
             const igId = page.instagram_business_account.id;
-            
+
             const igResponse = await fetch(
-              `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
+              `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
             );
 
             if (igResponse.ok) {
               const igData = await igResponse.json();
-              console.log('Instagram account:', igData.username);
-              instagramAccounts.push(igData);
+              console.log('Instagram аккаунт:', igData.username);
+              instagramAccounts.push({
+                ...igData,
+                connected_page: page.name // Сохраняем связь со страницей
+              });
             }
           }
         }
@@ -178,26 +160,12 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
       setInstagramAccounts(instagramAccounts);
 
-      const fbText = facebookProfile ? `${facebookProfile.name}` : '';
-      const igText = instagramAccounts.length ? `${instagramAccounts.length} Instagram` : '';
-      const separator = fbText && igText ? ' + ' : '';
-      
-      toast.success('Подключено!', {
-        description: fbText + separator + igText
-      });
+      // Тихое уведомление без toast
+      console.log('✅ Профили загружены из Meta API');
+
     } catch (error: any) {
-      console.error('Error:', error);
-      toast.error('Ошибка подключения', {
-        description: error.message || 'Попробуйте переподключить'
-      });
-      
-      // Деактивируем токен
-      if (connection) {
-        await supabase
-          .from('ad_accounts')
-          .update({ status: 'inactive' })
-          .eq('id', connection.id);
-      }
+      console.error('Ошибка загрузки профилей:', error);
+      // Убираем toast и деактивацию - доверяем базе данных
     } finally {
       setLoadingProfiles(false);
     }
@@ -494,13 +462,25 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
         {/* Features List */}
         <div className="grid grid-cols-2 gap-2 text-xs">
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background/50 border border-border/50">
-            <Facebook className="w-3.5 h-3.5 text-blue-500" />
-            <span className="text-muted-foreground">Facebook Ads</span>
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
+            isConnected
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+              : "bg-background/50 border-border/50 text-muted-foreground"
+          )}>
+            <Facebook className="w-3.5 h-3.5" />
+            <span>Facebook Ads</span>
+            {isConnected && <CheckCircle className="w-3 h-3 text-emerald-500 ml-auto" />}
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-background/50 border border-border/50">
-            <Instagram className="w-3.5 h-3.5 text-pink-500" />
-            <span className="text-muted-foreground">Instagram</span>
+          <div className={cn(
+            "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
+            isConnected
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+              : "bg-background/50 border-border/50 text-muted-foreground"
+          )}>
+            <Instagram className="w-3.5 h-3.5" />
+            <span>Instagram</span>
+            {isConnected && <CheckCircle className="w-3 h-3 text-emerald-500 ml-auto" />}
           </div>
         </div>
 
@@ -580,13 +560,75 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
                   </div>
                 )}
 
-                {/* No profiles found */}
-                {!facebookProfile && instagramAccounts.length === 0 && !loadingProfiles && (
-                  <div className="text-xs text-muted-foreground bg-amber-500/10 rounded-lg p-3 border border-amber-500/20">
-                    <p className="flex items-center gap-2">
-                      <span>⚠️</span>
-                      <span>Профили не найдены. Возможно, токен устарел.</span>
-                    </p>
+                {/* Show connected pages and accounts */}
+                {facebookProfile && (
+                  <div className="space-y-3">
+                    {/* Facebook Page */}
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="relative overflow-hidden rounded-xl bg-background/60 backdrop-blur-md border border-border/40 p-4 shadow-sm"
+                    >
+                      <div className="flex items-center gap-3">
+                        {facebookProfile.picture?.data?.url && (
+                          <div className="relative">
+                            <img
+                              src={facebookProfile.picture.data.url}
+                              alt={facebookProfile.name}
+                              className="w-12 h-12 rounded-xl border-2 border-blue-500/30 shadow-sm"
+                            />
+                            <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background flex items-center justify-center">
+                              <CheckCircle className="w-2.5 h-2.5 text-white" />
+                            </div>
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <MetaLogo />
+                            <h4 className="font-semibold text-sm truncate">{facebookProfile.name}</h4>
+                            <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                          </div>
+                          <p className="text-xs text-muted-foreground mt-1">Facebook Business Page</p>
+                        </div>
+                      </div>
+                    </motion.div>
+
+                    {/* Instagram Business Accounts */}
+                    {instagramAccounts.map((igAccount, index) => (
+                      <motion.div
+                        key={igAccount.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 0.1 * (index + 1) }}
+                        className="relative overflow-hidden rounded-xl bg-background/60 backdrop-blur-md border border-border/40 p-4 shadow-sm"
+                      >
+                        <div className="flex items-center gap-3">
+                          {igAccount.profile_picture_url && (
+                            <div className="relative">
+                              <img
+                                src={igAccount.profile_picture_url}
+                                alt={igAccount.username}
+                                className="w-12 h-12 rounded-xl border-2 border-pink-500/30 shadow-sm"
+                              />
+                              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 rounded-full border-2 border-background flex items-center justify-center">
+                                <CheckCircle className="w-2.5 h-2.5 text-white" />
+                              </div>
+                            </div>
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <Instagram className="w-4 h-4 text-pink-500" />
+                              <h4 className="font-semibold text-sm truncate">@{igAccount.username}</h4>
+                              <CheckCircle className="w-4 h-4 text-emerald-500 flex-shrink-0" />
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">Instagram Business Account</p>
+                            {igAccount.connected_page && (
+                              <p className="text-xs text-muted-foreground">Связан с: {igAccount.connected_page}</p>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
                   </div>
                 )}
               </>
@@ -643,7 +685,12 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           ) : (
             <div className="flex gap-2 w-full">
               <Button
-                onClick={() => connection?.access_token && fetchProfiles(connection.access_token)}
+                onClick={() => {
+                  if (connection?.access_token) {
+                    console.log('🔄 Перезагрузка данных из Meta API...');
+                    fetchProfiles(connection.access_token);
+                  }
+                }}
                 disabled={loadingProfiles}
                 variant="outline"
                 className="flex-1 border-blue-500/30 text-blue-500 hover:bg-blue-500/10"
@@ -652,7 +699,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
                 {loadingProfiles ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
-                    Обновление...
+                    Загрузка...
                   </>
                 ) : (
                   <>

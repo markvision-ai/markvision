@@ -1,0 +1,182 @@
+{
+  "name": "Debug Token Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/debug_token",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "input_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "debug-token",
+      "name": "Debug Token",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/me/permissions",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "check-permissions",
+      "name": "Check Permissions",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425/insights",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "metric",
+              "value": "follows_and_unfollows"
+            },
+            {
+              "name": "period",
+              "value": "day"
+            },
+            {
+              "name": "since",
+              "value": "1735603200"
+            },
+            {
+              "name": "until",
+              "value": "1735689600"
+            },
+            {
+              "name": "metric_type",
+              "value": "total_value"
+            },
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "test-insights",
+      "name": "Test Insights API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const debugData = $('Debug Token').first().json;\nconst permissionsData = $('Check Permissions').first().json;\nconst insightsData = $('Test Insights API').first().json;\n\nconsole.log('=== TOKEN DEBUG ===');\nconsole.log(JSON.stringify(debugData, null, 2));\n\nconsole.log('\\n=== PERMISSIONS ===');\nconsole.log(JSON.stringify(permissionsData, null, 2));\n\nconsole.log('\\n=== INSIGHTS RESPONSE ===');\nconsole.log(JSON.stringify(insightsData, null, 2));\n\nreturn {\n  json: {\n    token_info: debugData,\n    permissions: permissionsData,\n    insights: insightsData,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "process-results",
+      "name": "Process Results",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Debug Token",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Check Permissions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Debug Token": {
+      "main": [
+        [
+          {
+            "node": "Test Insights API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Permissions": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Insights API": {
+      "main": [
+        [
+          {
+            "node": "Process Results",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

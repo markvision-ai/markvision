@@ -1,0 +1,101 @@
+{
+  "name": "Simple Posts Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Test Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "select",
+              "value": "post_id,caption,posted_at,impressions,reach,likes,comments"
+            },
+            {
+              "name": "limit",
+              "value": "5"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-posts",
+      "name": "Get Posts from DB",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('Supabase Response:');\nconsole.log(JSON.stringify(data, null, 2));\n\nif (Array.isArray(data) && data.length > 0) {\n  console.log(`✅ Found ${data.length} posts in database`);\n  console.log('First post:', JSON.stringify(data[0], null, 2));\n} else if (Array.isArray(data) && data.length === 0) {\n  console.log('⚠️ Table exists but no posts found');\n} else {\n  console.log('❌ Unexpected response format');\n}\n\nreturn { json: { posts_found: Array.isArray(data) ? data.length : 0, sample: data[0] || null } };"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Test Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get Posts from DB",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Posts from DB": {
+      "main": [
+        [
+          {
+            "node": "Process Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

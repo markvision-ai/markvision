@@ -1,0 +1,87 @@
+{
+  "name": "Simple Instagram Test",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Test Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            },
+            {
+              "name": "fields",
+              "value": "followers_count"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-followers",
+      "name": "Get Followers",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('Instagram API Response:');\nconsole.log(JSON.stringify(data, null, 2));\n\nif (data.followers_count) {\n  console.log(`✅ Followers: ${data.followers_count}`);\n  return { json: { success: true, followers: data.followers_count } };\n} else {\n  console.log('❌ No followers data');\n  return { json: { success: false, error: 'No followers data' } };\n}"
+      },
+      "id": "process-response",
+      "name": "Process Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Test Schedule": {
+      "main": [
+        [
+          {
+            "node": "Get Followers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Followers": {
+      "main": [
+        [
+          {
+            "node": "Process Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

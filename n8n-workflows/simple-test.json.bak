@@ -1,0 +1,44 @@
+{
+  "name": "Simple Test Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-01",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple test\nconst today = new Date();\nconsole.log(`Test executed at: ${today.toISOString()}`);\n\nreturn {\n  json: {\n    message: 'Hello from simple workflow',\n    timestamp: today.toISOString()\n  }\n};"
+      },
+      "id": "code-01",
+      "name": "Simple Code",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [[{ "node": "Simple Code", "type": "main", "index": 0 }]]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 0
+}

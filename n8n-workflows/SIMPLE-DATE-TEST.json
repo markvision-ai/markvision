@@ -1,0 +1,70 @@
+{
+  "name": "Simple Date Test",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-test",
+      "name": "Test Schedule",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Рассчитываем период\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\n\nconsole.log(`Период: ${periodStart.toISOString().split('T')[0]} - ${periodEnd.toISOString().split('T')[0]}`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    message: 'Period calculated successfully'\n  }\n};"
+      },
+      "id": "calculate-period",
+      "name": "Calculate Period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('Period data:', JSON.stringify(data, null, 2));\n\nif (data.period_start && data.period_end) {\n  console.log('✅ Period calculation works!');\n} else {\n  console.log('❌ Period calculation failed');\n}\n\nreturn { json: { status: 'success', ...data } };"
+      },
+      "id": "process-result",
+      "name": "Process Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Test Schedule": {
+      "main": [
+        [
+          {
+            "node": "Calculate Period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculate Period": {
+      "main": [
+        [
+          {
+            "node": "Process Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

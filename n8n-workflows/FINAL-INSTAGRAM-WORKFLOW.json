@@ -1,0 +1,268 @@
+{
+  "name": "Final Instagram Workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "5 1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "⏰ Ежедневно 01:05",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Рассчитываем период\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\n\nconst periodStartTimestamp = Math.floor(periodStart.getTime() / 1000);\nconst periodEndTimestamp = Math.floor(periodEnd.getTime() / 1000) + 86399;\n\nconsole.log(`📅 Агрегация с ${periodStart.toISOString().split('T')[0]} по ${periodEnd.toISOString().split('T')[0]}`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    period_start_timestamp: periodStartTimestamp,\n    period_end_timestamp: periodEndTimestamp\n  }\n};"
+      },
+      "id": "calculate-period",
+      "name": "📅 Рассчитать период",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем посты из базы\nconst periodData = $('📅 Рассчитать период').first().json;\nconst url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&posted_at=gte.${periodData.period_start}&posted_at=lte.${periodData.period_end}&order=posted_at.asc`;\n\nconsole.log(`🔗 URL: ${url}`);\n\nreturn { json: { url: url, ...periodData } };"
+      },
+      "id": "build-posts-url",
+      "name": "🔗 Построить URL постов",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $json.url }}",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "alwaysOutputData": true
+        }
+      },
+      "id": "get-posts",
+      "name": "📊 Получить посты",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            },
+            {
+              "name": "fields",
+              "value": "followers_count"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "get-followers",
+      "name": "👥 Получить подписчиков",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Обрабатываем посты\nconst postsResponse = $input.first().json;\nlet posts = [];\n\nif (Array.isArray(postsResponse)) {\n  posts = postsResponse;\n} else if (postsResponse.data && Array.isArray(postsResponse.data)) {\n  posts = postsResponse.data;\n}\n\nconsole.log(`📊 Найдено постов: ${posts.length}`);\n\n// Считаем метрики публикаций\nconst publications = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return !mediaType.includes('story') && mediaType !== 'stories';\n}).length;\n\nconst totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);\nconst totalComments = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\nconst totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);\nconst totalShares = posts.reduce((sum, p) => sum + (p.shares || 0), 0);\nconst totalDiagnostics = posts.reduce((sum, p) => sum + (p.leads_count || 0), 0);\nconst totalSales = posts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);\nconst totalRevenue = posts.reduce((sum, p) => sum + (p.revenue || 0), 0);\n\nreturn {\n  json: {\n    posts_count: posts.length,\n    publications: publications,\n    reach: totalReach,\n    comments: totalComments,\n    likes: totalLikes,\n    shares: totalShares,\n    diagnostics: totalDiagnostics,\n    sales: totalSales,\n    revenue: Math.round(totalRevenue)\n  }\n};"
+      },
+      "id": "process-posts",
+      "name": "🔍 Обработать посты",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные подписчиков\nconst followersData = $('👥 Получить подписчиков').first().json;\nconst postsData = $('🔍 Обработать посты').first().json;\nconst periodData = $('📅 Рассчитать период').first().json;\n\nconst currentFollowers = followersData.followers_count || 0;\n\nconsole.log(`\\n=== АГРЕГАЦИЯ ЗА ${periodData.period_start} - ${periodData.period_end} ===`);\nconsole.log(`📊 Постов: ${postsData.posts_count}`);\nconsole.log(`📈 Публикаций: ${postsData.publications}`);\nconsole.log(`👥 Подписчиков: ${currentFollowers}`);\nconsole.log(`📊 Охват: ${postsData.reach.toLocaleString('ru-RU')}`);\nconsole.log(`💬 Комментарии: ${postsData.comments}`);\nconsole.log(`🏥 Диагностики: ${postsData.diagnostics}`);\nconsole.log(`💰 Выручка: ${postsData.revenue.toLocaleString('ru-RU')}₸`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    period_start: periodData.period_start,\n    period_end: periodData.period_end,\n    publications: postsData.publications,\n    reach: postsData.reach,\n    comments: postsData.comments,\n    followers: currentFollowers,\n    diagnostics: postsData.diagnostics,\n    sales: postsData.sales,\n    revenue: postsData.revenue\n  }\n};"
+      },
+      "id": "aggregate-data",
+      "name": "🧮 Агрегировать данные",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/content_production_stats",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jsonBody",
+              "value": "={{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "alwaysOutputData": true
+        }
+      },
+      "id": "save-stats",
+      "name": "💾 Сохранить статистику",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const saveResult = $('💾 Сохранить статистику').first().json;\nconst data = $('🧮 Агрегировать данные').first().json;\n\nconst success = saveResult.statusCode >= 200 && saveResult.statusCode < 300;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статус: ${success ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Период: ${data.period_start} - ${data.period_end}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats`);\n\nif (success) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибка сохранения: ${JSON.stringify(saveResult, null, 2)}`);\n}\n\nreturn { json: { success: success, ...data } };"
+      },
+      "id": "final-log",
+      "name": "✅ Финальный лог",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2000, 300]
+    }
+  ],
+  "connections": {
+    "⏰ Ежедневно 01:05": {
+      "main": [
+        [
+          {
+            "node": "📅 Рассчитать период",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📅 Рассчитать период": {
+      "main": [
+        [
+          {
+            "node": "🔗 Построить URL постов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Построить URL постов": {
+      "main": [
+        [
+          {
+            "node": "📊 Получить посты",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Получить посты": {
+      "main": [
+        [
+          {
+            "node": "🔍 Обработать посты",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Обработать посты": {
+      "main": [
+        [
+          {
+            "node": "👥 Получить подписчиков",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "👥 Получить подписчиков": {
+      "main": [
+        [
+          {
+            "node": "🧮 Агрегировать данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧮 Агрегировать данные": {
+      "main": [
+        [
+          {
+            "node": "💾 Сохранить статистику",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Сохранить статистику": {
+      "main": [
+        [
+          {
+            "node": "✅ Финальный лог",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

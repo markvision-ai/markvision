@@ -1,0 +1,84 @@
+{
+  "name": "Supabase Connection Test",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 */1 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-test",
+      "name": "Test Every Hour",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "test-connection",
+      "name": "Test Supabase Connection",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const response = $input.first().json;\nconsole.log('=== SUPABASE CONNECTION TEST ===');\nconsole.log('Status Code:', response.statusCode);\nconsole.log('Response:', JSON.stringify(response, null, 2));\n\nif (response.statusCode && response.statusCode >= 200 && response.statusCode < 300) {\n  console.log('✅ Supabase connection works!');\n} else {\n  console.log('❌ Supabase connection failed');\n  console.log('Error:', response.error || 'Unknown error');\n}\n\nreturn { json: { status: response.statusCode, success: response.statusCode >= 200 && response.statusCode < 300 } };"
+      },
+      "id": "log-result",
+      "name": "Log Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Test Every Hour": {
+      "main": [
+        [
+          {
+            "node": "Test Supabase Connection",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Test Supabase Connection": {
+      "main": [
+        [
+          {
+            "node": "Log Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}

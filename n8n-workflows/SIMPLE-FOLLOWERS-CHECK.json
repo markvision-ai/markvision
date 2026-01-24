@@ -1,0 +1,87 @@
+{
+  "name": "Simple Followers Check",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * *"
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger",
+      "name": "Daily Check",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/17841464802410425",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_token",
+              "value": "EAAa3xKWvHHYBQqKLp1WfZA6ZBLeddlHCwrkFkLsLyZAJUR5ugf5jbGAW0dwS9AUDsI6Q0oYCPXucAkQHZA0E5d2ah2HsGI0FEUNfwwRnkY4C9BwXzZA4ZCK3jT7NKfYWnle3JUYSf7vyuVNw0bz5Td0xxIYhEWn2ZC7mrKK8K6ZBKohcOmIMVRVmNOlsk7Hp"
+            },
+            {
+              "name": "fields",
+              "value": "id,name,username,followers_count,biography"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "basic-info",
+      "name": "Get Basic Info",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\nconsole.log('=== INSTAGRAM ACCOUNT INFO ===');\nconsole.log(JSON.stringify(data, null, 2));\n\nif (data.error) {\n  console.log('❌ API ERROR:', data.error.message);\n  return { json: { error: data.error.message, followers: 0 } };\n}\n\nconsole.log(`✅ Account: ${data.name || 'Unknown'}`);\nconsole.log(`✅ Followers: ${data.followers_count || 'N/A'}`);\nconsole.log(`✅ Username: ${data.username || 'N/A'}`);\n\nreturn {\n  json: {\n    account_name: data.name,\n    username: data.username,\n    followers_count: data.followers_count || 0,\n    biography: data.biography,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "id": "process-basic",
+      "name": "Process Basic Info",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    }
+  ],
+  "connections": {
+    "Daily Check": {
+      "main": [
+        [
+          {
+            "node": "Get Basic Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Basic Info": {
+      "main": [
+        [
+          {
+            "node": "Process Basic Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null
+}
