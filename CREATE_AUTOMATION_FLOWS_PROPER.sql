@@ -19,8 +19,15 @@ CREATE TABLE public.automation_flows (
 );
 
 -- Уникальное ограничение для upsert операций
-ALTER TABLE public.automation_flows
-ADD CONSTRAINT automation_flows_project_name_unique UNIQUE (project_id, name);
+DO $$
+BEGIN
+    ALTER TABLE public.automation_flows
+    ADD CONSTRAINT automation_flows_project_name_unique UNIQUE (project_id, name);
+EXCEPTION
+    WHEN others THEN
+        -- Ограничение уже существует, игнорируем ошибку
+        NULL;
+END $$;
 
 -- Индексы для производительности
 CREATE INDEX idx_automation_flows_project ON public.automation_flows(project_id);
