@@ -152,7 +152,7 @@
         "sendBody": true,
         "contentType": "json",
         "specifyBody": "json",
-        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"date\": \"{{ $json.date }}\",\n  \"spend\": {{ $json.spend }},\n  \"impressions\": {{ $json.impressions }},\n  \"clicks\": {{ $json.clicks }},\n  \"leads\": {{ $json.leads }},\n  \"diagnostics\": 0,\n  \"sales\": 0,\n  \"revenue\": 0\n}",
+        "jsonBody": "={\n  \"project_id\": \"{{ $json.project_id }}\",\n  \"date\": \"{{ $json.date }}\",\n  \"spend\": {{ $json.spend }},\n  \"impressions\": {{ $json.impressions }},\n  \"clicks\": {{ $json.clicks }},\n  \"leads\": {{ $json.leads }},\n  \"followers\": {{ $json.followers || 0 }},\n  \"diagnostics\": {{ $json.diagnostics || 0 }},\n  \"sales\": {{ $json.sales || 0 }},\n  \"revenue\": {{ $json.revenue || 0 }}\n}",
         "options": {}
       },
       "id": "supabase-006",
