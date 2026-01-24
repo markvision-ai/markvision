@@ -8,6 +8,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
+// GlowBadge component for premium status indicators
+const GlowBadge = ({ status, children }: { status: 'active' | 'error' | 'inactive' | 'running', children: React.ReactNode }) => {
+  const glowClasses = {
+    active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shadow-lg shadow-emerald-500/20',
+    error: 'bg-red-500/10 text-red-600 border-red-500/30 shadow-lg shadow-red-500/20',
+    inactive: 'bg-gray-500/10 text-gray-600 border-gray-500/30',
+    running: 'bg-blue-500/10 text-blue-600 border-blue-500/30 shadow-lg shadow-blue-500/20'
+  };
+
+  return (
+    <Badge
+      variant="secondary"
+      className={cn(
+        "text-xs font-medium px-2 py-1 border",
+        glowClasses[status]
+      )}
+    >
+      {children}
+    </Badge>
+  );
+};
+
 // Icons for other integrations
 const TikTokIcon = () => (
   <svg viewBox="0 0 24 24" className="w-4 h-4" fill="currentColor"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/></svg>
@@ -410,35 +432,18 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
       let finalPageName = selectedPageName;
       let finalInstagramHandle = selectedInstagramHandle;
 
-      // Try to fetch fresh names if not available
-      if (selectedAdAccount && !finalPageName.includes('Кабинет')) {
-        try {
-          const pageResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${selectedAdAccount}?fields=id,name&access_token=${connectedAccount.access_token}`
-          );
-          if (pageResponse.ok) {
-            const pageData = await pageResponse.json();
-            finalPageName = pageData.name;
-            setSelectedPageName(pageData.name);
-          }
-        } catch (error) {
-          console.warn('Could not fetch page name for saving');
-        }
+      // Get names from currently selected accounts (no OAuth calls needed)
+      const selectedAdAccountData = adAccounts.find(account => account.id === selectedAdAccount);
+      const selectedInstagramData = instagramAccounts.find(account => account.id === selectedInstagram);
+
+      if (selectedAdAccountData) {
+        finalPageName = selectedAdAccountData.name || `Кабинет ${selectedAdAccountData.account_id}`;
+        setSelectedPageName(finalPageName);
       }
 
-      if (selectedInstagram && !finalInstagramHandle.includes('@')) {
-        try {
-          const igResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${selectedInstagram}?fields=id,username&access_token=${connectedAccount.access_token}`
-          );
-          if (igResponse.ok) {
-            const igData = await igResponse.json();
-            finalInstagramHandle = igData.username;
-            setSelectedInstagramHandle(igData.username);
-          }
-        } catch (error) {
-          console.warn('Could not fetch Instagram handle for saving');
-        }
+      if (selectedInstagramData) {
+        finalInstagramHandle = selectedInstagramData.username;
+        setSelectedInstagramHandle(finalInstagramHandle);
       }
 
       // Save to database
@@ -468,43 +473,33 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   };
 
-  const handleRefresh = () => {
-    fetchData();
-    toast.success('Данные обновлены');
+  const handleRefresh = async () => {
+    try {
+      setLoading(true);
+      setLoadingAdAccounts(true);
+      setLoadingInstagramAccounts(true);
+      setLoadingAutomationFlows(true);
+
+      // Full refetch of all data
+      await fetchData();
+      await fetchAutomationFlows();
+
+      toast.success('Все данные обновлены');
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+      toast.error('Ошибка обновления данных');
+    } finally {
+      setLoading(false);
+      setLoadingAdAccounts(false);
+      setLoadingInstagramAccounts(false);
+      setLoadingAutomationFlows(false);
+    }
   };
 
   const handleChangeSettings = () => {
     setShowSelectionMode(true);
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      active: {
-        text: 'Работает',
-        className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
-      },
-      inactive: {
-        text: 'Пауза',
-        className: 'bg-gray-500/10 text-gray-600 border-gray-500/20'
-      },
-      error: {
-        text: 'Ошибка',
-        className: 'bg-red-500/10 text-red-600 border-red-500/20'
-      },
-      running: {
-        text: 'Выполняется',
-        className: 'bg-blue-500/10 text-blue-600 border-blue-500/20'
-      }
-    };
-
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.inactive;
-
-    return (
-      <Badge variant="secondary" className={cn("text-xs font-medium", config.className)}>
-        {config.text}
-      </Badge>
-    );
-  };
 
   if (loading) {
     return (
@@ -522,7 +517,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           <h1 className="text-xl font-bold text-foreground">Интеграции</h1>
           <p className="text-muted-foreground text-sm">Управление подключенными сервисами</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} className="bg-card/50 border-border text-foreground hover:bg-card/80">
+        <Button variant="outline" size="sm" onClick={handleRefresh} className="bg-background border-border text-foreground hover:bg-muted shadow-sm">
           <RefreshCw className="w-3 h-3 mr-2" />
           Обновить
         </Button>
@@ -533,7 +528,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         {/* Left Column: Meta Ads & Instagram */}
         <div className="lg:col-span-2 space-y-4">
           {/* Meta Integration Card */}
-          <Card className="bg-card/50 backdrop-blur-xl border-border/50">
+          <Card className="bg-background/80 dark:bg-card/50 backdrop-blur-xl dark:backdrop-blur-xl border-border/50 shadow-sm dark:shadow-lg dark:shadow-black/10">
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-foreground flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/30">
@@ -624,7 +619,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                       size="sm"
                       variant="outline"
                       onClick={handleRefresh}
-                      className="bg-background border-border text-foreground hover:bg-muted flex-1 h-7 text-xs"
+                      className="bg-background/80 dark:bg-background border-border text-foreground hover:bg-muted shadow-sm dark:shadow-none flex-1 h-7 text-xs"
                     >
                       <RefreshCw className="w-3 h-3 mr-1" />
                       Обновить
@@ -633,7 +628,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                       size="sm"
                       variant="outline"
                       onClick={handleChangeSettings}
-                      className="bg-background border-border text-foreground hover:bg-muted flex-1 h-7 text-xs"
+                      className="bg-background/80 dark:bg-background border-border text-foreground hover:bg-muted shadow-sm dark:shadow-none flex-1 h-7 text-xs"
                     >
                       <Settings className="w-3 h-3 mr-1" />
                       Изменить
@@ -645,7 +640,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           </Card>
 
           {/* Other Integrations - Compact Horizontal List */}
-          <Card className="bg-card/50 backdrop-blur-xl border-border/50">
+          <Card className="bg-background/80 dark:bg-card/50 backdrop-blur-xl dark:backdrop-blur-xl border-border/50 shadow-sm dark:shadow-lg dark:shadow-black/10">
             <CardHeader className="pb-2">
               <CardTitle className="text-base text-foreground">Другие интеграции</CardTitle>
             </CardHeader>
@@ -682,8 +677,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         {/* Right Column: n8n Automation Hub */}
         <div>
           <Card className={cn(
-            "bg-card/50 backdrop-blur-xl border-border/50",
-            automationFlows.some(flow => flow.status === 'error') && "border-destructive/50 shadow-lg shadow-destructive/20"
+            "bg-background/80 dark:bg-card/50 backdrop-blur-xl dark:backdrop-blur-xl border-border/50 shadow-sm dark:shadow-lg dark:shadow-black/10",
+            automationFlows.some(flow => flow.status === 'error') && "dark:border-destructive/50 dark:shadow-lg dark:shadow-destructive/20"
           )}>
             <CardHeader className="pb-3">
               <CardTitle className="text-base text-foreground flex items-center gap-2">
@@ -714,9 +709,14 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                             <p className="text-xs text-muted-foreground mt-1">{flow.description}</p>
                           )}
                         </div>
-                        <div className="ml-3">
-                          {getStatusBadge(flow.status)}
-                        </div>
+                      <div className="ml-3">
+                        <GlowBadge status={flow.status}>
+                          {flow.status === 'active' ? 'Работает' :
+                           flow.status === 'error' ? 'Ошибка' :
+                           flow.status === 'inactive' ? 'Пауза' :
+                           flow.status === 'running' ? 'Выполняется' : flow.status}
+                        </GlowBadge>
+                      </div>
                       </div>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
                         <span>
