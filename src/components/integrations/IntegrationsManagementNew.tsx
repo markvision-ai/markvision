@@ -67,6 +67,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
   const [selectedPageName, setSelectedPageName] = useState<string>('');
   const [selectedInstagramHandle, setSelectedInstagramHandle] = useState<string>('');
+  const [showSelectionMode, setShowSelectionMode] = useState<boolean>(true);
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch data from database
@@ -86,22 +87,25 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         // Set selected values from database
         if (account.selected_page_id) {
           setSelectedAdAccount(account.selected_page_id);
-          // Use stored name or fallback to ID
-          setSelectedPageName(account.selected_page_name || `Страница ${account.selected_page_id}`);
+          setSelectedPageName(account.selected_page_name || `Кабинет ${account.selected_page_id}`);
           setSelectedAdAccountData({
             id: account.selected_page_id,
-            name: account.selected_page_name || `Страница ${account.selected_page_id}`,
+            name: account.selected_page_name || `Кабинет ${account.selected_page_id}`,
             account_id: account.selected_page_id
           });
         }
         if (account.selected_instagram_id) {
           setSelectedInstagram(account.selected_instagram_id);
-          // Use stored handle or fallback to ID
           setSelectedInstagramHandle(account.selected_instagram_handle || account.selected_instagram_id);
           setSelectedInstagramData({
             id: account.selected_instagram_id,
             username: account.selected_instagram_handle || account.selected_instagram_id
           });
+        }
+
+        // If we have saved settings, show active connection mode
+        if (account.selected_page_id || account.selected_instagram_id) {
+          setShowSelectionMode(false);
         }
       }
 
@@ -398,9 +402,79 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   };
 
+  const handleSaveSettings = async () => {
+    if (!connectedAccount) return;
+
+    try {
+      // Get current names before saving
+      let finalPageName = selectedPageName;
+      let finalInstagramHandle = selectedInstagramHandle;
+
+      // Try to fetch fresh names if not available
+      if (selectedAdAccount && !finalPageName.includes('Кабинет')) {
+        try {
+          const pageResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${selectedAdAccount}?fields=id,name&access_token=${connectedAccount.access_token}`
+          );
+          if (pageResponse.ok) {
+            const pageData = await pageResponse.json();
+            finalPageName = pageData.name;
+            setSelectedPageName(pageData.name);
+          }
+        } catch (error) {
+          console.warn('Could not fetch page name for saving');
+        }
+      }
+
+      if (selectedInstagram && !finalInstagramHandle.includes('@')) {
+        try {
+          const igResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${selectedInstagram}?fields=id,username&access_token=${connectedAccount.access_token}`
+          );
+          if (igResponse.ok) {
+            const igData = await igResponse.json();
+            finalInstagramHandle = igData.username;
+            setSelectedInstagramHandle(igData.username);
+          }
+        } catch (error) {
+          console.warn('Could not fetch Instagram handle for saving');
+        }
+      }
+
+      // Save to database
+      const { error } = await supabase
+        .from('ad_accounts')
+        .upsert({
+          id: connectedAccount.id,
+          project_id: connectedAccount.project_id,
+          access_token: connectedAccount.access_token,
+          name: connectedAccount.name,
+          selected_page_id: selectedAdAccount || null,
+          selected_page_name: finalPageName || null,
+          selected_instagram_id: selectedInstagram || null,
+          selected_instagram_handle: finalInstagramHandle || null,
+          ad_account_name: finalPageName || null
+        }, {
+          onConflict: 'id'
+        });
+
+      if (error) throw error;
+
+      setShowSelectionMode(false);
+      toast.success('Настройки подключения сохранены!');
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast.error('Ошибка сохранения настроек');
+    }
+  };
+
   const handleRefresh = () => {
     fetchData();
     toast.success('Данные обновлены');
+  };
+
+  const handleChangeSettings = () => {
+    setShowSelectionMode(true);
   };
 
   const getStatusBadge = (status: string) => {
@@ -461,146 +535,142 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           {/* Meta Integration Card */}
           <Card className="bg-card/50 backdrop-blur-xl border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-foreground flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/30">
-                  <Facebook className="w-4 h-4 text-blue-500" />
+              <CardTitle className="text-base text-foreground flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/30">
+                  <Facebook className="w-3 h-3 text-blue-500" />
                 </div>
                 Facebook & Instagram
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm">
+              <CardDescription className="text-muted-foreground text-xs">
                 Реклама, Insights и Instagram контент
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Show connected account info if available */}
-              {connectedAccount && (
-                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Facebook className="w-5 h-5 text-primary" />
+            <CardContent className="space-y-3">
+              {showSelectionMode ? (
+                // Режим выбора настроек
+                <>
+                  {/* Account Selectors */}
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground">Рекламный кабинет</label>
+                      <Select value={selectedAdAccount} onValueChange={handleAdAccountChange}>
+                        <SelectTrigger className="bg-background border-border text-foreground h-8 text-xs">
+                          <SelectValue placeholder="Выберите кабинет" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border">
+                          {adAccounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id} className="text-foreground text-xs">
+                              {account.name || `Кабинет ${account.account_id}`}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">{connectedAccount.name || 'Meta аккаунт'}</p>
-                      <p className="text-sm text-muted-foreground">Подключено к проекту</p>
+
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground">Instagram профиль</label>
+                      <Select value={selectedInstagram} onValueChange={handleInstagramChange}>
+                        <SelectTrigger className="bg-background border-border text-foreground h-8 text-xs">
+                          <SelectValue placeholder="Выберите профиль" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border-border">
+                          {instagramAccounts.map((account) => (
+                            <SelectItem key={account.id} value={account.id} className="text-foreground text-xs">
+                              @{account.username}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
+                  </div>
+
+                  {/* Preview of selected accounts */}
+                  {(selectedPageName || selectedInstagramHandle) && (
+                    <div className="p-3 rounded-lg bg-muted/20 border border-border/30">
+                      <p className="text-xs font-medium text-foreground mb-2">Выбранные аккаунты:</p>
+                      <div className="space-y-1 text-xs text-muted-foreground">
+                        {selectedPageName && <p>📊 {selectedPageName}</p>}
+                        {selectedInstagramHandle && <p>📷 @{selectedInstagramHandle}</p>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Save Button */}
+                  <Button
+                    onClick={handleSaveSettings}
+                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs"
+                    disabled={!selectedAdAccount && !selectedInstagram}
+                  >
+                    Сохранить настройки подключения
+                  </Button>
+                </>
+              ) : (
+                // Режим активного подключения
+                <div className="space-y-3">
+                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                      <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Активное подключение</span>
+                    </div>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      {selectedPageName && <p>📊 Рекламный кабинет: {selectedPageName}</p>}
+                      {selectedInstagramHandle && <p>📷 Instagram: @{selectedInstagramHandle}</p>}
+                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleRefresh}
+                      className="bg-background border-border text-foreground hover:bg-muted flex-1 h-7 text-xs"
+                    >
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      Обновить
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleChangeSettings}
+                      className="bg-background border-border text-foreground hover:bg-muted flex-1 h-7 text-xs"
+                    >
+                      <Settings className="w-3 h-3 mr-1" />
+                      Изменить
+                    </Button>
                   </div>
                 </div>
               )}
-
-              {/* Account Selectors */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Рекламный кабинет</label>
-                  <Select value={selectedAdAccount} onValueChange={handleAdAccountChange}>
-                    <SelectTrigger className="bg-background border-border text-foreground">
-                      <SelectValue placeholder="Выберите кабинет" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border-border">
-                      {adAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id} className="text-foreground">
-                          {account.name || `Кабинет ${account.account_id}`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-foreground">Instagram профиль</label>
-                  <Select value={selectedInstagram} onValueChange={handleInstagramChange}>
-                    <SelectTrigger className="bg-background border-border text-foreground">
-                      <SelectValue placeholder="Выберите профиль" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border-border">
-                      {instagramAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id} className="text-foreground">
-                          @{account.username}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Mini Stats - Show selected account data */}
-              {(selectedPageName || selectedInstagramHandle) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/50">
-                  {selectedPageName && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center border border-blue-500/20">
-                        <Facebook className="w-4 h-4 text-blue-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{selectedPageName}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Рекламный кабинет
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedInstagramHandle && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center border border-pink-500/20">
-                        <MessageCircle className="w-4 h-4 text-pink-500" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">@{selectedInstagramHandle}</p>
-                        <p className="text-xs text-muted-foreground">
-                          Instagram профиль
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="bg-background border-border text-foreground hover:bg-muted">
-                  <RefreshCw className="w-3 h-3 mr-2" />
-                  Обновить данные
-                </Button>
-                <Button size="sm" variant="outline" className="bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20">
-                  <Unlink className="w-3 h-3 mr-2" />
-                  Деактивировать
-                </Button>
-              </div>
             </CardContent>
           </Card>
 
-          {/* Other Integrations - Horizontal List */}
+          {/* Other Integrations - Compact Horizontal List */}
           <Card className="bg-card/50 backdrop-blur-xl border-border/50">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-foreground">Другие интеграции</CardTitle>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base text-foreground">Другие интеграции</CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
+            <CardContent className="pt-0">
+              <div className="grid grid-cols-3 gap-2">
                 {[
-                  { id: 'tiktok', name: 'TikTok Ads', icon: <TikTokIcon />, status: 'inactive' },
+                  { id: 'tiktok', name: 'TikTok', icon: <TikTokIcon />, status: 'inactive' },
                   { id: 'google', name: 'Google Ads', icon: <GoogleIcon />, status: 'inactive' },
-                  { id: 'whatsapp', name: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" />, status: 'inactive' }
+                  { id: 'whatsapp', name: 'WhatsApp', icon: <MessageCircle className="w-3 h-3" />, status: 'inactive' }
                 ].map((integration) => (
-                  <div key={integration.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                        {integration.icon}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{integration.name}</p>
-                        <p className="text-xs text-muted-foreground">Реклама и аналитика</p>
-                      </div>
+                  <div key={integration.id} className="flex flex-col items-center p-3 rounded-lg bg-muted/20 hover:bg-muted/30 transition-colors border border-border/30">
+                    <div className="w-6 h-6 rounded-md bg-gradient-to-br from-muted/50 to-muted/30 flex items-center justify-center border border-border/40 mb-2">
+                      {integration.icon}
                     </div>
+                    <p className="text-xs font-medium text-foreground text-center mb-1">{integration.name}</p>
                     <Badge
                       variant={integration.status === 'active' ? 'default' : 'secondary'}
                       className={cn(
-                        "text-xs",
+                        "text-xs px-2 py-0.5 h-5",
                         integration.status === 'active'
                           ? 'bg-primary/10 text-primary border-primary/20'
                           : 'bg-muted text-muted-foreground border-border'
                       )}
                     >
-                      {integration.status === 'active' ? 'Подключено' : 'Настроить'}
+                      {integration.status === 'active' ? '✓' : '○'}
                     </Badge>
                   </div>
                 ))}
@@ -616,14 +686,14 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
             automationFlows.some(flow => flow.status === 'error') && "border-destructive/50 shadow-lg shadow-destructive/20"
           )}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-foreground flex items-center gap-2">
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30">
-                  <Zap className="w-4 h-4 text-amber-500" />
+              <CardTitle className="text-base text-foreground flex items-center gap-2">
+                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30">
+                  <Zap className="w-3 h-3 text-amber-500" />
                 </div>
                 n8n Automation Hub
               </CardTitle>
-              <CardDescription className="text-muted-foreground text-sm">
-                Статус автоматизации данных
+              <CardDescription className="text-muted-foreground text-xs">
+                Статус автоматизаций
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -631,8 +701,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                 {automationFlows.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Ожидание данных от n8n...</p>
-                    <p className="text-xs mt-1">Автоматизации скоро появятся здесь</p>
+                    <p className="text-sm">Роботы не запущены</p>
+                    <p className="text-xs mt-1">Запустите n8n workflows для мониторинга</p>
                   </div>
                 ) : (
                   automationFlows.map((flow) => (
