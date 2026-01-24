@@ -294,7 +294,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": \"{{ $now }}\"\n}]) }}",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": $now\n}]) }}",
         "options": {
           "timeout": 30000
         }
@@ -348,7 +348,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": \"{{ $now }}\"\n}]) }}",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": $now\n}]) }}",
         "options": {
           "timeout": 30000
         }
@@ -400,7 +400,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"error\",\n  \"last_run\": \"{{ $now }}\",\n  \"logs\": \"{{ $error.message }}\"\n}]) }}",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"error\",\n  \"last_run\": $now,\n  \"logs\": $error.message\n}]) }}",
         "options": {
           "timeout": 30000
         }
