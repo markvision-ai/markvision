@@ -1,11 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { Facebook, CheckCircle, Loader2, Unlink, Instagram, Zap } from 'lucide-react';
+import { Facebook, CheckCircle, Loader2, Unlink, Instagram, Zap, Search, RefreshCw, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface FacebookIntegrationProps {
   projectId: string;
@@ -17,6 +19,8 @@ interface FacebookConnection {
   connected_at: string;
   platform: 'facebook';
   status?: 'active' | 'inactive';
+  selected_page_id?: string;
+  selected_instagram_id?: string;
 }
 
 interface FacebookProfile {
@@ -34,6 +38,12 @@ interface InstagramAccount {
   username: string;
   profile_picture_url?: string;
   connected_page?: string;
+  followers_count?: number;
+}
+
+interface SelectedAccount {
+  page: FacebookProfile | null;
+  instagram: InstagramAccount | null;
 }
 
 const MetaLogo = () => (
@@ -47,31 +57,35 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   const [connecting, setConnecting] = useState(false);
   const [disconnecting, setDisconnecting] = useState(false);
   const [connection, setConnection] = useState<FacebookConnection | null>(null);
-  const [facebookProfile, setFacebookProfile] = useState<FacebookProfile | null>(null);
-  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
+  const [availablePages, setAvailablePages] = useState<FacebookProfile[]>([]);
+  const [availableInstagrams, setAvailableInstagrams] = useState<InstagramAccount[]>([]);
+  const [selectedAccount, setSelectedAccount] = useState<SelectedAccount>({ page: null, instagram: null });
   const [loadingProfiles, setLoadingProfiles] = useState(false);
+  const [showAccountSelector, setShowAccountSelector] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const fetchConnection = useCallback(async () => {
     if (!projectId) return;
 
     try {
-      console.log('📡 Проверяем наличие токена в таблице ad_accounts...');
+      console.log('📡 Проверяем подключение и выбранные аккаунты...');
 
       const { data, error } = await supabase
         .from('ad_accounts')
-        .select('id, access_token, created_at, platform, status')
+        .select('id, access_token, created_at, platform, status, selected_page_id, selected_instagram_id')
         .eq('project_id', projectId)
         .eq('platform', 'facebook')
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows
+      if (error && error.code !== 'PGRST116') {
         console.error('Ошибка получения подключения:', error);
       }
 
       if (data && data.access_token) {
-        console.log('✅ Токен найден в базе данных:', {
+        console.log('✅ Подключение найдено:', {
           id: data.id,
-          tokenLength: data.access_token.length
+          hasSelectedPage: !!data.selected_page_id,
+          hasSelectedInstagram: !!data.selected_instagram_id
         });
 
         setConnection({
@@ -79,17 +93,24 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           access_token: data.access_token,
           connected_at: data.created_at,
           platform: 'facebook',
-          status: data.status || 'active'
+          status: data.status || 'active',
+          selected_page_id: data.selected_page_id,
+          selected_instagram_id: data.selected_instagram_id
         });
 
-        // ПРИНУДИТЕЛЬНО загружаем профили сразу при загрузке
-        console.log('🚀 Автоматическая загрузка профилей из Meta API...');
+        // Загружаем доступные профили
         await fetchProfiles(data.access_token);
+
+        // Если есть выбранные аккаунты, загружаем их данные
+        if (data.selected_page_id || data.selected_instagram_id) {
+          await loadSelectedAccounts(data.access_token, data.selected_page_id, data.selected_instagram_id);
+        }
       } else {
-        console.log('❌ Токен не найден в базе данных');
+        console.log('❌ Подключение не найдено');
         setConnection(null);
-        setFacebookProfile(null);
-        setInstagramAccounts([]);
+        setAvailablePages([]);
+        setAvailableInstagrams([]);
+        setSelectedAccount({ page: null, instagram: null });
       }
     } catch (error) {
       console.error('Ошибка при проверке подключения:', error);
@@ -98,76 +119,165 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     }
   }, [projectId]);
 
+  const loadSelectedAccounts = async (accessToken: string, selectedPageId?: string, selectedInstagramId?: string) => {
+    if (!accessToken || (!selectedPageId && !selectedInstagramId)) return;
+
+    try {
+      let selectedPage: FacebookProfile | null = null;
+      let selectedInstagram: InstagramAccount | null = null;
+
+      // Загружаем выбранную страницу
+      if (selectedPageId) {
+        const pageResponse = await fetch(
+          `https://graph.facebook.com/v21.0/${selectedPageId}?fields=id,name,picture&access_token=${accessToken}`
+        );
+        if (pageResponse.ok) {
+          selectedPage = await pageResponse.json();
+        }
+      }
+
+      // Загружаем выбранный Instagram
+      if (selectedInstagramId) {
+        const igResponse = await fetch(
+          `https://graph.facebook.com/v21.0/${selectedInstagramId}?fields=id,username,profile_picture_url,followers_count&access_token=${accessToken}`
+        );
+        if (igResponse.ok) {
+          selectedInstagram = await igResponse.json();
+        }
+      }
+
+      setSelectedAccount({ page: selectedPage, instagram: selectedInstagram });
+      console.log('✅ Выбранные аккаунты загружены');
+
+    } catch (error) {
+      console.error('Ошибка загрузки выбранных аккаунтов:', error);
+    }
+  };
+
   const fetchProfiles = async (accessToken: string) => {
     if (!accessToken) {
       console.log('Токен отсутствует');
       return;
     }
 
-    console.log('🔄 Загружаем данные из Meta API...');
+    console.log('🔄 Загружаем доступные аккаунты из Meta API...');
     setLoadingProfiles(true);
 
     try {
-      // Получаем Facebook профиль
-      const fbResponse = await fetch(
-        `https://graph.facebook.com/v21.0/me?fields=id,name,picture&access_token=${accessToken}`
-      );
+      const pages: FacebookProfile[] = [];
+      const instagrams: InstagramAccount[] = [];
 
-      let facebookProfile = null;
-      if (fbResponse.ok) {
-        facebookProfile = await fbResponse.json();
-        console.log('✅ Facebook профиль:', facebookProfile.name);
-        setFacebookProfile(facebookProfile);
-      } else {
-        console.error('❌ Ошибка Facebook API:', await fbResponse.text());
-        // Убираем деактивацию токена - доверяем базе данных
-        return;
-      }
-
-      // Получаем Facebook Pages и связанные Instagram аккаунты
+      // Получаем Facebook Pages
       const pagesResponse = await fetch(
-        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${accessToken}`
       );
-
-      const instagramAccounts: any[] = [];
 
       if (pagesResponse.ok) {
         const pagesData = await pagesResponse.json();
         console.log('Найдено страниц:', pagesData.data?.length || 0);
 
         for (const page of pagesData.data || []) {
-          // Сохраняем информацию о странице
-          console.log('Страница:', page.name);
+          pages.push({
+            id: page.id,
+            name: page.name,
+            picture: page.picture
+          });
 
+          // Получаем связанный Instagram
           if (page.instagram_business_account) {
             const igId = page.instagram_business_account.id;
 
-            const igResponse = await fetch(
-              `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
-            );
+            try {
+              const igResponse = await fetch(
+                `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${accessToken}`
+              );
 
-            if (igResponse.ok) {
-              const igData = await igResponse.json();
-              console.log('Instagram аккаунт:', igData.username);
-              instagramAccounts.push({
-                ...igData,
-                connected_page: page.name // Сохраняем связь со страницей
-              });
+              if (igResponse.ok) {
+                const igData = await igResponse.json();
+                instagrams.push({
+                  ...igData,
+                  connected_page: page.name
+                });
+              }
+            } catch (igError) {
+              console.warn('Не удалось загрузить Instagram аккаунт:', igId);
             }
           }
         }
       }
 
-      setInstagramAccounts(instagramAccounts);
+      setAvailablePages(pages);
+      setAvailableInstagrams(instagrams);
 
-      // Тихое уведомление без toast
-      console.log('✅ Профили загружены из Meta API');
+      console.log('✅ Доступные аккаунты загружены');
 
     } catch (error: any) {
-      console.error('Ошибка загрузки профилей:', error);
-      // Убираем toast и деактивацию - доверяем базе данных
+      console.error('Ошибка загрузки доступных аккаунтов:', error);
     } finally {
       setLoadingProfiles(false);
+    }
+  };
+
+  const selectAccount = async (pageId: string, instagramId?: string) => {
+    if (!connection) return;
+
+    try {
+      const { error } = await supabase
+        .from('ad_accounts')
+        .update({
+          selected_page_id: pageId,
+          selected_instagram_id: instagramId || null
+        })
+        .eq('id', connection.id);
+
+      if (error) throw error;
+
+      // Обновляем локальное состояние
+      setConnection({
+        ...connection,
+        selected_page_id: pageId,
+        selected_instagram_id: instagramId || undefined
+      });
+
+      // Загружаем данные выбранных аккаунтов
+      await loadSelectedAccounts(connection.access_token, pageId, instagramId);
+
+      setShowAccountSelector(false);
+      toast.success('Аккаунт успешно выбран!');
+      setSearchQuery('');
+
+    } catch (error: any) {
+      console.error('Ошибка выбора аккаунта:', error);
+      toast.error('Ошибка выбора аккаунта');
+    }
+  };
+
+  const clearSelection = async () => {
+    if (!connection) return;
+
+    try {
+      const { error } = await supabase
+        .from('ad_accounts')
+        .update({
+          selected_page_id: null,
+          selected_instagram_id: null
+        })
+        .eq('id', connection.id);
+
+      if (error) throw error;
+
+      setConnection({
+        ...connection,
+        selected_page_id: undefined,
+        selected_instagram_id: undefined
+      });
+
+      setSelectedAccount({ page: null, instagram: null });
+      toast.success('Выбор аккаунта сброшен');
+
+    } catch (error: any) {
+      console.error('Ошибка сброса выбора:', error);
+      toast.error('Ошибка сброса выбора');
     }
   };
 
@@ -347,6 +457,16 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   };
 
   const isConnected = !!connection && connection.access_token && connection.access_token.length > 0 && connection.status === 'active';
+  const hasSelectedAccount = !!selectedAccount.page || !!selectedAccount.instagram;
+
+  // Фильтруем аккаунты по поиску
+  const filteredPages = availablePages.filter(page =>
+    page.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredInstagrams = availableInstagrams.filter(ig =>
+    ig.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (ig.connected_page && ig.connected_page.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
 
   if (loading) {
     return (
@@ -358,11 +478,24 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     );
   }
 
+  const hasSelectedAccount = !!selectedAccount.page || !!selectedAccount.instagram;
+
+  // Фильтруем аккаунты по поиску
+  const filteredPages = availablePages.filter(page =>
+    page.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+  const filteredInstagrams = availableInstagrams.filter(ig =>
+    ig.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (ig.connected_page && ig.connected_page.toLowerCase().includes(searchQuery.toLowerCase()))
+  );
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
+    <div className="space-y-6">
+      {/* Главная карточка активного подключения */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
       className={cn(
         "relative overflow-hidden rounded-2xl p-6 transition-all duration-300",
         "bg-card/50 backdrop-blur-lg border",

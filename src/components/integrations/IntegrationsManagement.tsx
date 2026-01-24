@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { HoverEffect } from '@/components/ui/card-hover-effect';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { FacebookIntegration } from './FacebookIntegration';
+import { FacebookIntegrationNew as FacebookIntegration } from './FacebookIntegrationNew';
 import { InstagramIntegration } from './InstagramIntegration';
 import { FacebookAdsStats } from './FacebookAdsStats';
 import { InstagramPosts } from './InstagramPosts';
