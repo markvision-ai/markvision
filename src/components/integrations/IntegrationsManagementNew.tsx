@@ -441,21 +441,31 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 Реклама, Insights и Instagram контент
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3">
+            <CardContent className="space-y-4">
               {showSelectionMode ? (
-                // Режим выбора настроек
-                <>
+                // Режим настройки подключения
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-foreground mb-1">Настройка подключения</h3>
+                    <p className="text-xs text-muted-foreground">Выберите рекламный кабинет и Instagram профиль</p>
+                  </div>
+
                   {/* Account Selectors */}
-                  <div className="grid grid-cols-1 gap-3">
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-foreground">Рекламный кабинет</label>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <div className="w-5 h-5 rounded bg-blue-500/20 flex items-center justify-center">
+                          📊
+                        </div>
+                        Рекламный кабинет
+                      </label>
                       <Select value={selectedAdAccount} onValueChange={handleAdAccountChange}>
-                        <SelectTrigger className="bg-background border-border text-foreground h-8 text-xs">
+                        <SelectTrigger className="bg-background border-border text-foreground h-10">
                           <SelectValue placeholder="Выберите кабинет" />
                         </SelectTrigger>
                         <SelectContent className="bg-background border-border">
                           {adAccounts.map((account) => (
-                            <SelectItem key={account.id} value={account.id} className="text-foreground text-xs">
+                            <SelectItem key={account.id} value={account.id} className="text-foreground">
                               {account.name || `Кабинет ${account.account_id}`}
                             </SelectItem>
                           ))}
@@ -463,15 +473,20 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                       </Select>
                     </div>
 
-                    <div className="space-y-1">
-                      <label className="text-xs font-medium text-foreground">Instagram профиль</label>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground flex items-center gap-2">
+                        <div className="w-5 h-5 rounded bg-pink-500/20 flex items-center justify-center">
+                          📷
+                        </div>
+                        Instagram профиль
+                      </label>
                       <Select value={selectedInstagram} onValueChange={handleInstagramChange}>
-                        <SelectTrigger className="bg-background border-border text-foreground h-8 text-xs">
+                        <SelectTrigger className="bg-background border-border text-foreground h-10">
                           <SelectValue placeholder="Выберите профиль" />
                         </SelectTrigger>
                         <SelectContent className="bg-background border-border">
                           {instagramAccounts.map((account) => (
-                            <SelectItem key={account.id} value={account.id} className="text-foreground text-xs">
+                            <SelectItem key={account.id} value={account.id} className="text-foreground">
                               @{account.username}
                             </SelectItem>
                           ))}
@@ -482,72 +497,110 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
                   {/* Preview of selected accounts */}
                   {(selectedPageName || selectedInstagramHandle) && (
-                    <div className="p-3 rounded-lg bg-muted/20 border border-border/30">
-                      <p className="text-xs font-medium text-foreground mb-2">Выбранные аккаунты:</p>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        {selectedPageName && <p>📊 {selectedPageName}</p>}
-                        {selectedInstagramHandle && <p>📷 @{selectedInstagramHandle}</p>}
+                    <div className="p-4 rounded-lg bg-blue-500/5 border border-blue-500/20">
+                      <h4 className="text-sm font-medium text-foreground mb-3 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4 text-blue-500" />
+                        Выбранные аккаунты
+                      </h4>
+                      <div className="space-y-2">
+                        {selectedPageName && (
+                          <div className="flex items-center gap-3 p-2 rounded bg-background/50">
+                            <span className="text-lg">📊</span>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{selectedPageName}</p>
+                              <p className="text-xs text-muted-foreground">Рекламный кабинет</p>
+                            </div>
+                          </div>
+                        )}
+                        {selectedInstagramHandle && (
+                          <div className="flex items-center gap-3 p-2 rounded bg-background/50">
+                            <span className="text-lg">📷</span>
+                            <div>
+                              <p className="text-sm font-medium text-foreground">@{selectedInstagramHandle}</p>
+                              <p className="text-xs text-muted-foreground">Instagram профиль</p>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
 
-                  {/* Save Button */}
+                  {/* Connect Button */}
                   <Button
                     onClick={handleSaveSettings}
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs"
+                    className="w-full bg-blue-600 hover:bg-blue-700 text-white h-11 text-sm font-medium"
                     disabled={!selectedAdAccount && !selectedInstagram}
                   >
-                    Подключить
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Подключить аккаунты
                   </Button>
-                </>
+                </div>
               ) : (
                 // Режим активного подключения
-                <div className="space-y-3">
-                  <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <h3 className="text-sm font-semibold text-foreground mb-1">Подключение активно</h3>
+                    <p className="text-xs text-muted-foreground">Ваши аккаунты успешно подключены</p>
+                  </div>
+
+                  {/* Status Card */}
+                  <div className="p-5 rounded-xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="w-12 h-12 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <CheckCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Активно</p>
-                        <p className="text-xs text-muted-foreground">Подключение настроено</p>
+                        <p className="text-lg font-semibold text-emerald-700 dark:text-emerald-300">Подключено</p>
+                        <p className="text-sm text-emerald-600 dark:text-emerald-400">Meta аккаунты активны</p>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
+                    {/* Connected Accounts */}
+                    <div className="space-y-3">
                       {selectedPageName && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="w-4 text-center">📊</span>
-                          <span>Рекламный кабинет: <strong className="text-foreground">{selectedPageName}</strong></span>
+                        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-emerald-500/10">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                            <span className="text-sm">📊</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">{selectedPageName}</p>
+                            <p className="text-xs text-muted-foreground">Рекламный кабинет</p>
+                          </div>
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </div>
                       )}
+
                       {selectedInstagramHandle && (
-                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <span className="w-4 text-center">📷</span>
-                          <span>Instagram: <strong className="text-foreground">@{selectedInstagramHandle}</strong></span>
+                        <div className="flex items-center gap-4 p-3 rounded-lg bg-white/50 dark:bg-gray-800/50 border border-emerald-500/10">
+                          <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center">
+                            <span className="text-sm">📷</span>
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-sm font-medium text-foreground">@{selectedInstagramHandle}</p>
+                            <p className="text-xs text-muted-foreground">Instagram профиль</p>
+                          </div>
+                          <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
                         </div>
                       )}
                     </div>
                   </div>
 
                   {/* Action Buttons */}
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <Button
-                      size="sm"
                       variant="outline"
                       onClick={handleRefresh}
-                      className="bg-background/80 dark:bg-background border-border text-foreground hover:bg-muted shadow-sm dark:shadow-none flex-1 h-7 text-xs"
+                      className="h-9 text-sm"
                     >
-                      <RefreshCw className="w-3 h-3 mr-1" />
+                      <RefreshCw className="w-4 h-4 mr-2" />
                       Обновить
                     </Button>
                     <Button
-                      size="sm"
                       variant="outline"
                       onClick={handleChangeSettings}
-                      className="bg-background/80 dark:bg-background border-border text-foreground hover:bg-muted shadow-sm dark:shadow-none flex-1 h-7 text-xs"
+                      className="h-9 text-sm"
                     >
-                      <Settings className="w-3 h-3 mr-1" />
+                      <Settings className="w-4 h-4 mr-2" />
                       Изменить
                     </Button>
                   </div>
