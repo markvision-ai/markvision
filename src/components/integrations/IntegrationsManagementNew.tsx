@@ -93,7 +93,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch data from database
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (): Promise<void> => {
     try {
       // Fetch ad accounts with all data
       const { data: adData } = await supabase
@@ -182,7 +182,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     } finally {
       setLoading(false);
     }
-  }, [currentProjectId]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProjectId, adAccounts, instagramAccounts, selectedPageName, selectedInstagramHandle]);
 
   // Fetch Instagram accounts from Meta API
   const fetchInstagramAccounts = async (accessToken: string) => {
@@ -231,26 +232,6 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   };
 
-  // Set account names from available data (no API calls)
-  const setAccountNamesFromData = useCallback((pageId?: string, instagramId?: string) => {
-    // Set page name from available accounts data
-    if (pageId) {
-      const account = adAccounts.find(acc => acc.id === pageId);
-      if (account) {
-        setSelectedPageName(account.name);
-        setSelectedAdAccountData(account);
-      }
-    }
-
-    // Set Instagram handle from available accounts data
-    if (instagramId) {
-      const account = instagramAccounts.find(acc => acc.id === instagramId);
-      if (account) {
-        setSelectedInstagramHandle(account.username);
-        setSelectedInstagramData(account);
-      }
-    }
-  }, [adAccounts, instagramAccounts]);
 
   useEffect(() => {
     fetchData();
@@ -277,7 +258,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     return () => {
       automationSubscription.unsubscribe();
     };
-  }, [fetchData, currentProjectId]);
+  }, [fetchData, currentProjectId, fetchAutomationFlows]);
 
   // Separate function to fetch automation flows
   const fetchAutomationFlows = useCallback(async () => {
@@ -346,7 +327,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
       }
 
       // Prepare data for upsert
-      const updateData: any = {
+      const updateData: Record<string, unknown> = {
         id: connectedAccount.id,
         project_id: connectedAccount.project_id,
         access_token: connectedAccount.access_token,
@@ -389,9 +370,6 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const handleRefresh = async () => {
     try {
       setLoading(true);
-      setLoadingAdAccounts(true);
-      setLoadingInstagramAccounts(true);
-      setLoadingAutomationFlows(true);
 
       // Full refetch of all data
       await fetchData();
@@ -403,9 +381,6 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
       toast.error('Ошибка обновления данных');
     } finally {
       setLoading(false);
-      setLoadingAdAccounts(false);
-      setLoadingInstagramAccounts(false);
-      setLoadingAutomationFlows(false);
     }
   };
 
