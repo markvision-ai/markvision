@@ -9,7 +9,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { cn } from '@/lib/utils';
 
 // GlowBadge component for premium status indicators
-const GlowBadge = ({ status, children }: { status: 'active' | 'error' | 'inactive' | 'running', children: React.ReactNode }) => {
+interface GlowBadgeProps {
+  status: 'active' | 'error' | 'inactive' | 'running';
+  children: React.ReactNode;
+}
+
+const GlowBadge: React.FC<GlowBadgeProps> = ({ status, children }) => {
   const glowClasses = {
     active: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shadow-lg shadow-emerald-500/20',
     error: 'bg-red-500/10 text-red-600 border-red-500/30 shadow-lg shadow-red-500/20',
@@ -77,7 +82,7 @@ interface ConnectedAccount {
   created_at: string;
 }
 
-export const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
+const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   const [loading, setLoading] = useState(true);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
   const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
@@ -93,7 +98,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch data from database
-  const fetchData = useCallback(async (): Promise<void> => {
+  const fetchData = useCallback(async () => {
     try {
       // Fetch ad accounts with all data
       const { data: adData } = await supabase
@@ -183,7 +188,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
       setLoading(false);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentProjectId, adAccounts, instagramAccounts, selectedPageName, selectedInstagramHandle]);
+  }, [currentProjectId]);
 
   // Fetch Instagram accounts from Meta API
   const fetchInstagramAccounts = async (accessToken: string) => {
@@ -258,7 +263,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     return () => {
       automationSubscription.unsubscribe();
     };
-  }, [fetchData, currentProjectId, fetchAutomationFlows]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchData, currentProjectId]);
 
   // Separate function to fetch automation flows
   const fetchAutomationFlows = useCallback(async () => {
@@ -630,3 +636,5 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     </div>
   );
 };
+
+export default IntegrationsManagementNew;

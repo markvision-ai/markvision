@@ -46,7 +46,7 @@ const TeamManagement = lazy(() => import('./team/TeamManagement').then(m => ({ d
 const ReportGenerator = lazy(() => import('./reports/ReportGenerator').then(m => ({ default: m.ReportGenerator })));
 const E2EAnalytics = lazy(() => import('./analytics/E2EAnalytics').then(m => ({ default: m.E2EAnalytics })));
 const AdminHub = lazy(() => import('./settings/AdminHub').then(m => ({ default: m.AdminHub })));
-const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagementNew').then(m => ({ default: m.IntegrationsManagementNew })));
+const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagementNew'));
 const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
 const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
 const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
