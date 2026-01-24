@@ -24,11 +24,11 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     periodEnd
   );
   const [planData, setPlanData] = useState<ContentPlanFactData[]>([
+    { metric: 'Новые подписчики', plan: 5000, fact: 0, unit: '' },
     { metric: 'Публикации', plan: 0, fact: 0, unit: 'шт' },
-    { metric: 'Сторис', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Охват', plan: 500000, fact: 0, unit: '' },
     { metric: 'Комментарии', plan: 0, fact: 0, unit: 'шт' },
-    { metric: 'Новые подписчики', plan: 5000, fact: 0, unit: '' },
+    { metric: 'Лиды', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Диагностики', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Продажи', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Сумма продаж', plan: 0, fact: 0, unit: '₸' },
@@ -41,15 +41,15 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       console.log('✅ Используем агрегированные метрики из content_production_stats');
       console.log('   Период:', aggregatedStats.period_start, '-', aggregatedStats.period_end);
       console.log('   Публикации:', aggregatedStats.publications);
-      console.log('   Сторис:', aggregatedStats.stories);
       console.log('   Охват:', aggregatedStats.reach);
       console.log('   Комментарии:', aggregatedStats.comments);
+      console.log('   Подписчики:', aggregatedStats.followers);
       return {
         publications: aggregatedStats.publications || 0,
-        stories: aggregatedStats.stories || 0,
         reach: aggregatedStats.reach || 0,
-        comments: aggregatedStats.comments || 0, // Заменяем engagement на comments
+        comments: aggregatedStats.comments || 0,
         followers: aggregatedStats.followers || 0,
+        leads: 0, // Будет заполняться с сайта через UTM метки
         diagnostics: aggregatedStats.diagnostics || 0,
         sales: aggregatedStats.sales || 0,
         revenue: aggregatedStats.revenue || 0,
@@ -60,10 +60,10 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     if (!posts || posts.length === 0) {
       return {
         publications: 0,
-        stories: 0,
         reach: 0,
         comments: 0,
         followers: 0,
+        leads: 0, // Будет заполняться с сайта через UTM метки
         diagnostics: 0,
         sales: 0,
         revenue: 0,
@@ -84,13 +84,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       return postDate >= periodStartDate && postDate <= periodEndDate;
     });
 
-    // Считаем Stories (только Stories)
-    const stories = periodPosts.filter(p => {
-      const mediaType = (p.media_type || '').toLowerCase();
-      return mediaType.includes('story') || mediaType === 'stories';
-    }).length;
-
-    // Считаем Публикации (все остальное: Reels, Carousels, обычные посты)
+    // Считаем Публикации (Reels, Carousels, обычные посты - без Stories)
     const publications = periodPosts.filter(p => {
       const mediaType = (p.media_type || '').toLowerCase();
       return !mediaType.includes('story') && mediaType !== 'stories';
@@ -111,18 +105,17 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
     const periodEndStr = periodEndDate.toISOString().split('T')[0];
-    console.log(`📊 Период 1 января - ${periodEndStr} (из постов): ${publications} публикаций, ${stories} сторис, охват: ${totalReach}, комментарии: ${totalComments}`);
+    console.log(`📊 Период 1 января - ${periodEndStr} (из постов): ${publications} публикаций, охват: ${totalReach}, комментарии: ${totalComments}`);
     console.log('   Всего постов в базе:', posts.length);
     console.log('   Постов в периоде:', periodPosts.length);
     console.log('   Публикации (не Stories):', publications);
-    console.log('   Stories:', stories);
 
     return {
       publications,
-      stories,
       reach: totalReach,
-      comments: totalComments, // Заменяем engagement на comments
+      comments: totalComments,
       followers: 0, // TODO: получить из Instagram Insights API
+      leads: 0, // Будет заполняться с сайта через UTM метки
       diagnostics: totalDiagnostics,
       sales: totalSales,
       revenue: totalRevenue,
@@ -141,11 +134,11 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     setPlanData(prev => prev.map(item => {
       let newFact = item.fact;
       switch (item.metric) {
+        case 'Новые подписчики':
+          newFact = calculatedFact.followers;
+          break;
         case 'Публикации':
           newFact = calculatedFact.publications;
-          break;
-        case 'Сторис':
-          newFact = calculatedFact.stories;
           break;
         case 'Охват':
           newFact = calculatedFact.reach;
@@ -153,8 +146,8 @@ export const useInstagramPlanFact = (projectId: string | null) => {
         case 'Комментарии':
           newFact = calculatedFact.comments;
           break;
-        case 'Новые подписчики':
-          newFact = calculatedFact.followers;
+        case 'Лиды':
+          newFact = calculatedFact.leads;
           break;
         case 'Диагностики':
           newFact = calculatedFact.diagnostics;
