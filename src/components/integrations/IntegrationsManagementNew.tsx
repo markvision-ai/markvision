@@ -37,6 +37,16 @@ interface AutomationFlow {
   last_run: string | null;
 }
 
+interface ConnectedAccount {
+  id: string;
+  project_id: string;
+  access_token: string;
+  name?: string;
+  selected_page_id?: string;
+  selected_instagram_id?: string;
+  created_at: string;
+}
+
 export const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   const [loading, setLoading] = useState(true);
   const [adAccounts, setAdAccounts] = useState<AdAccount[]>([]);
@@ -46,43 +56,43 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const [selectedInstagram, setSelectedInstagram] = useState<string>('');
   const [selectedAdAccountData, setSelectedAdAccountData] = useState<AdAccount | null>(null);
   const [selectedInstagramData, setSelectedInstagramData] = useState<InstagramAccount | null>(null);
+  const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch data from database
   const fetchData = useCallback(async () => {
     try {
-      // Fetch ad accounts
+      // Fetch ad accounts with all data
       const { data: adData } = await supabase
         .from('ad_accounts')
-        .select('id, name, account_id, spend')
+        .select('*')
         .eq('project_id', currentProjectId);
 
-      if (adData) {
+      if (adData && adData.length > 0) {
+        const account = adData[0]; // Use first account
+        setConnectedAccount(account);
         setAdAccounts(adData);
-        // Auto-select first account if available
-        if (adData.length > 0 && !selectedAdAccount) {
-          setSelectedAdAccount(adData[0].id);
-          setSelectedAdAccountData(adData[0]);
+
+        // Set selected values from database
+        if (account.selected_page_id) {
+          setSelectedAdAccount(account.selected_page_id);
+          // Try to get page data - if API fails, we'll show the ID
+          setSelectedAdAccountData({ id: account.selected_page_id, name: `Страница ${account.selected_page_id}` });
+        }
+        if (account.selected_instagram_id) {
+          setSelectedInstagram(account.selected_instagram_id);
+          // Try to get Instagram data - if API fails, we'll show the ID
+          setSelectedInstagramData({ id: account.selected_instagram_id, username: account.selected_instagram_id });
         }
       }
 
-      // Fetch Instagram accounts (from selected_instagram_id in ad_accounts)
-      const { data: igData } = await supabase
-        .from('ad_accounts')
-        .select('selected_instagram_id')
-        .eq('project_id', currentProjectId)
-        .not('selected_instagram_id', 'is', null)
-        .single();
-
-      if (igData?.selected_instagram_id) {
-        // Mock Instagram data - replace with real API call
-        const mockIgAccounts: InstagramAccount[] = [
-          { id: 'mock1', username: 'uali_dent', followers_count: 4155, profile_picture_url: '' }
-        ];
-        setInstagramAccounts(mockIgAccounts);
-        if (mockIgAccounts.length > 0 && !selectedInstagram) {
-          setSelectedInstagram(mockIgAccounts[0].id);
-          setSelectedInstagramData(mockIgAccounts[0]);
+      // Try to fetch fresh Instagram accounts from API if connected (don't fail if API is down)
+      if (adData && adData.length > 0 && adData[0].access_token) {
+        try {
+          await fetchInstagramAccounts(adData[0].access_token);
+        } catch (apiError) {
+          console.warn('API unavailable, showing database data only');
+          // Continue with database data only
         }
       }
 
@@ -91,7 +101,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         .from('automation_flows')
         .select('id, name, status, last_run')
         .eq('project_id', currentProjectId)
-        .order('last_run', { ascending: false });
+        .order('last_run', { ascending: false, nullsLast: true });
 
       if (flowsData) {
         setAutomationFlows(flowsData);
@@ -102,22 +112,121 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     } finally {
       setLoading(false);
     }
-  }, [currentProjectId, selectedAdAccount, selectedInstagram]);
+  }, [currentProjectId]);
+
+  // Fetch Instagram accounts from Meta API
+  const fetchInstagramAccounts = async (accessToken: string) => {
+    try {
+      const pagesResponse = await fetch(
+        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${accessToken}`
+      );
+
+      if (pagesResponse.ok) {
+        const pagesData = await pagesResponse.json();
+        const igAccounts: InstagramAccount[] = [];
+
+        for (const page of pagesData.data || []) {
+          if (page.instagram_business_account) {
+            const igId = page.instagram_business_account.id;
+
+            try {
+              const igResponse = await fetch(
+                `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${accessToken}`
+              );
+
+              if (igResponse.ok) {
+                const igData = await igResponse.json();
+                igAccounts.push(igData);
+              }
+            } catch (igError) {
+              console.warn('Не удалось загрузить Instagram аккаунт:', igId);
+            }
+          }
+        }
+
+        setInstagramAccounts(igAccounts);
+
+        // Set selected Instagram data if available
+        if (selectedInstagram && igAccounts.length > 0) {
+          const selectedIg = igAccounts.find(acc => acc.id === selectedInstagram);
+          if (selectedIg) {
+            setSelectedInstagramData(selectedIg);
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching Instagram accounts:', error);
+      // Don't fail completely if API is down - we still have database data
+    }
+  };
 
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  const handleAdAccountChange = (accountId: string) => {
-    setSelectedAdAccount(accountId);
-    const account = adAccounts.find(acc => acc.id === accountId);
-    setSelectedAdAccountData(account || null);
+  const handleAdAccountChange = async (pageId: string) => {
+    if (!connectedAccount) return;
+
+    try {
+      const { error } = await supabase
+        .from('ad_accounts')
+        .update({ selected_page_id: pageId })
+        .eq('id', connectedAccount.id);
+
+      if (error) throw error;
+
+      setSelectedAdAccount(pageId);
+
+      // Set basic data immediately
+      const selectedAccount = adAccounts.find(acc => acc.id === pageId);
+      if (selectedAccount) {
+        setSelectedAdAccountData(selectedAccount);
+      }
+
+      // Try to fetch fresh page data from API (don't fail if API is down)
+      if (connectedAccount.access_token) {
+        try {
+          const pageResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${pageId}?fields=id,name,picture&access_token=${connectedAccount.access_token}`
+          );
+
+          if (pageResponse.ok) {
+            const pageData = await pageResponse.json();
+            setSelectedAdAccountData(prev => ({ ...prev, ...pageData }));
+          }
+        } catch (apiError) {
+          console.warn('API unavailable, keeping database data');
+          // Keep the database data we already set
+        }
+      }
+
+      toast.success('Рекламный кабинет выбран');
+    } catch (error) {
+      console.error('Error saving ad account selection:', error);
+      toast.error('Ошибка сохранения выбора');
+    }
   };
 
-  const handleInstagramChange = (instagramId: string) => {
-    setSelectedInstagram(instagramId);
-    const account = instagramAccounts.find(acc => acc.id === instagramId);
-    setSelectedInstagramData(account || null);
+  const handleInstagramChange = async (instagramId: string) => {
+    if (!connectedAccount) return;
+
+    try {
+      const { error } = await supabase
+        .from('ad_accounts')
+        .update({ selected_instagram_id: instagramId })
+        .eq('id', connectedAccount.id);
+
+      if (error) throw error;
+
+      setSelectedInstagram(instagramId);
+      const account = instagramAccounts.find(acc => acc.id === instagramId);
+      setSelectedInstagramData(account || null);
+
+      toast.success('Instagram профиль выбран');
+    } catch (error) {
+      console.error('Error saving Instagram selection:', error);
+      toast.error('Ошибка сохранения выбора');
+    }
   };
 
   const handleRefresh = () => {
@@ -127,9 +236,9 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
 
   const getStatusBadge = (status: string) => {
     const variants = {
-      active: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-      inactive: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
-      error: 'bg-red-500/10 text-red-500 border-red-500/20',
+      active: 'bg-primary/10 text-primary border-primary/20',
+      inactive: 'bg-muted text-muted-foreground border-border',
+      error: 'bg-destructive/10 text-destructive border-destructive/20',
       running: 'bg-blue-500/10 text-blue-500 border-blue-500/20'
     };
 
@@ -157,14 +266,14 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 p-4 space-y-4">
+    <div className="min-h-screen bg-background p-4 space-y-4">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-xl font-bold text-white">Интеграции</h1>
-          <p className="text-slate-400 text-sm">Управление подключенными сервисами</p>
+          <h1 className="text-xl font-bold text-foreground">Интеграции</h1>
+          <p className="text-muted-foreground text-sm">Управление подключенными сервисами</p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} className="bg-slate-900/50 border-slate-700 text-slate-300 hover:bg-slate-800/50">
+        <Button variant="outline" size="sm" onClick={handleRefresh} className="bg-card/50 border-border text-foreground hover:bg-card/80">
           <RefreshCw className="w-3 h-3 mr-2" />
           Обновить
         </Button>
@@ -175,28 +284,43 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         {/* Left Column: Meta Ads & Instagram */}
         <div className="lg:col-span-2 space-y-4">
           {/* Meta Integration Card */}
-          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+          <Card className="bg-card/50 backdrop-blur-xl border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-white flex items-center gap-2">
-                <Facebook className="w-5 h-5 text-blue-400" />
+              <CardTitle className="text-lg text-foreground flex items-center gap-2">
+                <Facebook className="w-5 h-5 text-blue-500" />
                 Facebook & Instagram
               </CardTitle>
-              <CardDescription className="text-slate-400 text-sm">
+              <CardDescription className="text-muted-foreground text-sm">
                 Реклама, Insights и Instagram контент
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Show connected account info if available */}
+              {connectedAccount && (
+                <div className="p-4 rounded-lg bg-muted/30 border border-border/50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      <Facebook className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-medium text-foreground">{connectedAccount.name || 'Meta аккаунт'}</p>
+                      <p className="text-sm text-muted-foreground">Подключено к проекту</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Account Selectors */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Рекламный кабинет</label>
+                  <label className="text-sm font-medium text-foreground">Рекламный кабинет</label>
                   <Select value={selectedAdAccount} onValueChange={handleAdAccountChange}>
-                    <SelectTrigger className="bg-slate-800/50 border-slate-600 text-slate-200">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Выберите кабинет" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600">
+                    <SelectContent className="bg-background border-border">
                       {adAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id} className="text-slate-200">
+                        <SelectItem key={account.id} value={account.id} className="text-foreground">
                           {account.name} ({account.account_id})
                         </SelectItem>
                       ))}
@@ -205,14 +329,14 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-slate-300">Instagram профиль</label>
+                  <label className="text-sm font-medium text-foreground">Instagram профиль</label>
                   <Select value={selectedInstagram} onValueChange={handleInstagramChange}>
-                    <SelectTrigger className="bg-slate-800/50 border-slate-600 text-slate-200">
+                    <SelectTrigger className="bg-background border-border text-foreground">
                       <SelectValue placeholder="Выберите профиль" />
                     </SelectTrigger>
-                    <SelectContent className="bg-slate-800 border-slate-600">
+                    <SelectContent className="bg-background border-border">
                       {instagramAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id} className="text-slate-200">
+                        <SelectItem key={account.id} value={account.id} className="text-foreground">
                           @{account.username}
                         </SelectItem>
                       ))}
@@ -221,17 +345,17 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                 </div>
               </div>
 
-              {/* Mini Stats */}
+              {/* Mini Stats - Show selected account data */}
               {(selectedAdAccountData || selectedInstagramData) && (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-slate-700/50">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/50">
                   {selectedAdAccountData && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30">
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
                       <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
-                        <Facebook className="w-4 h-4 text-blue-400" />
+                        <Facebook className="w-4 h-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-200">{selectedAdAccountData.name}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-sm font-medium text-foreground">{selectedAdAccountData.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           Расход: {selectedAdAccountData.spend ? `${selectedAdAccountData.spend.toLocaleString()} ₸` : 'Нет данных'}
                         </p>
                       </div>
@@ -239,17 +363,21 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                   )}
 
                   {selectedInstagramData && (
-                    <div className="flex items-center gap-3 p-3 rounded-lg bg-slate-800/30">
-                      {selectedInstagramData.profile_picture_url && (
+                    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
+                      {selectedInstagramData.profile_picture_url ? (
                         <img
                           src={selectedInstagramData.profile_picture_url}
                           alt={selectedInstagramData.username}
-                          className="w-8 h-8 rounded-full border border-slate-600"
+                          className="w-8 h-8 rounded-full border border-border"
                         />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
+                          <MessageCircle className="w-4 h-4 text-pink-500" />
+                        </div>
                       )}
                       <div>
-                        <p className="text-sm font-medium text-slate-200">@{selectedInstagramData.username}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-sm font-medium text-foreground">@{selectedInstagramData.username}</p>
+                        <p className="text-xs text-muted-foreground">
                           {selectedInstagramData.followers_count?.toLocaleString()} подписчиков
                         </p>
                       </div>
@@ -260,11 +388,11 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
 
               {/* Action Buttons */}
               <div className="flex gap-2 pt-2">
-                <Button size="sm" variant="outline" className="bg-slate-800/50 border-slate-600 text-slate-300 hover:bg-slate-700/50">
+                <Button size="sm" variant="outline" className="bg-background border-border text-foreground hover:bg-muted">
                   <RefreshCw className="w-3 h-3 mr-2" />
                   Обновить данные
                 </Button>
-                <Button size="sm" variant="outline" className="bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20">
+                <Button size="sm" variant="outline" className="bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20">
                   <Unlink className="w-3 h-3 mr-2" />
                   Деактивировать
                 </Button>
@@ -273,9 +401,9 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           </Card>
 
           {/* Other Integrations - Horizontal List */}
-          <Card className="bg-slate-900/80 backdrop-blur-xl border-slate-700/50">
+          <Card className="bg-card/50 backdrop-blur-xl border-border/50">
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-white">Другие интеграции</CardTitle>
+              <CardTitle className="text-lg text-foreground">Другие интеграции</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
@@ -284,14 +412,14 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                   { id: 'google', name: 'Google Ads', icon: <GoogleIcon />, status: 'inactive' },
                   { id: 'whatsapp', name: 'WhatsApp', icon: <MessageCircle className="w-4 h-4" />, status: 'inactive' }
                 ].map((integration) => (
-                  <div key={integration.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                  <div key={integration.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-slate-700/50 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                         {integration.icon}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-200">{integration.name}</p>
-                        <p className="text-xs text-slate-400">Реклама и аналитика</p>
+                        <p className="text-sm font-medium text-foreground">{integration.name}</p>
+                        <p className="text-xs text-muted-foreground">Реклама и аналитика</p>
                       </div>
                     </div>
                     <Badge
@@ -299,8 +427,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                       className={cn(
                         "text-xs",
                         integration.status === 'active'
-                          ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-                          : 'bg-slate-600/10 text-slate-400 border-slate-600/20'
+                          ? 'bg-primary/10 text-primary border-primary/20'
+                          : 'bg-muted text-muted-foreground border-border'
                       )}
                     >
                       {integration.status === 'active' ? 'Подключено' : 'Настроить'}
@@ -315,31 +443,31 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         {/* Right Column: n8n Automation Hub */}
         <div>
           <Card className={cn(
-            "bg-slate-900/80 backdrop-blur-xl border-slate-700/50",
-            automationFlows.some(flow => flow.status === 'error') && "border-red-500/50 shadow-lg shadow-red-500/20"
+            "bg-card/50 backdrop-blur-xl border-border/50",
+            automationFlows.some(flow => flow.status === 'error') && "border-destructive/50 shadow-lg shadow-destructive/20"
           )}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-lg text-white flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-400" />
+              <CardTitle className="text-lg text-foreground flex items-center gap-2">
+                <Zap className="w-5 h-5 text-amber-500" />
                 n8n Automation Hub
               </CardTitle>
-              <CardDescription className="text-slate-400 text-sm">
+              <CardDescription className="text-muted-foreground text-sm">
                 Статус автоматизации данных
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 {automationFlows.length === 0 ? (
-                  <div className="text-center py-6 text-slate-500">
+                  <div className="text-center py-6 text-muted-foreground">
                     <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Нет активных автоматизаций</p>
+                    <p className="text-sm">Нет активных процессов</p>
                   </div>
                 ) : (
                   automationFlows.map((flow) => (
-                    <div key={flow.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-800/30">
+                    <div key={flow.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-200 truncate">{flow.name}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-sm font-medium text-foreground truncate">{flow.name}</p>
+                        <p className="text-xs text-muted-foreground">
                           {flow.last_run ? new Date(flow.last_run).toLocaleString('ru-RU') : 'Не запускался'}
                         </p>
                       </div>
