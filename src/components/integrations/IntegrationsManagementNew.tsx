@@ -109,20 +109,28 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         // Set selected values from database
         if (account.selected_page_id) {
           setSelectedAdAccount(account.selected_page_id);
-          setSelectedPageName(account.selected_page_name || `Кабинет ${account.selected_page_id}`);
-          setSelectedAdAccountData({
-            id: account.selected_page_id,
-            name: account.selected_page_name || `Кабинет ${account.selected_page_id}`,
-            account_id: account.selected_page_id
-          });
+          // Use name from database, fallback to finding it in available accounts
+          const dbName = account.selected_page_name;
+          if (dbName) {
+            setSelectedPageName(dbName);
+            setSelectedAdAccountData({
+              id: account.selected_page_id,
+              name: dbName,
+              account_id: account.selected_page_id
+            });
+          }
         }
         if (account.selected_instagram_id) {
           setSelectedInstagram(account.selected_instagram_id);
-          setSelectedInstagramHandle(account.selected_instagram_handle || account.selected_instagram_id);
-          setSelectedInstagramData({
-            id: account.selected_instagram_id,
-            username: account.selected_instagram_handle || account.selected_instagram_id
-          });
+          // Use handle from database, fallback to finding it in available accounts
+          const dbHandle = account.selected_instagram_handle;
+          if (dbHandle) {
+            setSelectedInstagramHandle(dbHandle);
+            setSelectedInstagramData({
+              id: account.selected_instagram_id,
+              username: dbHandle
+            });
+          }
         }
 
         // If we have saved settings, show active connection mode
@@ -137,10 +145,20 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         try {
           await fetchInstagramAccounts(account.access_token);
 
-          // If we don't have names in database, try to fetch them
-          if ((account.selected_page_id && !account.selected_page_name) ||
-              (account.selected_instagram_id && !account.selected_instagram_handle)) {
-            await fetchAndUpdateAccountNames(account.access_token, account.selected_page_id, account.selected_instagram_id);
+          // Set names from available data if not already set from database
+          if (account.selected_page_id && !selectedPageName) {
+            const pageAccount = adAccounts.find(acc => acc.id === account.selected_page_id);
+            if (pageAccount) {
+              setSelectedPageName(pageAccount.name);
+              setSelectedAdAccountData(pageAccount);
+            }
+          }
+          if (account.selected_instagram_id && !selectedInstagramHandle) {
+            const igAccount = instagramAccounts.find(acc => acc.id === account.selected_instagram_id);
+            if (igAccount) {
+              setSelectedInstagramHandle(igAccount.username);
+              setSelectedInstagramData(igAccount);
+            }
           }
         } catch (apiError) {
           console.warn('API unavailable, showing database data only');
@@ -213,61 +231,26 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   };
 
-  // Fetch account names from API and update database
-  const fetchAndUpdateAccountNames = async (accessToken: string, selectedPageId?: string, selectedInstagramId?: string) => {
-    if (!accessToken) return;
-
-    try {
-      let updates: any = {};
-
-      // Fetch page name if selected
-      if (selectedPageId) {
-        try {
-          const pageResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${selectedPageId}?fields=id,name&access_token=${accessToken}`
-          );
-
-          if (pageResponse.ok) {
-            const pageData = await pageResponse.json();
-            updates.selected_page_name = pageData.name;
-            setSelectedPageName(pageData.name);
-          }
-        } catch (error) {
-          console.warn('Could not fetch page name:', error);
-        }
+  // Set account names from available data (no API calls)
+  const setAccountNamesFromData = useCallback((pageId?: string, instagramId?: string) => {
+    // Set page name from available accounts data
+    if (pageId) {
+      const account = adAccounts.find(acc => acc.id === pageId);
+      if (account) {
+        setSelectedPageName(account.name);
+        setSelectedAdAccountData(account);
       }
-
-      // Fetch Instagram handle if selected
-      if (selectedInstagramId) {
-        try {
-          const igResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${selectedInstagramId}?fields=id,username&access_token=${accessToken}`
-          );
-
-          if (igResponse.ok) {
-            const igData = await igResponse.json();
-            updates.selected_instagram_handle = igData.username;
-            setSelectedInstagramHandle(igData.username);
-          }
-        } catch (error) {
-          console.warn('Could not fetch Instagram handle:', error);
-        }
-      }
-
-      // Update database with names if we have any
-      if (Object.keys(updates).length > 0 && connectedAccount) {
-        await supabase
-          .from('ad_accounts')
-          .update(updates)
-          .eq('id', connectedAccount.id);
-
-        console.log('Updated account names in database:', updates);
-      }
-
-    } catch (error) {
-      console.error('Error fetching account names:', error);
     }
-  };
+
+    // Set Instagram handle from available accounts data
+    if (instagramId) {
+      const account = instagramAccounts.find(acc => acc.id === instagramId);
+      if (account) {
+        setSelectedInstagramHandle(account.username);
+        setSelectedInstagramData(account);
+      }
+    }
+  }, [adAccounts, instagramAccounts]);
 
   useEffect(() => {
     fetchData();
@@ -313,114 +296,23 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   }, [currentProjectId]);
 
-  const handleAdAccountChange = async (pageId: string) => {
-    if (!connectedAccount) return;
-
-    try {
-      let pageName = '';
-
-      // Try to fetch page name from API first
-      if (connectedAccount.access_token) {
-        try {
-          const pageResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${pageId}?fields=id,name,picture&access_token=${connectedAccount.access_token}`
-          );
-
-          if (pageResponse.ok) {
-            const pageData = await pageResponse.json();
-            pageName = pageData.name;
-            setSelectedAdAccountData(pageData);
-          }
-        } catch (apiError) {
-          console.warn('API unavailable for page name, using stored data');
-        }
-      }
-
-      // If we couldn't get name from API, try to find it in our local data
-      if (!pageName) {
-        const selectedAccount = adAccounts.find(acc => acc.id === pageId);
-        if (selectedAccount) {
-          pageName = selectedAccount.name;
-          setSelectedAdAccountData(selectedAccount);
-        } else {
-          pageName = `Страница ${pageId}`;
-          setSelectedAdAccountData({ id: pageId, name: pageName, account_id: pageId });
-        }
-      }
-
-      // Update database with both ID and name
-      const { error } = await supabase
-        .from('ad_accounts')
-        .update({
-          selected_page_id: pageId,
-          selected_page_name: pageName
-        })
-        .eq('id', connectedAccount.id);
-
-      if (error) throw error;
-
+  const handleAdAccountChange = (pageId: string) => {
+    // Find account data from available accounts
+    const account = adAccounts.find(acc => acc.id === pageId);
+    if (account) {
       setSelectedAdAccount(pageId);
-      setSelectedPageName(pageName);
-
-      toast.success('Рекламный кабинет выбран');
-    } catch (error) {
-      console.error('Error saving ad account selection:', error);
-      toast.error('Ошибка сохранения выбора');
+      setSelectedPageName(account.name);
+      setSelectedAdAccountData(account);
     }
   };
 
-  const handleInstagramChange = async (instagramId: string) => {
-    if (!connectedAccount) return;
-
-    try {
-      let instagramHandle = '';
-
-      // Try to fetch Instagram handle from API first
-      if (connectedAccount.access_token) {
-        try {
-          const igResponse = await fetch(
-            `https://graph.facebook.com/v21.0/${instagramId}?fields=id,username&access_token=${connectedAccount.access_token}`
-          );
-
-          if (igResponse.ok) {
-            const igData = await igResponse.json();
-            instagramHandle = igData.username;
-          }
-        } catch (apiError) {
-          console.warn('API unavailable for Instagram handle, using stored data');
-        }
-      }
-
-      // If we couldn't get handle from API, try to find it in our local data
-      if (!instagramHandle) {
-        const account = instagramAccounts.find(acc => acc.id === instagramId);
-        if (account) {
-          instagramHandle = account.username;
-          setSelectedInstagramData(account);
-        } else {
-          instagramHandle = instagramId;
-          setSelectedInstagramData({ id: instagramId, username: instagramHandle });
-        }
-      }
-
-      // Update database with both ID and handle
-      const { error } = await supabase
-        .from('ad_accounts')
-        .update({
-          selected_instagram_id: instagramId,
-          selected_instagram_handle: instagramHandle
-        })
-        .eq('id', connectedAccount.id);
-
-      if (error) throw error;
-
+  const handleInstagramChange = (instagramId: string) => {
+    // Find account data from available accounts
+    const account = instagramAccounts.find(acc => acc.id === instagramId);
+    if (account) {
       setSelectedInstagram(instagramId);
-      setSelectedInstagramHandle(instagramHandle);
-
-      toast.success('Instagram профиль выбран');
-    } catch (error) {
-      console.error('Error saving Instagram selection:', error);
-      toast.error('Ошибка сохранения выбора');
+      setSelectedInstagramHandle(account.username);
+      setSelectedInstagramData(account);
     }
   };
 
@@ -428,42 +320,63 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     if (!connectedAccount) return;
 
     try {
-      // Get current names before saving
+      // Get current names from selected values
       let finalPageName = selectedPageName;
       let finalInstagramHandle = selectedInstagramHandle;
 
-      // Get names from currently selected accounts (no OAuth calls needed)
-      const selectedAdAccountData = adAccounts.find(account => account.id === selectedAdAccount);
-      const selectedInstagramData = instagramAccounts.find(account => account.id === selectedInstagram);
-
-      if (selectedAdAccountData) {
-        finalPageName = selectedAdAccountData.name || `Кабинет ${selectedAdAccountData.account_id}`;
-        setSelectedPageName(finalPageName);
+      // Ensure we have names from the selected accounts
+      if (selectedAdAccount && !finalPageName) {
+        const account = adAccounts.find(acc => acc.id === selectedAdAccount);
+        if (account) {
+          finalPageName = account.name;
+        }
       }
 
-      if (selectedInstagramData) {
-        finalInstagramHandle = selectedInstagramData.username;
-        setSelectedInstagramHandle(finalInstagramHandle);
+      if (selectedInstagram && !finalInstagramHandle) {
+        const account = instagramAccounts.find(acc => acc.id === selectedInstagram);
+        if (account) {
+          finalInstagramHandle = account.username;
+        }
       }
+
+      // Validate that we have required data
+      if (!finalPageName && !finalInstagramHandle) {
+        toast.error('Необходимо выбрать хотя бы один аккаунт');
+        return;
+      }
+
+      // Prepare data for upsert
+      const updateData: any = {
+        id: connectedAccount.id,
+        project_id: connectedAccount.project_id,
+        access_token: connectedAccount.access_token,
+        name: connectedAccount.name
+      };
+
+      if (selectedAdAccount) {
+        updateData.selected_page_id = selectedAdAccount;
+        updateData.selected_page_name = finalPageName;
+        updateData.ad_account_name = finalPageName; // Send as ad_account_name for backward compatibility
+      }
+
+      if (selectedInstagram) {
+        updateData.selected_instagram_id = selectedInstagram;
+        updateData.selected_instagram_handle = finalInstagramHandle;
+      }
+
+      console.log('Saving settings to Supabase:', updateData);
 
       // Save to database
       const { error } = await supabase
         .from('ad_accounts')
-        .upsert({
-          id: connectedAccount.id,
-          project_id: connectedAccount.project_id,
-          access_token: connectedAccount.access_token,
-          name: connectedAccount.name,
-          selected_page_id: selectedAdAccount || null,
-          selected_page_name: finalPageName || null,
-          selected_instagram_id: selectedInstagram || null,
-          selected_instagram_handle: finalInstagramHandle || null,
-          ad_account_name: finalPageName || null
-        }, {
+        .upsert(updateData, {
           onConflict: 'id'
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       setShowSelectionMode(false);
       toast.success('Настройки подключения сохранены!');
