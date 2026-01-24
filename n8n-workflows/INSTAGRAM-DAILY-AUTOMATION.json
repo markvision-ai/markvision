@@ -169,6 +169,90 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [1560, 300]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "Instagram Content Intelligence",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "active"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "execution_time",
+              "value": "={{ $execution.duration }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-instagram-success",
+      "name": "💾 Instagram Content Intelligence - OK",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.error || $json.message || 'Ошибка Instagram automation' }}"
+      },
+      "id": "error-instagram-automation",
+      "name": "❌ Ошибка Instagram",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [1560, 500]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "Instagram Content Intelligence",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "error"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "logs",
+              "value": "={{ $json.error || $json.message || 'Ошибка Instagram Content Intelligence' }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-instagram-error",
+      "name": "💾 Instagram Content Intelligence - Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 500],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
     }
   ],
   "connections": {
@@ -243,6 +327,28 @@
         [
           {
             "node": "✅ Финальный лог",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Финальный лог": {
+      "main": [
+        [
+          {
+            "node": "💾 Instagram Content Intelligence - OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Ошибка Instagram": {
+      "main": [
+        [
+          {
+            "node": "💾 Instagram Content Intelligence - Error",
             "type": "main",
             "index": 0
           }

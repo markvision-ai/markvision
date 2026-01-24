@@ -1,0 +1,226 @@
+{
+  "name": "Facebook Ads Sync with Heartbeat",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-facebook",
+      "name": "⏰ Каждый час",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://graph.facebook.com/v21.0/act_YOUR_AD_ACCOUNT_ID/insights",
+        "method": "GET",
+        "queryParameters": {
+          "fields": "spend,impressions,clicks,actions,cost_per_action_type",
+          "time_range": "{\"since\":\"{{ $now.subtract(1, 'hours').format('YYYY-MM-DD') }}\",\"until\":\"{{ $now.format('YYYY-MM-DD') }}\"}",
+          "level": "account"
+        },
+        "options": {
+          "splitIntoItems": false
+        }
+      },
+      "id": "facebook-ads-api",
+      "name": "📊 Facebook Ads API",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "httpBasicAuth": {
+          "id": "your-facebook-credential-id",
+          "name": "Facebook API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": "public",
+        "table": "daily_data",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "date",
+              "value": "={{ $now.format('YYYY-MM-DD') }}"
+            },
+            {
+              "column": "spend",
+              "value": "={{ parseFloat($json.data[0]?.spend || 0) }}"
+            },
+            {
+              "column": "impressions",
+              "value": "={{ parseInt($json.data[0]?.impressions || 0) }}"
+            },
+            {
+              "column": "clicks",
+              "value": "={{ parseInt($json.data[0]?.clicks || 0) }}"
+            }
+          ]
+        },
+        "options": {
+          "upsertKey": "date",
+          "upsertConflictColumns": ["date"]
+        }
+      },
+      "id": "supabase-save-facebook",
+      "name": "💾 Сохранить Facebook данные",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "Facebook Ads Sync",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "active"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "execution_time",
+              "value": "={{ $execution.duration }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-facebook-success",
+      "name": "💾 Facebook Ads Sync - OK",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [900, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.error?.message || $json.message || 'Ошибка Facebook Ads API' }}"
+      },
+      "id": "error-facebook-ads",
+      "name": "❌ Ошибка Facebook Ads",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [460, 500]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "Facebook Ads Sync",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "error"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "logs",
+              "value": "={{ $json.error?.message || $json.message || 'Ошибка Facebook Ads Sync' }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-facebook-error",
+      "name": "💾 Facebook Ads Sync - Error",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [680, 500],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ Каждый час": {
+      "main": [
+        [
+          {
+            "node": "📊 Facebook Ads API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Facebook Ads API": {
+      "main": [
+        [
+          {
+            "node": "💾 Сохранить Facebook данные",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Сохранить Facebook данные": {
+      "main": [
+        [
+          {
+            "node": "💾 Facebook Ads Sync - OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Ошибка Facebook Ads": {
+      "main": [
+        [
+          {
+            "node": "💾 Facebook Ads Sync - Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "facebook-ads-sync-workflow"
+  }
+}

@@ -1,0 +1,181 @@
+{
+  "name": "n8n_Heartbeat",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-heartbeat",
+      "name": "⏰ Пульс системы (каждые 15 мин)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": "public",
+        "table": "automation_flows",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "project_id",
+              "value": "64c94e87-630c-470e-8ab1-8f7c8c835efa"
+            },
+            {
+              "column": "name",
+              "value": "Система аналитики (Core)"
+            },
+            {
+              "column": "status",
+              "value": "active"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            }
+          ]
+        },
+        "options": {
+          "upsertKey": "name",
+          "upsertConflictColumns": ["project_id", "name"]
+        }
+      },
+      "id": "supabase-heartbeat",
+      "name": "💾 Система аналитики (Core)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "boolean": [
+            {
+              "name": "success",
+              "value": true
+            }
+          ],
+          "string": [
+            {
+              "name": "message",
+              "value": "Система работает нормально"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ $now.format('DD.MM.YYYY HH:mm:ss') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-success",
+      "name": "✅ Система OK",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "errorMessage": "={{ $json.error || 'Неизвестная ошибка системы' }}",
+        "options": {}
+      },
+      "id": "error-trigger",
+      "name": "❌ Ошибка системы",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [240, 500]
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "Система аналитики (Core)",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "error"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            }
+          ]
+        }
+      },
+      "id": "supabase-error-log",
+      "name": "💾 Запись ошибки",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 500],
+      "credentials": {
+        "supabaseApi": {
+          "id": "your-supabase-credential-id",
+          "name": "Supabase API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "⏰ Пульс системы (каждые 15 мин)": {
+      "main": [
+        [
+          {
+            "node": "💾 Система аналитики (Core)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Система аналитики (Core)": {
+      "main": [
+        [
+          {
+            "node": "✅ Система OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "❌ Ошибка системы": {
+      "main": [
+        [
+          {
+            "node": "💾 Запись ошибки",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "meta": {
+    "instanceId": "n8n-heartbeat-workflow"
+  },
+  "pinData": {},
+  "versionId": "1"
+}
