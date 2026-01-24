@@ -141,7 +141,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
         // If we have saved settings, show active connection mode
         if (account.selected_page_id || account.selected_instagram_id) {
           setShowSelectionMode(false);
+        } else {
+          // If no accounts are saved, show setup mode
+          setShowSelectionMode(true);
         }
+
+        // Set initial selection mode based on whether accounts are configured
+        const hasConfiguredAccounts = account.selected_page_id || account.selected_instagram_id;
+        setShowSelectionMode(!hasConfiguredAccounts);
       }
 
       // Try to fetch fresh Instagram accounts from API if connected (don't fail if API is down)
@@ -490,20 +497,36 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                     className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-8 text-xs"
                     disabled={!selectedAdAccount && !selectedInstagram}
                   >
-                    Сохранить настройки подключения
+                    Подключить
                   </Button>
                 </>
               ) : (
                 // Режим активного подключения
                 <div className="space-y-3">
-                  <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CheckCircle className="w-4 h-4 text-emerald-500" />
-                      <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Активное подключение</span>
+                  <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                        <CheckCircle className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">Активно</p>
+                        <p className="text-xs text-muted-foreground">Подключение настроено</p>
+                      </div>
                     </div>
-                    <div className="space-y-1 text-xs text-muted-foreground">
-                      {selectedPageName && <p>📊 Рекламный кабинет: {selectedPageName}</p>}
-                      {selectedInstagramHandle && <p>📷 Instagram: @{selectedInstagramHandle}</p>}
+
+                    <div className="space-y-2">
+                      {selectedPageName && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="w-4 text-center">📊</span>
+                          <span>Рекламный кабинет: <strong className="text-foreground">{selectedPageName}</strong></span>
+                        </div>
+                      )}
+                      {selectedInstagramHandle && (
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span className="w-4 text-center">📷</span>
+                          <span>Instagram: <strong className="text-foreground">@{selectedInstagramHandle}</strong></span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
