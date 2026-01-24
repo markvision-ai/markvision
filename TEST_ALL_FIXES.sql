@@ -50,5 +50,5 @@ SELECT
 FROM information_schema.columns
 WHERE table_schema = 'public'
     AND table_name IN ('ad_accounts', 'automation_flows')
-    AND column_name IN ('selected_page_name', 'selected_instagram_handle', 'ad_account_name', 'status', 'logs', 'execution_time')
+    AND column_name IN ('selected_page_name', 'selected_instagram_handle', 'ad_account_name', 'name', 'status', 'logs', 'execution_time')
 ORDER BY table_name, column_name;
