@@ -70,17 +70,16 @@ BEGIN
         RAISE NOTICE 'Added column updated_at';
     END IF;
 
-    -- Добавляем CHECK constraint для status если его нет
-    IF NOT EXISTS (
-        SELECT 1 FROM information_schema.check_constraints
-        WHERE constraint_name LIKE '%status_check%'
-        AND table_name = 'automation_flows'
-    ) THEN
+    -- Добавляем CHECK constraint для status (игнорируем если уже существует)
+    BEGIN
         ALTER TABLE public.automation_flows
         ADD CONSTRAINT automation_flows_status_check
         CHECK (status IN ('active', 'inactive', 'error', 'running'));
         RAISE NOTICE 'Added status check constraint';
-    END IF;
+    EXCEPTION
+        WHEN duplicate_object THEN
+            RAISE NOTICE 'Status check constraint already exists';
+    END;
 
 END $$;
 
