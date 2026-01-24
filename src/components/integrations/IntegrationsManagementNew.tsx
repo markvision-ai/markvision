@@ -44,6 +44,8 @@ interface ConnectedAccount {
   name?: string;
   selected_page_id?: string;
   selected_instagram_id?: string;
+  selected_page_name?: string;
+  selected_instagram_handle?: string;
   created_at: string;
 }
 
@@ -57,6 +59,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   const [selectedAdAccountData, setSelectedAdAccountData] = useState<AdAccount | null>(null);
   const [selectedInstagramData, setSelectedInstagramData] = useState<InstagramAccount | null>(null);
   const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
+  const [selectedPageName, setSelectedPageName] = useState<string>('');
+  const [selectedInstagramHandle, setSelectedInstagramHandle] = useState<string>('');
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch data from database
@@ -76,20 +80,36 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
         // Set selected values from database
         if (account.selected_page_id) {
           setSelectedAdAccount(account.selected_page_id);
-          // Try to get page data - if API fails, we'll show the ID
-          setSelectedAdAccountData({ id: account.selected_page_id, name: `Страница ${account.selected_page_id}` });
+          // Use stored name or fallback to ID
+          setSelectedPageName(account.selected_page_name || `Страница ${account.selected_page_id}`);
+          setSelectedAdAccountData({
+            id: account.selected_page_id,
+            name: account.selected_page_name || `Страница ${account.selected_page_id}`,
+            account_id: account.selected_page_id
+          });
         }
         if (account.selected_instagram_id) {
           setSelectedInstagram(account.selected_instagram_id);
-          // Try to get Instagram data - if API fails, we'll show the ID
-          setSelectedInstagramData({ id: account.selected_instagram_id, username: account.selected_instagram_id });
+          // Use stored handle or fallback to ID
+          setSelectedInstagramHandle(account.selected_instagram_handle || account.selected_instagram_id);
+          setSelectedInstagramData({
+            id: account.selected_instagram_id,
+            username: account.selected_instagram_handle || account.selected_instagram_id
+          });
         }
       }
 
       // Try to fetch fresh Instagram accounts from API if connected (don't fail if API is down)
       if (adData && adData.length > 0 && adData[0].access_token) {
+        const account = adData[0];
         try {
-          await fetchInstagramAccounts(adData[0].access_token);
+          await fetchInstagramAccounts(account.access_token);
+
+          // If we don't have names in database, try to fetch them
+          if ((account.selected_page_id && !account.selected_page_name) ||
+              (account.selected_instagram_id && !account.selected_instagram_handle)) {
+            await fetchAndUpdateAccountNames(account.access_token, account.selected_page_id, account.selected_instagram_id);
+          }
         } catch (apiError) {
           console.warn('API unavailable, showing database data only');
           // Continue with database data only
@@ -151,6 +171,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           const selectedIg = igAccounts.find(acc => acc.id === selectedInstagram);
           if (selectedIg) {
             setSelectedInstagramData(selectedIg);
+            setSelectedInstagramHandle(selectedIg.username);
           }
         }
       }
@@ -160,30 +181,113 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     }
   };
 
+  // Fetch account names from API and update database
+  const fetchAndUpdateAccountNames = async (accessToken: string, selectedPageId?: string, selectedInstagramId?: string) => {
+    if (!accessToken) return;
+
+    try {
+      let updates: any = {};
+
+      // Fetch page name if selected
+      if (selectedPageId) {
+        try {
+          const pageResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${selectedPageId}?fields=id,name&access_token=${accessToken}`
+          );
+
+          if (pageResponse.ok) {
+            const pageData = await pageResponse.json();
+            updates.selected_page_name = pageData.name;
+            setSelectedPageName(pageData.name);
+          }
+        } catch (error) {
+          console.warn('Could not fetch page name:', error);
+        }
+      }
+
+      // Fetch Instagram handle if selected
+      if (selectedInstagramId) {
+        try {
+          const igResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${selectedInstagramId}?fields=id,username&access_token=${accessToken}`
+          );
+
+          if (igResponse.ok) {
+            const igData = await igResponse.json();
+            updates.selected_instagram_handle = igData.username;
+            setSelectedInstagramHandle(igData.username);
+          }
+        } catch (error) {
+          console.warn('Could not fetch Instagram handle:', error);
+        }
+      }
+
+      // Update database with names if we have any
+      if (Object.keys(updates).length > 0 && connectedAccount) {
+        await supabase
+          .from('ad_accounts')
+          .update(updates)
+          .eq('id', connectedAccount.id);
+
+        console.log('Updated account names in database:', updates);
+      }
+
+    } catch (error) {
+      console.error('Error fetching account names:', error);
+    }
+  };
+
   useEffect(() => {
     fetchData();
-  }, [fetchData]);
+
+    // Subscribe to automation_flows changes
+    const automationSubscription = supabase
+      .channel('automation_flows_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'automation_flows',
+          filter: `project_id=eq.${currentProjectId}`
+        },
+        (payload) => {
+          console.log('Automation flows changed:', payload);
+          // Refresh automation flows data
+          fetchAutomationFlows();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      automationSubscription.unsubscribe();
+    };
+  }, [fetchData, currentProjectId]);
+
+  // Separate function to fetch automation flows
+  const fetchAutomationFlows = useCallback(async () => {
+    try {
+      const { data: flowsData } = await supabase
+        .from('automation_flows')
+        .select('id, name, status, last_run')
+        .eq('project_id', currentProjectId)
+        .order('last_run', { ascending: false, nullsLast: true });
+
+      if (flowsData) {
+        setAutomationFlows(flowsData);
+      }
+    } catch (error) {
+      console.error('Error fetching automation flows:', error);
+    }
+  }, [currentProjectId]);
 
   const handleAdAccountChange = async (pageId: string) => {
     if (!connectedAccount) return;
 
     try {
-      const { error } = await supabase
-        .from('ad_accounts')
-        .update({ selected_page_id: pageId })
-        .eq('id', connectedAccount.id);
+      let pageName = '';
 
-      if (error) throw error;
-
-      setSelectedAdAccount(pageId);
-
-      // Set basic data immediately
-      const selectedAccount = adAccounts.find(acc => acc.id === pageId);
-      if (selectedAccount) {
-        setSelectedAdAccountData(selectedAccount);
-      }
-
-      // Try to fetch fresh page data from API (don't fail if API is down)
+      // Try to fetch page name from API first
       if (connectedAccount.access_token) {
         try {
           const pageResponse = await fetch(
@@ -192,13 +296,39 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
 
           if (pageResponse.ok) {
             const pageData = await pageResponse.json();
-            setSelectedAdAccountData(prev => ({ ...prev, ...pageData }));
+            pageName = pageData.name;
+            setSelectedAdAccountData(pageData);
           }
         } catch (apiError) {
-          console.warn('API unavailable, keeping database data');
-          // Keep the database data we already set
+          console.warn('API unavailable for page name, using stored data');
         }
       }
+
+      // If we couldn't get name from API, try to find it in our local data
+      if (!pageName) {
+        const selectedAccount = adAccounts.find(acc => acc.id === pageId);
+        if (selectedAccount) {
+          pageName = selectedAccount.name;
+          setSelectedAdAccountData(selectedAccount);
+        } else {
+          pageName = `Страница ${pageId}`;
+          setSelectedAdAccountData({ id: pageId, name: pageName, account_id: pageId });
+        }
+      }
+
+      // Update database with both ID and name
+      const { error } = await supabase
+        .from('ad_accounts')
+        .update({
+          selected_page_id: pageId,
+          selected_page_name: pageName
+        })
+        .eq('id', connectedAccount.id);
+
+      if (error) throw error;
+
+      setSelectedAdAccount(pageId);
+      setSelectedPageName(pageName);
 
       toast.success('Рекламный кабинет выбран');
     } catch (error) {
@@ -211,16 +341,49 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     if (!connectedAccount) return;
 
     try {
+      let instagramHandle = '';
+
+      // Try to fetch Instagram handle from API first
+      if (connectedAccount.access_token) {
+        try {
+          const igResponse = await fetch(
+            `https://graph.facebook.com/v21.0/${instagramId}?fields=id,username&access_token=${connectedAccount.access_token}`
+          );
+
+          if (igResponse.ok) {
+            const igData = await igResponse.json();
+            instagramHandle = igData.username;
+          }
+        } catch (apiError) {
+          console.warn('API unavailable for Instagram handle, using stored data');
+        }
+      }
+
+      // If we couldn't get handle from API, try to find it in our local data
+      if (!instagramHandle) {
+        const account = instagramAccounts.find(acc => acc.id === instagramId);
+        if (account) {
+          instagramHandle = account.username;
+          setSelectedInstagramData(account);
+        } else {
+          instagramHandle = instagramId;
+          setSelectedInstagramData({ id: instagramId, username: instagramHandle });
+        }
+      }
+
+      // Update database with both ID and handle
       const { error } = await supabase
         .from('ad_accounts')
-        .update({ selected_instagram_id: instagramId })
+        .update({
+          selected_instagram_id: instagramId,
+          selected_instagram_handle: instagramHandle
+        })
         .eq('id', connectedAccount.id);
 
       if (error) throw error;
 
       setSelectedInstagram(instagramId);
-      const account = instagramAccounts.find(acc => acc.id === instagramId);
-      setSelectedInstagramData(account || null);
+      setSelectedInstagramHandle(instagramHandle);
 
       toast.success('Instagram профиль выбран');
     } catch (error) {
@@ -287,7 +450,9 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           <Card className="bg-card/50 backdrop-blur-xl border-border/50">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-foreground flex items-center gap-2">
-                <Facebook className="w-5 h-5 text-blue-500" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center border border-blue-500/30">
+                  <Facebook className="w-4 h-4 text-blue-500" />
+                </div>
                 Facebook & Instagram
               </CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
@@ -321,7 +486,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                     <SelectContent className="bg-background border-border">
                       {adAccounts.map((account) => (
                         <SelectItem key={account.id} value={account.id} className="text-foreground">
-                          {account.name} ({account.account_id})
+                          {account.name || `Кабинет ${account.account_id}`}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -346,39 +511,31 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
               </div>
 
               {/* Mini Stats - Show selected account data */}
-              {(selectedAdAccountData || selectedInstagramData) && (
+              {(selectedPageName || selectedInstagramHandle) && (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2 border-t border-border/50">
-                  {selectedAdAccountData && (
+                  {selectedPageName && (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                      <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500/30 to-blue-600/30 flex items-center justify-center border border-blue-500/20">
                         <Facebook className="w-4 h-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">{selectedAdAccountData.name}</p>
+                        <p className="text-sm font-medium text-foreground">{selectedPageName}</p>
                         <p className="text-xs text-muted-foreground">
-                          Расход: {selectedAdAccountData.spend ? `${selectedAdAccountData.spend.toLocaleString()} ₸` : 'Нет данных'}
+                          Рекламный кабинет
                         </p>
                       </div>
                     </div>
                   )}
 
-                  {selectedInstagramData && (
+                  {selectedInstagramHandle && (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/30">
-                      {selectedInstagramData.profile_picture_url ? (
-                        <img
-                          src={selectedInstagramData.profile_picture_url}
-                          alt={selectedInstagramData.username}
-                          className="w-8 h-8 rounded-full border border-border"
-                        />
-                      ) : (
-                        <div className="w-8 h-8 rounded-full bg-pink-500/20 flex items-center justify-center">
-                          <MessageCircle className="w-4 h-4 text-pink-500" />
-                        </div>
-                      )}
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500/30 to-purple-500/30 flex items-center justify-center border border-pink-500/20">
+                        <MessageCircle className="w-4 h-4 text-pink-500" />
+                      </div>
                       <div>
-                        <p className="text-sm font-medium text-foreground">@{selectedInstagramData.username}</p>
+                        <p className="text-sm font-medium text-foreground">@{selectedInstagramHandle}</p>
                         <p className="text-xs text-muted-foreground">
-                          {selectedInstagramData.followers_count?.toLocaleString()} подписчиков
+                          Instagram профиль
                         </p>
                       </div>
                     </div>
@@ -448,7 +605,9 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
           )}>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg text-foreground flex items-center gap-2">
-                <Zap className="w-5 h-5 text-amber-500" />
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-500/20 to-orange-500/20 flex items-center justify-center border border-amber-500/30">
+                  <Zap className="w-4 h-4 text-amber-500" />
+                </div>
                 n8n Automation Hub
               </CardTitle>
               <CardDescription className="text-muted-foreground text-sm">
@@ -460,7 +619,8 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                 {automationFlows.length === 0 ? (
                   <div className="text-center py-6 text-muted-foreground">
                     <Zap className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">Нет активных процессов</p>
+                    <p className="text-sm">Ожидание данных от n8n...</p>
+                    <p className="text-xs mt-1">Автоматизации скоро появятся здесь</p>
                   </div>
                 ) : (
                   automationFlows.map((flow) => (
