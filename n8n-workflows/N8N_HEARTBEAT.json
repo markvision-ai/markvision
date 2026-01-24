@@ -56,7 +56,7 @@
       "position": [460, 300],
       "credentials": {
         "supabaseApi": {
-          "id": "your-supabase-credential-id",
+          "id": "pyscczcuersdjvpmkiec",
           "name": "Supabase API"
         }
       }
@@ -128,7 +128,7 @@
       "position": [460, 500],
       "credentials": {
         "supabaseApi": {
-          "id": "your-supabase-credential-id",
+          "id": "pyscczcuersdjvpmkiec",
           "name": "Supabase API"
         }
       }

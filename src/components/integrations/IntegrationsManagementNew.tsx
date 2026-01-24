@@ -32,9 +32,15 @@ interface InstagramAccount {
 
 interface AutomationFlow {
   id: string;
+  project_id: string;
   name: string;
+  description?: string;
   status: 'active' | 'inactive' | 'error' | 'running';
   last_run: string | null;
+  execution_time?: number;
+  logs?: string;
+  created_at: string;
+  updated_at: string;
 }
 
 interface ConnectedAccount {
@@ -119,7 +125,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
       // Fetch automation flows
       const { data: flowsData } = await supabase
         .from('automation_flows')
-        .select('id, name, status, last_run')
+        .select('*')
         .eq('project_id', currentProjectId)
         .order('last_run', { ascending: false, nullsLast: true });
 
@@ -269,7 +275,7 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
     try {
       const { data: flowsData } = await supabase
         .from('automation_flows')
-        .select('id, name, status, last_run')
+        .select('*')
         .eq('project_id', currentProjectId)
         .order('last_run', { ascending: false, nullsLast: true });
 
@@ -398,24 +404,30 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
   };
 
   const getStatusBadge = (status: string) => {
-    const variants = {
-      active: 'bg-primary/10 text-primary border-primary/20',
-      inactive: 'bg-muted text-muted-foreground border-border',
-      error: 'bg-destructive/10 text-destructive border-destructive/20',
-      running: 'bg-blue-500/10 text-blue-500 border-blue-500/20'
+    const statusConfig = {
+      active: {
+        text: 'Работает',
+        className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+      },
+      inactive: {
+        text: 'Пауза',
+        className: 'bg-gray-500/10 text-gray-600 border-gray-500/20'
+      },
+      error: {
+        text: 'Ошибка',
+        className: 'bg-red-500/10 text-red-600 border-red-500/20'
+      },
+      running: {
+        text: 'Выполняется',
+        className: 'bg-blue-500/10 text-blue-600 border-blue-500/20'
+      }
     };
 
-    const icons = {
-      active: <CheckCircle className="w-3 h-3" />,
-      inactive: <Pause className="w-3 h-3" />,
-      error: <AlertTriangle className="w-3 h-3" />,
-      running: <Play className="w-3 h-3" />
-    };
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.inactive;
 
     return (
-      <Badge variant="secondary" className={cn("text-xs", variants[status as keyof typeof variants])}>
-        {icons[status as keyof typeof icons]}
-        <span className="ml-1 capitalize">{status}</span>
+      <Badge variant="secondary" className={cn("text-xs font-medium", config.className)}>
+        {config.text}
       </Badge>
     );
   };
@@ -624,16 +636,31 @@ export const IntegrationsManagementNew = ({ projectId }: { projectId?: string })
                   </div>
                 ) : (
                   automationFlows.map((flow) => (
-                    <div key={flow.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-foreground truncate">{flow.name}</p>
-                        <p className="text-xs text-muted-foreground">
+                    <div key={flow.id} className="p-3 rounded-lg bg-muted/30 border border-border/50 hover:bg-muted/40 transition-colors">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{flow.name}</p>
+                          {flow.description && (
+                            <p className="text-xs text-muted-foreground mt-1">{flow.description}</p>
+                          )}
+                        </div>
+                        <div className="ml-3">
+                          {getStatusBadge(flow.status)}
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>
                           {flow.last_run ? new Date(flow.last_run).toLocaleString('ru-RU') : 'Не запускался'}
-                        </p>
+                        </span>
+                        {flow.execution_time && (
+                          <span>{flow.execution_time}ms</span>
+                        )}
                       </div>
-                      <div className="ml-3">
-                        {getStatusBadge(flow.status)}
-                      </div>
+                      {flow.logs && flow.status === 'error' && (
+                        <div className="mt-2 p-2 rounded bg-destructive/5 border border-destructive/20">
+                          <p className="text-xs text-destructive line-clamp-2">{flow.logs}</p>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
