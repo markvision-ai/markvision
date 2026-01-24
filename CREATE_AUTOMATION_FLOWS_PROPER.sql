@@ -18,6 +18,10 @@ CREATE TABLE public.automation_flows (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Уникальное ограничение для upsert операций
+ALTER TABLE public.automation_flows
+ADD CONSTRAINT automation_flows_project_name_unique UNIQUE (project_id, name);
+
 -- Индексы для производительности
 CREATE INDEX idx_automation_flows_project ON public.automation_flows(project_id);
 CREATE INDEX idx_automation_flows_status ON public.automation_flows(status);
