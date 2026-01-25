@@ -51,6 +51,8 @@ interface InstagramAccount {
   username: string;
   profile_picture_url?: string;
   followers_count?: number;
+  page_id?: string;
+  page_name?: string;
 }
 
 interface ConnectedAccount {
@@ -77,6 +79,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalType, setModalType] = useState<'facebook' | 'instagram'>('facebook');
   const [availablePages, setAvailablePages] = useState<FacebookPage[]>([]);
   const [availableAdAccounts, setAvailableAdAccounts] = useState<AdAccount[]>([]);
   const [availableInstagramAccounts, setAvailableInstagramAccounts] = useState<InstagramAccount[]>([]);
@@ -104,6 +107,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
       if (data) {
         setConnectedAccount(data);
+        // Используем названия из базы данных, а не ID
         setSelectedPageName(data.selected_page_name || '');
         setSelectedAdAccountName(data.ad_account_name || '');
         setSelectedInstagramHandle(data.selected_instagram_handle || '');
@@ -118,6 +122,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
               const igData = await igResponse.json();
               setSelectedInstagramFollowers(igData.followers_count || 0);
               setSelectedInstagramAvatar(igData.profile_picture_url || '');
+              // Обновляем handle если его нет в базе
+              if (!data.selected_instagram_handle && igData.username) {
+                setSelectedInstagramHandle(`@${igData.username}`);
+              }
             }
           } catch (err) {
             console.warn('Could not fetch Instagram details:', err);
@@ -132,7 +140,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   }, [currentProjectId]);
 
   // Fetch available resources for modal
-  const fetchAvailableResources = useCallback(async () => {
+  const fetchAvailableResources = useCallback(async (type: 'facebook' | 'instagram') => {
     if (!connectedAccount?.access_token) {
       toast.error('Токен доступа не найден');
       return;
@@ -140,44 +148,63 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
     setModalLoading(true);
     try {
-      // Fetch Facebook Pages
-      const pagesResponse = await fetch(
-        `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${connectedAccount.access_token}`
-      );
+      if (type === 'facebook') {
+        // Fetch Facebook Pages
+        const pagesResponse = await fetch(
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture&access_token=${connectedAccount.access_token}`
+        );
 
-      if (pagesResponse.ok) {
-        const pagesData = await pagesResponse.json();
-        setAvailablePages(pagesData.data || []);
+        if (pagesResponse.ok) {
+          const pagesData = await pagesResponse.json();
+          setAvailablePages(pagesData.data || []);
+        }
 
-        // Fetch Instagram accounts from pages
-        const igAccounts: InstagramAccount[] = [];
-        for (const page of pagesData.data || []) {
-          if (page.instagram_business_account) {
-            const igId = page.instagram_business_account.id;
-            try {
-              const igResponse = await fetch(
-                `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${connectedAccount.access_token}`
-              );
-              if (igResponse.ok) {
-                const igData = await igResponse.json();
-                igAccounts.push(igData);
+        // Fetch Ad Accounts
+        const adAccountsResponse = await fetch(
+          `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&access_token=${connectedAccount.access_token}`
+        );
+
+        if (adAccountsResponse.ok) {
+          const adAccountsData = await adAccountsResponse.json();
+          setAvailableAdAccounts(adAccountsData.data || []);
+        }
+      } else if (type === 'instagram') {
+        // Fetch Facebook Pages with Instagram accounts
+        const pagesResponse = await fetch(
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${connectedAccount.access_token}`
+        );
+
+        if (pagesResponse.ok) {
+          const pagesData = await pagesResponse.json();
+          // Filter only pages with Instagram accounts
+          const pagesWithIG = pagesData.data?.filter((page: FacebookPage & { instagram_business_account?: { id: string } }) => 
+            page.instagram_business_account
+          ) || [];
+          
+          // Fetch Instagram accounts from pages
+          const igAccounts: InstagramAccount[] = [];
+          for (const page of pagesWithIG) {
+            if (page.instagram_business_account) {
+              const igId = page.instagram_business_account.id;
+              try {
+                const igResponse = await fetch(
+                  `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${connectedAccount.access_token}`
+                );
+                if (igResponse.ok) {
+                  const igData = await igResponse.json();
+                  igAccounts.push({
+                    ...igData,
+                    page_id: page.id, // Store page ID for reference
+                    page_name: page.name // Store page name
+                  });
+                }
+              } catch (err) {
+                console.warn('Could not fetch Instagram account:', igId);
               }
-            } catch (err) {
-              console.warn('Could not fetch Instagram account:', igId);
             }
           }
+          setAvailableInstagramAccounts(igAccounts);
         }
-        setAvailableInstagramAccounts(igAccounts);
-      }
-
-      // Fetch Ad Accounts
-      const adAccountsResponse = await fetch(
-        `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&access_token=${connectedAccount.access_token}`
-      );
-
-      if (adAccountsResponse.ok) {
-        const adAccountsData = await adAccountsResponse.json();
-        setAvailableAdAccounts(adAccountsData.data || []);
       }
     } catch (error) {
       console.error('Error fetching resources:', error);
@@ -191,15 +218,19 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     fetchConnectedAccount();
   }, [fetchConnectedAccount]);
 
-  const handleOpenModal = async () => {
+  const handleOpenModal = async (type: 'facebook' | 'instagram') => {
+    setModalType(type);
     setIsModalOpen(true);
-    await fetchAvailableResources();
+    await fetchAvailableResources(type);
     
     // Pre-select current values
     if (connectedAccount) {
-      setModalSelectedPage(connectedAccount.selected_page_id || '');
-      setModalSelectedAdAccount(connectedAccount.selected_page_id || '');
-      setModalSelectedInstagram(connectedAccount.selected_instagram_id || '');
+      if (type === 'facebook') {
+        setModalSelectedPage(connectedAccount.selected_page_id || '');
+        setModalSelectedAdAccount(connectedAccount.selected_page_id || '');
+      } else {
+        setModalSelectedInstagram(connectedAccount.selected_instagram_id || '');
+      }
     }
   };
 
@@ -207,21 +238,41 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     if (!connectedAccount) return;
 
     try {
-      // Find selected resources
-      const selectedPage = availablePages.find(p => p.id === modalSelectedPage);
-      const selectedAdAccount = availableAdAccounts.find(a => a.id === modalSelectedAdAccount);
-      const selectedInstagram = availableInstagramAccounts.find(i => i.id === modalSelectedInstagram);
-
-      const updateData: Record<string, unknown> = {
+      let updateData: Record<string, unknown> = {
         id: connectedAccount.id,
         project_id: connectedAccount.project_id,
         access_token: connectedAccount.access_token,
-        selected_page_id: modalSelectedPage || null,
-        selected_page_name: selectedPage?.name || null,
-        selected_instagram_id: modalSelectedInstagram || null,
-        selected_instagram_handle: selectedInstagram?.username ? `@${selectedInstagram.username}` : null,
-        ad_account_name: selectedAdAccount?.name || null,
+        platform: 'facebook', // ОБЯЗАТЕЛЬНО добавляем platform
       };
+
+      if (modalType === 'facebook') {
+        // Find selected resources for Facebook
+        const selectedPage = availablePages.find(p => p.id === modalSelectedPage);
+        const selectedAdAccount = availableAdAccounts.find(a => a.id === modalSelectedAdAccount);
+
+        updateData = {
+          ...updateData,
+          selected_page_id: modalSelectedPage || null,
+          selected_page_name: selectedPage?.name || null,
+          ad_account_name: selectedAdAccount?.name || null,
+          // Keep existing Instagram data if not changing
+          selected_instagram_id: connectedAccount.selected_instagram_id || null,
+          selected_instagram_handle: connectedAccount.selected_instagram_handle || null,
+        };
+      } else if (modalType === 'instagram') {
+        // Find selected Instagram account
+        const selectedInstagram = availableInstagramAccounts.find(i => i.id === modalSelectedInstagram);
+
+        updateData = {
+          ...updateData,
+          selected_instagram_id: modalSelectedInstagram || null,
+          selected_instagram_handle: selectedInstagram?.username ? `@${selectedInstagram.username}` : null,
+          // Keep existing Facebook data if not changing
+          selected_page_id: connectedAccount.selected_page_id || null,
+          selected_page_name: connectedAccount.selected_page_name || null,
+          ad_account_name: connectedAccount.ad_account_name || null,
+        };
+      }
 
       const { error } = await supabase
         .from('ad_accounts')
@@ -294,7 +345,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                   Подключите Facebook для синхронизации рекламных данных
                 </p>
                 <Button 
-                  onClick={handleOpenModal}
+                  onClick={() => handleOpenModal('facebook')}
                   className="w-full bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -325,7 +376,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 </div>
                 <Button 
                   variant="outline"
-                  onClick={handleOpenModal}
+                  onClick={() => handleOpenModal('facebook')}
                   className="w-full"
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -356,7 +407,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                   Подключите Instagram для синхронизации контента
                 </p>
                 <Button 
-                  onClick={handleOpenModal}
+                  onClick={() => handleOpenModal('instagram')}
                   className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -394,7 +445,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 </div>
                 <Button 
                   variant="outline"
-                  onClick={handleOpenModal}
+                  onClick={() => handleOpenModal('instagram')}
                   className="w-full"
                 >
                   <Settings className="w-4 h-4 mr-2" />
@@ -476,112 +527,124 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
       {/* Modal: Resource Selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] bg-background border-border">
+        <DialogContent className="max-w-2xl max-h-[80vh] bg-white dark:bg-background border-border">
           <DialogHeader>
-            <DialogTitle className="text-foreground">Выбор ресурсов</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Выберите рекламный кабинет, страницу и Instagram профиль для подключения
+            <DialogTitle className="text-foreground dark:text-foreground">
+              {modalType === 'facebook' ? 'Выбор ресурсов Facebook' : 'Выбор Instagram профиля'}
+            </DialogTitle>
+            <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
+              {modalType === 'facebook' 
+                ? 'Выберите рекламный кабинет и страницу для подключения'
+                : 'Выберите Instagram профиль для подключения'}
             </DialogDescription>
           </DialogHeader>
           
           <ScrollArea className="max-h-[60vh] pr-4">
             <div className="space-y-6">
-              {/* Ad Accounts Section */}
-              <div>
-                <h3 className="text-sm font-semibold text-foreground mb-3">Выберите рекламный кабинет</h3>
-                <div className="space-y-2">
-                  {modalLoading ? (
-                    <div className="flex justify-center py-4">
-                      <Loader2 className="w-5 h-5 animate-spin text-primary" />
-                    </div>
-                  ) : availableAdAccounts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Нет доступных рекламных кабинетов</p>
-                  ) : (
-                    availableAdAccounts.map((account) => (
-                      <button
-                        key={account.id}
-                        onClick={() => setModalSelectedAdAccount(account.id)}
-                        className={cn(
-                          "w-full text-left p-3 rounded-lg border transition-all",
-                          modalSelectedAdAccount === account.id
-                            ? "bg-primary/10 border-primary text-foreground"
-                            : "bg-background/50 border-border/50 hover:bg-background text-foreground"
-                        )}
-                      >
-                        <p className="text-sm font-medium">{account.name}</p>
-                        <p className="text-xs text-muted-foreground">{account.account_id}</p>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Pages Section */}
-              <div>
-                <h3 className="text-sm font-semibold text-foreground mb-3">Выберите страницу</h3>
-                <div className="space-y-2">
-                  {availablePages.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Нет доступных страниц</p>
-                  ) : (
-                    availablePages.map((page) => (
-                      <button
-                        key={page.id}
-                        onClick={() => setModalSelectedPage(page.id)}
-                        className={cn(
-                          "w-full text-left p-3 rounded-lg border transition-all",
-                          modalSelectedPage === page.id
-                            ? "bg-primary/10 border-primary text-foreground"
-                            : "bg-background/50 border-border/50 hover:bg-background text-foreground"
-                        )}
-                      >
-                        <p className="text-sm font-medium">{page.name}</p>
-                        <p className="text-xs text-muted-foreground">Страница Facebook</p>
-                      </button>
-                    ))
-                  )}
-                </div>
-              </div>
-
-              {/* Instagram Section */}
-              <div>
-                <h3 className="text-sm font-semibold text-foreground mb-3">Выберите Instagram</h3>
-                <div className="space-y-2">
-                  {availableInstagramAccounts.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Нет доступных Instagram профилей</p>
-                  ) : (
-                    availableInstagramAccounts.map((account) => (
-                      <button
-                        key={account.id}
-                        onClick={() => setModalSelectedInstagram(account.id)}
-                        className={cn(
-                          "w-full text-left p-3 rounded-lg border transition-all",
-                          modalSelectedInstagram === account.id
-                            ? "bg-primary/10 border-primary text-foreground"
-                            : "bg-background/50 border-border/50 hover:bg-background text-foreground"
-                        )}
-                      >
-                        <div className="flex items-center gap-3">
-                          {account.profile_picture_url && (
-                            <img 
-                              src={account.profile_picture_url} 
-                              alt={account.username}
-                              className="w-10 h-10 rounded-full"
-                            />
-                          )}
-                          <div>
-                            <p className="text-sm font-medium">@{account.username}</p>
-                            {account.followers_count && (
-                              <p className="text-xs text-muted-foreground">
-                                {account.followers_count.toLocaleString('ru-RU')} подписчиков
-                              </p>
-                            )}
-                          </div>
+              {modalType === 'facebook' ? (
+                <>
+                  {/* Ad Accounts Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите рекламный кабинет</h3>
+                    <div className="space-y-2">
+                      {modalLoading ? (
+                        <div className="flex justify-center py-4">
+                          <Loader2 className="w-5 h-5 animate-spin text-primary" />
                         </div>
-                      </button>
-                    ))
-                  )}
+                      ) : availableAdAccounts.length === 0 ? (
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных рекламных кабинетов</p>
+                      ) : (
+                        availableAdAccounts.map((account) => (
+                          <button
+                            key={account.id}
+                            onClick={() => setModalSelectedAdAccount(account.id)}
+                            className={cn(
+                              "w-full text-left p-3 rounded-lg border transition-all",
+                              modalSelectedAdAccount === account.id
+                                ? "bg-primary/10 border-primary text-foreground dark:text-foreground"
+                                : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
+                            )}
+                          >
+                            <p className="text-sm font-medium">{account.name}</p>
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{account.account_id}</p>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Pages Section */}
+                  <div>
+                    <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите страницу</h3>
+                    <div className="space-y-2">
+                      {availablePages.length === 0 ? (
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных страниц</p>
+                      ) : (
+                        availablePages.map((page) => (
+                          <button
+                            key={page.id}
+                            onClick={() => setModalSelectedPage(page.id)}
+                            className={cn(
+                              "w-full text-left p-3 rounded-lg border transition-all",
+                              modalSelectedPage === page.id
+                                ? "bg-primary/10 border-primary text-foreground dark:text-foreground"
+                                : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
+                            )}
+                          >
+                            <p className="text-sm font-medium">{page.name}</p>
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">Страница Facebook</p>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                </>
+              ) : (
+                /* Instagram Section - только профили с instagram_business_account */
+                <div>
+                  <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите Instagram профиль</h3>
+                  <div className="space-y-2">
+                    {modalLoading ? (
+                      <div className="flex justify-center py-4">
+                        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+                      </div>
+                    ) : availableInstagramAccounts.length === 0 ? (
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных Instagram профилей</p>
+                    ) : (
+                      availableInstagramAccounts.map((account) => (
+                        <button
+                          key={account.id}
+                          onClick={() => setModalSelectedInstagram(account.id)}
+                          className={cn(
+                            "w-full text-left p-3 rounded-lg border transition-all",
+                            modalSelectedInstagram === account.id
+                              ? "bg-primary/10 border-primary text-foreground dark:text-foreground"
+                              : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
+                          )}
+                        >
+                          <div className="flex items-center gap-3">
+                            {account.profile_picture_url && (
+                              <img 
+                                src={account.profile_picture_url} 
+                                alt={account.username}
+                                className="w-10 h-10 rounded-full"
+                              />
+                            )}
+                            <div>
+                              <p className="text-sm font-medium">@{account.username}</p>
+                              {account.followers_count && (
+                                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
+                                  {account.followers_count.toLocaleString('ru-RU')} подписчиков
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </ScrollArea>
 
