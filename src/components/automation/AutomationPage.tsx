@@ -129,48 +129,42 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     setTimeout(() => refetch(), 3000);
   }, [effectiveProjectId, refetch]);
 
+  const EXECUTE_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
+
   const handleTriggerFlow = useCallback(async (flow: AutomationFlowRow) => {
-    const webhook = flow.webhook_url?.trim();
-    const displayName = (flow.flow_name ?? flow.name)?.trim() || 'Без названия';
-    if (!webhook) {
-      const err = 'У связки отсутствует webhook_url.';
-      console.error('[Запустить]', err, { flowId: flow.id, name: flow.name });
-      toast.error(err);
+    const n8nId = flow.n8n_id?.trim();
+    const displayName = flow.flow_name?.trim() || 'Без названия';
+    if (!n8nId) {
+      toast.error('У связки отсутствует n8n_id.');
       return;
     }
     setTriggeringFlow(flow.id);
     try {
-      console.log('🚀 Запуск связки:', { webhook: flow.webhook_url, name: displayName });
-      const res = await fetch(webhook, {
+      const res = await fetch(EXECUTE_URL, {
         method: 'POST',
         mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: effectiveProjectId }),
+        body: JSON.stringify({ flow_id: n8nId }),
       });
       if (!res.ok) {
         const errText = await res.text();
-        console.error('[Запустить] Ошибка n8n:', res.status, errText);
-        toast.error('Ошибка запуска на стороне n8n');
+        toast.error(`Ошибка n8n (${res.status}): ${errText || res.statusText}`);
         return;
       }
       toast.success(`Связка ${displayName} запущена успешно!`);
       try {
-        const { error } = await supabase.from('automation_flows').update({ last_run: new Date().toISOString() }).eq('id', flow.id).select('id');
-        if (error) {
-          console.error('[Запустить] Ошибка обновления last_run:', error.message, error);
-        }
-      } catch (e) {
-        console.error('[Запустить] Ошибка обновления last_run:', e);
+        await supabase.from('automation_flows').update({ last_run: new Date().toISOString() }).eq('id', flow.id).select('id');
+      } catch {
+        /* игнорируем ошибку обновления last_run */
       }
     } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : 'Неизвестная ошибка';
-      console.error('[Запустить] Ошибка запуска:', msg, e);
-      toast.error(`Ошибка запуска: ${msg}`);
+      const msg = e instanceof Error ? e.message : String(e);
+      toast.error(`Ошибка запроса к n8n: ${msg}`);
     } finally {
       setTriggeringFlow(null);
       refetch();
     }
-  }, [effectiveProjectId, refetch]);
+  }, [refetch]);
 
   return (
     <div className="space-y-6">
@@ -237,6 +231,14 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         <CardHeader>
           <CardTitle className="text-[16px]">Актуальные связки</CardTitle>
           <CardDescription className="text-[15px]">Список автоматизаций (максимум 12)</CardDescription>
+          <div className="pt-2">
+            <Input
+              placeholder="Поиск по названию…"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="max-w-xs text-[15px]"
+            />
+          </div>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -251,10 +253,13 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
               <p className="text-[15px]">Нет настроенных автоматизаций</p>
               <p className="text-[15px] mt-2">Нажмите &quot;Обновить&quot; для синхронизации</p>
             </div>
-          ) : (
+          ) : (() => {
+            const q = searchQuery.trim().toLowerCase();
+            const filtered = !q ? flows : flows.filter((f) => (f.flow_name ?? '').toLowerCase().includes(q));
+            return filtered.length ? (
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
-                {flows.map((flow, index) => {
+                {filtered.map((flow, index) => {
                   const isError = flow.status === 'error';
                   const isActive = flow.status === 'active';
                   const isTriggering = triggeringFlow === flow.id;
@@ -274,9 +279,9 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-1">
-                            {getFlowIcon(flow.flow_name ?? flow.name)}
+                            {getFlowIcon(flow.flow_name)}
                             <h4 className="font-bold text-xl sm:text-2xl truncate text-foreground">
-                              {(flow.flow_name ?? flow.name) || 'Без названия'}
+                              {flow.flow_name || 'Без названия'}
                             </h4>
                             <Badge
                               className={cn(
@@ -287,12 +292,17 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                               {isActive ? 'ВКЛ' : 'ВЫКЛ'}
                             </Badge>
                           </div>
-                          {flow.last_run != null && (
-                            <p className="text-[14px] text-muted-foreground flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              Последний запуск: {safeFormatDate(flow.last_run)}
-                            </p>
-                          )}
+                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[14px] text-muted-foreground">
+                            {flow.last_seen != null && (
+                              <p className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                Обновлено: {safeFormatDate(flow.last_seen)}
+                              </p>
+                            )}
+                            {flow.execution_time != null && (
+                              <p>Время выполнения: {flow.execution_time} с</p>
+                            )}
+                          </div>
                         </div>
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
@@ -309,7 +319,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                               'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
                               isTriggering && 'opacity-90',
                             )}
-                            aria-label={`Запустить связку ${(flow.flow_name ?? flow.name) || 'Без названия'}`}
+                            aria-label={`Запустить связку ${flow.flow_name || 'Без названия'}`}
                           >
                             {isTriggering ? (
                               <><Loader2 className="w-4 h-4 animate-spin" /> Запуск…</>
@@ -324,7 +334,12 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                 })}
               </AnimatePresence>
             </div>
-          )}
+            ) : (
+              <div className="text-center py-8 text-muted-foreground">
+                <p className="text-[15px]">По запросу «{searchQuery}» ничего не найдено</p>
+              </div>
+            );
+          })()}
         </CardContent>
       </Card>
     </div>

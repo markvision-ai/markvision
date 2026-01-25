@@ -200,7 +200,7 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
             <SelectContent>
               {adAccounts.map((account) => (
                 <SelectItem key={account.id} value={account.id}>
-                  {account.name} (ID: {account.account_id})
+                  {account.name ?? '—'} (ID: {account.account_id ?? '—'})
                 </SelectItem>
               ))}
             </SelectContent>

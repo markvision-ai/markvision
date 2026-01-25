@@ -2,25 +2,20 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/externalSupabase';
 
 /**
- * Строгий список полей automation_flows (только колонки из БД):
- * id, project_id, name, flow_name, description, status, last_run, last_seen,
- * execution_time, trigger_type, webhook_url.
+ * Поля automation_flows для списка и запуска:
+ * flow_name, status, last_seen, execution_time, n8n_id (+ id, project_id).
  */
 export interface AutomationFlowRow {
   id: string;
   project_id: string;
-  name: string;
   flow_name: string | null;
-  description: string | null;
-  trigger_type: string | null;
-  webhook_url: string | null;
   status: 'active' | 'inactive' | 'error' | 'running' | 'paused';
-  last_run: string | null;
   last_seen: string | null;
   execution_time: number | null;
+  n8n_id: string | null;
 }
 
-const FIELDS = 'id, project_id, name, flow_name, description, trigger_type, webhook_url, status, last_run, last_seen, execution_time';
+const FIELDS = 'id, project_id, flow_name, status, last_seen, execution_time, n8n_id';
 
 function normalize(row: Record<string, unknown> | null): AutomationFlowRow | null {
   if (!row || typeof row.id !== 'string') return null;
@@ -29,15 +24,11 @@ function normalize(row: Record<string, unknown> | null): AutomationFlowRow | nul
   return {
     id: row.id as string,
     project_id: (row.project_id as string) ?? '',
-    name: (row.name as string) ?? '',
     flow_name: typeof row.flow_name === 'string' ? row.flow_name : null,
-    description: typeof row.description === 'string' ? row.description : null,
-    trigger_type: typeof row.trigger_type === 'string' ? row.trigger_type : null,
-    webhook_url: typeof row.webhook_url === 'string' ? row.webhook_url : null,
     status: valid.includes(status) ? (status as AutomationFlowRow['status']) : 'inactive',
-    last_run: (row.last_run as string) ?? null,
     last_seen: (row.last_seen as string) ?? null,
     execution_time: typeof row.execution_time === 'number' ? row.execution_time : null,
+    n8n_id: typeof row.n8n_id === 'string' ? row.n8n_id : null,
   };
 }
 
@@ -66,7 +57,7 @@ export function useAutomation(projectId: string | null) {
         .from('automation_flows')
         .select(FIELDS)
         .eq('project_id', projectId)
-        .order('last_run', { ascending: false, nullsFirst: false })
+        .order('last_seen', { ascending: false, nullsFirst: false })
         .limit(12);
 
       if (cancelled) return;

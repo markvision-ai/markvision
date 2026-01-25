@@ -64,7 +64,8 @@ interface ConnectedAccount {
   selected_instagram_id?: string;
   selected_page_name?: string;
   selected_instagram_handle?: string;
-  ad_account_name?: string;
+  ad_account_id?: string | null;
+  ad_account_name?: string | null;
   created_at: string;
 }
 
@@ -107,11 +108,36 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
       if (data) {
         setConnectedAccount(data);
-        // Используем названия из базы данных, а не ID
-        setSelectedPageName(data.selected_page_name || '');
-        setSelectedAdAccountName(data.ad_account_name || '');
-        setSelectedInstagramHandle(data.selected_instagram_handle || '');
-        
+        const pageName = (data.selected_page_name ?? '') as string;
+        const adName = (data.ad_account_name ?? '') as string;
+        const igHandle = (data.selected_instagram_handle ?? '') as string;
+        setSelectedPageName(pageName);
+        setSelectedAdAccountName(adName);
+        setSelectedInstagramHandle(igHandle);
+
+        // Если ad_account_name пустой, но есть ad_account_id и токен — запрос к Facebook API, сохраняем имя
+        if (!adName && data.ad_account_id && data.access_token) {
+          try {
+            const apiRes = await fetch(
+              `https://graph.facebook.com/v21.0/${data.ad_account_id}?fields=name&access_token=${data.access_token}`
+            );
+            if (apiRes.ok) {
+              const apiJson = await apiRes.json();
+              const name = (apiJson.name ?? '') as string;
+              if (name) {
+                await supabase
+                  .from('ad_accounts')
+                  .update({ ad_account_name: name })
+                  .eq('id', data.id);
+                setSelectedAdAccountName(name);
+                setConnectedAccount((prev) => (prev ? { ...prev, ad_account_name: name } : null));
+              }
+            }
+          } catch (err) {
+            console.warn('Could not fetch ad account name from Facebook API:', err);
+          }
+        }
+
         // Fetch Instagram details if we have an ID
         if (data.selected_instagram_id && data.access_token) {
           try {
@@ -122,9 +148,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
               const igData = await igResponse.json();
               setSelectedInstagramFollowers(igData.followers_count || 0);
               setSelectedInstagramAvatar(igData.profile_picture_url || '');
-              // Обновляем handle если его нет в базе
-              if (!data.selected_instagram_handle && igData.username) {
-                setSelectedInstagramHandle(`@${igData.username}`);
+              if (!(data.selected_instagram_handle ?? '').trim() && (igData.username ?? '')) {
+                setSelectedInstagramHandle(`@${String(igData.username)}`);
               }
             }
           } catch (err) {
@@ -226,10 +251,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     // Pre-select current values
     if (connectedAccount) {
       if (type === 'facebook') {
-        setModalSelectedPage(connectedAccount.selected_page_id || '');
-        setModalSelectedAdAccount(connectedAccount.selected_page_id || '');
+        setModalSelectedPage(connectedAccount.selected_page_id ?? '');
+        setModalSelectedAdAccount(connectedAccount.ad_account_id ?? '');
       } else {
-        setModalSelectedInstagram(connectedAccount.selected_instagram_id || '');
+        setModalSelectedInstagram(connectedAccount.selected_instagram_id ?? '');
       }
     }
   };
@@ -246,31 +271,29 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       };
 
       if (modalType === 'facebook') {
-        // Find selected resources for Facebook
         const selectedPage = availablePages.find(p => p.id === modalSelectedPage);
         const selectedAdAccount = availableAdAccounts.find(a => a.id === modalSelectedAdAccount);
 
         updateData = {
           ...updateData,
           selected_page_id: modalSelectedPage || null,
-          selected_page_name: selectedPage?.name || null,
-          ad_account_name: selectedAdAccount?.name || null,
-          // Keep existing Instagram data if not changing
-          selected_instagram_id: connectedAccount.selected_instagram_id || null,
-          selected_instagram_handle: connectedAccount.selected_instagram_handle || null,
+          selected_page_name: (selectedPage?.name ?? null) as string | null,
+          ad_account_id: (selectedAdAccount?.id ?? null) as string | null,
+          ad_account_name: (selectedAdAccount?.name ?? null) as string | null,
+          selected_instagram_id: connectedAccount.selected_instagram_id ?? null,
+          selected_instagram_handle: connectedAccount.selected_instagram_handle ?? null,
         };
       } else if (modalType === 'instagram') {
-        // Find selected Instagram account
         const selectedInstagram = availableInstagramAccounts.find(i => i.id === modalSelectedInstagram);
 
         updateData = {
           ...updateData,
           selected_instagram_id: modalSelectedInstagram || null,
           selected_instagram_handle: selectedInstagram?.username ? `@${selectedInstagram.username}` : null,
-          // Keep existing Facebook data if not changing
-          selected_page_id: connectedAccount.selected_page_id || null,
-          selected_page_name: connectedAccount.selected_page_name || null,
-          ad_account_name: connectedAccount.ad_account_name || null,
+          selected_page_id: connectedAccount.selected_page_id ?? null,
+          selected_page_name: connectedAccount.selected_page_name ?? null,
+          ad_account_id: connectedAccount.ad_account_id ?? null,
+          ad_account_name: connectedAccount.ad_account_name ?? null,
         };
       }
 
@@ -339,7 +362,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {!selectedPageName && !selectedAdAccountName ? (
+            {!(selectedPageName || selectedAdAccountName) ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">
                   Подключите Facebook для синхронизации рекламных данных
@@ -355,7 +378,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             ) : (
               <div className="space-y-4">
                 <div className="space-y-3">
-                  {selectedPageName && (
+                  {selectedPageName ? (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-border/50">
                       <Layout className="w-5 h-5 text-blue-500" />
                       <div className="flex-1">
@@ -363,8 +386,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                         <p className="text-xs text-muted-foreground">Страница</p>
                       </div>
                     </div>
-                  )}
-                  {selectedAdAccountName && (
+                  ) : null}
+                  {selectedAdAccountName ? (
                     <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50 border border-border/50">
                       <Target className="w-5 h-5 text-blue-500" />
                       <div className="flex-1">
@@ -372,7 +395,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                         <p className="text-xs text-muted-foreground">Рекламный кабинет</p>
                       </div>
                     </div>
-                  )}
+                  ) : null}
                 </div>
                 <Button 
                   variant="outline"
@@ -417,10 +440,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             ) : (
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
-                  {selectedInstagramAvatar ? (
+                  {(selectedInstagramAvatar ?? '') ? (
                     <img 
                       src={selectedInstagramAvatar} 
-                      alt={selectedInstagramHandle}
+                      alt={selectedInstagramHandle ?? ''}
                       className="w-16 h-16 rounded-full border-2 border-border"
                     />
                   ) : (
@@ -429,8 +452,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                     </div>
                   )}
                   <div className="flex-1">
-                    <p className="text-lg font-semibold text-foreground">{selectedInstagramHandle}</p>
-                    {selectedInstagramFollowers > 0 && (
+                    <p className="text-lg font-semibold text-foreground">{selectedInstagramHandle ?? '—'}</p>
+                    {(selectedInstagramFollowers ?? 0) > 0 && (
                       <p className="text-sm text-muted-foreground">
                         {selectedInstagramFollowers.toLocaleString('ru-RU')} подписчиков
                       </p>
@@ -565,8 +588,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                                 : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
                             )}
                           >
-                            <p className="text-sm font-medium">{account.name}</p>
-                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{account.account_id}</p>
+                            <p className="text-sm font-medium">{account.name ?? '—'}</p>
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{account.account_id ?? '—'}</p>
                           </button>
                         ))
                       )}
@@ -591,7 +614,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                                 : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
                             )}
                           >
-                            <p className="text-sm font-medium">{page.name}</p>
+                            <p className="text-sm font-medium">{page.name ?? '—'}</p>
                             <p className="text-xs text-muted-foreground dark:text-muted-foreground">Страница Facebook</p>
                           </button>
                         ))
@@ -623,18 +646,18 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                           )}
                         >
                           <div className="flex items-center gap-3">
-                            {account.profile_picture_url && (
+                            {(account.profile_picture_url ?? '') ? (
                               <img 
-                                src={account.profile_picture_url} 
-                                alt={account.username}
+                                src={account.profile_picture_url!} 
+                                alt={account.username ?? ''}
                                 className="w-10 h-10 rounded-full"
                               />
-                            )}
+                            ) : null}
                             <div>
-                              <p className="text-sm font-medium">@{account.username}</p>
-                              {account.followers_count && (
+                              <p className="text-sm font-medium">@{account.username ?? '—'}</p>
+                              {(account.followers_count != null && account.followers_count > 0) && (
                                 <p className="text-xs text-muted-foreground dark:text-muted-foreground">
-                                  {account.followers_count.toLocaleString('ru-RU')} подписчиков
+                                  {Number(account.followers_count).toLocaleString('ru-RU')} подписчиков
                                 </p>
                               )}
                             </div>

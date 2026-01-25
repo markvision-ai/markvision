@@ -1,0 +1,26 @@
+services:
+  caddy:
+    image: caddy:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./caddy_data:/data
+      - ./caddy_config:/config
+    command: caddy reverse-proxy --from n8n.zapoinov.com --to n8n:5678
+
+  n8n:
+    image: n8nio/n8n:latest
+    restart: always
+    environment:
+      - N8N_HOST=n8n.zapoinov.com
+      - N8N_PROTOCOL=https
+      - NODE_ENV=production
+      - WEBHOOK_URL=https://n8n.zapoinov.com/
+      - N8N_CORS_ALLOWED_ORIGINS=*
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+volumes:
+  n8n_data:
