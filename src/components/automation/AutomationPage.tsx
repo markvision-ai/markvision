@@ -15,7 +15,9 @@ import {
   XCircle,
   Clock,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Instagram,
+  Facebook
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -27,9 +29,9 @@ interface AutomationFlow {
   id: string;
   project_id: string;
   name: string;
-  flow_name?: string; // Название из n8n
+  flow_name?: string; // Название из n8n (СТРОГО используется для отображения)
   description?: string;
-  status: 'active' | 'inactive' | 'error' | 'running';
+  status: 'active' | 'inactive' | 'error' | 'running' | 'paused';
   last_run: string | null;
   last_seen?: string | null; // Время последнего обновления из n8n
   execution_time?: number;
@@ -37,7 +39,7 @@ interface AutomationFlow {
   created_at: string;
   updated_at: string;
   trigger_type?: string;
-  webhook_url?: string;
+  webhook_url?: string; // URL для ручного запуска
 }
 
 interface AutomationPageProps {
@@ -48,19 +50,23 @@ interface AutomationPageProps {
 const GlowBadge = ({ status, children }: { status: AutomationFlow['status']; children: React.ReactNode }) => {
   const statusConfig = {
     active: {
-      className: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/30 shadow-lg shadow-emerald-500/20',
-      label: 'Активно'
+      className: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/20',
+      label: 'Работает'
     },
     error: {
-      className: 'bg-red-500/10 text-red-600 border-red-500/30 shadow-lg shadow-red-500/20',
+      className: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/30 shadow-lg shadow-red-500/20',
       label: 'Ошибка'
     },
+    paused: {
+      className: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30',
+      label: 'Пауза'
+    },
     inactive: {
-      className: 'bg-gray-500/10 text-gray-600 border-gray-500/30',
+      className: 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30',
       label: 'Неактивно'
     },
     running: {
-      className: 'bg-blue-500/10 text-blue-600 border-blue-500/30 shadow-lg shadow-blue-500/20',
+      className: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/30 shadow-lg shadow-blue-500/20',
       label: 'Выполняется'
     }
   };
@@ -101,6 +107,19 @@ const getTriggerTypeLabel = (triggerType?: string) => {
   return types[triggerType] || triggerType;
 };
 
+// Определение иконки по названию связки
+const getFlowIcon = (flowName?: string) => {
+  if (!flowName) return <Zap className="w-5 h-5" />;
+  const nameLower = flowName.toLowerCase();
+  if (nameLower.includes('inst') || nameLower.includes('instagram')) {
+    return <Instagram className="w-5 h-5 text-purple-500" />;
+  }
+  if (nameLower.includes('facebook') || nameLower.includes('fb') || nameLower.includes('meta')) {
+    return <Facebook className="w-5 h-5 text-blue-500" />;
+  }
+  return <Zap className="w-5 h-5" />;
+};
+
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [flows, setFlows] = useState<AutomationFlow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -109,7 +128,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringFlow, setTriggeringFlow] = useState<string | null>(null);
 
-  // Fetch automation flows with filter (last_seen in last 24 hours)
+  // Fetch automation flows from database
   const fetchFlows = useCallback(async () => {
     if (!projectId) {
       setLoading(false);
@@ -117,14 +136,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
 
     try {
-      const twentyFourHoursAgo = new Date();
-      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
       const { data, error } = await supabase
         .from('automation_flows')
         .select('*')
         .eq('project_id', projectId)
-        .gte('last_seen', twentyFourHoursAgo.toISOString())
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -263,31 +278,32 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   };
 
-  // Refresh flows list from n8n
+  // Refresh flows list from n8n sync webhook
   const handleRefresh = async () => {
-    if (!n8nWebhookUrl) {
-      toast.error('Сначала настройте URL вебхука n8n');
+    if (!projectId) {
+      toast.error('Выберите проект');
       return;
     }
 
     setRefreshing(true);
     try {
-      const response = await fetch(n8nWebhookUrl, {
+      // Отправляем POST на n8n синхронизатор
+      const syncWebhookUrl = 'https://n8n.zapoinov.com/webhook-test/sync-markvision-flows';
+      const response = await fetch(syncWebhookUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          action: 'sync_flows',
           project_id: projectId
         })
       });
 
       if (!response.ok) throw new Error('Ошибка синхронизации');
 
-      toast.success('Список автоматизаций обновлен');
+      toast.success('Список автоматизаций синхронизирован');
       
-      // Refresh flows from database after sync
+      // Обновляем список из базы данных после синхронизации
       await fetchFlows();
     } catch (error) {
       console.error('Error refreshing flows:', error);
@@ -297,22 +313,21 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   };
 
-  // Trigger workflow manually
+  // Trigger workflow manually using webhook_url from database
   const handleTriggerFlow = async (flow: AutomationFlow) => {
-    if (!n8nWebhookUrl) {
-      toast.error('Сначала настройте URL вебхука n8n');
+    if (!flow.webhook_url) {
+      toast.error('Для ручного запуска добавьте узел Webhook в эту связку n8n');
       return;
     }
 
     setTriggeringFlow(flow.id);
     try {
-      const response = await fetch(n8nWebhookUrl, {
+      const response = await fetch(flow.webhook_url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          workflow_name: flow.name,
           workflow_id: flow.id,
         project_id: projectId,
           trigger_type: 'manual'
@@ -321,7 +336,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
       if (!response.ok) throw new Error('Ошибка запуска workflow');
 
-      toast.success(`Workflow "${flow.name}" запущен`);
+      const flowDisplayName = flow.flow_name || flow.name;
+      toast.success(`Workflow "${flowDisplayName}" запущен`);
       
       // Update last_run
       const { error } = await supabase
@@ -366,7 +382,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         <Button
           variant="outline"
           onClick={handleRefresh}
-          disabled={refreshing || !n8nWebhookUrl}
+          disabled={refreshing}
           className="shrink-0"
         >
           <RefreshCw className={cn("w-4 h-4 mr-2", refreshing && "animate-spin")} />
@@ -466,8 +482,11 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
+                            {getFlowIcon(flow.flow_name || flow.name)}
                             {getStatusIcon(flow.status)}
-                            <h4 className="font-semibold truncate">{flow.name || flow.flow_name || 'Без названия'}</h4>
+                            <h4 className="font-semibold truncate text-foreground">
+                              {flow.flow_name || flow.name || 'Без названия'}
+                            </h4>
                             <GlowBadge status={flow.status} />
                               </div>
                               
@@ -528,7 +547,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             variant="outline"
                             size="sm"
                             onClick={() => handleTriggerFlow(flow)}
-                            disabled={!n8nWebhookUrl || isTriggering}
+                            disabled={!flow.webhook_url || isTriggering}
                             className="shrink-0"
                           >
                             {isTriggering ? (
