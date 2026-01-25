@@ -32,6 +32,7 @@ import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidg
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
 import { useProjectData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
+import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
@@ -584,9 +585,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'automation' && currentProjectId && (
+      {activeTab === 'automation' && (
         <Suspense fallback={<ModuleLoader />}>
-          <AutomationPage projectId={currentProjectId} />
+          <AutomationPage projectId={currentProjectId || FALLBACK_PROJECT_ID} />
         </Suspense>
       )}
 

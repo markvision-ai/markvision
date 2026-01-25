@@ -59,6 +59,10 @@ export const Header = ({
   showProjectSelector = false,
 }: HeaderProps) => {
   const { theme, toggleTheme } = useTheme();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [showResults, setShowResults] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   return (
     <header className="h-14 md:h-16 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-3 md:px-6 sticky top-0 z-10">

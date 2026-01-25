@@ -26,6 +26,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/externalSupabase';
+import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AutomationFlow {
@@ -71,6 +72,7 @@ const getFlowIcon = (flowName?: string) => {
 };
 
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
+  const effectiveProjectId = projectId || FALLBACK_PROJECT_ID;
   const [flows, setFlows] = useState<AutomationFlow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -80,17 +82,12 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
   // Fetch automation flows from database
   const fetchFlows = useCallback(async () => {
-    if (!projectId) {
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     try {
       const { data, error } = await supabase
         .from('automation_flows')
         .select('id, project_id, name, flow_name, description, status, last_run, last_seen, execution_time, logs, created_at, updated_at, trigger_type, webhook_url, n8n_id')
-        .eq('project_id', projectId)
+        .eq('project_id', effectiveProjectId)
         .neq('status', 'archived') // Фильтруем archived связки
         .order('created_at', { ascending: false })
         .limit(12); // Показываем только 12 реальных элементов
@@ -117,45 +114,41 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     } finally {
       setLoading(false);
     }
-  }, [projectId]);
+  }, [effectiveProjectId]);
 
   useEffect(() => {
     fetchFlows();
 
     // Subscribe to realtime changes
-    if (projectId) {
-      const channel = supabase
-        .channel('automation-flows-realtime')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'automation_flows',
-            filter: `project_id=eq.${projectId}`
-          },
-          () => {
-            fetchFlows();
-          }
-        )
-        .subscribe();
+    const channel = supabase
+      .channel('automation-flows-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'automation_flows',
+          filter: `project_id=eq.${effectiveProjectId}`
+        },
+        () => {
+          fetchFlows();
+        }
+      )
+      .subscribe();
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
-  }, [projectId, fetchFlows]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [effectiveProjectId, fetchFlows]);
 
   // Fetch n8n webhook URL from project settings
   useEffect(() => {
-    if (!projectId) return;
-
     const fetchWebhookUrl = async () => {
       try {
         const { data, error } = await supabase
           .from('projects')
           .select('n8n_webhook_url')
-          .eq('id', projectId)
+          .eq('id', effectiveProjectId)
           .single();
 
         if (error && error.code !== 'PGRST116') throw error;
@@ -169,21 +162,16 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     };
 
     fetchWebhookUrl();
-  }, [projectId]);
+  }, [effectiveProjectId]);
 
   // Save n8n webhook URL
   const handleSaveWebhook = async () => {
-    if (!projectId) {
-      toast.error('Выберите проект');
-      return;
-    }
-
     setSavingWebhook(true);
     try {
       const { error } = await supabase
         .from('projects')
         .update({ n8n_webhook_url: n8nWebhookUrl })
-        .eq('id', projectId);
+        .eq('id', effectiveProjectId);
 
       if (error) throw error;
       toast.success('URL вебхука сохранен');
@@ -197,11 +185,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
   // Refresh flows list from n8n sync webhook and refetch from database
   const handleRefresh = async () => {
-    if (!projectId) {
-      toast.error('Выберите проект');
-      return;
-    }
-
     setRefreshing(true);
     
     try {
@@ -212,7 +195,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          project_id: projectId
+          project_id: effectiveProjectId
         })
       });
 
@@ -314,16 +297,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       setTriggeringFlow(null);
     }
   };
-
-  if (!projectId) {
-    return (
-      <div className="bg-card border rounded-xl p-12 text-center">
-        <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Выберите проект</h3>
-        <p className="text-sm text-muted-foreground">Для настройки автоматизации выберите проект</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">

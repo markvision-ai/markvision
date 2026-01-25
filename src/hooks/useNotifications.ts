@@ -319,18 +319,12 @@ export const useNotifications = (projectId?: string) => {
         .order('created_at', { ascending: false })
         .limit(50);
 
-      // Handle errors gracefully - if table doesn't exist or access denied, just use empty array
+      // Handle errors gracefully - if table doesn't exist, empty, or access denied, use empty array (not error)
       if (error) {
-        // Log error but don't throw - allow app to continue with empty notifications
-        console.error('Error fetching system notifications:', error);
-        // Set empty array and continue with generated notifications
         const systemNotifications: Notification[] = [];
-        
-        // Merge with generated notifications
         generateNotifications().then(() => {
           setNotifications(prev => {
             const merged = [...systemNotifications, ...prev];
-            // Remove duplicates by id
             const unique = merged.filter((n, index, self) => 
               index === self.findIndex(t => t.id === n.id)
             );
@@ -340,8 +334,9 @@ export const useNotifications = (projectId?: string) => {
         return;
       }
 
-      // Handle empty response - data can be null or empty array
-      const systemNotifications: Notification[] = (data && Array.isArray(data) ? data : []).map((n: any) => ({
+      // Если данных нет — возвращаем пустой массив, не ошибку
+      const raw = data && Array.isArray(data) ? data : [];
+      const systemNotifications: Notification[] = raw.map((n: any) => ({
         id: n.id,
         type: n.type as Notification['type'],
         title: n.title,
@@ -363,10 +358,8 @@ export const useNotifications = (projectId?: string) => {
           return unique;
         });
       });
-    } catch (error) {
-      // Catch any unexpected errors and handle gracefully
-      console.error('Error fetching system notifications:', error);
-      // Continue with generated notifications only
+    } catch {
+      // Table missing, network error, etc. — continue with generated notifications only
       generateNotifications().then(() => {
         setNotifications(prev => prev);
       });
