@@ -303,13 +303,79 @@ export const useNotifications = (projectId?: string) => {
     setPushEnabled(permission === 'granted');
   }, []);
 
+  // Fetch notifications from system_notifications table
+  const fetchSystemNotifications = useCallback(async () => {
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('system_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      const systemNotifications: Notification[] = (data || []).map((n: any) => ({
+        id: n.id,
+        type: n.type as Notification['type'],
+        title: n.title,
+        message: n.message,
+        createdAt: new Date(n.created_at),
+        read: n.read || false,
+        projectId: n.project_id,
+        projectName: undefined // Can be joined if needed
+      }));
+
+      // Merge with generated notifications
+      generateNotifications().then(() => {
+        setNotifications(prev => {
+          const merged = [...systemNotifications, ...prev];
+          // Remove duplicates by id
+          const unique = merged.filter((n, index, self) => 
+            index === self.findIndex(t => t.id === n.id)
+          );
+          return unique;
+        });
+      });
+    } catch (error) {
+      console.error('Error fetching system notifications:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user, generateNotifications]);
+
   useEffect(() => {
-    generateNotifications();
+    fetchSystemNotifications();
     
-    // Refresh every 5 minutes
-    const interval = setInterval(generateNotifications, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [generateNotifications]);
+    // Subscribe to realtime changes
+    if (user) {
+      const channel = supabase
+        .channel('system-notifications-realtime')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'system_notifications',
+            filter: `user_id=eq.${user.id}`
+          },
+          () => {
+            fetchSystemNotifications();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user, fetchSystemNotifications]);
 
   const enablePushNotifications = useCallback(async () => {
     const granted = await requestNotificationPermission();
@@ -317,15 +383,40 @@ export const useNotifications = (projectId?: string) => {
     return granted;
   }, []);
 
-  const markAsRead = useCallback((notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string) => {
+    // Update in database
+    try {
+      await supabase
+        .from('system_notifications')
+        .update({ read: true })
+        .eq('id', notificationId);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+
+    // Update local state
     setNotifications(prev => 
       prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
   }, []);
 
-  const markAllAsRead = useCallback(() => {
+  const markAllAsRead = useCallback(async () => {
+    if (!user) return;
+
+    // Update in database
+    try {
+      await supabase
+        .from('system_notifications')
+        .update({ read: true })
+        .eq('user_id', user.id)
+        .eq('read', false);
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
+
+    // Update local state
     setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  }, []);
+  }, [user]);
 
   const dismissNotification = useCallback((notificationId: string) => {
     setNotifications(prev => prev.filter(n => n.id !== notificationId));

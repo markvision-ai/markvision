@@ -158,8 +158,11 @@ export const NotificationsDropdown = () => {
                   )}
                   onClick={() => handleNotificationClick(notification)}
                 >
-                  <div className="flex-shrink-0 mt-0.5">
+                  <div className="flex-shrink-0 mt-0.5 relative">
                     {getIcon(notification.type)}
+                    {!notification.read && (
+                      <span className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full border-2 border-background" />
+                    )}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
