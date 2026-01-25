@@ -30,6 +30,7 @@ import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 const DISPATCHER_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
+const EXECUTE_FLOW_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
 const SYNC_FETCH_TIMEOUT_MS = 8_000;
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {
@@ -129,8 +130,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     setTimeout(() => refetch(), 3000);
   }, [effectiveProjectId, refetch]);
 
-  const EXECUTE_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
-
   const handleTriggerFlow = useCallback(async (flow: AutomationFlowRow) => {
     const n8nId = flow.n8n_id?.trim();
     const displayName = flow.flow_name?.trim() || 'Без названия';
@@ -140,7 +139,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
     setTriggeringFlow(flow.id);
     try {
-      const res = await fetch(EXECUTE_URL, {
+      const res = await fetch(EXECUTE_FLOW_URL, {
         method: 'POST',
         mode: 'cors',
         headers: { 'Content-Type': 'application/json' },

@@ -2,8 +2,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/externalSupabase';
 
 /**
- * Поля automation_flows для списка и запуска:
- * flow_name, status, last_seen, execution_time, n8n_id (+ id, project_id).
+ * Поля automation_flows (схема из src/integrations/supabase/types.ts).
+ * Используем flow_name, не name. Только существующие колонки.
  */
 export interface AutomationFlowRow {
   id: string;
@@ -17,6 +17,15 @@ export interface AutomationFlowRow {
 
 const FIELDS = 'id, project_id, flow_name, status, last_seen, execution_time, n8n_id';
 
+function parseExecutionTime(raw: unknown): number | null {
+  if (typeof raw === 'number' && !isNaN(raw)) return raw;
+  if (typeof raw === 'string') {
+    const n = parseInt(raw, 10);
+    return isNaN(n) ? null : n;
+  }
+  return null;
+}
+
 function normalize(row: Record<string, unknown> | null): AutomationFlowRow | null {
   if (!row || typeof row.id !== 'string') return null;
   const status = row.status as string;
@@ -27,7 +36,7 @@ function normalize(row: Record<string, unknown> | null): AutomationFlowRow | nul
     flow_name: typeof row.flow_name === 'string' ? row.flow_name : null,
     status: valid.includes(status) ? (status as AutomationFlowRow['status']) : 'inactive',
     last_seen: (row.last_seen as string) ?? null,
-    execution_time: typeof row.execution_time === 'number' ? row.execution_time : null,
+    execution_time: parseExecutionTime(row.execution_time),
     n8n_id: typeof row.n8n_id === 'string' ? row.n8n_id : null,
   };
 }
