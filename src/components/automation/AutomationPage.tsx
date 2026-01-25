@@ -203,6 +203,59 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   };
 
+  // Activate workflow
+  const handleActivateFlow = async (flow: AutomationFlow) => {
+    if (!n8nWebhookUrl) {
+      toast.error('Сначала настройте URL вебхука n8n');
+      return;
+    }
+
+    setTriggeringFlow(flow.id);
+    try {
+      const response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'activate_flow',
+          flow_id: flow.id,
+        project_id: projectId,
+          flow_name: flow.name
+        })
+      });
+
+      if (!response.ok) throw new Error('Ошибка активации workflow');
+
+      toast.success(`Workflow "${flow.name}" активирован`);
+      
+      // Update status in database
+      const { error } = await supabase
+        .from('automation_flows')
+        .update({ 
+          status: 'active',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', flow.id);
+
+      if (error) console.error('Error updating status:', error);
+      
+      // Refresh flows list
+      const { data } = await supabase
+        .from('automation_flows')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+
+      if (data) setFlows(data);
+    } catch (error) {
+      console.error('Error activating workflow:', error);
+      toast.error('Ошибка активации workflow');
+    } finally {
+      setTriggeringFlow(null);
+    }
+  };
+
   // Trigger workflow manually
   const handleTriggerFlow = async (flow: AutomationFlow) => {
     if (!n8nWebhookUrl) {
@@ -400,6 +453,26 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                         </div>
                         
                         <div className="flex items-center gap-2">
+                          {flow.status !== 'active' && (
+                            <Button
+                              size="sm"
+                              onClick={() => handleActivateFlow(flow)}
+                              disabled={!n8nWebhookUrl || isTriggering}
+                              className="shrink-0 bg-primary hover:bg-primary/90"
+                            >
+                              {isTriggering ? (
+                                <>
+                                  <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                                  Активация...
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-4 h-4 mr-2" />
+                                  Активировать
+                                </>
+                              )}
+                            </Button>
+                          )}
                           <Button
                             variant="outline"
                             size="sm"

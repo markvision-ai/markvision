@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bell, 
   AlertTriangle, 
@@ -149,15 +150,24 @@ export const NotificationsDropdown = () => {
             </div>
           ) : (
             <div className="divide-y">
-              {notifications.map((notification) => (
-                <div
-                  key={notification.id}
-                  className={cn(
-                    "flex gap-3 p-3 cursor-pointer hover:bg-secondary/50 transition-colors",
-                    getBgClass(notification.type, notification.read)
-                  )}
-                  onClick={() => handleNotificationClick(notification)}
-                >
+              <AnimatePresence mode="popLayout">
+                {notifications.map((notification, index) => (
+                  <motion.div
+                    key={notification.id}
+                    initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                    transition={{ 
+                      duration: 0.2,
+                      delay: index * 0.05,
+                      ease: "easeOut"
+                    }}
+                    className={cn(
+                      "flex gap-3 p-3 cursor-pointer hover:bg-secondary/50 transition-colors",
+                      getBgClass(notification.type, notification.read)
+                    )}
+                    onClick={() => handleNotificationClick(notification)}
+                  >
                   <div className="flex-shrink-0 mt-0.5 relative">
                     {getIcon(notification.type)}
                     {!notification.read && (
@@ -191,8 +201,9 @@ export const NotificationsDropdown = () => {
                       </span>
                     )}
                   </div>
-                </div>
-              ))}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           )}
         </ScrollArea>

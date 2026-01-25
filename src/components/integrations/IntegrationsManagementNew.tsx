@@ -254,7 +254,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] dark:bg-[#020617] bg-white dark:bg-[#020617] p-4 md:p-6 space-y-6">
+    <div className="min-h-screen bg-white dark:bg-[#020617] p-4 md:p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
