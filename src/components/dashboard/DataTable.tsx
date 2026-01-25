@@ -133,25 +133,21 @@ export const DataTable = ({
   const totals = useMemo(() => {
     const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
     const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
-    return monthData.reduce((acc, day) => ({
-      spend: acc.spend + (day.spend || 0),
-      impressions: acc.impressions + (day.impressions || 0),
-      clicks: acc.clicks + (day.clicks || 0),
-      leads: acc.leads + (day.leads || 0),
-      followers: acc.followers + (day.followers || 0),
-      diagnostics: acc.diagnostics + (day.diagnostics || 0),
-      sales: acc.sales + (day.sales || 0),
-      revenue: acc.revenue + (day.revenue || 0)
-    }), {
-      spend: 0,
-      impressions: 0,
-      clicks: 0,
-      leads: 0,
-      followers: 0,
-      diagnostics: 0,
-      sales: 0,
-      revenue: 0
-    });
+    
+    // Для подписчиков берем последнее значение (текущее количество), а не сумму
+    const lastDayWithFollowers = [...monthData].reverse().find(day => day.followers !== undefined && day.followers > 0);
+    const currentFollowers = lastDayWithFollowers?.followers || 0;
+    
+    return {
+      spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
+      impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
+      clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
+      leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
+      followers: currentFollowers, // Текущее количество подписчиков, а не сумма
+      diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
+      sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
+      revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)
+    };
   }, [dailyData, daysInMonth]);
 
   // Calculated metrics (БЕЗ КОПЕЕК!)
@@ -287,9 +283,17 @@ export const DataTable = ({
               {planData && (
                 <tr className="bg-muted/50 border-b-2 border-border">
                   <td className="p-2 md:p-4 sticky left-0 bg-muted/50 text-muted-foreground text-xs md:text-sm">% выполн.</td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = planData[field];
+                    // Для подписчиков процент не имеет смысла (это текущее количество, а не сумма)
+                    if (field === 'followers') {
+                      return (
+                        <td key={field} className="p-2 md:p-4 text-right font-medium text-muted-foreground">
+                          —
+                        </td>
+                      );
+                    }
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     const isGood = field === 'spend' ? percent <= 100 : percent >= 100;
                     return (
