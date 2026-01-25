@@ -27,8 +27,8 @@ import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 
-const EXECUTE_ANY_FLOW_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
-const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || EXECUTE_ANY_FLOW_URL;
+const DISPATCHER_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
+const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
 const SYNC_FETCH_TIMEOUT_MS = 8_000;
 
@@ -136,12 +136,18 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     const name = flow.flow_name?.trim() || 'Без названия';
     setTriggeringFlow(flow.id);
     try {
-      await fetch(EXECUTE_ANY_FLOW_URL, {
+      const body = { flow_id: flow.n8n_id };
+      console.log('🚀 Отправляю на запуск:', { flow_id: flow.n8n_id, url: DISPATCHER_URL });
+      const res = await fetch(DISPATCHER_URL, {
         method: 'POST',
-        mode: 'no-cors',
+        mode: 'cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flow_id: n8nId }),
+        body: JSON.stringify(body),
       });
+      if (!res.ok) {
+        toast.error('Ошибка запуска на стороне n8n');
+        return;
+      }
       toast.success(`Связка ${name} запущена успешно!`);
       try {
         await supabase.from('automation_flows').update({ last_run: new Date().toISOString() }).eq('id', flow.id).select('id');
@@ -166,7 +172,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             </div>
             Автоматизация
           </h2>
-          <p className="text-[14px] text-muted-foreground mt-1">Управление автоматизациями</p>
+          <p className="text-[15px] text-muted-foreground mt-1">Управление автоматизациями</p>
         </div>
         <button
           type="button"
@@ -177,7 +183,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             handleRefresh();
           }}
           disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-sm font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
         >
           <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
           {refreshing ? 'Обновление…' : 'Обновить'}
@@ -190,22 +196,22 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             <Webhook className="w-5 h-5" />
             Подключение n8n
           </CardTitle>
-          <CardDescription className="text-[14px]">URL вебхука n8n для дополнительных настроек</CardDescription>
+          <CardDescription className="text-[15px]">URL вебхука n8n для дополнительных настроек</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
             <div className="flex-1">
-              <Label htmlFor="webhook-url" className="text-[14px]">URL вебхука</Label>
+              <Label htmlFor="webhook-url" className="text-[15px]">URL вебхука</Label>
               <Input
                 id="webhook-url"
                 placeholder={N8N_DISPATCHER_URL}
                 value={n8nWebhookUrl}
                 onChange={(e) => setN8nWebhookUrl(e.target.value)}
-                className="mt-2 text-[14px]"
+                className="mt-2 text-[15px]"
               />
             </div>
             <div className="flex items-end">
-              <Button onClick={handleSaveWebhook} disabled={savingWebhook} className="w-full md:w-auto text-[14px]">
+              <Button onClick={handleSaveWebhook} disabled={savingWebhook} className="w-full md:w-auto text-[15px]">
                 {savingWebhook ? (
                   <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Сохранение...</>
                 ) : (
@@ -220,7 +226,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       <Card>
         <CardHeader>
           <CardTitle className="text-[16px]">Актуальные связки</CardTitle>
-          <CardDescription className="text-[14px]">Список автоматизаций (максимум 12)</CardDescription>
+          <CardDescription className="text-[15px]">Список автоматизаций (максимум 12)</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
@@ -232,8 +238,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           ) : !flows.length ? (
             <div className="text-center py-12 text-muted-foreground">
               <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p className="text-sm text-[14px]">Нет настроенных автоматизаций</p>
-              <p className="text-sm mt-2 text-[14px]">Нажмите &quot;Обновить&quot; для синхронизации</p>
+              <p className="text-[15px]">Нет настроенных автоматизаций</p>
+              <p className="text-[15px] mt-2">Нажмите &quot;Обновить&quot; для синхронизации</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -264,7 +270,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             </h4>
                             <Badge
                               className={cn(
-                                'text-[13px] shrink-0',
+                                'text-[14px] shrink-0',
                                 isActive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
                               )}
                             >
@@ -272,7 +278,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             </Badge>
                           </div>
                           {flow.last_run != null && (
-                            <p className="text-[13px] text-muted-foreground flex items-center gap-1">
+                            <p className="text-[14px] text-muted-foreground flex items-center gap-1">
                               <Clock className="w-3.5 h-3.5" />
                               Последний запуск: {safeFormatDate(flow.last_run)}
                             </p>
@@ -287,7 +293,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                               void handleTriggerFlow(flow);
                             }}
                             className={cn(
-                              'inline-flex items-center justify-center gap-2 shrink-0 min-w-[140px] h-9 px-3 rounded-md text-[14px] font-medium',
+                              'inline-flex items-center justify-center gap-2 shrink-0 min-w-[140px] h-9 px-3 rounded-md text-[15px] font-medium',
                               'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
                               'shadow-sm hover:shadow-md transition-all cursor-pointer',
                               'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
