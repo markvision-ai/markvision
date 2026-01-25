@@ -25,6 +25,7 @@ import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
+import { FunnelWidget } from './dashboard/FunnelWidget';
 import { AIAssistant } from './analytics/AIAssistant';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
@@ -422,7 +423,7 @@ export const AnalyticsPlatform = () => {
             ));
 
             registerWidget('conversions', (
-              <ConversionStats steps={funnelSteps} />
+              <FunnelWidget steps={funnelSteps} />
             ));
 
             if (currentProjectId) {
