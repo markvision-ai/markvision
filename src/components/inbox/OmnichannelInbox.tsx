@@ -1,53 +1,76 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { 
   MessageCircle, 
   Send,
   Search,
-  Phone,
-  Mail,
   Instagram,
   PhoneCall,
   Paperclip,
   MoreVertical,
   Circle,
-  CheckCheck
+  CheckCheck,
+  Brain,
+  Users,
+  Sparkles
 } from 'lucide-react';
 import { supabase } from '@/lib/externalSupabase';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import { toast } from 'sonner';
 
-interface Message {
+interface ChatMessage {
   id: string;
-  lead_id: string;
+  thread_id: string;
+  lead_id: string | null;
   channel: string;
-  direction: string;
+  direction: 'inbound' | 'outbound';
   content: string;
   status: string;
   sent_at: string;
   read_at: string | null;
+  created_at: string;
+}
+
+interface ChatThread {
+  id: string;
+  project_id: string;
+  lead_id: string | null;
+  channel: 'whatsapp' | 'instagram' | 'tiktok';
+  last_message_at: string;
+  unread_count: number;
+  lead?: {
+    id: string;
+    name: string | null;
+    phone: string | null;
+    email: string | null;
+    status: string | null;
+  };
+  last_message?: ChatMessage;
 }
 
 interface Lead {
   id: string;
-  name: string;
-  phone: string;
-  email: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  status: string | null;
 }
 
 interface OmnichannelInboxProps {
-  projectId: string;
+  projectId: string | null;
 }
-
-// Telegram icon component
-const TelegramIcon = ({ className }: { className?: string }) => (
-  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-  </svg>
-);
 
 // WhatsApp icon component
 const WhatsAppIcon = ({ className }: { className?: string }) => (
@@ -56,89 +79,249 @@ const WhatsAppIcon = ({ className }: { className?: string }) => (
   </svg>
 );
 
+// TikTok icon component
+const TikTokIcon = ({ className }: { className?: string }) => (
+  <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+  </svg>
+);
+
 const channelIcons: Record<string, React.ReactNode> = {
   whatsapp: <WhatsAppIcon className="w-4 h-4" />,
-  telegram: <TelegramIcon className="w-4 h-4" />,
   instagram: <Instagram className="w-4 h-4" />,
-  email: <Mail className="w-4 h-4" />,
-  phone: <PhoneCall className="w-4 h-4" />,
-  sms: <Phone className="w-4 h-4" />,
+  tiktok: <TikTokIcon className="w-4 h-4" />,
 };
 
 const channelColors: Record<string, string> = {
   whatsapp: 'bg-green-500',
-  telegram: 'bg-blue-500',
   instagram: 'bg-pink-500',
-  email: 'bg-purple-500',
-  phone: 'bg-orange-500',
-  sms: 'bg-yellow-500',
+  tiktok: 'bg-black dark:bg-white',
 };
 
 export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [leads, setLeads] = useState<Lead[]>([]);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+  const [threads, setThreads] = useState<ChatThread[]>([]);
+  const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
+  const [loadingMessages, setLoadingMessages] = useState(false);
+  const [isSummaryOpen, setIsSummaryOpen] = useState(false);
+  const [chatSummary, setChatSummary] = useState('');
 
-  useEffect(() => {
-    fetchData();
-  }, [projectId]);
-
-  const fetchData = async () => {
+  // Fetch threads (grouped by lead_id and channel from inbox_messages)
+  const fetchThreads = useCallback(async () => {
+    if (!projectId) return;
+    
     try {
-      // Fetch leads
-      const { data: leadsData } = await supabase
-        .from('leads')
-        .select('id, name, phone, email')
-        .eq('project_id', projectId)
-        .order('updated_at', { ascending: false })
-        .limit(50);
-
-      setLeads(leadsData || []);
-
-      // Fetch messages
-      const { data: messagesData } = await supabase
+      // Получаем все сообщения и группируем их в threads
+      const { data: messagesData, error } = await supabase
         .from('inbox_messages')
-        .select('*')
+        .select('*, leads(id, name, phone, email, status)')
         .eq('project_id', projectId)
+        .in('channel', ['whatsapp', 'instagram', 'tiktok'])
         .order('sent_at', { ascending: false });
 
-      setMessages(messagesData || []);
+      if (error) throw error;
 
-      if (leadsData && leadsData.length > 0) {
-        setSelectedLead(leadsData[0]);
+      // Группируем сообщения по lead_id и channel (создаем threads)
+      const threadsMap = new Map<string, ChatThread>();
+      
+      (messagesData || []).forEach((msg: any) => {
+        const threadKey = `${msg.lead_id || 'no-lead'}_${msg.channel}`;
+        
+        if (!threadsMap.has(threadKey)) {
+          threadsMap.set(threadKey, {
+            id: threadKey,
+            project_id: projectId,
+            lead_id: msg.lead_id,
+            channel: msg.channel,
+            last_message_at: msg.sent_at,
+            unread_count: 0,
+            lead: msg.leads ? {
+              id: msg.leads.id,
+              name: msg.leads.name,
+              phone: msg.leads.phone,
+              email: msg.leads.email,
+              status: msg.leads.status,
+            } : undefined,
+            last_message: {
+              id: msg.id,
+              thread_id: threadKey,
+              lead_id: msg.lead_id,
+              channel: msg.channel,
+              direction: msg.direction,
+              content: msg.content,
+              status: msg.status,
+              sent_at: msg.sent_at,
+              read_at: msg.read_at,
+              created_at: msg.sent_at,
+            },
+          });
+        } else {
+          const thread = threadsMap.get(threadKey)!;
+          if (new Date(msg.sent_at) > new Date(thread.last_message_at)) {
+            thread.last_message_at = msg.sent_at;
+            thread.last_message = {
+              id: msg.id,
+              thread_id: threadKey,
+              lead_id: msg.lead_id,
+              channel: msg.channel,
+              direction: msg.direction,
+              content: msg.content,
+              status: msg.status,
+              sent_at: msg.sent_at,
+              read_at: msg.read_at,
+              created_at: msg.sent_at,
+            };
+          }
+          if (msg.direction === 'inbound' && !msg.read_at) {
+            thread.unread_count++;
+          }
+        }
+      });
+
+      const threadsArray = Array.from(threadsMap.values()).sort(
+        (a, b) => new Date(b.last_message_at).getTime() - new Date(a.last_message_at).getTime()
+      );
+
+      setThreads(threadsArray);
+      
+      if (threadsArray.length > 0 && !selectedThread) {
+        setSelectedThread(threadsArray[0]);
       }
     } catch (error) {
-      console.error('Error fetching data:', error);
+      console.error('Error fetching threads:', error);
+      toast.error('Ошибка загрузки диалогов');
     } finally {
       setLoading(false);
     }
-  };
+  }, [projectId, selectedThread]);
+
+  // Fetch messages for selected thread
+  const fetchMessages = useCallback(async (thread: ChatThread) => {
+    if (!projectId || !thread) return;
+    
+    setLoadingMessages(true);
+    try {
+      const { data, error } = await supabase
+        .from('inbox_messages')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('lead_id', thread.lead_id)
+        .eq('channel', thread.channel)
+        .order('sent_at', { ascending: true });
+
+      if (error) throw error;
+      setMessages(data || []);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
+      toast.error('Ошибка загрузки сообщений');
+    } finally {
+      setLoadingMessages(false);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
+    fetchThreads();
+  }, [fetchThreads]);
+
+  // Realtime subscription for new messages
+  useEffect(() => {
+    if (!projectId) return;
+
+    const channel = supabase
+      .channel('inbox-messages-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'inbox_messages',
+          filter: `project_id=eq.${projectId}`
+        },
+        () => {
+          fetchThreads(); // Обновляем список threads
+          if (selectedThread) {
+            fetchMessages(selectedThread); // Обновляем сообщения текущего thread
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [projectId, selectedThread, fetchThreads, fetchMessages]);
+
+  // Load messages when thread is selected
+  useEffect(() => {
+    if (selectedThread) {
+      fetchMessages(selectedThread);
+    }
+  }, [selectedThread, fetchMessages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedLead) return;
+    if (!newMessage.trim() || !selectedThread || !projectId) return;
     
-    // In a real app, this would integrate with messaging APIs
-    setNewMessage('');
+    try {
+      const { error } = await supabase
+        .from('inbox_messages')
+        .insert({
+          project_id: projectId,
+          lead_id: selectedThread.lead_id,
+          channel: selectedThread.channel,
+          direction: 'outbound',
+          content: newMessage,
+          status: 'sent',
+        });
+
+      if (error) throw error;
+      
+      setNewMessage('');
+      fetchMessages(selectedThread);
+      fetchThreads();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      toast.error('Ошибка отправки сообщения');
+    }
   };
 
-  const filteredLeads = leads.filter(lead => 
-    lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    lead.phone?.includes(searchQuery) ||
-    lead.email?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // AI Summary handler
+  const handleSummarizeChat = async () => {
+    if (!selectedThread || messages.length === 0) return;
+    
+    setIsSummaryOpen(true);
+    // Заглушка для ИИ-пересказа (позже свяжем с ИИ)
+    const summary = `📋 Саммари диалога:\n\n` +
+      `Канал: ${selectedThread.channel}\n` +
+      `Сообщений: ${messages.length}\n` +
+      `Последнее сообщение: ${new Date(selectedThread.last_message_at).toLocaleString('ru-RU')}\n\n` +
+      `Краткое содержание:\n` +
+      `Диалог содержит ${messages.length} сообщений. ` +
+      `Последнее сообщение: "${messages[messages.length - 1]?.content.substring(0, 100)}..."`;
+    
+    setChatSummary(summary);
+  };
 
-  const leadMessages = messages.filter(m => m.lead_id === selectedLead?.id);
-  
-  // Group conversations by lead
-  const conversationsByLead = leads.map(lead => {
-    const leadMsgs = messages.filter(m => m.lead_id === lead.id);
-    const lastMessage = leadMsgs[0];
-    const unreadCount = leadMsgs.filter(m => m.direction === 'inbound' && !m.read_at).length;
-    return { lead, lastMessage, unreadCount };
-  });
+  const filteredThreads = useMemo(() => {
+    if (!searchQuery) return threads;
+    const query = searchQuery.toLowerCase();
+    return threads.filter(thread => 
+      thread.lead?.name?.toLowerCase().includes(query) ||
+      thread.lead?.phone?.includes(query) ||
+      thread.lead?.email?.toLowerCase().includes(query) ||
+      thread.last_message?.content?.toLowerCase().includes(query)
+    );
+  }, [threads, searchQuery]);
+
+  if (!projectId) {
+    return (
+      <div className="flex items-center justify-center h-64 backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl">
+        <p className="text-muted-foreground">Выберите проект для просмотра сообщений</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -149,22 +332,28 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
             <MessageCircle className="w-6 h-6 text-primary" />
             Omnichannel Inbox
           </h2>
-          <p className="text-muted-foreground">Единый центр коммуникаций</p>
+          <p className="text-sm text-muted-foreground">Единый центр коммуникаций</p>
         </div>
         <div className="flex gap-2">
-          {Object.entries(channelIcons).map(([channel, icon]) => (
-            <Button key={channel} variant="outline" size="icon" className="relative">
+          {/* Только WhatsApp, Instagram, TikTok */}
+          {(['whatsapp', 'instagram', 'tiktok'] as const).map((channel) => (
+            <Button 
+              key={channel} 
+              variant="outline" 
+              size="icon" 
+              className="relative backdrop-blur-sm bg-card/50 border border-white/10"
+            >
               <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${channelColors[channel]}`} />
-              {icon}
+              {channelIcons[channel]}
             </Button>
           ))}
         </div>
       </div>
 
-      {/* Chat Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 h-[600px]">
+      {/* Chat Interface - Glassmorphism */}
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[600px]">
         {/* Conversations List */}
-        <Card className="lg:col-span-1">
+        <Card className="lg:col-span-1 backdrop-blur-sm bg-card/50 border border-white/10">
           <CardHeader className="pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -172,7 +361,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                 placeholder="Поиск диалогов..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
+                className="pl-9 backdrop-blur-sm bg-card/50 border border-white/10"
               />
             </div>
           </CardHeader>
@@ -180,71 +369,91 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
             <ScrollArea className="h-[500px]">
               {loading ? (
                 <div className="p-4 text-center text-muted-foreground">Загрузка...</div>
-              ) : conversationsByLead.length === 0 ? (
+              ) : filteredThreads.length === 0 ? (
                 <div className="p-4 text-center text-muted-foreground">Нет диалогов</div>
               ) : (
-                conversationsByLead
-                  .filter(c => filteredLeads.some(l => l.id === c.lead.id))
-                  .map(({ lead, lastMessage, unreadCount }) => (
-                    <div
-                      key={lead.id}
-                      onClick={() => setSelectedLead(lead)}
-                      className={`flex items-center gap-3 p-4 cursor-pointer border-b border-border hover:bg-muted/50 transition-colors ${
-                        selectedLead?.id === lead.id ? 'bg-muted' : ''
-                      }`}
+                <AnimatePresence>
+                  {filteredThreads.map((thread) => (
+                    <motion.div
+                      key={thread.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      onClick={() => setSelectedThread(thread)}
+                      className={cn(
+                        "flex items-center gap-3 p-4 cursor-pointer border-b border-white/5 hover:bg-white/5 transition-colors",
+                        selectedThread?.id === thread.id && 'bg-white/10'
+                      )}
                     >
                       <div className="relative">
                         <Avatar className="h-10 w-10">
                           <AvatarFallback className="bg-primary/10 text-primary">
-                            {lead.name?.charAt(0) || '?'}
+                            {thread.lead?.name?.charAt(0) || '?'}
                           </AvatarFallback>
                         </Avatar>
-                        {lastMessage && (
-                          <div className={`absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-white ${channelColors[lastMessage.channel] || 'bg-gray-500'}`}>
-                            {channelIcons[lastMessage.channel]}
-                          </div>
-                        )}
+                        <div className={cn(
+                          "absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full flex items-center justify-center text-white",
+                          channelColors[thread.channel] || 'bg-gray-500'
+                        )}>
+                          {channelIcons[thread.channel]}
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between">
-                          <p className="font-medium truncate">{lead.name || 'Без имени'}</p>
-                          {lastMessage && (
+                          <p className="font-medium truncate text-sm">{thread.lead?.name || 'Без имени'}</p>
+                          {thread.last_message && (
                             <span className="text-xs text-muted-foreground">
-                              {new Date(lastMessage.sent_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                              {new Date(thread.last_message_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
                         </div>
                         <div className="flex items-center justify-between">
-                          <p className="text-sm text-muted-foreground truncate">
-                            {lastMessage?.content || 'Нет сообщений'}
+                          <p className="text-xs text-muted-foreground truncate">
+                            {thread.last_message?.content || 'Нет сообщений'}
                           </p>
-                          {unreadCount > 0 && (
-                            <Badge className="ml-2 bg-primary">{unreadCount}</Badge>
+                          {thread.unread_count > 0 && (
+                            <Badge className="ml-2 bg-primary text-xs">{thread.unread_count}</Badge>
                           )}
                         </div>
                       </div>
-                    </div>
-                  ))
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               )}
             </ScrollArea>
           </CardContent>
         </Card>
 
-        {/* Chat Window */}
-        <Card className="lg:col-span-2 flex flex-col">
-          {selectedLead ? (
-            <>
+        {/* Chat Window + Quick Info */}
+        <div className="lg:col-span-3 flex gap-4">
+          {/* Chat Window */}
+          <Card className="flex-1 flex flex-col backdrop-blur-sm bg-card/50 border border-white/10">
+            {selectedThread ? (
+              <>
+              {/* AI Summarize Button */}
+              <div className="p-3 border-b border-white/10">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSummarizeChat}
+                  className="w-full backdrop-blur-sm bg-card/50 border border-white/10 hover:bg-card/70"
+                >
+                  <Brain className="w-4 h-4 mr-2" />
+                  🤖 Пересказать чат
+                </Button>
+              </div>
+
               {/* Chat Header */}
-              <CardHeader className="border-b">
+              <CardHeader className="border-b border-white/10">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
                       <AvatarFallback className="bg-primary/10 text-primary">
-                        {selectedLead.name?.charAt(0) || '?'}
+                        {selectedThread.lead?.name?.charAt(0) || '?'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <CardTitle className="text-base">{selectedLead.name || 'Без имени'}</CardTitle>
+                      <CardTitle className="text-base">{selectedThread.lead?.name || 'Без имени'}</CardTitle>
                       <CardDescription className="flex items-center gap-2">
                         <Circle className="w-2 h-2 fill-green-500 text-green-500" />
                         Онлайн
@@ -252,10 +461,10 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-white/10">
                       <PhoneCall className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-white/10">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </div>
@@ -265,45 +474,52 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
               {/* Messages */}
               <CardContent className="flex-1 p-4 overflow-hidden">
                 <ScrollArea className="h-[380px] pr-4">
-                  {leadMessages.length === 0 ? (
+                  {loadingMessages ? (
+                    <div className="flex items-center justify-center h-full text-muted-foreground">Загрузка...</div>
+                  ) : messages.length === 0 ? (
                     <div className="flex items-center justify-center h-full text-muted-foreground">
                       Начните диалог с клиентом
                     </div>
                   ) : (
                     <div className="space-y-4">
-                      {[...leadMessages].reverse().map((msg) => (
-                        <div
-                          key={msg.id}
-                          className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
-                        >
-                          <div className={`max-w-[70%] rounded-2xl px-4 py-2 ${
-                            msg.direction === 'outbound' 
-                              ? 'bg-primary text-primary-foreground rounded-br-md' 
-                              : 'bg-muted rounded-bl-md'
-                          }`}>
-                            <p className="text-sm">{msg.content}</p>
-                            <div className={`flex items-center gap-1 mt-1 ${
-                              msg.direction === 'outbound' ? 'justify-end' : 'justify-start'
-                            }`}>
-                              <span className="text-xs opacity-70">
-                                {new Date(msg.sent_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
-                              </span>
-                              {msg.direction === 'outbound' && (
-                                <CheckCheck className={`w-3 h-3 ${msg.read_at ? 'text-blue-400' : 'opacity-70'}`} />
-                              )}
+                      <AnimatePresence>
+                        {messages.map((msg) => (
+                          <motion.div
+                            key={msg.id}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            className={`flex ${msg.direction === 'outbound' ? 'justify-end' : 'justify-start'}`}
+                          >
+                            <div className={cn(
+                              "max-w-[70%] rounded-2xl px-4 py-2 backdrop-blur-sm",
+                              msg.direction === 'outbound' 
+                                ? 'bg-primary/80 text-primary-foreground rounded-br-md' 
+                                : 'bg-muted/50 rounded-bl-md border border-white/10'
+                            )}>
+                              <p className="text-sm">{msg.content}</p>
+                              <div className={`flex items-center gap-1 mt-1 ${
+                                msg.direction === 'outbound' ? 'justify-end' : 'justify-start'
+                              }`}>
+                                <span className="text-xs opacity-70">
+                                  {new Date(msg.sent_at).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
+                                </span>
+                                {msg.direction === 'outbound' && (
+                                  <CheckCheck className={`w-3 h-3 ${msg.read_at ? 'text-blue-400' : 'opacity-70'}`} />
+                                )}
+                              </div>
                             </div>
-                          </div>
-                        </div>
-                      ))}
+                          </motion.div>
+                        ))}
+                      </AnimatePresence>
                     </div>
                   )}
                 </ScrollArea>
               </CardContent>
 
               {/* Message Input */}
-              <div className="p-4 border-t">
+              <div className="p-4 border-t border-white/10">
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon">
+                  <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-white/10">
                     <Paperclip className="w-4 h-4" />
                   </Button>
                   <Input
@@ -311,9 +527,13 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1"
+                    className="flex-1 backdrop-blur-sm bg-card/50 border border-white/10"
                   />
-                  <Button onClick={handleSendMessage} disabled={!newMessage.trim()}>
+                  <Button 
+                    onClick={handleSendMessage} 
+                    disabled={!newMessage.trim()}
+                    className="backdrop-blur-sm bg-primary/80 hover:bg-primary"
+                  >
                     <Send className="w-4 h-4" />
                   </Button>
                 </div>
@@ -325,7 +545,71 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
             </CardContent>
           )}
         </Card>
+
+        {/* Quick Info - справа от чата */}
+        {selectedThread && selectedThread.lead && (
+          <Card className="w-64 backdrop-blur-sm bg-card/50 border border-white/10">
+            <CardHeader>
+              <CardTitle className="text-sm">Информация о лиде</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Имя</p>
+                <p className="font-semibold text-sm">{selectedThread.lead.name || 'Без имени'}</p>
+              </div>
+              {selectedThread.lead.phone && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Телефон</p>
+                  <p className="text-sm">{selectedThread.lead.phone}</p>
+                </div>
+              )}
+              {selectedThread.lead.email && (
+                <div>
+                  <p className="text-xs text-muted-foreground mb-1">Email</p>
+                  <p className="text-sm">{selectedThread.lead.email}</p>
+                </div>
+              )}
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Статус в CRM</p>
+                <Badge className="bg-primary/20 text-primary border-0 text-xs">
+                  {selectedThread.lead.status || 'Новая'}
+                </Badge>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground mb-1">Канал</p>
+                <Badge className={cn(
+                  "text-xs border-0",
+                  selectedThread.channel === 'whatsapp' && 'bg-green-500/20 text-green-600',
+                  selectedThread.channel === 'instagram' && 'bg-pink-500/20 text-pink-600',
+                  selectedThread.channel === 'tiktok' && 'bg-black/20 text-black dark:text-white'
+                )}>
+                  {selectedThread.channel}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        </div>
       </div>
+
+      {/* AI Summary Dialog */}
+      <Dialog open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-white/10">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Brain className="w-5 h-5 text-primary" />
+              Пересказ чата
+            </DialogTitle>
+          </DialogHeader>
+          <div className="mt-4">
+            <div className="p-4 rounded-lg backdrop-blur-sm bg-card/50 border border-white/10">
+              <pre className="whitespace-pre-wrap text-sm text-foreground font-sans">
+                {chatSummary || 'Генерация саммари...'}
+              </pre>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

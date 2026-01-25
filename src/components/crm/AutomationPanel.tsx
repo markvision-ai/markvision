@@ -22,11 +22,15 @@ import {
   Webhook,
   RefreshCw,
   Play,
-  History
+  History,
+  Sparkles,
+  TrendingUp
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/lib/externalSupabase';
+import { toast } from 'sonner';
 
 interface AutomationPanelProps {
   projectId: string | null;
@@ -114,8 +118,50 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
     }
   };
 
+  // Функция активации шаблона (отправка запроса в n8n)
+  const handleActivateTemplate = async (templateId: string) => {
+    if (!projectId) {
+      toast.error('Выберите проект');
+      return;
+    }
+
+    try {
+      // Получаем n8n webhook URL из проекта
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('n8n_webhook_url')
+        .eq('id', projectId)
+        .single();
+
+      if (!projectData?.n8n_webhook_url) {
+        toast.error('Настройте URL вебхука n8n в настройках проекта');
+        return;
+      }
+
+      // Отправляем запрос в n8n для активации шаблона
+      const response = await fetch(projectData.n8n_webhook_url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'activate_template',
+          template_id: templateId,
+          project_id: projectId,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Ошибка активации шаблона');
+
+      toast.success('Шаблон активирован!');
+    } catch (error) {
+      console.error('Error activating template:', error);
+      toast.error('Ошибка активации шаблона');
+    }
+  };
+
   return (
-    <Card className="crm-card-glass">
+    <Card className="backdrop-blur-sm bg-card/50 border border-white/10">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <motion.div
@@ -131,6 +177,105 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
         </CardTitle>
       </CardHeader>
       <CardContent>
+        {/* Шаблоны автоматизации */}
+        <div className="mb-6 space-y-3">
+          <h3 className="text-sm font-semibold text-muted-foreground mb-3">Готовые шаблоны</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {/* Шаблон 1: Мгновенный WhatsApp */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <MessageCircle className="w-5 h-5 text-green-500" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Мгновенный WhatsApp</h4>
+                    <p className="text-xs text-muted-foreground">Отправка при новом лиде</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                Автоматическая отправка приветственного сообщения в WhatsApp при поступлении нового лида
+              </p>
+              <Button
+                size="sm"
+                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
+                onClick={() => handleActivateTemplate('instant_whatsapp')}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                Активировать
+              </Button>
+            </motion.div>
+
+            {/* Шаблон 2: Дожим 24ч */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-orange-500" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">Дожим 24ч</h4>
+                    <p className="text-xs text-muted-foreground">Напоминание через 24 часа</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                Автоматическое напоминание лидам, которые не ответили в течение 24 часов
+              </p>
+              <Button
+                size="sm"
+                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30"
+                onClick={() => handleActivateTemplate('followup_24h')}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                Активировать
+              </Button>
+            </motion.div>
+
+            {/* Шаблон 3: LTV-контроль */}
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl p-4 hover:border-primary/30 transition-all"
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                    <TrendingUp className="w-5 h-5 text-purple-500" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm">LTV-контроль</h4>
+                    <p className="text-xs text-muted-foreground">Мониторинг ценности клиента</p>
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+                Автоматический расчет и отслеживание LTV клиентов с уведомлениями о высокоценных лидах
+              </p>
+              <Button
+                size="sm"
+                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
+                onClick={() => handleActivateTemplate('ltv_control')}
+              >
+                <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                Активировать
+              </Button>
+            </motion.div>
+          </div>
+        </div>
+
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="w-full mb-4">
             <TabsTrigger value="rules" className="flex-1">
@@ -160,8 +305,8 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: index * 0.05 }}
                         className={cn(
-                          "p-4 rounded-xl border bg-card/50",
-                          "hover:border-primary/30 transition-all",
+                          "p-4 rounded-xl border backdrop-blur-sm bg-card/50 border-white/10",
+                          "hover:border-primary/30 hover:bg-card/70 transition-all",
                           rule.is_active && "border-primary/20 bg-primary/5"
                         )}
                       >
@@ -248,7 +393,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className="p-3 rounded-lg border bg-card/30 text-sm"
+                      className="p-3 rounded-lg border backdrop-blur-sm bg-card/50 border-white/10 text-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">

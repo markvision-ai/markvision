@@ -1,10 +1,18 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { 
   Dialog,
   DialogContent,
@@ -29,10 +37,14 @@ import {
   Sparkles,
   Trash2,
   Edit2,
-  TrendingUp
+  TrendingUp,
+  Zap,
+  RefreshCw
 } from 'lucide-react';
 import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
+import { BackgroundGradient } from '@/components/ui/background-gradient';
+import { cn } from '@/lib/utils';
 
 interface ScoringRule {
   id: string;
@@ -42,6 +54,21 @@ interface ScoringRule {
   value: string;
   score_delta: number;
   is_active: boolean;
+  created_at: string;
+}
+
+interface ScoringInsight {
+  id: string;
+  title: string;
+  description: string | null;
+  recommendation_type: string;
+  suggested_field: string | null;
+  suggested_operator: string | null;
+  suggested_value: string | null;
+  suggested_score_delta: number | null;
+  confidence_score: number;
+  status: string;
+  created_at: string;
 }
 
 interface LeadScoringProps {
@@ -69,8 +96,10 @@ const fields = [
 
 export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const [rules, setRules] = useState<ScoringRule[]>([]);
+  const [insights, setInsights] = useState<ScoringInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isRecalculating, setIsRecalculating] = useState(false);
   const [newRule, setNewRule] = useState({
     name: '',
     field: 'utm_source',
@@ -81,6 +110,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
   useEffect(() => {
     fetchRules();
+    fetchInsights();
   }, [projectId]);
 
   const fetchRules = async () => {
@@ -95,12 +125,35 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       setRules(data || []);
     } catch (error) {
       console.error('Error fetching rules:', error);
+      toast.error('Ошибка загрузки правил');
     } finally {
       setLoading(false);
     }
   };
 
+  const fetchInsights = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('scoring_insights')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('status', 'pending')
+        .order('confidence_score', { ascending: false })
+        .limit(5);
+
+      if (error) throw error;
+      setInsights(data || []);
+    } catch (error) {
+      console.error('Error fetching insights:', error);
+    }
+  };
+
   const handleAddRule = async () => {
+    if (!newRule.name) {
+      toast.error('Введите название правила');
+      return;
+    }
+
     try {
       const { error } = await supabase.from('lead_scoring_rules').insert([{
         project_id: projectId,
@@ -112,7 +165,9 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       toast.success('Правило добавлено');
       setIsAddDialogOpen(false);
       setNewRule({ name: '', field: 'utm_source', operator: 'equals', value: '', score_delta: 10 });
-      fetchRules();
+      await fetchRules();
+      // Пересчитываем баллы после добавления правила
+      await recalculateScores();
     } catch (error) {
       console.error('Error adding rule:', error);
       toast.error('Ошибка при добавлении правила');
@@ -127,9 +182,12 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         .eq('id', ruleId);
 
       if (error) throw error;
-      fetchRules();
+      await fetchRules();
+      // Пересчитываем баллы при изменении статуса правила
+      await recalculateScores();
     } catch (error) {
       console.error('Error toggling rule:', error);
+      toast.error('Ошибка при изменении правила');
     }
   };
 
@@ -143,17 +201,146 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       if (error) throw error;
       
       toast.success('Правило удалено');
-      fetchRules();
+      await fetchRules();
+      // Пересчитываем баллы после удаления правила
+      await recalculateScores();
     } catch (error) {
       console.error('Error deleting rule:', error);
       toast.error('Ошибка при удалении правила');
     }
   };
 
-  const getScoreBadge = (score: number) => {
-    if (score >= 80) return { icon: Flame, color: 'text-red-500 bg-red-500/10', label: 'Горячий' };
-    if (score >= 50) return { icon: ThermometerSun, color: 'text-yellow-500 bg-yellow-500/10', label: 'Теплый' };
-    return { icon: Snowflake, color: 'text-blue-500 bg-blue-500/10', label: 'Холодный' };
+  const recalculateScores = async () => {
+    setIsRecalculating(true);
+    try {
+      // Получаем все активные правила
+      const activeRules = rules.filter(r => r.is_active);
+      
+      if (activeRules.length === 0) {
+        toast.info('Нет активных правил для пересчета');
+        setIsRecalculating(false);
+        return;
+      }
+
+      // Получаем все лиды проекта
+      const { data: leads, error: leadsError } = await supabase
+        .from('leads')
+        .select('id, utm_source, utm_medium, utm_campaign, deal_amount, email, phone, status')
+        .eq('project_id', projectId);
+
+      if (leadsError) throw leadsError;
+
+      if (!leads || leads.length === 0) {
+        setIsRecalculating(false);
+        return;
+      }
+
+      // Пересчитываем баллы для каждого лида
+      const updates = leads.map(lead => {
+        let score = 0;
+        
+        activeRules.forEach(rule => {
+          const fieldValue = (lead as any)[rule.field];
+          let matches = false;
+
+          switch (rule.operator) {
+            case 'equals':
+              matches = String(fieldValue || '').toLowerCase() === String(rule.value || '').toLowerCase();
+              break;
+            case 'contains':
+              matches = String(fieldValue || '').toLowerCase().includes(String(rule.value || '').toLowerCase());
+              break;
+            case 'greater_than':
+              matches = Number(fieldValue || 0) > Number(rule.value || 0);
+              break;
+            case 'less_than':
+              matches = Number(fieldValue || 0) < Number(rule.value || 0);
+              break;
+            case 'is_not_empty':
+              matches = fieldValue != null && fieldValue !== '';
+              break;
+            case 'is_empty':
+              matches = fieldValue == null || fieldValue === '';
+              break;
+          }
+
+          if (matches) {
+            score += rule.score_delta;
+          }
+        });
+
+        // Определяем label на основе score
+        let scoreLabel = 'Холодный';
+        if (score >= 80) scoreLabel = 'Горячий';
+        else if (score >= 50) scoreLabel = 'Теплый';
+
+        return {
+          id: lead.id,
+          lead_score: Math.max(0, Math.min(100, score)), // Ограничиваем от 0 до 100
+          score_label: scoreLabel,
+        };
+      });
+
+      // Обновляем лиды батчами по 100
+      for (let i = 0; i < updates.length; i += 100) {
+        const batch = updates.slice(i, i + 100);
+        const promises = batch.map(update =>
+          supabase
+            .from('leads')
+            .update({ lead_score: update.lead_score, score_label: update.score_label })
+            .eq('id', update.id)
+        );
+        await Promise.all(promises);
+      }
+
+      toast.success(`Баллы пересчитаны для ${updates.length} лидов`);
+    } catch (error) {
+      console.error('Error recalculating scores:', error);
+      toast.error('Ошибка при пересчете баллов');
+    } finally {
+      setIsRecalculating(false);
+    }
+  };
+
+  const handleApplyInsight = async (insight: ScoringInsight) => {
+    try {
+      if (!insight.suggested_field || !insight.suggested_operator || insight.suggested_score_delta === null) {
+        toast.error('Недостаточно данных для создания правила');
+        return;
+      }
+
+      // Создаем правило из инсайта
+      const { error: ruleError } = await supabase.from('lead_scoring_rules').insert([{
+        project_id: projectId,
+        name: insight.title,
+        field: insight.suggested_field,
+        operator: insight.suggested_operator,
+        value: insight.suggested_value || '',
+        score_delta: insight.suggested_score_delta,
+        is_active: true,
+      }]);
+
+      if (ruleError) throw ruleError;
+
+      // Обновляем статус инсайта
+      const { error: insightError } = await supabase
+        .from('scoring_insights')
+        .update({ 
+          status: 'applied',
+          applied_at: new Date().toISOString(),
+        })
+        .eq('id', insight.id);
+
+      if (insightError) throw insightError;
+
+      toast.success('Правило применено из AI инсайта');
+      await fetchRules();
+      await fetchInsights();
+      await recalculateScores();
+    } catch (error) {
+      console.error('Error applying insight:', error);
+      toast.error('Ошибка при применении инсайта');
+    }
   };
 
   return (
@@ -161,54 +348,65 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2">
+          <h2 className="text-2xl font-bold flex items-center gap-2 text-[16px] sm:text-2xl">
             <Target className="w-6 h-6 text-primary" />
             Lead Scoring
           </h2>
-          <p className="text-muted-foreground">Автоматическая оценка качества лидов</p>
+          <p className="text-muted-foreground text-[14px]">Автоматическая оценка качества лидов</p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Добавить правило
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={recalculateScores} 
+            disabled={isRecalculating}
+            className="text-[14px]"
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", isRecalculating && "animate-spin")} />
+            Пересчитать баллы
+          </Button>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="text-[14px]">
+            <Plus className="w-4 h-4 mr-2" />
+            Добавить правило
+          </Button>
+        </div>
       </div>
 
       {/* Score Legend */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
+        <Card className="shadow-md shadow-red-500/10">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-red-500/10">
                 <Flame className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="font-medium">Горячие лиды</p>
+                <p className="font-medium text-[14px]">Горячие лиды</p>
                 <p className="text-sm text-muted-foreground">Score 80-100</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-md shadow-yellow-500/10">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-yellow-500/10">
                 <ThermometerSun className="w-6 h-6 text-yellow-500" />
               </div>
               <div>
-                <p className="font-medium">Теплые лиды</p>
+                <p className="font-medium text-[14px]">Теплые лиды</p>
                 <p className="text-sm text-muted-foreground">Score 50-79</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-md shadow-blue-500/10">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-blue-500/10">
                 <Snowflake className="w-6 h-6 text-blue-500" />
               </div>
               <div>
-                <p className="font-medium">Холодные лиды</p>
+                <p className="font-medium text-[14px]">Холодные лиды</p>
                 <p className="text-sm text-muted-foreground">Score 0-49</p>
               </div>
             </div>
@@ -217,84 +415,114 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       </div>
 
       {/* AI Insights */}
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-primary" />
-            AI Insights
-            <Badge className="bg-primary/10 text-primary border-primary/20">Beta</Badge>
-          </CardTitle>
-          <CardDescription>
-            ИИ анализирует поведение лидов и предлагает оптимизации
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-              <TrendingUp className="w-5 h-5 text-green-500" />
-              <div>
-                <p className="text-sm font-medium">Лиды с UTM google/cpc конвертируются на 34% лучше</p>
-                <p className="text-xs text-muted-foreground">Рекомендуем добавить +15 баллов для этого источника</p>
+      <BackgroundGradient className="rounded-2xl">
+        <Card className="border-0 bg-background/50 backdrop-blur-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-[16px]">
+              <Sparkles className="w-5 h-5 text-primary" />
+              AI Insights
+              <Badge className="bg-primary/10 text-primary border-primary/20">Beta</Badge>
+            </CardTitle>
+            <CardDescription className="text-[14px]">
+              ИИ анализирует поведение лидов и предлагает оптимизации
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {insights.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-[14px]">
+                Нет новых AI инсайтов
               </div>
-              <Button size="sm" variant="outline">Применить</Button>
-            </div>
-            <div className="flex items-center gap-3 p-3 rounded-lg bg-background/50">
-              <Flame className="w-5 h-5 text-red-500" />
-              <div>
-                <p className="text-sm font-medium">Лиды с заполненным email конвертируются в 2.5x чаще</p>
-                <p className="text-xs text-muted-foreground">Добавьте правило для оценки наличия email</p>
+            ) : (
+              <div className="space-y-3">
+                {insights.map((insight) => (
+                  <motion.div
+                    key={insight.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex items-center gap-3 p-4 rounded-lg bg-background/70 border border-primary/10"
+                  >
+                    <div className="flex-shrink-0">
+                      {insight.confidence_score >= 0.7 ? (
+                        <TrendingUp className="w-5 h-5 text-green-500" />
+                      ) : (
+                        <Zap className="w-5 h-5 text-yellow-500" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-[14px]">{insight.title}</p>
+                      {insight.description && (
+                        <p className="text-xs text-muted-foreground mt-1 text-[14px]">{insight.description}</p>
+                      )}
+                      {insight.suggested_score_delta && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Рекомендуется: {insight.suggested_score_delta > 0 ? '+' : ''}{insight.suggested_score_delta} баллов
+                        </p>
+                      )}
+                    </div>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      onClick={() => handleApplyInsight(insight)}
+                      className="text-[14px] flex-shrink-0"
+                    >
+                      Применить
+                    </Button>
+                  </motion.div>
+                ))}
               </div>
-              <Button size="sm" variant="outline">Применить</Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+            )}
+          </CardContent>
+        </Card>
+      </BackgroundGradient>
 
       {/* Rules Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Правила скоринга</CardTitle>
-          <CardDescription>Настройте правила для автоматической оценки лидов</CardDescription>
+          <CardTitle className="text-[16px]">Правила скоринга</CardTitle>
+          <CardDescription className="text-[14px]">Настройте правила для автоматической оценки лидов</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Правило</TableHead>
-                <TableHead>Поле</TableHead>
-                <TableHead>Условие</TableHead>
-                <TableHead>Баллы</TableHead>
-                <TableHead>Статус</TableHead>
-                <TableHead></TableHead>
+                <TableHead className="text-[14px]">Правило</TableHead>
+                <TableHead className="text-[14px]">Поле</TableHead>
+                <TableHead className="text-[14px]">Условие</TableHead>
+                <TableHead className="text-[14px]">Баллы</TableHead>
+                <TableHead className="text-[14px]">Статус</TableHead>
+                <TableHead className="text-[14px]"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
+                  <TableCell colSpan={6} className="text-center py-8 text-[14px]">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : rules.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-[14px]">
                     Правила не настроены
                   </TableCell>
                 </TableRow>
               ) : (
                 rules.map((rule) => (
                   <TableRow key={rule.id}>
-                    <TableCell className="font-medium">{rule.name}</TableCell>
+                    <TableCell className="font-medium text-[14px]">{rule.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">
+                      <Badge variant="outline" className="text-[14px]">
                         {fields.find(f => f.value === rule.field)?.label || rule.field}
                       </Badge>
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="text-[14px]">
                       {operators.find(o => o.value === rule.operator)?.label} {rule.value && `"${rule.value}"`}
                     </TableCell>
                     <TableCell>
-                      <Badge className={rule.score_delta > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}>
+                      <Badge className={cn(
+                        "text-[14px]",
+                        rule.score_delta > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
+                      )}>
                         {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}
                       </Badge>
                     </TableCell>
@@ -306,13 +534,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-1">
-                        <Button variant="ghost" size="icon">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
                           <Edit2 className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="text-destructive hover:text-destructive"
+                          className="h-8 w-8 text-destructive hover:text-destructive"
                           onClick={() => handleDeleteRule(rule.id)}
                         >
                           <Trash2 className="w-4 h-4" />
@@ -329,68 +557,84 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* Add Rule Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Добавить правило скоринга</DialogTitle>
+            <DialogTitle className="text-[16px]">Добавить правило скоринга</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label>Название правила</Label>
+              <Label className="text-[14px]">Название правила *</Label>
               <Input
                 value={newRule.name}
                 onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                 placeholder="Лид с Google Ads"
+                className="text-[14px]"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Поле</Label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                <Label className="text-[14px]">Поле *</Label>
+                <Select
                   value={newRule.field}
-                  onChange={(e) => setNewRule({ ...newRule, field: e.target.value })}
+                  onValueChange={(value) => setNewRule({ ...newRule, field: value })}
                 >
-                  {fields.map(f => (
-                    <option key={f.value} value={f.value}>{f.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="text-[14px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {fields.map(f => (
+                      <SelectItem key={f.value} value={f.value} className="text-[14px]">
+                        {f.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label>Условие</Label>
-                <select
-                  className="w-full rounded-md border border-input bg-background px-3 py-2"
+                <Label className="text-[14px]">Условие *</Label>
+                <Select
                   value={newRule.operator}
-                  onChange={(e) => setNewRule({ ...newRule, operator: e.target.value })}
+                  onValueChange={(value) => setNewRule({ ...newRule, operator: value })}
                 >
-                  {operators.map(o => (
-                    <option key={o.value} value={o.value}>{o.label}</option>
-                  ))}
-                </select>
+                  <SelectTrigger className="text-[14px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {operators.map(o => (
+                      <SelectItem key={o.value} value={o.value} className="text-[14px]">
+                        {o.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Значение</Label>
+              <Label className="text-[14px]">Значение</Label>
               <Input
                 value={newRule.value}
                 onChange={(e) => setNewRule({ ...newRule, value: e.target.value })}
                 placeholder="google"
+                className="text-[14px]"
+                disabled={newRule.operator === 'is_not_empty' || newRule.operator === 'is_empty'}
               />
             </div>
             <div className="space-y-2">
-              <Label>Баллы (+ добавить / - отнять)</Label>
+              <Label className="text-[14px]">Баллы (+ добавить / - отнять) *</Label>
               <Input
                 type="number"
                 value={newRule.score_delta}
                 onChange={(e) => setNewRule({ ...newRule, score_delta: Number(e.target.value) })}
                 placeholder="10"
+                className="text-[14px]"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="text-[14px]">
               Отмена
             </Button>
-            <Button onClick={handleAddRule} disabled={!newRule.name}>
+            <Button onClick={handleAddRule} disabled={!newRule.name} className="text-[14px]">
               Добавить
             </Button>
           </DialogFooter>

@@ -15,7 +15,11 @@ import {
   DollarSign,
   ArrowUpDown,
   ArrowUp,
-  ArrowDown
+  ArrowDown,
+  Star,
+  Flame,
+  ThermometerSun,
+  Snowflake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,6 +55,8 @@ interface Lead {
   email: string | null;
   status: string | null;
   deal_amount: number | null;
+  ltv: number | null;
+  lead_score: number | null;
   utm_source: string | null;
   utm_medium: string | null;
   utm_campaign: string | null;
@@ -147,7 +153,7 @@ const getSourceCategory = (utm_source: string | null): string => {
   return 'other';
 };
 
-type SortField = 'name' | 'phone' | 'created_at' | 'utm_source' | 'deal_amount' | 'status';
+type SortField = 'name' | 'phone' | 'created_at' | 'utm_source' | 'deal_amount' | 'status' | 'ltv' | 'lead_score';
 type SortDirection = 'asc' | 'desc';
 
 export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
@@ -309,6 +315,14 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
           aVal = statusOrder.indexOf(a.status || 'new');
           bVal = statusOrder.indexOf(b.status || 'new');
           break;
+        case 'ltv':
+          aVal = a.ltv || 0;
+          bVal = b.ltv || 0;
+          break;
+        case 'lead_score':
+          aVal = a.lead_score || 0;
+          bVal = b.lead_score || 0;
+          break;
         default:
           return 0;
       }
@@ -440,11 +454,11 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         </Select>
       </div>
 
-      {/* Table */}
-      <div className="bg-card border rounded-xl overflow-hidden">
+      {/* Table - Glassmorphism */}
+      <div className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-secondary">
+            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-white/10">
               <tr>
                 <th 
                   className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
@@ -493,6 +507,24 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                   </div>
                 </th>
                 <th 
+                  className="text-right p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('ltv')}
+                >
+                  <div className="flex items-center justify-end">
+                    LTV
+                    <SortIcon field="ltv" />
+                  </div>
+                </th>
+                <th 
+                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                  onClick={() => handleSort('lead_score')}
+                >
+                  <div className="flex items-center">
+                    Рейтинг
+                    <SortIcon field="lead_score" />
+                  </div>
+                </th>
+                <th 
                   className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
                   onClick={() => handleSort('status')}
                 >
@@ -507,7 +539,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
             <tbody className="divide-y divide-border">
               {sortedLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="p-8 text-center text-muted-foreground">
+                  <td colSpan={10} className="p-8 text-center text-muted-foreground">
                     {searchQuery || statusFilter !== 'all' || sourceFilter !== 'all'
                       ? 'Клиенты не найдены по заданным фильтрам'
                       : 'Клиенты появятся здесь после получения данных через вебхук'
@@ -516,7 +548,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                 </tr>
               ) : (
                 sortedLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-secondary/50 transition-colors">
+                  <tr key={lead.id} className="hover:bg-white/5 dark:hover:bg-white/5 transition-colors border-b border-white/5">
                     {/* Имя */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -557,33 +589,31 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                         {format(new Date(lead.created_at), 'HH:mm')}
                       </p>
                     </td>
-                    {/* UTM (source, medium, content) */}
+                    {/* UTM - цветные теги */}
                     <td className="p-4">
-                      <div className="space-y-1 text-xs">
+                      <div className="flex flex-wrap gap-1.5">
                         {lead.utm_source && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground w-12">source:</span>
-                            <Badge variant="outline" className="font-mono text-xs px-1.5 py-0">
-                              {lead.utm_source}
-                            </Badge>
-                          </div>
+                          <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30 text-xs px-2 py-0.5">
+                            {lead.utm_source}
+                          </Badge>
                         )}
                         {lead.utm_medium && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground w-12">medium:</span>
-                            <span className="font-mono text-foreground">{lead.utm_medium}</span>
-                          </div>
+                          <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30 text-xs px-2 py-0.5">
+                            {lead.utm_medium}
+                          </Badge>
+                        )}
+                        {lead.utm_campaign && (
+                          <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 text-xs px-2 py-0.5">
+                            {lead.utm_campaign}
+                          </Badge>
                         )}
                         {lead.utm_content && (
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-muted-foreground w-12">content:</span>
-                            <span className="font-mono text-foreground truncate max-w-[120px]" title={lead.utm_content}>
-                              {lead.utm_content}
-                            </span>
-                          </div>
+                          <Badge className="bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30 text-xs px-2 py-0.5 truncate max-w-[100px]" title={lead.utm_content}>
+                            {lead.utm_content}
+                          </Badge>
                         )}
-                        {!lead.utm_source && !lead.utm_medium && !lead.utm_content && (
-                          <span className="text-muted-foreground">—</span>
+                        {!lead.utm_source && !lead.utm_medium && !lead.utm_campaign && !lead.utm_content && (
+                          <span className="text-muted-foreground text-xs">—</span>
                         )}
                       </div>
                     </td>
@@ -605,6 +635,47 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                           <span className="font-semibold text-green-500">
                             {formatCurrency(lead.deal_amount)}
                           </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    {/* LTV */}
+                    <td className="p-4 text-right">
+                      {lead.ltv && lead.ltv > 0 ? (
+                        <div className="flex items-center justify-end gap-1.5">
+                          <DollarSign className="w-4 h-4 text-emerald-500" />
+                          <span className="font-semibold text-emerald-500">
+                            {formatCurrency(lead.ltv)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">—</span>
+                      )}
+                    </td>
+                    {/* Рейтинг (иконки огонька: Красный/Желтый/Голубой) */}
+                    <td className="p-4">
+                      {lead.lead_score !== null && lead.lead_score !== undefined ? (
+                        <div className="flex items-center gap-2">
+                          {lead.lead_score >= 80 ? (
+                            <>
+                              <Flame className="w-4 h-4 text-red-500 animate-pulse" />
+                              <span className="text-xs font-semibold text-red-500 text-[14px]">{lead.lead_score}</span>
+                              <span className="text-xs text-muted-foreground">Горячий</span>
+                            </>
+                          ) : lead.lead_score >= 50 ? (
+                            <>
+                              <ThermometerSun className="w-4 h-4 text-yellow-500" />
+                              <span className="text-xs font-semibold text-yellow-500 text-[14px]">{lead.lead_score}</span>
+                              <span className="text-xs text-muted-foreground">Теплый</span>
+                            </>
+                          ) : (
+                            <>
+                              <Snowflake className="w-4 h-4 text-blue-500" />
+                              <span className="text-xs font-semibold text-blue-500 text-[14px]">{lead.lead_score}</span>
+                              <span className="text-xs text-muted-foreground">Холодный</span>
+                            </>
+                          )}
                         </div>
                       ) : (
                         <span className="text-muted-foreground">—</span>
@@ -673,12 +744,12 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         </div>
       </div>
 
-      {/* Stats */}
+      {/* Stats - Glassmorphism */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
         {STATUS_OPTIONS.map(status => {
           const count = leads.filter(l => l.status === status.value).length;
           return (
-            <div key={status.value} className="bg-card border rounded-lg p-4 text-center">
+            <div key={status.value} className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-lg p-4 text-center hover:bg-card/70 transition-all">
               <p className="text-2xl font-bold">{count}</p>
               <Badge className={`${status.color} mt-1`}>{status.label}</Badge>
             </div>
@@ -686,9 +757,9 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         })}
       </div>
 
-      {/* Detail Dialog */}
+      {/* Detail Dialog - Glassmorphism */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-white/10">
           <DialogHeader>
             <DialogTitle>Карточка клиента</DialogTitle>
           </DialogHeader>

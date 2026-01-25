@@ -100,7 +100,14 @@ export const KanbanBoard = ({
     return () => clearInterval(interval);
   }, []);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+  // Улучшенные сенсоры для плавного Drag-and-Drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, { 
+      activationConstraint: { 
+        distance: 5 // Меньше расстояние для более быстрой активации
+      } 
+    })
+  );
 
   const leadsByStatus = useMemo(() => {
     const grouped: Record<string, Lead[]> = {};

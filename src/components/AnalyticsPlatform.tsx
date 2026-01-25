@@ -658,7 +658,8 @@ export const AnalyticsPlatform = () => {
           
           {/* Desktop Header with backdrop blur */}
           <header className="hidden md:block sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
-            <Header 
+            <Header
+              onTabChange={handleTabChange} 
               title={getTabTitle()} 
               subtitle={currentProject?.name}
               dateRange={dateRange}

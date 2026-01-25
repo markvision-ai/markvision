@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { ArrowRight, Play, Menu, X, Building2, Mail, Lock, Gift, Eye, EyeOff, Ch
 import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
 import { z } from "zod";
+import { useABTestRotator } from "@/hooks/useABTestRotator";
 import founderWithMark from "@/assets/founder-with-mark.png";
 import markvisionLogo from "@/assets/markvision-logo-new.png";
 const modules = [{
@@ -51,12 +52,17 @@ const signupSchema = z.object({
 });
 export const LandingPage = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [videoWatched, setVideoWatched] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
   const signupRef = useRef<HTMLDivElement>(null);
+  
+  // A/B Test Rotator - получаем projectId из URL или localStorage
+  const projectId = searchParams.get('project_id') || localStorage.getItem('activeProjectId');
+  const { activeVariant } = useABTestRotator(projectId);
 
   // Registration form state
   const [loading, setLoading] = useState(false);
@@ -271,7 +277,7 @@ export const LandingPage = () => {
             <span className="text-xs sm:text-sm font-medium text-blue-700">Умная система для клиник</span>
           </motion.div>
 
-          {/* Main Headline */}
+          {/* Main Headline - с поддержкой A/B тестов */}
           <motion.h1 initial={{
           opacity: 0,
           y: 30
@@ -282,14 +288,18 @@ export const LandingPage = () => {
           delay: 0.1,
           duration: 0.7
         }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8 text-5xl">
-            Хватит терять
-            <br />
-            <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
-              пациентов
-            </AuroraText>
+            {activeVariant?.title || (
+              <>
+                Хватит терять
+                <br />
+                <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
+                  пациентов
+                </AuroraText>
+              </>
+            )}
           </motion.h1>
 
-          {/* Subheadline */}
+          {/* Subheadline - с поддержкой A/B тестов */}
           <motion.div initial={{
           opacity: 0,
           y: 20
@@ -300,10 +310,15 @@ export const LandingPage = () => {
           delay: 0.2,
           duration: 0.6
         }} className="max-w-3xl mx-auto mb-6 sm:mb-10 md:mb-12 space-y-3 sm:space-y-5 px-2 sm:px-6">
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">Мы берём на себя маркетинг, продажи и аналитику 
-Вы занимаетесь пациентами
-​<br className="hidden sm:block" />
-              ​
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">
+              {activeVariant?.text || (
+                <>
+                  Мы берём на себя маркетинг, продажи и аналитику 
+                  Вы занимаетесь пациентами
+                  ​<br className="hidden sm:block" />
+                  ​
+                </>
+              )}
             </p>
             <p className="text-xl sm:text-xl md:text-2xl font-semibold text-slate-800">
               Увеличьте выручку на

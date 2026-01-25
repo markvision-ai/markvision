@@ -1,8 +1,13 @@
-import { Search, Moon, Sun, Menu } from 'lucide-react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
+import { Search, Moon, Sun, Menu, Users, Image, Loader2, X } from 'lucide-react';
 import { useTheme } from '@/hooks/useTheme';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
+import { supabase } from '@/lib/externalSupabase';
+import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface DateRange {
   from: Date;
@@ -28,6 +33,16 @@ interface HeaderProps {
   onProjectChange?: (projectId: string) => void;
   onCreateProject?: (name: string) => Promise<{ id: string; name: string } | null>;
   showProjectSelector?: boolean;
+  onTabChange?: (tab: string) => void;
+}
+
+interface SearchResult {
+  id: string;
+  type: 'patient' | 'content';
+  title: string;
+  subtitle?: string;
+  icon: React.ReactNode;
+  action: () => void;
 }
 
 export const Header = ({ 
@@ -86,14 +101,109 @@ export const Header = ({
           </div>
         )}
 
-        {/* Search - hidden on mobile */}
-        <div className="relative hidden lg:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            type="text"
-            placeholder="Поиск..."
-            className="pl-10 pr-4 py-2 bg-secondary border-0 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
+        {/* Global Search - hidden on mobile */}
+        <div className="relative hidden lg:block global-search-container">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+            <input
+              type="text"
+              placeholder="Поиск..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                if (e.target.value.length >= 3) {
+                  setShowResults(true);
+                }
+              }}
+              onFocus={() => {
+                if (searchQuery.length >= 3 && searchResults.length > 0) {
+                  setShowResults(true);
+                }
+              }}
+              className="pl-10 pr-10 py-2 backdrop-blur-sm bg-card/50 border border-white/10 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setShowResults(false);
+                  setSearchResults([]);
+                }}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+            {isSearching && (
+              <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
+
+          {/* Search Results Dropdown */}
+          <AnimatePresence>
+            {showResults && searchResults.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="absolute top-full mt-2 w-96 backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl shadow-lg z-50 max-h-[400px] overflow-hidden"
+              >
+                <div className="overflow-y-auto max-h-[400px]">
+                  {/* Пациенты */}
+                  {searchResults.filter(r => r.type === 'patient').length > 0 && (
+                    <div className="p-2">
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                        Пациенты
+                      </div>
+                      {searchResults
+                        .filter(r => r.type === 'patient')
+                        .map((result) => (
+                          <button
+                            key={result.id}
+                            onClick={result.action}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                          >
+                            {result.icon}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{result.title}</p>
+                              {result.subtitle && (
+                                <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Контент */}
+                  {searchResults.filter(r => r.type === 'content').length > 0 && (
+                    <div className="p-2 border-t border-white/10">
+                      <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
+                        Контент
+                      </div>
+                      {searchResults
+                        .filter(r => r.type === 'content')
+                        .map((result) => (
+                          <button
+                            key={result.id}
+                            onClick={result.action}
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                          >
+                            {result.icon}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{result.title}</p>
+                              {result.subtitle && (
+                                <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
+                              )}
+                            </div>
+                          </button>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         {/* Theme Toggle */}

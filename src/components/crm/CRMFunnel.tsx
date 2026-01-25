@@ -28,11 +28,20 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
     const paidLeads = leads.filter(l => l.status === 'paid');
     const paidCount = paidLeads.length;
     const totalAmount = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+    
+    // Замороженные деньги: сумма всех чеков лидов в каждом этапе
+    const newLeads = leads.filter(l => l.status === 'new' || !l.status);
+    const diagnosticLeads = leads.filter(l => l.status === 'in_progress' || l.status === 'diagnostics_completed');
+    const appointmentLeads = leads.filter(l => l.status === 'appointment');
+    
+    const frozenNew = newLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+    const frozenDiagnostic = diagnosticLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+    const frozenAppointment = appointmentLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
 
     const steps: FunnelStep[] = [
-      { id: 'new', label: 'Новые лиды', count: leads.length, amount: 0, gradient: 'from-blue-500 to-cyan-500', icon: Users },
-      { id: 'diagnostic', label: 'Прошли диагностику', count: diagnosticCount + appointmentCount + paidCount, amount: 0, gradient: 'from-orange-500 to-amber-500', icon: Target },
-      { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: 0, gradient: 'from-purple-500 to-pink-500', icon: Calendar },
+      { id: 'new', label: 'Новые лиды', count: leads.length, amount: frozenNew, gradient: 'from-blue-500 to-cyan-500', icon: Users },
+      { id: 'diagnostic', label: 'Прошли диагностику', count: diagnosticCount + appointmentCount + paidCount, amount: frozenDiagnostic, gradient: 'from-orange-500 to-amber-500', icon: Target },
+      { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: frozenAppointment, gradient: 'from-purple-500 to-pink-500', icon: Calendar },
       { id: 'paid', label: 'Оплачено', count: paidCount, amount: totalAmount, gradient: 'from-emerald-500 to-green-500', icon: DollarSign },
     ];
 
@@ -74,7 +83,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Premium Stats Cards */}
+      {/* Premium Stats Cards - Glassmorphism */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         {statCards.map((stat, index) => (
           <motion.div
@@ -83,7 +92,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className={cn('overflow-hidden hover:shadow-md transition-all duration-300', stat.glow, 'shadow-sm')}>
+            <Card className={cn('overflow-hidden hover:shadow-md transition-all duration-300 backdrop-blur-sm bg-card/50 border border-white/10', stat.glow, 'shadow-sm')}>
               <CardContent className="p-4 md:p-5">
                 <div className="flex items-center gap-3">
                   <div className={cn('w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-lg', stat.gradient)}>
@@ -100,14 +109,14 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         ))}
       </div>
 
-      {/* Premium Funnel Chart */}
+      {/* Premium Funnel Chart - Glassmorphism */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
-        <Card className="overflow-hidden shadow-sm">
-          <CardHeader className="border-b border-border/50 pb-4">
+        <Card className="overflow-hidden shadow-sm backdrop-blur-sm bg-card/50 border border-white/10">
+          <CardHeader className="border-b border-white/10 pb-4">
             <CardTitle className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -141,13 +150,21 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                       <div className="flex items-center gap-3 flex-wrap justify-end">
                         <span className="text-lg font-bold">{step.count}</span>
                         {index > 0 && (
-                          <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium">
-                            {conversionFromPrev}%
-                          </span>
+                          <>
+                            {/* Процент потерь между этапами */}
+                            <span className="text-xs px-2 py-1 rounded-full bg-muted text-muted-foreground font-medium">
+                              {conversionFromPrev}%
+                            </span>
+                            {/* Процент потерь (обратный конверсии) */}
+                            <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-medium">
+                              Потеря: {(100 - parseFloat(conversionFromPrev)).toFixed(1)}%
+                            </span>
+                          </>
                         )}
+                        {/* Замороженные деньги */}
                         {step.amount > 0 && (
-                          <span className="font-bold text-success bg-success/10 px-3 py-1 rounded-full text-sm">
-                            {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
+                          <span className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                            💰 {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
                           </span>
                         )}
                       </div>
@@ -170,7 +187,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             {/* Premium Conversion Summary */}
             {leads.length > 0 && (
               <motion.div 
-                className="mt-8 pt-6 border-t border-border/50"
+                className="mt-8 pt-6 border-t border-white/10"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.8 }}

@@ -554,7 +554,8 @@ html, body {
 
 .crm-card-glass {
   backdrop-filter: blur(16px);
-  background: hsl(var(--card));
+  background: hsl(var(--card) / 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 20px;
 }
 
