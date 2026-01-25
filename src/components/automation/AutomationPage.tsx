@@ -17,7 +17,6 @@ import {
   Instagram,
   Facebook,
   MessageCircle,
-  Loader2,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -30,7 +29,6 @@ import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 const DISPATCHER_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
-const EXECUTE_FLOW_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
 const SYNC_FETCH_TIMEOUT_MS = 8_000;
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {
@@ -70,7 +68,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
-  const [triggeringFlow, setTriggeringFlow] = useState<string | null>(null);
 
   // Realtime на automation_flows отключён: сервер может ожидать колонки (напр. webhook_url),
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
@@ -129,41 +126,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       });
     setTimeout(() => refetch(), 3000);
   }, [effectiveProjectId, refetch]);
-
-  const handleTriggerFlow = useCallback(async (flow: AutomationFlowRow) => {
-    const n8nId = flow.n8n_id?.trim();
-    const displayName = flow.flow_name?.trim() || 'Без названия';
-    if (!n8nId) {
-      toast.error('У связки отсутствует n8n_id.');
-      return;
-    }
-    setTriggeringFlow(flow.id);
-    try {
-      const res = await fetch(EXECUTE_FLOW_URL, {
-        method: 'POST',
-        mode: 'cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ flow_id: n8nId }),
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        toast.error(`Ошибка n8n (${res.status}): ${errText || res.statusText}`);
-        return;
-      }
-      toast.success(`Связка ${displayName} запущена успешно!`);
-      try {
-        await supabase.from('automation_flows').update({ last_run: new Date().toISOString() }).eq('id', flow.id).select('id');
-      } catch {
-        /* игнорируем ошибку обновления last_run */
-      }
-    } catch (e: unknown) {
-      const msg = e instanceof Error ? e.message : String(e);
-      toast.error(`Ошибка запроса к n8n: ${msg}`);
-    } finally {
-      setTriggeringFlow(null);
-      refetch();
-    }
-  }, [refetch]);
 
   return (
     <div className="space-y-6">
@@ -261,7 +223,6 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                 {filtered.map((flow, index) => {
                   const isError = flow.status === 'error';
                   const isActive = flow.status === 'active';
-                  const isTriggering = triggeringFlow === flow.id;
                   return (
                     <motion.div
                       key={flow.id}
@@ -306,25 +267,27 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                         <div className="flex items-center gap-2 flex-shrink-0">
                           <button
                             type="button"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              void handleTriggerFlow(flow);
+                            onClick={async () => {
+                              try {
+                                await fetch('/n8n/webhook/execute-any-flow', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ flow_id: flow.n8n_id }),
+                                });
+                                console.log('Flow запущен');
+                              } catch (err) {
+                                console.error('Ошибка запуска n8n:', err);
+                              }
                             }}
                             className={cn(
                               'inline-flex items-center justify-center gap-2 shrink-0 min-w-[140px] h-9 px-3 rounded-md text-[15px] font-medium',
                               'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
                               'shadow-sm hover:shadow-md transition-all cursor-pointer',
                               'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                              isTriggering && 'opacity-90',
                             )}
                             aria-label={`Запустить связку ${flow.flow_name || 'Без названия'}`}
                           >
-                            {isTriggering ? (
-                              <><Loader2 className="w-4 h-4 animate-spin" /> Запуск…</>
-                            ) : (
-                              <><Play className="w-4 h-4" /> Запустить вручную</>
-                            )}
+                            <Play className="w-4 h-4" /> Запустить вручную
                           </button>
                         </div>
                       </div>
