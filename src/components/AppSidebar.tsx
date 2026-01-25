@@ -411,7 +411,7 @@ export const AppSidebar = ({
                   display: open ? "inline-block" : "none",
                   opacity: open ? 1 : 0,
                 }}
-                className="text-xs text-sidebar-foreground/50"
+                className="text-sm font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80"
               >
                 {realtimeStatus === 'SUBSCRIBED' ? 'Подключено' : 
                  realtimeStatus === 'CONNECTING' ? 'Подключение...' : 'Офлайн'}
@@ -586,7 +586,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
-        <span className="text-[10px] text-sidebar-foreground/50 font-normal">
+        <span className="text-xs font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80 leading-relaxed">
           Умный маркетинг
         </span>
       </div>

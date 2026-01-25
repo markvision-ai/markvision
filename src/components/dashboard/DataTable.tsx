@@ -186,19 +186,19 @@ export const DataTable = ({
       {/* Calculated Metrics Bar */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-xs md:text-sm text-muted-foreground">CPL (Цена лида)</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPL (Цена лида)</div>
           <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(cpl)}</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-xs md:text-sm text-muted-foreground">CPC (Цена клика)</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPC (Цена клика)</div>
           <div className="text-base md:text-xl font-bold">{formatCurrency(cpc)}</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-xs md:text-sm text-muted-foreground">CTR</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CTR</div>
           <div className="text-base md:text-xl font-bold">{formatPercent(ctr)}</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-xs md:text-sm text-muted-foreground">CPM</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPM</div>
           <div className="text-base md:text-xl font-bold">{formatCurrency(cpm)}</div>
         </div>
       </div>
@@ -229,15 +229,15 @@ export const DataTable = ({
           <table className="w-full text-xs md:text-sm">
             <thead>
               <tr className="border-b bg-secondary/50">
-                <th className="text-left p-2 md:p-3 font-medium text-muted-foreground sticky left-0 bg-secondary/50 min-w-[90px] md:min-w-[120px]">Дата</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[80px] md:min-w-[100px]">Диагностики</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-medium text-muted-foreground min-w-[90px] md:min-w-[120px]">Выручка</th>
+                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 sticky left-0 bg-secondary/50 min-w-[90px] md:min-w-[120px]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Диагностики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
@@ -282,7 +282,7 @@ export const DataTable = ({
               {/* Percentage Row - third */}
               {planData && (
                 <tr className="bg-muted/50 border-b-2 border-border">
-                  <td className="p-2 md:p-4 sticky left-0 bg-muted/50 text-muted-foreground text-xs md:text-sm">% выполн.</td>
+                  <td className="p-2 md:p-4 sticky left-0 bg-muted/50 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = planData[field];
@@ -317,11 +317,11 @@ export const DataTable = ({
                   <tr key={dateKey} className={`border-b hover:bg-secondary/30 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'bg-primary/5' : ''}`}>
                     <td className={`p-2 md:p-3 sticky left-0 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'bg-primary/5' : ''}`}>
                       <div className="flex items-center gap-1 md:gap-2">
-                        <span className={`text-[10px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 rounded font-medium ${isWeekend ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'}`}>
+                        <span className={`text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded font-semibold ${isWeekend ? 'bg-muted text-foreground/70 dark:text-foreground/80' : 'bg-primary/10 text-primary'}`}>
                           {WEEKDAYS[weekDay]}
                         </span>
-                        <span className={`font-medium ${isToday ? 'text-primary' : ''}`}>{format(day, 'd')}</span>
-                        {isToday && <span className="text-[10px] md:text-xs text-primary hidden sm:inline">(сегодня)</span>}
+                        <span className={`font-semibold text-sm md:text-base ${isToday ? 'text-primary' : 'text-foreground'}`}>{format(day, 'd')}</span>
+                        {isToday && <span className="text-xs md:text-sm text-primary font-medium hidden sm:inline">(сегодня)</span>}
                       </div>
                     </td>
                     {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (

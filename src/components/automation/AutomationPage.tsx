@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -360,7 +360,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       <div className="bg-card border rounded-xl p-12 text-center">
         <Zap className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Выберите проект</h3>
-        <p className="text-muted-foreground">Для настройки автоматизации выберите проект</p>
+        <p className="text-sm text-muted-foreground">Для настройки автоматизации выберите проект</p>
       </div>
     );
   }
@@ -378,7 +378,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             </div>
             Автоматизация
           </h2>
-          <p className="text-muted-foreground mt-1">Управление n8n workflows и автоматизациями</p>
+          <p className="text-sm text-muted-foreground mt-1">Управление n8n workflows и автоматизациями</p>
         </div>
         <Button
           variant="outline"
@@ -455,7 +455,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           ) : flows.length === 0 ? (
                     <div className="text-center py-12 text-muted-foreground">
               <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>Нет настроенных автоматизаций</p>
+              <p className="text-sm">Нет настроенных автоматизаций</p>
               <p className="text-sm mt-2">Автоматизации появятся после настройки n8n</p>
                     </div>
                   ) : (

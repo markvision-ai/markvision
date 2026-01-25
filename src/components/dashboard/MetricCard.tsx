@@ -76,7 +76,7 @@ export const MetricCard = ({
                 {icon}
               </div>
             )}
-            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+            <span className="text-xs font-semibold text-foreground/80 dark:text-foreground/90 uppercase tracking-wide">
               {label}
             </span>
           </div>
@@ -93,7 +93,7 @@ export const MetricCard = ({
               {formattedValue}
             </p>
             {subValue && (
-              <p className="text-[11px] text-muted-foreground/70 font-medium">
+              <p className="text-xs text-foreground/70 dark:text-foreground/80 font-semibold leading-relaxed">
                 {subValue}
               </p>
             )}

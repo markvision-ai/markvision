@@ -69,16 +69,16 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: conv.fromColor }}
                       />
-                      <span className="text-[10px] text-muted-foreground truncate">{conv.from}</span>
+                      <span className="text-sm font-semibold text-foreground/80 dark:text-foreground/90 truncate">{conv.from}</span>
                     </div>
-                    <p className="text-sm font-bold text-foreground">
+                    <p className="text-base font-bold text-foreground leading-relaxed">
                       {new Intl.NumberFormat('ru-RU').format(conv.fromValue)}
                     </p>
                   </div>
 
                   {/* Arrow with conversion rate */}
                   <div className="flex flex-col items-center px-1.5 flex-shrink-0">
-                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold ${
                       isGoodRate 
                         ? 'bg-success/20 text-success' 
                         : 'bg-warning/20 text-warning'
@@ -96,13 +96,13 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
                   {/* To */}
                   <div className="flex-1 text-right min-w-0">
                     <div className="flex items-center gap-1.5 justify-end mb-0.5">
-                      <span className="text-[10px] text-muted-foreground truncate">{conv.to}</span>
+                      <span className="text-sm font-semibold text-foreground/80 dark:text-foreground/90 truncate">{conv.to}</span>
                       <div 
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: conv.toColor }}
                       />
                     </div>
-                    <p className="text-sm font-bold text-foreground">
+                    <p className="text-base font-bold text-foreground leading-relaxed">
                       {new Intl.NumberFormat('ru-RU').format(conv.toValue)}
                     </p>
                   </div>

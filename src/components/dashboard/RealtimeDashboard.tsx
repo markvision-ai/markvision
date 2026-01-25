@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -12,7 +12,10 @@ import {
   Clock,
   WifiOff,
   Wifi,
-  ShoppingCart
+  ShoppingCart,
+  Facebook,
+  Webhook,
+  MessageCircle
 } from 'lucide-react';
 import { supabase } from '@/lib/externalSupabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -62,6 +65,13 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [pulseEffect, setPulseEffect] = useState<string | null>(null);
+  
+  // System status states
+  const [systemStatus, setSystemStatus] = useState({
+    meta: false,
+    n8n: false,
+    whatsapp: false
+  });
 
   // Fetch initial data
   useEffect(() => {
@@ -70,7 +80,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     const fetchInitialData = async () => {
       const today = new Date().toISOString().split('T')[0];
       
-      // Fetch today's data
+      // Fetch today's data - always show 0 if no data
       const { data: dailyData } = await supabase
         .from('daily_data')
         .select('*')
@@ -78,33 +88,65 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         .eq('date', today)
         .maybeSingle();
 
-      // Fetch recent leads
+      // Fetch recent leads (last 10)
       const { data: leads } = await supabase
         .from('leads')
         .select('id, name, status, created_at, deal_amount')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
-      // Fetch recent transactions  
+      // Fetch recent transactions (payments)
       const { data: transactions } = await supabase
         .from('transactions')
         .select('id, type, amount, category, created_at')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
-      if (dailyData) {
-        setMetrics([
-          { label: 'Лиды сегодня', value: dailyData.leads, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
-          { label: 'Выручка сегодня', value: dailyData.revenue, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
-          { label: 'Продажи', value: dailyData.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-          { label: 'Активность', value: dailyData.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
-        ]);
-      }
+      // Set metrics - always show values, default to 0 if no data
+      setMetrics([
+        { label: 'Лиды сегодня', value: dailyData?.leads || 0, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
+        { label: 'Выручка сегодня', value: dailyData?.revenue || 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
+        { label: 'Продажи', value: dailyData?.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
+        { label: 'Активность', value: dailyData?.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
+      ]);
 
       if (leads) setRecentLeads(leads);
       if (transactions) setRecentTransactions(transactions);
+      
+      // Fetch system statuses
+      // Meta (Facebook) status from ad_accounts
+      const { data: metaAccount } = await supabase
+        .from('ad_accounts')
+        .select('status')
+        .eq('project_id', projectId)
+        .eq('platform', 'facebook')
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      // n8n status from automation_flows (check for errors)
+      const { data: n8nFlows } = await supabase
+        .from('automation_flows')
+        .select('status')
+        .eq('project_id', projectId)
+        .eq('status', 'error')
+        .limit(1);
+      
+      // WhatsApp status from integrations
+      const { data: whatsappIntegration } = await supabase
+        .from('integrations')
+        .select('status')
+        .eq('project_id', projectId)
+        .eq('type', 'greenapi')
+        .eq('status', 'active')
+        .maybeSingle();
+      
+      setSystemStatus({
+        meta: !!metaAccount,
+        n8n: !n8nFlows || n8nFlows.length === 0, // true if no errors
+        whatsapp: !!whatsappIntegration
+      });
     };
 
     fetchInitialData();
@@ -160,6 +202,31 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         {
           event: 'INSERT',
           schema: 'public',
+          table: 'leads',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          setLastUpdate(new Date());
+          setPulseEffect('leads');
+          setTimeout(() => setPulseEffect(null), 1000);
+          
+          if (payload.new) {
+            const newLead = payload.new as RealtimeLead;
+            setRecentLeads(prev => [newLead, ...prev.slice(0, 9)]);
+            
+            // Update metrics
+            setMetrics(prev => [
+              { ...prev[0], previousValue: prev[0].value, value: prev[0].value + 1 },
+              ...prev.slice(1)
+            ]);
+          }
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
           table: 'transactions',
           filter: `project_id=eq.${projectId}`
         },
@@ -170,7 +237,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           
           if (payload.new) {
             const newTransaction = payload.new as RealtimeTransaction;
-            setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 4)]);
+            setRecentTransactions(prev => [newTransaction, ...prev.slice(0, 9)]);
             
             if (newTransaction.type === 'income') {
               toast.success(`Новая выручка: +${new Intl.NumberFormat('ru-RU').format(Math.round(newTransaction.amount))} ₸`);
@@ -230,33 +297,87 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Connection Status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div 
-            className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all",
-              isConnected 
-                ? "bg-success/10 text-success" 
-                : "bg-destructive/10 text-destructive"
-            )}
-          >
-            {isConnected ? (
-              <>
-                <Wifi className="w-3 h-3" />
-                <span>Realtime подключен</span>
-              </>
-            ) : (
-              <>
-                <WifiOff className="w-3 h-3 animate-pulse" />
-                <span>Переподключение...</span>
-              </>
-            )}
+      {/* Header with System Status */}
+      <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center gap-4">
+          <h2 className="text-2xl font-bold">Живая лента</h2>
+          
+          {/* System Status Panel */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-card border rounded-lg">
+            <span className="text-sm text-muted-foreground mr-1">Статус систем:</span>
+            {/* Meta */}
+            <div className="relative group">
+              <Facebook 
+                className={cn(
+                  "w-4 h-4 transition-all",
+                  systemStatus.meta 
+                    ? "text-green-500" 
+                    : "text-gray-400"
+                )}
+              />
+              {!systemStatus.meta && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              )}
+            </div>
+            {/* n8n */}
+            <div className="relative group">
+              <Webhook 
+                className={cn(
+                  "w-4 h-4 transition-all",
+                  systemStatus.n8n 
+                    ? "text-green-500" 
+                    : "text-red-500 animate-pulse"
+                )}
+              />
+            </div>
+            {/* WhatsApp */}
+            <div className="relative group">
+              <MessageCircle 
+                className={cn(
+                  "w-4 h-4 transition-all",
+                  systemStatus.whatsapp 
+                    ? "text-green-500" 
+                    : "text-gray-400"
+                )}
+              />
+              {!systemStatus.whatsapp && (
+                <div className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Clock className="h-4 w-4" />
-          <span>Обновлено: {lastUpdate.toLocaleTimeString('ru-RU')}</span>
+        
+        {/* Connection Status with Beam Effect */}
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div 
+              className={cn(
+                "flex items-center gap-1.5 px-2 py-1 rounded-full text-xs transition-all relative overflow-hidden",
+                isConnected 
+                  ? "bg-success/10 text-success" 
+                  : "bg-destructive/10 text-destructive"
+              )}
+            >
+              {isConnected && (
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite] pointer-events-none" />
+              )}
+              {isConnected ? (
+                <>
+                  <Wifi className="w-3 h-3 relative z-10" />
+                  <span className="relative z-10">Realtime подключен</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="w-3 h-3 animate-pulse" />
+                  <span>Переподключение...</span>
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Clock className="h-4 w-4" />
+            <span>Обновлено: {lastUpdate.toLocaleTimeString('ru-RU')}</span>
+          </div>
         </div>
       </div>
 
@@ -294,7 +415,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                     >
                       {formatValue(metric.value, metric.format)}
                     </motion.p>
-                    <p className="text-xs text-muted-foreground mt-1">{metric.label}</p>
+                    <p className="text-sm text-muted-foreground mt-1">{metric.label}</p>
                   </div>
                   {isConnected && (
                     <div className="absolute top-2 right-2">
@@ -322,7 +443,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           <CardContent>
             <AnimatePresence mode="popLayout">
               {recentLeads.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Нет лидов</p>
+                <p className="text-sm text-muted-foreground">Нет лидов</p>
               ) : (
                 <div className="space-y-3">
                   {recentLeads.map((lead) => (
@@ -368,7 +489,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           <CardContent>
             <AnimatePresence mode="popLayout">
               {recentTransactions.length === 0 ? (
-                <p className="text-muted-foreground text-sm">Нет транзакций</p>
+                <p className="text-sm text-muted-foreground">Ожидание первых оплат...</p>
               ) : (
                 <div className="space-y-3">
                   {recentTransactions.map((tx) => (
