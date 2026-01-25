@@ -1,5 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useQueryClient, useQuery } from '@tanstack/react-query';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,180 +11,90 @@ import {
   Webhook,
   Play,
   RefreshCw,
-  ExternalLink,
   CheckCircle2,
-  XCircle,
   Clock,
-  AlertCircle,
   Sparkles,
   Instagram,
   Facebook,
   MessageCircle,
-  Loader2
+  Loader2,
 } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/lib/externalSupabase';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 
-const AUTOMATION_FLOWS_KEY = 'automation_flows';
+const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || 'https://n8n.zapoinov.com/webhook/execute-flow';
+const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
 
-interface AutomationFlow {
-  id: string;
-  project_id: string;
-  name?: string;
-  flow_name?: string;
-  description?: string;
-  status: 'active' | 'inactive' | 'error' | 'running' | 'paused';
-  last_run: string | null;
-  last_seen?: string | null;
-  execution_time?: number;
-  logs?: string;
-  created_at: string;
-  updated_at: string;
-  trigger_type?: string;
-  webhook_url?: string;
-  n8n_id?: string; // ID связки в n8n для запуска
+function safeFormatDate(val: string | null | undefined): string {
+  if (val == null || typeof val !== 'string') return '—';
+  try {
+    const d = new Date(val);
+    return isNaN(d.getTime()) ? '—' : format(d, 'dd.MM.yyyy HH:mm', { locale: ru });
+  } catch {
+    return '—';
+  }
+}
+
+function getFlowIcon(flowName?: string) {
+  if (!flowName) return <Zap className="w-6 h-6" />;
+  const l = flowName.toLowerCase();
+  if (l.includes('whatsapp') || l.includes('wa')) return <MessageCircle className="w-6 h-6 text-green-500" />;
+  if (l.includes('inst') || l.includes('instagram')) return <Instagram className="w-6 h-6 text-purple-500" />;
+  if (l.includes('facebook') || l.includes('fb') || l.includes('meta')) return <Facebook className="w-6 h-6 text-blue-500" />;
+  return <Zap className="w-6 h-6" />;
 }
 
 interface AutomationPageProps {
   projectId: string | null;
 }
 
-const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || 'https://n8n.zapoinov.com/webhook/execute-flow';
-const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
-
-const n8nFetchOpts: RequestInit = {
-  method: 'POST',
-  mode: 'cors',
-  headers: { 'Content-Type': 'application/json' },
-};
-
-// Определение иконки по названию связки
-const getFlowIcon = (flowName?: string) => {
-  if (!flowName) return <Zap className="w-6 h-6" />;
-  const nameLower = flowName.toLowerCase();
-  if (nameLower.includes('whatsapp') || nameLower.includes('wa')) {
-    return <MessageCircle className="w-6 h-6 text-green-500" />;
-  }
-  if (nameLower.includes('inst') || nameLower.includes('instagram')) {
-    return <Instagram className="w-6 h-6 text-purple-500" />;
-  }
-  if (nameLower.includes('facebook') || nameLower.includes('fb') || nameLower.includes('meta')) {
-    return <Facebook className="w-6 h-6 text-blue-500" />;
-  }
-  return <Zap className="w-6 h-6" />;
-};
-
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
-  const effectiveProjectId = projectId || FALLBACK_PROJECT_ID;
-  const queryClient = useQueryClient();
+  const [searchQuery, setSearchQuery] = useState('');
+  const effectiveProjectId = projectId ?? FALLBACK_PROJECT_ID;
+  const { flows, loading, refetch } = useAutomation(effectiveProjectId);
   const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringFlow, setTriggeringFlow] = useState<string | null>(null);
 
-  const queryKey = useMemo(() => [AUTOMATION_FLOWS_KEY, effectiveProjectId] as const, [effectiveProjectId]);
-
-  const fetchFlowsFn = useCallback(async (): Promise<AutomationFlow[]> => {
-    const { data, error } = await supabase
-      .from('automation_flows')
-      .select('id, project_id, flow_name, description, status, last_run, last_seen, execution_time, logs, created_at, updated_at, trigger_type, webhook_url, n8n_id')
-      .eq('project_id', effectiveProjectId)
-      .order('created_at', { ascending: false })
-      .limit(12);
-
-    if (error) {
-      console.error('Supabase error:', error);
-      toast.error(`Ошибка загрузки: ${error.message}`);
-      return [];
-    }
-    return (data || []).map((flow: any) => ({ ...flow, flow_name: flow.flow_name }));
-  }, [effectiveProjectId]);
-
-  const { data: flows = [], isLoading: loading } = useQuery({
-    queryKey,
-    queryFn: fetchFlowsFn,
-  });
-
-  const invalidateFlows = useCallback(() => {
-    void queryClient.invalidateQueries({ queryKey });
-  }, [queryClient, queryKey]);
+  // Realtime на automation_flows отключён: сервер может ожидать колонки (напр. webhook_url),
+  // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
 
   useEffect(() => {
-    const channel = supabase
-      .channel('automation-flows-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'automation_flows',
-          filter: `project_id=eq.${effectiveProjectId}`
-        },
-        () => { invalidateFlows(); }
-      )
-      .subscribe();
-    return () => { supabase.removeChannel(channel); };
-  }, [effectiveProjectId, invalidateFlows]);
-
-  // Fetch n8n webhook URL from project settings
-  useEffect(() => {
-    const fetchWebhookUrl = async () => {
+    const load = async () => {
       try {
-        const { data, error } = await supabase
-          .from('projects')
-          .select('n8n_webhook_url')
-          .eq('id', effectiveProjectId)
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-        // Устанавливаем значение из базы или URL диспетчера по умолчанию
-        setN8nWebhookUrl(data?.n8n_webhook_url || N8N_DISPATCHER_URL);
-      } catch (error) {
-        console.error('Error fetching webhook URL:', error);
-        // Устанавливаем значение по умолчанию при ошибке
+        const { data, error } = await supabase.from('projects').select('n8n_webhook_url').eq('id', effectiveProjectId).single();
+        if (!error && data?.n8n_webhook_url) setN8nWebhookUrl(data.n8n_webhook_url);
+        else setN8nWebhookUrl(N8N_DISPATCHER_URL);
+      } catch {
         setN8nWebhookUrl(N8N_DISPATCHER_URL);
       }
     };
-
-    fetchWebhookUrl();
+    load();
   }, [effectiveProjectId]);
 
-  // Save n8n webhook URL to project; refetch from DB to confirm, then refresh flows list
-  const handleSaveWebhook = async () => {
+  const handleSaveWebhook = useCallback(async () => {
     setSavingWebhook(true);
     try {
-      const { error } = await supabase
-        .from('projects')
-        .update({ n8n_webhook_url: n8nWebhookUrl })
-        .eq('id', effectiveProjectId);
-
+      const { error } = await supabase.from('projects').update({ n8n_webhook_url: n8nWebhookUrl }).eq('id', effectiveProjectId);
       if (error) throw error;
       toast.success('URL вебхука сохранен');
-
-      const { data } = await supabase
-        .from('projects')
-        .select('n8n_webhook_url')
-        .eq('id', effectiveProjectId)
-        .single();
-      if (data?.n8n_webhook_url != null) setN8nWebhookUrl(data.n8n_webhook_url);
-
-      invalidateFlows();
-    } catch (error) {
-      console.error('Error saving webhook URL:', error);
+      await refetch();
+    } catch {
       toast.error('Ошибка сохранения URL вебхука');
     } finally {
       setSavingWebhook(false);
     }
-  };
+  }, [effectiveProjectId, n8nWebhookUrl, refetch]);
 
-  // Sync с n8n: POST, no-cors (обход CORS). Тост + refetch через 3 сек.
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-
     try {
       await fetch(N8N_SYNC_URL, {
         method: 'POST',
@@ -194,59 +103,46 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         body: JSON.stringify({ project_id: effectiveProjectId }),
       });
       toast.info('Запрос на синхронизацию отправлен...');
-    } catch (e: any) {
-      toast.error(`Ошибка отправки: ${e?.message ?? String(e)}`);
+    } catch (e: unknown) {
+      toast.error(`Ошибка отправки: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       setRefreshing(false);
     }
+    setTimeout(() => refetch(), 3000);
+  }, [effectiveProjectId, refetch]);
 
-    setTimeout(() => queryClient.invalidateQueries({ queryKey }), 3000);
-  };
-
-  // Trigger workflow manually using n8n dispatcher
-  const handleTriggerFlow = async (flow: AutomationFlow) => {
-    // Используем n8n_id если есть, иначе используем id из базы
-    const flowIdToSend = flow.n8n_id || flow.id;
-    
-    if (!flowIdToSend) {
-      toast.error('У связки отсутствует ID. Обновите список автоматизаций.');
+  const handleTriggerFlow = useCallback(async (flow: AutomationFlowRow) => {
+    const url = flow.webhook_url?.trim();
+    if (!url) {
+      toast.error('Нет вебхука для запуска');
       return;
     }
-
-    setTriggeringFlow(flow.id);
+    const flowId = flow.id;
+    if (!flowId) {
+      toast.error('У связки отсутствует ID.');
+      return;
+    }
+    setTriggeringFlow(flowId);
     try {
-      const response = await fetch(N8N_DISPATCHER_URL, {
-        ...n8nFetchOpts,
-        body: JSON.stringify({ flow_id: flowIdToSend }),
+      const res = await fetch(url, {
+        method: 'POST',
+        mode: 'cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ flow_id: flowId }),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(errorText || 'Ошибка запуска workflow');
-      }
-
+      if (!res.ok) throw new Error(await res.text().catch(() => 'Ошибка запуска'));
       toast.success('Команда на запуск отправлена');
-      
-      // Update last_run
-      const { error } = await supabase
-        .from('automation_flows')
-        .update({ last_run: new Date().toISOString() })
-        .eq('id', flow.id);
-
-      if (error) console.error('Error updating last_run:', error);
-
-      invalidateFlows();
-    } catch (error: any) {
-      console.error('Error triggering workflow:', error);
-      toast.error(`Ошибка запуска: ${error.message || 'Неизвестная ошибка'}`);
+      await supabase.from('automation_flows').update({ last_run: new Date().toISOString() }).eq('id', flowId).select('id');
+      await refetch();
+    } catch (e: unknown) {
+      toast.error(`Ошибка запуска: ${e instanceof Error ? e.message : 'Неизвестная ошибка'}`);
     } finally {
       setTriggeringFlow(null);
     }
-  };
+  }, [refetch]);
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold flex items-center gap-2 text-[16px] sm:text-2xl">
@@ -257,27 +153,19 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           </h2>
           <p className="text-[14px] text-muted-foreground mt-1">Управление n8n workflows и автоматизациями</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={handleRefresh}
-          disabled={refreshing}
-          className="shrink-0"
-        >
-          <RefreshCw className={cn("w-4 h-4 mr-2", refreshing && "animate-spin")} />
+        <Button variant="outline" onClick={handleRefresh} disabled={refreshing} className="shrink-0">
+          <RefreshCw className={cn('w-4 h-4 mr-2', refreshing && 'animate-spin')} />
           Обновить
         </Button>
       </div>
 
-      {/* n8n Webhook URL Card */}
       <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-[16px]">
             <Webhook className="w-5 h-5" />
             Подключение n8n
           </CardTitle>
-          <CardDescription className="text-[14px]">
-            URL вебхука n8n для дополнительных настроек
-          </CardDescription>
+          <CardDescription className="text-[14px]">URL вебхука n8n для дополнительных настроек</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-4">
@@ -292,21 +180,11 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
               />
             </div>
             <div className="flex items-end">
-              <Button
-                onClick={handleSaveWebhook}
-                disabled={savingWebhook}
-                className="w-full md:w-auto text-[14px]"
-              >
+              <Button onClick={handleSaveWebhook} disabled={savingWebhook} className="w-full md:w-auto text-[14px]">
                 {savingWebhook ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-                    Сохранение...
-                  </>
+                  <><RefreshCw className="w-4 h-4 mr-2 animate-spin" /> Сохранение...</>
                 ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 mr-2" />
-                    Сохранить
-                  </>
+                  <><CheckCircle2 className="w-4 h-4 mr-2" /> Сохранить</>
                 )}
               </Button>
             </div>
@@ -314,35 +192,31 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         </CardContent>
       </Card>
 
-      {/* Automation Flows List */}
       <Card>
         <CardHeader>
           <CardTitle className="text-[16px]">Актуальные связки</CardTitle>
-          <CardDescription className="text-[14px]">
-            Список автоматизаций из n8n (максимум 12)
-          </CardDescription>
+          <CardDescription className="text-[14px]">Список автоматизаций из n8n (максимум 12)</CardDescription>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="space-y-3">
-              {[1, 2, 3].map(i => (
+              {[1, 2, 3].map((i) => (
                 <Skeleton key={i} className="h-20 w-full" />
               ))}
             </div>
-          ) : flows.length === 0 ? (
+          ) : !flows.length ? (
             <div className="text-center py-12 text-muted-foreground">
               <Zap className="w-12 h-12 mx-auto mb-4 opacity-50" />
               <p className="text-sm text-[14px]">Нет настроенных автоматизаций</p>
-              <p className="text-sm mt-2 text-[14px]">Нажмите "Обновить" для синхронизации с n8n</p>
+              <p className="text-sm mt-2 text-[14px]">Нажмите &quot;Обновить&quot; для синхронизации с n8n</p>
             </div>
           ) : (
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
                 {flows.map((flow, index) => {
                   const isError = flow.status === 'error';
-                  const isTriggering = triggeringFlow === flow.id;
                   const isActive = flow.status === 'active';
-
+                  const isTriggering = triggeringFlow === flow.id;
                   return (
                     <motion.div
                       key={flow.id}
@@ -351,11 +225,9 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.05 }}
                       className={cn(
-                        "p-4 rounded-xl border bg-card/50 backdrop-blur-sm transition-all",
-                        "hover:border-primary/30 hover:shadow-lg",
-                        isError && "border-red-500/50 bg-red-500/5",
-                        isError && "animate-pulse shadow-lg shadow-red-500/20",
-                        isActive && "border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-500/20"
+                        'p-4 rounded-xl border bg-card/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg',
+                        isError && 'border-red-500/50 bg-red-500/5 animate-pulse shadow-lg shadow-red-500/20',
+                        isActive && 'border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-500/20',
                       )}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -363,41 +235,28 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                           <div className="flex items-center gap-3 mb-2">
                             {getFlowIcon(flow.flow_name)}
                             <h4 className="font-bold text-[16px] truncate text-foreground">
-                              {flow.flow_name ?? 'Без названия'}
+                              {flow.flow_name || 'Без названия'}
                             </h4>
-                            <Badge 
+                            <Badge
                               className={cn(
-                                "text-[14px] transition-all duration-300 relative",
-                                isActive 
-                                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 shadow-lg shadow-emerald-500/20" 
-                                  : "bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30"
+                                'text-[14px] transition-all duration-300 relative',
+                                isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-gray-500/10 text-gray-600 dark:text-gray-400 border-gray-500/30',
                               )}
                             >
-                              {isActive && (
-                                <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
-                              )}
-                              <span className={cn(
-                                "relative inline-flex items-center",
-                                isActive && "animate-pulse"
-                              )}>
+                              {isActive && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping" />}
+                              <span className={cn('relative inline-flex items-center', isActive && 'animate-pulse')}>
                                 {isActive ? 'ВКЛ' : 'ВЫКЛ'}
                               </span>
                             </Badge>
                           </div>
-                          
                           <p className="text-[14px] text-muted-foreground mb-2 line-clamp-2">
                             {flow.description?.trim() || 'Нет описания'}
                           </p>
-                          
                           <div className="flex flex-wrap gap-3 text-[14px] text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-3.5 h-3.5" />
-                              Создано: {flow.created_at ? format(new Date(flow.created_at), 'dd.MM.yyyy HH:mm', { locale: ru }) : '—'}
-                            </span>
-                            {flow.last_run && (
+                            {flow.last_run != null && (
                               <span className="flex items-center gap-1">
                                 <RefreshCw className="w-3.5 h-3.5" />
-                                Запуск: {format(new Date(flow.last_run), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                                Запуск: {safeFormatDate(flow.last_run)}
                               </span>
                             )}
                             {flow.execution_time != null && (
@@ -406,52 +265,65 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                                 Время: {flow.execution_time} с
                               </span>
                             )}
-                            {flow.last_seen && (
+                            {flow.last_seen != null && (
                               <span className="flex items-center gap-1">
                                 <Clock className="w-3.5 h-3.5" />
-                                Обновлено: {format(new Date(flow.last_seen), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                                Обновлено: {safeFormatDate(flow.last_seen)}
+                              </span>
+                            )}
+                            {flow.trigger_type && (
+                              <span className="flex items-center gap-1">
+                                Триггер: {flow.trigger_type}
                               </span>
                             )}
                           </div>
-
-                          {flow.logs && isError && (
-                            <div className="mt-3 p-2 rounded-lg bg-red-500/10 border border-red-500/20">
-                              <p className="text-xs text-red-600 font-medium">Ошибка:</p>
-                              <p className="text-xs text-red-500 mt-1">{flow.logs}</p>
-                            </div>
-                          )}
                         </div>
-                        
                         <div className="flex items-center gap-2 flex-shrink-0">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.preventDefault();
-                              e.stopPropagation();
-                              handleTriggerFlow(flow);
-                            }}
-                            disabled={isTriggering}
-                            className={cn(
-                              "shrink-0 text-[14px] font-medium min-w-[140px]",
-                              !isTriggering && "cursor-pointer hover:bg-primary/10 hover:border-primary/30 active:scale-95 opacity-100",
-                              isTriggering && "opacity-70"
-                            )}
-                            type="button"
-                            aria-label={`Запустить связку ${flow.flow_name ?? 'Без названия'}`}
-                          >
-                            {isTriggering ? (
-                              <>
-                                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                                Запуск...
-                              </>
-                            ) : (
-                              <>
-                                <Play className="w-4 h-4 mr-2" />
-                                Запустить вручную
-                              </>
-                            )}
-                          </Button>
+                          {!flow.webhook_url?.trim() ? (
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="inline-flex">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      disabled
+                                      className="shrink-0 text-[14px] font-medium min-w-[140px] opacity-70"
+                                      type="button"
+                                      aria-label="Нет вебхука для запуска"
+                                    >
+                                      <Play className="w-4 h-4 mr-2" /> Запустить вручную
+                                    </Button>
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>Нет вебхука для запуска</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          ) : (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                handleTriggerFlow(flow);
+                              }}
+                              disabled={isTriggering}
+                              className={cn(
+                                'shrink-0 text-[14px] font-medium min-w-[140px]',
+                                !isTriggering && 'cursor-pointer hover:bg-primary/10 hover:border-primary/30 active:scale-95 opacity-100',
+                                isTriggering && 'opacity-70',
+                              )}
+                              type="button"
+                              aria-label={`Запустить связку ${flow.flow_name || 'Без названия'}`}
+                            >
+                              {isTriggering ? (
+                                <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Запуск...</>
+                              ) : (
+                                <><Play className="w-4 h-4 mr-2" /> Запустить вручную</>
+                              )}
+                            </Button>
+                          )}
                         </div>
                       </div>
                     </motion.div>
