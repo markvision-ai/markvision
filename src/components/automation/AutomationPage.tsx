@@ -27,9 +27,11 @@ interface AutomationFlow {
   id: string;
   project_id: string;
   name: string;
+  flow_name?: string; // Название из n8n
   description?: string;
   status: 'active' | 'inactive' | 'error' | 'running';
   last_run: string | null;
+  last_seen?: string | null; // Время последнего обновления из n8n
   execution_time?: number;
   logs?: string;
   created_at: string;
@@ -102,35 +104,40 @@ const getTriggerTypeLabel = (triggerType?: string) => {
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [flows, setFlows] = useState<AutomationFlow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringFlow, setTriggeringFlow] = useState<string | null>(null);
 
-  // Fetch automation flows
-  useEffect(() => {
+  // Fetch automation flows with filter (last_seen in last 24 hours)
+  const fetchFlows = useCallback(async () => {
     if (!projectId) {
       setLoading(false);
       return;
     }
 
-    const fetchFlows = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('automation_flows')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('created_at', { ascending: false });
+    try {
+      const twentyFourHoursAgo = new Date();
+      twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
 
-        if (error) throw error;
-        setFlows(data || []);
-      } catch (error) {
-        console.error('Error fetching automation flows:', error);
-        toast.error('Ошибка загрузки автоматизаций');
-      } finally {
-        setLoading(false);
-      }
-    };
+      const { data, error } = await supabase
+        .from('automation_flows')
+        .select('*')
+        .eq('project_id', projectId)
+        .gte('last_seen', twentyFourHoursAgo.toISOString())
+        .order('created_at', { ascending: false });
 
+      if (error) throw error;
+      setFlows(data || []);
+    } catch (error) {
+      console.error('Error fetching automation flows:', error);
+      toast.error('Ошибка загрузки автоматизаций');
+    } finally {
+      setLoading(false);
+    }
+  }, [projectId]);
+
+  useEffect(() => {
     fetchFlows();
 
     // Subscribe to realtime changes
@@ -153,7 +160,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [projectId]);
+  }, [projectId, fetchFlows]);
 
   // Fetch n8n webhook URL from project settings
   useEffect(() => {
@@ -256,6 +263,40 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   };
 
+  // Refresh flows list from n8n
+  const handleRefresh = async () => {
+    if (!n8nWebhookUrl) {
+      toast.error('Сначала настройте URL вебхука n8n');
+      return;
+    }
+
+    setRefreshing(true);
+    try {
+      const response = await fetch(n8nWebhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'sync_flows',
+          project_id: projectId
+        })
+      });
+
+      if (!response.ok) throw new Error('Ошибка синхронизации');
+
+      toast.success('Список автоматизаций обновлен');
+      
+      // Refresh flows from database after sync
+      await fetchFlows();
+    } catch (error) {
+      console.error('Error refreshing flows:', error);
+      toast.error('Ошибка синхронизации автоматизаций');
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   // Trigger workflow manually
   const handleTriggerFlow = async (flow: AutomationFlow) => {
     if (!n8nWebhookUrl) {
@@ -322,6 +363,15 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           </h2>
           <p className="text-muted-foreground mt-1">Управление n8n workflows и автоматизациями</p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleRefresh}
+          disabled={refreshing || !n8nWebhookUrl}
+          className="shrink-0"
+        >
+          <RefreshCw className={cn("w-4 h-4 mr-2", refreshing && "animate-spin")} />
+          Обновить
+        </Button>
       </div>
 
       {/* n8n Webhook URL Card */}
@@ -409,14 +459,15 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                         "p-4 rounded-xl border bg-card/50 backdrop-blur-sm transition-all",
                         "hover:border-primary/30 hover:shadow-lg",
                         isError && "border-red-500/50 bg-red-500/5",
-                        isError && "animate-pulse shadow-lg shadow-red-500/20"
+                        isError && "animate-pulse shadow-lg shadow-red-500/20",
+                        flow.status === 'active' && "border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/20"
                           )}
                         >
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
                             {getStatusIcon(flow.status)}
-                            <h4 className="font-semibold truncate">{flow.name}</h4>
+                            <h4 className="font-semibold truncate">{flow.name || flow.flow_name || 'Без названия'}</h4>
                             <GlowBadge status={flow.status} />
                               </div>
                               
