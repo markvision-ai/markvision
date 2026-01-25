@@ -3,7 +3,7 @@ import { supabase } from '@/lib/externalSupabase';
 
 /**
  * Строгий список полей automation_flows (только эти — не добавлять):
- * flow_name, description, trigger_type, webhook_url, status, last_run, last_seen, execution_time.
+ * flow_name, description, trigger_type, webhook_url, status, last_run, last_seen, execution_time, n8n_id.
  * id, project_id — для фильтрации и ключей.
  */
 export interface AutomationFlowRow {
@@ -17,9 +17,10 @@ export interface AutomationFlowRow {
   last_run: string | null;
   last_seen: string | null;
   execution_time: number | null;
+  n8n_id: string | null;
 }
 
-const FIELDS = 'id, project_id, flow_name, description, trigger_type, webhook_url, status, last_run, last_seen, execution_time';
+const FIELDS = 'id, project_id, flow_name, description, trigger_type, webhook_url, status, last_run, last_seen, execution_time, n8n_id';
 
 function normalize(row: Record<string, unknown> | null): AutomationFlowRow | null {
   if (!row || typeof row.id !== 'string') return null;
@@ -36,12 +37,15 @@ function normalize(row: Record<string, unknown> | null): AutomationFlowRow | nul
     last_run: (row.last_run as string) ?? null,
     last_seen: (row.last_seen as string) ?? null,
     execution_time: typeof row.execution_time === 'number' ? row.execution_time : null,
+    n8n_id: typeof row.n8n_id === 'string' ? row.n8n_id : null,
   };
 }
 
 export function useAutomation(projectId: string | null) {
   const [flows, setFlows] = useState<AutomationFlowRow[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const FETCH_TIMEOUT_MS = 15_000;
 
   const fetchFlows = useCallback(async () => {
     if (!projectId) {
@@ -50,6 +54,13 @@ export function useAutomation(projectId: string | null) {
       return;
     }
     setLoading(true);
+    let cancelled = false;
+    const timer = setTimeout(() => {
+      cancelled = true;
+      setLoading(false);
+      setFlows([]);
+      import('sonner').then(({ toast }) => toast.error('Таймаут загрузки связок'));
+    }, FETCH_TIMEOUT_MS);
     try {
       const { data, error } = await supabase
         .from('automation_flows')
@@ -58,16 +69,23 @@ export function useAutomation(projectId: string | null) {
         .order('last_run', { ascending: false, nullsFirst: false })
         .limit(12);
 
+      if (cancelled) return;
       if (error) {
         setFlows([]);
+        const { toast } = await import('sonner');
+        toast.error(`Ошибка загрузки связок: ${error.message}`);
         return;
       }
       const list = (data ?? []).map(normalize).filter((x): x is AutomationFlowRow => x != null);
       setFlows(list);
-    } catch {
+    } catch (err) {
+      if (cancelled) return;
       setFlows([]);
+      const { toast } = await import('sonner');
+      toast.error(`Ошибка загрузки: ${err instanceof Error ? err.message : 'Неизвестная ошибка'}`);
     } finally {
-      setLoading(false);
+      clearTimeout(timer);
+      if (!cancelled) setLoading(false);
     }
   }, [projectId]);
 
