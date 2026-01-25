@@ -249,7 +249,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
       if (!response.ok) throw new Error('Ошибка активации workflow');
 
-      toast.success(`Workflow "${flow.name}" активирован`);
+      const flowDisplayName = flow.flow_name || 'Workflow';
+      toast.success(`Workflow "${flowDisplayName}" активирован`);
       
       // Update status in database
       const { error } = await supabase
@@ -336,7 +337,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
       if (!response.ok) throw new Error('Ошибка запуска workflow');
 
-      const flowDisplayName = flow.flow_name || flow.name;
+      const flowDisplayName = flow.flow_name || 'Workflow';
       toast.success(`Workflow "${flowDisplayName}" запущен`);
       
       // Update last_run
@@ -482,10 +483,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                           <div className="flex items-start justify-between gap-4">
                             <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3 mb-2">
-                            {getFlowIcon(flow.flow_name || flow.name)}
+                            {getFlowIcon(flow.flow_name)}
                             {getStatusIcon(flow.status)}
                             <h4 className="font-semibold truncate text-foreground">
-                              {flow.flow_name || flow.name || 'Без названия'}
+                              {flow.flow_name || 'Без названия'}
                             </h4>
                             <GlowBadge status={flow.status} />
                               </div>
