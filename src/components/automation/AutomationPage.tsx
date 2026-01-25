@@ -385,11 +385,9 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             </Badge>
                           </div>
                           
-                          {flow.description && (
-                            <p className="text-[14px] text-muted-foreground mb-2 line-clamp-2">
-                              {flow.description}
-                            </p>
-                          )}
+                          <p className="text-[14px] text-muted-foreground mb-2 line-clamp-2">
+                            {flow.description?.trim() || 'Нет описания'}
+                          </p>
                           
                           <div className="flex flex-wrap gap-3 text-[14px] text-muted-foreground">
                             <span className="flex items-center gap-1">
