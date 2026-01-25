@@ -26,6 +26,7 @@ import {
   Sparkles
 } from 'lucide-react';
 import { supabase } from '@/lib/externalSupabase';
+import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
@@ -47,7 +48,7 @@ interface ChatThread {
   id: string;
   project_id: string;
   lead_id: string | null;
-  channel: 'whatsapp' | 'instagram' | 'tiktok';
+  channel: 'whatsapp' | 'instagram' | 'tiktok' | 'chat';
   last_message_at: string;
   unread_count: number;
   lead?: {
@@ -90,15 +91,18 @@ const channelIcons: Record<string, React.ReactNode> = {
   whatsapp: <WhatsAppIcon className="w-4 h-4" />,
   instagram: <Instagram className="w-4 h-4" />,
   tiktok: <TikTokIcon className="w-4 h-4" />,
+  chat: <MessageCircle className="w-4 h-4" />,
 };
 
 const channelColors: Record<string, string> = {
   whatsapp: 'bg-green-500',
   instagram: 'bg-pink-500',
   tiktok: 'bg-black dark:bg-white',
+  chat: 'bg-blue-500',
 };
 
 export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
+  const { user } = useAuth();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedThread, setSelectedThread] = useState<ChatThread | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -109,74 +113,79 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
   const [isSummaryOpen, setIsSummaryOpen] = useState(false);
   const [chatSummary, setChatSummary] = useState('');
 
-  // Fetch threads (grouped by lead_id and channel from inbox_messages)
+  // Fetch threads from lead_messages (grouped by lead_id; channel = 'chat')
   const fetchThreads = useCallback(async () => {
     if (!projectId) return;
     
+    setLoading(true);
     try {
-      // Получаем все сообщения и группируем их в threads
+      const { data: leadsData, error: leadsErr } = await supabase
+        .from('leads')
+        .select('id, name, phone, email, status')
+        .eq('project_id', projectId);
+
+      if (leadsErr) throw leadsErr;
+      const leadIds = (leadsData || []).map((l: { id: string }) => l.id);
+      const leadsMap = new Map((leadsData || []).map((l: any) => [l.id, l]));
+
+      if (leadIds.length === 0) {
+        setThreads([]);
+        setLoading(false);
+        return;
+      }
+
       const { data: messagesData, error } = await supabase
-        .from('inbox_messages')
-        .select('*, leads(id, name, phone, email, status)')
-        .eq('project_id', projectId)
-        .in('channel', ['whatsapp', 'instagram', 'tiktok'])
-        .order('sent_at', { ascending: false });
+        .from('lead_messages')
+        .select('id, lead_id, user_id, user_name, message, created_at')
+        .in('lead_id', leadIds)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
 
-      // Группируем сообщения по lead_id и channel (создаем threads)
       const threadsMap = new Map<string, ChatThread>();
-      
       (messagesData || []).forEach((msg: any) => {
-        const threadKey = `${msg.lead_id || 'no-lead'}_${msg.channel}`;
-        
+        const lid = msg.lead_id || 'no-lead';
+        const threadKey = `${lid}_chat`;
+        const lead = leadsMap.get(msg.lead_id);
+
         if (!threadsMap.has(threadKey)) {
           threadsMap.set(threadKey, {
             id: threadKey,
             project_id: projectId,
             lead_id: msg.lead_id,
-            channel: msg.channel,
-            last_message_at: msg.sent_at,
+            channel: 'chat',
+            last_message_at: msg.created_at,
             unread_count: 0,
-            lead: msg.leads ? {
-              id: msg.leads.id,
-              name: msg.leads.name,
-              phone: msg.leads.phone,
-              email: msg.leads.email,
-              status: msg.leads.status,
-            } : undefined,
+            lead: lead ? { id: lead.id, name: lead.name, phone: lead.phone, email: lead.email, status: lead.status } : undefined,
             last_message: {
               id: msg.id,
               thread_id: threadKey,
               lead_id: msg.lead_id,
-              channel: msg.channel,
-              direction: msg.direction,
-              content: msg.content,
-              status: msg.status,
-              sent_at: msg.sent_at,
-              read_at: msg.read_at,
-              created_at: msg.sent_at,
+              channel: 'chat',
+              direction: 'outbound',
+              content: msg.message,
+              status: 'delivered',
+              sent_at: msg.created_at,
+              read_at: null,
+              created_at: msg.created_at,
             },
           });
         } else {
           const thread = threadsMap.get(threadKey)!;
-          if (new Date(msg.sent_at) > new Date(thread.last_message_at)) {
-            thread.last_message_at = msg.sent_at;
+          if (new Date(msg.created_at) > new Date(thread.last_message_at)) {
+            thread.last_message_at = msg.created_at;
             thread.last_message = {
               id: msg.id,
               thread_id: threadKey,
               lead_id: msg.lead_id,
-              channel: msg.channel,
-              direction: msg.direction,
-              content: msg.content,
-              status: msg.status,
-              sent_at: msg.sent_at,
-              read_at: msg.read_at,
-              created_at: msg.sent_at,
+              channel: 'chat',
+              direction: 'outbound',
+              content: msg.message,
+              status: 'delivered',
+              sent_at: msg.created_at,
+              read_at: null,
+              created_at: msg.created_at,
             };
-          }
-          if (msg.direction === 'inbound' && !msg.read_at) {
-            thread.unread_count++;
           }
         }
       });
@@ -186,7 +195,6 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
       );
 
       setThreads(threadsArray);
-      
       if (threadsArray.length > 0 && !selectedThread) {
         setSelectedThread(threadsArray[0]);
       }
@@ -198,22 +206,33 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
     }
   }, [projectId, selectedThread]);
 
-  // Fetch messages for selected thread
+  // Fetch messages for selected thread (from lead_messages)
   const fetchMessages = useCallback(async (thread: ChatThread) => {
-    if (!projectId || !thread) return;
+    if (!projectId || !thread || !thread.lead_id) return;
     
     setLoadingMessages(true);
     try {
       const { data, error } = await supabase
-        .from('inbox_messages')
-        .select('*')
-        .eq('project_id', projectId)
+        .from('lead_messages')
+        .select('id, lead_id, user_id, user_name, message, created_at')
         .eq('lead_id', thread.lead_id)
-        .eq('channel', thread.channel)
-        .order('sent_at', { ascending: true });
+        .order('created_at', { ascending: true });
 
       if (error) throw error;
-      setMessages(data || []);
+
+      const mapped: ChatMessage[] = (data || []).map((m: any) => ({
+        id: m.id,
+        thread_id: thread.id,
+        lead_id: m.lead_id,
+        channel: thread.channel,
+        direction: 'outbound',
+        content: m.message,
+        status: 'delivered',
+        sent_at: m.created_at,
+        read_at: null,
+        created_at: m.created_at,
+      }));
+      setMessages(mapped);
     } catch (error) {
       console.error('Error fetching messages:', error);
       toast.error('Ошибка загрузки сообщений');
@@ -226,24 +245,23 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
     fetchThreads();
   }, [fetchThreads]);
 
-  // Realtime subscription for new messages
+  // Realtime subscription for new messages (lead_messages has no project_id; refetch on any insert)
   useEffect(() => {
     if (!projectId) return;
 
     const channel = supabase
-      .channel('inbox-messages-realtime')
+      .channel('lead-messages-inbox-realtime')
       .on(
         'postgres_changes',
         {
           event: 'INSERT',
           schema: 'public',
-          table: 'inbox_messages',
-          filter: `project_id=eq.${projectId}`
+          table: 'lead_messages',
         },
         () => {
-          fetchThreads(); // Обновляем список threads
+          fetchThreads();
           if (selectedThread) {
-            fetchMessages(selectedThread); // Обновляем сообщения текущего thread
+            fetchMessages(selectedThread);
           }
         }
       )
@@ -262,18 +280,22 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
   }, [selectedThread, fetchMessages]);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedThread || !projectId) return;
+    if (!newMessage.trim() || !selectedThread || !projectId || !selectedThread.lead_id || !user) return;
     
     try {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('name')
+        .eq('user_id', user.id)
+        .single();
+
       const { error } = await supabase
-        .from('inbox_messages')
+        .from('lead_messages')
         .insert({
-          project_id: projectId,
           lead_id: selectedThread.lead_id,
-          channel: selectedThread.channel,
-          direction: 'outbound',
-          content: newMessage,
-          status: 'sent',
+          user_id: user.id,
+          user_name: profile?.name || user.email?.split('@')[0] || 'Пользователь',
+          message: newMessage.trim(),
         });
 
       if (error) throw error;

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useQueryClient, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -29,11 +30,13 @@ import { supabase } from '@/lib/externalSupabase';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
+const AUTOMATION_FLOWS_KEY = 'automation_flows';
+
 interface AutomationFlow {
   id: string;
   project_id: string;
-  name: string;
-  flow_name?: string; // Название из n8n (используется для отображения)
+  name?: string;
+  flow_name?: string;
   description?: string;
   status: 'active' | 'inactive' | 'error' | 'running' | 'paused';
   last_run: string | null;
@@ -51,9 +54,14 @@ interface AutomationPageProps {
   projectId: string | null;
 }
 
-// N8N URLs
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || 'https://n8n.zapoinov.com/webhook/execute-flow';
 const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
+
+const n8nFetchOpts: RequestInit = {
+  method: 'POST',
+  mode: 'cors',
+  headers: { 'Content-Type': 'application/json' },
+};
 
 // Определение иконки по названию связки
 const getFlowIcon = (flowName?: string) => {
@@ -73,53 +81,40 @@ const getFlowIcon = (flowName?: string) => {
 
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const effectiveProjectId = projectId || FALLBACK_PROJECT_ID;
-  const [flows, setFlows] = useState<AutomationFlow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringFlow, setTriggeringFlow] = useState<string | null>(null);
 
-  // Fetch automation flows from database
-  const fetchFlows = useCallback(async () => {
-    setLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('automation_flows')
-        .select('id, project_id, name, flow_name, description, status, last_run, last_seen, execution_time, logs, created_at, updated_at, trigger_type, webhook_url, n8n_id')
-        .eq('project_id', effectiveProjectId)
-        .neq('status', 'archived') // Фильтруем archived связки
-        .order('created_at', { ascending: false })
-        .limit(12); // Показываем только 12 реальных элементов
+  const queryKey = useMemo(() => [AUTOMATION_FLOWS_KEY, effectiveProjectId] as const, [effectiveProjectId]);
 
-      if (error) {
-        console.error('Supabase error:', error);
-        toast.error(`Ошибка загрузки: ${error.message}`);
-        setFlows([]);
-        return;
-      }
-      
-      // Убеждаемся, что flow_name используется для отображения
-      // Показываем все связки (фильтрация по n8n_id убрана, чтобы кнопка была доступна)
-      const mappedFlows = (data || []).map(flow => ({
-        ...flow,
-        flow_name: flow.flow_name || flow.name,
-      }));
-      
-      setFlows(mappedFlows);
-    } catch (error: any) {
-      console.error('Error fetching automation flows:', error);
-      toast.error('Ошибка загрузки автоматизаций');
-      setFlows([]);
-    } finally {
-      setLoading(false);
+  const fetchFlowsFn = useCallback(async (): Promise<AutomationFlow[]> => {
+    const { data, error } = await supabase
+      .from('automation_flows')
+      .select('id, project_id, flow_name, description, status, last_run, last_seen, execution_time, logs, created_at, updated_at, trigger_type, webhook_url, n8n_id')
+      .eq('project_id', effectiveProjectId)
+      .order('created_at', { ascending: false })
+      .limit(12);
+
+    if (error) {
+      console.error('Supabase error:', error);
+      toast.error(`Ошибка загрузки: ${error.message}`);
+      return [];
     }
+    return (data || []).map((flow: any) => ({ ...flow, flow_name: flow.flow_name }));
   }, [effectiveProjectId]);
 
-  useEffect(() => {
-    fetchFlows();
+  const { data: flows = [], isLoading: loading } = useQuery({
+    queryKey,
+    queryFn: fetchFlowsFn,
+  });
 
-    // Subscribe to realtime changes
+  const invalidateFlows = useCallback(() => {
+    void queryClient.invalidateQueries({ queryKey });
+  }, [queryClient, queryKey]);
+
+  useEffect(() => {
     const channel = supabase
       .channel('automation-flows-realtime')
       .on(
@@ -130,16 +125,11 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           table: 'automation_flows',
           filter: `project_id=eq.${effectiveProjectId}`
         },
-        () => {
-          fetchFlows();
-        }
+        () => { invalidateFlows(); }
       )
       .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [effectiveProjectId, fetchFlows]);
+    return () => { supabase.removeChannel(channel); };
+  }, [effectiveProjectId, invalidateFlows]);
 
   // Fetch n8n webhook URL from project settings
   useEffect(() => {
@@ -164,7 +154,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     fetchWebhookUrl();
   }, [effectiveProjectId]);
 
-  // Save n8n webhook URL
+  // Save n8n webhook URL to project; refetch from DB to confirm, then refresh flows list
   const handleSaveWebhook = async () => {
     setSavingWebhook(true);
     try {
@@ -175,6 +165,15 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
 
       if (error) throw error;
       toast.success('URL вебхука сохранен');
+
+      const { data } = await supabase
+        .from('projects')
+        .select('n8n_webhook_url')
+        .eq('id', effectiveProjectId)
+        .single();
+      if (data?.n8n_webhook_url != null) setN8nWebhookUrl(data.n8n_webhook_url);
+
+      invalidateFlows();
     } catch (error) {
       console.error('Error saving webhook URL:', error);
       toast.error('Ошибка сохранения URL вебхука');
@@ -183,72 +182,25 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   };
 
-  // Refresh flows list from n8n sync webhook and refetch from database
+  // Sync с n8n: POST, no-cors (обход CORS). Тост + refetch через 3 сек.
   const handleRefresh = async () => {
     setRefreshing(true);
-    
+
     try {
-      // Отправляем запрос на n8n-синхронизатор
-      const response = await fetch(N8N_SYNC_URL, {
+      await fetch(N8N_SYNC_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          project_id: effectiveProjectId
-        })
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project_id: effectiveProjectId }),
       });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`HTTP ${response.status}: ${errorText || 'Ошибка синхронизации с n8n'}`);
-      }
-
-      // Обрабатываем JSON-ответ от n8n
-      const result = await response.json();
-      
-      // Ждем немного для завершения синхронизации в базе
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Обновляем данные из базы автоматически
-      await fetchFlows();
-      
-      // Проверяем результат синхронизации (новый формат ответа)
-      if (result && result.status === 'success') {
-        const newCount = result.newCount || 0;
-        const newNames = result.newNames || [];
-        
-        if (newCount === 0) {
-          toast.success('Обновлено. Новых автоматизаций: 0');
-        } else if (newCount > 0) {
-          const namesList = newNames.length > 0 ? ` (${newNames.join(', ')})` : '';
-          toast.success(`Обновлено! Добавлено новых: ${newCount}${namesList}`);
-        } else {
-          toast.success('Синхронизация завершена');
-        }
-      } else {
-        // Fallback для старого формата ответа
-        if (result && typeof result.count === 'number') {
-          const newCount = result.count;
-          if (newCount === 0) {
-            toast.success('Обновлено. Новых автоматизаций: 0');
-          } else {
-            toast.success(`Обновлено! Всего автоматизаций: ${newCount}`);
-          }
-        } else {
-          toast.success('Синхронизация завершена');
-        }
-      }
-    } catch (error: any) {
-      console.error('Error refreshing flows:', error);
-      // Выводим полный текст ошибки для диагностики
-      const errorMessage = error.message || error.toString() || 'Неизвестная ошибка';
-      toast.error(`Ошибка синхронизации: ${errorMessage}`);
-      // Все равно обновляем данные из базы
-      await fetchFlows();
+      toast.info('Запрос на синхронизацию отправлен...');
+    } catch (e: any) {
+      toast.error(`Ошибка отправки: ${e?.message ?? String(e)}`);
     } finally {
       setRefreshing(false);
     }
+
+    setTimeout(() => queryClient.invalidateQueries({ queryKey }), 3000);
   };
 
   // Trigger workflow manually using n8n dispatcher
@@ -264,13 +216,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     setTriggeringFlow(flow.id);
     try {
       const response = await fetch(N8N_DISPATCHER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          flow_id: flowIdToSend
-        })
+        ...n8nFetchOpts,
+        body: JSON.stringify({ flow_id: flowIdToSend }),
       });
 
       if (!response.ok) {
@@ -287,9 +234,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         .eq('id', flow.id);
 
       if (error) console.error('Error updating last_run:', error);
-      
-      // Обновляем список
-      await fetchFlows();
+
+      invalidateFlows();
     } catch (error: any) {
       console.error('Error triggering workflow:', error);
       toast.error(`Ошибка запуска: ${error.message || 'Неизвестная ошибка'}`);
@@ -417,7 +363,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                           <div className="flex items-center gap-3 mb-2">
                             {getFlowIcon(flow.flow_name)}
                             <h4 className="font-bold text-[16px] truncate text-foreground">
-                              {flow.flow_name || flow.name || 'Без названия'}
+                              {flow.flow_name ?? 'Без названия'}
                             </h4>
                             <Badge 
                               className={cn(
@@ -456,6 +402,18 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                                 Запуск: {format(new Date(flow.last_run), 'dd.MM.yyyy HH:mm', { locale: ru })}
                               </span>
                             )}
+                            {flow.execution_time != null && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                Время: {flow.execution_time} с
+                              </span>
+                            )}
+                            {flow.last_seen && (
+                              <span className="flex items-center gap-1">
+                                <Clock className="w-3.5 h-3.5" />
+                                Обновлено: {format(new Date(flow.last_seen), 'dd.MM.yyyy HH:mm', { locale: ru })}
+                              </span>
+                            )}
                           </div>
 
                           {flow.logs && isError && (
@@ -482,7 +440,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                               isTriggering && "opacity-70"
                             )}
                             type="button"
-                            aria-label={`Запустить связку ${flow.flow_name || flow.name}`}
+                            aria-label={`Запустить связку ${flow.flow_name ?? 'Без названия'}`}
                           >
                             {isTriggering ? (
                               <>

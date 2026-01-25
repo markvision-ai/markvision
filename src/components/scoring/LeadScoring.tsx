@@ -66,7 +66,7 @@ interface ScoringInsight {
   suggested_operator: string | null;
   suggested_value: string | null;
   suggested_score_delta: number | null;
-  confidence_score: number;
+  confidence_score?: number; // optional — column may not exist in DB
   status: string;
   created_at: string;
 }
@@ -116,7 +116,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const fetchRules = async () => {
     try {
       const { data, error } = await supabase
-        .from('lead_scoring_rules')
+        .from('scoring_rules')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
@@ -138,7 +138,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         .select('*')
         .eq('project_id', projectId)
         .eq('status', 'pending')
-        .order('confidence_score', { ascending: false })
+        .order('created_at', { ascending: false })
         .limit(5);
 
       if (error) throw error;
@@ -155,7 +155,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     }
 
     try {
-      const { error } = await supabase.from('lead_scoring_rules').insert([{
+      const { error } = await supabase.from('scoring_rules').insert([{
         project_id: projectId,
         ...newRule,
       }]);
@@ -177,7 +177,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const handleToggleRule = async (ruleId: string, isActive: boolean) => {
     try {
       const { error } = await supabase
-        .from('lead_scoring_rules')
+        .from('scoring_rules')
         .update({ is_active: isActive })
         .eq('id', ruleId);
 
@@ -194,7 +194,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const handleDeleteRule = async (ruleId: string) => {
     try {
       const { error } = await supabase
-        .from('lead_scoring_rules')
+        .from('scoring_rules')
         .delete()
         .eq('id', ruleId);
 
@@ -310,7 +310,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       }
 
       // Создаем правило из инсайта
-      const { error: ruleError } = await supabase.from('lead_scoring_rules').insert([{
+      const { error: ruleError } = await supabase.from('scoring_rules').insert([{
         project_id: projectId,
         name: insight.title,
         field: insight.suggested_field,
@@ -442,7 +442,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                     className="flex items-center gap-3 p-4 rounded-lg bg-background/70 border border-primary/10"
                   >
                     <div className="flex-shrink-0">
-                      {insight.confidence_score >= 0.7 ? (
+                      {(insight.confidence_score ?? 0.5) >= 0.7 ? (
                         <TrendingUp className="w-5 h-5 text-green-500" />
                       ) : (
                         <Zap className="w-5 h-5 text-yellow-500" />
