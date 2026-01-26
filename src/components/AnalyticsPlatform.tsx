@@ -260,9 +260,9 @@ export const AnalyticsPlatform = () => {
   const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
   
   // ROMI, ROI, ROAS
-  const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI в процентах
-  const roi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROI в процентах (то же что ROMI)
-  const roas = totals.spend > 0 ? totals.revenue / totals.spend : null; // ROAS как коэффициент
+  const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
+  const roi = totals.spend > 0 ? (totals.revenue / totals.spend) * 100 : null; // ROI: доходность инвестиций в %
+  const roas = totals.spend > 0 ? totals.revenue / totals.spend : null; // ROAS: коэффициент возврата
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
 
@@ -493,7 +493,7 @@ export const AnalyticsPlatform = () => {
                     )}
                   </div>
                   <div className="text-[10px] text-slate-500 leading-tight">
-                    {roi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
+                    {roi !== null ? 'Выручка / Расходы' : 'Нет данных'}
                   </div>
                 </div>
 
