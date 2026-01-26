@@ -92,7 +92,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: index * 0.1 }}
           >
-            <Card className={cn('overflow-hidden hover:shadow-md transition-all duration-300 backdrop-blur-sm bg-card/50 border border-white/10', stat.glow, 'shadow-sm')}>
+            <Card className={cn('overflow-hidden hover:shadow-md transition-all duration-300 backdrop-blur-sm bg-card/50 border border-border', stat.glow, 'shadow-sm')}>
               <CardContent className="p-4 md:p-5">
                 <div className="flex items-center gap-3">
                   <div className={cn('w-11 h-11 md:w-12 md:h-12 rounded-xl bg-gradient-to-br flex items-center justify-center flex-shrink-0 shadow-lg', stat.gradient)}>
@@ -115,8 +115,8 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, delay: 0.3 }}
       >
-        <Card className="overflow-hidden shadow-sm backdrop-blur-sm bg-card/50 border border-white/10">
-          <CardHeader className="border-b border-white/10 pb-4">
+        <Card className="overflow-hidden shadow-sm backdrop-blur-sm bg-card/50 border border-border">
+          <CardHeader className="border-b border-border pb-4">
             <CardTitle className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
                 <Sparkles className="w-5 h-5 text-primary-foreground" />
@@ -187,7 +187,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             {/* Premium Conversion Summary */}
             {leads.length > 0 && (
               <motion.div 
-                className="mt-8 pt-6 border-t border-white/10"
+                className="mt-8 pt-6 border-t border-border"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ duration: 0.4, delay: 0.8 }}

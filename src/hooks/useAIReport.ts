@@ -18,8 +18,7 @@ interface ReportData {
   metrics: {
     cpl: number;
     cac: number;
-    aov: number;
-    romi: number;
+    cpc: number;
     roas: number;
   };
 }

@@ -22,7 +22,7 @@ const integrationsList = [
   { id: 'facebook', name: 'Facebook Ads', color: 'bg-blue-600', icon: <Facebook className="w-6 h-6" />, desc: 'Реклама и аналитика Meta' },
   { id: 'instagram', name: 'Instagram', color: 'bg-pink-600', icon: <MessageCircle className="w-6 h-6" />, desc: 'Direct, Комменты и Reels' },
   { id: 'tiktok', name: 'TikTok Ads', color: 'bg-black', icon: <TikTokIcon />, desc: 'Аналитика трафика TikTok' },
-  { id: 'google', name: 'Google Ads', color: 'bg-white border text-black', icon: <GoogleIcon />, desc: 'Контекстная реклама' },
+  { id: 'google', name: 'Google Ads', color: 'bg-muted border border-border text-foreground', icon: <GoogleIcon />, desc: 'Контекстная реклама' },
   { id: 'greenapi', name: 'WhatsApp (GreenAPI)', color: 'bg-green-500', icon: <MessageCircle className="w-6 h-6" />, desc: 'Автоответчик и рассылки' }
 ];
 

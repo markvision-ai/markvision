@@ -228,7 +228,7 @@ export const LeadCard = ({
       className={cn(
         'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
         // Glassmorphism: backdrop-blur и тонкие границы
-        'backdrop-blur-sm bg-card/50 border border-white/10',
+        'backdrop-blur-sm bg-card/50 border border-border',
         // SLA Alert - Pulsing red border for leads waiting > 15 min
         needsAttention && 'animate-pulse ring-2 ring-red-500 border-red-500',
         // VIP Shine + Gold Glow for MEGA leads
@@ -242,7 +242,7 @@ export const LeadCard = ({
         needsAttention && 'bg-red-50/80 dark:bg-red-950/30',
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg hover:bg-card/70',
-        !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-white/20',
+        !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-foreground/20',
         !showDragging && isGoldenLead && 'hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]',
         !showDragging && hasHighScore && 'hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]',
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
@@ -477,7 +477,7 @@ export const LeadCard = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-white/10",
+                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
                   lead.phone 
                     ? "bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 hover:border-green-500/30" 
                     : "bg-muted/50 text-muted-foreground cursor-not-allowed"
@@ -507,7 +507,7 @@ export const LeadCard = ({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-white/10",
+                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
                   lead.phone 
                     ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:border-blue-500/30" 
                     : "bg-muted/50 text-muted-foreground cursor-not-allowed"
@@ -530,7 +530,7 @@ export const LeadCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-white/10 bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:border-purple-500/30"
+                className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:border-purple-500/30"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick?.(); // Открыть полную страницу лида для анализа

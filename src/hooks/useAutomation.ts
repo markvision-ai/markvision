@@ -3,7 +3,7 @@ import { supabase } from '@/lib/externalSupabase';
 
 /**
  * Поля automation_flows (схема из src/integrations/supabase/types.ts).
- * Используем flow_name, не name. Только существующие колонки.
+ * flow_name, webhook_url — для отображения и запуска по активированному хуку.
  */
 export interface AutomationFlowRow {
   id: string;
@@ -13,9 +13,10 @@ export interface AutomationFlowRow {
   last_seen: string | null;
   execution_time: number | null;
   n8n_id: string | null;
+  webhook_url: string | null;
 }
 
-const FIELDS = 'id, project_id, flow_name, status, last_seen, execution_time, n8n_id';
+const FIELDS = 'id, project_id, flow_name, status, last_seen, execution_time, n8n_id, webhook_url';
 
 function parseExecutionTime(raw: unknown): number | null {
   if (typeof raw === 'number' && !isNaN(raw)) return raw;
@@ -38,6 +39,7 @@ function normalize(row: Record<string, unknown> | null): AutomationFlowRow | nul
     last_seen: (row.last_seen as string) ?? null,
     execution_time: parseExecutionTime(row.execution_time),
     n8n_id: typeof row.n8n_id === 'string' ? row.n8n_id : null,
+    webhook_url: typeof row.webhook_url === 'string' ? row.webhook_url : null,
   };
 }
 

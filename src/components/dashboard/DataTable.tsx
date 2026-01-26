@@ -163,7 +163,7 @@ export const DataTable = ({
   }, [dailyData, daysInMonth]);
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'CPL', 'Диагностики', 'Продажи', 'Выручка', 'AOV', 'ROMI%'];
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
     const rows = daysInMonth.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
@@ -174,8 +174,6 @@ export const DataTable = ({
       const dayFollowers = data?.followers || 0;
       const daySpend = data?.spend || 0;
       const dayCpl = dayLeads > 0 ? Math.round(daySpend / dayLeads) : 0;
-      const dayAov = data?.sales && data.sales > 0 ? (data.revenue / data.sales).toFixed(2) : '—';
-      const dayRomi = data?.spend && data.spend > 0 ? (((data.revenue - data.spend) / data.spend) * 100).toFixed(1) : '—';
       return [
         format(day, 'dd.MM.yyyy'), 
         WEEKDAYS[getWeekDay(day)], 
@@ -189,8 +187,6 @@ export const DataTable = ({
         data?.diagnostics || 0, 
         data?.sales || 0, 
         data?.revenue || 0,
-        dayAov,
-        dayRomi
       ].join(',');
     });
     const csv = [headers.join(','), ...rows].join('\n');
@@ -261,8 +257,6 @@ export const DataTable = ({
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Диагностики</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[80px]">Продажи</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[120px]">Выручка</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">AOV</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[90px]">ROMI</th>
               </tr>
             </thead>
             <tbody>
@@ -288,13 +282,6 @@ export const DataTable = ({
                       )}
                     </td>
                   ))}
-                  {/* AOV and ROMI columns for Plan - not editable */}
-                  <td className="p-1 md:p-2">
-                    <span className="block text-right px-1.5 md:px-3 py-1.5 md:py-2 text-muted-foreground">—</span>
-                  </td>
-                  <td className="p-1 md:p-2">
-                    <span className="block text-right px-1.5 md:px-3 py-1.5 md:py-2 text-muted-foreground">—</span>
-                  </td>
                 </tr>
               )}
 
@@ -309,14 +296,6 @@ export const DataTable = ({
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
                 <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
-                {/* AOV = Выручка / Продажи */}
-                <td className="p-2 md:p-4 text-right">
-                  {totals.sales > 0 ? formatCurrency(totals.revenue / totals.sales) : '—'}
-                </td>
-                {/* ROMI = ((Выручка - Расходы) / Расходы) * 100 */}
-                <td className="p-2 md:p-4 text-right">
-                  {totals.spend > 0 ? formatPercent(((totals.revenue - totals.spend) / totals.spend) * 100) : '—'}
-                </td>
               </tr>
 
               {/* Percentage Row - third */}
@@ -350,9 +329,6 @@ export const DataTable = ({
                       </td>
                     );
                   })}
-                  {/* AOV and ROMI don't have plan, show — */}
-                  <td className="p-2 md:p-4 text-right font-medium text-muted-foreground">—</td>
-                  <td className="p-2 md:p-4 text-right font-medium text-muted-foreground">—</td>
                 </tr>
               )}
 
@@ -369,7 +345,7 @@ export const DataTable = ({
                 return (
                   <tr 
                     key={dateKey} 
-                    className={`border-b hover:bg-white/5 dark:hover:bg-white/5 transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
+                    className={`border-b hover:bg-foreground/[0.05] transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
                   >
                     <td className={`p-2 md:p-3 sticky left-0 backdrop-blur-sm z-10 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'ring-1 ring-primary/30' : ''}`}>
                       <div className="flex items-center gap-1 md:gap-2">
@@ -392,25 +368,9 @@ export const DataTable = ({
                             onSave={(val) => onDataChange(dateKey, field, val)}
                             className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm"
                           />
-                        </td>
-                      );
-                    })}
-                    {/* AOV column */}
-                    <td className="p-1 md:p-2">
-                      <div className="text-right px-1.5 md:px-3 py-1.5 md:py-2 text-xs md:text-sm">
-                        {dayData?.sales && dayData.sales > 0 
-                          ? formatCurrency(dayData.revenue / dayData.sales) 
-                          : '—'}
-                      </div>
-                    </td>
-                    {/* ROMI column */}
-                    <td className="p-1 md:p-2">
-                      <div className="text-right px-1.5 md:px-3 py-1.5 md:py-2 text-xs md:text-sm">
-                        {dayData?.spend && dayData.spend > 0 
-                          ? formatPercent(((dayData.revenue - dayData.spend) / dayData.spend) * 100) 
-                          : '—'}
-                      </div>
-                    </td>
+                      </td>
+                    );
+                  })}
                   </tr>
                 );
               })}

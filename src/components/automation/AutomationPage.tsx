@@ -26,10 +26,18 @@ import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 
-const DISPATCHER_URL = 'https://n8n.zapoinov.com/webhook/execute-any-flow';
+const N8N_BASE = 'https://n8n.zapoinov.com';
+const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow`;
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
-const N8N_SYNC_URL = 'https://n8n.zapoinov.com/webhook/sync-markvision-flows';
+const N8N_SYNC_URL = `${N8N_BASE}/webhook/sync-markvision-flows`;
 const SYNC_FETCH_TIMEOUT_MS = 8_000;
+
+/** В dev — /n8n/... (proxy), в prod — полный URL. */
+function webhookFetchUrl(url: string): string {
+  if (!import.meta.env.DEV || !url.startsWith(N8N_BASE)) return url;
+  const path = url.slice(N8N_BASE.length) || '/';
+  return `/n8n${path.startsWith('/') ? path : '/' + path}`;
+}
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {
   return Promise.race([
@@ -68,6 +76,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
+  const [triggeringAll, setTriggeringAll] = useState(false);
 
   // Realtime на automation_flows отключён: сервер может ожидать колонки (напр. webhook_url),
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
@@ -99,33 +108,84 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
     }
   }, [effectiveProjectId, n8nWebhookUrl, refetch]);
 
-  const handleRefresh = useCallback(() => {
-    toast.info('Обновляю список…');
+  const handleRefresh = useCallback(async () => {
+    toast.info('Запрашиваю связки из n8n…');
     setRefreshing(true);
-    refetch();
-    fetchWithTimeout(
-      N8N_SYNC_URL,
-      {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ project_id: effectiveProjectId }),
-      },
-      SYNC_FETCH_TIMEOUT_MS,
-    )
-      .then(() => {
-        toast.success('Синхронизация отправлена. Список обновится через пару секунд.');
-      })
-      .catch((e: unknown) => {
-        const msg = e instanceof Error ? e.message : String(e);
-        console.error('[Обновить] Ошибка синхронизации:', msg, e);
-        toast.error(`Ошибка синхронизации: ${msg}`);
-      })
-      .finally(() => {
-        setRefreshing(false);
-      });
-    setTimeout(() => refetch(), 3000);
+    const syncUrl = webhookFetchUrl(N8N_SYNC_URL);
+    try {
+      const res = await fetchWithTimeout(
+        syncUrl,
+        {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ project_id: effectiveProjectId }),
+        },
+        SYNC_FETCH_TIMEOUT_MS,
+      );
+      if (!res.ok) {
+        const text = await res.text();
+        toast.error(`Ошибка sync n8n (${res.status}): ${text || res.statusText}`);
+        return;
+      }
+      toast.success('Связки получены из n8n. Обновляю список…');
+      await refetch();
+      setTimeout(() => refetch(), 2500);
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e);
+      console.error('[Обновить] Ошибка синхронизации:', msg, e);
+      toast.error(`Ошибка синхронизации: ${msg}`);
+    } finally {
+      setRefreshing(false);
+    }
   }, [effectiveProjectId, refetch]);
+
+  const triggerOneFlow = useCallback(
+    async (flow: AutomationFlowRow): Promise<boolean> => {
+      const targetUrl = flow.webhook_url?.trim()
+        ? webhookFetchUrl(flow.webhook_url.trim())
+        : webhookFetchUrl(DISPATCHER_URL);
+      const body = flow.n8n_id
+        ? { flow_id: flow.n8n_id, project_id: effectiveProjectId }
+        : { project_id: effectiveProjectId };
+      if (!flow.webhook_url && !flow.n8n_id) return false;
+      try {
+        const res = await fetch(targetUrl, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        return res.ok;
+      } catch {
+        return false;
+      }
+    },
+    [effectiveProjectId],
+  );
+
+  const handleRunAll = useCallback(
+    async (list: AutomationFlowRow[]) => {
+      const runnable = list.filter((f) => f.webhook_url || f.n8n_id);
+      if (!runnable.length) {
+        toast.error('Нет связок с webhook_url или n8n_id. Настройте в n8n и синхронизируйте.');
+        return;
+      }
+      setTriggeringAll(true);
+      toast.info(`Запускаю ${runnable.length} связок…`);
+      const results = await Promise.all(runnable.map((f) => triggerOneFlow(f)));
+      const ok = results.filter(Boolean).length;
+      const err = runnable.length - ok;
+      if (err === 0) toast.success(`Запущено ${ok} связок`);
+      else toast.warning(`Запущено ${ok} связок, ошибок: ${err}`);
+      refetch();
+      setTriggeringAll(false);
+    },
+    [triggerOneFlow, refetch],
+  );
+
+  const q = searchQuery.trim().toLowerCase();
+  const filteredFlows = !flows.length ? [] : !q ? flows : flows.filter((f) => (f.flow_name ?? '').toLowerCase().includes(q));
 
   return (
     <div className="space-y-6">
@@ -145,7 +205,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             e.preventDefault();
             e.stopPropagation();
             if (refreshing) return;
-            handleRefresh();
+            void handleRefresh();
           }}
           disabled={refreshing}
           className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
@@ -191,14 +251,34 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       <Card>
         <CardHeader>
           <CardTitle className="text-[16px]">Актуальные связки</CardTitle>
-          <CardDescription className="text-[15px]">Список автоматизаций (максимум 12)</CardDescription>
-          <div className="pt-2">
+          <CardDescription className="text-[15px]">
+            Действующие связки из n8n. Нажмите «Обновить» — запрос в n8n, затем показ списка здесь (макс. 12).
+          </CardDescription>
+          <div className="flex flex-wrap items-center gap-3 pt-2">
             <Input
               placeholder="Поиск по названию…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="max-w-xs text-[15px]"
             />
+            {filteredFlows.length > 0 && (
+              <button
+                type="button"
+                onClick={() => void handleRunAll(filteredFlows)}
+                disabled={triggeringAll}
+                aria-label={triggeringAll ? 'Запуск связок…' : `Запустить вручную все ${filteredFlows.length} связок`}
+                className={cn(
+                  'inline-flex items-center justify-center gap-2 h-9 px-4 rounded-md text-[15px] font-medium',
+                  'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
+                  'shadow-sm hover:shadow-md transition-all',
+                  'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                  'disabled:opacity-70 disabled:cursor-not-allowed',
+                )}
+              >
+                <Play className="w-4 h-4" />
+                {triggeringAll ? 'Запуск…' : 'Запустить вручную'}
+              </button>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -214,13 +294,14 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
               <p className="text-[15px]">Нет настроенных автоматизаций</p>
               <p className="text-[15px] mt-2">Нажмите &quot;Обновить&quot; для синхронизации</p>
             </div>
-          ) : (() => {
-            const q = searchQuery.trim().toLowerCase();
-            const filtered = !q ? flows : flows.filter((f) => (f.flow_name ?? '').toLowerCase().includes(q));
-            return filtered.length ? (
+          ) : !filteredFlows.length ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p className="text-[15px]">По запросу «{searchQuery}» ничего не найдено</p>
+            </div>
+          ) : (
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
-                {filtered.map((flow, index) => {
+                {filteredFlows.map((flow, index) => {
                   const isError = flow.status === 'error';
                   const isActive = flow.status === 'active';
                   return (
@@ -264,44 +345,13 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              try {
-                                await fetch('/n8n/webhook/execute-any-flow', {
-                                  method: 'POST',
-                                  headers: { 'Content-Type': 'application/json' },
-                                  body: JSON.stringify({ flow_id: flow.n8n_id }),
-                                });
-                                console.log('Flow запущен');
-                              } catch (err) {
-                                console.error('Ошибка запуска n8n:', err);
-                              }
-                            }}
-                            className={cn(
-                              'inline-flex items-center justify-center gap-2 shrink-0 min-w-[140px] h-9 px-3 rounded-md text-[15px] font-medium',
-                              'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                              'shadow-sm hover:shadow-md transition-all cursor-pointer',
-                              'focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
-                            )}
-                            aria-label={`Запустить связку ${flow.flow_name || 'Без названия'}`}
-                          >
-                            <Play className="w-4 h-4" /> Запустить вручную
-                          </button>
-                        </div>
                       </div>
                     </motion.div>
                   );
                 })}
               </AnimatePresence>
             </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <p className="text-[15px]">По запросу «{searchQuery}» ничего не найдено</p>
-              </div>
-            );
-          })()}
+          )}
         </CardContent>
       </Card>
     </div>

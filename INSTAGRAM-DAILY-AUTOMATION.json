@@ -6,13 +6,13 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "5 1 * * *"
+              "expression": "0 9 * * *"
             }
           ]
         }
       },
       "id": "7b48a8b6-0981-410d-9071-b294048adcb7",
-      "name": "⏰ Ежедневно 01:05",
+      "name": "⏰ Ежедневно 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
       "position": [
@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Рассчитываем период\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\n\nconst periodStartTimestamp = Math.floor(periodStart.getTime() / 1000);\nconst periodEndTimestamp = Math.floor(periodEnd.getTime() / 1000) + 86399;\n\nconsole.log(`📅 Агрегация с ${periodStart.toISOString().split('T')[0]} по ${periodEnd.toISOString().split('T')[0]}`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    period_start_timestamp: periodStartTimestamp,\n    period_end_timestamp: periodEndTimestamp,\n    yesterday_date: yesterday.toISOString().split('T')[0],\n    today_date: today.toISOString().split('T')[0]\n  }\n};"
+        "jsCode": "// Рассчитываем период. Каждый день в 9:00 — данные за ВЧЕРА.\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst yesterdayStr = yesterday.toISOString().split('T')[0];\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\nconst periodStartTimestamp = Math.floor(periodStart.getTime() / 1000);\nconst periodEndTimestamp = Math.floor(periodEnd.getTime() / 1000) + 86399;\n\nconsole.log(`📅 Агрегация за вчера ${yesterdayStr} (ежедневно 09:00)`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    period_start_timestamp: periodStartTimestamp,\n    period_end_timestamp: periodEndTimestamp,\n    yesterday_date: yesterdayStr,\n    today_date: today.toISOString().split('T')[0],\n    yesterday_only_start: yesterdayStr,\n    yesterday_only_end: yesterdayStr\n  }\n};"
       },
       "id": "d37889cc-e079-4c91-8f31-bcd3c49a7005",
       "name": "📅 Рассчитать период",
@@ -64,7 +64,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получить подписчиков за вчерашний день\nconst periodData = $('📅 Рассчитать период').first().json;\nconst yesterday = periodData.yesterday_date;\nconst url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&date=eq.${yesterday}&select=followers`;\n\nconsole.log(`🔗 Получить подписчиков за ${yesterday}`);\n\nreturn { json: { url: url, yesterday: yesterday, ...periodData } };"
+        "jsCode": "// Получить followers_today за вчера (тотал на конец дня). Поддержка 1 или N дней (бэкфилл).\nconst items = $input.all();\nconst out = items.map(item => {\n  const periodData = item.json;\n  const yesterday = periodData.yesterday_date;\n  const url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&date=eq.${yesterday}&select=followers_today,followers`;\n  return { json: { url, yesterday, ...periodData } };\n});\nconsole.log(`🔗 Получить подписчиков за ${items.length} дн.`);\nreturn out;"
       },
       "id": "get-yesterday-followers",
       "name": "🔗 Получить подписчиков (вчера)",
@@ -106,7 +106,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Агрегировать данные подписчиков из всех источников\nconst allInputs = $input.all();\n\nlet todayFollowers = 0;\nlet yesterdayFollowers = 0;\nlet periodData = null;\n\n// Разбираем входные данные по типам\nfor (const input of allInputs) {\n  const data = input.json;\n\n  // Данные периода\n  if (data.period_start && data.period_end) {\n    periodData = data;\n  }\n\n  // Данные подписчиков сегодня\n  if (data.followers_count !== undefined) {\n    todayFollowers = data.followers_count;\n  }\n\n  // Данные подписчиков вчера (из базы)\n  if (Array.isArray(data) && data.length > 0 && data[0].followers !== undefined) {\n    yesterdayFollowers = data[0].followers || 0;\n  }\n}\n\n// Гарантируем наличие periodData\nif (!periodData) {\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  periodData = {\n    yesterday_date: yesterdayDate.toISOString().split('T')[0],\n    today_date: today.toISOString().split('T')[0],\n    period_start: '2026-01-01',\n    period_end: yesterdayDate.toISOString().split('T')[0]\n  };\n}\n\n// Вычисляем новых подписчиков\nconst newFollowers = Math.max(0, todayFollowers - yesterdayFollowers);\n\n// Определяем дату для записи (вчерашний день)\nlet yesterday;\nif (periodData && periodData.yesterday_date) {\n  yesterday = periodData.yesterday_date;\n} else {\n  // Если periodData не найден, используем вчерашнюю дату\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  yesterday = yesterdayDate.toISOString().split('T')[0];\n}\n\nconsole.log(`\\n=== ПОДСЧЕТ НОВЫХ ПОДПИСЧИКОВ ===`);\nconsole.log(`📅 Дата: ${yesterday}`);\nconsole.log(`👥 Сегодня: ${todayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`👥 Вчера: ${yesterdayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`➕ Новых: ${newFollowers.toLocaleString('ru-RU')}`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    date: yesterday,\n    followers: todayFollowers,  // Сохраняем текущее количество подписчиков (не сумму!)\n    followers_today: todayFollowers,\n    followers_yesterday: yesterdayFollowers,\n    new_followers: newFollowers\n  }\n};"
+        "jsCode": "// Агрегировать данные подписчиков из всех источников\nconst allInputs = $input.all();\n\nlet todayFollowers = 0;\nlet yesterdayFollowers = 0;\nlet periodData = null;\n\n// Разбираем входные данные по типам\nfor (const input of allInputs) {\n  const data = input.json;\n\n  // Данные периода\n  if (data.period_start && data.period_end) {\n    periodData = data;\n  }\n\n  // Данные подписчиков сегодня\n  if (data.followers_count !== undefined) {\n    todayFollowers = data.followers_count;\n  }\n\n  // Данные подписчиков вчера (из базы): followers_today = тотал на конец дня\n  if (Array.isArray(data) && data.length > 0) {\n    const row = data[0];\n    yesterdayFollowers = (row.followers_today ?? row.followers) ?? 0;\n  }\n}\n\n// Гарантируем наличие periodData\nif (!periodData) {\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  periodData = {\n    yesterday_date: yesterdayDate.toISOString().split('T')[0],\n    today_date: today.toISOString().split('T')[0],\n    period_start: '2026-01-01',\n    period_end: yesterdayDate.toISOString().split('T')[0]\n  };\n}\n\n// Вычисляем новых подписчиков\nconst newFollowers = Math.max(0, todayFollowers - yesterdayFollowers);\n\n// Определяем дату для записи (вчерашний день)\nlet yesterday;\nif (periodData && periodData.yesterday_date) {\n  yesterday = periodData.yesterday_date;\n} else {\n  // Если periodData не найден, используем вчерашнюю дату\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  yesterday = yesterdayDate.toISOString().split('T')[0];\n}\n\nconsole.log(`\\n=== ПОДСЧЕТ НОВЫХ ПОДПИСЧИКОВ ===`);\nconsole.log(`📅 Дата: ${yesterday}`);\nconsole.log(`👥 Сегодня: ${todayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`👥 Вчера: ${yesterdayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`➕ Новых: ${newFollowers.toLocaleString('ru-RU')}`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    date: yesterday,\n    followers: newFollowers,\n    followers_today: todayFollowers,\n    followers_yesterday: yesterdayFollowers,\n    new_followers: newFollowers\n  }\n};"
       },
       "id": "calculate-new-followers",
       "name": "🧮 Агрегировать подписчиков",
@@ -119,7 +119,17 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем посты из базы\nconst periodData = $('📅 Рассчитать период').first().json;\nconst url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&posted_at=gte.${periodData.period_start}&posted_at=lte.${periodData.period_end}&order=posted_at.asc`;\n\nconsole.log(`🔗 URL: ${url}`);\n\nreturn { json: { url: url, ...periodData } };"
+        "jsCode": "// daily_data: followers = прирост (колонка Подписчики), followers_today = тотал для следующего запуска\nconst d = $input.first().json;\nreturn {\n  json: {\n    project_id: d.project_id,\n    date: d.date,\n    followers: d.new_followers,\n    followers_today: d.followers_today,\n    new_followers: d.new_followers\n  }\n};"
+      },
+      "id": "map-daily-data-payload",
+      "name": "📦 Map daily_data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, -512]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Посты только за ВЧЕРА (или за каждый день при бэкфилле).\nconst items = $input.all();\nconst out = items.map(item => {\n  const periodData = item.json;\n  const start = periodData.yesterday_only_start || periodData.yesterday_date;\n  const end = periodData.yesterday_only_end || periodData.yesterday_date;\n  const url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&posted_at=gte.${start}&posted_at=lte.${end}&order=posted_at.asc`;\n  return { json: { url, ...periodData } };\n});\nconsole.log(`🔗 Посты за ${items.length} дн.`);\nreturn out;"
       },
       "id": "e00d5035-181e-4087-980f-b35faf651480",
       "name": "🔗 Построить URL постов",
@@ -147,7 +157,8 @@
           ]
         },
         "options": {
-          "timeout": 30000
+          "timeout": 30000,
+          "alwaysOutputData": true
         }
       },
       "id": "220dfa44-3f76-49f2-aca5-585e57934c1f",
@@ -174,7 +185,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем данные из входного потока\nlet postsData = null;\nlet followersData = null;\nlet periodData = null;\nlet newFollowersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const data = input.json;\n  if (data.period_start && data.period_end && data.period_start_timestamp) {\n    periodData = data;\n  } else if (data.followers_today !== undefined) {\n    newFollowersData = data;\n  } else if (data.posts_count !== undefined) {\n    postsData = data;\n  }\n}\n\nif (!periodData) {\n  try { periodData = $('📅 Рассчитать период').first().json; } catch (e) {}\n}\nif (!newFollowersData) {\n  try { newFollowersData = $('🧮 Агрегировать подписчиков').first().json; } catch (e) {}\n}\nif (!postsData) {\n  try { postsData = $('🔍 Обработать посты').first().json; } catch (e) {}\n}\n\nconst currentFollowers = newFollowersData ? (newFollowersData.followers_today || 0) : 0;\nconst newFollowers = newFollowersData ? (newFollowersData.new_followers || 0) : 0;\nconst postsCount = postsData ? (postsData.posts_count || 0) : 0;\nconst publications = postsData ? (postsData.publications || 0) : 0;\nconst reach = postsData ? (postsData.reach || 0) : 0;\nconst comments = postsData ? (postsData.comments || 0) : 0;\nconst diagnostics = postsData ? (postsData.diagnostics || 0) : 0;\nconst sales = postsData ? (postsData.sales || 0) : 0;\nconst revenue = postsData ? (postsData.revenue || 0) : 0;\n\nconsole.log(`\\n=== АГРЕГАЦИЯ ЗА ${periodData ? periodData.yesterday_date : 'неизвестно'} ===`);\nconsole.log(`📊 Постов: ${postsCount}`);\nconsole.log(`📈 Публикаций: ${publications}`);\nconsole.log(`👥 Подписчиков: ${currentFollowers.toLocaleString('ru-RU')} (+${newFollowers.toLocaleString('ru-RU')} новых)`);\nconsole.log(`📊 Охват: ${reach.toLocaleString('ru-RU')}`);\nconsole.log(`💬 Комментарии: ${comments}`);\nconsole.log(`🏥 Диагностики: ${diagnostics}`);\nconsole.log(`💰 Выручка: ${revenue.toLocaleString('ru-RU')}₸`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    period_start: periodData ? periodData.period_start : null,\n    period_end: periodData ? periodData.period_end : null,\n    publications: publications,\n    reach: reach,\n    comments: comments,\n    followers: newFollowers,  // Новые подписчики за период\n    diagnostics: diagnostics,\n    sales: sales,\n    revenue: revenue\n  }\n};"
+        "jsCode": "// Получаем данные из входного потока\nlet postsData = null;\nlet followersData = null;\nlet periodData = null;\nlet newFollowersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const data = input.json;\n  if (data.period_start && data.period_end && data.period_start_timestamp) {\n    periodData = data;\n  } else if (data.followers_today !== undefined) {\n    newFollowersData = data;\n  } else if (data.posts_count !== undefined) {\n    postsData = data;\n  }\n}\n\nif (!periodData) {\n  try { periodData = $('📅 Рассчитать период').first().json; } catch (e) {}\n}\nif (!newFollowersData) {\n  try { newFollowersData = $('🧮 Агрегировать подписчиков').first().json; } catch (e) {}\n}\nif (!postsData) {\n  try { postsData = $('🔍 Обработать посты').first().json; } catch (e) {}\n}\n\nconst currentFollowers = newFollowersData ? (newFollowersData.followers_today || 0) : 0;\nconst newFollowers = newFollowersData ? (newFollowersData.new_followers || 0) : 0;\nconst postsCount = postsData ? (postsData.posts_count || 0) : 0;\nconst publications = postsData ? (postsData.publications || 0) : 0;\nconst reach = postsData ? (postsData.reach || 0) : 0;\nconst comments = postsData ? (postsData.comments || 0) : 0;\nconst diagnostics = postsData ? (postsData.diagnostics || 0) : 0;\nconst sales = postsData ? (postsData.sales || 0) : 0;\nconst revenue = postsData ? (postsData.revenue || 0) : 0;\n\nconsole.log(`\\n=== АГРЕГАЦИЯ ЗА ${periodData ? periodData.yesterday_date : 'неизвестно'} ===`);\nconsole.log(`📊 Постов: ${postsCount}`);\nconsole.log(`📈 Публикаций: ${publications}`);\nconsole.log(`👥 Подписчиков: ${currentFollowers.toLocaleString('ru-RU')} (+${newFollowers.toLocaleString('ru-RU')} новых)`);\nconsole.log(`📊 Охват: ${reach.toLocaleString('ru-RU')}`);\nconsole.log(`💬 Комментарии: ${comments}`);\nconsole.log(`🏥 Диагностики: ${diagnostics}`);\nconsole.log(`💰 Выручка: ${revenue.toLocaleString('ru-RU')}₸`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    period_start: periodData ? (periodData.yesterday_only_start || periodData.yesterday_date) : null,\n    period_end: periodData ? (periodData.yesterday_only_end || periodData.yesterday_date) : null,\n    publications: publications,\n    reach: reach,\n    comments: comments,\n    followers: newFollowers,  // Новые подписчики за период\n    diagnostics: diagnostics,\n    sales: sales,\n    revenue: revenue\n  }\n};"
       },
       "id": "59cf4d10-4677-4ca0-a6b1-fc6fecfb1a2d",
       "name": "🧮 Агрегировать данные",
@@ -294,7 +305,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": $now\n}]) }}",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_seen\": $now\n}]) }}",
         "options": {
           "timeout": 30000
         }
@@ -310,7 +321,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Получаем данные из входного потока\nlet statsSaveResult = null;\nlet followersSaveResult = null;\nlet data = null;\nlet followersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const inputData = input.json;\n  if (inputData.statusCode && inputData.headers) {\n    // Это результат сохранения\n    if (inputData.request?.url?.includes('content_production_stats')) {\n      statsSaveResult = inputData;\n    } else if (inputData.request?.url?.includes('daily_data')) {\n      followersSaveResult = inputData;\n    }\n  } else if (inputData.project_id && inputData.period_start) {\n    // Это агрегированные данные для статистики\n    data = inputData;\n  } else if (inputData.new_followers !== undefined) {\n    // Это данные подписчиков\n    followersData = inputData;\n  }\n}\n\nconst statsSuccess = statsSaveResult ? (statsSaveResult.statusCode >= 200 && statsSaveResult.statusCode < 300) : false;\nconst followersSuccess = followersSaveResult ? (followersSaveResult.statusCode >= 200 && followersSaveResult.statusCode < 300) : false;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статистика: ${statsSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`👥 Подписчики: ${followersSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Дата: ${followersData ? followersData.date : 'неизвестно'}`);\nconsole.log(`👥 Новых подписчиков: ${followersData ? followersData.new_followers.toLocaleString('ru-RU') : 0}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats и daily_data`);\n\nif (statsSuccess && followersSuccess) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибки сохранения:`);\n  if (!statsSuccess && statsSaveResult) console.log(`   Статистика: ${JSON.stringify(statsSaveResult, null, 2)}`);\n  if (!followersSuccess && followersSaveResult) console.log(`   Подписчики: ${JSON.stringify(followersSaveResult, null, 2)}`);\n}\n\nreturn { json: { success: statsSuccess && followersSuccess, data: data, followers: followersData } };"
+        "jsCode": "// Получаем данные из входного потока (Save, Write, Map, Aggregate data)\nlet statsSaveResult = null;\nlet followersSaveResult = null;\nlet data = null;\nlet followersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const inputData = input.json;\n  if (inputData.statusCode && inputData.headers) {\n    if (inputData.request?.url?.includes('content_production_stats')) {\n      statsSaveResult = inputData;\n    } else if (inputData.request?.url?.includes('daily_data')) {\n      followersSaveResult = inputData;\n    }\n  } else if (inputData.project_id && inputData.period_start && !inputData.date) {\n    data = inputData;\n  } else if (inputData.new_followers !== undefined || (inputData.project_id && inputData.date && (inputData.followers !== undefined || inputData.followers_today !== undefined))) {\n    followersData = inputData;\n  }\n}\n\nconst statsSuccess = statsSaveResult ? (statsSaveResult.statusCode >= 200 && statsSaveResult.statusCode < 300) : false;\nconst followersSuccess = followersSaveResult ? (followersSaveResult.statusCode >= 200 && followersSaveResult.statusCode < 300) : false;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статистика: ${statsSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`👥 Подписчики: ${followersSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Дата: ${followersData ? followersData.date : 'неизвестно'}`);\nconsole.log(`👥 Новых подписчиков: ${followersData ? (followersData.new_followers ?? followersData.followers ?? 0).toLocaleString('ru-RU') : 0}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats и daily_data`);\n\nif (statsSuccess && followersSuccess) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибки сохранения:`);\n  if (!statsSuccess && statsSaveResult) console.log(`   Статистика: ${JSON.stringify(statsSaveResult, null, 2)}`);\n  if (!followersSuccess && followersSaveResult) console.log(`   Подписчики: ${JSON.stringify(followersSaveResult, null, 2)}`);\n}\n\nreturn { json: { success: statsSuccess && followersSuccess, data: data, followers: followersData } };"
       },
       "id": "e5b3f30b-d0f3-46a7-a61c-e5fefb382317",
       "name": "✅ Финальный лог",
@@ -318,47 +329,6 @@
       "typeVersion": 2,
       "position": [
         2976,
-        -320
-      ]
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/automation_flows?on_conflict=project_id,name",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "apikey",
-              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
-            },
-            {
-              "name": "Authorization",
-              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
-            },
-            {
-              "name": "Content-Type",
-              "value": "application/json"
-            },
-            {
-              "name": "Prefer",
-              "value": "resolution=merge-duplicates"
-            }
-          ]
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_run\": $now\n}]) }}",
-        "options": {
-          "timeout": 30000
-        }
-      },
-      "id": "heartbeat-success",
-      "name": "💾 Instagram Daily Automation - OK",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        3200,
         -320
       ]
     },
@@ -400,7 +370,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"error\",\n  \"last_run\": $now,\n  \"logs\": $error.message\n}]) }}",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"error\",\n  \"last_seen\": $now,\n  \"logs\": $error.message\n}]) }}",
         "options": {
           "timeout": 30000
         }
@@ -416,7 +386,7 @@
     }
   ],
   "connections": {
-    "⏰ Ежедневно 01:05": {
+    "⏰ Ежедневно 09:00": {
       "main": [
         [
           {
@@ -490,7 +460,7 @@
       "main": [
         [
           {
-            "node": "💾 Записать подписчиков в daily_data",
+            "node": "📦 Map daily_data",
             "type": "main",
             "index": 0
           },
@@ -498,6 +468,22 @@
             "node": "🧮 Агрегировать данные",
             "type": "main",
             "index": 1
+          }
+        ]
+      ]
+    },
+    "📦 Map daily_data": {
+      "main": [
+        [
+          {
+            "node": "💾 Записать подписчиков в daily_data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✅ Финальный лог",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -563,7 +549,7 @@
           {
             "node": "✅ Финальный лог",
             "type": "main",
-            "index": 1
+            "index": 0
           }
         ]
       ]
@@ -579,23 +565,7 @@
           {
             "node": "✅ Финальный лог",
             "type": "main",
-            "index": 2
-          }
-        ]
-      ]
-    },
-    "🧮 Агрегировать подписчиков": {
-      "main": [
-        [
-          {
-            "node": "💾 Записать подписчиков в daily_data",
-            "type": "main",
             "index": 0
-          },
-          {
-            "node": "✅ Финальный лог",
-            "type": "main",
-            "index": 3
           }
         ]
       ]

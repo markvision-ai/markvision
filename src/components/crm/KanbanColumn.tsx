@@ -66,13 +66,13 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[280px] sm:w-80 rounded-xl border backdrop-blur-sm bg-card/50 border-white/10 p-3 sm:p-4 transition-all duration-300',
+        'flex-shrink-0 w-[280px] sm:w-80 rounded-xl border backdrop-blur-sm bg-card/50 border-border p-3 sm:p-4 transition-all duration-300',
         isHighlighted && 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background/50 shadow-lg shadow-primary/20'
       )}
     >
       {/* Column Header - Glassmorphism */}
       <div className={cn(
-        'flex flex-col gap-1 mb-4 px-3 py-2 rounded-lg backdrop-blur-sm border border-white/10',
+        'flex flex-col gap-1 mb-4 px-3 py-2 rounded-lg backdrop-blur-sm border border-border',
         status.color === 'success' && 'bg-emerald-500/20 border-emerald-500/30',
         status.color === 'destructive' && 'bg-red-500/20 border-red-500/30',
         !status.color && 'bg-primary/10 border-primary/20'

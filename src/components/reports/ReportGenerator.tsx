@@ -93,8 +93,7 @@ interface ReportData {
   metrics: {
     cpl: number;
     cac: number;
-    aov: number;
-    romi: number;
+    cpc: number;
     roas: number;
   };
   funnelSteps: { label: string; value: number; color: string }[];
@@ -351,8 +350,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     return {
       cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
       cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
-      aov: t.sales > 0 ? Math.round(t.revenue / t.sales) : 0,
-      romi: t.spend > 0 ? ((t.revenue - t.spend) / t.spend) * 100 : 0,
+      cpc: t.clicks > 0 ? Math.round(t.spend / t.clicks) : 0,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [reportData.totals]);
@@ -438,8 +436,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     return {
       cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
       cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
-      aov: t.sales > 0 ? Math.round(t.revenue / t.sales) : 0,
-      romi: t.spend > 0 ? ((t.revenue - t.spend) / t.spend) * 100 : 0,
+      cpc: t.clicks > 0 ? Math.round(t.spend / t.clicks) : 0,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [comparisonData.totals]);
@@ -465,7 +462,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         period_preset: activePreset,
         include_comparison: isComparisonEnabled,
         comparison_preset: comparisonPreset,
-        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'cpl', 'romi'],
+        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'cpl', 'cpc'],
       });
 
       if (error) throw error;
@@ -550,10 +547,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     loadSettings();
   }, [data.projectId]);
 
-  const defaultSummary = `За отчётный период реклама показала ${computedMetrics.romi > 0 ? 'положительную' : 'отрицательную'} окупаемость с ROMI ${computedMetrics.romi.toFixed(1)}%. 
-Получено ${formatNumber(reportData.totals.leads)} лидов по цене ${formatCurrency(computedMetrics.cpl)} за лид. 
-Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}.
-${computedMetrics.romi > 100 ? 'Рекомендуется увеличить рекламный бюджет для масштабирования.' : 'Рекомендуется оптимизировать воронку для повышения конверсии.'}`;
+  const defaultSummary = `За отчётный период получено ${formatNumber(reportData.totals.leads)} лидов по цене ${formatCurrency(computedMetrics.cpl)} за лид. Цена клика (CPC) — ${formatCurrency(computedMetrics.cpc)}.
+Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}. ROAS ${computedMetrics.roas.toFixed(1)}x.`;
 
   const [summary, setSummary] = useState(defaultSummary);
 
@@ -872,7 +867,7 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
               { label: 'Продажи', current: reportData.totals.sales, previous: comparisonData.totals.sales, format: 'number' },
               { label: 'Выручка', current: reportData.totals.revenue, previous: comparisonData.totals.revenue, format: 'currency' },
               { label: 'CPL', current: computedMetrics.cpl, previous: comparisonMetrics.cpl, format: 'currency', inverse: true },
-              { label: 'ROMI', current: computedMetrics.romi, previous: comparisonMetrics.romi, format: 'percent' },
+              { label: 'CPC', current: computedMetrics.cpc, previous: comparisonMetrics.cpc, format: 'currency', inverse: true },
             ].map((item) => {
               const change = getChange(item.current, item.previous);
               const isPositive = item.inverse ? change < 0 : change > 0;
@@ -953,63 +948,63 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
           </div>
 
           {/* Report Preview */}
-          <div className="bg-white rounded-xl border overflow-hidden shadow-sm">
-            <div ref={reportRef} className="p-8 text-gray-900">
+          <div className="bg-card rounded-xl border border-border overflow-hidden shadow-sm">
+            <div ref={reportRef} className="p-8 text-foreground">
               {/* Header */}
-              <div className="flex items-center justify-between border-b border-gray-200 pb-6 mb-6">
+              <div className="flex items-center justify-between border-b border-border pb-6 mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center">
-                    <BarChart3 className="w-7 h-7 text-white" />
+                  <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center">
+                    <BarChart3 className="w-7 h-7 text-primary-foreground" />
                   </div>
                   <div>
-                    <h1 className="text-xl font-bold text-gray-900">AdMetrics</h1>
-                    <p className="text-sm text-gray-500">Аналитический отчёт</p>
+                    <h1 className="text-xl font-bold text-foreground">AdMetrics</h1>
+                    <p className="text-sm text-muted-foreground">Аналитический отчёт</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-500">Проект</p>
+                  <p className="text-sm text-muted-foreground">Проект</p>
                   <p className="font-semibold">{data.projectName}</p>
                 </div>
               </div>
 
               {/* Report Info */}
-              <div className="flex items-center gap-2 text-sm text-gray-600 mb-6">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
                 <Calendar className="w-4 h-4" />
                 <span>Период: {format(reportDateRange.from, 'd MMMM', { locale: ru })} — {format(reportDateRange.to, 'd MMMM yyyy', { locale: ru })}</span>
-                <span className="text-gray-300 mx-2">|</span>
+                <span className="text-border mx-2">|</span>
                 <FileText className="w-4 h-4" />
                 <span>Дата формирования: {format(new Date(), 'd MMMM yyyy', { locale: ru })}</span>
               </div>
 
               {/* Plan/Fact Table */}
               <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 text-gray-900">📊 План / Факт</h2>
+                <h2 className="text-lg font-semibold mb-4 text-foreground">📊 План / Факт</h2>
                 <table className="w-full border-collapse">
                   <thead>
-                    <tr className="bg-gray-100">
-                      <th className="border border-gray-200 p-3 text-left text-sm font-medium">Показатель</th>
-                      <th className="border border-gray-200 p-3 text-right text-sm font-medium">План</th>
-                      <th className="border border-gray-200 p-3 text-right text-sm font-medium">Факт</th>
-                      <th className="border border-gray-200 p-3 text-center text-sm font-medium">Выполнение</th>
+                    <tr className="bg-muted/50">
+                      <th className="border border-border p-3 text-left text-sm font-medium">Показатель</th>
+                      <th className="border border-border p-3 text-right text-sm font-medium">План</th>
+                      <th className="border border-border p-3 text-right text-sm font-medium">Факт</th>
+                      <th className="border border-border p-3 text-center text-sm font-medium">Выполнение</th>
                     </tr>
                   </thead>
                   <tbody>
                     {metrics.map((metric, idx) => {
                       const { status, percent } = getPlanFactStatus(metric.value, metric.plan);
                       const statusColor = metric.inverse 
-                        ? (status === 'success' ? 'text-red-600' : status === 'danger' ? 'text-green-600' : 'text-yellow-600')
-                        : (status === 'success' ? 'text-green-600' : status === 'danger' ? 'text-red-600' : 'text-yellow-600');
+                        ? (status === 'success' ? 'text-destructive' : status === 'danger' ? 'text-success' : 'text-warning')
+                        : (status === 'success' ? 'text-success' : status === 'danger' ? 'text-destructive' : 'text-warning');
                       
                       return (
-                        <tr key={metric.label} className={idx % 2 === 1 ? 'bg-gray-50' : ''}>
-                          <td className="border border-gray-200 p-3 text-sm font-medium">{metric.label}</td>
-                          <td className="border border-gray-200 p-3 text-right text-gray-500">
+                        <tr key={metric.label} className={idx % 2 === 1 ? 'bg-muted/30' : ''}>
+                          <td className="border border-border p-3 text-sm font-medium">{metric.label}</td>
+                          <td className="border border-border p-3 text-right text-muted-foreground">
                             {metric.format === 'currency' ? formatCurrency(metric.plan) : formatNumber(metric.plan)}
                           </td>
-                          <td className="border border-gray-200 p-3 text-right font-semibold">
+                          <td className="border border-border p-3 text-right font-semibold">
                             {metric.format === 'currency' ? formatCurrency(metric.value) : formatNumber(metric.value)}
                           </td>
-                          <td className={`border border-gray-200 p-3 text-center font-semibold ${statusColor}`}>
+                          <td className={`border border-border p-3 text-center font-semibold ${statusColor}`}>
                             {metric.plan > 0 ? `${percent.toFixed(0)}%` : '—'}
                             {status === 'success' && !metric.inverse && ' ✓'}
                             {status === 'danger' && !metric.inverse && ' ↓'}
@@ -1023,29 +1018,23 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
 
               {/* Key Metrics */}
               <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 text-gray-900">📈 Ключевые метрики</h2>
-                <div className="grid grid-cols-5 gap-4">
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">CPL</p>
-                    <p className="text-lg font-bold text-blue-600">{formatCurrency(computedMetrics.cpl)}</p>
+                <h2 className="text-lg font-semibold mb-4 text-foreground">📈 Ключевые метрики</h2>
+                <div className="grid grid-cols-4 gap-4">
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">CPC (Цена клика)</p>
+                    <p className="text-lg font-bold text-primary">{formatCurrency(computedMetrics.cpc)}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">CAC</p>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">CPL</p>
+                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.cpl)}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">CAC</p>
                     <p className="text-lg font-bold">{formatCurrency(computedMetrics.cac)}</p>
                   </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">AOV</p>
-                    <p className="text-lg font-bold text-green-600">{formatCurrency(computedMetrics.aov)}</p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">ROMI</p>
-                    <p className={`text-lg font-bold ${computedMetrics.romi >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {computedMetrics.romi.toFixed(1)}%
-                    </p>
-                  </div>
-                  <div className="bg-gray-50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-gray-500 mb-1">ROAS</p>
-                    <p className={`text-lg font-bold ${computedMetrics.roas >= 1 ? 'text-green-600' : 'text-red-600'}`}>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">ROAS</p>
+                    <p className={`text-lg font-bold ${computedMetrics.roas >= 1 ? 'text-success' : 'text-destructive'}`}>
                       {Math.round(computedMetrics.roas)}x
                     </p>
                   </div>
@@ -1055,11 +1044,11 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
               {/* Metrics Dynamics Chart */}
               {chartData.length > 0 && (
                 <div className="mb-8">
-                  <h2 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-                    <LineChart className="w-5 h-5 text-blue-600" />
+                  <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                    <LineChart className="w-5 h-5 text-primary" />
                     Динамика метрик
                     {isComparisonEnabled && (
-                      <span className="text-sm font-normal text-gray-500 ml-2">
+                      <span className="text-sm font-normal text-muted-foreground ml-2">
                         (сплошная — текущий период, пунктир — сравнение)
                       </span>
                     )}
@@ -1067,30 +1056,31 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
                   <div className="h-64 w-full">
                     <ResponsiveContainer width="100%" height="100%">
                       <RechartsLineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis 
                           dataKey="name" 
-                          tick={{ fontSize: 10, fill: '#6b7280' }}
-                          tickLine={{ stroke: '#e5e7eb' }}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <YAxis 
                           yAxisId="left"
-                          tick={{ fontSize: 10, fill: '#6b7280' }}
-                          tickLine={{ stroke: '#e5e7eb' }}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={{ stroke: 'hsl(var(--border))' }}
                           tickFormatter={(value) => value >= 1000000 ? `${(value / 1000000).toFixed(1)}M` : value >= 1000 ? `${(value / 1000).toFixed(0)}K` : value}
                         />
                         <YAxis 
                           yAxisId="right" 
                           orientation="right"
-                          tick={{ fontSize: 10, fill: '#6b7280' }}
-                          tickLine={{ stroke: '#e5e7eb' }}
+                          tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
+                          tickLine={{ stroke: 'hsl(var(--border))' }}
                         />
                         <Tooltip 
                           contentStyle={{ 
-                            backgroundColor: 'white', 
-                            border: '1px solid #e5e7eb',
+                            backgroundColor: 'hsl(var(--popover))', 
+                            border: '1px solid hsl(var(--border))',
                             borderRadius: '8px',
-                            fontSize: '12px'
+                            fontSize: '12px',
+                            color: 'hsl(var(--popover-foreground))'
                           }}
                           formatter={(value: number, name: string) => {
                             const label = name.includes('Revenue') || name.includes('Выручка') ? formatCurrency(value) :
@@ -1203,7 +1193,7 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
 
               {/* Funnel */}
               <div className="mb-8">
-                <h2 className="text-lg font-semibold mb-4 text-gray-900">🎯 Воронка продаж</h2>
+                <h2 className="text-lg font-semibold mb-4 text-foreground">🎯 Воронка продаж</h2>
                 <div className="space-y-3">
                   {funnelSteps.map((step, index) => {
                     const maxValue = funnelSteps[0].value;
@@ -1215,8 +1205,8 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
 
                     return (
                       <div key={step.label} className="flex items-center gap-4">
-                        <div className="w-24 text-sm font-medium text-gray-700">{step.label}</div>
-                        <div className="flex-1 h-8 bg-gray-100 rounded-lg overflow-hidden relative">
+                        <div className="w-24 text-sm font-medium text-foreground">{step.label}</div>
+                        <div className="flex-1 h-8 bg-muted/50 rounded-lg overflow-hidden relative">
                           <div 
                             className="h-full rounded-lg flex items-center justify-end pr-3"
                             style={{ 
@@ -1230,7 +1220,7 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
                           </div>
                         </div>
                         {conversion && (
-                          <div className="w-16 text-right text-sm text-gray-500">
+                          <div className="w-16 text-right text-sm text-muted-foreground">
                             → {conversion}%
                           </div>
                         )}
@@ -1242,26 +1232,26 @@ ${computedMetrics.romi > 100 ? 'Рекомендуется увеличить р
 
               {/* AI Summary */}
               <div>
-                <h2 className="text-lg font-semibold mb-4 text-gray-900 flex items-center gap-2">
-                  <Sparkles className="w-5 h-5 text-purple-500" />
+                <h2 className="text-lg font-semibold mb-4 text-foreground flex items-center gap-2">
+                  <Sparkles className="w-5 h-5 text-primary" />
                   AI-анализ и рекомендации
                 </h2>
                 {isEditing ? (
                   <Textarea
                     value={summary}
                     onChange={(e) => setSummary(e.target.value)}
-                    className="min-h-32 bg-white text-gray-900 border-gray-300"
+                    className="min-h-32 bg-background text-foreground border-border"
                   />
                 ) : (
-                  <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-gradient-to-br from-purple-50 to-blue-50 p-4 rounded-lg border border-purple-100">
+                  <p className="text-sm text-foreground leading-relaxed whitespace-pre-line bg-muted/50 p-4 rounded-lg border border-border">
                     {summary}
                   </p>
                 )}
               </div>
 
               {/* Footer */}
-              <div className="mt-8 pt-6 border-t border-gray-200 text-center">
-                <p className="text-xs text-gray-400">
+              <div className="mt-8 pt-6 border-t border-border text-center">
+                <p className="text-xs text-muted-foreground">
                   Сгенерировано в AdMetrics • {format(new Date(), 'dd.MM.yyyy HH:mm')}
                 </p>
               </div>

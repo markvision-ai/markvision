@@ -9,7 +9,6 @@ import {
   ShoppingCart, 
   Wallet,
   TrendingUp,
-  Calculator,
   Loader2
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -237,15 +236,13 @@ export const AnalyticsPlatform = () => {
   }, [dailyData, dateRange]);
 
   // Computed metrics (округляем)
-  const aov = totals.sales > 0 ? Math.round(totals.revenue / totals.sales) : 0;
+  const cpc = totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0;
   const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
   const cac = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0;
   const conversionRate = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
-  const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
   const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
-  const prevRomi = previousWeekTotals.spend > 0 ? ((previousWeekTotals.revenue - previousWeekTotals.spend) / previousWeekTotals.spend) * 100 : 0;
 
   const handleDataChange = (date: string, field: keyof DailyData, value: number) => {
     updateDailyData(date, field, value);
@@ -373,12 +370,12 @@ export const AnalyticsPlatform = () => {
             ));
 
             registerWidget('computed', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
                 <MetricCard
-                  label="Средний чек"
-                  value={formatCurrency(aov)}
-                  subValue="AOV"
-                  icon={<Calculator className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
+                  label="Цена клика"
+                  value={formatCurrency(cpc)}
+                  subValue="CPC"
+                  icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
                   variant="primary"
                 />
                 <MetricCard
@@ -391,13 +388,6 @@ export const AnalyticsPlatform = () => {
                   label="Цена клиента"
                   value={formatCurrency(cac)}
                   subValue="CAC"
-                />
-                <MetricCard
-                  label="ROMI"
-                  value={`${Math.round(romi)}%`}
-                  subValue="Возврат инвестиций"
-                  variant={romi < 0 ? 'danger' : romi > 100 ? 'success' : 'default'}
-                  icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5" />}
                 />
                 <MetricCard
                   label="ROAS"
@@ -486,8 +476,7 @@ export const AnalyticsPlatform = () => {
             metrics: {
               cpl: totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0,
               cac: totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0,
-              aov: totals.sales > 0 ? Math.round(totals.revenue / totals.sales) : 0,
-              romi: totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0,
+              cpc: totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0,
               roas: totals.spend > 0 ? totals.revenue / totals.spend : 0,
             },
             funnelSteps: [

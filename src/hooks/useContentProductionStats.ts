@@ -45,34 +45,55 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
           periodEnd: effectivePeriodEnd
         });
 
-        const { data, error: fetchError } = await supabase
+        const { data: rows, error: fetchError } = await supabase
           .from('content_production_stats')
           .select('*')
           .eq('project_id', projectId)
-          .eq('period_start', periodStart)
-          .eq('period_end', effectivePeriodEnd)
-          .single();
+          .gte('period_start', periodStart)
+          .lte('period_end', effectivePeriodEnd)
+          .order('period_start', { ascending: true });
 
-        if (fetchError && fetchError.code !== 'PGRST116') { // PGRST116 = not found
+        if (fetchError) {
           console.error('❌ Ошибка загрузки content_production_stats:', fetchError);
           throw fetchError;
         }
 
-        if (data) {
-          console.log('✅ Данные загружены из content_production_stats:', {
+        let data: ContentProductionStats | null = null;
+        if (rows && rows.length > 0) {
+          const agg = rows.reduce(
+            (acc, r) => ({
+              publications: (acc.publications || 0) + (r.publications ?? 0),
+              stories: (acc.stories || 0) + (r.stories ?? 0),
+              reach: (acc.reach || 0) + (r.reach ?? 0),
+              comments: (acc.comments || 0) + (r.comments ?? 0),
+              followers: (acc.followers || 0) + (r.followers ?? 0),
+              diagnostics: (acc.diagnostics || 0) + (r.diagnostics ?? 0),
+              sales: (acc.sales || 0) + (r.sales ?? 0),
+              revenue: (acc.revenue || 0) + (r.revenue ?? 0),
+            }),
+            { publications: 0, stories: 0, reach: 0, comments: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
+          );
+          data = {
+            id: rows[0].id,
+            project_id: projectId,
+            period_start: periodStart,
+            period_end: effectivePeriodEnd,
+            ...agg,
+            created_at: rows[0].created_at ?? '',
+            updated_at: rows[0].updated_at ?? '',
+          } as ContentProductionStats;
+          console.log('✅ Данные загружены из content_production_stats (агрегат по дням):', {
+            rows: rows.length,
             publications: data.publications,
-            stories: data.stories,
             reach: data.reach,
             comments: data.comments,
-            diagnostics: data.diagnostics,
-            sales: data.sales,
-            revenue: data.revenue
+            followers: data.followers,
           });
         } else {
           console.log('⚠️ Нет данных в content_production_stats для периода:', periodStart, '-', effectivePeriodEnd);
         }
 
-        setStats(data || null);
+        setStats(data);
       } catch (err: any) {
         console.error('Error fetching content production stats:', err);
         setError(err.message || 'Failed to load stats');

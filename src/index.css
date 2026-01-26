@@ -144,14 +144,14 @@
    ============================================ */
 
 .dot-pattern {
-  background-image: radial-gradient(circle, hsl(217 33% 25% / 0.4) 1px, transparent 1px);
+  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.25) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .grid-pattern {
   background-image: 
-    linear-gradient(hsl(217 33% 20% / 0.15) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(217 33% 20% / 0.15) 1px, transparent 1px);
+    linear-gradient(hsl(var(--muted-foreground) / 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, hsl(var(--muted-foreground) / 0.12) 1px, transparent 1px);
   background-size: 60px 60px;
 }
 
@@ -555,13 +555,14 @@ html, body {
 .crm-card-glass {
   backdrop-filter: blur(16px);
   background: hsl(var(--card) / 0.5);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid hsl(var(--border));
   border-radius: 20px;
 }
 
 .crm-column-glass {
   backdrop-filter: blur(20px);
   background: hsl(var(--card) / 0.7);
+  border: 1px solid hsl(var(--border));
   border-radius: 20px;
 }
 

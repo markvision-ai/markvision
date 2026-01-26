@@ -1,5 +1,4 @@
 {
-  "name": "Instagram Daily Automation",
   "nodes": [
     {
       "parameters": {
@@ -7,30 +6,35 @@
           "interval": [
             {
               "field": "cronExpression",
-              "expression": "5 1 * * *"
+              "expression": "0 9 * * *"
             }
           ]
         }
       },
-      "id": "schedule-trigger",
-      "name": "⏰ Ежедневно 01:05",
+      "id": "7b48a8b6-0981-410d-9071-b294048adcb7",
+      "name": "⏰ Ежедневно 09:00",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.1,
-      "position": [240, 300]
+      "position": [
+        1424,
+        -320
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Рассчитываем период\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\n\nconst periodStartTimestamp = Math.floor(periodStart.getTime() / 1000);\nconst periodEndTimestamp = Math.floor(periodEnd.getTime() / 1000) + 86399;\n\nconsole.log(`📅 Агрегация с ${periodStart.toISOString().split('T')[0]} по ${periodEnd.toISOString().split('T')[0]}`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    period_start_timestamp: periodStartTimestamp,\n    period_end_timestamp: periodEndTimestamp\n  }\n};"
+        "jsCode": "// Рассчитываем период. Каждый день в 9:00 — данные за ВЧЕРА.\nconst today = new Date();\nconst yesterday = new Date(today);\nyesterday.setDate(yesterday.getDate() - 1);\n\nconst yesterdayStr = yesterday.toISOString().split('T')[0];\nconst periodStart = new Date('2026-01-01');\nconst periodEnd = yesterday;\nconst periodStartTimestamp = Math.floor(periodStart.getTime() / 1000);\nconst periodEndTimestamp = Math.floor(periodEnd.getTime() / 1000) + 86399;\n\nconsole.log(`📅 Агрегация за вчера ${yesterdayStr} (ежедневно 09:00)`);\n\nreturn {\n  json: {\n    period_start: periodStart.toISOString().split('T')[0],\n    period_end: periodEnd.toISOString().split('T')[0],\n    period_start_timestamp: periodStartTimestamp,\n    period_end_timestamp: periodEndTimestamp,\n    yesterday_date: yesterdayStr,\n    today_date: today.toISOString().split('T')[0],\n    yesterday_only_start: yesterdayStr,\n    yesterday_only_end: yesterdayStr\n  }\n};"
       },
-      "id": "calculate-period",
+      "id": "d37889cc-e079-4c91-8f31-bcd3c49a7005",
       "name": "📅 Рассчитать период",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [460, 300]
+      "position": [
+        1648,
+        -320
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "https://graph.facebook.com/v21.0/17841464802410425",
         "sendQuery": true,
         "queryParameters": {
@@ -49,27 +53,96 @@
           "timeout": 30000
         }
       },
-      "id": "get-followers",
-      "name": "👥 Получить подписчиков",
+      "id": "9dc31b69-0ad5-4786-8225-ed71459c50c6",
+      "name": "👥 Получить подписчиков (сегодня)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [680, 300]
+      "position": [
+        1856,
+        -320
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Получаем посты из базы\nconst periodData = $('📅 Рассчитать период').first().json;\nconst url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&posted_at=gte.${periodData.period_start}&posted_at=lte.${periodData.period_end}&order=posted_at.asc`;\n\nconsole.log(`🔗 URL: ${url}`);\n\nreturn { json: { url: url, ...periodData } };"
+        "jsCode": "// Получить followers_today за вчера (тотал на конец дня). Поддержка 1 или N дней (бэкфилл).\nconst items = $input.all();\nconst out = items.map(item => {\n  const periodData = item.json;\n  const yesterday = periodData.yesterday_date;\n  const url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&date=eq.${yesterday}&select=followers_today,followers`;\n  return { json: { url, yesterday, ...periodData } };\n});\nconsole.log(`🔗 Получить подписчиков за ${items.length} дн.`);\nreturn out;"
       },
-      "id": "build-posts-url",
+      "id": "get-yesterday-followers",
+      "name": "🔗 Получить подписчиков (вчера)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1856,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "query-yesterday-followers",
+      "name": "📊 Запрос подписчиков (вчера)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2080,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Агрегировать данные подписчиков из всех источников\nconst allInputs = $input.all();\n\nlet todayFollowers = 0;\nlet yesterdayFollowers = 0;\nlet periodData = null;\n\n// Разбираем входные данные по типам\nfor (const input of allInputs) {\n  const data = input.json;\n\n  // Данные периода\n  if (data.period_start && data.period_end) {\n    periodData = data;\n  }\n\n  // Данные подписчиков сегодня\n  if (data.followers_count !== undefined) {\n    todayFollowers = data.followers_count;\n  }\n\n  // Данные подписчиков вчера (из базы): followers_today = тотал на конец дня\n  if (Array.isArray(data) && data.length > 0) {\n    const row = data[0];\n    yesterdayFollowers = (row.followers_today ?? row.followers) ?? 0;\n  }\n}\n\n// Гарантируем наличие periodData\nif (!periodData) {\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  periodData = {\n    yesterday_date: yesterdayDate.toISOString().split('T')[0],\n    today_date: today.toISOString().split('T')[0],\n    period_start: '2026-01-01',\n    period_end: yesterdayDate.toISOString().split('T')[0]\n  };\n}\n\n// Вычисляем новых подписчиков\nconst newFollowers = Math.max(0, todayFollowers - yesterdayFollowers);\n\n// Определяем дату для записи (вчерашний день)\nlet yesterday;\nif (periodData && periodData.yesterday_date) {\n  yesterday = periodData.yesterday_date;\n} else {\n  // Если periodData не найден, используем вчерашнюю дату\n  const today = new Date();\n  const yesterdayDate = new Date(today);\n  yesterdayDate.setDate(yesterdayDate.getDate() - 1);\n  yesterday = yesterdayDate.toISOString().split('T')[0];\n}\n\nconsole.log(`\\n=== ПОДСЧЕТ НОВЫХ ПОДПИСЧИКОВ ===`);\nconsole.log(`📅 Дата: ${yesterday}`);\nconsole.log(`👥 Сегодня: ${todayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`👥 Вчера: ${yesterdayFollowers.toLocaleString('ru-RU')}`);\nconsole.log(`➕ Новых: ${newFollowers.toLocaleString('ru-RU')}`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    date: yesterday,\n    followers: newFollowers,\n    followers_today: todayFollowers,\n    followers_yesterday: yesterdayFollowers,\n    new_followers: newFollowers\n  }\n};"
+      },
+      "id": "calculate-new-followers",
+      "name": "🧮 Агрегировать подписчиков",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2528,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// daily_data: followers = прирост (колонка Подписчики), followers_today = тотал для следующего запуска\nconst d = $input.first().json;\nreturn {\n  json: {\n    project_id: d.project_id,\n    date: d.date,\n    followers: d.new_followers,\n    followers_today: d.followers_today,\n    new_followers: d.new_followers\n  }\n};"
+      },
+      "id": "map-daily-data-payload",
+      "name": "📦 Map daily_data",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [2640, -512]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Посты только за ВЧЕРА (или за каждый день при бэкфилле).\nconst items = $input.all();\nconst out = items.map(item => {\n  const periodData = item.json;\n  const start = periodData.yesterday_only_start || periodData.yesterday_date;\n  const end = periodData.yesterday_only_end || periodData.yesterday_date;\n  const url = `https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/instagram_posts_stats?project_id=eq.64c94e87-630c-470e-8ab1-8f7c8c835efa&posted_at=gte.${start}&posted_at=lte.${end}&order=posted_at.asc`;\n  return { json: { url, ...periodData } };\n});\nconsole.log(`🔗 Посты за ${items.length} дн.`);\nreturn out;"
+      },
+      "id": "e00d5035-181e-4087-980f-b35faf651480",
       "name": "🔗 Построить URL постов",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [680, 500]
+      "position": [
+        1856,
+        -112
+      ]
     },
     {
       "parameters": {
-        "method": "GET",
         "url": "={{ $json.url }}",
-        "authentication": "none",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -88,37 +161,45 @@
           "alwaysOutputData": true
         }
       },
-      "id": "get-posts",
+      "id": "220dfa44-3f76-49f2-aca5-585e57934c1f",
       "name": "📊 Получить посты",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [900, 500]
+      "position": [
+        2080,
+        -112
+      ]
     },
     {
       "parameters": {
         "jsCode": "// Обрабатываем посты\nconst postsResponse = $input.first().json;\nlet posts = [];\n\nif (Array.isArray(postsResponse)) {\n  posts = postsResponse;\n} else if (postsResponse.data && Array.isArray(postsResponse.data)) {\n  posts = postsResponse.data;\n}\n\nconsole.log(`📊 Найдено постов: ${posts.length}`);\n\n// Считаем метрики публикаций\nconst publications = posts.filter(p => {\n  const mediaType = (p.media_type || '').toLowerCase();\n  return !mediaType.includes('story') && mediaType !== 'stories';\n}).length;\n\nconst totalReach = posts.reduce((sum, p) => sum + (p.reach || 0), 0);\nconst totalComments = posts.reduce((sum, p) => sum + (p.comments || 0), 0);\nconst totalLikes = posts.reduce((sum, p) => sum + (p.likes || 0), 0);\nconst totalShares = posts.reduce((sum, p) => sum + (p.shares || 0), 0);\nconst totalDiagnostics = posts.reduce((sum, p) => sum + (p.leads_count || 0), 0);\nconst totalSales = posts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);\nconst totalRevenue = posts.reduce((sum, p) => sum + (p.revenue || 0), 0);\n\nreturn {\n  json: {\n    posts_count: posts.length,\n    publications: publications,\n    reach: totalReach,\n    comments: totalComments,\n    likes: totalLikes,\n    shares: totalShares,\n    diagnostics: totalDiagnostics,\n    sales: totalSales,\n    revenue: Math.round(totalRevenue)\n  }\n};"
       },
-      "id": "process-posts",
+      "id": "00ffcd72-7504-4a2f-96db-430c86aeb258",
       "name": "🔍 Обработать посты",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 500]
+      "position": [
+        2304,
+        -112
+      ]
     },
     {
       "parameters": {
-        "jsCode": "// Получаем данные из входного потока\nlet postsData = null;\nlet followersData = null;\nlet periodData = null;\n\n// Определяем тип входных данных\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const data = input.json;\n  \n  // Если это данные периода\n  if (data.period_start && data.period_end && data.period_start_timestamp) {\n    periodData = data;\n  }\n  // Если это данные подписчиков\n  else if (data.followers_count !== undefined) {\n    followersData = data;\n  }\n  // Если это данные постов\n  else if (data.posts_count !== undefined) {\n    postsData = data;\n  }\n}\n\n// Если не получили данные, пробуем получить из нод\nif (!periodData) {\n  try {\n    periodData = $('📅 Рассчитать период').first().json;\n  } catch (e) {\n    console.log('Не удалось получить данные периода:', e.message);\n  }\n}\n\nif (!followersData) {\n  try {\n    followersData = $('👥 Получить подписчиков').first().json;\n  } catch (e) {\n    console.log('Не удалось получить данные подписчиков:', e.message);\n  }\n}\n\nif (!postsData) {\n  try {\n    postsData = $('🔍 Обработать посты').first().json;\n  } catch (e) {\n    console.log('Не удалось получить данные постов:', e.message);\n  }\n}\n\n// Проверяем, что все данные получены\nconst currentFollowers = followersData ? (followersData.followers_count || 0) : 0;\nconst postsCount = postsData ? (postsData.posts_count || 0) : 0;\nconst publications = postsData ? (postsData.publications || 0) : 0;\nconst reach = postsData ? (postsData.reach || 0) : 0;\nconst comments = postsData ? (postsData.comments || 0) : 0;\nconst diagnostics = postsData ? (postsData.diagnostics || 0) : 0;\nconst sales = postsData ? (postsData.sales || 0) : 0;\nconst revenue = postsData ? (postsData.revenue || 0) : 0;\n\nconsole.log(`\\n=== АГРЕГАЦИЯ ЗА ${periodData ? periodData.period_start : 'неизвестно'} - ${periodData ? periodData.period_end : 'неизвестно'} ===`);\nconsole.log(`📊 Постов: ${postsCount}`);\nconsole.log(`📈 Публикаций: ${publications}`);\nconsole.log(`👥 Подписчиков: ${currentFollowers}`);\nconsole.log(`📊 Охват: ${reach.toLocaleString('ru-RU')}`);\nconsole.log(`💬 Комментарии: ${comments}`);\nconsole.log(`🏥 Диагностики: ${diagnostics}`);\nconsole.log(`💰 Выручка: ${revenue.toLocaleString('ru-RU')}₸`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    period_start: periodData ? periodData.period_start : null,\n    period_end: periodData ? periodData.period_end : null,\n    publications: publications,\n    reach: reach,\n    comments: comments,\n    followers: currentFollowers,\n    diagnostics: diagnostics,\n    sales: sales,\n    revenue: revenue\n  }\n};"
+        "jsCode": "// Получаем данные из входного потока\nlet postsData = null;\nlet followersData = null;\nlet periodData = null;\nlet newFollowersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const data = input.json;\n  if (data.period_start && data.period_end && data.period_start_timestamp) {\n    periodData = data;\n  } else if (data.followers_today !== undefined) {\n    newFollowersData = data;\n  } else if (data.posts_count !== undefined) {\n    postsData = data;\n  }\n}\n\nif (!periodData) {\n  try { periodData = $('📅 Рассчитать период').first().json; } catch (e) {}\n}\nif (!newFollowersData) {\n  try { newFollowersData = $('🧮 Агрегировать подписчиков').first().json; } catch (e) {}\n}\nif (!postsData) {\n  try { postsData = $('🔍 Обработать посты').first().json; } catch (e) {}\n}\n\nconst currentFollowers = newFollowersData ? (newFollowersData.followers_today || 0) : 0;\nconst newFollowers = newFollowersData ? (newFollowersData.new_followers || 0) : 0;\nconst postsCount = postsData ? (postsData.posts_count || 0) : 0;\nconst publications = postsData ? (postsData.publications || 0) : 0;\nconst reach = postsData ? (postsData.reach || 0) : 0;\nconst comments = postsData ? (postsData.comments || 0) : 0;\nconst diagnostics = postsData ? (postsData.diagnostics || 0) : 0;\nconst sales = postsData ? (postsData.sales || 0) : 0;\nconst revenue = postsData ? (postsData.revenue || 0) : 0;\n\nconsole.log(`\\n=== АГРЕГАЦИЯ ЗА ${periodData ? periodData.yesterday_date : 'неизвестно'} ===`);\nconsole.log(`📊 Постов: ${postsCount}`);\nconsole.log(`📈 Публикаций: ${publications}`);\nconsole.log(`👥 Подписчиков: ${currentFollowers.toLocaleString('ru-RU')} (+${newFollowers.toLocaleString('ru-RU')} новых)`);\nconsole.log(`📊 Охват: ${reach.toLocaleString('ru-RU')}`);\nconsole.log(`💬 Комментарии: ${comments}`);\nconsole.log(`🏥 Диагностики: ${diagnostics}`);\nconsole.log(`💰 Выручка: ${revenue.toLocaleString('ru-RU')}₸`);\n\nreturn {\n  json: {\n    project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',\n    period_start: periodData ? (periodData.yesterday_only_start || periodData.yesterday_date) : null,\n    period_end: periodData ? (periodData.yesterday_only_end || periodData.yesterday_date) : null,\n    publications: publications,\n    reach: reach,\n    comments: comments,\n    followers: newFollowers,  // Новые подписчики за период\n    diagnostics: diagnostics,\n    sales: sales,\n    revenue: revenue\n  }\n};"
       },
-      "id": "aggregate-data",
+      "id": "59cf4d10-4677-4ca0-a6b1-fc6fecfb1a2d",
       "name": "🧮 Агрегировать данные",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1120, 300]
+      "position": [
+        2528,
+        -320
+      ]
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/content_production_stats",
-        "authentication": "none",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/content_production_stats?on_conflict=project_id,period_start,period_end",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -141,122 +222,171 @@
           ]
         },
         "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "jsonBody",
-              "value": "={{ JSON.stringify($json) }}"
-            }
-          ]
-        },
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
         "options": {
-          "timeout": 30000,
-          "alwaysOutputData": true
+          "timeout": 30000
         }
       },
-      "id": "save-stats",
+      "id": "1d200caa-50df-424a-bc4c-fd1a418f827b",
       "name": "💾 Сохранить статистику",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1340, 300]
+      "position": [
+        2752,
+        -320
+      ]
     },
     {
       "parameters": {
-        "jsCode": "const saveResult = $('💾 Сохранить статистику').first().json;\nconst data = $('🧮 Агрегировать данные').first().json;\n\nconst success = saveResult.statusCode >= 200 && saveResult.statusCode < 300;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статус: ${success ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Период: ${data.period_start} - ${data.period_end}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats`);\n\nif (success) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибка сохранения: ${JSON.stringify(saveResult, null, 2)}`);\n}\n\nreturn { json: { success: success, ...data } };"
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data?on_conflict=project_id,date",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NzemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify([$json]) }}",
+        "options": {
+          "timeout": 30000
+        }
       },
-      "id": "final-log",
+      "id": "984a2102-a7ad-4b90-b26b-d59561b83261",
+      "name": "💾 Записать подписчиков в daily_data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2752,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/automation_flows?on_conflict=project_id,name",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"active\",\n  \"last_seen\": $now\n}]) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "heartbeat-success",
+      "name": "💾 Instagram Daily Automation - OK",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3200,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем данные из входного потока (Save, Write, Map, Aggregate data)\nlet statsSaveResult = null;\nlet followersSaveResult = null;\nlet data = null;\nlet followersData = null;\n\nconst allInputs = $input.all();\n\nfor (const input of allInputs) {\n  const inputData = input.json;\n  if (inputData.statusCode && inputData.headers) {\n    if (inputData.request?.url?.includes('content_production_stats')) {\n      statsSaveResult = inputData;\n    } else if (inputData.request?.url?.includes('daily_data')) {\n      followersSaveResult = inputData;\n    }\n  } else if (inputData.project_id && inputData.period_start && !inputData.date) {\n    data = inputData;\n  } else if (inputData.new_followers !== undefined || (inputData.project_id && inputData.date && (inputData.followers !== undefined || inputData.followers_today !== undefined))) {\n    followersData = inputData;\n  }\n}\n\nconst statsSuccess = statsSaveResult ? (statsSaveResult.statusCode >= 200 && statsSaveResult.statusCode < 300) : false;\nconst followersSuccess = followersSaveResult ? (followersSaveResult.statusCode >= 200 && followersSaveResult.statusCode < 300) : false;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статистика: ${statsSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`👥 Подписчики: ${followersSuccess ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Дата: ${followersData ? followersData.date : 'неизвестно'}`);\nconsole.log(`👥 Новых подписчиков: ${followersData ? (followersData.new_followers ?? followersData.followers ?? 0).toLocaleString('ru-RU') : 0}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats и daily_data`);\n\nif (statsSuccess && followersSuccess) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибки сохранения:`);\n  if (!statsSuccess && statsSaveResult) console.log(`   Статистика: ${JSON.stringify(statsSaveResult, null, 2)}`);\n  if (!followersSuccess && followersSaveResult) console.log(`   Подписчики: ${JSON.stringify(followersSaveResult, null, 2)}`);\n}\n\nreturn { json: { success: statsSuccess && followersSuccess, data: data, followers: followersData } };"
+      },
+      "id": "e5b3f30b-d0f3-46a7-a61c-e5fefb382317",
       "name": "✅ Финальный лог",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1560, 300]
+      "position": [
+        2976,
+        -320
+      ]
     },
     {
-      "parameters": {
-        "operation": "update",
-        "schema": "public",
-        "table": "automation_flows",
-        "updateKey": "name",
-        "updateKeyValue": "Instagram Content Intelligence",
-        "dataMode": "manual",
-        "manualConfigData": {
-          "columns": [
-            {
-              "column": "status",
-              "value": "active"
-            },
-            {
-              "column": "last_run",
-              "value": "={{ $now }}"
-            },
-            {
-              "column": "execution_time",
-              "value": "={{ $execution.duration }}"
-            }
-          ]
-        }
-      },
-      "id": "supabase-instagram-success",
-      "name": "💾 Instagram Content Intelligence - OK",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [1780, 300],
-      "credentials": {
-        "supabaseApi": {
-          "id": "your-supabase-credential-id",
-          "name": "Supabase API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "errorMessage": "={{ $json.error || $json.message || 'Ошибка Instagram automation' }}"
-      },
-      "id": "error-instagram-automation",
-      "name": "❌ Ошибка Instagram",
+      "parameters": {},
+      "id": "error-trigger",
+      "name": "Error Trigger",
       "type": "n8n-nodes-base.errorTrigger",
       "typeVersion": 1,
-      "position": [1560, 500]
+      "position": [
+        2976,
+        -512
+      ]
     },
     {
       "parameters": {
-        "operation": "update",
-        "schema": "public",
-        "table": "automation_flows",
-        "updateKey": "name",
-        "updateKeyValue": "Instagram Content Intelligence",
-        "dataMode": "manual",
-        "manualConfigData": {
-          "columns": [
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/automation_flows?on_conflict=project_id,name",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
             {
-              "column": "status",
-              "value": "error"
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
             },
             {
-              "column": "last_run",
-              "value": "={{ $now }}"
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
             },
             {
-              "column": "logs",
-              "value": "={{ $json.error || $json.message || 'Ошибка Instagram Content Intelligence' }}"
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
             }
           ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify([{\n  \"project_id\": \"64c94e87-630c-470e-8ab1-8f7c8c835efa\",\n  \"name\": \"Instagram Daily Automation\",\n  \"status\": \"error\",\n  \"last_seen\": $now,\n  \"logs\": $error.message\n}]) }}",
+        "options": {
+          "timeout": 30000
         }
       },
-      "id": "supabase-instagram-error",
-      "name": "💾 Instagram Content Intelligence - Error",
+      "id": "heartbeat-error",
+      "name": "💾 Instagram Daily Automation - ERROR",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1780, 500],
-      "credentials": {
-        "supabaseApi": {
-          "id": "your-supabase-credential-id",
-          "name": "Supabase API"
-        }
-      }
+      "position": [
+        3200,
+        -512
+      ]
     }
   ],
   "connections": {
-    "⏰ Ежедневно 01:05": {
+    "⏰ Ежедневно 09:00": {
       "main": [
         [
           {
@@ -271,7 +401,87 @@
       "main": [
         [
           {
-            "node": "👥 Получить подписчиков",
+            "node": "👥 Получить подписчиков (сегодня)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔗 Получить подписчиков (вчера)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🔗 Построить URL постов",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🧮 Агрегировать подписчиков",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "👥 Получить подписчиков (сегодня)": {
+      "main": [
+        [
+          {
+            "node": "🧮 Агрегировать подписчиков",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔗 Получить подписчиков (вчера)": {
+      "main": [
+        [
+          {
+            "node": "📊 Запрос подписчиков (вчера)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Запрос подписчиков (вчера)": {
+      "main": [
+        [
+          {
+            "node": "🧮 Агрегировать подписчиков",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "🧮 Агрегировать подписчиков": {
+      "main": [
+        [
+          {
+            "node": "📦 Map daily_data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🧮 Агрегировать данные",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "📦 Map daily_data": {
+      "main": [
+        [
+          {
+            "node": "💾 Записать подписчиков в daily_data",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✅ Финальный лог",
             "type": "main",
             "index": 0
           }
@@ -304,7 +514,7 @@
       "main": [
         [
           {
-            "node": "👥 Получить подписчиков",
+            "node": "🧮 Агрегировать данные",
             "type": "main",
             "index": 0
           }
@@ -333,22 +543,49 @@
         ]
       ]
     },
-    "✅ Финальный лог": {
+    "💾 Записать подписчиков в daily_data": {
       "main": [
         [
           {
-            "node": "💾 Instagram Content Intelligence - OK",
+            "node": "✅ Финальный лог",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "❌ Ошибка Instagram": {
+    "🧮 Агрегировать данные": {
       "main": [
         [
           {
-            "node": "💾 Instagram Content Intelligence - Error",
+            "node": "💾 Сохранить статистику",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✅ Финальный лог",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Финальный лог": {
+      "main": [
+        [
+          {
+            "node": "💾 Instagram Daily Automation - OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "💾 Instagram Daily Automation - ERROR",
             "type": "main",
             "index": 0
           }
@@ -356,8 +593,8 @@
       ]
     }
   },
-  "settings": {
-    "executionOrder": "v1"
-  },
-  "staticData": null
+  "pinData": {},
+  "meta": {
+    "instanceId": "cea061cea1f386dc815e9d955a502821b11522d6241e52d0bef9ca5dfa0e34e2"
+  }
 }

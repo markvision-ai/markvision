@@ -112,7 +112,7 @@ const getSourceInfo = (source: string): { label: string; color: string; icon: st
     return { label: 'Email', color: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30', icon: '✉️' };
   }
   
-  return { label: source, color: 'bg-gray-500/20 text-gray-400 border-gray-500/30', icon: '🔗' };
+  return { label: source, color: 'bg-muted text-muted-foreground border-border', icon: '🔗' };
 };
 
 const SourceBadge = ({ source }: { source: string }) => {
@@ -455,10 +455,10 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       </div>
 
       {/* Table - Glassmorphism */}
-      <div className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl overflow-hidden">
+      <div className="backdrop-blur-sm bg-card/50 border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-white/10">
+            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-border">
               <tr>
                 <th 
                   className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
@@ -548,7 +548,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                 </tr>
               ) : (
                 sortedLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-white/5 dark:hover:bg-white/5 transition-colors border-b border-white/5">
+                  <tr key={lead.id} className="hover:bg-foreground/[0.05] transition-colors border-b border-border">
                     {/* Имя */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -749,7 +749,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         {STATUS_OPTIONS.map(status => {
           const count = leads.filter(l => l.status === status.value).length;
           return (
-            <div key={status.value} className="backdrop-blur-sm bg-card/50 border border-white/10 rounded-lg p-4 text-center hover:bg-card/70 transition-all">
+            <div key={status.value} className="backdrop-blur-sm bg-card/50 border border-border rounded-lg p-4 text-center hover:bg-card/70 transition-all">
               <p className="text-2xl font-bold">{count}</p>
               <Badge className={`${status.color} mt-1`}>{status.label}</Badge>
             </div>
@@ -759,7 +759,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       {/* Detail Dialog - Glassmorphism */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-white/10">
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-border">
           <DialogHeader>
             <DialogTitle>Карточка клиента</DialogTitle>
           </DialogHeader>

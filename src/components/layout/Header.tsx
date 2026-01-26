@@ -124,7 +124,7 @@ export const Header = ({
                   setShowResults(true);
                 }
               }}
-              className="pl-10 pr-10 py-2 backdrop-blur-sm bg-card/50 border border-white/10 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+              className="pl-10 pr-10 py-2 backdrop-blur-sm bg-card/50 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
             />
             {searchQuery && (
               <button
@@ -150,7 +150,7 @@ export const Header = ({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full mt-2 w-96 backdrop-blur-sm bg-card/50 border border-white/10 rounded-xl shadow-lg z-50 max-h-[400px] overflow-hidden"
+                className="absolute top-full mt-2 w-96 backdrop-blur-sm bg-card/50 border border-border rounded-xl shadow-lg z-50 max-h-[400px] overflow-hidden"
               >
                 <div className="overflow-y-auto max-h-[400px]">
                   {/* Пациенты */}
@@ -165,7 +165,7 @@ export const Header = ({
                           <button
                             key={result.id}
                             onClick={result.action}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-foreground/[0.05] transition-colors text-left"
                           >
                             {result.icon}
                             <div className="flex-1 min-w-0">
@@ -181,7 +181,7 @@ export const Header = ({
 
                   {/* Контент */}
                   {searchResults.filter(r => r.type === 'content').length > 0 && (
-                    <div className="p-2 border-t border-white/10">
+                    <div className="p-2 border-t border-border">
                       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
                         Контент
                       </div>
@@ -191,7 +191,7 @@ export const Header = ({
                           <button
                             key={result.id}
                             onClick={result.action}
-                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-white/5 transition-colors text-left"
+                            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-foreground/[0.05] transition-colors text-left"
                           >
                             {result.icon}
                             <div className="flex-1 min-w-0">

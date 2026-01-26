@@ -328,7 +328,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-[#020617] p-4 md:p-6 space-y-6">
+    <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -339,7 +339,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
           variant="outline" 
           size="sm" 
           onClick={handleRefresh}
-          className="bg-white/80 dark:bg-white/5 backdrop-blur-sm border-white/10 dark:border-white/10"
+          className="bg-card/80 backdrop-blur-sm border-border"
         >
           <RefreshCw className="w-4 h-4 mr-2" />
           Обновить
@@ -350,7 +350,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Facebook Marketing Card */}
         <Card className={cn(
-          "bg-slate-50 dark:bg-white/5 backdrop-blur-[16px] border-white/10 dark:border-white/10",
+          "bg-card backdrop-blur-[16px] border-border",
           "shadow-sm dark:shadow-lg"
         )}>
           <CardHeader className="pb-3">
@@ -412,7 +412,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
         {/* Instagram Business Card */}
         <Card className={cn(
-          "bg-slate-50 dark:bg-white/5 backdrop-blur-[16px] border-white/10 dark:border-white/10",
+          "bg-card backdrop-blur-[16px] border-border",
           "shadow-sm dark:shadow-lg"
         )}>
           <CardHeader className="pb-3">
@@ -519,7 +519,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             transition={{ duration: 0.3 }}
           >
             <Card className={cn(
-              "bg-slate-50 dark:bg-white/5 backdrop-blur-[16px] border-white/10 dark:border-white/10",
+              "bg-card backdrop-blur-[16px] border-border",
               "shadow-sm dark:shadow-lg hover:shadow-md transition-shadow"
             )}>
               <CardContent className="p-4">
@@ -550,7 +550,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
       {/* Modal: Resource Selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] bg-white dark:bg-background border-border">
+        <DialogContent className="max-w-2xl max-h-[80vh] bg-background border-border">
           <DialogHeader>
             <DialogTitle className="text-foreground dark:text-foreground">
               {modalType === 'facebook' ? 'Выбор ресурсов Facebook' : 'Выбор Instagram профиля'}

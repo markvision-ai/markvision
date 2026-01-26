@@ -279,7 +279,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       case 'appointment': return 'bg-purple-500';
       case 'paid': return 'bg-emerald-500';
       case 'cancelled': return 'bg-red-500';
-      default: return 'bg-gray-500';
+      default: return 'bg-muted';
     }
   };
 
@@ -312,7 +312,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   "w-4 h-4 transition-all",
                   systemStatus.meta 
                     ? "text-green-500" 
-                    : "text-gray-400"
+                    : "text-muted-foreground"
                 )}
               />
               {!systemStatus.meta && (
@@ -337,7 +337,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   "w-4 h-4 transition-all",
                   systemStatus.whatsapp 
                     ? "text-green-500" 
-                    : "text-gray-400"
+                    : "text-muted-foreground"
                 )}
               />
               {!systemStatus.whatsapp && (
