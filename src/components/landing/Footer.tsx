@@ -9,7 +9,7 @@ const platformLinks = [{
   name: "Главная панель",
   href: "/dashboard"
 }, {
-  name: "База пациентов (CRM)",
+  name: "CRM",
   href: "/crm"
 }, {
   name: "Сквозная аналитика",

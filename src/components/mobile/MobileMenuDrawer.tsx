@@ -63,7 +63,7 @@ const menuSections = [
   {
     title: 'Продажи',
     items: [
-      { id: 'crm', label: 'База пациентов', icon: Users },
+      { id: 'crm', label: 'CRM', icon: Users },
       { id: 'diagnostics', label: 'Диагностика', icon: HeartPulse },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: Target },

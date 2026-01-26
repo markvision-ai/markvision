@@ -204,7 +204,7 @@ export const AppSidebar = ({
     ],
     sales: [
       {
-        label: "База пациентов",
+        label: "CRM",
         href: "/crm",
         icon: <IconUsers className="h-5 w-5 flex-shrink-0" />,
         tab: "crm",

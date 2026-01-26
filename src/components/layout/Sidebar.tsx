@@ -102,7 +102,7 @@ const menuGroups = [
     label: 'ПРОДАЖИ',
     icon: ShoppingCart,
     items: [
-      { id: 'crm', label: 'База пациентов', icon: Kanban },
+      { id: 'crm', label: 'CRM', icon: Kanban },
       { id: 'calendar', label: 'Календарь', icon: CalendarDays },
       { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
       { id: 'inbox', label: 'Входящие', icon: Inbox },

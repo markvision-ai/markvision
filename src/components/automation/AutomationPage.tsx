@@ -124,8 +124,26 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         SYNC_FETCH_TIMEOUT_MS,
       );
       if (!res.ok) {
-        const text = await res.text();
-        toast.error(`Ошибка sync n8n (${res.status}): ${text || res.statusText}`);
+        let errorText = res.statusText;
+        try {
+          const text = await res.text();
+          // Если ответ HTML (ошибка 500), пытаемся извлечь полезную информацию
+          if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
+            errorText = `Сервер n8n вернул ошибку ${res.status}. Проверьте, что webhook /webhook/sync-markvision-flows настроен в n8n.`;
+          } else {
+            // Пытаемся распарсить как JSON
+            try {
+              const json = JSON.parse(text);
+              errorText = json.error || json.message || text.substring(0, 100);
+            } catch {
+              errorText = text.substring(0, 200) || res.statusText;
+            }
+          }
+        } catch (e) {
+          errorText = `Ошибка ${res.status}: ${res.statusText}`;
+        }
+        console.error('[Обновить] Ошибка sync n8n:', { status: res.status, text: errorText });
+        toast.error(`Ошибка sync n8n (${res.status}): ${errorText}`);
         return;
       }
       toast.success('Связки получены из n8n. Обновляю список…');

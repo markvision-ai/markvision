@@ -299,7 +299,7 @@ export const AnalyticsPlatform = () => {
       case 'dashboard': return '🏠 Главная панель';
       case 'table': return '📊 Таблица показателей';
       case 'quantom-ads': return '🚀 Управление рекламой';
-      case 'crm': return '🤝 База пациентов';
+      case 'crm': return '🤝 CRM';
       case 'factory': return '🎬 Центр контента';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
       case 'reports': return '📄 Отчёты';
