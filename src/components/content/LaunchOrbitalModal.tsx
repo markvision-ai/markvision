@@ -136,6 +136,7 @@ export const LaunchOrbitalModal = ({ open, onOpenChange, postData }: LaunchOrbit
                   src={postData.media_url} 
                   alt="Post preview" 
                   className="w-full h-[280px] object-cover"
+                  style={{ objectPosition: 'right center' }}
                 />
               )}
               {postData.caption && (
