@@ -143,13 +143,16 @@ export const DataTable = ({
     const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
     const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
     
-    // Для подписчиков суммируем прирост (ig_followers_new), а не общее количество
+    // Для подписчиков берем последнее значение (максимальное по дате), так как это абсолютное количество, а не прирост
+    const sortedByDate = [...monthData].sort((a, b) => a.date.localeCompare(b.date));
+    const lastFollowers = sortedByDate.length > 0 ? (sortedByDate[sortedByDate.length - 1]?.followers || 0) : 0;
+    
     return {
       spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
       impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
       clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
       leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
-      followers: monthData.reduce((sum, day) => sum + (day.followers || 0), 0), // Сумма прироста
+      followers: lastFollowers, // Берем последнее значение (текущее количество на конец периода)
       diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
       sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
       revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)

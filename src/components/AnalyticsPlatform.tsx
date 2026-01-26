@@ -255,9 +255,9 @@ export const AnalyticsPlatform = () => {
   const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
   const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
   
-  // ROMI, ROI, ROAS
+  // ROMI, Рентабельность, ROAS
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
-  const roi = totals.spend > 0 ? (totals.revenue / totals.spend) * 100 : null; // ROI: доходность инвестиций в %
+  const profitability = totals.revenue > 0 ? ((totals.revenue - totals.spend) / totals.revenue) * 100 : null; // Рентабельность: (Прибыль / Выручка) × 100%
   const roas = totals.spend > 0 ? totals.revenue / totals.spend : null; // ROAS: коэффициент возврата
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
@@ -468,20 +468,20 @@ export const AnalyticsPlatform = () => {
                   </div>
                 </div>
 
-                {/* ROI */}
+                {/* Рентабельность */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="text-xs font-medium text-slate-700 leading-tight">
-                      ROI
+                      Рентабельность
                     </div>
                     <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
                       <BarChart3 className="w-3 h-3" />
                     </div>
                   </div>
                   <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {roi !== null ? (
+                    {profitability !== null ? (
                       <>
-                        {formatCR(roi).replace('%', '')}
+                        {formatCR(profitability).replace('%', '')}
                         <span className="text-slate-400">%</span>
                       </>
                     ) : (
@@ -489,7 +489,7 @@ export const AnalyticsPlatform = () => {
                     )}
                   </div>
                   <div className="text-[10px] text-slate-500 leading-tight">
-                    {roi !== null ? 'Выручка / Расходы' : 'Нет данных'}
+                    {profitability !== null ? '(Выручка - Расходы) / Выручка' : 'Нет данных'}
                   </div>
                 </div>
 
@@ -596,7 +596,7 @@ export const AnalyticsPlatform = () => {
               leadToDiagnosticConv: leadToDiagnosticConv ?? 0,
               diagnosticToSaleConv: diagnosticToSaleConv ?? 0,
               romi: romi ?? 0,
-              roi: roi ?? 0,
+              profitability: profitability ?? 0,
               roas: roas ?? 0,
             },
             funnelSteps: [
