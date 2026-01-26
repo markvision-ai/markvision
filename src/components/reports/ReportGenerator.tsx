@@ -44,8 +44,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
 import { useAIReport } from '@/hooks/useAIReport';
 import { supabase } from '@/lib/externalSupabase';
 
@@ -643,6 +641,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
     setIsGeneratingPDF(true);
     try {
+      // Dynamic import for code splitting
+      const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+        import('html2canvas'),
+        import('jspdf')
+      ]);
+
       const canvas = await html2canvas(reportRef.current, {
         scale: 2,
         backgroundColor: '#ffffff',

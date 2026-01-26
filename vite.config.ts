@@ -96,4 +96,24 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Vendor chunks
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-vendor': ['framer-motion'],
+          'chart-vendor': ['recharts'],
+          'date-vendor': ['date-fns'],
+          'pdf-vendor': ['html2canvas', 'jspdf'],
+          // Large components
+          'reports': ['./src/components/reports/ReportGenerator.tsx'],
+          'crm': ['./src/components/crm/CRMPage.tsx'],
+        },
+      },
+    },
+    chunkSizeWarningLimit: 600,
+    // Optimize assets
+    assetsInlineLimit: 4096, // Inline assets < 4KB
+  },
 }));

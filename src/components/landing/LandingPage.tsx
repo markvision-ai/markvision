@@ -465,7 +465,7 @@ export const LandingPage = () => {
               duration: 0.3
             }} className="relative">
                 <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-slate-200/50 shadow-xl sm:shadow-2xl shadow-slate-200/40">
-                  <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" />
+                  <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" loading="lazy" />
                 </div>
                 {/* Decorative elements - hidden on mobile */}
                 <div className="hidden sm:block absolute -top-6 -right-6 w-32 h-32 bg-blue-100/50 rounded-full blur-3xl" />
