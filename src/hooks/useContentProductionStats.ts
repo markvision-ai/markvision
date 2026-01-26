@@ -39,13 +39,7 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
         setLoading(true);
         setError(null);
 
-        // Debug log removed for production
-        if (false) {
-          console.log('🔍 useContentProductionStats - Запрос данных:', {
-          projectId,
-          periodStart,
-          periodEnd: effectivePeriodEnd
-        });
+        // Debug logs removed for production performance
 
         const { data: rows, error: fetchError } = await supabase
           .from('content_production_stats')

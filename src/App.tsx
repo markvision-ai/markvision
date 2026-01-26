@@ -52,15 +52,7 @@ const OAuthHandler = () => {
       const hasError = searchParams.has('error');
       const hasOAuthParams = hasAccessToken || hasCode || hasError;
 
-      // Debug log removed for production
-      if (false) console.log('🔍 Checking OAuth params:', {
-        pathname: window.location.pathname,
-        hasAccessToken,
-        hasCode,
-        hasError,
-        hash: window.location.hash.substring(0, 50),
-        search: window.location.search.substring(0, 100)
-      });
+      // Debug logs removed for production performance
 
       if (hasOAuthParams && window.location.pathname !== '/integrations') {
         console.log('🚨 FORCING redirect to /integrations!');
