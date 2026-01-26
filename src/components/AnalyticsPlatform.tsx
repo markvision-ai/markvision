@@ -204,18 +204,25 @@ export const AnalyticsPlatform = () => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
     const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
 
-    return rangeData.reduce(
-      (acc, day) => ({
-        spend: acc.spend + (day.spend || 0),
-        impressions: acc.impressions + (day.impressions || 0),
-        clicks: acc.clicks + (day.clicks || 0),
-        leads: acc.leads + (day.leads || 0),
-        diagnostics: acc.diagnostics + (day.diagnostics || 0),
-        sales: acc.sales + (day.sales || 0),
-        revenue: acc.revenue + (day.revenue || 0),
-      }),
-      { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
-    );
+    // Для подписчиков берем последнее значение (максимальное по дате), так как это абсолютное количество
+    const sortedByDate = [...rangeData].sort((a, b) => a.date.localeCompare(b.date));
+    const lastFollowers = sortedByDate.length > 0 ? (sortedByDate[sortedByDate.length - 1]?.followers || 0) : 0;
+
+    return {
+      ...rangeData.reduce(
+        (acc, day) => ({
+          spend: acc.spend + (day.spend || 0),
+          impressions: acc.impressions + (day.impressions || 0),
+          clicks: acc.clicks + (day.clicks || 0),
+          leads: acc.leads + (day.leads || 0),
+          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          sales: acc.sales + (day.sales || 0),
+          revenue: acc.revenue + (day.revenue || 0),
+        }),
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      ),
+      followers: lastFollowers, // Берем последнее значение (текущее количество на конец периода)
+    };
   }, [dailyData, daysInRange]);
 
   // Данные за прошлую неделю для сравнения (7 дней назад от ПОСЛЕДНЕГО дня текущего диапазона)
@@ -335,7 +342,7 @@ export const AnalyticsPlatform = () => {
           {(registerWidget) => {
             // Register all widgets - the DraggableDashboard will render them in sorted order
             registerWidget('metrics', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4 stagger-children animate">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 stagger-children animate">
                 <PlanFactCard
                   label="Расходы"
                   value={totals.spend}
@@ -357,6 +364,14 @@ export const AnalyticsPlatform = () => {
                   value={totals.leads}
                   plan={planData.leads}
                   fact={totals.leads}
+                  icon={<Users className="w-4 h-4 md:w-5 md:h-5" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Подписчики"
+                  value={totals.followers}
+                  plan={planData.followers}
+                  fact={totals.followers}
                   icon={<Users className="w-4 h-4 md:w-5 md:h-5" />}
                   format="number"
                 />
