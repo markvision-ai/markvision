@@ -9,7 +9,8 @@ import {
   ShoppingCart, 
   Wallet,
   TrendingUp,
-  Loader2
+  Loader2,
+  BarChart3
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
@@ -112,6 +113,12 @@ const formatCR = (value: number | null): string => {
     return value.toFixed(2) + '%';
   }
   return value.toFixed(1) + '%';
+};
+
+// Форматирование для ROAS (коэффициент)
+const formatROAS = (value: number | null): string => {
+  if (value === null || isNaN(value) || !isFinite(value)) return '—';
+  return value.toFixed(2) + 'x';
 };
 
 const formatNumber = (value: number): string => {
@@ -251,7 +258,11 @@ export const AnalyticsPlatform = () => {
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
   const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
   const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
-  const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
+  
+  // ROMI, ROI, ROAS
+  const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI в процентах
+  const roi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROI в процентах (то же что ROMI)
+  const roas = totals.spend > 0 ? totals.revenue / totals.spend : null; // ROAS как коэффициент
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
 
@@ -436,20 +447,20 @@ export const AnalyticsPlatform = () => {
                   </div>
                 </div>
 
-                {/* CR (Показы→Лид) */}
+                {/* ROMI */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="text-xs font-medium text-slate-700 leading-tight">
-                      CR (Показы→Лид)
+                      ROMI
                     </div>
                     <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
                       <TrendingUp className="w-3 h-3" />
                     </div>
                   </div>
                   <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {impressionToLeadConv !== null ? (
+                    {romi !== null ? (
                       <>
-                        {formatCR(impressionToLeadConv).replace('%', '')}
+                        {formatCR(romi).replace('%', '')}
                         <span className="text-slate-400">%</span>
                       </>
                     ) : (
@@ -457,24 +468,24 @@ export const AnalyticsPlatform = () => {
                     )}
                   </div>
                   <div className="text-[10px] text-slate-500 leading-tight">
-                    {impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
+                    {romi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
                   </div>
                 </div>
 
-                {/* CR (Лид→Диагностика) */}
+                {/* ROI */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="text-xs font-medium text-slate-700 leading-tight">
-                      CR (Лид→Диагностика)
+                      ROI
                     </div>
                     <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
-                      <Target className="w-3 h-3" />
+                      <BarChart3 className="w-3 h-3" />
                     </div>
                   </div>
                   <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {leadToDiagnosticConv !== null ? (
+                    {roi !== null ? (
                       <>
-                        {formatCR(leadToDiagnosticConv).replace('%', '')}
+                        {formatCR(roi).replace('%', '')}
                         <span className="text-slate-400">%</span>
                       </>
                     ) : (
@@ -482,32 +493,25 @@ export const AnalyticsPlatform = () => {
                     )}
                   </div>
                   <div className="text-[10px] text-slate-500 leading-tight">
-                    {leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
+                    {roi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
                   </div>
                 </div>
 
-                {/* CR (Диагностика→Продажа) */}
+                {/* ROAS */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="text-xs font-medium text-slate-700 leading-tight">
-                      CR (Диагностика→Продажа)
+                      ROAS
                     </div>
                     <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
-                      <ShoppingCart className="w-3 h-3" />
+                      <DollarSign className="w-3 h-3" />
                     </div>
                   </div>
                   <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {diagnosticToSaleConv !== null ? (
-                      <>
-                        {formatCR(diagnosticToSaleConv).replace('%', '')}
-                        <span className="text-slate-400">%</span>
-                      </>
-                    ) : (
-                      <span className="text-slate-400">—</span>
-                    )}
+                    {roas !== null ? formatROAS(roas) : <span className="text-slate-400">—</span>}
                   </div>
                   <div className="text-[10px] text-slate-500 leading-tight">
-                    {diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
+                    {roas !== null ? 'Выручка / Расходы' : 'Нет данных'}
                   </div>
                 </div>
               </div>
@@ -595,7 +599,9 @@ export const AnalyticsPlatform = () => {
               impressionToLeadConv: impressionToLeadConv ?? 0,
               leadToDiagnosticConv: leadToDiagnosticConv ?? 0,
               diagnosticToSaleConv: diagnosticToSaleConv ?? 0,
-              roas: totals.spend > 0 ? totals.revenue / totals.spend : 0,
+              romi: romi ?? 0,
+              roi: roi ?? 0,
+              roas: roas ?? 0,
             },
             funnelSteps: [
               { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
