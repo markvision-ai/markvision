@@ -99,10 +99,19 @@ interface DateRange {
   to: Date;
 }
 
-// Форматирование без копеек
+// Форматирование без копеек (с пробелами)
 const formatCurrency = (value: number): string => {
   const rounded = Math.round(value);
   return new Intl.NumberFormat('ru-RU').format(rounded) + ' ₸';
+};
+
+// Умное форматирование для CR (проценты)
+const formatCR = (value: number | null): string => {
+  if (value === null || isNaN(value) || !isFinite(value)) return '—';
+  if (value < 1) {
+    return value.toFixed(2) + '%';
+  }
+  return value.toFixed(1) + '%';
 };
 
 const formatNumber = (value: number): string => {
@@ -235,13 +244,13 @@ export const AnalyticsPlatform = () => {
     );
   }, [dailyData, dateRange]);
 
-  // Computed metrics (округляем)
-  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : 0; // Стоимость диагностики
-  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0; // Стоимость лида (CPL)
-  const impressionToLeadConv = totals.impressions > 0 ? Math.round((totals.leads / totals.impressions) * 100 * 100) / 100 : 0; // Конверсия показ→лид (%)
-  const leadToDiagnosticConv = totals.leads > 0 ? Math.round((totals.diagnostics / totals.leads) * 100 * 100) / 100 : 0; // Конверсия лид→диагностика (%)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? Math.round((totals.sales / totals.diagnostics) * 100 * 100) / 100 : 0; // Конверсия диагностика→продажа (%)
+  // Computed metrics (возвращаем null при делении на 0)
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
+  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
+  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
+  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
+  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
   const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
@@ -372,40 +381,135 @@ export const AnalyticsPlatform = () => {
             ));
 
             registerWidget('computed', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
-                <MetricCard
-                  label="Стоимость клиента"
-                  value={formatCurrency(customerCost)}
-                  subValue="Расходы / продажи"
-                  icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
-                  variant="primary"
-                />
-                <MetricCard
-                  label="Стоимость диагностики"
-                  value={formatCurrency(diagnosticCost)}
-                  subValue="Расходы / диагностики"
-                />
-                <MetricCard
-                  label="Стоимость лида"
-                  value={formatCurrency(leadCost)}
-                  subValue="Расходы / лиды"
-                  variant={leadCost > 5000 ? 'danger' : 'default'}
-                />
-                <MetricCard
-                  label="Конверсия показ→лид"
-                  value={`${impressionToLeadConv.toFixed(2)}%`}
-                  subValue="Лиды / показы"
-                />
-                <MetricCard
-                  label="Конверсия лид→диагностика"
-                  value={`${leadToDiagnosticConv.toFixed(2)}%`}
-                  subValue="Диагностики / лиды"
-                />
-                <MetricCard
-                  label="Конверсия диагностика→продажа"
-                  value={`${diagnosticToSaleConv.toFixed(2)}%`}
-                  subValue="Продажи / диагностики"
-                />
+              <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                {/* Стоимость клиента */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      Стоимость клиента
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <ShoppingCart className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {customerCost !== null ? 'Расходы / продажи' : 'Недостаточно данных'}
+                  </div>
+                </div>
+
+                {/* Стоимость диагностики */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      Стоимость диагностики
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <Target className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {diagnosticCost !== null ? 'Расходы / диагностики' : 'Недостаточно данных'}
+                  </div>
+                </div>
+
+                {/* Стоимость лида */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      Стоимость лида
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <Users className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {leadCost !== null ? 'Расходы / лиды' : 'Недостаточно данных'}
+                  </div>
+                </div>
+
+                {/* CR (Показы→Лид) */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      CR (Показы→Лид)
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <TrendingUp className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {impressionToLeadConv !== null ? (
+                      <>
+                        {formatCR(impressionToLeadConv).replace('%', '')}
+                        <span className="text-slate-400">%</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {impressionToLeadConv !== null ? 'Лиды / показы' : 'Недостаточно данных'}
+                  </div>
+                </div>
+
+                {/* CR (Лид→Диагностика) */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      CR (Лид→Диагностика)
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <Target className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {leadToDiagnosticConv !== null ? (
+                      <>
+                        {formatCR(leadToDiagnosticConv).replace('%', '')}
+                        <span className="text-slate-400">%</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Недостаточно данных'}
+                  </div>
+                </div>
+
+                {/* CR (Диагностика→Продажа) */}
+                <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="text-sm font-medium text-slate-700 leading-tight">
+                      CR (Диагностика→Продажа)
+                    </div>
+                    <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+                      <ShoppingCart className="w-4 h-4" />
+                    </div>
+                  </div>
+                  <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    {diagnosticToSaleConv !== null ? (
+                      <>
+                        {formatCR(diagnosticToSaleConv).replace('%', '')}
+                        <span className="text-slate-400">%</span>
+                      </>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
+                  </div>
+                  <div className="mt-2 text-xs text-slate-500">
+                    {diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Недостаточно данных'}
+                  </div>
+                </div>
               </div>
             ));
 
@@ -485,12 +589,12 @@ export const AnalyticsPlatform = () => {
             totals, 
             planData,
             metrics: {
-              customerCost,
-              diagnosticCost,
-              leadCost,
-              impressionToLeadConv,
-              leadToDiagnosticConv,
-              diagnosticToSaleConv,
+              customerCost: customerCost ?? 0,
+              diagnosticCost: diagnosticCost ?? 0,
+              leadCost: leadCost ?? 0,
+              impressionToLeadConv: impressionToLeadConv ?? 0,
+              leadToDiagnosticConv: leadToDiagnosticConv ?? 0,
+              diagnosticToSaleConv: diagnosticToSaleConv ?? 0,
               roas: totals.spend > 0 ? totals.revenue / totals.spend : 0,
             },
             funnelSteps: [

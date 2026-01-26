@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Download, Target, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Target, Loader2, ShoppingCart, Users, TrendingUp } from 'lucide-react';
 
 interface DailyData {
   date: string;
@@ -36,6 +36,15 @@ const formatNumber = (value: number): string => {
 
 const formatPercent = (value: number): string => {
   return Math.round(value) + '%';
+};
+
+// Умное форматирование для CR (проценты)
+const formatCR = (value: number | null): string => {
+  if (value === null || isNaN(value) || !isFinite(value)) return '—';
+  if (value < 1) {
+    return value.toFixed(2) + '%';
+  }
+  return value.toFixed(1) + '%';
 };
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
@@ -147,13 +156,13 @@ export const DataTable = ({
     };
   }, [dailyData, daysInMonth]);
 
-  // Calculated metrics (БЕЗ КОПЕЕК!)
-  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : 0; // Стоимость диагностики
-  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0; // Стоимость лида (CPL)
-  const impressionToLeadConv = totals.impressions > 0 ? Math.round((totals.leads / totals.impressions) * 100 * 100) / 100 : 0; // Конверсия показ→лид (%)
-  const leadToDiagnosticConv = totals.leads > 0 ? Math.round((totals.diagnostics / totals.leads) * 100 * 100) / 100 : 0; // Конверсия лид→диагностика (%)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? Math.round((totals.sales / totals.diagnostics) * 100 * 100) / 100 : 0; // Конверсия диагностика→продажа (%)
+  // Calculated metrics (возвращаем null при делении на 0)
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
+  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
+  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
+  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
+  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
   const ctr = totals.impressions > 0 ? Math.round(totals.clicks / totals.impressions * 100) : 0; // Округлено до целого
   const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
   
@@ -207,36 +216,134 @@ export const DataTable = ({
   return (
     <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость клиента</div>
-          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(customerCost)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Расходы / продажи</div>
+      <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Стоимость клиента */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              Стоимость клиента
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <ShoppingCart className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {customerCost !== null ? 'Расходы / продажи' : 'Недостаточно данных'}
+          </div>
         </div>
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость диагностики</div>
-          <div className="text-base md:text-xl font-bold">{formatCurrency(diagnosticCost)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Расходы / диагностики</div>
+
+        {/* Стоимость диагностики */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              Стоимость диагностики
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <Target className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {diagnosticCost !== null ? 'Расходы / диагностики' : 'Недостаточно данных'}
+          </div>
         </div>
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость лида</div>
-          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(leadCost)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Расходы / лиды</div>
+
+        {/* Стоимость лида */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              Стоимость лида
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <Users className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {leadCost !== null ? 'Расходы / лиды' : 'Недостаточно данных'}
+          </div>
         </div>
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия показ→лид</div>
-          <div className="text-base md:text-xl font-bold">{formatPercent(impressionToLeadConv)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Лиды / показы</div>
+
+        {/* CR (Показы→Лид) */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              CR (Показы→Лид)
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <TrendingUp className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {impressionToLeadConv !== null ? (
+              <>
+                {formatCR(impressionToLeadConv).replace('%', '')}
+                <span className="text-slate-400">%</span>
+              </>
+            ) : (
+              <span className="text-slate-400">—</span>
+            )}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {impressionToLeadConv !== null ? 'Лиды / показы' : 'Недостаточно данных'}
+          </div>
         </div>
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия лид→диагностика</div>
-          <div className="text-base md:text-xl font-bold">{formatPercent(leadToDiagnosticConv)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Диагностики / лиды</div>
+
+        {/* CR (Лид→Диагностика) */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              CR (Лид→Диагностика)
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <Target className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {leadToDiagnosticConv !== null ? (
+              <>
+                {formatCR(leadToDiagnosticConv).replace('%', '')}
+                <span className="text-slate-400">%</span>
+              </>
+            ) : (
+              <span className="text-slate-400">—</span>
+            )}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Недостаточно данных'}
+          </div>
         </div>
-        <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия диагностика→продажа</div>
-          <div className="text-base md:text-xl font-bold">{formatPercent(diagnosticToSaleConv)}</div>
-          <div className="text-xs text-muted-foreground mt-1">Продажи / диагностики</div>
+
+        {/* CR (Диагностика→Продажа) */}
+        <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
+          <div className="flex items-start justify-between gap-3">
+            <div className="text-sm font-medium text-slate-700 leading-tight">
+              CR (Диагностика→Продажа)
+            </div>
+            <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
+              <ShoppingCart className="w-4 h-4" />
+            </div>
+          </div>
+          <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+            {diagnosticToSaleConv !== null ? (
+              <>
+                {formatCR(diagnosticToSaleConv).replace('%', '')}
+                <span className="text-slate-400">%</span>
+              </>
+            ) : (
+              <span className="text-slate-400">—</span>
+            )}
+          </div>
+          <div className="mt-2 text-xs text-slate-500">
+            {diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Недостаточно данных'}
+          </div>
         </div>
       </div>
 
