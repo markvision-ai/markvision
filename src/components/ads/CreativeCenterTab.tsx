@@ -265,7 +265,8 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                           <img
                             src={asset.file_url}
                             alt={asset.file_name || 'Asset'}
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover object-center"
+                            style={{ objectPosition: 'center top' }}
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center bg-black/50">
@@ -498,7 +499,8 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                       <img
                         src={selectedAsset.file_url}
                         alt="Preview"
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-cover object-center"
+                        style={{ objectPosition: 'center top' }}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center bg-black">
