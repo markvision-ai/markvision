@@ -91,9 +91,12 @@ interface ReportData {
     revenue: number;
   };
   metrics: {
-    cpl: number;
-    cac: number;
-    cpc: number;
+    customerCost: number;
+    diagnosticCost: number;
+    leadCost: number;
+    impressionToLeadConv: number;
+    leadToDiagnosticConv: number;
+    diagnosticToSaleConv: number;
     roas: number;
   };
   funnelSteps: { label: string; value: number; color: string }[];
@@ -348,9 +351,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const computedMetrics = useMemo(() => {
     const t = reportData.totals;
     return {
-      cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
-      cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
-      cpc: t.clicks > 0 ? Math.round(t.spend / t.clicks) : 0,
+      customerCost: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
+      diagnosticCost: t.diagnostics > 0 ? Math.round(t.spend / t.diagnostics) : 0,
+      leadCost: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
+      impressionToLeadConv: t.impressions > 0 ? Math.round((t.leads / t.impressions) * 100 * 100) / 100 : 0,
+      leadToDiagnosticConv: t.leads > 0 ? Math.round((t.diagnostics / t.leads) * 100 * 100) / 100 : 0,
+      diagnosticToSaleConv: t.diagnostics > 0 ? Math.round((t.sales / t.diagnostics) * 100 * 100) / 100 : 0,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [reportData.totals]);
@@ -434,9 +440,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const comparisonMetrics = useMemo(() => {
     const t = comparisonData.totals;
     return {
-      cpl: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
-      cac: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
-      cpc: t.clicks > 0 ? Math.round(t.spend / t.clicks) : 0,
+      customerCost: t.sales > 0 ? Math.round(t.spend / t.sales) : 0,
+      diagnosticCost: t.diagnostics > 0 ? Math.round(t.spend / t.diagnostics) : 0,
+      leadCost: t.leads > 0 ? Math.round(t.spend / t.leads) : 0,
+      impressionToLeadConv: t.impressions > 0 ? Math.round((t.leads / t.impressions) * 100 * 100) / 100 : 0,
+      leadToDiagnosticConv: t.leads > 0 ? Math.round((t.diagnostics / t.leads) * 100 * 100) / 100 : 0,
+      diagnosticToSaleConv: t.diagnostics > 0 ? Math.round((t.sales / t.diagnostics) * 100 * 100) / 100 : 0,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [comparisonData.totals]);
@@ -462,7 +471,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         period_preset: activePreset,
         include_comparison: isComparisonEnabled,
         comparison_preset: comparisonPreset,
-        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'cpl', 'cpc'],
+        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'customerCost', 'diagnosticCost', 'leadCost', 'impressionToLeadConv', 'leadToDiagnosticConv', 'diagnosticToSaleConv'],
       });
 
       if (error) throw error;
@@ -547,8 +556,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     loadSettings();
   }, [data.projectId]);
 
-  const defaultSummary = `За отчётный период получено ${formatNumber(reportData.totals.leads)} лидов по цене ${formatCurrency(computedMetrics.cpl)} за лид. Цена клика (CPC) — ${formatCurrency(computedMetrics.cpc)}.
-Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}. ROAS ${computedMetrics.roas.toFixed(1)}x.`;
+  const defaultSummary = `За отчётный период получено ${formatNumber(reportData.totals.leads)} лидов по цене ${formatCurrency(computedMetrics.leadCost)} за лид. Стоимость клиента — ${formatCurrency(computedMetrics.customerCost)}.
+Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}. ROAS ${computedMetrics.roas.toFixed(1)}x. Конверсия из показа в лид составила ${computedMetrics.impressionToLeadConv.toFixed(2)}%, из лида в диагностику — ${computedMetrics.leadToDiagnosticConv.toFixed(2)}%, из диагностики в продажу — ${computedMetrics.diagnosticToSaleConv.toFixed(2)}%.`;
 
   const [summary, setSummary] = useState(defaultSummary);
 
@@ -859,15 +868,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               {format(comparisonDateRange.from, 'd MMM', { locale: ru })} — {format(comparisonDateRange.to, 'd MMM', { locale: ru })}
             </Badge>
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
             {[
               { label: 'Расход', current: reportData.totals.spend, previous: comparisonData.totals.spend, format: 'currency', inverse: true },
               { label: 'Показы', current: reportData.totals.impressions, previous: comparisonData.totals.impressions, format: 'number' },
               { label: 'Лиды', current: reportData.totals.leads, previous: comparisonData.totals.leads, format: 'number' },
               { label: 'Продажи', current: reportData.totals.sales, previous: comparisonData.totals.sales, format: 'number' },
               { label: 'Выручка', current: reportData.totals.revenue, previous: comparisonData.totals.revenue, format: 'currency' },
-              { label: 'CPL', current: computedMetrics.cpl, previous: comparisonMetrics.cpl, format: 'currency', inverse: true },
-              { label: 'CPC', current: computedMetrics.cpc, previous: comparisonMetrics.cpc, format: 'currency', inverse: true },
+              { label: 'Стоимость лида', current: computedMetrics.leadCost, previous: comparisonMetrics.leadCost, format: 'currency', inverse: true },
             ].map((item) => {
               const change = getChange(item.current, item.previous);
               const isPositive = item.inverse ? change < 0 : change > 0;
@@ -1019,24 +1027,36 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               {/* Key Metrics */}
               <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4 text-foreground">📈 Ключевые метрики</h2>
-                <div className="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">CPC (Цена клика)</p>
-                    <p className="text-lg font-bold text-primary">{formatCurrency(computedMetrics.cpc)}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Стоимость клиента</p>
+                    <p className="text-lg font-bold text-primary">{formatCurrency(computedMetrics.customerCost)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Расходы / продажи</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">CPL</p>
-                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.cpl)}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Стоимость диагностики</p>
+                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.diagnosticCost)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Расходы / диагностики</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">CAC</p>
-                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.cac)}</p>
+                    <p className="text-xs text-muted-foreground mb-1">Стоимость лида</p>
+                    <p className="text-lg font-bold">{formatCurrency(computedMetrics.leadCost)}</p>
+                    <p className="text-xs text-muted-foreground mt-1">Расходы / лиды</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-4 text-center">
-                    <p className="text-xs text-muted-foreground mb-1">ROAS</p>
-                    <p className={`text-lg font-bold ${computedMetrics.roas >= 1 ? 'text-success' : 'text-destructive'}`}>
-                      {Math.round(computedMetrics.roas)}x
-                    </p>
+                    <p className="text-xs text-muted-foreground mb-1">Конверсия показ→лид</p>
+                    <p className="text-lg font-bold">{computedMetrics.impressionToLeadConv.toFixed(2)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">Лиды / показы</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Конверсия лид→диагностика</p>
+                    <p className="text-lg font-bold">{computedMetrics.leadToDiagnosticConv.toFixed(2)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">Диагностики / лиды</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-4 text-center">
+                    <p className="text-xs text-muted-foreground mb-1">Конверсия диагностика→продажа</p>
+                    <p className="text-lg font-bold">{computedMetrics.diagnosticToSaleConv.toFixed(2)}%</p>
+                    <p className="text-xs text-muted-foreground mt-1">Продажи / диагностики</p>
                   </div>
                 </div>
               </div>

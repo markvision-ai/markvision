@@ -148,8 +148,12 @@ export const DataTable = ({
   }, [dailyData, daysInMonth]);
 
   // Calculated metrics (БЕЗ КОПЕЕК!)
-  const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
-  const cpc = totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0;
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0; // Стоимость клиента
+  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : 0; // Стоимость диагностики
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0; // Стоимость лида (CPL)
+  const impressionToLeadConv = totals.impressions > 0 ? Math.round((totals.leads / totals.impressions) * 100 * 100) / 100 : 0; // Конверсия показ→лид (%)
+  const leadToDiagnosticConv = totals.leads > 0 ? Math.round((totals.diagnostics / totals.leads) * 100 * 100) / 100 : 0; // Конверсия лид→диагностика (%)
+  const diagnosticToSaleConv = totals.diagnostics > 0 ? Math.round((totals.sales / totals.diagnostics) * 100 * 100) / 100 : 0; // Конверсия диагностика→продажа (%)
   const ctr = totals.impressions > 0 ? Math.round(totals.clicks / totals.impressions * 100) : 0; // Округлено до целого
   const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
   
@@ -163,7 +167,7 @@ export const DataTable = ({
   }, [dailyData, daysInMonth]);
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'CPL', 'Диагностики', 'Продажи', 'Выручка'];
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Диагностики', 'Продажи', 'Выручка'];
     const rows = daysInMonth.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
@@ -203,22 +207,36 @@ export const DataTable = ({
   return (
     <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2 md:gap-4">
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPL (Цена лида)</div>
-          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(cpl)}</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость клиента</div>
+          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(customerCost)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Расходы / продажи</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPC (Цена клика)</div>
-          <div className="text-base md:text-xl font-bold">{formatCurrency(cpc)}</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость диагностики</div>
+          <div className="text-base md:text-xl font-bold">{formatCurrency(diagnosticCost)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Расходы / диагностики</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CTR</div>
-          <div className="text-base md:text-xl font-bold">{formatPercent(ctr)}</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Стоимость лида</div>
+          <div className="text-base md:text-xl font-bold text-primary">{formatCurrency(leadCost)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Расходы / лиды</div>
         </div>
         <div className="bg-card border rounded-xl p-3 md:p-4">
-          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">CPM</div>
-          <div className="text-base md:text-xl font-bold">{formatCurrency(cpm)}</div>
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия показ→лид</div>
+          <div className="text-base md:text-xl font-bold">{formatPercent(impressionToLeadConv)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Лиды / показы</div>
+        </div>
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия лид→диагностика</div>
+          <div className="text-base md:text-xl font-bold">{formatPercent(leadToDiagnosticConv)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Диагностики / лиды</div>
+        </div>
+        <div className="bg-card border rounded-xl p-3 md:p-4">
+          <div className="text-sm md:text-base font-semibold text-foreground/80 dark:text-foreground/90">Конверсия диагностика→продажа</div>
+          <div className="text-base md:text-xl font-bold">{formatPercent(diagnosticToSaleConv)}</div>
+          <div className="text-xs text-muted-foreground mt-1">Продажи / диагностики</div>
         </div>
       </div>
 

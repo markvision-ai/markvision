@@ -236,10 +236,12 @@ export const AnalyticsPlatform = () => {
   }, [dailyData, dateRange]);
 
   // Computed metrics (округляем)
-  const cpc = totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0;
-  const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
-  const cac = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0;
-  const conversionRate = totals.leads > 0 ? (totals.sales / totals.leads) * 100 : 0;
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0; // Стоимость клиента
+  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : 0; // Стоимость диагностики
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0; // Стоимость лида (CPL)
+  const impressionToLeadConv = totals.impressions > 0 ? Math.round((totals.leads / totals.impressions) * 100 * 100) / 100 : 0; // Конверсия показ→лид (%)
+  const leadToDiagnosticConv = totals.leads > 0 ? Math.round((totals.diagnostics / totals.leads) * 100 * 100) / 100 : 0; // Конверсия лид→диагностика (%)
+  const diagnosticToSaleConv = totals.diagnostics > 0 ? Math.round((totals.sales / totals.diagnostics) * 100 * 100) / 100 : 0; // Конверсия диагностика→продажа (%)
   const roas = totals.spend > 0 ? totals.revenue / totals.spend : 0;
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
@@ -370,30 +372,39 @@ export const AnalyticsPlatform = () => {
             ));
 
             registerWidget('computed', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3 md:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4">
                 <MetricCard
-                  label="Цена клика"
-                  value={formatCurrency(cpc)}
-                  subValue="CPC"
-                  icon={<TrendingUp className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
+                  label="Стоимость клиента"
+                  value={formatCurrency(customerCost)}
+                  subValue="Расходы / продажи"
+                  icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5 text-primary" />}
                   variant="primary"
                 />
                 <MetricCard
-                  label="Цена лида"
-                  value={formatCurrency(cpl)}
-                  subValue="CPL"
-                  variant={cpl > 5000 ? 'danger' : 'default'}
+                  label="Стоимость диагностики"
+                  value={formatCurrency(diagnosticCost)}
+                  subValue="Расходы / диагностики"
                 />
                 <MetricCard
-                  label="Цена клиента"
-                  value={formatCurrency(cac)}
-                  subValue="CAC"
+                  label="Стоимость лида"
+                  value={formatCurrency(leadCost)}
+                  subValue="Расходы / лиды"
+                  variant={leadCost > 5000 ? 'danger' : 'default'}
                 />
                 <MetricCard
-                  label="ROAS"
-                  value={`${Math.round(roas)}x`}
-                  subValue={`₸1 → ₸${Math.round(roas)}`}
-                  variant={roas < 1 ? 'danger' : roas > 2 ? 'success' : 'warning'}
+                  label="Конверсия показ→лид"
+                  value={`${impressionToLeadConv.toFixed(2)}%`}
+                  subValue="Лиды / показы"
+                />
+                <MetricCard
+                  label="Конверсия лид→диагностика"
+                  value={`${leadToDiagnosticConv.toFixed(2)}%`}
+                  subValue="Диагностики / лиды"
+                />
+                <MetricCard
+                  label="Конверсия диагностика→продажа"
+                  value={`${diagnosticToSaleConv.toFixed(2)}%`}
+                  subValue="Продажи / диагностики"
                 />
               </div>
             ));
@@ -474,9 +485,12 @@ export const AnalyticsPlatform = () => {
             totals, 
             planData,
             metrics: {
-              cpl: totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0,
-              cac: totals.sales > 0 ? Math.round(totals.spend / totals.sales) : 0,
-              cpc: totals.clicks > 0 ? Math.round(totals.spend / totals.clicks) : 0,
+              customerCost,
+              diagnosticCost,
+              leadCost,
+              impressionToLeadConv,
+              leadToDiagnosticConv,
+              diagnosticToSaleConv,
               roas: totals.spend > 0 ? totals.revenue / totals.spend : 0,
             },
             funnelSteps: [

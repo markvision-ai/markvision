@@ -16,9 +16,12 @@ interface ReportData {
     revenue: number;
   };
   metrics: {
-    cpl: number;
-    cac: number;
-    cpc: number;
+    customerCost: number;
+    diagnosticCost: number;
+    leadCost: number;
+    impressionToLeadConv: number;
+    leadToDiagnosticConv: number;
+    diagnosticToSaleConv: number;
     roas: number;
   };
 }
