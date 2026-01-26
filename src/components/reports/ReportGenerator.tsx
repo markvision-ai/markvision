@@ -1038,72 +1038,72 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               {/* Key Metrics */}
               <div className="mb-8">
                 <h2 className="text-lg font-semibold mb-4 text-foreground">📈 Ключевые метрики</h2>
-                <div className="grid gap-4 sm:gap-5 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                   {/* Стоимость клиента */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         Стоимость клиента
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <ShoppingCart className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.customerCost !== null ? formatCurrency(computedMetrics.customerCost) : <span className="text-slate-400">—</span>}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.customerCost !== null ? 'Расходы / продажи' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* Стоимость диагностики */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         Стоимость диагностики
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <Target className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.diagnosticCost !== null ? formatCurrency(computedMetrics.diagnosticCost) : <span className="text-slate-400">—</span>}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.diagnosticCost !== null ? 'Расходы / диагностики' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* Стоимость лида */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         Стоимость лида
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <Users className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <Users className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.leadCost !== null ? formatCurrency(computedMetrics.leadCost) : <span className="text-slate-400">—</span>}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.leadCost !== null ? 'Расходы / лиды' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* CR (Показы→Лид) */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         CR (Показы→Лид)
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <TrendingUp className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <TrendingUp className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.impressionToLeadConv !== null ? (
                         <>
                           {formatCR(computedMetrics.impressionToLeadConv).replace('%', '')}
@@ -1113,22 +1113,22 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <span className="text-slate-400">—</span>
                       )}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.impressionToLeadConv !== null ? 'Лиды / показы' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* CR (Лид→Диагностика) */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         CR (Лид→Диагностика)
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <Target className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.leadToDiagnosticConv !== null ? (
                         <>
                           {formatCR(computedMetrics.leadToDiagnosticConv).replace('%', '')}
@@ -1138,22 +1138,22 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <span className="text-slate-400">—</span>
                       )}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* CR (Диагностика→Продажа) */}
-                  <div className="rounded-2xl border border-slate-200/70 bg-white/70 backdrop-blur p-5 shadow-sm hover:shadow-md transition">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="text-sm font-medium text-slate-700 leading-tight">
+                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <div className="text-xs font-medium text-slate-700 leading-tight">
                         CR (Диагностика→Продажа)
                       </div>
-                      <div className="h-9 w-9 rounded-xl bg-slate-900/5 flex items-center justify-center text-slate-700">
-                        <ShoppingCart className="w-4 h-4" />
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                        <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="mt-3 text-3xl font-semibold tracking-tight text-slate-900">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
                       {computedMetrics.diagnosticToSaleConv !== null ? (
                         <>
                           {formatCR(computedMetrics.diagnosticToSaleConv).replace('%', '')}
@@ -1163,8 +1163,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <span className="text-slate-400">—</span>
                       )}
                     </div>
-                    <div className="mt-2 text-xs text-slate-500">
-                      {computedMetrics.diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Недостаточно данных'}
+                    <div className="text-[10px] text-slate-500 leading-tight">
+                      {computedMetrics.diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
                     </div>
                   </div>
                 </div>
