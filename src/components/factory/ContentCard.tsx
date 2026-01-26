@@ -199,8 +199,20 @@ export const ContentCard = ({
         );
 
       default:
+        // Для неизвестных типов контента - просто сохраняем текущий статус
         return (
-          <Button className="gap-2">
+          <Button 
+            onClick={async () => {
+              // Переход на следующий шаг для статичных постов и каруселей
+              const nextStatus = item.status === 'ideation' ? 'scripting' : 
+                                item.status === 'scripting' ? 'ready_to_send' : 
+                                item.status === 'ready_to_send' ? 'sent' : item.status;
+              if (nextStatus !== item.status) {
+                await onUpdate(item.id, { status: nextStatus as ContentStatus });
+              }
+            }}
+            className="gap-2"
+          >
             <Send className="w-4 h-4" />
             Далее
           </Button>
