@@ -52,7 +52,8 @@ const OAuthHandler = () => {
       const hasError = searchParams.has('error');
       const hasOAuthParams = hasAccessToken || hasCode || hasError;
 
-      console.log('🔍 Checking OAuth params:', {
+      // Debug log removed for production
+      if (false) console.log('🔍 Checking OAuth params:', {
         pathname: window.location.pathname,
         hasAccessToken,
         hasCode,

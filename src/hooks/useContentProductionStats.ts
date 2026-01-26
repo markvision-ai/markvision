@@ -39,7 +39,9 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
         setLoading(true);
         setError(null);
 
-        console.log('🔍 useContentProductionStats - Запрос данных:', {
+        // Debug log removed for production
+        if (false) {
+          console.log('🔍 useContentProductionStats - Запрос данных:', {
           projectId,
           periodStart,
           periodEnd: effectivePeriodEnd
@@ -82,15 +84,9 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
             created_at: rows[0].created_at ?? '',
             updated_at: rows[0].updated_at ?? '',
           } as ContentProductionStats;
-          console.log('✅ Данные загружены из content_production_stats (агрегат по дням):', {
-            rows: rows.length,
-            publications: data.publications,
-            reach: data.reach,
-            comments: data.comments,
-            followers: data.followers,
-          });
+          // Debug log removed for production
         } else {
-          console.log('⚠️ Нет данных в content_production_stats для периода:', periodStart, '-', effectivePeriodEnd);
+          // Debug log removed for production
         }
 
         setStats(data);

@@ -182,11 +182,7 @@ export const AnalyticsPlatform = () => {
   // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
     if (import.meta.env.DEV) {
-      console.log('✅ MarkVision Core: Realtime Active');
-      console.log('🏠 AnalyticsPlatform | ТЕКУЩИЙ ПРОЕКТ ID:', currentProjectId);
-      console.log('🏠 AnalyticsPlatform | Проект:', currentProject?.name || 'Не выбран');
-      console.log('🏠 AnalyticsPlatform | Пользователь:', user?.email);
-      console.log('🏠 AnalyticsPlatform | Всего проектов:', projects.length);
+      // Debug logs removed for production
     }
   }, [currentProjectId, currentProject, user, projects]);
 
