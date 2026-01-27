@@ -82,8 +82,8 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
         });
 
         setAppointments(mapped);
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
+      } catch (error: any) {
+        if (import.meta.env.DEV) console.error('Error fetching appointments:', error?.message || error);
       } finally {
         setLoading(false);
       }

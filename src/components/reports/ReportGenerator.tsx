@@ -239,7 +239,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching comparison data:', error);
+        if (import.meta.env.DEV) console.error('Error fetching comparison data:', error.message || error);
         setComparisonData(prev => ({ ...prev, isLoading: false }));
         return;
       }
@@ -296,7 +296,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         .order('date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching report data:', error);
+        if (import.meta.env.DEV) console.error('Error fetching report data:', error.message || error);
         setReportData({ totals: data.totals, dailyData: [], isLoading: false });
         return;
       }
@@ -507,9 +507,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           selected_metrics: (t.selected_metrics as string[]) || [],
         })));
       }
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Ошибка сохранения шаблона');
-      console.error(error);
+      if (import.meta.env.DEV) console.error('Error saving template:', error?.message || error);
     } finally {
       setIsSavingTemplate(false);
     }
@@ -539,9 +539,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
       setTemplates(prev => prev.filter(t => t.id !== templateId));
       toast.success('Шаблон удалён');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Ошибка удаления шаблона');
-      console.error(error);
+      if (import.meta.env.DEV) console.error('Error deleting template:', error?.message || error);
     }
   };
 
@@ -608,9 +608,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
       if (error) throw error;
       toast.success('Настройки сохранены');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Ошибка сохранения настроек');
-      console.error(error);
+      if (import.meta.env.DEV) console.error('Error saving settings:', error?.message || error);
     } finally {
       setIsSavingSettings(false);
     }
@@ -628,9 +628,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       
       if (error) throw error;
       toast.success('Тестовый отчёт отправлен');
-    } catch (error) {
+    } catch (error: any) {
       toast.error('Ошибка отправки отчёта');
-      console.error(error);
+      if (import.meta.env.DEV) console.error('Error sending report:', error?.message || error);
     } finally {
       setIsSendingTest(false);
     }

@@ -184,8 +184,8 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
 
       toast.success('Диагностика завершена! Можно предлагать решение.');
       onUpdate?.();
-    } catch (error) {
-      console.error('Error saving expert session:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error saving expert session:', error?.message || error);
       toast.error('Ошибка сохранения');
     } finally {
       setLoading(false);
