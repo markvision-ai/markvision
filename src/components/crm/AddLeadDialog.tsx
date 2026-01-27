@@ -128,6 +128,8 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           status: 'new',
           assigned_to: assignedTo,
           assigned_at: assignedTo ? new Date().toISOString() : null,
+          lead_score: null,
+          score_label: null,
         });
 
       if (error) throw error;
