@@ -125,7 +125,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           phone: formData.phone.trim() || null,
           utm_source: formData.source,
           utm_medium: 'manual',
-          status: 'Новая',
+          status: 'new',
           assigned_to: assignedTo,
           assigned_at: assignedTo ? new Date().toISOString() : null,
         });
@@ -140,14 +140,13 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
       } else {
         toast.success('Лид успешно добавлен');
       }
-
-      toast.success('Лид успешно добавлен');
       setFormData({ name: '', phone: '', source: 'manual' });
       setOpen(false);
       onLeadAdded();
-    } catch (error) {
-      console.error('Error adding lead:', error);
-      toast.error('Ошибка при добавлении лида');
+    } catch (err: unknown) {
+      const msg = err && typeof err === 'object' && 'message' in err ? String((err as { message?: string }).message) : '';
+      console.error('Error adding lead:', err);
+      toast.error(msg ? `Ошибка при добавлении лида: ${msg}` : 'Ошибка при добавлении лида');
     } finally {
       setLoading(false);
     }
