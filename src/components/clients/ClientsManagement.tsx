@@ -184,8 +184,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       if (error) throw error;
       setLeads(data || []);
-    } catch (error) {
-      console.error('Error fetching leads:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error fetching leads:', error?.message || error);
       toast.error('Ошибка загрузки клиентов');
     } finally {
       setLoading(false);
@@ -236,8 +236,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         )
       );
       toast.success('Статус обновлён');
-    } catch (error) {
-      console.error('Error updating status:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error updating status:', error?.message || error);
       toast.error('Ошибка обновления статуса');
     }
   };

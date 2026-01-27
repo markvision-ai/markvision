@@ -191,8 +191,8 @@ export const Sidebar = ({
         entity_type: 'session',
         user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : null,
       }]);
-    } catch (error) {
-      console.error('Failed to log logout event:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Failed to log logout event:', error?.message || error);
     }
   }, [user]);
 
