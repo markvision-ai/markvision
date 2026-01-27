@@ -142,7 +142,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         } catch (e) {
           errorText = `Ошибка ${res.status}: ${res.statusText}`;
         }
-        console.error('[Обновить] Ошибка sync n8n:', { status: res.status, text: errorText });
+        console.error('[Обновить] Ошибка sync n8n:', res.status, errorText);
         toast.error(`Ошибка sync n8n (${res.status}): ${errorText}`);
         return;
       }
@@ -151,7 +151,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       setTimeout(() => refetch(), 2500);
     } catch (e: unknown) {
       const msg = e instanceof Error ? e.message : String(e);
-      console.error('[Обновить] Ошибка синхронизации:', msg, e);
+      console.error('[Обновить] Ошибка синхронизации:', msg);
       toast.error(`Ошибка синхронизации: ${msg}`);
     } finally {
       setRefreshing(false);

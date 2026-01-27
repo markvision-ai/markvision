@@ -69,20 +69,17 @@ const OAuthHandler = () => {
 
     // Слушатель изменений авторизации
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('🔐 Auth event:', event);
-      console.log('👤 Session:', session);
+      if (import.meta.env.DEV) {
+        console.log('🔐 Auth event:', event, session ? '(session)' : '(no session)');
+      }
 
       if (event === 'SIGNED_IN') {
         const currentUrl = window.location.href;
         const hasOAuthHash = currentUrl.includes('#access_token') || currentUrl.includes('code=');
         
         if (hasOAuthHash && window.location.pathname !== '/integrations') {
-          console.log('✅ SIGNED_IN with OAuth params, redirecting to /integrations');
+          if (import.meta.env.DEV) console.log('✅ SIGNED_IN with OAuth params, redirecting to /integrations');
           navigate('/integrations', { replace: true });
-        }
-
-        if (session?.provider_token) {
-          console.log('🎫 Provider token found:', session.provider_token.substring(0, 20) + '...');
         }
       }
     });
