@@ -23,7 +23,7 @@ const getSignedUrl = async (filePath: string): Promise<string | null> => {
     .createSignedUrl(filePath, 3600); // 1 hour expiry
   
   if (error) {
-    console.error('Error getting signed URL:', error);
+    if (import.meta.env.DEV) console.error('Error getting signed URL:', error.message || error);
     return null;
   }
   return data.signedUrl;
@@ -159,8 +159,8 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
         type: file.type,
         path: filePath, // Store path for regenerating signed URLs
       };
-    } catch (error) {
-      console.error('Error uploading file:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error uploading file:', error?.message || error);
       toast.error('Ошибка загрузки файла');
       return null;
     }

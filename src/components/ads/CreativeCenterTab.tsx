@@ -144,7 +144,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         throw new Error('No content in response');
       }
     } catch (error: any) {
-      console.error('Generation error:', error);
+      if (import.meta.env.DEV) console.error('Generation error:', error?.message || error);
       if (error.message?.includes('429')) {
         toast.error('Превышен лимит запросов. Попробуйте позже.');
       } else if (error.message?.includes('402')) {

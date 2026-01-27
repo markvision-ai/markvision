@@ -117,8 +117,8 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
       toast.success('Квалификация сохранена!');
       setActiveStage('expert');
       onUpdate?.();
-    } catch (error) {
-      console.error('Error saving qualification:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error saving qualification:', error?.message || error);
       toast.error('Ошибка сохранения');
     } finally {
       setLoading(false);
@@ -151,7 +151,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         });
 
       if (diagError) {
-        console.error('Diagnostic results error:', diagError);
+        if (import.meta.env.DEV) console.error('Diagnostic results error:', diagError.message || diagError);
         // Continue anyway - save to lead
       }
 
@@ -224,15 +224,15 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         });
 
       if (transactionError) {
-        console.warn('Transaction sync warning:', transactionError);
+        if (import.meta.env.DEV) console.warn('Transaction sync warning:', transactionError.message || transactionError);
       }
 
       toast.success(`Клиент записан! Доход: ${DIAGNOSTIC_PRICE.toLocaleString()} ₸`);
       setShowConfirmDialog(false);
       onUpdate?.();
       onClose?.();
-    } catch (error) {
-      console.error('Error completing booking:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error completing booking:', error?.message || error);
       toast.error('Ошибка записи');
     } finally {
       setLoading(false);

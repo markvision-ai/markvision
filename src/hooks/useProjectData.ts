@@ -83,11 +83,11 @@ export const useProjectData = (projectId: string | null) => {
     
     // Пропускаем запрос если данные свежие и проект не изменился
     if (!force && isSameProject && !isStale && Object.keys(dailyData).length > 0) {
-      console.log('📊 useProjectData | Данные свежие, пропускаем запрос');
+      if (import.meta.env.DEV) console.log('📊 useProjectData | Данные свежие, пропускаем запрос');
       return;
     }
 
-    console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
+    if (import.meta.env.DEV) console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
 
     try {
       const { data, error } = await supabase
@@ -98,12 +98,12 @@ export const useProjectData = (projectId: string | null) => {
 
       if (error) {
         logError('Fetch daily data failed', error);
-        console.error('❌ useProjectData | Ошибка загрузки daily_data:', error);
+        if (import.meta.env.DEV) console.error('❌ useProjectData | Ошибка загрузки daily_data:', error.message || error);
         toast.error('Ошибка загрузки данных: ' + error.message);
         return;
       }
 
-      console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
+      if (import.meta.env.DEV) console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
       
       const dataMap: Record<string, DailyData> = {};
       data?.forEach((row) => {
@@ -124,7 +124,7 @@ export const useProjectData = (projectId: string | null) => {
       lastFetchTimeRef.current = now;
       lastProjectIdRef.current = effectiveProjectId;
     } catch (err: any) {
-      console.error('❌ useProjectData | Exception:', err);
+      if (import.meta.env.DEV) console.error('❌ useProjectData | Exception:', err);
       toast.error('Критическая ошибка загрузки данных');
     }
   }, [effectiveProjectId, dailyData]);
@@ -132,7 +132,7 @@ export const useProjectData = (projectId: string | null) => {
   // Fetch plan data from plan_data table
   const fetchPlanData = useCallback(async (force = false) => {
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    console.log('📋 useProjectData | Загрузка ПЛАНА из plan_data за месяц:', firstDayOfMonth);
+    if (import.meta.env.DEV) console.log('📋 useProjectData | Загрузка ПЛАНА из plan_data за месяц:', firstDayOfMonth);
     
     try {
       const { data, error } = await supabase
@@ -144,7 +144,7 @@ export const useProjectData = (projectId: string | null) => {
 
       if (error) {
         logError('Fetch plan data failed', error);
-        console.error('❌ useProjectData | Ошибка загрузки плана:', error);
+        if (import.meta.env.DEV) console.error('❌ useProjectData | Ошибка загрузки плана:', error.message || error);
         // Не показываем toast если это RLS ошибка - просто работаем без плана
         if (error.code !== '42501') {
           toast.error('Ошибка загрузки плана: ' + error.message);
@@ -153,7 +153,7 @@ export const useProjectData = (projectId: string | null) => {
       }
 
       if (data) {
-        console.log('✅ useProjectData | ПЛАН загружен:', data);
+        if (import.meta.env.DEV) console.log('✅ useProjectData | ПЛАН загружен');
         setRawPlanData({
           date: data.month,
           spend: Number(data.spend) || 0,
@@ -166,11 +166,11 @@ export const useProjectData = (projectId: string | null) => {
           revenue: Number(data.revenue) || 0,
         });
       } else {
-        console.log('⚠️ useProjectData | ПЛАН не найден для месяца:', firstDayOfMonth);
+        if (import.meta.env.DEV) console.log('⚠️ useProjectData | ПЛАН не найден для месяца:', firstDayOfMonth);
         setRawPlanData(null);
       }
     } catch (err: any) {
-      console.error('❌ useProjectData | Exception загрузки плана:', err);
+      if (import.meta.env.DEV) console.error('❌ useProjectData | Exception загрузки плана:', err);
     }
   }, [effectiveProjectId]);
 
@@ -183,7 +183,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
 
-    console.log('💾 updateDailyData | Сохраняем:', { date, field, value, project_id: effectiveProjectId });
+    if (import.meta.env.DEV) console.log('💾 updateDailyData | Сохраняем:', { date, field, value });
 
     // Store previous state for rollback
     const previousData = { ...dailyData };
@@ -233,11 +233,11 @@ export const useProjectData = (projectId: string | null) => {
         throw error;
       }
 
-      console.log('✅ updateDailyData | Успешно сохранено');
+      if (import.meta.env.DEV) console.log('✅ updateDailyData | Успешно сохранено');
       // Silent success - no toast for each save
     } catch (error: any) {
       logError('Save daily data failed', error);
-      console.error('❌ updateDailyData | Ошибка:', error);
+      if (import.meta.env.DEV) console.error('❌ updateDailyData | Ошибка:', error.message || error);
       toast.error('Ошибка сохранения: ' + error.message);
       // Rollback to previous state
       setDailyData(previousData);

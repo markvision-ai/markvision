@@ -58,7 +58,7 @@ export const useAuditLog = () => {
     newValues,
   }: AuditLogParams) => {
     if (!user) {
-      console.warn('Cannot log audit action: user not authenticated');
+      if (import.meta.env.DEV) console.warn('Cannot log audit action: user not authenticated');
       return;
     }
 
@@ -79,10 +79,10 @@ export const useAuditLog = () => {
       const { error } = await supabase.from('audit_logs').insert([logEntry]);
 
       if (error) {
-        console.error('Failed to log audit action:', error);
+        if (import.meta.env.DEV) console.error('Failed to log audit action:', error.message || error);
       }
     } catch (err) {
-      console.error('Audit logging error:', err);
+      if (import.meta.env.DEV) console.error('Audit logging error:', err);
     }
   }, [user, profile]);
 

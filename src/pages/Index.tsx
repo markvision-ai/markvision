@@ -25,7 +25,7 @@ const Index = () => {
       const hasError = searchParams.has('error');
       
       if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
-        console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
+        if (import.meta.env.DEV) console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
         navigate('/integrations', { replace: true });
         return true;
       }
@@ -66,7 +66,7 @@ const Index = () => {
           return;
         }
       } catch (error) {
-        console.error('Error checking projects:', error);
+        if (import.meta.env.DEV) console.error('Error checking projects:', error);
       } finally {
         setCheckingProjects(false);
       }
@@ -86,7 +86,7 @@ const Index = () => {
       
       // Если есть токен провайдера (Facebook/Google)
       if (session?.provider_token) {
-        console.log("💎 MarkVision: Обнаружен токен Meta. Сохраняю...");
+        if (import.meta.env.DEV) console.log("💎 MarkVision: Обнаружен токен Meta. Сохраняю...");
         
         // Get user's project
         const { data: projects } = await supabase

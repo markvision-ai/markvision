@@ -97,8 +97,8 @@ export const ViralLoopDialog = ({
         { name: '', phone: '' },
         { name: '', phone: '' }
       ]);
-    } catch (error) {
-      console.error('Error creating referrals:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error creating referrals:', error?.message || error);
       toast.error('Ошибка при создании сертификатов');
     } finally {
       setLoading(false);

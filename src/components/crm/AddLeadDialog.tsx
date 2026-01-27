@@ -148,7 +148,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
     } catch (err: unknown) {
       const e = err as { message?: string; details?: string; hint?: string; code?: string } | null;
       const msg = [e?.message, e?.details, e?.hint].filter(Boolean).join(' ') || '';
-      console.error('Error adding lead:', e?.message || e?.code || err);
+      if (import.meta.env.DEV) console.error('Error adding lead:', e?.message || e?.code || err);
       toast.error(msg ? `Ошибка при добавлении лида: ${msg}` : 'Ошибка при добавлении лида');
     } finally {
       setLoading(false);

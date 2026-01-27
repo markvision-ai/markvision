@@ -286,8 +286,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
       setSelectedLeads(new Set());
       setSelectionMode(false);
       refetch();
-    } catch (error) {
-      console.error('Error deleting leads:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error deleting leads:', error?.message || error);
       toast.error('Ошибка удаления лидов');
     } finally {
       setIsBulkUpdating(false);
@@ -312,8 +312,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
       toast.success(`Статус обновлен для ${selectedLeads.size} лидов`);
       setSelectedLeads(new Set());
       refetch();
-    } catch (error) {
-      console.error('Error updating leads:', error);
+    } catch (error: any) {
+      if (import.meta.env.DEV) console.error('Error updating leads:', error?.message || error);
       toast.error('Ошибка обновления статуса');
     } finally {
       setIsBulkUpdating(false);

@@ -55,7 +55,7 @@ const OAuthHandler = () => {
       // Debug logs removed for production performance
 
       if (hasOAuthParams && window.location.pathname !== '/integrations') {
-        console.log('🚨 FORCING redirect to /integrations!');
+        if (import.meta.env.DEV) console.log('🚨 FORCING redirect to /integrations!');
         // Используем setTimeout для гарантии выполнения
         setTimeout(() => {
           navigate('/integrations', { replace: true });

@@ -99,7 +99,7 @@ export default function Auth() {
         const hasOAuthParams = hashParams.has('access_token') || searchParams.has('code') || searchParams.has('error');
         
         if (hasOAuthParams) {
-          console.log('🚨 OAuth params detected in Auth.tsx, redirecting to /integrations');
+          if (import.meta.env.DEV) console.log('🚨 OAuth params detected in Auth.tsx, redirecting to /integrations');
           navigate('/integrations');
           return;
         }
@@ -127,7 +127,7 @@ export default function Auth() {
           navigate('/');
         }
       } catch (error) {
-        console.error('Error checking user projects:', error);
+        if (import.meta.env.DEV) console.error('Error checking user projects:', error);
         navigate('/');
       }
     };
