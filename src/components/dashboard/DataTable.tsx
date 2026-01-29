@@ -151,15 +151,18 @@ export const DataTable = ({
       followersSum: monthData.reduce((sum, day) => sum + (day.followers || 0), 0)
     });
 
-    // Суммируем подписчиков как инкрементальную метрику (новые подписчики за период)
-    const followersSum = monthData.reduce((sum, day) => sum + (day.followers || 0), 0);
+    // Для подписчиков берем последнее известное значение (так как это накопительная метрика)
+    // Если это "Новые подписчики", то надо суммировать. Но обычно поле followers хранит общее кол-во.
+    // Проверим: если сумма больше 1000 и кол-во дней > 1, вероятно это Total.
+    // Но для надежности берем последнее непустое значение.
+    const lastFollowersValue = [...monthData].reverse().find(d => (d.followers || 0) > 0)?.followers || 0;
     
     return {
       spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
       impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
       clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
       leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
-      followers: followersSum,
+      followers: lastFollowersValue, // Исправлено: берем последнее значение вместо суммы
       diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
       sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
       revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)
@@ -228,16 +231,16 @@ export const DataTable = ({
       {/* Calculated Metrics Bar */}
       <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
         {/* Стоимость клиента */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               Стоимость клиента
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <ShoppingCart className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
           </div>
           <div className="text-[10px] text-slate-500 leading-tight">
@@ -246,16 +249,16 @@ export const DataTable = ({
         </div>
 
         {/* Стоимость диагностики */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               Стоимость диагностики
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <Target className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
           </div>
           <div className="text-[10px] text-slate-500 leading-tight">
@@ -264,16 +267,16 @@ export const DataTable = ({
         </div>
 
         {/* Стоимость лида */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               Стоимость лида
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <Users className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
           </div>
           <div className="text-[10px] text-slate-500 leading-tight">
@@ -282,16 +285,16 @@ export const DataTable = ({
         </div>
 
         {/* CR (Показы→Лид) */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               CR (Показы→Лид)
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <TrendingUp className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {impressionToLeadConv !== null ? (
               <>
                 {formatCR(impressionToLeadConv).replace('%', '')}
@@ -307,16 +310,16 @@ export const DataTable = ({
         </div>
 
         {/* CR (Лид→Диагностика) */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               CR (Лид→Диагностика)
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <Target className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {leadToDiagnosticConv !== null ? (
               <>
                 {formatCR(leadToDiagnosticConv).replace('%', '')}
@@ -332,16 +335,16 @@ export const DataTable = ({
         </div>
 
         {/* CR (Диагностика→Продажа) */}
-        <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
           <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 leading-tight">
+            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
               CR (Диагностика→Продажа)
             </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
               <ShoppingCart className="w-3 h-3" />
             </div>
           </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
             {diagnosticToSaleConv !== null ? (
               <>
                 {formatCR(diagnosticToSaleConv).replace('%', '')}

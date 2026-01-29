@@ -1052,10 +1052,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* Стоимость клиента */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость клиента
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
@@ -1070,10 +1070,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* Стоимость диагностики */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость диагностики
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
@@ -1088,10 +1088,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* Стоимость лида */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость лида
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <Users className="w-3 h-3" />
                       </div>
                     </div>
@@ -1106,10 +1106,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* CR (Показы→Лид) */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Показы→Лид)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <TrendingUp className="w-3 h-3" />
                       </div>
                     </div>
@@ -1131,10 +1131,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* CR (Лид→Диагностика) */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Лид→Диагностика)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
@@ -1156,10 +1156,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   {/* CR (Диагностика→Продажа) */}
                   <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 leading-tight">
+                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Диагностика→Продажа)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>

@@ -417,10 +417,10 @@ export const AnalyticsPlatform = () => {
                 {/* Стоимость клиента */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       Стоимость клиента
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <ShoppingCart className="w-3 h-3" />
                     </div>
                   </div>
@@ -435,10 +435,10 @@ export const AnalyticsPlatform = () => {
                 {/* Стоимость диагностики */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       Стоимость диагностики
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <Target className="w-3 h-3" />
                     </div>
                   </div>
@@ -453,10 +453,10 @@ export const AnalyticsPlatform = () => {
                 {/* Стоимость лида */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       Стоимость лида
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <Users className="w-3 h-3" />
                     </div>
                   </div>
@@ -471,10 +471,10 @@ export const AnalyticsPlatform = () => {
                 {/* ROMI */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       ROMI
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <TrendingUp className="w-3 h-3" />
                     </div>
                   </div>
@@ -496,10 +496,10 @@ export const AnalyticsPlatform = () => {
                 {/* Рентабельность */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       Рентабельность
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <BarChart3 className="w-3 h-3" />
                     </div>
                   </div>
@@ -521,10 +521,10 @@ export const AnalyticsPlatform = () => {
                 {/* ROAS */}
                 <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 leading-tight">
+                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                       ROAS
                     </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-700 flex-shrink-0">
+                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
                       <DollarSign className="w-3 h-3" />
                     </div>
                   </div>

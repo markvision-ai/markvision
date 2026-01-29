@@ -105,6 +105,10 @@ export const useProjectData = (projectId: string | null) => {
 
       console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
       
+      // DEBUG: Log followers data to diagnose missing totals
+      const followersDebug = data?.map(r => ({ date: r.date, followers: r.followers }));
+      console.log('📊 useProjectData | Данные подписчиков (Debug):', followersDebug);
+      
       const dataMap: Record<string, DailyData> = {};
       data?.forEach((row) => {
         dataMap[row.date] = {

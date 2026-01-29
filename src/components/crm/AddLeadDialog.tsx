@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -97,12 +97,12 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
     setLoading(true);
     try {
       console.log('START CREATING LEAD', values);
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('leads')
         .insert([{
           name: values.name,
           phone: values.phone,
-          clinic_name: values.clinic_name,
+          utm_source: values.source,
           project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',
           status: 'new'
         }]);
@@ -154,6 +154,9 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
               Новый лид
             </span>
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Форма добавления нового лида
+          </DialogDescription>
         </DialogHeader>
         
         <form
