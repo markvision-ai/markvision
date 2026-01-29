@@ -56,8 +56,8 @@ const Setup = () => {
           setProjectId(newProject.id);
           setProjectName(newProject.name);
         }
-      } catch (error: any) {
-        if (import.meta.env.DEV) console.error('Error in setup:', error?.message || error);
+      } catch (error) {
+        console.error('Error in setup:', error);
       } finally {
         setLoading(false);
       }

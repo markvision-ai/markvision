@@ -30,11 +30,11 @@ const channel = supabase.channel('leads-all');
 channel.subscribe((status) => {
   if (status === 'SUBSCRIBED') {
     reconnectAttempts = 0;
-    if (import.meta.env.DEV) console.log('✅ Realtime: Connected to External Supabase');
+    console.log('✅ Realtime: Connected to External Supabase');
   }
   if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
     reconnectAttempts++;
-    if (reconnectAttempts <= MAX_RECONNECT_LOG && import.meta.env.DEV) {
+    if (reconnectAttempts <= MAX_RECONNECT_LOG) {
       console.log(`⚠️ Realtime: Connection lost. Reconnecting to MarkVision DB... (attempt ${reconnectAttempts})`);
     }
     setTimeout(() => {
@@ -43,5 +43,5 @@ channel.subscribe((status) => {
   }
 });
 
-// Лог для проверки в консоли браузера (только в DEV)
-if (import.meta.env.DEV) console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');
+// Лог для проверки в консоли браузера
+console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');

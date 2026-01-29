@@ -267,7 +267,7 @@ export const KanbanBoard = ({
 
       if (transactionError) {
         if (import.meta.env.DEV) {
-          console.error('Failed to sync payment to MarkFinance:', transactionError.message || transactionError);
+          console.error('Failed to sync payment to MarkFinance:', transactionError);
         }
         // Don't fail the whole operation, just warn
         toast.warning('Оплата записана, но не синхронизирована с MarkFinance');

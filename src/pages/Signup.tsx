@@ -140,7 +140,7 @@ export default function Signup() {
           .single();
 
         if (projectError) {
-          if (import.meta.env.DEV) console.error('Failed to create project:', projectError.message || projectError);
+          console.error('Failed to create project:', projectError);
         } else if (projectData) {
           // Add user to project_access
           await supabase.from('project_access').insert({
@@ -172,7 +172,7 @@ export default function Signup() {
       }
 
     } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Signup error:', error?.message || error);
+      console.error('Signup error:', error);
       toast.error('Произошла ошибка при регистрации');
     } finally {
       setLoading(false);

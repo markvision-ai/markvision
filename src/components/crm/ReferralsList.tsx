@@ -73,8 +73,8 @@ export const ReferralsList = ({ leadId, projectId }: ReferralsListProps) => {
 
         if (error) throw error;
         setReferrals(data || []);
-      } catch (error: any) {
-        if (import.meta.env.DEV) console.error('Error fetching referrals:', error?.message || error);
+      } catch (error) {
+        console.error('Error fetching referrals:', error);
       } finally {
         setLoading(false);
       }
