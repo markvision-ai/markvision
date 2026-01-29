@@ -27,12 +27,12 @@ const Blog = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-background to-card">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <span className="text-white font-bold">M</span>
             </div>
             <span className="font-semibold text-lg">
@@ -56,16 +56,16 @@ const Blog = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-full mb-6">
-              <FileText className="w-4 h-4 text-blue-600" />
-              <span className="text-sm font-medium text-blue-700">Блог MarkVision</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
+              <FileText className="w-4 h-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Блог MarkVision</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
               Скоро здесь появятся статьи
             </h1>
             
-            <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
               Мы готовим полезный контент о маркетинге, автоматизации и развитии медицинского бизнеса.
             </p>
           </motion.div>
@@ -80,18 +80,18 @@ const Blog = () => {
             {upcomingPosts.map((post, index) => (
               <div
                 key={index}
-                className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm opacity-60"
+                className="p-6 bg-card rounded-2xl border border-border shadow-sm opacity-60"
               >
-                <div className="w-12 h-12 rounded-xl bg-slate-100 flex items-center justify-center mb-4">
-                  <post.icon className="w-6 h-6 text-slate-400" />
+                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center mb-4">
+                  <post.icon className="w-6 h-6 text-muted-foreground" />
                 </div>
-                <span className="text-xs font-medium text-blue-600 uppercase tracking-wider">
+                <span className="text-xs font-medium text-primary uppercase tracking-wider">
                   {post.category}
                 </span>
-                <h3 className="text-lg font-semibold text-slate-900 mt-2 mb-3">
+                <h3 className="text-lg font-semibold text-foreground mt-2 mb-3">
                   {post.title}
                 </h3>
-                <p className="text-sm text-slate-400">{post.readTime} чтения</p>
+                <p className="text-sm text-muted-foreground">{post.readTime} чтения</p>
               </div>
             ))}
           </motion.div>

@@ -100,8 +100,8 @@ export default function ResetPassword() {
         <div className="bg-card border rounded-2xl p-6 shadow-lg">
           {success ? (
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 mx-auto flex items-center justify-center mb-4">
-                <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+              <div className="w-16 h-16 rounded-full bg-success/10 mx-auto flex items-center justify-center mb-4">
+                <CheckCircle className="w-8 h-8 text-success" />
               </div>
               <h2 className="text-xl font-semibold mb-2">Пароль изменён!</h2>
               <p className="text-muted-foreground">

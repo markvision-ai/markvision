@@ -131,11 +131,11 @@ const InstallPage = () => {
                   exit={{ opacity: 0 }}
                   className="text-center space-y-4"
                 >
-                  <div className="w-16 h-16 mx-auto rounded-full bg-green-500/10 flex items-center justify-center">
-                    <CheckCircle2 className="w-8 h-8 text-green-500" />
+                  <div className="w-16 h-16 mx-auto rounded-full bg-success/10 flex items-center justify-center">
+                    <CheckCircle2 className="w-8 h-8 text-success" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-semibold text-green-500">Приложение установлено!</h3>
+                    <h3 className="text-lg font-semibold text-success">Приложение установлено!</h3>
                     <p className="text-muted-foreground text-sm mt-1">
                       MarkVision AI теперь доступен на вашем устройстве
                     </p>

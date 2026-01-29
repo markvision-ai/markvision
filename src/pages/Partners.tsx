@@ -24,12 +24,12 @@ const Partners = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+    <div className="min-h-screen bg-gradient-to-b from-background to-card">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 backdrop-blur-xl border-b border-slate-100">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
               <span className="text-white font-bold">M</span>
             </div>
             <span className="font-semibold text-lg">
@@ -53,16 +53,16 @@ const Partners = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-50 rounded-full mb-6">
-              <Users className="w-4 h-4 text-green-600" />
-              <span className="text-sm font-medium text-green-700">Партнерская программа</span>
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 rounded-full mb-6">
+              <Users className="w-4 h-4 text-success" />
+              <span className="text-sm font-medium text-success">Партнерская программа</span>
             </div>
             
-            <h1 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">
+            <h1 className="text-4xl sm:text-5xl font-bold text-foreground mb-6">
               Стань партнером <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </h1>
             
-            <p className="text-xl text-slate-500 mb-12 max-w-2xl mx-auto">
+            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
               Для маркетологов, фрилансеров и агентств. Зарабатывайте вместе с нами, помогая клиникам расти.
             </p>
           </motion.div>
@@ -77,15 +77,15 @@ const Partners = () => {
             {benefits.map((benefit, index) => (
               <div
                 key={index}
-                className="p-6 bg-white rounded-2xl border border-slate-200 shadow-sm"
+                className="p-6 bg-card rounded-2xl border border-border shadow-sm"
               >
-                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center mb-4">
-                  <benefit.icon className="w-6 h-6 text-blue-600" />
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+                  <benefit.icon className="w-6 h-6 text-primary" />
                 </div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                <h3 className="text-lg font-semibold text-foreground mb-2">
                   {benefit.title}
                 </h3>
-                <p className="text-sm text-slate-500">{benefit.description}</p>
+                <p className="text-sm text-muted-foreground">{benefit.description}</p>
               </div>
             ))}
           </motion.div>
@@ -95,12 +95,12 @@ const Partners = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.6 }}
-            className="mt-16 p-8 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-3xl"
+            className="mt-16 p-8 bg-gradient-to-r from-primary/10 to-primary/5 rounded-3xl"
           >
-            <h3 className="text-2xl font-bold text-slate-900 mb-4">
+            <h3 className="text-2xl font-bold text-foreground mb-4">
               Регистрация скоро откроется
             </h3>
-            <p className="text-slate-600 mb-6">
+            <p className="text-muted-foreground mb-6">
               Оставьте заявку, и мы свяжемся с вами первыми
             </p>
             <Button asChild size="lg" className="rounded-2xl px-8">

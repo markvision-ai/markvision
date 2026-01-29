@@ -181,29 +181,29 @@ export default function Signup() {
 
   if (showSuccessScreen) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md bg-white rounded-3xl p-8 shadow-xl text-center"
+          className="w-full max-w-md bg-card rounded-3xl p-8 shadow-xl text-center"
         >
-          <div className="w-20 h-20 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle2 className="w-10 h-10 text-green-600" />
+          <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
+            <CheckCircle2 className="w-10 h-10 text-success" />
           </div>
-          <h2 className="text-2xl font-bold text-slate-900 mb-4">
+          <h2 className="text-2xl font-bold text-foreground mb-4">
             Проверьте почту для активации доступа
           </h2>
-          <p className="text-slate-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             Мы отправили письмо с подтверждением на <strong>{formData.email}</strong>. 
             Перейдите по ссылке в письме, чтобы активировать аккаунт.
           </p>
           {promoValid && (
-            <div className="bg-green-50 border border-green-200 rounded-2xl p-4 mb-6">
-              <div className="flex items-center gap-2 text-green-700">
+            <div className="bg-success/10 border border-success/20 rounded-2xl p-4 mb-6">
+              <div className="flex items-center gap-2 text-success">
                 <Gift className="w-5 h-5" />
                 <span className="font-medium">Промокод MARK7 активирован!</span>
               </div>
-              <p className="text-sm text-green-600 mt-1">7 дней бесплатного использования</p>
+              <p className="text-sm text-success mt-1">7 дней бесплатного использования</p>
             </div>
           )}
           <Button
@@ -219,7 +219,7 @@ export default function Signup() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -228,162 +228,162 @@ export default function Signup() {
         {/* Back button */}
         <button
           onClick={() => navigate('/')}
-          className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-6 transition-colors"
+          className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
           Вернуться на главную
         </button>
 
         {/* Form Card */}
-        <div className="bg-white rounded-3xl p-8 shadow-xl">
+        <div className="bg-card rounded-3xl p-8 shadow-xl">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 mx-auto flex items-center justify-center mb-4 shadow-lg">
-              <Sparkles className="w-8 h-8 text-white" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mx-auto flex items-center justify-center mb-4 shadow-lg">
+              <Sparkles className="w-8 h-8 text-primary-foreground" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Создайте аккаунт</h1>
-            <p className="text-slate-600 mt-1">Начните 7-дневный бесплатный период</p>
+            <h1 className="text-2xl font-bold text-foreground">Создайте аккаунт</h1>
+            <p className="text-muted-foreground mt-1">Начните 7-дневный бесплатный период</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Clinic Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Название клиники</label>
+              <label className="text-sm font-medium text-foreground/80">Название клиники</label>
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Клиника &quot;Здоровье&quot;"
                   value={formData.clinicName}
                   onChange={(e) => handleChange('clinicName', e.target.value)}
-                  className={`pl-11 rounded-xl h-12 ${errors.clinicName ? 'border-red-500' : ''}`}
+                  className={`pl-11 rounded-xl h-12 ${errors.clinicName ? 'border-destructive' : ''}`}
                 />
               </div>
-              {errors.clinicName && <p className="text-xs text-red-500">{errors.clinicName}</p>}
+              {errors.clinicName && <p className="text-xs text-destructive">{errors.clinicName}</p>}
             </div>
 
             {/* Owner Name */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Имя владельца</label>
+              <label className="text-sm font-medium text-foreground/80">Имя владельца</label>
               <div className="relative">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="Иван Петров"
                   value={formData.ownerName}
                   onChange={(e) => handleChange('ownerName', e.target.value)}
-                  className={`pl-11 rounded-xl h-12 ${errors.ownerName ? 'border-red-500' : ''}`}
+                  className={`pl-11 rounded-xl h-12 ${errors.ownerName ? 'border-destructive' : ''}`}
                 />
               </div>
-              {errors.ownerName && <p className="text-xs text-red-500">{errors.ownerName}</p>}
+              {errors.ownerName && <p className="text-xs text-destructive">{errors.ownerName}</p>}
             </div>
 
             {/* Email */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Email</label>
+              <label className="text-sm font-medium text-foreground/80">Email</label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="email"
                   placeholder="email@example.com"
                   value={formData.email}
                   onChange={(e) => handleChange('email', e.target.value)}
-                  className={`pl-11 rounded-xl h-12 ${errors.email ? 'border-red-500' : ''}`}
+                  className={`pl-11 rounded-xl h-12 ${errors.email ? 'border-destructive' : ''}`}
                 />
               </div>
-              {errors.email && <p className="text-xs text-red-500">{errors.email}</p>}
+              {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
             </div>
 
             {/* Phone */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Номер телефона (WhatsApp)</label>
+              <label className="text-sm font-medium text-foreground/80">Номер телефона (WhatsApp)</label>
               <div className="relative">
-                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="tel"
                   placeholder="+7 777 123 45 67"
                   value={formData.phone}
                   onChange={(e) => handleChange('phone', e.target.value)}
-                  className={`pl-11 rounded-xl h-12 ${errors.phone ? 'border-red-500' : ''}`}
+                  className={`pl-11 rounded-xl h-12 ${errors.phone ? 'border-destructive' : ''}`}
                 />
               </div>
-              {errors.phone && <p className="text-xs text-red-500">{errors.phone}</p>}
+              {errors.phone && <p className="text-xs text-destructive">{errors.phone}</p>}
             </div>
 
             {/* Password */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Пароль</label>
+              <label className="text-sm font-medium text-foreground/80">Пароль</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={formData.password}
                   onChange={(e) => handleChange('password', e.target.value)}
-                  className={`pl-11 pr-11 rounded-xl h-12 ${errors.password ? 'border-red-500' : ''}`}
+                  className={`pl-11 pr-11 rounded-xl h-12 ${errors.password ? 'border-destructive' : ''}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.password && <p className="text-xs text-red-500">{errors.password}</p>}
+              {errors.password && <p className="text-xs text-destructive">{errors.password}</p>}
             </div>
 
             {/* Confirm Password */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Подтвердите пароль</label>
+              <label className="text-sm font-medium text-foreground/80">Подтвердите пароль</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type={showConfirmPassword ? 'text' : 'password'}
                   placeholder="••••••••"
                   value={formData.confirmPassword}
                   onChange={(e) => handleChange('confirmPassword', e.target.value)}
-                  className={`pl-11 pr-11 rounded-xl h-12 ${errors.confirmPassword ? 'border-red-500' : ''}`}
+                  className={`pl-11 pr-11 rounded-xl h-12 ${errors.confirmPassword ? 'border-destructive' : ''}`}
                 />
                 <button
                   type="button"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
                   {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
-              {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword}</p>}
+              {errors.confirmPassword && <p className="text-xs text-destructive">{errors.confirmPassword}</p>}
             </div>
 
             {/* Promo Code */}
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-700">Промокод (если есть)</label>
+              <label className="text-sm font-medium text-foreground/80">Промокод (если есть)</label>
               <div className="relative">
-                <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Gift className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                 <Input
                   type="text"
                   placeholder="MARK7"
                   value={formData.promoCode}
                   onChange={(e) => handleChange('promoCode', e.target.value.toUpperCase())}
-                  className={`pl-11 rounded-xl h-12 ${promoValid === true ? 'border-green-500 bg-green-50' : promoValid === false ? 'border-red-300' : ''}`}
+                  className={`pl-11 rounded-xl h-12 ${promoValid === true ? 'border-success bg-success/10' : promoValid === false ? 'border-destructive/50' : ''}`}
                 />
                 {promoValid === true && (
-                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500" />
+                  <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-success" />
                 )}
               </div>
               {promoValid === true && (
-                <p className="text-xs text-green-600">🎉 Промокод активирован! 7 дней бесплатно</p>
+                <p className="text-xs text-success">🎉 Промокод активирован! 7 дней бесплатно</p>
               )}
               {promoValid === false && (
-                <p className="text-xs text-slate-500">Промокод не найден</p>
+                <p className="text-xs text-muted-foreground">Промокод не найден</p>
               )}
             </div>
 
             {/* Submit Button */}
             <Button 
               type="submit" 
-              className="w-full h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium text-lg mt-6"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground font-medium text-lg mt-6"
               disabled={loading}
             >
               {loading ? (
@@ -399,10 +399,10 @@ export default function Signup() {
 
           {/* Login Link */}
           <div className="mt-6 text-center">
-            <span className="text-slate-600">Уже есть аккаунт? </span>
+            <span className="text-muted-foreground">Уже есть аккаунт? </span>
             <button
               onClick={() => navigate('/auth')}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="text-primary hover:text-primary/80 font-medium"
             >
               Войти
             </button>
