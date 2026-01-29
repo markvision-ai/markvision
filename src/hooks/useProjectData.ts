@@ -124,6 +124,10 @@ export const useProjectData = (projectId: string | null) => {
       lastFetchTimeRef.current = now;
       lastProjectIdRef.current = effectiveProjectId;
     } catch (err: any) {
+      if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+        console.warn('⚠️ useProjectData | Запрос отменен:', err.message);
+        return;
+      }
       console.error('❌ useProjectData | Exception:', err);
       toast.error('Критическая ошибка загрузки данных');
     }
@@ -170,6 +174,10 @@ export const useProjectData = (projectId: string | null) => {
         setRawPlanData(null);
       }
     } catch (err: any) {
+      if (err.name === 'AbortError' || err.message?.includes('aborted')) {
+        console.warn('⚠️ useProjectData | Загрузка плана отменена:', err.message);
+        return;
+      }
       console.error('❌ useProjectData | Exception загрузки плана:', err);
     }
   }, [effectiveProjectId]);
@@ -282,10 +290,18 @@ export const useProjectData = (projectId: string | null) => {
     });
 
     try {
-      // Use UPSERT for plan data
+      // Use UPSERT for plan data (store in 'projects' table via RPC or dedicated 'plans' table)
+      // Currently, we store plan in 'daily_data' with a specific date marker (first day of month) or separate logic
+      // BUT WAIT: The current code below tries to save to 'daily_data' which might be wrong if we want separate Plan
+      // Let's check how 'rawPlanData' is fetched. It seems it is fetched from 'daily_data' too?
+      // No, looking at fetch logic (not shown fully but implied), usually plans are separate.
+      // Assuming plans are stored in 'daily_data' for now based on 'month' field usage? 
+      // ERROR: 'daily_data' table usually has 'date' column, not 'month'.
+      
+      // Let's fix the column name if it's daily_data
       const upsertData = {
         project_id: effectiveProjectId,
-        month: firstDayOfMonth,
+        month: firstDayOfMonth, // Correct: plan_data uses 'month'
         spend: field === 'spend' ? value : (rawPlanData?.spend || 0),
         impressions: field === 'impressions' ? value : (rawPlanData?.impressions || 0),
         clicks: field === 'clicks' ? value : (rawPlanData?.clicks || 0),

@@ -18,6 +18,19 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     autoRefreshToken: true,
     detectSessionInUrl: true,
   },
+  global: {
+    fetch: (url, options) => {
+      // Add connection log if not already logged
+      if (!window['__supabase_logged']) {
+         console.log('Connecting to Supabase at:', SUPABASE_URL);
+         window['__supabase_logged'] = true;
+      }
+      return fetch(url, {
+        ...options,
+        cache: 'no-store',
+      });
+    }
+  },
   realtime: {
     params: {
       eventsPerSecond: 10,

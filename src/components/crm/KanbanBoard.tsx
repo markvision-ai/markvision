@@ -18,7 +18,7 @@ import { PaymentDialog } from './PaymentDialog';
 import { AppointmentDialog } from './AppointmentDialog';
 import { RejectionDialog } from './RejectionDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/lib/supabase-simplified';
 import { useAuth } from '@/hooks/useAuth';
 import { logStatusChange } from '@/hooks/useLeadStatusHistory';
 import { sendStatusChangeWebhook } from '@/lib/webhooks';

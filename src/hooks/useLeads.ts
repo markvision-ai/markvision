@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-simplified';
 import { useAuditLog } from './useAuditLog';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';

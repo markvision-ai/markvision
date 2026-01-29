@@ -151,8 +151,8 @@ export const DataTable = ({
       followersSum: monthData.reduce((sum, day) => sum + (day.followers || 0), 0)
     });
 
-    // Суммируем подписчиков: берем последнее значение (Snapshot), так как это не инкрементальная метрика
-    const followersSum = monthData.length > 0 ? (monthData[monthData.length - 1].followers || 0) : 0;
+    // Суммируем подписчиков как инкрементальную метрику (новые подписчики за период)
+    const followersSum = monthData.reduce((sum, day) => sum + (day.followers || 0), 0);
     
     return {
       spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
@@ -357,7 +357,7 @@ export const DataTable = ({
         </div>
       </div>
 
-      <div className="bg-card border rounded-xl overflow-hidden">
+      <div className="bg-card border rounded-xl">
         {/* Header */}
         <div className="flex items-center justify-between p-3 md:p-4 border-b gap-2">
           <div className="flex items-center gap-1 md:gap-2">
@@ -503,6 +503,19 @@ export const DataTable = ({
                 );
               })}
             </tbody>
+            <tfoot className="sticky bottom-0 z-20 bg-secondary shadow-[0_-1px_0_0_rgba(0,0,0,0.1)]">
+              <tr className="font-bold text-foreground">
+                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-20 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ИТОГО</td>
+                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
+              </tr>
+            </tfoot>
           </table>
         </div>
       </div>

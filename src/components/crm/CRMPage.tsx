@@ -40,7 +40,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/lib/supabase-simplified';
 import { toast } from 'sonner';
 
 interface CRMPageProps {
