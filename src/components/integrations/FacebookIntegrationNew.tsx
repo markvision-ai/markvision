@@ -92,7 +92,7 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
     if (!projectId) return;
 
     try {
-      if (import.meta.env.DEV) console.log('📡 Проверяем подключение и выбранные аккаунты...');
+      console.log('📡 Проверяем подключение и выбранные аккаунты...');
 
       const { data, error } = await supabase
         .from('ad_accounts')
@@ -102,11 +102,15 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
         .maybeSingle();
 
       if (error && error.code !== 'PGRST116') {
-        if (import.meta.env.DEV) console.error('Ошибка получения подключения:', error.message || error);
+        console.error('Ошибка получения подключения:', error);
       }
 
       if (data && data.access_token) {
-        if (import.meta.env.DEV) console.log('✅ Подключение найдено');
+        console.log('✅ Подключение найдено:', {
+          id: data.id,
+          hasSelectedPage: !!data.selected_page_id,
+          hasSelectedInstagram: !!data.selected_instagram_id
+        });
 
         setConnection({
           id: data.id,
@@ -126,14 +130,14 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
           await loadSelectedAccounts(data.access_token, data.selected_page_id, data.selected_instagram_id);
         }
       } else {
-        if (import.meta.env.DEV) console.log('❌ Подключение не найдено');
+        console.log('❌ Подключение не найдено');
         setConnection(null);
         setAvailablePages([]);
         setAvailableInstagrams([]);
         setSelectedAccount({ page: null, instagram: null });
       }
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Ошибка при проверке подключения:', error?.message || error);
+    } catch (error) {
+      console.error('Ошибка при проверке подключения:', error);
     } finally {
       setLoading(false);
     }

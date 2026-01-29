@@ -54,8 +54,8 @@ export const AverageLtvWidget = ({ projectId }: AverageLtvWidgetProps) => {
           averageLtv,
           topCustomers
         });
-      } catch (error: any) {
-        if (import.meta.env.DEV) console.error('Error fetching LTV data:', error?.message || error);
+      } catch (error) {
+        console.error('Error fetching LTV data:', error);
         setData({
           totalLtv: 0,
           paidCustomersCount: 0,

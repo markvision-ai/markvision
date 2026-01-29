@@ -53,7 +53,7 @@ export default function ResetPassword() {
       });
 
       if (error) {
-        if (import.meta.env.DEV) console.error('Password update error:', error.code || error.message);
+        console.error('Password update error:', error.code || error.message);
         if (error.message.includes('same as')) {
           toast.error('Новый пароль должен отличаться от старого');
         } else {

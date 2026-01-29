@@ -198,8 +198,8 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
       if (threadsArray.length > 0 && !selectedThread) {
         setSelectedThread(threadsArray[0]);
       }
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Error fetching threads:', error?.message || error);
+    } catch (error) {
+      console.error('Error fetching threads:', error);
       toast.error('Ошибка загрузки диалогов');
     } finally {
       setLoading(false);
@@ -233,8 +233,8 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
         created_at: m.created_at,
       }));
       setMessages(mapped);
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Error fetching messages:', error?.message || error);
+    } catch (error) {
+      console.error('Error fetching messages:', error);
       toast.error('Ошибка загрузки сообщений');
     } finally {
       setLoadingMessages(false);
@@ -303,8 +303,8 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
       setNewMessage('');
       fetchMessages(selectedThread);
       fetchThreads();
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Error sending message:', error?.message || error);
+    } catch (error) {
+      console.error('Error sending message:', error);
       toast.error('Ошибка отправки сообщения');
     }
   };

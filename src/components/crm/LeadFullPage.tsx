@@ -148,8 +148,8 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
       // Build URL and open in new tab AFTER successful status update
       const diagnosticsUrl = `https://diagnostoka.vercel.app/?lead_id=${lead.id}`;
       window.open(diagnosticsUrl, '_blank');
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Error updating status for diagnosis:', error?.message || error);
+    } catch (error) {
+      console.error('Error updating status for diagnosis:', error);
       toast.error('Ошибка обновления статуса');
     } finally {
       setDiagnosisLoading(false);

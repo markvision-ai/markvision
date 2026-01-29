@@ -154,8 +154,8 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
       if (!response.ok) throw new Error('Ошибка активации шаблона');
 
       toast.success('Шаблон активирован!');
-    } catch (error: any) {
-      if (import.meta.env.DEV) console.error('Error activating template:', error?.message || error);
+    } catch (error) {
+      console.error('Error activating template:', error);
       toast.error('Ошибка активации шаблона');
     }
   };
