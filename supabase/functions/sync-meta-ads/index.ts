@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    let result: any = {};
+    const result: any = {};
 
     if (syncType === "ads" || syncType === "all") {
       // Fetch Facebook Ads data

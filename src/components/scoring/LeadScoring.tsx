@@ -57,6 +57,18 @@ interface ScoringRule {
   created_at: string;
 }
 
+// Map database columns to interface
+const mapRuleFromDb = (dbRule: any): ScoringRule => ({
+  id: dbRule.id,
+  name: dbRule.criteria_name, // Map criteria_name to name
+  field: dbRule.field || 'utm_source', // Provide default if missing
+  operator: dbRule.operator || 'equals',
+  value: dbRule.value || '',
+  score_delta: dbRule.points || 0, // Map points to score_delta
+  is_active: dbRule.is_active ?? true,
+  created_at: dbRule.created_at
+});
+
 interface ScoringInsight {
   id: string;
   title: string;
@@ -70,6 +82,21 @@ interface ScoringInsight {
   status: string;
   created_at: string;
 }
+
+// Map insights from DB schema to UI interface
+const mapInsightFromDb = (dbInsight: any): ScoringInsight => ({
+  id: dbInsight.id,
+  title: dbInsight.insight_text?.slice(0, 60) || 'AI Insight',
+  description: dbInsight.insight_text || null,
+  recommendation_type: dbInsight.recommendation_type || 'rule_suggestion',
+  suggested_field: dbInsight.suggested_field || null,
+  suggested_operator: dbInsight.suggested_operator || null,
+  suggested_value: dbInsight.suggested_value || null,
+  suggested_score_delta: dbInsight.recommended_points ?? null,
+  confidence_score: dbInsight.impact_percent ?? undefined,
+  status: dbInsight.status || 'pending',
+  created_at: dbInsight.created_at,
+});
 
 interface LeadScoringProps {
   projectId: string;
@@ -122,7 +149,8 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setRules(data || []);
+      const rows: any[] = (data as any[]) || [];
+      setRules(rows.map(mapRuleFromDb) || []);
     } catch (error) {
       console.error('Error fetching rules:', error);
       toast.error('Ошибка загрузки правил');
@@ -142,7 +170,8 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         .limit(5);
 
       if (error) throw error;
-      setInsights(data || []);
+      const rows: any[] = (data as any[]) || [];
+      setInsights(rows.map(mapInsightFromDb));
     } catch (error) {
       console.error('Error fetching insights:', error);
     }
@@ -157,8 +186,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     try {
       const { error } = await supabase.from('scoring_rules').insert([{
         project_id: projectId,
-        ...newRule,
-      }]);
+        criteria_name: newRule.name, // Map name to criteria_name
+        points: newRule.score_delta, // Map score_delta to points
+        field: newRule.field,
+        operator: newRule.operator,
+        value: newRule.value,
+        is_active: true,
+      } as any]);
 
       if (error) throw error;
       
@@ -178,7 +212,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     try {
       const { error } = await supabase
         .from('scoring_rules')
-        .update({ is_active: isActive })
+        .update({ is_active: isActive } as any)
         .eq('id', ruleId);
 
       if (error) throw error;
@@ -281,13 +315,15 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         };
       });
 
-      // Обновляем лиды батчами по 100
+          // Обновляем лиды батчами по 100
       for (let i = 0; i < updates.length; i += 100) {
         const batch = updates.slice(i, i + 100);
         const promises = batch.map(update =>
           supabase
             .from('leads')
-            .update({ lead_score: update.lead_score, score_label: update.score_label })
+            .update({ 
+              lead_score: update.lead_score, 
+            })
             .eq('id', update.id)
         );
         await Promise.all(promises);
@@ -312,13 +348,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       // Создаем правило из инсайта
       const { error: ruleError } = await supabase.from('scoring_rules').insert([{
         project_id: projectId,
-        name: insight.title,
+        criteria_name: insight.title, // Map title to criteria_name
         field: insight.suggested_field,
         operator: insight.suggested_operator,
         value: insight.suggested_value || '',
-        score_delta: insight.suggested_score_delta,
+        points: insight.suggested_score_delta, // Map suggested_score_delta to points
         is_active: true,
-      }]);
+      } as any]);
 
       if (ruleError) throw ruleError;
 

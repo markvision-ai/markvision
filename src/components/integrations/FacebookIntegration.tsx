@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FacebookIntegrationProps {
   projectId: string;
@@ -63,6 +63,8 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [facebookProfile, setFacebookProfile] = useState<FacebookProfile | null>(null);
+  const [instagramAccounts, setInstagramAccounts] = useState<InstagramAccount[]>([]);
 
   const fetchConnection = useCallback(async () => {
     if (!projectId) return;
@@ -93,7 +95,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           access_token: data.access_token,
           connected_at: data.created_at,
           platform: 'facebook',
-          status: data.status || 'active',
+          status: data.status === 'inactive' ? 'inactive' : 'active',
           selected_page_id: data.selected_page_id,
           selected_instagram_id: data.selected_instagram_id
         });
@@ -147,6 +149,8 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       }
 
       setSelectedAccount({ page: selectedPage, instagram: selectedInstagram });
+      setFacebookProfile(selectedPage);
+      setInstagramAccounts(selectedInstagram ? [selectedInstagram] : []);
       console.log('✅ Выбранные аккаунты загружены');
 
     } catch (error) {
@@ -208,6 +212,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
 
       setAvailablePages(pages);
       setAvailableInstagrams(instagrams);
+      setInstagramAccounts(instagrams);
 
       console.log('✅ Доступные аккаунты загружены');
 
@@ -478,16 +483,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
     );
   }
 
-  const hasSelectedAccount = !!selectedAccount.page || !!selectedAccount.instagram;
-
-  // Фильтруем аккаунты по поиску
-  const filteredPages = availablePages.filter(page =>
-    page.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-  const filteredInstagrams = availableInstagrams.filter(ig =>
-    ig.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    (ig.connected_page && ig.connected_page.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  
 
   return (
     <div className="space-y-6">

@@ -98,6 +98,8 @@ interface ReportData {
     leadToDiagnosticConv: number;
     diagnosticToSaleConv: number;
     roas: number;
+    romi?: number;
+    profitability?: number;
   };
   funnelSteps: { label: string; value: number; color: string }[];
 }
@@ -196,13 +198,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       
       setIsLoadingTemplates(true);
       const { data: templatesData, error } = await supabase
-        .from('report_templates')
+        .from('report_templates' as any)
         .select('*')
         .eq('project_id', data.projectId)
         .order('created_at', { ascending: false });
       
       if (!error && templatesData) {
-        setTemplates(templatesData.map(t => ({
+        const templatesRows: any[] = (templatesData as any[]) || [];
+        const normalized = templatesRows.map((t: any) => ({
           id: t.id,
           name: t.name,
           period_preset: t.period_preset,
@@ -210,7 +213,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           include_comparison: t.include_comparison || false,
           comparison_preset: t.comparison_preset,
           selected_metrics: (t.selected_metrics as string[]) || [],
-        })));
+        }));
+        setTemplates(normalized as any);
       }
       setIsLoadingTemplates(false);
     };
@@ -474,7 +478,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
     setIsSavingTemplate(true);
     try {
-      const { error } = await supabase.from('report_templates').insert({
+      const { error } = await supabase.from('report_templates' as any).insert({
         project_id: data.projectId,
         name: newTemplateName.trim(),
         period_preset: activePreset,
@@ -491,13 +495,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
       // Reload templates
       const { data: templatesData } = await supabase
-        .from('report_templates')
+        .from('report_templates' as any)
         .select('*')
         .eq('project_id', data.projectId)
         .order('created_at', { ascending: false });
 
       if (templatesData) {
-        setTemplates(templatesData.map(t => ({
+        const templatesRows: any[] = (templatesData as any[]) || [];
+        const normalized = templatesRows.map((t: any) => ({
           id: t.id,
           name: t.name,
           period_preset: t.period_preset,
@@ -505,7 +510,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           include_comparison: t.include_comparison || false,
           comparison_preset: t.comparison_preset,
           selected_metrics: (t.selected_metrics as string[]) || [],
-        })));
+        }));
+        setTemplates(normalized as any);
       }
     } catch (error) {
       toast.error('Ошибка сохранения шаблона');
@@ -531,7 +537,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const handleDeleteTemplate = async (templateId: string) => {
     try {
       const { error } = await supabase
-        .from('report_templates')
+        .from('report_templates' as any)
         .delete()
         .eq('id', templateId);
 

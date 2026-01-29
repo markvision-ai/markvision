@@ -33,20 +33,23 @@ export interface KanbanStatus {
 }
 
 export const KANBAN_STATUSES: KanbanStatus[] = [
-  { id: 'new', label: 'Новая' },
+  { id: 'new', label: 'Новый лид' },
+  { id: 'invoiced', label: 'Счет выставлен' },
+  { id: 'paid', label: 'Оплачено', color: 'success' },
+  { id: 'appointment', label: 'Записан' },
+  // Optional/Legacy statuses
   { id: 'in_progress', label: 'В работе' },
   { id: 'no_answer', label: 'Недозвон' },
-  { id: 'appointment', label: 'Записан' },
-  { id: 'paid', label: 'Оплачено', color: 'success' },
   { id: 'cancelled', label: 'Отказ', color: 'destructive' },
 ];
 
 const statusLabels: Record<string, string> = {
-  new: 'Новая',
+  new: 'Новый лид',
+  invoiced: 'Счет выставлен',
+  paid: 'Оплачено',
+  appointment: 'Записан',
   in_progress: 'В работе',
   no_answer: 'Недозвон',
-  appointment: 'Записан',
-  paid: 'Оплачено',
   cancelled: 'Отказ',
 };
 
@@ -226,8 +229,12 @@ export const KanbanBoard = ({
 
       toast.success('Статус обновлен');
       onRefetch();
-    } catch (error) {
-      toast.error('Ошибка сохранения');
+    } catch (error: any) {
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || error?.status === 0) {
+        toast.error('Ошибка сети: Проверьте подключение к базе');
+      } else {
+        toast.error('Ошибка сохранения');
+      }
     } finally {
       setIsUpdating(false);
       setPendingStatusChange(null);
@@ -308,8 +315,12 @@ export const KanbanBoard = ({
       
       toast.success('Оплата зарегистрирована и синхронизирована с MarkFinance! 🎉');
       onRefetch();
-    } catch (error) {
-      toast.error('Ошибка сохранения');
+    } catch (error: any) {
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || error?.status === 0) {
+        toast.error('Ошибка сети: Проверьте подключение к базе');
+      } else {
+        toast.error('Ошибка сохранения');
+      }
     } finally {
       setIsUpdating(false);
       setPaymentLead(null);

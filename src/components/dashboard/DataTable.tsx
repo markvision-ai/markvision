@@ -143,16 +143,23 @@ export const DataTable = ({
     const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
     const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
     
-    // Для подписчиков берем последнее значение (максимальное по дате), так как это абсолютное количество, а не прирост
-    const sortedByDate = [...monthData].sort((a, b) => a.date.localeCompare(b.date));
-    const lastFollowers = sortedByDate.length > 0 ? (sortedByDate[sortedByDate.length - 1]?.followers || 0) : 0;
+    // Debug logging for subscribers sum
+    console.log('DataTable debug:', {
+      monthDaysCount: monthDays.length,
+      monthDataCount: monthData.length,
+      followersValues: monthData.map(d => d.followers),
+      followersSum: monthData.reduce((sum, day) => sum + (day.followers || 0), 0)
+    });
+
+    // Суммируем подписчиков: берем последнее значение (Snapshot), так как это не инкрементальная метрика
+    const followersSum = monthData.length > 0 ? (monthData[monthData.length - 1].followers || 0) : 0;
     
     return {
       spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
       impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
       clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
       leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
-      followers: lastFollowers, // Берем последнее значение (текущее количество на конец периода)
+      followers: followersSum,
       diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
       sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
       revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)
@@ -433,14 +440,7 @@ export const DataTable = ({
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = planData[field];
-                    // Для подписчиков процент не имеет смысла (это прирост, а не общее количество)
-                    if (field === 'followers') {
-                      return (
-                        <td key={field} className="p-2 md:p-4 text-right font-medium text-muted-foreground">
-                          —
-                        </td>
-                      );
-                    }
+                    
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     // Heatmap colors: >= 100% - bright green, 80-99% - yellow, < 80% - soft red
                     let colorClass = '';

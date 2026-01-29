@@ -53,6 +53,12 @@
     <!-- Facebook SDK -->
     <script>
       window.fbAsyncInit = function() {
+        // Пропускаем инициализацию если протокол http (для локальной разработки)
+        if (window.location.protocol !== 'https:' && window.location.hostname === 'localhost') {
+            console.warn('⚠️ Facebook SDK skipped due to non-HTTPS protocol');
+            return;
+        }
+
         FB.init({
           appId      : '1890905081453686',
           cookie     : true,

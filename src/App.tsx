@@ -92,8 +92,11 @@ const OAuthHandler = () => {
   return null;
 };
 
+import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <ConnectionStatus />
     <BrowserRouter>
       <OAuthHandler />
       <Routes>

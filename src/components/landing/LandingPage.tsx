@@ -476,21 +476,24 @@ export const LandingPage = () => {
             {/* Text Content */}
             <div className="order-1 lg:order-2">
               <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 sm:mb-10 leading-tight tracking-tight">
-                Почему я назвал проект{" "}
+                Почему проект назван{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                  в честь сына?
+                  в честь моего сына?
                 </span>
               </h2>
               <div className="space-y-4 sm:space-y-6 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed">
                 <p>
-                  Проект MarkVision назван в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-slate-900 font-medium">это наследие</span>.
+                  Проект MarkVision получил своё имя в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-slate-900 font-medium">это ответственность и наследие</span>.
                 </p>
                 <p>
-                  Я лично отвечаю за результат каждой клиники, которая работает с нами. Я строю эту систему так, чтобы за неё не было стыдно перед сыном.
+                  Я лично контролирую результат работы каждой клиники, которая сотрудничает с нами. Система строится таким образом, чтобы я мог гордиться её результатами перед своим сыном.
                 </p>
-                <blockquote className="text-lg sm:text-xl lg:text-2xl font-medium text-slate-900 border-l-4 border-blue-500 pl-4 sm:pl-6 py-2 italic">
-                  «Мы не просто настраиваем рекламу — мы наводим порядок в вашем бизнесе»
-                </blockquote>
+                <p>
+                  Мы не просто настраиваем рекламу — мы внедряем порядок и системность в ваш бизнес.
+                </p>
+                <p className="font-semibold text-slate-900 pt-2">
+                  — Основатель MarkVision AI
+                </p>
               </div>
             </div>
           </motion.div>

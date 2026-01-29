@@ -192,7 +192,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             timestamp: new Date().toISOString(),
           }),
         }).catch(() => {});
-      } catch {}
+      } catch { void 0; }
       
       triggerConfetti();
       toast.success('🚀 MarkVision AI успешно запущен!');

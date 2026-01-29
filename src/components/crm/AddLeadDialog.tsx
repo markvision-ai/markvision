@@ -93,63 +93,29 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.name.trim() && !formData.phone.trim()) {
-      toast.error('Укажите имя или телефон');
-      return;
-    }
-
-    if (formData.phone && !validatePhone(formData.phone)) {
-      toast.error('Неверный формат телефона');
-      return;
-    }
-
+  const handleSubmit = async (values: any) => {
     setLoading(true);
     try {
-      // Check if we should auto-assign to a staff member
-      let assignedTo: string | null = null;
-      if (autoAssign) {
-        const randomStaff = getRandomOnlineStaff();
-        if (randomStaff) {
-          assignedTo = randomStaff.id;
-        }
-      }
-
-      const { error } = await supabase
+      console.log('START CREATING LEAD', values);
+      const { data, error } = await supabase
         .from('leads')
-        .insert({
-          project_id: projectId,
-          name: formData.name.trim() || null,
-          phone: formData.phone.trim() || null,
-          utm_source: formData.source,
-          utm_medium: 'manual',
-          status: 'new',
-          assigned_to: assignedTo,
-          assigned_at: assignedTo ? new Date().toISOString() : null,
-          lead_score: null,
-          score_label: null,
-        });
-
-      if (error) throw error;
-
-      const onlineCount = getOnlineStaff().length;
-      if (assignedTo) {
-        toast.success('Лид добавлен и назначен дежурному менеджеру');
-      } else if (autoAssign && onlineCount === 0) {
-        toast.success('Лид добавлен (нет онлайн менеджеров для назначения)');
+        .insert([{
+          name: values.name,
+          phone: values.phone,
+          clinic_name: values.clinic_name,
+          project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',
+          status: 'new'
+        }]);
+      if (error) {
+        console.error('SUPABASE ERROR:', error);
+        alert('Ошибка Supabase: ' + error.message);
       } else {
-        toast.success('Лид успешно добавлен');
+        console.log('LEAD CREATED:', data);
+        toast.success('Лид успешно создан!');
+        setFormData({ name: '', phone: '', source: 'manual' });
+        setOpen(false);
+        onLeadAdded();
       }
-      setFormData({ name: '', phone: '', source: 'manual' });
-      setOpen(false);
-      onLeadAdded();
-    } catch (err: unknown) {
-      const e = err as { message?: string; details?: string; hint?: string; code?: string } | null;
-      const msg = [e?.message, e?.details, e?.hint].filter(Boolean).join(' ') || '';
-      console.error('Error adding lead:', e?.message || e?.code || err);
-      toast.error(msg ? `Ошибка при добавлении лида: ${msg}` : 'Ошибка при добавлении лида');
     } finally {
       setLoading(false);
     }
@@ -190,7 +156,13 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           </DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-5 mt-4">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSubmit(formData as any);
+          }}
+          className="space-y-5 mt-4"
+        >
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -289,12 +261,12 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
               {loading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Добавление...
+                  Создание...
                 </>
               ) : (
                 <>
                   <UserPlus className="w-4 h-4 mr-2" />
-                  Добавить
+                  Создать
                 </>
               )}
             </Button>

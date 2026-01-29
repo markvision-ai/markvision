@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { differenceInMinutes, differenceInHours } from 'date-fns';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -83,7 +83,7 @@ export const LeadCard = ({
 
   // Lead scoring visualization based on lead_score from database
   const extraData = lead.extra_data as any;
-  const marketingBudget = extraData?.marketing_budget_total || 0;
+  const marketingBudget = extraData?.budget || extraData?.marketing_budget_total || 0;
   const isGoldenLead = marketingBudget > 1000000;
   const leadScore = lead.lead_score ?? null;
   
@@ -96,7 +96,7 @@ export const LeadCard = ({
       if (leadScore >= 80) {
         return { 
           tier: 'HOT', 
-          label: 'Горячий',
+          label: 'Hot Lead',
           color: 'border-l-4 border-l-red-500 bg-red-500/5', 
           icon: <Flame className="w-4 h-4 text-red-500" />, 
           emoji: '🔥',
@@ -130,9 +130,9 @@ export const LeadCard = ({
     if (budgetTier === 'MEGA' || marketingBudget >= 1000000) {
       return { tier: 'MEGA', label: 'MEGA', color: '', icon: <Crown className="w-4 h-4 text-amber-500" />, emoji: '👑', glow: false };
     }
-    // HIGH: budget_tier HIGH, or marketing_budget >= 500,000
+    // HOT (was HIGH): budget_tier HIGH, or marketing_budget >= 500,000
     if (budgetTier === 'HIGH' || marketingBudget >= 500000) {
-      return { tier: 'HIGH', label: 'HIGH', color: 'border-l-4 border-l-orange-500 bg-orange-500/5', icon: <Flame className="w-4 h-4 text-orange-500" />, emoji: '🔥', glow: false };
+      return { tier: 'HOT', label: 'Hot Lead', color: 'border-l-4 border-l-red-500 bg-red-500/5', icon: <Flame className="w-4 h-4 text-red-500" />, emoji: '🔥', glow: true };
     }
     // MEDIUM: budget_tier MEDIUM, or marketing_budget >= 100,000
     if (budgetTier === 'MEDIUM' || marketingBudget >= 100000) {
@@ -394,8 +394,28 @@ export const LeadCard = ({
 
       {/* Source */}
       <div className="mb-3 pl-9">
+        <p className="text-[10px] text-muted-foreground font-medium mb-1">Источник</p>
         {getSourceBadge()}
       </div>
+
+      {/* Payment Screenshot - if available */}
+      {(lead.extra_data as any)?.payment_screenshot && (
+        <div className="mb-3 pl-9">
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full h-8 text-xs gap-1.5 border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open((lead.extra_data as any).payment_screenshot, '_blank');
+            }}
+          >
+            <Image className="w-3.5 h-3.5" />
+            Скриншот оплаты
+            <ExternalLink className="w-3 h-3 ml-auto opacity-50" />
+          </Button>
+        </div>
+      )}
 
       {/* Amount Badge (if paid) */}
       {lead.status === 'paid' && lead.deal_amount && lead.deal_amount > 0 && (
@@ -523,6 +543,29 @@ export const LeadCard = ({
               <p>{lead.phone ? 'Позвонить' : 'Нет телефона'}</p>
             </TooltipContent>
           </Tooltip>
+
+          {/* Payment Screenshot */}
+          {(lead.extra_data as any)?.payment_screenshot && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/30"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.open((lead.extra_data as any).payment_screenshot, '_blank');
+                  }}
+                >
+                  <Image className="w-3.5 h-3.5 mr-1" />
+                  Скрин
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Открыть скриншот оплаты</p>
+              </TooltipContent>
+            </Tooltip>
+          )}
 
           {/* ИИ-анализ */}
           <Tooltip>

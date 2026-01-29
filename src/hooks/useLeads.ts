@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog } from './useAuditLog';
 import { Json } from '@/integrations/supabase/types';
+import { toast } from 'sonner';
 
 // Sanitize search input to prevent ILIKE wildcard injection
 function sanitizeSearchInput(input: string): string {
@@ -132,8 +133,14 @@ export function useLeads(projectId: string | null) {
 
       if (error) throw error;
       setLeads(data || []);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching leads:', error);
+      
+      // Check for network errors
+      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || error?.status === 0) {
+        toast.error('Ошибка сети: Проверьте подключение к базе');
+      }
+
       setLeads([]);
     } finally {
       setLoading(false);

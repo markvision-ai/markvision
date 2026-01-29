@@ -80,6 +80,7 @@ interface DailyData {
   impressions: number;
   clicks?: number;
   leads: number;
+  followers: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -204,9 +205,8 @@ export const AnalyticsPlatform = () => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
     const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
 
-    // Для подписчиков берем последнее значение (максимальное по дате), так как это абсолютное количество
-    const sortedByDate = [...rangeData].sort((a, b) => a.date.localeCompare(b.date));
-    const lastFollowers = sortedByDate.length > 0 ? (sortedByDate[sortedByDate.length - 1]?.followers || 0) : 0;
+    // Подписчики: берем последнее значение из выбранного диапазона
+    const followersSum = rangeData.length > 0 ? (rangeData[rangeData.length - 1].followers || 0) : 0;
 
     return {
       ...rangeData.reduce(
@@ -221,7 +221,7 @@ export const AnalyticsPlatform = () => {
         }),
         { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
       ),
-      followers: lastFollowers, // Берем последнее значение (текущее количество на конец периода)
+      followers: followersSum,
     };
   }, [dailyData, daysInRange]);
 
@@ -240,18 +240,25 @@ export const AnalyticsPlatform = () => {
     const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
     const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
 
-    return prevData.reduce(
-      (acc, day) => ({
-        spend: acc.spend + (day.spend || 0),
-        impressions: acc.impressions + (day.impressions || 0),
-        clicks: acc.clicks + (day.clicks || 0),
-        leads: acc.leads + (day.leads || 0),
-        diagnostics: acc.diagnostics + (day.diagnostics || 0),
-        sales: acc.sales + (day.sales || 0),
-        revenue: acc.revenue + (day.revenue || 0),
-      }),
-      { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
-    );
+      const prevFollowers = prevData.length > 0 ? (prevData[prevData.length - 1].followers || 0) : 0;
+
+    return {
+      ...prevData.reduce(
+        (acc, day) => ({
+          spend: acc.spend + (day.spend || 0),
+          impressions: acc.impressions + (day.impressions || 0),
+          clicks: acc.clicks + (day.clicks || 0),
+          leads: acc.leads + (day.leads || 0),
+          // followers calculated separately
+          followers: 0, 
+          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          sales: acc.sales + (day.sales || 0),
+          revenue: acc.revenue + (day.revenue || 0),
+        }),
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      ),
+      followers: prevFollowers
+    };
   }, [dailyData, dateRange]);
 
   // Computed metrics (возвращаем null при делении на 0)
@@ -288,7 +295,10 @@ export const AnalyticsPlatform = () => {
   // Сравнение с прошлой неделей (все ключевые показатели)
   const comparisonStats = [
     { label: 'Расходы', current: totals.spend, previous: previousWeekTotals.spend, format: 'currency' as const },
+    { label: 'Показы', current: totals.impressions, previous: previousWeekTotals.impressions, format: 'number' as const },
+    { label: 'Клики', current: totals.clicks, previous: previousWeekTotals.clicks, format: 'number' as const },
     { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
+    { label: 'Подписчики', current: totals.followers, previous: previousWeekTotals.followers, format: 'number' as const },
     { label: 'Диагностики', current: totals.diagnostics, previous: previousWeekTotals.diagnostics, format: 'number' as const },
     { label: 'Продажи', current: totals.sales, previous: previousWeekTotals.sales, format: 'number' as const },
     { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },

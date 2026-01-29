@@ -51,11 +51,12 @@ const tabs = ['kanban', 'clients', 'funnel', 'automation'] as const;
 type TabValue = typeof tabs[number];
 
 const statusOptions = [
-  { id: 'new', label: 'Новая', color: 'from-blue-500 to-cyan-500' },
+  { id: 'new', label: 'Новый лид', color: 'from-blue-500 to-cyan-500' },
+  { id: 'invoiced', label: 'Счет выставлен', color: 'from-indigo-500 to-purple-500' },
+  { id: 'paid', label: 'Оплачено', color: 'from-emerald-500 to-green-500' },
+  { id: 'appointment', label: 'Записан', color: 'from-purple-500 to-pink-500' },
   { id: 'in_progress', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
   { id: 'no_answer', label: 'Недозвон', color: 'from-orange-500 to-red-500' },
-  { id: 'appointment', label: 'Записан', color: 'from-purple-500 to-pink-500' },
-  { id: 'paid', label: 'Оплачено', color: 'from-emerald-500 to-green-500' },
   { id: 'cancelled', label: 'Отказ', color: 'from-red-500 to-rose-500' },
 ];
 
@@ -81,7 +82,8 @@ const datePresets = [
 ];
 
 export const CRMPage = ({ projectId }: CRMPageProps) => {
-  const { leads, loading, refetch } = useLeads(projectId);
+  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const { leads, loading, refetch } = useLeads(effectiveProjectId);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabValue>('kanban');
   const [direction, setDirection] = useState(0);
