@@ -19,6 +19,7 @@ interface DailyData {
   clicks: number;
   leads: number;
   followers: number;
+  followers_total: number;
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -118,6 +119,7 @@ export const useProjectData = (projectId: string | null) => {
           clicks: Number(row.clicks) || 0,
           leads: Number(row.leads) || 0,
           followers: Number(row.followers) || 0,
+          followers_total: Number(row.followers_total) || 0,
           diagnostics: Number(row.diagnostics) || 0,
           sales: Number(row.sales) || 0,
           revenue: Number(row.revenue) || 0,
@@ -135,7 +137,7 @@ export const useProjectData = (projectId: string | null) => {
       console.error('❌ useProjectData | Exception:', err);
       toast.error('Критическая ошибка загрузки данных');
     }
-  }, [effectiveProjectId, dailyData]);
+  }, [effectiveProjectId]);
 
   // Fetch plan data from plan_data table
   const fetchPlanData = useCallback(async (force = false) => {
@@ -169,6 +171,7 @@ export const useProjectData = (projectId: string | null) => {
           clicks: Number(data.clicks) || 0,
           leads: Number(data.leads) || 0,
           followers: Number(data.followers) || 0,
+          followers_total: 0, // План обычно не содержит общего количества, но поле нужно для типизации
           diagnostics: Number(data.diagnostics) || 0,
           sales: Number(data.sales) || 0,
           revenue: Number(data.revenue) || 0,
@@ -288,6 +291,7 @@ export const useProjectData = (projectId: string | null) => {
       clicks: field === 'clicks' ? value : 0,
       leads: field === 'leads' ? value : 0,
       followers: field === 'followers' ? value : 0,
+      followers_total: 0,
       diagnostics: field === 'diagnostics' ? value : 0,
       sales: field === 'sales' ? value : 0,
       revenue: field === 'revenue' ? value : 0,

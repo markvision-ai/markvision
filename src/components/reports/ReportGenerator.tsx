@@ -1050,7 +1050,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 <h2 className="text-lg font-semibold mb-4 text-foreground">📈 Ключевые метрики</h2>
                 <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                   {/* Стоимость клиента */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость клиента
@@ -1059,7 +1059,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.customerCost !== null ? formatCurrency(computedMetrics.customerCost) : <span className="text-slate-400">—</span>}
                     </div>
                     <div className="text-[10px] text-slate-500 leading-tight">
@@ -1068,7 +1068,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
 
                   {/* Стоимость диагностики */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость диагностики
@@ -1077,7 +1077,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.diagnosticCost !== null ? formatCurrency(computedMetrics.diagnosticCost) : <span className="text-slate-400">—</span>}
                     </div>
                     <div className="text-[10px] text-slate-500 leading-tight">
@@ -1086,7 +1086,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
 
                   {/* Стоимость лида */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         Стоимость лида
@@ -1095,7 +1095,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <Users className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.leadCost !== null ? formatCurrency(computedMetrics.leadCost) : <span className="text-slate-400">—</span>}
                     </div>
                     <div className="text-[10px] text-slate-500 leading-tight">
@@ -1104,7 +1104,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
 
                   {/* CR (Показы→Лид) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Показы→Лид)
@@ -1113,7 +1113,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <TrendingUp className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.impressionToLeadConv !== null ? (
                         <>
                           {formatCR(computedMetrics.impressionToLeadConv).replace('%', '')}
@@ -1129,7 +1129,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
 
                   {/* CR (Лид→Диагностика) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Лид→Диагностика)
@@ -1138,7 +1138,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.leadToDiagnosticConv !== null ? (
                         <>
                           {formatCR(computedMetrics.leadToDiagnosticConv).replace('%', '')}
@@ -1154,7 +1154,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
 
                   {/* CR (Диагностика→Продажа) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-slate-200/70 dark:border-slate-700/70 dark:border-slate-700/70 bg-white/70 dark:bg-slate-800/70 dark:bg-slate-800/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
                       <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
                         CR (Диагностика→Продажа)
@@ -1163,7 +1163,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
                       {computedMetrics.diagnosticToSaleConv !== null ? (
                         <>
                           {formatCR(computedMetrics.diagnosticToSaleConv).replace('%', '')}
