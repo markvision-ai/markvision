@@ -586,3 +586,13 @@ html, body {
     transform: translateX(100%);
   }
 }
+
+@keyframes beam-drop {
+  0% { top: -100%; opacity: 0; }
+  50% { opacity: 1; }
+  100% { top: 100%; opacity: 0; }
+}
+
+.animate-beam-drop {
+  animation: beam-drop 2s linear infinite;
+}

@@ -26,6 +26,20 @@ export interface ContentItem {
   revenue_attributed: number;
   created_at: string;
   updated_at: string;
+  // Assembly Line Fields
+  avatar_status: string | null;
+  heygen_url: string | null;
+  sora_status: string | null;
+  sora_url: string | null;
+  carousel_status: string | null;
+  design_url: string | null;
+  threads_status: string | null;
+  threads_text: string | null;
+  telegram_status: string | null;
+  telegram_text: string | null;
+  article_status: string | null;
+  seo_text: string | null;
+  _original_body?: any;
 }
 
 export interface Competitor {
@@ -37,6 +51,43 @@ export interface Competitor {
   top_content_links: any | null;
   created_at: string;
 }
+
+const mapDbToContentItem = (item: any): ContentItem => ({
+  id: item.id,
+  project_id: item.project_id || '',
+  content_type: (item.platform_type as ContentType) || 'avatar_video',
+  title: item.title || 'Без названия',
+  original_script: item.body_text,
+  rewritten_script: item.body_text,
+  caption: item.body_text,
+  source_url: item.source_url,
+  audio_url: item.voice_url,
+  raw_video_url: item.video_url,
+  final_video_url: item.video_url,
+  carousel_media: [],
+  status: (item.status as ContentStatus) || 'ideation',
+  feedback: null,
+  competitor_id: null,
+  views_count: 0,
+  followers_gained: 0,
+  revenue_attributed: 0,
+  created_at: item.created_at || new Date().toISOString(),
+  updated_at: item.updated_at || new Date().toISOString(),
+  // Assembly Line Fields - Defaults
+  avatar_status: item.body?.avatar_status || item.heygen_status || 'idle',
+  heygen_url: item.heygen_url || item.body?.heygen_url || null,
+  sora_status: item.body?.sora_status || item.sora_status || 'idle',
+  sora_url: item.sora_url || item.body?.sora_url || null,
+  carousel_status: item.body?.carousel_status || item.design_status || 'idle',
+  design_url: item.design_url || item.body?.design_url || null,
+  threads_status: item.body?.threads_status || item.threads_status || 'idle',
+  threads_text: item.threads_text || item.body?.threads_text || null,
+  telegram_status: item.body?.telegram_status || item.telegram_status || 'idle',
+  telegram_text: item.telegram_text || item.body?.telegram_text || null,
+  article_status: item.body?.article_status || item.seo_status || 'idle',
+  seo_text: item.seo_text || item.body?.seo_text || null,
+  _original_body: item.body || {}
+});
 
 export const useContentFactory = (projectId: string | null) => {
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -58,28 +109,7 @@ export const useContentFactory = (projectId: string | null) => {
 
       if (error) throw error;
       
-      const typedData = (data || []).map(item => ({
-        id: item.id,
-        project_id: item.project_id || '',
-        content_type: (item.platform_type as ContentType) || 'avatar_video',
-        title: item.title || 'Без названия',
-        original_script: item.body_text,
-        rewritten_script: item.body_text, // using body_text as fallback
-        caption: item.body_text,
-        source_url: item.source_url,
-        audio_url: item.voice_url,
-        raw_video_url: item.video_url,
-        final_video_url: item.video_url,
-        carousel_media: [],
-        status: (item.status as ContentStatus) || 'ideation',
-        feedback: null,
-        competitor_id: null,
-        views_count: 0,
-        followers_gained: 0,
-        revenue_attributed: 0,
-        created_at: item.created_at || new Date().toISOString(),
-        updated_at: item.updated_at || new Date().toISOString(),
-      }));
+      const typedData = (data || []).map(mapDbToContentItem);
       
       setContent(typedData);
     } catch (error) {
@@ -129,20 +159,10 @@ export const useContentFactory = (projectId: string | null) => {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newItem = {
-              ...payload.new,
-              content_type: payload.new.content_type as ContentType,
-              status: payload.new.status as ContentStatus,
-              carousel_media: (payload.new.carousel_media as string[]) || [],
-            } as ContentItem;
+            const newItem = mapDbToContentItem(payload.new);
             setContent(prev => [newItem, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedItem = {
-              ...payload.new,
-              content_type: payload.new.content_type as ContentType,
-              status: payload.new.status as ContentStatus,
-              carousel_media: (payload.new.carousel_media as string[]) || [],
-            } as ContentItem;
+            const updatedItem = mapDbToContentItem(payload.new);
             setContent(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
           } else if (payload.eventType === 'DELETE') {
             setContent(prev => prev.filter(item => item.id !== payload.old.id));
@@ -160,21 +180,49 @@ export const useContentFactory = (projectId: string | null) => {
     if (!projectId) return null;
 
     try {
+      // 1. Create task for n8n (Queue)
+      // Cast supabase to any to bypass table type check for new table
+      const { error: taskError } = await (supabase as any)
+        .from('content_tasks')
+        .insert([{ 
+          ...data,
+          project_id: projectId,
+          status: 'pending',
+          created_at: new Date().toISOString()
+        }]);
+
+      if (taskError) {
+        console.warn('Error creating content_task:', taskError);
+      }
+
+      // 2. Create item in Factory (UI Visualization)
+      const dbPayload = {
+        title: data.title,
+        platform_type: data.content_type, // Map content_type -> platform_type
+        body_text: data.original_script || null, // Map original_script -> body_text
+        source_url: data.source_url || null,
+        project_id: projectId,
+        status: 'ideation',
+        body: {
+            // Initialize empty status fields in body
+            avatar_status: 'idle',
+            sora_status: 'idle',
+            carousel_status: 'idle',
+            threads_status: 'idle',
+            telegram_status: 'idle',
+            article_status: 'idle'
+        }
+      };
+
       const { data: created, error } = await supabase
         .from('content_factory')
-        .insert([{ 
-          title: data.title,
-          content_type: data.content_type,
-          original_script: data.original_script || null,
-          source_url: data.source_url || null,
-          project_id: projectId 
-        }])
+        .insert([dbPayload])
         .select()
         .single();
 
       if (error) throw error;
-      toast.success('Контент создан');
-      return created;
+      toast.success('Производство запущено! (Task + Factory)');
+      return mapDbToContentItem(created);
     } catch (error) {
       console.error('Error creating content:', error);
       toast.error('Ошибка создания контента');
@@ -191,9 +239,44 @@ export const useContentFactory = (projectId: string | null) => {
     setContent(prev => prev.map(item => item.id === id ? { ...item, ...data } : item));
 
     try {
+      if (!previousItem) throw new Error("Item not found");
+
+      // Merge current item with updates
+      const merged = { ...previousItem, ...data };
+      
+      // Construct body from merged virtual fields
+      const body = {
+        ...previousItem._original_body,
+        avatar_status: merged.avatar_status,
+        heygen_url: merged.heygen_url,
+        sora_status: merged.sora_status,
+        sora_url: merged.sora_url,
+        carousel_status: merged.carousel_status,
+        design_url: merged.design_url,
+        threads_status: merged.threads_status,
+        threads_text: merged.threads_text,
+        telegram_status: merged.telegram_status,
+        telegram_text: merged.telegram_text,
+        article_status: merged.article_status,
+        seo_text: merged.seo_text,
+      };
+
+      const dbPayload: any = {
+         body: body,
+         updated_at: new Date().toISOString()
+      };
+
+      if (data.title !== undefined) dbPayload.title = data.title;
+      if (data.content_type !== undefined) dbPayload.platform_type = data.content_type;
+      if (data.original_script !== undefined) dbPayload.body_text = data.original_script;
+      if (data.source_url !== undefined) dbPayload.source_url = data.source_url;
+      if (data.audio_url !== undefined) dbPayload.voice_url = data.audio_url;
+      if (data.final_video_url !== undefined) dbPayload.video_url = data.final_video_url;
+      if (data.status !== undefined) dbPayload.status = data.status;
+
       const { error } = await supabase
         .from('content_factory')
-        .update(data)
+        .update(dbPayload)
         .eq('id', id);
 
       if (error) throw error;

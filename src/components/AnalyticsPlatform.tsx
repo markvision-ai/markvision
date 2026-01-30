@@ -274,7 +274,9 @@ export const AnalyticsPlatform = () => {
 
     return {
       ...aggregated,
-      followers: latestFollowersTotal || 0,
+      // FIX: If we have an explicit total, use it. Otherwise, fallback to sum of deltas (New Followers).
+      // The label logic below handles the distinction: "Подписчики" (Total) vs "Новые подписчики" (New/Delta).
+      followers: latestFollowersTotal || aggregated.followers,
       isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, daysInRange]);
@@ -331,8 +333,8 @@ export const AnalyticsPlatform = () => {
 
     return {
       ...aggregated,
-      // FIX: Same here, do not fallback to deltas for Total
-      followers: latestFollowersTotal || 0,
+      // FIX: Consistent fallback
+      followers: latestFollowersTotal || aggregated.followers,
       isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, dateRange]);

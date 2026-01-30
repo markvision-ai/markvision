@@ -4,12 +4,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, ExternalLink, Clock, Instagram, MessageCircle, Sparkles, TrendingUp, Eye, ArrowRight, Loader2, Lightbulb } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Clock, Instagram, MessageCircle, Sparkles, TrendingUp, Eye, ArrowRight, Loader2, Lightbulb, BarChart2 } from 'lucide-react';
 import { Competitor } from '@/hooks/useContentFactory';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface CompetitorMonitoringProps {
   competitors: Competitor[];
@@ -19,9 +20,9 @@ interface CompetitorMonitoringProps {
   onCreateFromIdea: (title: string, sourceUrl?: string) => Promise<unknown>;
 }
 
-const platformConfig: Record<string, { label: string; icon: React.ReactNode }> = {
-  instagram: { label: 'Instagram', icon: <Instagram className="w-4 h-4" /> },
-  tiktok: { label: 'TikTok', icon: <MessageCircle className="w-4 h-4" /> },
+const platformConfig: Record<string, { label: string; icon: React.ReactNode; color: string }> = {
+  instagram: { label: 'Instagram', icon: <Instagram className="w-4 h-4" />, color: 'from-pink-500 to-rose-500' },
+  tiktok: { label: 'TikTok', icon: <MessageCircle className="w-4 h-4" />, color: 'from-black to-slate-800 dark:from-white dark:to-slate-200' },
 };
 
 // Simulated AI-generated ideas based on competitors
@@ -51,35 +52,48 @@ interface IdeaCardProps {
 const IdeaCard = ({ idea, onCreateContent, isCreating }: IdeaCardProps) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      className="p-4 bg-gradient-to-br from-violet-500/10 to-purple-500/10 border border-violet-500/20 rounded-xl"
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -10, scale: 0.98 }}
+      whileHover={{ scale: 1.01, transition: { duration: 0.2 } }}
+      className="group relative p-5 bg-card/40 hover:bg-card/60 backdrop-blur-md border border-border/40 hover:border-primary/20 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-2">
-            <Lightbulb className="w-4 h-4 text-yellow-500" />
-            <Badge variant="secondary" className="text-xs">
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      
+      <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="p-1.5 bg-yellow-500/10 rounded-lg">
+                <Lightbulb className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
+            </div>
+            <Badge variant="secondary" className="bg-secondary/50 backdrop-blur-sm text-[10px] border-0 font-medium tracking-wide">
               <TrendingUp className="w-3 h-3 mr-1" />
-              Тренд
+              ТРЕНД
             </Badge>
             <Badge 
               variant="outline" 
-              className={`text-xs ${idea.virality >= 90 ? 'border-green-500 text-green-600' : idea.virality >= 70 ? 'border-yellow-500 text-yellow-600' : 'border-gray-500'}`}
+              className={cn(
+                "text-[10px] border font-medium backdrop-blur-sm",
+                idea.virality >= 90 
+                  ? "border-emerald-500/30 text-emerald-600 bg-emerald-500/5" 
+                  : "border-amber-500/30 text-amber-600 bg-amber-500/5"
+              )}
             >
-              🔥 {idea.virality}% виральность
+              🔥 {idea.virality}% ВИРАЛЬНОСТЬ
             </Badge>
           </div>
           
-          <h4 className="font-semibold mb-2">{idea.topic}</h4>
+          <h4 className="font-semibold text-base leading-tight text-foreground/90 group-hover:text-primary transition-colors duration-300">
+            {idea.topic}
+          </h4>
           
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              {idea.reach} охват
+          <div className="flex items-center gap-4 text-xs text-muted-foreground/70 font-medium">
+            <span className="flex items-center gap-1.5">
+              <Eye className="w-3.5 h-3.5" />
+              {idea.reach}
             </span>
-            <span className="text-xs">
+            <span className="flex items-center gap-1.5">
+              <span className="w-1 h-1 rounded-full bg-border" />
               Источник: {idea.source}
             </span>
           </div>
@@ -89,14 +103,14 @@ const IdeaCard = ({ idea, onCreateContent, isCreating }: IdeaCardProps) => {
           size="sm" 
           onClick={onCreateContent}
           disabled={isCreating}
-          className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600"
+          className="w-full sm:w-auto gap-2 rounded-xl bg-primary/90 hover:bg-primary text-primary-foreground shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all duration-300"
         >
           {isCreating ? (
             <Loader2 className="w-4 h-4 animate-spin" />
           ) : (
             <>
-              <ArrowRight className="w-4 h-4" />
-              В производство
+              <Sparkles className="w-4 h-4" />
+              <span className="font-medium">Создать</span>
             </>
           )}
         </Button>
@@ -140,153 +154,169 @@ export const CompetitorMonitoringEnhanced = ({
   };
 
   return (
-    <div className="space-y-6">
-      {/* Add Competitor */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Plus className="w-5 h-5 text-primary" />
-            Добавить конкурента
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Input
-              placeholder="@username (например @dr.smile.kz)"
-              value={newHandle}
-              onChange={(e) => setNewHandle(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-              className="flex-1"
-            />
-            <Select value={newPlatform} onValueChange={setNewPlatform}>
-              <SelectTrigger className="w-full sm:w-[140px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="instagram">Instagram</SelectItem>
-                <SelectItem value="tiktok">TikTok</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={handleAdd} disabled={isAdding || !newHandle.trim()} className="gap-2">
-              {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
-              Добавить
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Competitors List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Eye className="w-5 h-5 text-primary" />
-            Отслеживаемые аккаунты ({competitors.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {competitors.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Instagram className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Нет отслеживаемых конкурентов</p>
-              <p className="text-sm mt-1">Добавьте аккаунты для мониторинга идей</p>
-            </div>
-          ) : (
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              <AnimatePresence>
-                {competitors.map((competitor) => {
-                  const platform = platformConfig[competitor.platform] || platformConfig.instagram;
-                  
-                  return (
-                    <motion.div
-                      key={competitor.id}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      exit={{ opacity: 0, scale: 0.9 }}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full p-1">
+      {/* Left Column: Competitors List */}
+      <div className="lg:col-span-1 space-y-4">
+        <div className="rounded-3xl border border-border/40 bg-card/30 backdrop-blur-xl shadow-sm overflow-hidden flex flex-col h-full max-h-[calc(100vh-200px)]">
+            <div className="p-5 border-b border-border/40 bg-muted/10">
+                <h3 className="text-lg font-semibold flex items-center gap-2 mb-4">
+                    <Eye className="w-5 h-5 text-primary" />
+                    Мониторинг
+                    <Badge variant="secondary" className="ml-auto rounded-full px-2.5 py-0.5 text-xs font-normal">
+                        {competitors.length}
+                    </Badge>
+                </h3>
+                
+                <div className="flex gap-2">
+                    <div className="relative flex-1">
+                        <Input
+                            placeholder="@username"
+                            value={newHandle}
+                            onChange={(e) => setNewHandle(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
+                            className="pr-20 bg-background/50 border-border/50 focus:bg-background transition-all rounded-xl"
+                        />
+                         <Select value={newPlatform} onValueChange={setNewPlatform}>
+                            <SelectTrigger className="absolute right-0 top-0 h-10 w-[40px] border-0 bg-transparent focus:ring-0 px-2 text-muted-foreground hover:text-foreground">
+                                {newPlatform === 'instagram' ? <Instagram className="w-4 h-4" /> : <MessageCircle className="w-4 h-4" />}
+                            </SelectTrigger>
+                            <SelectContent align="end">
+                                <SelectItem value="instagram">Instagram</SelectItem>
+                                <SelectItem value="tiktok">TikTok</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Button 
+                        onClick={handleAdd} 
+                        disabled={isAdding || !newHandle.trim()} 
+                        size="icon"
+                        className="rounded-xl shrink-0 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground border border-primary/20 transition-all duration-300"
                     >
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-purple-500 flex items-center justify-center text-white">
-                          {platform.icon}
-                        </div>
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">{competitor.account_handle}</span>
-                          </div>
-                          {competitor.last_scanned_at && (
-                            <div className="flex items-center gap-1 text-xs text-muted-foreground mt-0.5">
-                              <Clock className="w-3 h-3" />
-                              {format(new Date(competitor.last_scanned_at), 'dd MMM HH:mm', { locale: ru })}
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => window.open(
-                            competitor.platform === 'instagram'
-                              ? `https://instagram.com/${competitor.account_handle.replace('@', '')}`
-                              : `https://tiktok.com/${competitor.account_handle}`,
-                            '_blank'
-                          )}
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8"
-                          onClick={() => onRemove(competitor.id)}
-                        >
-                          <Trash2 className="w-4 h-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </AnimatePresence>
+                        {isAdding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-5 h-5" />}
+                    </Button>
+                </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* AI Ideas Feed */}
-      <Card className="border-violet-500/30">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-violet-500" />
-            Свежие идеи от ИИ
-            <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs">
-              AI Анализ
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {competitors.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Sparkles className="w-12 h-12 mx-auto mb-4 opacity-30" />
-              <p>Добавьте конкурентов для анализа</p>
-              <p className="text-sm mt-1">ИИ проанализирует их контент и предложит идеи</p>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {competitors.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-40 text-center p-4">
+                        <div className="w-12 h-12 rounded-full bg-muted/50 flex items-center justify-center mb-3">
+                            <Instagram className="w-6 h-6 text-muted-foreground/40" />
+                        </div>
+                        <p className="text-sm text-muted-foreground font-medium">Нет аккаунтов</p>
+                        <p className="text-xs text-muted-foreground/60 mt-1">Добавьте конкурентов для слежки</p>
+                    </div>
+                ) : (
+                    <AnimatePresence mode="popLayout">
+                        {competitors.map((competitor) => {
+                            const platform = platformConfig[competitor.platform] || platformConfig.instagram;
+                            return (
+                                <motion.div
+                                    key={competitor.id}
+                                    layout
+                                    initial={{ opacity: 0, x: -10 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    exit={{ opacity: 0, x: -10 }}
+                                    className="group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 bg-transparent hover:bg-background/60 hover:shadow-sm transition-all duration-200"
+                                >
+                                    <div className="flex items-center gap-3 min-w-0">
+                                        <div className={cn(
+                                            "w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0 bg-gradient-to-br",
+                                            platform.color
+                                        )}>
+                                            {platform.icon}
+                                        </div>
+                                        <div className="min-w-0">
+                                            <p className="font-medium text-sm truncate pr-2">{competitor.handle}</p>
+                                            {competitor.last_scanned_at && (
+                                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
+                                                    <Clock className="w-3 h-3" />
+                                                    {format(new Date(competitor.last_scanned_at), 'd MMM HH:mm', { locale: ru })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-lg hover:bg-background hover:text-primary"
+                                            onClick={() => window.open(
+                                                competitor.platform === 'instagram'
+                                                    ? `https://instagram.com/${competitor.handle.replace('@', '')}`
+                                                    : `https://tiktok.com/${competitor.handle}`,
+                                                '_blank'
+                                            )}
+                                        >
+                                            <ExternalLink className="w-3.5 h-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                                            onClick={() => onRemove(competitor.id)}
+                                        >
+                                            <Trash2 className="w-3.5 h-3.5" />
+                                        </Button>
+                                    </div>
+                                </motion.div>
+                            );
+                        })}
+                    </AnimatePresence>
+                )}
             </div>
-          ) : (
-            <div className="space-y-3">
-              <AnimatePresence>
-                {ideas.map((idea, index) => (
-                  <IdeaCard
-                    key={index}
-                    idea={idea}
-                    onCreateContent={() => handleCreateFromIdea(idea, index)}
-                    isCreating={creatingIdeaIndex === index}
-                  />
-                ))}
-              </AnimatePresence>
+        </div>
+      </div>
+
+      {/* Right Column: AI Ideas Feed */}
+      <div className="lg:col-span-2">
+         <div className="rounded-3xl border border-primary/10 bg-gradient-to-br from-primary/5 to-transparent backdrop-blur-xl p-6 h-full min-h-[500px] flex flex-col relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/10 rounded-full blur-3xl opacity-50 pointer-events-none" />
+            
+            <div className="flex items-center justify-between mb-6 relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 bg-background/50 backdrop-blur-md rounded-xl border border-primary/10 shadow-sm">
+                        <Sparkles className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                        <h3 className="text-lg font-semibold tracking-tight">AI Лаборатория идей</h3>
+                        <p className="text-xs text-muted-foreground font-medium">Анализ {competitors.length} конкурентов</p>
+                    </div>
+                </div>
+                <Button variant="outline" size="sm" className="gap-2 rounded-xl bg-background/30 backdrop-blur-md border-primary/10 hover:bg-primary/5">
+                    <BarChart2 className="w-4 h-4" />
+                    Отчет
+                </Button>
             </div>
-          )}
-        </CardContent>
-      </Card>
+
+            <div className="flex-1 overflow-y-auto space-y-4 relative z-10 pr-2">
+                {competitors.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center h-64 text-center">
+                        <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center mb-4 backdrop-blur-sm">
+                            <Sparkles className="w-8 h-8 text-muted-foreground/30" />
+                        </div>
+                        <h4 className="text-base font-medium text-foreground/80">Лаборатория пуста</h4>
+                        <p className="text-sm text-muted-foreground/60 mt-1 max-w-xs mx-auto">
+                            Добавьте конкурентов, чтобы ИИ начал генерировать гипотезы и сценарии
+                        </p>
+                    </div>
+                ) : (
+                    <AnimatePresence mode="popLayout">
+                        {ideas.map((idea, index) => (
+                            <IdeaCard
+                                key={index}
+                                idea={idea}
+                                onCreateContent={() => handleCreateFromIdea(idea, index)}
+                                isCreating={creatingIdeaIndex === index}
+                            />
+                        ))}
+                    </AnimatePresence>
+                )}
+            </div>
+         </div>
+      </div>
     </div>
   );
 };

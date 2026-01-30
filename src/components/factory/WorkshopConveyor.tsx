@@ -127,6 +127,14 @@ const DraggableContentCard = ({ item, isOverlay = false }: { item: ContentItem; 
     }
   };
 
+  const handleMoveNext = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent drag start
+    // Logic to move to next stage will be handled by parent or passed down
+    // For now, we'll emit a custom event or use a callback if we refactor props
+    // But since we are inside DraggableContentCard which is used by Sortable, passing props is tricky without context
+    // Let's use a simpler approach: The parent WorkshopConveyor can pass a function to DraggableContentCard
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -134,55 +142,83 @@ const DraggableContentCard = ({ item, isOverlay = false }: { item: ContentItem; 
       {...attributes}
       {...listeners}
       className={cn(
-        "group relative flex flex-col gap-3 p-4 rounded-xl border transition-all duration-300 cursor-grab active:cursor-grabbing",
-        "bg-[#0F0F10] backdrop-blur-md shadow-xl",
-        isOverlay ? "scale-105 z-50 border-violet-500/50 shadow-[0_0_30px_-5px_rgba(139,92,246,0.5)]" : "border-white/5 hover:border-white/10 hover:shadow-lg hover:bg-[#141415]"
+        "group relative flex flex-col gap-2 p-3 rounded-xl border transition-all duration-300 cursor-grab active:cursor-grabbing",
+        "bg-card/90 backdrop-blur-sm shadow-sm",
+        isOverlay ? "scale-105 z-50 border-primary/50 shadow-xl" : "border-border/50 hover:border-primary/20 hover:shadow-md hover:bg-card"
       )}
     >
-      {/* Moving Border Effect (Simplified CSS) */}
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      {/* Moving Border Effect */}
+      <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-transparent via-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
+      {/* Header: Type & Status */}
+      <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2">
-          <div className={cn("p-1.5 rounded-md border", getStatusColor(item.status))}>
+          <div className={cn("p-1 rounded-md border bg-background/50", getStatusColor(item.status))}>
             {getTypeIcon(item.content_type)}
           </div>
-          <Badge variant="outline" className={cn("text-[10px] uppercase tracking-wider h-5", getStatusColor(item.status))}>
+          <Badge variant="secondary" className={cn("text-[9px] uppercase tracking-wider h-4 px-1.5 font-medium border-0", getStatusColor(item.status))}>
             {item.status.replace('_', ' ')}
           </Badge>
         </div>
-        {/* Progress Dots */}
-        <div className="flex gap-1">
-          <div className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-white/40" />
-          <div className="w-1 h-1 rounded-full bg-white/20 group-hover:bg-white/40" />
-        </div>
       </div>
 
-      {/* Content */}
-      <div className="space-y-1">
-        <h4 className="text-sm font-medium text-white/90 line-clamp-2 leading-tight">
-          {item.title}
-        </h4>
-        <p className="text-xs text-white/40 line-clamp-1">
-          {(() => {
-            try {
-              return format(new Date(item.created_at), 'd MMM HH:mm', { locale: ru });
-            } catch (e) {
-              return 'Дата неизвестна';
-            }
-          })()}
-        </p>
+      {/* Content: Title & Preview */}
+      <div className="flex gap-3 items-start">
+         {/* Preview Image (Placeholder or Real) */}
+          <div className="w-12 h-12 rounded-lg bg-muted/50 flex-shrink-0 overflow-hidden border border-border/50 relative group-hover:border-primary/20 transition-colors">
+             {(item as any).thumbnail_url ? (
+                 <img src={(item as any).thumbnail_url} alt="" className="w-full h-full object-cover" />
+             ) : (
+                 <div className="w-full h-full flex items-center justify-center text-muted-foreground/40">
+                     {getTypeIcon(item.content_type)}
+                 </div>
+             )}
+             {/* Play overlay if video */}
+            {item.content_type === 'avatar_video' && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/10">
+                    <div className="w-4 h-4 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
+                        <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[5px] border-l-black border-b-[3px] border-b-transparent ml-0.5" />
+                    </div>
+                </div>
+            )}
+         </div>
+
+         <div className="flex-1 min-w-0">
+            <h4 className="text-xs font-semibold text-foreground line-clamp-2 leading-tight mb-1 tracking-tight">
+              {item.title}
+            </h4>
+            <p className="text-[10px] text-muted-foreground line-clamp-1 font-mono">
+              {(() => {
+                try {
+                  return format(new Date(item.created_at), 'd MMM HH:mm', { locale: ru });
+                } catch (e) {
+                  return 'Дата неизвестна';
+                }
+              })()}
+            </p>
+         </div>
       </div>
 
-      {/* Footer / Tech Details */}
-      <div className="flex items-center justify-between pt-2 border-t border-white/5 mt-1">
-        <div className="flex items-center gap-2 text-[10px] text-white/30 font-mono">
-           <span>ID: {item.id.slice(0, 4)}</span>
-        </div>
-        {item.source_url && (
-            <div className="w-2 h-2 rounded-full bg-blue-500/50 animate-pulse" title="Source Linked" />
-        )}
+      {/* Footer: Actions */}
+      <div className="flex items-center justify-between pt-2 border-t border-border/40 mt-1">
+         <div className="text-[9px] text-muted-foreground/50 font-mono">
+             ID: {item.id.slice(0, 4)}
+         </div>
+         <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-6 text-[10px] px-2 hover:bg-primary/5 text-muted-foreground hover:text-primary gap-1 font-medium transition-colors"
+            onPointerDown={(e) => e.stopPropagation()} // Prevent drag
+            onClick={(e) => {
+                // We need to trigger the move next action.
+                // Since we can't easily pass the handler down through SortableContext without a custom wrapper,
+                // we'll dispatch a custom event that the parent listens to.
+                const event = new CustomEvent('move-next-stage', { detail: { id: item.id } });
+                window.dispatchEvent(event);
+            }}
+         >
+            Дальше <ChevronRight className="w-3 h-3" />
+         </Button>
       </div>
     </div>
   );
@@ -199,29 +235,31 @@ const StageColumn = ({ stage, items }: { stage: typeof STAGES[0]; items: Content
     <div 
       ref={setNodeRef}
       className={cn(
-        "flex-1 min-w-[320px] h-[calc(100vh-250px)] flex flex-col rounded-2xl border transition-colors duration-300 relative overflow-hidden",
-        "bg-[#050505]", // Industrial Dark Base
-        isOver ? `border-${stage.color.split('-')[1]}-500/50 bg-${stage.color.split('-')[1]}-500/5` : "border-white/5"
+        "flex-1 min-w-[320px] h-[calc(100vh-250px)] flex flex-col rounded-2xl border transition-all duration-300 relative overflow-hidden group/stage",
+        "bg-muted/30 backdrop-blur-sm", 
+        isOver ? "border-primary/30 bg-primary/5 shadow-inner" : "border-border/40"
       )}
     >
-      {/* Industrial Header */}
+      {/* Apple-style Header */}
       <div className={cn(
-        "p-4 border-b border-white/5 bg-gradient-to-b relative",
-        stage.bgGradient
+        "p-4 border-b border-border/40 bg-card/40 backdrop-blur-md relative",
+        // stage.bgGradient
       )}>
         <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
-            <stage.icon className={cn("w-5 h-5", stage.color)} />
-            <h3 className="font-bold text-white tracking-wide uppercase text-sm">{stage.title}</h3>
+            <div className={cn("p-1.5 rounded-lg bg-background shadow-sm border border-border/50", stage.color)}>
+              <stage.icon className="w-4 h-4" />
+            </div>
+            <h3 className="font-semibold text-foreground tracking-tight text-sm">{stage.title}</h3>
           </div>
-          <Badge variant="secondary" className="bg-white/5 text-white/50 border-white/10 font-mono text-xs">
+          <Badge variant="secondary" className="bg-background/50 text-muted-foreground border-border/50 font-mono text-xs shadow-sm">
             {items.length}
           </Badge>
         </div>
-        <p className="text-xs text-white/40 pl-7">{stage.subtitle}</p>
+        <p className="text-xs text-muted-foreground/70 pl-9">{stage.subtitle}</p>
         
         {/* Active Indicator Line */}
-        <div className={cn("absolute bottom-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-white/10 to-transparent")} />
+        <div className={cn("absolute bottom-0 left-0 h-[1px] w-full bg-gradient-to-r from-transparent via-border to-transparent opacity-50")} />
       </div>
 
       {/* Content Area */}
@@ -242,10 +280,10 @@ const StageColumn = ({ stage, items }: { stage: typeof STAGES[0]; items: Content
       </div>
       
       {/* Machine Status Footer */}
-      <div className="p-2 border-t border-white/5 bg-[#080808] flex justify-between items-center text-[10px] text-white/20 font-mono uppercase">
-         <span>SYS.STATUS: {items.length > 0 ? 'ACTIVE' : 'IDLE'}</span>
+      <div className="p-2 border-t border-border/40 bg-card/30 flex justify-between items-center text-[10px] text-muted-foreground/60 font-mono uppercase backdrop-blur-sm">
+         <span>STATUS: {items.length > 0 ? 'ACTIVE' : 'IDLE'}</span>
          <div className="flex gap-1">
-           <div className={cn("w-1.5 h-1.5 rounded-full", items.length > 0 ? "bg-green-500 animate-pulse" : "bg-red-500/30")} />
+           <div className={cn("w-1.5 h-1.5 rounded-full shadow-sm", items.length > 0 ? "bg-emerald-500 animate-pulse" : "bg-muted-foreground/30")} />
          </div>
       </div>
     </div>
@@ -254,12 +292,12 @@ const StageColumn = ({ stage, items }: { stage: typeof STAGES[0]; items: Content
 
 const EmptyStageState = ({ stage }: { stage: typeof STAGES[0] }) => {
     return (
-        <div className="h-[200px] flex flex-col items-center justify-center text-center p-4 border border-dashed border-white/5 rounded-xl bg-white/[0.02] mt-4">
-            <div className={cn("p-3 rounded-full bg-white/5 mb-3", stage.color)}>
-                <Loader2 className={cn("w-6 h-6 animate-spin-slow opacity-50")} />
+        <div className="h-[200px] flex flex-col items-center justify-center text-center p-4 border border-dashed border-border/40 rounded-xl bg-background/20 mt-4 mx-2">
+            <div className={cn("p-3 rounded-full bg-background shadow-sm border border-border/50 mb-3", stage.color)}>
+                <Loader2 className={cn("w-5 h-5 animate-spin-slow opacity-50")} />
             </div>
-            <p className="text-sm font-medium text-white/40">Цех ожидает задач</p>
-            <p className="text-xs text-white/20 mt-1 font-mono">WAITING_FOR_INPUT...</p>
+            <p className="text-sm font-medium text-muted-foreground">Ожидание задач</p>
+            <p className="text-[10px] text-muted-foreground/50 mt-1 font-mono tracking-wider">WAITING_FOR_INPUT...</p>
         </div>
     )
 }
@@ -335,7 +373,34 @@ export const WorkshopConveyor = ({ content, projectId, onUpdate }: WorkshopConve
 
   useEffect(() => {
     setMounted(true);
-  }, []);
+
+    const handleMoveNextEvent = (e: Event) => {
+        const customEvent = e as CustomEvent;
+        const itemId = customEvent.detail.id;
+        const item = content.find(i => i.id === itemId);
+        if (item) {
+            const currentStageId = getStageId(item.status);
+            const currentStageIndex = STAGES.findIndex(s => s.id === currentStageId);
+            if (currentStageIndex < STAGES.length - 1) {
+                const nextStage = STAGES[currentStageIndex + 1];
+                const newStatus = nextStage.statuses[0];
+                toast.promise(
+                    onUpdate(item.id, { status: newStatus }),
+                    {
+                        loading: 'Перемещение...',
+                        success: `Перемещено в ${nextStage.title}`,
+                        error: 'Ошибка перемещения'
+                    }
+                );
+            }
+        }
+    };
+
+    window.addEventListener('move-next-stage', handleMoveNextEvent);
+    return () => {
+        window.removeEventListener('move-next-stage', handleMoveNextEvent);
+    };
+  }, [content, onUpdate]);
 
   return (
     <DndContext 
@@ -345,17 +410,22 @@ export const WorkshopConveyor = ({ content, projectId, onUpdate }: WorkshopConve
       onDragEnd={handleDragEnd}
     >
       <div className="w-full h-full overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-white/10 scrollbar-track-transparent">
-        <div className="flex gap-6 min-w-max px-2">
+        <div className="flex gap-4 min-w-max px-2 h-full">
             {STAGES.map((stage, index) => (
-                <div key={stage.id} className="flex items-center gap-6">
+                <div key={stage.id} className="flex items-center gap-4 h-full">
                     <StageColumn stage={stage} items={itemsByStage[stage.id]} />
                     
-                    {/* Conveyor Belt Connection (Arrow) */}
+                    {/* Conveyor Belt Connection (Tracing Beam Style) */}
                     {index < STAGES.length - 1 && (
-                        <div className="hidden md:flex flex-col items-center justify-center opacity-30">
-                            <div className="w-12 h-[2px] bg-gradient-to-r from-white/0 via-white/50 to-white/0 mb-1" />
-                            <ChevronRight className="w-6 h-6 text-white animate-pulse" />
-                            <div className="w-12 h-[2px] bg-gradient-to-r from-white/0 via-white/50 to-white/0 mt-1" />
+                        <div className="hidden md:flex flex-col items-center justify-center h-full opacity-50 relative w-8">
+                            {/* Animated Beam */}
+                            <div className="absolute inset-y-0 left-1/2 w-[2px] bg-gradient-to-b from-transparent via-white/20 to-transparent">
+                                <div className="absolute top-0 left-0 w-full h-20 bg-gradient-to-b from-transparent via-violet-500 to-transparent animate-beam-drop" />
+                            </div>
+                            
+                            <div className="z-10 bg-[#030303] p-1 rounded-full border border-white/10">
+                                <ChevronRight className="w-4 h-4 text-white/50" />
+                            </div>
                         </div>
                     )}
                 </div>

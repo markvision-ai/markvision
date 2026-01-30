@@ -23,11 +23,19 @@ import {
   DollarSign,
   Sparkles,
   Bot,
+  MoreHorizontal,
+  Globe
 } from 'lucide-react';
 import { ContentItem, ContentType, ContentStatus } from '@/hooks/useContentFactory';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface ContentCardProps {
   item: ContentItem;
@@ -40,13 +48,49 @@ interface ContentCardProps {
   triggerPublish: (contentId: string, finalVideoUrl: string, caption: string, platforms: string[]) => Promise<boolean>;
 }
 
-const contentTypeConfig: Record<ContentType, { label: string; icon: React.ReactNode; color: string }> = {
-  avatar_video: { label: 'Аватар видео', icon: <Video className="w-4 h-4" />, color: 'bg-blue-500' },
-  ai_video: { label: 'AI Видео', icon: <Film className="w-4 h-4" />, color: 'bg-purple-500' },
-  static_post: { label: 'Статичный пост', icon: <Image className="w-4 h-4" />, color: 'bg-green-500' },
-  carousel: { label: 'Карусель', icon: <Image className="w-4 h-4" />, color: 'bg-orange-500' },
-  threads: { label: 'Threads', icon: <MessageSquare className="w-4 h-4" />, color: 'bg-pink-500' },
-  tg_text: { label: 'Telegram', icon: <Send className="w-4 h-4" />, color: 'bg-sky-500' },
+const contentTypeConfig: Record<ContentType, { label: string; icon: React.ReactNode; bg: string; text: string; border: string }> = {
+  avatar_video: { 
+    label: 'Аватар видео', 
+    icon: <Video className="w-4 h-4" />, 
+    bg: 'bg-blue-500/10', 
+    text: 'text-blue-600 dark:text-blue-400',
+    border: 'border-blue-200 dark:border-blue-800/30'
+  },
+  ai_video: { 
+    label: 'AI Видео', 
+    icon: <Film className="w-4 h-4" />, 
+    bg: 'bg-purple-500/10', 
+    text: 'text-purple-600 dark:text-purple-400',
+    border: 'border-purple-200 dark:border-purple-800/30'
+  },
+  static_post: { 
+    label: 'Статичный пост', 
+    icon: <Image className="w-4 h-4" />, 
+    bg: 'bg-green-500/10', 
+    text: 'text-green-600 dark:text-green-400',
+    border: 'border-green-200 dark:border-green-800/30'
+  },
+  carousel: { 
+    label: 'Карусель', 
+    icon: <Image className="w-4 h-4" />, 
+    bg: 'bg-orange-500/10', 
+    text: 'text-orange-600 dark:text-orange-400',
+    border: 'border-orange-200 dark:border-orange-800/30'
+  },
+  threads: { 
+    label: 'Threads', 
+    icon: <MessageSquare className="w-4 h-4" />, 
+    bg: 'bg-pink-500/10', 
+    text: 'text-pink-600 dark:text-pink-400',
+    border: 'border-pink-200 dark:border-pink-800/30'
+  },
+  tg_text: { 
+    label: 'Telegram', 
+    icon: <Send className="w-4 h-4" />, 
+    bg: 'bg-sky-500/10', 
+    text: 'text-sky-600 dark:text-sky-400',
+    border: 'border-sky-200 dark:border-sky-800/30'
+  },
 };
 
 const statusConfig: Record<ContentStatus, { label: string; step: number }> = {
@@ -110,8 +154,9 @@ export const ContentCard = ({
           return (
             <Button 
               onClick={() => triggerVoice(item.id, script)}
-              className="gap-2"
+              className="gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 shadow-none border-0"
               disabled={!script.trim()}
+              size="sm"
             >
               <Mic className="w-4 h-4" />
               В ElevenLabs
@@ -122,7 +167,8 @@ export const ContentCard = ({
           return (
             <Button 
               onClick={() => triggerAvatar(item.id, item.audio_url!)}
-              className="gap-2"
+              className="gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 shadow-none border-0"
+              size="sm"
             >
               <Video className="w-4 h-4" />
               В HeyGen
@@ -133,7 +179,8 @@ export const ContentCard = ({
           return (
             <Button 
               onClick={() => triggerEdit(item.id, item.raw_video_url!)}
-              className="gap-2"
+              className="gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 shadow-none border-0"
+              size="sm"
             >
               <Scissors className="w-4 h-4" />
               В Submagic
@@ -143,8 +190,9 @@ export const ContentCard = ({
         return (
           <Button 
             onClick={() => triggerPublish(item.id, item.final_video_url!, caption, ['instagram', 'tiktok'])}
-            className="gap-2"
+            className="gap-2 rounded-xl"
             variant="default"
+            size="sm"
           >
             <Send className="w-4 h-4" />
             Отправить в TG
@@ -156,8 +204,9 @@ export const ContentCard = ({
           return (
             <Button 
               onClick={() => triggerAiVideo(item.id, script)}
-              className="gap-2"
+              className="gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 shadow-none border-0"
               disabled={!script.trim()}
+              size="sm"
             >
               <Film className="w-4 h-4" />
               В VEO/Sora
@@ -168,7 +217,8 @@ export const ContentCard = ({
           return (
             <Button 
               onClick={() => triggerEdit(item.id, item.raw_video_url!)}
-              className="gap-2"
+              className="gap-2 rounded-xl bg-primary/10 text-primary hover:bg-primary/20 shadow-none border-0"
+              size="sm"
             >
               <Scissors className="w-4 h-4" />
               В Submagic
@@ -178,7 +228,8 @@ export const ContentCard = ({
         return (
           <Button 
             onClick={() => triggerPublish(item.id, item.final_video_url!, caption, ['instagram', 'tiktok'])}
-            className="gap-2"
+            className="gap-2 rounded-xl"
+            size="sm"
           >
             <Send className="w-4 h-4" />
             Отправить
@@ -190,8 +241,9 @@ export const ContentCard = ({
         return (
           <Button 
             onClick={() => triggerPublish(item.id, '', caption, [item.content_type === 'tg_text' ? 'telegram' : 'threads'])}
-            className="gap-2"
+            className="gap-2 rounded-xl"
             disabled={!caption.trim()}
+            size="sm"
           >
             <Send className="w-4 h-4" />
             Отправить
@@ -211,7 +263,8 @@ export const ContentCard = ({
                 await onUpdate(item.id, { status: nextStatus as ContentStatus });
               }
             }}
-            className="gap-2"
+            className="gap-2 rounded-xl"
+            size="sm"
           >
             <Send className="w-4 h-4" />
             Далее
@@ -221,126 +274,135 @@ export const ContentCard = ({
   };
 
   return (
-    <Card className="overflow-hidden">
-      <CardHeader className="pb-3">
+    <Card className={cn(
+      "overflow-hidden border transition-all duration-300 group rounded-3xl",
+      "bg-background/60 backdrop-blur-xl hover:shadow-xl hover:shadow-primary/5 hover:border-primary/20",
+      "border-border/40"
+    )}>
+      <CardHeader className="pb-4 pt-5 px-5">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-white', typeConfig.color)}>
+          <div className="flex items-center gap-4">
+            <div className={cn(
+              'w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-300 group-hover:scale-110 shadow-sm border',
+              typeConfig.bg, typeConfig.text, typeConfig.border
+            )}>
               {typeConfig.icon}
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold">{item.title}</h3>
+              <div className="flex items-center gap-2 mb-1">
+                <h3 className="font-semibold text-base group-hover:text-primary transition-colors line-clamp-1">
+                  {item.title}
+                </h3>
                 {item.rewritten_script && (
-                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-[10px] px-1.5 py-0">
-                    <Bot className="w-2.5 h-2.5 mr-0.5" />
+                  <Badge variant="secondary" className="bg-primary/5 text-primary border-primary/10 text-[10px] px-1.5 h-5 gap-1">
+                    <Sparkles className="w-2.5 h-2.5" />
                     AI
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2 mt-1">
-                <Badge variant="outline" className="text-xs">
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-muted/50 text-muted-foreground">
                   {typeConfig.label}
-                </Badge>
-                <span className="text-xs text-muted-foreground">
-                  {format(new Date(item.created_at), 'dd MMM yyyy', { locale: ru })}
+                </span>
+                <span className="text-xs text-muted-foreground/60 flex items-center gap-1">
+                  <CalendarDaysIcon className="w-3 h-3" />
+                  {format(new Date(item.created_at), 'd MMM', { locale: ru })}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button
               variant="ghost"
               size="icon"
+              className="h-8 w-8 rounded-full hover:bg-background/80 text-muted-foreground hover:text-foreground transition-colors"
               onClick={() => setIsExpanded(!isExpanded)}
             >
               {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => onDelete(item.id)}
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full hover:bg-background/80 text-muted-foreground">
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-40 rounded-xl bg-background/80 backdrop-blur-xl">
+                <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer rounded-lg" onClick={() => onDelete(item.id)}>
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Удалить
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
         {/* Progress Stepper */}
-        <div className="mt-4">
-          <div className="flex items-center gap-2">
-            {steps.map((step, index) => (
-              <div key={step} className="flex items-center">
-                <div
-                  className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-colors',
-                    index < currentStep
-                      ? 'bg-success text-success-foreground'
-                      : index === currentStep
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-muted text-muted-foreground'
-                  )}
-                >
-                  {index < currentStep ? (
-                    <CheckCircle className="w-4 h-4" />
-                  ) : (
-                    index + 1
-                  )}
-                </div>
-                {index < steps.length - 1 && (
+        <div className="mt-6 relative px-1">
+          <div className="absolute top-[11px] left-0 w-full h-0.5 bg-muted/40 rounded-full" />
+          <div className="flex items-center justify-between relative z-10">
+            {steps.map((step, index) => {
+              const isCompleted = index < currentStep;
+              const isCurrent = index === currentStep;
+              
+              return (
+                <div key={step} className="flex flex-col items-center gap-2 group/step w-full">
                   <div
                     className={cn(
-                      'w-8 h-0.5 mx-1',
-                      index < currentStep ? 'bg-success' : 'bg-muted'
+                      'w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-500 shadow-sm border-2',
+                      isCompleted
+                        ? 'bg-primary text-primary-foreground border-primary scale-90'
+                        : isCurrent
+                        ? 'bg-background text-primary border-primary scale-125 shadow-md ring-4 ring-primary/10'
+                        : 'bg-background text-muted-foreground border-muted group-hover/step:border-primary/30'
                     )}
-                  />
-                )}
-              </div>
-            ))}
-          </div>
-          <div className="flex mt-2">
-            {steps.map((step, index) => (
-              <div
-                key={step}
-                className={cn(
-                  'flex-1 text-xs text-center',
-                  index === currentStep ? 'text-primary font-medium' : 'text-muted-foreground'
-                )}
-              >
-                {step}
-              </div>
-            ))}
+                  >
+                    {isCompleted ? (
+                      <CheckCircle className="w-3.5 h-3.5" />
+                    ) : (
+                      <span className="text-[9px]">{index + 1}</span>
+                    )}
+                  </div>
+                  {isCurrent && (
+                    <div className="absolute top-8 left-0 w-full text-center animate-in fade-in slide-in-from-top-1 duration-300">
+                      <span className="text-[10px] font-semibold text-foreground bg-background/80 backdrop-blur-sm px-2 py-0.5 rounded-full border border-border/50 shadow-sm">
+                        {step}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
       </CardHeader>
 
       {isExpanded && (
-        <CardContent className="space-y-4 pt-0">
+        <CardContent className="space-y-5 pt-4 px-5 pb-5 animate-in slide-in-from-top-2 duration-300">
           {/* Analytics */}
           {(item.views_count > 0 || item.followers_gained > 0 || item.revenue_attributed > 0) && (
-            <div className="grid grid-cols-3 gap-4 p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Eye className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Просмотры</p>
-                  <p className="font-semibold">{item.views_count.toLocaleString()}</p>
+            <div className="grid grid-cols-3 gap-3 p-3 bg-muted/30 rounded-2xl border border-border/20">
+              <div className="flex flex-col items-center justify-center p-2 text-center">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <Eye className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-wider font-medium">Просмотры</span>
                 </div>
+                <p className="font-semibold text-sm">{item.views_count.toLocaleString()}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Подписки</p>
-                  <p className="font-semibold">+{item.followers_gained}</p>
+              <div className="flex flex-col items-center justify-center p-2 text-center border-x border-border/10">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <Users className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-wider font-medium">Подписки</span>
                 </div>
+                <p className="font-semibold text-sm">+{item.followers_gained}</p>
               </div>
-              <div className="flex items-center gap-2">
-                <DollarSign className="w-4 h-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs text-muted-foreground">Выручка</p>
-                  <p className="font-semibold">{item.revenue_attributed.toLocaleString()} ₸</p>
+              <div className="flex flex-col items-center justify-center p-2 text-center">
+                <div className="flex items-center gap-1.5 text-muted-foreground mb-1">
+                  <DollarSign className="w-3.5 h-3.5" />
+                  <span className="text-[10px] uppercase tracking-wider font-medium">Выручка</span>
                 </div>
+                <p className="font-semibold text-sm">{item.revenue_attributed.toLocaleString()} ₸</p>
               </div>
             </div>
           )}
@@ -348,36 +410,48 @@ export const ContentCard = ({
           {/* Script Section */}
           {['avatar_video', 'ai_video'].includes(item.content_type) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Сценарий</label>
-              <Textarea
-                value={script}
-                onChange={(e) => setScript(e.target.value)}
-                placeholder="Введите или вставьте сценарий..."
-                rows={4}
-              />
-              <Button variant="outline" size="sm" onClick={handleSaveScript}>
-                Сохранить сценарий
-              </Button>
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Сценарий</label>
+              <div className="relative">
+                <Textarea
+                  value={script}
+                  onChange={(e) => setScript(e.target.value)}
+                  placeholder="Введите или вставьте сценарий..."
+                  rows={4}
+                  className="resize-none rounded-xl bg-muted/20 border-border/40 focus:border-primary/30 focus:bg-background transition-all pr-10 text-sm"
+                />
+                <Button 
+                  size="icon" 
+                  variant="ghost" 
+                  className="absolute bottom-2 right-2 h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
+                  onClick={handleSaveScript}
+                  title="Сохранить сценарий"
+                >
+                  <CheckCircle className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           )}
 
           {/* Audio Player */}
           {item.audio_url && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">Озвучка</label>
-              <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Озвучка</label>
+              <div className="flex items-center gap-3 p-2 pr-4 bg-muted/30 rounded-xl border border-border/20">
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
+                  className="h-10 w-10 rounded-full bg-background shadow-sm text-primary hover:text-primary hover:bg-background/80"
                   onClick={() => setIsPlaying(!isPlaying)}
                 >
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 ml-0.5" />}
                 </Button>
-                <audio
-                  src={item.audio_url}
-                  controls
-                  className="flex-1 h-8"
-                />
+                <div className="flex-1 h-8 flex items-center">
+                  <audio
+                    src={item.audio_url}
+                    controls
+                    className="w-full h-8 opacity-80"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -385,14 +459,14 @@ export const ContentCard = ({
           {/* Video Player */}
           {(item.raw_video_url || item.final_video_url) && (
             <div className="space-y-2">
-              <label className="text-sm font-medium">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">
                 {item.final_video_url ? 'Финальное видео' : 'Сырое видео'}
               </label>
-              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+              <div className="aspect-video bg-black/90 rounded-2xl overflow-hidden shadow-lg border border-border/20 relative group/video">
                 <video
                   src={item.final_video_url || item.raw_video_url || undefined}
                   controls
-                  className="w-full h-full"
+                  className="w-full h-full object-contain"
                 />
               </div>
             </div>
@@ -400,27 +474,40 @@ export const ContentCard = ({
 
           {/* Caption Section */}
           <div className="space-y-2">
-            <label className="text-sm font-medium">Текст публикации</label>
-            <Textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Текст для публикации..."
-              rows={3}
-            />
-            <Button variant="outline" size="sm" onClick={handleSaveCaption}>
-              Сохранить текст
-            </Button>
+            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground ml-1">Текст публикации</label>
+            <div className="relative">
+              <Textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Текст для публикации..."
+                rows={3}
+                className="resize-none rounded-xl bg-muted/20 border-border/40 focus:border-primary/30 focus:bg-background transition-all text-sm"
+              />
+              <Button 
+                size="icon" 
+                variant="ghost" 
+                className="absolute bottom-2 right-2 h-7 w-7 text-primary hover:bg-primary/10 rounded-lg"
+                onClick={handleSaveCaption}
+                title="Сохранить текст"
+              >
+                <CheckCircle className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
 
           {/* Source URL */}
           {item.source_url && (
-            <div className="text-xs text-muted-foreground">
-              Источник: <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">{item.source_url}</a>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground px-1">
+              <Globe className="w-3.5 h-3.5" />
+              <span>Источник:</span>
+              <a href={item.source_url} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline truncate max-w-[200px]">
+                {item.source_url}
+              </a>
             </div>
           )}
 
           {/* Action Button */}
-          <div className="flex justify-end pt-2">
+          <div className="flex justify-end pt-2 border-t border-border/30">
             {renderActionButton()}
           </div>
         </CardContent>
@@ -428,3 +515,31 @@ export const ContentCard = ({
     </Card>
   );
 };
+
+function CalendarDaysIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+      <line x1="16" x2="16" y1="2" y2="6" />
+      <line x1="8" x2="8" y1="2" y2="6" />
+      <line x1="3" x2="21" y1="10" y2="10" />
+      <path d="M8 14h.01" />
+      <path d="M12 14h.01" />
+      <path d="M16 14h.01" />
+      <path d="M8 18h.01" />
+      <path d="M12 18h.01" />
+      <path d="M16 18h.01" />
+    </svg>
+  );
+}

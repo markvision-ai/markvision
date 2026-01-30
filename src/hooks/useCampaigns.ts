@@ -77,7 +77,8 @@ export function useCampaigns(projectId: string | null) {
 
       if (error) throw error;
       
-      setCampaigns((data || []).map(c => ({
+      const typedData = (data || []) as any[];
+      setCampaigns(typedData.map(c => ({
         ...c,
         platform: c.platform as 'facebook' | 'tiktok' | 'google',
         rules: (c.rules || {}) as Campaign['rules'],
@@ -184,15 +185,16 @@ export function useCampaigns(projectId: string | null) {
 
       if (error) throw error;
       
+      const typedData = data as any;
       setCampaigns(prev => [{
-        ...data,
-        platform: data.platform as 'facebook' | 'tiktok' | 'google',
-        rules: (data.rules || {}) as Campaign['rules'],
-        ai_log: (data.ai_log || []) as Campaign['ai_log'],
-      }, ...prev]);
+        ...typedData,
+        platform: typedData.platform as 'facebook' | 'tiktok' | 'google',
+        rules: (typedData.rules || {}) as Campaign['rules'],
+        ai_log: (typedData.ai_log || []) as Campaign['ai_log'],
+      } as Campaign, ...prev]);
       
       toast.success('Кампания создана');
-      return data;
+      return typedData;
     } catch (error) {
       console.error('Error creating campaign:', error);
       toast.error('Ошибка создания кампании');

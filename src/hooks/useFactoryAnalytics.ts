@@ -75,6 +75,9 @@ export const useFactoryAnalytics = (projectId: string | null) => {
   useEffect(() => {
     if (!effectiveProjectId || !dateRange.from || !dateRange.to) return;
 
+    const controller = new AbortController();
+    const signal = controller.signal;
+
     const fetchData = async () => {
       setLoading(true);
       try {
@@ -86,17 +89,19 @@ export const useFactoryAnalytics = (projectId: string | null) => {
         // 1. Fetch Daily Data (Followers, Reach, Comments, Publications)
         const { data: dailyData, error: dailyError } = await supabase
           .from('daily_data')
-          .select('new_followers, ig_followers_new, reach, impressions, comments, publications')
+          .select('new_followers, ig_followers_new, followers, reach, impressions, comments, publications')
           .eq('project_id', effectiveProjectId)
           .gte('date', fromStr)
-          .lte('date', toStr);
+          .lte('date', toStr)
+          .abortSignal(signal);
 
         if (dailyError) throw dailyError;
 
         // Calculate sums
         // FIX: Strictly use 'ig_followers_new' or 'new_followers' to avoid accidentally summing 'followers_total' 
         // which might be present in 'followers_today' in some legacy records.
-        const totalFollowers = dailyData?.reduce((sum, row) => sum + (row.ig_followers_new || row.new_followers || 0), 0) || 0;
+        // Also fallback to 'followers' if new fields are empty.
+        const totalFollowers = dailyData?.reduce((sum, row) => sum + (row.ig_followers_new || row.new_followers || row.followers || 0), 0) || 0;
         
         // For reach: prefer 'reach', fallback to 'impressions'
         const totalReach = dailyData?.reduce((sum, row) => sum + (row.reach || row.impressions || 0), 0) || 0;
@@ -115,7 +120,8 @@ export const useFactoryAnalytics = (projectId: string | null) => {
           .eq('project_id', effectiveProjectId)
           .eq('lead_source', 'organic')
           .gte('created_at', dateRange.from!.toISOString())
-          .lte('created_at', dateRange.to!.toISOString());
+          .lte('created_at', dateRange.to!.toISOString())
+          .abortSignal(signal);
 
         if (leadsError) throw leadsError;
 
@@ -128,28 +134,40 @@ export const useFactoryAnalytics = (projectId: string | null) => {
           .eq('lead_source', 'organic')
           .in('status', ['won', 'paid', 'completed', 'success', 'closed_won'])
           .gte('created_at', dateRange.from!.toISOString())
-          .lte('created_at', dateRange.to!.toISOString());
+          .lte('created_at', dateRange.to!.toISOString())
+          .abortSignal(signal);
         
         if (salesError) throw salesError;
 
-        setMetrics({
-          followers: totalFollowers,
-          reach: totalReach,
-          comments: totalComments,
-          leads: leadsCount || 0,
-          sales: salesCount || 0,
-          publications: totalPublications
-        });
+        if (!signal.aborted) {
+          setMetrics({
+            followers: totalFollowers,
+            reach: totalReach,
+            comments: totalComments,
+            leads: leadsCount || 0,
+            sales: salesCount || 0,
+            publications: totalPublications
+          });
+        }
 
-      } catch (error) {
+      } catch (error: any) {
+        if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+          return;
+        }
         console.error('Error fetching factory analytics:', error);
         toast.error('Ошибка загрузки данных аналитики');
       } finally {
-        setLoading(false);
+        if (!signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
+
+    return () => {
+      controller.abort();
+    };
   }, [effectiveProjectId, dateRange, periodType]);
 
   // Update planData with fetched metrics
@@ -199,6 +217,7 @@ export const useFactoryAnalytics = (projectId: string | null) => {
 
   return {
     planData: planDataObj,
+    rawPlanData: planData,
     updatePlan,
     periodType,
     setPeriodType,

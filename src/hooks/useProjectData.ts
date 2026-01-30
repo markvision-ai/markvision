@@ -20,6 +20,8 @@ interface DailyData {
   leads: number;
   followers: number;
   followers_total: number;
+  ig_followers_new?: number; // Added for compatibility
+  new_followers?: number;    // Added for compatibility
   diagnostics: number;
   sales: number;
   revenue: number;
@@ -127,14 +129,20 @@ export const useProjectData = (projectId: string | null) => {
       
       const dataMap: Record<string, DailyData> = {};
       data?.forEach((row) => {
+        // FIX: Prioritize specific subscriber columns (ig_followers_new/new_followers) over generic 'followers'
+        // which might be empty or used differently.
+        const followersDelta = Number(row.ig_followers_new) || Number(row.new_followers) || Number(row.followers) || 0;
+
         dataMap[row.date] = {
           date: row.date,
           spend: Number(row.spend) || 0,
           impressions: Number(row.impressions) || 0,
           clicks: Number(row.clicks) || 0,
           leads: Number(row.leads) || 0,
-          followers: Number(row.followers) || 0,
+          followers: followersDelta,
           followers_total: Number(row.followers_total) || 0,
+          ig_followers_new: Number(row.ig_followers_new) || 0,
+          new_followers: Number(row.new_followers) || 0,
           diagnostics: Number(row.diagnostics) || 0,
           sales: Number(row.sales) || 0,
           revenue: Number(row.revenue) || 0,
