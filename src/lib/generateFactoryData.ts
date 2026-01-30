@@ -68,6 +68,18 @@ export const generateFactoryData = async (projectId: string) => {
 
   console.log('Generating data for project:', projectId);
 
+  // 0. Fetch Project Details to get Organization ID (needed for membership)
+  const { data: projectData, error: projectError } = await supabase
+    .from('projects')
+    .select('id, organization_id')
+    .eq('id', projectId)
+    .single();
+
+  if (projectError) {
+    console.error('Error fetching project details:', projectError);
+    // If we can't find the project, we can't add membership correctly
+  }
+
   // Check if user is a member of the project
   const { data: memberData, error: memberError } = await supabase
     .from('project_members')
@@ -82,20 +94,23 @@ export const generateFactoryData = async (projectId: string) => {
 
   if (!memberData) {
     console.log('User is not a member of the project. Attempting to add...');
-    // Try to add user to project_members if not present
-    // This might fail if the user doesn't have permissions to add members, but it's worth a try for a test generator
-    const { error: addMemberError } = await supabase
-      .from('project_members')
-      .insert({
+    
+    const memberPayload: any = {
         project_id: projectId,
         user_id: user.id,
-        role: 'owner' // or 'admin', 'member'
-      });
+        role: 'owner' // or 'admin'
+    };
+    
+    if (projectData?.organization_id) {
+        memberPayload.organization_id = projectData.organization_id;
+    }
+
+    const { error: addMemberError } = await supabase
+      .from('project_members')
+      .insert(memberPayload);
       
     if (addMemberError) {
        console.error('Failed to add user to project_members:', addMemberError);
-       // If we can't add, we proceed but expect failure if RLS requires membership
-       // However, maybe the user is the OWNER of the project (in projects table)
     } else {
        console.log('Successfully added user to project_members');
     }
