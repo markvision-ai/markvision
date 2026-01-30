@@ -8,6 +8,7 @@ import { useProductionLine } from '@/hooks/useProductionLine';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/externalSupabase';
 import { cn } from '@/lib/utils';
+import { toast } from 'sonner';
 import { IdeaWorkshop } from './IdeaWorkshop';
 import { AssemblyLines } from './AssemblyLines';
 import { ShippingDock } from './ShippingDock';
@@ -64,9 +65,11 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
     setIsGenerating(true);
     try {
       await generateFactoryData(projectId);
-      window.location.reload(); // Refresh to show new data
+      // No reload needed, Realtime will update the UI
+      toast.success('Тестовые данные успешно сгенерированы');
     } catch (e) {
       console.error(e);
+      toast.error('Ошибка генерации данных');
     } finally {
       setIsGenerating(false);
     }
@@ -86,12 +89,12 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   const handleApprove = async (id: string) => {
      await updateContent(id, { 
        status: 'voice_ready',
-       heygen_status: 'processing',
+       avatar_status: 'processing',
        sora_status: 'processing',
-       design_status: 'processing',
+       carousel_status: 'processing',
        threads_status: 'processing',
        telegram_status: 'processing',
-       seo_status: 'processing'
+       article_status: 'processing'
      });
   };
 

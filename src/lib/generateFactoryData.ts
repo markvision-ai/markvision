@@ -64,21 +64,28 @@ export const generateFactoryData = async (projectId: string) => {
     orders.push({
       project_id: projectId,
       title: `${scenario.title}: ${topic}`,
-      content_type: scenario.type,
+      platform_type: scenario.type,
       status: status,
-      original_script: JSON.stringify({ 
+      body_text: JSON.stringify({ 
         main_idea: `Create a compelling ${scenario.type} video about ${topic}.`, 
         target_audience: 'General',
         tone: 'Professional' 
       }),
-      // Mock progress for lines
-      avatar_status: getLineStatus(status, 'avatar'),
-      sora_status: getLineStatus(status, 'sora'),
-      carousel_status: getLineStatus(status, 'carousel'),
-      threads_status: getLineStatus(status, 'threads'),
-      telegram_status: getLineStatus(status, 'telegram'),
-      article_status: getLineStatus(status, 'article'),
-      created_at: new Date(Date.now() - Math.random() * 86400000 * 3).toISOString() // Last 3 days
+      // Store extended statuses in 'body' JSON column since they don't exist as columns
+      body: {
+        avatar_status: getLineStatus(status, 'avatar'),
+        sora_status: getLineStatus(status, 'sora'),
+        carousel_status: getLineStatus(status, 'carousel'),
+        threads_status: getLineStatus(status, 'threads'),
+        telegram_status: getLineStatus(status, 'telegram'),
+        article_status: getLineStatus(status, 'article'),
+        original_script_data: {
+             main_idea: `Create a compelling ${scenario.type} video about ${topic}.`, 
+             target_audience: 'General',
+             tone: 'Professional' 
+        }
+      },
+      created_at: new Date(Date.now() - Math.random() * 86400000 * 3).toISOString()
     });
   }
 
