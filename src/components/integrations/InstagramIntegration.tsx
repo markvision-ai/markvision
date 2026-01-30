@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Instagram, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
@@ -24,6 +24,7 @@ export const InstagramIntegration = ({ projectId }: InstagramIntegrationProps) =
   const [checking, setChecking] = useState(false);
   const [account, setAccount] = useState<InstagramAccount | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const fetchFacebookToken = useCallback(async () => {
     setLoading(true);
@@ -57,11 +58,18 @@ export const InstagramIntegration = ({ projectId }: InstagramIntegrationProps) =
   }, [projectId]);
 
   const fetchInstagramAccount = async (token: string) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     setChecking(true);
     try {
       // Получаем Pages
       const pagesResponse = await fetch(
-        `https://graph.facebook.com/v18.0/me/accounts?fields=instagram_business_account&access_token=${token}`
+        `https://graph.facebook.com/v18.0/me/accounts?fields=instagram_business_account&access_token=${token}`,
+        { signal }
       );
 
       if (!pagesResponse.ok) {
@@ -79,7 +87,8 @@ export const InstagramIntegration = ({ projectId }: InstagramIntegrationProps) =
 
           // Получаем детали аккаунта
           const igResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url,followers_count,media_count&access_token=${token}`
+            `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url,followers_count,media_count&access_token=${token}`,
+            { signal }
           );
 
           if (igResponse.ok) {
@@ -94,6 +103,7 @@ export const InstagramIntegration = ({ projectId }: InstagramIntegrationProps) =
       console.log('No Instagram Business Account found');
       setAccount(null);
     } catch (error: any) {
+      if (error.name === 'AbortError') return;
       console.error('Error fetching Instagram:', error);
       toast.error('Ошибка загрузки Instagram', {
         description: error.message

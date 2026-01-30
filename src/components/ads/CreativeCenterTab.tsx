@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -21,6 +21,7 @@ import {
   Smartphone
 } from 'lucide-react';
 import { AdAsset, useAdAssets } from '@/hooks/useAdAssets';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -31,6 +32,7 @@ interface CreativeCenterTabProps {
 type PreviewFormat = 'feed' | 'stories';
 
 export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
+  const { user } = useAuth();
   const { assets, loading, createAsset, deleteAsset } = useAdAssets(projectId);
   const [platform, setPlatform] = useState<'facebook' | 'tiktok' | 'google'>('facebook');
   const [productDescription, setProductDescription] = useState('');
@@ -45,6 +47,15 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
   const [dragActive, setDragActive] = useState(false);
   const [previewFormat, setPreviewFormat] = useState<PreviewFormat>('feed');
   const [selectedAsset, setSelectedAsset] = useState<AdAsset | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -117,43 +128,84 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
       return;
     }
 
+    if (!user) {
+      toast.error('Пользователь не авторизован');
+      return;
+    }
+
     setGenerating(true);
+    abortControllerRef.current = new AbortController();
     
     try {
-      const { data, error } = await supabase.functions.invoke('generate-ad-copy', {
-        body: {
-          platform,
-          productDescription: productDescription.trim(),
-          language: 'ru',
-        },
-      });
+      // 1. Create AI Command
+      const { data: command, error: createError } = await supabase
+        .from('ai_commands')
+        .insert({
+          type: 'generate_creative',
+          status: 'pending',
+          platform: platform,
+          payload: {
+            productDescription: productDescription.trim(),
+            language: 'ru',
+          },
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
 
-      if (error) {
-        throw error;
+      if (createError) throw createError;
+
+      // 2. Poll for results
+      const pollInterval = 2000; // 2 seconds
+      const maxAttempts = 30; // 60 seconds timeout
+      let attempts = 0;
+
+      while (attempts < maxAttempts) {
+        if (abortControllerRef.current?.signal.aborted) {
+          break;
+        }
+
+        const { data: updatedCommand, error: pollError } = await supabase
+          .from('ai_commands')
+          .select('*')
+          .eq('id', command.id)
+          .single();
+
+        if (pollError) throw pollError;
+
+        if (updatedCommand) {
+          if (updatedCommand.status === 'completed' && updatedCommand.result) {
+            const result = updatedCommand.result as any;
+            setGeneratedContent({
+              headlines: result.headlines || [],
+              descriptions: result.descriptions || [],
+              primaryText: result.primaryText || '',
+              hashtags: result.hashtags || [],
+            });
+            toast.success('Контент сгенерирован!');
+            return;
+          } else if (updatedCommand.status === 'failed') {
+            throw new Error(updatedCommand.error || 'AI generation failed');
+          }
+        }
+
+        await new Promise(resolve => setTimeout(resolve, pollInterval));
+        attempts++;
       }
 
-      if (data?.content) {
-        setGeneratedContent({
-          headlines: data.content.headlines || [],
-          descriptions: data.content.descriptions || [],
-          primaryText: data.content.primaryText || '',
-          hashtags: data.content.hashtags || [],
-        });
-        toast.success('Контент сгенерирован!');
-      } else {
-        throw new Error('No content in response');
+      if (attempts >= maxAttempts) {
+        throw new Error('Timeout: AI generation took too long');
       }
+
     } catch (error: any) {
       console.error('Generation error:', error);
-      if (error.message?.includes('429')) {
-        toast.error('Превышен лимит запросов. Попробуйте позже.');
-      } else if (error.message?.includes('402')) {
-        toast.error('Закончились кредиты API.');
-      } else {
-        toast.error('Ошибка генерации. Попробуйте снова.');
-      }
+      toast.error(error.message || 'Ошибка генерации. Попробуйте снова.');
     } finally {
-      setGenerating(false);
+      if (!abortControllerRef.current?.signal.aborted) {
+        setGenerating(false);
+      }
+      abortControllerRef.current = null;
     }
   };
 

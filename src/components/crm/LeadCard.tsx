@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { differenceInMinutes, differenceInHours } from 'date-fns';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -229,8 +229,8 @@ export const LeadCard = ({
         'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
         // Glassmorphism: backdrop-blur и тонкие границы
         'backdrop-blur-sm bg-card/50 border border-border',
-        // SLA Alert - Pulsing red border for leads waiting > 15 min
-        needsAttention && 'animate-pulse ring-2 ring-red-500 border-red-500',
+        // SLA Alert - Subtle red border for leads waiting > 15 min (removed animation)
+        needsAttention && 'border-red-400 dark:border-red-700 shadow-sm',
         // VIP Shine + Gold Glow for MEGA leads
         isMegaTier && !needsAttention && 'vip-shine vip-glow',
         // Glow effect for high scoring leads (>= 80)
@@ -239,7 +239,7 @@ export const LeadCard = ({
         isGoldenLead && !needsAttention
           ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-800/30 border-2 border-amber-400/70 dark:border-amber-500/50' 
           : !needsAttention,
-        needsAttention && 'bg-red-50/80 dark:bg-red-950/30',
+        needsAttention && 'bg-red-50/40 dark:bg-red-950/20',
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg hover:bg-card/70',
         !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-foreground/20',
@@ -252,11 +252,11 @@ export const LeadCard = ({
       )}
       onClick={handleCardClick}
     >
-      {/* SLA Alert Banner */}
+      {/* SLA Alert Badge - Subtle */}
       {needsAttention && (
-        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[10px] font-bold py-1 px-2 flex items-center justify-center gap-1">
-          <AlertTriangle className="w-3 h-3" />
-          ⚠️ Требует внимания! ({minutesWaiting} мин)
+        <div className="mb-3 flex items-center gap-2 px-2 py-1.5 rounded-md bg-red-100/50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-medium">
+          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Ожидает {minutesWaiting} мин</span>
         </div>
       )}
 

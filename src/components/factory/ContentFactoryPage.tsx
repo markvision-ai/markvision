@@ -1,30 +1,50 @@
 import { useState, useEffect } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Factory, Eye, Plus, Sparkles, Instagram, Kanban, Workflow, BarChart3 } from 'lucide-react';
+import { Factory, Eye, Plus, Sparkles, Instagram, Kanban, Workflow, BarChart3, Calendar as CalendarIcon, Loader2, BrainCircuit, Rocket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { useContentFactory } from '@/hooks/useContentFactory';
-import { ContentKanban } from './ContentKanban';
-import { WorkshopPipeline } from './WorkshopPipeline';
+import { WorkshopConveyor } from './WorkshopConveyor';
 import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
 import { CreateContentDialogEnhanced } from './CreateContentDialogEnhanced';
 import { ContentCenterTable } from '@/components/content/ContentCenterTable';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/externalSupabase';
-import { useInstagramPlanFact } from '@/hooks/useInstagramPlanFact';
+import { useFactoryAnalytics, PeriodType } from '@/hooks/useFactoryAnalytics';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
+
+import { MonthlyReportDialog } from './MonthlyReportDialog';
 
 interface ContentFactoryPageProps {
-  projectId: string | null;
+  projectId?: string | null;
 }
 
-export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
+const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+
+export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryPageProps) => {
+  const projectId = propProjectId || TARGET_PROJECT_ID;
+  
   const [activeTab, setActiveTab] = useState('workshops');
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   
-  // Автоматический расчет факта из Instagram данных
-  const { planData, updatePlan } = useInstagramPlanFact(projectId);
+  // Analytics with period switcher
+  const { 
+    planData, 
+    updatePlan, 
+    periodType, 
+    setPeriodType, 
+    dateRange, 
+    setDateRange,
+    loading: analyticsLoading
+  } = useFactoryAnalytics(projectId);
   
   const {
     content,
@@ -75,209 +95,215 @@ export const ContentFactoryPage = ({ projectId }: ContentFactoryPageProps) => {
     });
   };
 
-  const handlePlanChange = (index: number, field: 'plan' | 'fact', value: number) => {
-    if (field === 'plan') {
-      const metric = planData[index]?.metric;
-      if (metric) {
-        updatePlan(metric, value);
-      }
-    }
-    // fact обновляется автоматически из Instagram данных
+  const handleCreateContent = async (data: { title: string; content_type: any; original_script?: string; source_url?: string }) => {
+    return await createContent(data);
   };
-
-  const getProgress = (plan: number, fact: number) => {
-    if (plan === 0) return 0;
-    return Math.min(100, Math.round((fact / plan) * 100));
-  };
-
-  if (!projectId) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <p className="text-muted-foreground">Выберите проект для работы с контентом</p>
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <Skeleton className="h-10 w-64" />
-          <Skeleton className="h-10 w-40" />
-        </div>
-        <div className="grid gap-4">
-          {[1, 2, 3].map(i => (
-            <Skeleton key={i} className="h-48 w-full" />
-          ))}
-        </div>
-      </div>
-    );
-  }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-violet-600 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/30">
-            <Factory className="w-6 h-6 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-2xl font-bold">Контент-Завод 2.0</h2>
-              <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs">
-                <Sparkles className="w-3 h-3 mr-1" />
-                AI Production Suite
-              </Badge>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Цеха производства • {content.length} в работе
-            </p>
-          </div>
-        </div>
-        
-        <Button onClick={() => setIsCreateOpen(true)} className="gap-2 bg-gradient-to-r from-violet-600 to-purple-600">
-          <Plus className="w-4 h-4" />
-          Создать контент
-        </Button>
+    <div className="min-h-screen bg-[#030303] text-white overflow-hidden relative selection:bg-violet-500/30">
+      {/* Background Ambience */}
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-violet-900/10 to-transparent opacity-50" />
+        <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-blue-900/10 rounded-full blur-[100px] opacity-30" />
       </div>
 
-      {/* План/Факт карточка */}
-      <Card className="border-violet-200/50 bg-gradient-to-br from-violet-50/50 to-purple-50/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <BarChart3 className="w-5 h-5 text-violet-600" />
-            План/Факт контент-производства
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-violet-200/50">
-                  <th className="text-left py-2 px-3 font-semibold text-muted-foreground">Метрика</th>
-                  <th className="text-center py-2 px-3 font-semibold text-muted-foreground">План</th>
-                  <th className="text-center py-2 px-3 font-semibold text-muted-foreground">Факт</th>
-                  <th className="text-center py-2 px-3 font-semibold text-muted-foreground">%</th>
-                  <th className="text-left py-2 px-3 font-semibold text-muted-foreground w-32">Прогресс</th>
-                </tr>
-              </thead>
-              <tbody>
-                {planData.map((row, index) => {
-                  const progress = getProgress(row.plan, row.fact);
-                  return (
-                    <tr key={row.metric} className="border-b border-violet-100/50 hover:bg-violet-50/50">
-                      <td className="py-2 px-3 font-medium">{row.metric}</td>
-                      <td className="py-2 px-3">
-                        <Input
-                          type="number"
-                          value={row.plan}
-                          onChange={(e) => handlePlanChange(index, 'plan', Number(e.target.value))}
-                          className="w-24 h-8 text-center mx-auto"
-                        />
-                      </td>
-                      <td className="py-2 px-3">
-                        <Input
-                          type="number"
-                          value={row.fact}
-                          readOnly
-                          className="w-24 h-8 text-center mx-auto bg-muted/50 cursor-not-allowed"
-                          title="Автоматически рассчитывается из Instagram данных"
-                        />
-                      </td>
-                      <td className="py-2 px-3 text-center">
-                        <span className={`font-semibold ${progress >= 100 ? 'text-green-600' : progress >= 70 ? 'text-yellow-600' : 'text-red-500'}`}>
-                          {progress}%
-                        </span>
-                      </td>
-                      <td className="py-2 px-3">
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                          <div 
-                            className={`h-2 rounded-full transition-all ${progress >= 100 ? 'bg-green-500' : progress >= 70 ? 'bg-yellow-500' : 'bg-red-500'}`}
-                            style={{ width: `${Math.min(progress, 100)}%` }}
-                          />
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      <div className="relative z-10 flex flex-col h-screen">
+        {/* Header Section */}
+        <header className="px-6 py-4 border-b border-white/5 bg-[#030303]/80 backdrop-blur-md sticky top-0 z-50">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-gradient-to-br from-violet-500/20 to-purple-500/20 rounded-lg border border-white/5 shadow-[0_0_15px_-3px_rgba(139,92,246,0.3)]">
+                <Factory className="w-5 h-5 text-violet-400" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+                  Центр контента
+                  <Badge variant="outline" className="bg-violet-500/10 text-violet-400 border-violet-500/20 text-[10px] tracking-widest uppercase">
+                    Factory OS v2.0
+                  </Badge>
+                </h1>
+                <p className="text-xs text-white/40 font-mono">PROJECT_ID: {projectId?.slice(0, 8)}...</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+               <MonthlyReportDialog projectId={projectId} />
+               
+               <div className="h-6 w-[1px] bg-white/10 mx-1" />
+
+               <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => setIsCalendarOpen(true)}
+                className="gap-2 bg-white/5 border-white/10 text-white hover:bg-white/10"
+              >
+                <CalendarIcon className="w-4 h-4 text-blue-400" />
+                <span className="hidden sm:inline">
+                  {format(dateRange.from, 'd MMM', { locale: ru })} - {format(dateRange.to, 'd MMM', { locale: ru })}
+                </span>
+              </Button>
+
+              <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <div className="hidden"></div>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="end">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange.from}
+                    selected={{ from: dateRange.from, to: dateRange.to }}
+                    onSelect={(range) => {
+                      if (range?.from && range?.to) {
+                        setDateRange({ from: range.from, to: range.to });
+                        setIsCalendarOpen(false);
+                      }
+                    }}
+                    numberOfMonths={2}
+                  />
+                </PopoverContent>
+              </Popover>
+              
+              <Button 
+                onClick={() => setIsCreateOpen(true)}
+                className="gap-2 bg-violet-600 hover:bg-violet-700 text-white shadow-[0_0_20px_-5px_rgba(124,58,237,0.5)] border border-violet-500/50"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Создать контент</span>
+              </Button>
+            </div>
           </div>
-        </CardContent>
-      </Card>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid w-full max-w-2xl grid-cols-4">
-          <TabsTrigger value="workshops" className="gap-2">
-            <Workflow className="w-4 h-4" />
-            Цеха
-          </TabsTrigger>
-          <TabsTrigger value="pipeline" className="gap-2">
-            <Kanban className="w-4 h-4" />
-            Канбан
-          </TabsTrigger>
-          <TabsTrigger value="monitoring" className="gap-2">
-            <Eye className="w-4 h-4" />
-            Мониторинг
-          </TabsTrigger>
-          <TabsTrigger value="instagram" className="gap-2">
-            <Instagram className="w-4 h-4" />
-            Instagram
-          </TabsTrigger>
-        </TabsList>
+          {/* KPI Bar - Sticky Industrial Dashboard */}
+          <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+             {/* Plan/Fact Card - Sticky */}
+             <div className="md:col-span-1">
+                <Card className="bg-[#0A0A0A] border-white/10 shadow-lg relative overflow-hidden group">
+                   <div className="absolute inset-0 bg-gradient-to-r from-violet-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                   <CardContent className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-xs font-mono text-white/40 uppercase tracking-wider">План / Факт</span>
+                      </div>
+                      
+                      <div className="flex items-end justify-between gap-4">
+                         <div>
+                            <div className="text-2xl font-bold text-white font-mono leading-none">
+                               {analyticsLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : planData.fact.followers}
+                            </div>
+                            <div className="text-[10px] text-white/40 mt-1">Новые подписчики</div>
+                         </div>
+                         <div className="h-8 w-[1px] bg-white/10" />
+                         <div className="text-right">
+                             <div className="text-2xl font-bold text-white/60 font-mono leading-none">
+                                {planData.plan.followers}
+                             </div>
+                             <div className="text-[10px] text-white/40 mt-1">Цель на месяц</div>
+                         </div>
+                      </div>
+                      
+                      {/* Progress Bar */}
+                      <div className="mt-3 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                         <div 
+                           className="h-full bg-violet-500 shadow-[0_0_10px_rgba(139,92,246,0.5)] transition-all duration-1000"
+                           style={{ width: `${Math.min((planData.fact.followers / (planData.plan.followers || 1)) * 100, 100)}%` }}
+                         />
+                      </div>
+                   </CardContent>
+                </Card>
+             </div>
 
-        {/* Workshops Tab - 6 Цехов */}
-        <TabsContent value="workshops" className="space-y-4">
-          <WorkshopPipeline
-            content={content}
-            projectId={projectId}
-            onUpdate={updateContent}
-            onDelete={deleteContent}
-            triggerVoice={triggerVoice}
-            triggerAvatar={triggerAvatar}
-            triggerEdit={triggerEdit}
-            triggerPublish={triggerPublish}
-          />
-        </TabsContent>
+             {/* Quick Stats - Mini Cards */}
+             <div className="md:col-span-3 grid grid-cols-3 gap-4">
+                <Card className="bg-[#0A0A0A] border-white/10 flex items-center p-3 gap-3">
+                   <div className="p-2 rounded bg-blue-500/10 text-blue-400">
+                      <Workflow className="w-4 h-4" />
+                   </div>
+                   <div>
+                      <div className="text-lg font-bold font-mono">{content.filter(c => ['ideation', 'scripting'].includes(c.status)).length}</div>
+                      <div className="text-[10px] uppercase text-white/30">В работе</div>
+                   </div>
+                </Card>
+                <Card className="bg-[#0A0A0A] border-white/10 flex items-center p-3 gap-3">
+                   <div className="p-2 rounded bg-violet-500/10 text-violet-400">
+                      <BrainCircuit className="w-4 h-4" />
+                   </div>
+                   <div>
+                      <div className="text-lg font-bold font-mono">{content.filter(c => ['voice_ready', 'avatar_ready', 'editing_ready'].includes(c.status)).length}</div>
+                      <div className="text-[10px] uppercase text-white/30">AI Обработка</div>
+                   </div>
+                </Card>
+                <Card className="bg-[#0A0A0A] border-white/10 flex items-center p-3 gap-3">
+                   <div className="p-2 rounded bg-emerald-500/10 text-emerald-400">
+                      <Rocket className="w-4 h-4" />
+                   </div>
+                   <div>
+                      <div className="text-lg font-bold font-mono">{content.filter(c => ['ready_to_send', 'sent'].includes(c.status)).length}</div>
+                      <div className="text-[10px] uppercase text-white/30">Готово</div>
+                   </div>
+                </Card>
+             </div>
+          </div>
+        </header>
 
-        {/* Pipeline Tab - Kanban Board */}
-        <TabsContent value="pipeline" className="space-y-4">
-          <ContentKanban
-            content={content}
-            projectId={projectId}
-            onUpdate={updateContent}
-            onDelete={deleteContent}
-            triggerVoice={triggerVoice}
-            triggerAvatar={triggerAvatar}
-            triggerEdit={triggerEdit}
-            triggerPublish={triggerPublish}
-          />
-        </TabsContent>
+        {/* Main Workspace - Conveyor Belt */}
+        <main className="flex-1 overflow-hidden relative p-6">
+            <Tabs defaultValue="workshops" className="h-full flex flex-col" onValueChange={setActiveTab}>
+              <div className="flex items-center justify-between mb-4">
+                <TabsList className="bg-[#0A0A0A] border border-white/10">
+                  <TabsTrigger value="workshops" className="data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-300">
+                    <Factory className="w-4 h-4 mr-2" />
+                    Цех
+                  </TabsTrigger>
+                  <TabsTrigger value="table" className="data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-300">
+                    <Kanban className="w-4 h-4 mr-2" />
+                    Таблица
+                  </TabsTrigger>
+                  <TabsTrigger value="monitoring" className="data-[state=active]:bg-violet-500/20 data-[state=active]:text-violet-300">
+                    <Eye className="w-4 h-4 mr-2" />
+                    Мониторинг
+                  </TabsTrigger>
+                </TabsList>
+              </div>
 
-        {/* Monitoring Tab */}
-        <TabsContent value="monitoring" className="space-y-4">
-          <CompetitorMonitoringEnhanced
-            competitors={competitors}
-            projectId={projectId}
-            onAdd={addCompetitor}
-            onRemove={removeCompetitor}
-            onCreateFromIdea={handleCreateFromIdea}
-          />
-        </TabsContent>
+              <TabsContent value="workshops" className="flex-1 overflow-hidden mt-0 data-[state=active]:flex flex-col">
+                {loading ? (
+                   <div className="flex items-center justify-center h-full">
+                      <div className="flex flex-col items-center gap-4">
+                         <Loader2 className="w-10 h-10 text-violet-500 animate-spin" />
+                         <p className="text-white/40 font-mono text-sm">LOADING_FACTORY_OS...</p>
+                      </div>
+                   </div>
+                ) : (
+                  <WorkshopConveyor 
+                    content={content} 
+                    projectId={projectId}
+                    onUpdate={updateContent}
+                    onDelete={deleteContent}
+                  />
+                )}
+              </TabsContent>
 
-        {/* Instagram Tab - Content Intelligence */}
-        <TabsContent value="instagram" className="space-y-4">
-          <ContentCenterTable projectId={projectId} />
-        </TabsContent>
-      </Tabs>
+              <TabsContent value="table" className="flex-1 overflow-auto mt-0 border border-white/10 rounded-xl bg-[#0A0A0A]">
+                 <ContentCenterTable projectId={projectId} />
+              </TabsContent>
 
-      {/* Create Content Dialog */}
-      <CreateContentDialogEnhanced
-        open={isCreateOpen}
+              <TabsContent value="monitoring" className="flex-1 overflow-auto mt-0">
+                 <CompetitorMonitoringEnhanced 
+                    competitors={competitors}
+                    projectId={projectId}
+                    onAdd={addCompetitor}
+                    onRemove={removeCompetitor}
+                    onCreateFromIdea={handleCreateFromIdea}
+                 />
+              </TabsContent>
+            </Tabs>
+        </main>
+      </div>
+
+      <CreateContentDialogEnhanced 
+        open={isCreateOpen} 
         onOpenChange={setIsCreateOpen}
-        onCreate={createContent}
+        onCreate={handleCreateContent}
       />
     </div>
   );

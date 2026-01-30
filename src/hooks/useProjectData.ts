@@ -159,20 +159,21 @@ export const useProjectData = (projectId: string | null) => {
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
     console.log('📋 useProjectData | Загрузка ПЛАНА из plan_data за месяц:', firstDayOfMonth);
     
-    // Note: We don't abort plan data separately because it's usually called with daily_data
-    // and we want both to complete or fail together if controlled by the same signal.
-    // However, since they are separate functions, we can use the same abortControllerRef if we want.
-    // But for now let's just use the same signal if we were to combine them.
-    // Here we'll just check if component is unmounted or id changed via simple check, 
-    // but better to use the signal from the shared controller if possible.
-    // For simplicity, we won't use AbortController here as it's a single row fetch and fast.
+    // Use the same abort controller signal if available, or just proceed.
+    // Ideally we should have a separate controller or use the shared one if they run together.
+    // Since we run them in Promise.all in useEffect, we can use the same signal from abortControllerRef
+    // But we need to be careful not to abort if only one is called independently.
+    // Let's rely on the fact that useEffect cancels everything.
     
+    const signal = abortControllerRef.current?.signal;
+
     try {
       const { data, error } = await supabase
         .from('plan_data')
         .select('*')
         .eq('project_id', effectiveProjectId)
         .eq('month', firstDayOfMonth)
+        .abortSignal(signal || undefined) // Use signal if available
         .maybeSingle();
 
       if (error) {

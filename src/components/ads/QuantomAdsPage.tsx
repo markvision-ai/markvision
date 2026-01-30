@@ -6,6 +6,7 @@ import { CampaignTable } from './CampaignTable';
 import { CampaignDrawer } from './CampaignDrawer';
 import { CreativeCenterTab } from './CreativeCenterTab';
 import { CampaignFunnelChart } from './CampaignFunnelChart';
+import { AIStatusIndicator } from './AIStatusIndicator';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -114,10 +115,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
-              <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs animate-pulse">
-                <Zap className="w-3 h-3 mr-1" />
-                AI Active
-              </Badge>
+              <AIStatusIndicator />
             </div>
             <p className="text-sm text-muted-foreground">
               Управление рекламными кампаниями

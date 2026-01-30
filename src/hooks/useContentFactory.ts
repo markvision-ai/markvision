@@ -31,10 +31,10 @@ export interface ContentItem {
 export interface Competitor {
   id: string;
   project_id: string;
-  account_handle: string;
+  handle: string;
   platform: string;
   last_scanned_at: string | null;
-  is_active: boolean;
+  top_content_links: any | null;
   created_at: string;
 }
 
@@ -59,10 +59,26 @@ export const useContentFactory = (projectId: string | null) => {
       if (error) throw error;
       
       const typedData = (data || []).map(item => ({
-        ...item,
-        content_type: item.content_type as ContentType,
-        status: item.status as ContentStatus,
-        carousel_media: (item.carousel_media as string[]) || [],
+        id: item.id,
+        project_id: item.project_id || '',
+        content_type: (item.platform_type as ContentType) || 'avatar_video',
+        title: item.title || 'Без названия',
+        original_script: item.body_text,
+        rewritten_script: item.body_text, // using body_text as fallback
+        caption: item.body_text,
+        source_url: item.source_url,
+        audio_url: item.voice_url,
+        raw_video_url: item.video_url,
+        final_video_url: item.video_url,
+        carousel_media: [],
+        status: (item.status as ContentStatus) || 'ideation',
+        feedback: null,
+        competitor_id: null,
+        views_count: 0,
+        followers_gained: 0,
+        revenue_attributed: 0,
+        created_at: item.created_at || new Date().toISOString(),
+        updated_at: item.updated_at || new Date().toISOString(),
       }));
       
       setContent(typedData);
@@ -167,6 +183,13 @@ export const useContentFactory = (projectId: string | null) => {
   };
 
   const updateContent = async (id: string, data: Partial<ContentItem>) => {
+    // Optimistic update
+    const previousContent = [...content];
+    const previousItem = content.find(item => item.id === id);
+    
+    // Apply optimistic change immediately
+    setContent(prev => prev.map(item => item.id === id ? { ...item, ...data } : item));
+
     try {
       const { error } = await supabase
         .from('content_factory')
@@ -174,16 +197,28 @@ export const useContentFactory = (projectId: string | null) => {
         .eq('id', id);
 
       if (error) throw error;
-      toast.success('Контент обновлён');
+      // Success toast is optional for drag-drop to reduce noise, but good for explicit actions
+      // toast.success('Контент обновлён');
       return true;
     } catch (error) {
       console.error('Error updating content:', error);
+      // Revert to previous state on error
+      if (previousItem) {
+        setContent(prev => prev.map(item => item.id === id ? previousItem : item));
+      } else {
+        // Fallback: restore full list if item tracking failed
+        setContent(previousContent);
+      }
       toast.error('Ошибка обновления');
       return false;
     }
   };
 
   const deleteContent = async (id: string) => {
+    // Optimistic delete
+    const previousContent = [...content];
+    setContent(prev => prev.filter(item => item.id !== id));
+
     try {
       const { error } = await supabase
         .from('content_factory')
@@ -195,6 +230,8 @@ export const useContentFactory = (projectId: string | null) => {
       return true;
     } catch (error) {
       console.error('Error deleting content:', error);
+      // Revert
+      setContent(previousContent);
       toast.error('Ошибка удаления');
       return false;
     }
@@ -206,7 +243,7 @@ export const useContentFactory = (projectId: string | null) => {
     try {
       const { data, error } = await supabase
         .from('competitor_monitoring')
-        .insert([{ project_id: projectId, account_handle: accountHandle, platform }])
+        .insert([{ project_id: projectId, handle: accountHandle, platform }])
         .select()
         .single();
 

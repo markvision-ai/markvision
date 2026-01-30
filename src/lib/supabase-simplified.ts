@@ -5,6 +5,7 @@ import { Database } from '@/integrations/supabase/types';
 type UsedTables = 
   | 'ab_tests'
   | 'ad_accounts'
+  | 'automation_flows'
   | 'audit_logs'
   | 'daily_data'
   | 'instagram_content_stats'

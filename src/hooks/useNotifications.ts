@@ -224,7 +224,8 @@ export const useNotifications = (projectId?: string) => {
       const { data: todayLeads, count } = await supabase
         .from('leads')
         .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStr);
+        .gte('created_at', todayStr)
+        .abortSignal(signal);
 
       if (count && count > 0) {
         newNotifications.push({
@@ -242,7 +243,8 @@ export const useNotifications = (projectId?: string) => {
         .from('webhook_logs')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'error')
-        .gte('received_at', weekAgo.toISOString());
+        .gte('received_at', weekAgo.toISOString())
+        .abortSignal(signal);
 
       if (failedCount && failedCount > 0) {
         newNotifications.push({
@@ -262,29 +264,34 @@ export const useNotifications = (projectId?: string) => {
         return d.toISOString().split('T')[0];
       });
 
-      for (const project of projects) {
-        if (projectId && project.id !== projectId) continue;
+      // Fetch data availability for all projects in one query
+      const { data: recentData, error: recentDataError } = await supabase
+        .from('daily_data')
+        .select('project_id')
+        .in('date', lastThreeDays)
+        .abortSignal(signal);
         
-        const { count: dataCount } = await supabase
-          .from('daily_data')
-          .select('*', { count: 'exact', head: true })
-          .eq('project_id', project.id)
-          .in('date', lastThreeDays)
-          .abortSignal(signal);
+      if (!recentDataError && recentData) {
+        // Create a set of project IDs that have data in the last 3 days
+        const projectIdsWithData = new Set(recentData.map(d => d.project_id));
 
-        if (dataCount === 0) {
-          const existingGapNotification = newNotifications.find(n => n.id === `data-gap-${project.id}`);
-          if (!existingGapNotification) {
-            newNotifications.push({
-              id: `data-gap-${project.id}`,
-              type: 'warning',
-              title: 'Нет данных',
-              message: `${project.name}: данные не вносились 3+ дня`,
-              createdAt: new Date(),
-              read: false,
-              projectId: project.id,
-              projectName: project.name,
-            });
+        for (const project of projects) {
+          if (projectId && project.id !== projectId) continue;
+          
+          if (!projectIdsWithData.has(project.id)) {
+            const existingGapNotification = newNotifications.find(n => n.id === `data-gap-${project.id}`);
+            if (!existingGapNotification) {
+              newNotifications.push({
+                id: `data-gap-${project.id}`,
+                type: 'warning',
+                title: 'Нет данных',
+                message: `${project.name}: данные не вносились 3+ дня`,
+                createdAt: new Date(),
+                read: false,
+                projectId: project.id,
+                projectName: project.name,
+              });
+            }
           }
         }
       }
@@ -447,7 +454,7 @@ export const useNotifications = (projectId?: string) => {
     try {
       await supabase
         .from('system_notifications')
-        .update({ is_read: true })
+        .update({ is_read: true } as any)
         .eq('user_id', user.id)
         .eq('is_read', false);
     } catch (error) {

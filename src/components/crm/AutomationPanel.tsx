@@ -71,8 +71,8 @@ const statusLabels: Record<string, string> = {
 
 export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
   const { rules, logs, loading, toggleRule, fetchLogs } = useAutomationRules(projectId);
-  const [activeTab, setActiveTab] = useState('rules');
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleLoadLogs = async () => {
     setLoadingLogs(true);
@@ -138,6 +138,9 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       // Отправляем запрос в n8n для активации шаблона
       const response = await fetch(projectData.n8n_webhook_url, {
         method: 'POST',
@@ -149,12 +152,19 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
           template_id: templateId,
           project_id: projectId,
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Ошибка активации шаблона');
 
       toast.success('Шаблон активирован!');
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        toast.error('Время ожидания истекло');
+        return;
+      }
       console.error('Error activating template:', error);
       toast.error('Ошибка активации шаблона');
     }

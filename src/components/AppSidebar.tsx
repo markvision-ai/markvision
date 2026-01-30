@@ -297,7 +297,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-border">
+        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-white/5">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
             {/* Logo */}
             <AnimatePresence>

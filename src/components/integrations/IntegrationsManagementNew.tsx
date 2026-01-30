@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { 
   Facebook, 
   Instagram, 
@@ -88,20 +88,29 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   const [modalSelectedAdAccount, setModalSelectedAdAccount] = useState<string>('');
   const [modalSelectedInstagram, setModalSelectedInstagram] = useState<string>('');
   const [modalLoading, setModalLoading] = useState(false);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
   // Fetch connected account from database
   const fetchConnectedAccount = useCallback(async () => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     try {
       const { data, error } = await supabase
         .from('ad_accounts')
         .select('*')
         .eq('project_id', currentProjectId)
         .limit(1)
+        .abortSignal(signal)
         .single();
 
       if (error && error.code !== 'PGRST116') {
+        if (error.message?.includes('AbortError')) return;
         console.error('Error fetching account:', error);
         return;
       }
@@ -119,7 +128,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
         if (!adName && data.ad_account_id && data.access_token) {
           try {
             const apiRes = await fetch(
-              `https://graph.facebook.com/v21.0/${data.ad_account_id}?fields=name&access_token=${data.access_token}`
+              `https://graph.facebook.com/v21.0/${data.ad_account_id}?fields=name&access_token=${data.access_token}`,
+              { signal }
             );
             if (apiRes.ok) {
               const apiJson = await apiRes.json();
@@ -133,8 +143,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 setConnectedAccount((prev) => (prev ? { ...prev, ad_account_name: name } : null));
               }
             }
-          } catch (err) {
-            console.warn('Could not fetch ad account name from Facebook API:', err);
+          } catch (err: any) {
+            if (err.name !== 'AbortError') {
+              console.warn('Could not fetch ad account name from Facebook API:', err);
+            }
           }
         }
 
@@ -142,7 +154,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
         if (data.selected_instagram_id && data.access_token) {
           try {
             const igResponse = await fetch(
-              `https://graph.facebook.com/v21.0/${data.selected_instagram_id}?fields=username,profile_picture_url,followers_count&access_token=${data.access_token}`
+              `https://graph.facebook.com/v21.0/${data.selected_instagram_id}?fields=username,profile_picture_url,followers_count&access_token=${data.access_token}`,
+              { signal }
             );
             if (igResponse.ok) {
               const igData = await igResponse.json();
@@ -152,12 +165,15 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 setSelectedInstagramHandle(`@${String(igData.username)}`);
               }
             }
-          } catch (err) {
-            console.warn('Could not fetch Instagram details:', err);
+          } catch (err: any) {
+            if (err.name !== 'AbortError') {
+              console.warn('Could not fetch Instagram details:', err);
+            }
           }
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError')) return;
       console.error('Error fetching connected account:', error);
     } finally {
       setLoading(false);
@@ -171,12 +187,19 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       return;
     }
 
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     setModalLoading(true);
     try {
       if (type === 'facebook') {
         // Fetch Facebook Pages
         const pagesResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture&access_token=${connectedAccount.access_token}`
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture&access_token=${connectedAccount.access_token}`,
+          { signal }
         );
 
         if (pagesResponse.ok) {
@@ -186,7 +209,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
         // Fetch Ad Accounts
         const adAccountsResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&access_token=${connectedAccount.access_token}`
+          `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&access_token=${connectedAccount.access_token}`,
+          { signal }
         );
 
         if (adAccountsResponse.ok) {
@@ -196,7 +220,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       } else if (type === 'instagram') {
         // Fetch Facebook Pages with Instagram accounts
         const pagesResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${connectedAccount.access_token}`
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${connectedAccount.access_token}`,
+          { signal }
         );
 
         if (pagesResponse.ok) {
@@ -213,7 +238,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
               const igId = page.instagram_business_account.id;
               try {
                 const igResponse = await fetch(
-                  `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${connectedAccount.access_token}`
+                  `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${connectedAccount.access_token}`,
+                  { signal }
                 );
                 if (igResponse.ok) {
                   const igData = await igResponse.json();
@@ -223,15 +249,18 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                     page_name: page.name // Store page name
                   });
                 }
-              } catch (err) {
-                console.warn('Could not fetch Instagram account:', igId);
+              } catch (err: any) {
+                if (err.name !== 'AbortError') {
+                  console.warn('Could not fetch Instagram account:', igId);
+                }
               }
             }
           }
           setAvailableInstagramAccounts(igAccounts);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') return;
       console.error('Error fetching resources:', error);
       toast.error('Ошибка загрузки ресурсов');
     } finally {
@@ -263,7 +292,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     if (!connectedAccount) return;
 
     try {
-      let updateData: Record<string, unknown> = {
+      let updateData: any = {
         id: connectedAccount.id,
         project_id: connectedAccount.project_id,
         access_token: connectedAccount.access_token,

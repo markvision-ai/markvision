@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -30,7 +30,7 @@ const N8N_BASE = 'https://n8n.zapoinov.com';
 const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow`;
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = `${N8N_BASE}/webhook/sync-markvision-flows`;
-const SYNC_FETCH_TIMEOUT_MS = 8_000;
+const SYNC_FETCH_TIMEOUT_MS = 15_000;
 
 /** В dev — /n8n/... (proxy), в prod — полный URL. */
 function webhookFetchUrl(url: string): string {
@@ -40,10 +40,20 @@ function webhookFetchUrl(url: string): string {
 }
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {
-  return Promise.race([
-    fetch(url, opts),
-    new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Таймаут запроса')), ms)),
-  ]);
+  const controller = new AbortController();
+  const signal = controller.signal;
+  // Merge signals if one is provided in opts
+  const finalOpts = { ...opts, signal: opts.signal || signal };
+
+  const fetchPromise = fetch(url, finalOpts);
+  const timeoutPromise = new Promise<never>((_, rej) => 
+    setTimeout(() => {
+      controller.abort();
+      rej(new Error('Таймаут запроса'));
+    }, ms)
+  );
+
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 function safeFormatDate(val: string | null | undefined): string {
@@ -77,6 +87,8 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringAll, setTriggeringAll] = useState(false);
+  
+  const refreshAbortControllerRef = useRef<AbortController | null>(null);
 
   // Realtime на automation_flows отключён: сервер может ожидать колонки (напр. webhook_url),
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
@@ -118,6 +130,13 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   }, [effectiveProjectId, n8nWebhookUrl, refetch]);
 
   const handleRefresh = useCallback(async () => {
+    // Cancel previous request
+    if (refreshAbortControllerRef.current) {
+      refreshAbortControllerRef.current.abort();
+    }
+    refreshAbortControllerRef.current = new AbortController();
+    const signal = refreshAbortControllerRef.current.signal;
+
     toast.info('Запрашиваю связки из n8n…');
     setRefreshing(true);
     const syncUrl = webhookFetchUrl(N8N_SYNC_URL);
@@ -129,6 +148,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ project_id: effectiveProjectId }),
+          signal,
         },
         SYNC_FETCH_TIMEOUT_MS,
       );
@@ -158,7 +178,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       toast.success('Связки получены из n8n. Обновляю список…');
       await refetch();
       setTimeout(() => refetch(), 2500);
-    } catch (e: unknown) {
+    } catch (e: any) {
+      if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
+        return;
+      }
       const msg = e instanceof Error ? e.message : String(e);
       console.error('[Обновить] Ошибка синхронизации:', msg);
       toast.error(`Ошибка синхронизации: ${msg}`);

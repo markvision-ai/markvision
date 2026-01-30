@@ -231,6 +231,12 @@ export const AnalyticsPlatform = () => {
 
       // 3. If still not found, calculate total by summing all 'followers' deltas up to lastRangeDate
       // This handles cases where we only have deltas but no explicit totals
+      /* 
+       * DISABLED: Summing deltas is incorrect for "Total Followers" unless we have the full history from day 0.
+       * If we are missing the baseline (initial followers), this sum will only show the growth (e.g. 19), 
+       * which is confusing when labeled as "Total".
+       * Better to show 0 or wait for the backend to sync the real total.
+       *
       if (!latestFollowersTotal) {
         const calculatedTotal = candidateDates.reduce((sum, date) => {
           return sum + (dailyData[date].followers || 0);
@@ -240,6 +246,7 @@ export const AnalyticsPlatform = () => {
           latestFollowersTotal = calculatedTotal;
         }
       }
+      */
     }
 
     const aggregated = rangeData.reduce(
@@ -267,7 +274,7 @@ export const AnalyticsPlatform = () => {
 
     return {
       ...aggregated,
-      followers: latestFollowersTotal || aggregated.followers,
+      followers: latestFollowersTotal || 0,
       isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, daysInRange]);
@@ -324,7 +331,8 @@ export const AnalyticsPlatform = () => {
 
     return {
       ...aggregated,
-      followers: latestFollowersTotal || aggregated.followers,
+      // FIX: Same here, do not fallback to deltas for Total
+      followers: latestFollowersTotal || 0,
       isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, dateRange]);

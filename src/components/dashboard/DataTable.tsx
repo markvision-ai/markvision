@@ -376,11 +376,11 @@ export const DataTable = ({
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto data-table scrollbar-thin -mx-px">
-          <table className="w-full text-xs md:text-sm">
-            <thead className="sticky top-0 z-10">
-              <tr className="border-b bg-secondary/50 backdrop-blur-sm">
-                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 sticky left-0 bg-secondary/50 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-20">Дата</th>
+        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
+          <table className="w-full text-xs md:text-sm border-collapse">
+            <thead className="sticky top-0 z-50 shadow-md bg-background">
+              <tr className="border-b bg-secondary/95 backdrop-blur-sm">
+                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 sticky left-0 bg-secondary/95 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[110px]">Расходы</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[100px]">Показы</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Клики</th>
@@ -394,8 +394,8 @@ export const DataTable = ({
             <tbody>
               {/* Plan Row - editable at top */}
               {planData && (
-                <tr className="bg-primary/10 font-semibold border-b border-primary/20">
-                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-10 flex items-center gap-1 md:gap-2">
+                <tr className="bg-primary/10 font-semibold border-b border-primary/20 backdrop-blur-sm">
+                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-30 flex items-center gap-1 md:gap-2 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                     <span>ПЛАН</span>
                   </td>
@@ -418,8 +418,8 @@ export const DataTable = ({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-secondary font-semibold">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-10">ФАКТ</td>
+              <tr className="bg-secondary/95 backdrop-blur-sm font-semibold border-b border-border/50">
+                <td className="p-2 md:p-4 sticky left-0 bg-secondary/95 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
                 <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
@@ -432,8 +432,8 @@ export const DataTable = ({
 
               {/* Percentage Row - third */}
               {planData && (
-                <tr className="bg-muted/50 border-b border-border">
-                  <td className="p-2 md:p-4 sticky left-0 bg-muted/50 backdrop-blur-sm z-10 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold">% выполн.</td>
+                <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+                  <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = planData[field];
@@ -456,7 +456,6 @@ export const DataTable = ({
                   })}
                 </tr>
               )}
-
               {/* Daily data rows */}
               {daysInMonth.map(day => {
                 const dateKey = format(day, 'yyyy-MM-dd');
@@ -500,9 +499,9 @@ export const DataTable = ({
                 );
               })}
             </tbody>
-            <tfoot className="sticky bottom-0 z-20 bg-secondary shadow-[0_-1px_0_0_rgba(0,0,0,0.1)]">
+            <tfoot className="bg-secondary shadow-[0_-1px_0_0_rgba(0,0,0,0.1)]">
               <tr className="font-bold text-foreground">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-20 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ИТОГО</td>
+                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ИТОГО</td>
                 <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>

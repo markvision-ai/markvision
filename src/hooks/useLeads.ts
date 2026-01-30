@@ -163,7 +163,7 @@ export function useLeads(projectId: string | null) {
     }
     
     return () => {
-        controller.abort();
+        abortControllerRef.current?.abort();
     };
   }, [projectId, filters]);
 

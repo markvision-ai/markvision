@@ -46,6 +46,10 @@ const CAMPAIGN_FIELDS = `
 export function useCampaigns(projectId: string | null) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const abortControllerRef = useCallback((controller: AbortController | null) => {
+    if (controller) controller.abort();
+  }, []);
+  const controllerRef = useState<{ current: AbortController | null }>({ current: null })[0];
 
   const fetchCampaigns = useCallback(async () => {
     if (!projectId) {
@@ -54,6 +58,13 @@ export function useCampaigns(projectId: string | null) {
       return;
     }
 
+    // Cancel previous request
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -61,7 +72,8 @@ export function useCampaigns(projectId: string | null) {
         .select(CAMPAIGN_FIELDS)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100)
+        .abortSignal(signal);
 
       if (error) throw error;
       
@@ -71,16 +83,26 @@ export function useCampaigns(projectId: string | null) {
         rules: (c.rules || {}) as Campaign['rules'],
         ai_log: (c.ai_log || []) as Campaign['ai_log'],
       })));
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+        return;
+      }
       console.error('Error fetching campaigns:', error);
       // Silently fail - table may not exist in external DB
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [projectId]);
 
   useEffect(() => {
     fetchCampaigns();
+    return () => {
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+    };
   }, [fetchCampaigns]);
 
   // Realtime subscription

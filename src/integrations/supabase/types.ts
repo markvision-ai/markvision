@@ -199,43 +199,79 @@ export type Database = {
       }
       ad_assets: {
         Row: {
+          ai_descriptions: string[] | null
+          ai_headlines: string[] | null
           ai_suggestions: Json | null
+          ai_primary_text: string | null
+          ai_hashtags: string[] | null
+          ai_score: number | null
           asset_type: string | null
           created_at: string | null
+          updated_at: string | null
           duration: number | null
           file_size: number | null
           id: string
           media_url: string | null
+          file_url: string | null
           name: string | null
+          file_name: string | null
           project_id: string | null
+          campaign_id: string | null
           thumbnail_url: string | null
           transcription: string | null
+          aspect_ratio: string | null
+          platform: string | null
+          status: string | null
         }
         Insert: {
+          ai_descriptions?: string[] | null
+          ai_headlines?: string[] | null
           ai_suggestions?: Json | null
+          ai_primary_text?: string | null
+          ai_hashtags?: string[] | null
+          ai_score?: number | null
           asset_type?: string | null
           created_at?: string | null
+          updated_at?: string | null
           duration?: number | null
           file_size?: number | null
           id?: string
           media_url?: string | null
+          file_url?: string | null
           name?: string | null
+          file_name?: string | null
           project_id?: string | null
+          campaign_id?: string | null
           thumbnail_url?: string | null
           transcription?: string | null
+          aspect_ratio?: string | null
+          platform?: string | null
+          status?: string | null
         }
         Update: {
+          ai_descriptions?: string[] | null
+          ai_headlines?: string[] | null
           ai_suggestions?: Json | null
+          ai_primary_text?: string | null
+          ai_hashtags?: string[] | null
+          ai_score?: number | null
           asset_type?: string | null
           created_at?: string | null
+          updated_at?: string | null
           duration?: number | null
           file_size?: number | null
           id?: string
           media_url?: string | null
+          file_url?: string | null
           name?: string | null
+          file_name?: string | null
           project_id?: string | null
+          campaign_id?: string | null
           thumbnail_url?: string | null
           transcription?: string | null
+          aspect_ratio?: string | null
+          platform?: string | null
+          status?: string | null
         }
         Relationships: [
           {
@@ -429,7 +465,67 @@ export type Database = {
           },
         ]
       }
-      ai_insights: {
+      ai_commands: {
+          Row: {
+            id: string
+            type: string
+            status: string
+            platform: string | null
+            payload: Json | null
+            result: Json | null
+            error: string | null
+            user_id: string | null
+            project_id: string | null
+            campaign_id: string | null
+            created_at: string
+            updated_at: string
+          }
+          Insert: {
+            id?: string
+            type: string
+            status?: string
+            platform?: string | null
+            payload?: Json | null
+            result?: Json | null
+            error?: string | null
+            user_id?: string | null
+            project_id?: string | null
+            campaign_id?: string | null
+            created_at?: string
+            updated_at?: string
+          }
+          Update: {
+            id?: string
+            type?: string
+            status?: string
+            platform?: string | null
+            payload?: Json | null
+            result?: Json | null
+            error?: string | null
+            user_id?: string | null
+            project_id?: string | null
+            campaign_id?: string | null
+            created_at?: string
+            updated_at?: string
+          }
+          Relationships: [
+            {
+              foreignKeyName: "ai_commands_campaign_id_fkey"
+              columns: ["campaign_id"]
+              isOneToOne: false
+              referencedRelation: "ads_manager"
+              referencedColumns: ["id"]
+            },
+            {
+              foreignKeyName: "ai_commands_user_id_fkey"
+              columns: ["user_id"]
+              isOneToOne: false
+              referencedRelation: "users"
+              referencedColumns: ["id"]
+            }
+          ]
+        }
+        ai_insights: {
         Row: {
           created_at: string | null
           id: string
@@ -3936,6 +4032,7 @@ export type Database = {
           },
         ]
       }
+
       system_owners: {
         Row: {
           created_at: string | null
@@ -3993,6 +4090,7 @@ export type Database = {
           description: string | null
           id: string
           project_id: string | null
+          type: string | null
         }
         Insert: {
           amount: number
@@ -4002,6 +4100,7 @@ export type Database = {
           description?: string | null
           id?: string
           project_id?: string | null
+          type?: string | null
         }
         Update: {
           amount?: number
@@ -4011,6 +4110,7 @@ export type Database = {
           description?: string | null
           id?: string
           project_id?: string | null
+          type?: string | null
         }
         Relationships: [
           {
