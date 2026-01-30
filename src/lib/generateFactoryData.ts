@@ -1,4 +1,4 @@
-import { supabase } from './externalSupabase';
+import { supabase } from '../integrations/supabase/client';
 
 // Simple UUID generator
 function uuidv4() {
@@ -9,7 +9,6 @@ function uuidv4() {
 }
 
 const STAFF_ROLES = ['operator', 'engineer', 'manager', 'designer', 'copywriter'];
-const DEPARTMENTS = ['Content', 'AI Ops', 'Quality Control', 'Shipping'];
 
 const SCENARIOS = [
   { type: 'automotive', title: 'Auto Review Series', topics: ['Tesla Model S Plaid', 'BMW iX Review', 'Ford F-150 Lightning', 'Porsche Taycan Turbo'] },
@@ -24,15 +23,48 @@ const SCENARIOS = [
   { type: 'science', title: 'Future Tech', topics: ['Fusion Energy', 'Mars Colonization', 'Quantum Computing', 'Crispr Breakthroughs'] }
 ];
 
+function getRandomName() {
+  const first = ['Александр', 'Мария', 'Дмитрий', 'Елена', 'Сергей', 'Анна', 'Иван', 'Ольга', 'Максим', 'Татьяна'];
+  const last = ['Смирнов(а)', 'Иванов(а)', 'Петров(а)', 'Соколов(а)', 'Михайлов(а)', 'Новиков(а)', 'Федоров(а)', 'Морозов(а)', 'Волков(а)', 'Алексеев(а)'];
+  return `${first[Math.floor(Math.random() * first.length)]} ${last[Math.floor(Math.random() * last.length)]}`;
+}
+
+function getRandomStatus() {
+  const r = Math.random();
+  if (r < 0.1) return 'ideation';
+  if (r < 0.2) return 'scripting';
+  if (r < 0.6) return 'voice_ready'; // "Assembly Lines" active state
+  if (r < 0.8) return 'avatar_ready';
+  if (r < 0.9) return 'ready_to_send';
+  return 'sent';
+}
+
+function getLineStatus(mainStatus: string, lineType: string) {
+  if (['ideation', 'scripting'].includes(mainStatus)) return 'idle';
+  if (['sent'].includes(mainStatus)) return 'completed';
+  if (['ready_to_send'].includes(mainStatus)) return 'completed';
+  
+  // For active assembly states, randomize line status
+  const r = Math.random();
+  if (r < 0.1) return 'failed';
+  if (r < 0.4) return 'processing';
+  if (r < 0.7) return 'completed';
+  return 'idle';
+}
+
 export const generateFactoryData = async (projectId: string) => {
   console.log('Starting Factory Data Generation...');
 
   // Get current user for author_id
   const { data: { user } } = await supabase.auth.getUser();
+  console.log('Current User for Generation:', user?.id, user?.email);
+  
   if (!user) {
-    console.error('No authenticated user found. RLS will fail.');
+    console.error('No authenticated user found. RLS may fail.');
     throw new Error('Пользователь не авторизован. Пожалуйста, войдите в систему.');
   }
+
+  console.log('Generating data for project:', projectId);
 
   // 1. Generate Staff (50-100 employees)
   const staffCount = Math.floor(Math.random() * 50) + 50; // 50-100
@@ -53,8 +85,9 @@ export const generateFactoryData = async (projectId: string) => {
     role: s.role,
     email: s.email,
     status: s.status,
-    user_id: s.user_id // Include user_id
+    user_id: s.user_id
   })));
+  
   if (staffError) console.error('Error generating staff:', staffError);
   else console.log(`Generated ${staffCount} staff members.`);
 
@@ -78,7 +111,7 @@ export const generateFactoryData = async (projectId: string) => {
         tone: 'Professional' 
       }),
       // Store extended statuses in 'body' JSON column since they don't exist as columns
-      author_id: user?.id,
+      author_id: user.id, // Explicitly set author_id
       body: {
         avatar_status: getLineStatus(status, 'avatar'),
         sora_status: getLineStatus(status, 'sora'),
@@ -97,39 +130,15 @@ export const generateFactoryData = async (projectId: string) => {
   }
 
   const { error: ordersError } = await supabase.from('content_factory').insert(orders);
-  if (ordersError) console.error('Error generating orders:', ordersError);
-  else console.log(`Generated ${ordersCount} production orders.`);
+  if (ordersError) {
+    console.error('Error generating orders:', ordersError);
+    // If batch insert fails, try inserting one by one to find the culprit or minimal failure
+    if (ordersError.code === '42501') {
+       console.error('RLS Policy Violation. Check if user is member of project:', projectId);
+    }
+  } else {
+    console.log(`Generated ${ordersCount} production orders.`);
+  }
 
   return { staffCount, ordersCount };
 };
-
-function getRandomName() {
-  const first = ['Александр', 'Мария', 'Дмитрий', 'Елена', 'Сергей', 'Анна', 'Иван', 'Ольга', 'Максим', 'Татьяна'];
-  const last = ['Смирнов(а)', 'Иванов(а)', 'Петров(а)', 'Соколов(а)', 'Михайлов(а)', 'Новиков(а)', 'Федоров(а)', 'Морозов(а)', 'Волков(а)', 'Алексеев(а)'];
-  return `${first[Math.floor(Math.random() * first.length)]} ${last[Math.floor(Math.random() * last.length)]}`;
-}
-
-function getRandomStatus() {
-  const statuses = ['ideation', 'scripting', 'voice_ready', 'avatar_ready', 'editing_ready', 'ready_to_send', 'sent'];
-  // Weighted random to favor "in progress" states
-  const r = Math.random();
-  if (r < 0.1) return 'ideation';
-  if (r < 0.2) return 'scripting';
-  if (r < 0.6) return 'voice_ready'; // "Assembly Lines" active state
-  if (r < 0.8) return 'avatar_ready';
-  if (r < 0.9) return 'ready_to_send';
-  return 'sent';
-}
-
-function getLineStatus(mainStatus: string, lineType: string) {
-  if (['ideation', 'scripting'].includes(mainStatus)) return 'idle';
-  if (['sent'].includes(mainStatus)) return 'completed';
-  if (['ready_to_send'].includes(mainStatus)) return 'completed';
-  
-  // For active assembly states, randomize line status
-  const r = Math.random();
-  if (r < 0.1) return 'failed';
-  if (r < 0.4) return 'processing';
-  if (r < 0.7) return 'completed';
-  return 'idle';
-}
