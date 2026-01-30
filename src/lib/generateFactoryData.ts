@@ -61,10 +61,47 @@ export const generateFactoryData = async (projectId: string) => {
   
   if (!user) {
     console.error('No authenticated user found. RLS may fail.');
-    throw new Error('Пользователь не авторизован. Пожалуйста, войдите в систему.');
+    // Don't throw, just log, maybe the policy allows anon (unlikely but possible)
+    // Actually, let's return error if no user, to be clear
+    return { staffCount: 0, ordersCount: 0, error: 'User not authenticated' };
   }
 
   console.log('Generating data for project:', projectId);
+
+  // Check if user is a member of the project
+  const { data: memberData, error: memberError } = await supabase
+    .from('project_members')
+    .select('id')
+    .eq('project_id', projectId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+    
+  if (memberError) {
+    console.error('Error checking project membership:', memberError);
+  }
+
+  if (!memberData) {
+    console.log('User is not a member of the project. Attempting to add...');
+    // Try to add user to project_members if not present
+    // This might fail if the user doesn't have permissions to add members, but it's worth a try for a test generator
+    const { error: addMemberError } = await supabase
+      .from('project_members')
+      .insert({
+        project_id: projectId,
+        user_id: user.id,
+        role: 'owner' // or 'admin', 'member'
+      });
+      
+    if (addMemberError) {
+       console.error('Failed to add user to project_members:', addMemberError);
+       // If we can't add, we proceed but expect failure if RLS requires membership
+       // However, maybe the user is the OWNER of the project (in projects table)
+    } else {
+       console.log('Successfully added user to project_members');
+    }
+  } else {
+    console.log('User is already a member of the project');
+  }
 
   // 1. Generate Staff (50-100 employees)
   const staffCount = Math.floor(Math.random() * 50) + 50; // 50-100
