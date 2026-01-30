@@ -324,7 +324,8 @@ export const AnalyticsPlatform = () => {
 
     return {
       ...aggregated,
-      followers: latestFollowersTotal || aggregated.followers
+      followers: latestFollowersTotal || aggregated.followers,
+      isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, dateRange]);
 
@@ -445,7 +446,7 @@ export const AnalyticsPlatform = () => {
                   format="number"
                 />
                 <PlanFactCard
-                  label="Подписчики"
+                  label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
                   value={totals.followers}
                   plan={planData.followers}
                   fact={totals.followers}

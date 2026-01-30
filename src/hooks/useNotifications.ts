@@ -269,7 +269,8 @@ export const useNotifications = (projectId?: string) => {
           .from('daily_data')
           .select('*', { count: 'exact', head: true })
           .eq('project_id', project.id)
-          .in('date', lastThreeDays);
+          .in('date', lastThreeDays)
+          .abortSignal(signal);
 
         if (dataCount === 0) {
           const existingGapNotification = newNotifications.find(n => n.id === `data-gap-${project.id}`);
@@ -442,9 +443,9 @@ export const useNotifications = (projectId?: string) => {
     try {
       await supabase
         .from('system_notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('user_id', user.id)
-        .eq('read', false);
+        .eq('is_read', false);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
     }

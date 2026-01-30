@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase-simplified';
 import { useAuditLog } from './useAuditLog';
 import { Json } from '@/integrations/supabase/types';
@@ -87,6 +87,8 @@ export function useLeads(projectId: string | null) {
   const [filters, setFilters] = useState<LeadFilter>({});
   const { logUpdate, logStatusChange } = useAuditLog();
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchLeads = useCallback(async () => {
     if (!projectId) {
       setLeads([]);
@@ -94,9 +96,14 @@ export function useLeads(projectId: string | null) {
       return;
     }
 
+    // Cancel previous request if running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     setLoading(true);
-    const controller = new AbortController();
-    const signal = controller.signal;
 
     try {
       let query = supabase
