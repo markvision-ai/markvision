@@ -30,7 +30,8 @@ export const generateFactoryData = async (projectId: string) => {
   // Get current user for author_id
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
-    console.error('No authenticated user found. RLS may fail.');
+    console.error('No authenticated user found. RLS will fail.');
+    throw new Error('Пользователь не авторизован. Пожалуйста, войдите в систему.');
   }
 
   // 1. Generate Staff (50-100 employees)
@@ -42,18 +43,17 @@ export const generateFactoryData = async (projectId: string) => {
     role: STAFF_ROLES[Math.floor(Math.random() * STAFF_ROLES.length)],
     email: `employee_${Math.random().toString(36).substring(7)}@markvision.factory`,
     status: 'active',
-    // department removed as it doesn't exist in schema
-    // department: DEPARTMENTS[Math.floor(Math.random() * DEPARTMENTS.length)],
-    // Store extra metadata in a way that fits schema if needed, or just omit non-existent columns
+    user_id: user.id // Required by RLS if linked to user
   }));
 
   const { error: staffError } = await supabase.from('staff').upsert(staff.map(s => ({
     id: s.id,
     project_id: s.project_id,
-    name: s.full_name,      // 'name' exists in schema
+    name: s.full_name,
     role: s.role,
     email: s.email,
-    status: s.status
+    status: s.status,
+    user_id: s.user_id // Include user_id
   })));
   if (staffError) console.error('Error generating staff:', staffError);
   else console.log(`Generated ${staffCount} staff members.`);
