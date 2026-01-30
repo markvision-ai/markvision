@@ -308,7 +308,11 @@ export const useNotifications = (projectId?: string) => {
       }
 
       setNotifications(newNotifications);
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+        // Ignore abort errors
+        return;
+      }
       console.error('Error generating notifications:', error);
     } finally {
       setLoading(false);
@@ -424,7 +428,7 @@ export const useNotifications = (projectId?: string) => {
     try {
       await supabase
         .from('system_notifications')
-        .update({ read: true })
+        .update({ is_read: true })
         .eq('id', notificationId);
     } catch (error) {
       console.error('Error marking notification as read:', error);

@@ -82,16 +82,25 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
 
   useEffect(() => {
+    const controller = new AbortController();
     const load = async () => {
       try {
-        const { data, error } = await supabase.from('projects').select('n8n_webhook_url').eq('id', effectiveProjectId).single();
+        const { data, error } = await supabase
+          .from('projects')
+          .select('n8n_webhook_url')
+          .eq('id', effectiveProjectId)
+          .abortSignal(controller.signal)
+          .single();
+
         if (!error && data?.n8n_webhook_url) setN8nWebhookUrl(data.n8n_webhook_url);
         else setN8nWebhookUrl(N8N_DISPATCHER_URL);
-      } catch {
+      } catch (err: any) {
+        if (err.name === 'AbortError' || err.message?.includes('aborted')) return;
         setN8nWebhookUrl(N8N_DISPATCHER_URL);
       }
     };
     load();
+    return () => controller.abort();
   }, [effectiveProjectId]);
 
   const handleSaveWebhook = useCallback(async () => {

@@ -306,7 +306,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         .update({ 
           status: newStatus,
           updated_at: new Date().toISOString()
-        })
+        } as any)
         .in('id', Array.from(selectedLeads));
 
       if (error) throw error;

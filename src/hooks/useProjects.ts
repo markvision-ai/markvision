@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -39,6 +39,8 @@ export const useProjects = () => {
   
   // Loading state
   const [loading, setLoading] = useState(true);
+  
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Save currentProjectId to localStorage
   useEffect(() => {
@@ -64,6 +66,13 @@ export const useProjects = () => {
       return;
     }
 
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     // CRITICAL: Super admin bypass - set fallback immediately
     if (isSuperAdminUser) {
       console.log('👑 SUPER ADMIN: Instant access granted');
@@ -73,7 +82,8 @@ export const useProjects = () => {
         const { data: allProjects } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .abortSignal(signal);
         
         if (allProjects && allProjects.length > 0) {
           // Merge with fallback - ensure fallback is always first
@@ -88,7 +98,11 @@ export const useProjects = () => {
           // No projects from DB - use fallback
           setProjects([ADMIN_FALLBACK_PROJECT]);
         }
-      } catch (e) {
+      } catch (e: any) {
+        if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
+          // Ignore abort errors
+          return;
+        }
         console.error('DB fetch failed, using fallback:', e);
         setProjects([ADMIN_FALLBACK_PROJECT]);
       }
@@ -110,7 +124,8 @@ export const useProjects = () => {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
-          .order('created_at', { ascending: false });
+          .order('created_at', { ascending: false })
+          .abortSignal(signal);
         
         if (!allError && allProjects) {
           projectsData = allProjects;
@@ -120,14 +135,16 @@ export const useProjects = () => {
         const { data: accessData, error: accessError } = await supabase
           .from('project_access')
           .select('project_id')
-          .eq('user_id', user.id);
+          .eq('user_id', user.id)
+          .abortSignal(signal);
 
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
           const { data } = await supabase
             .from('projects')
             .select('id, name, telegram_chat_id, onboarding_status')
-            .in('id', projectIds);
+            .in('id', projectIds)
+            .abortSignal(signal);
 
           projectsData = data || [];
         }
@@ -158,7 +175,11 @@ export const useProjects = () => {
           localStorage.setItem(LOCAL_STORAGE_KEY, newProjectId);
         }
       }
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+        // Ignore abort errors
+        return;
+      }
       console.error('❌ Critical error loading projects:', error);
       
       if (isSuperAdminUser) {
