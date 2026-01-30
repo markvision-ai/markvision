@@ -111,13 +111,9 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
       
       {/* Header Bar */}
       <header className="h-16 border-b border-border/40 dark:border-white/5 bg-background/80 dark:bg-[#050505]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-50">
-        <div className="flex items-center gap-4">
-          <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20">
-            <Factory className="w-5 h-5 text-blue-500" />
-          </div>
-          <div>
-            <h1 className="font-bold tracking-tight text-lg">MarkVision Завод ОС <span className="text-muted-foreground dark:text-white/40 font-normal text-sm">v3.1</span></h1>
-          </div>
+        <div className="flex items-center gap-2">
+          <Factory className="h-6 w-6 text-primary animate-pulse" />
+          <h1 className="font-bold tracking-tight text-lg">Контент Завод <span className="text-muted-foreground dark:text-white/40 font-normal text-sm">v3.1</span></h1>
         </div>
         
         <div className="flex items-center gap-3">
