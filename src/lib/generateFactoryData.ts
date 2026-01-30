@@ -192,5 +192,39 @@ export const generateFactoryData = async (projectId: string) => {
     console.log(`Generated ${ordersCount} production orders.`);
   }
 
-  return { staffCount, ordersCount };
+  // 3. Generate Competitors (Mock Data)
+  const COMPETITORS = [
+    { handle: 'tech_insider', platform: 'instagram', followers: 125000, engagement: 4.5, posts: 1240 },
+    { handle: 'future_gadgets', platform: 'instagram', followers: 89000, engagement: 3.2, posts: 850 },
+    { handle: 'design_daily', platform: 'instagram', followers: 450000, engagement: 5.1, posts: 3200 },
+    { handle: 'auto_world_news', platform: 'instagram', followers: 210000, engagement: 2.8, posts: 1500 },
+    { handle: 'crypto_signals_pro', platform: 'instagram', followers: 55000, engagement: 6.7, posts: 450 }
+  ];
+
+  const competitors = COMPETITORS.map(c => ({
+    project_id: projectId,
+    handle: c.handle,
+    platform: c.platform,
+    avatar_url: `https://ui-avatars.com/api/?name=${c.handle}&background=random`,
+    followers_count: c.followers,
+    engagement_rate: c.engagement,
+    posts_count: c.posts,
+    stories_count: Math.floor(Math.random() * 10),
+    last_post_at: new Date(Date.now() - Math.random() * 86400000).toISOString(),
+    status: 'active',
+    created_at: new Date().toISOString()
+  }));
+
+  // Upsert based on handle to avoid duplicates
+  const { error: compError } = await supabase
+    .from('competitor_monitoring')
+    .upsert(competitors, { onConflict: 'handle, project_id' });
+
+  if (compError) {
+      console.error('Error generating competitors:', compError);
+  } else {
+      console.log(`Generated ${competitors.length} competitors.`);
+  }
+
+  return { staffCount, ordersCount, competitorsCount: competitors.length };
 };

@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { Factory, Calendar as CalendarIcon, Plus, LayoutGrid, Database } from 'lucide-react';
+import { Factory, Calendar as CalendarIcon, Plus, LayoutGrid, Database, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { useFactoryAnalytics } from '@/hooks/useFactoryAnalytics';
 import { useProductionLine } from '@/hooks/useProductionLine';
@@ -14,6 +15,7 @@ import { AssemblyLines } from './AssemblyLines';
 import { ShippingDock } from './ShippingDock';
 import { ReceptionDialog } from './ReceptionDialog';
 import { MonthlyReportDialog } from './MonthlyReportDialog';
+import { CompetitorMonitor } from './CompetitorMonitor';
 import { generateFactoryData } from '@/lib/generateFactoryData';
 
 interface ContentFactoryPageProps {
@@ -26,6 +28,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   const projectId = propProjectId || TARGET_PROJECT_ID;
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [activeTab, setActiveTab] = useState('production');
   
   const { 
     planData, 
@@ -103,7 +106,11 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   };
 
   const handleCreateContent = async (data: any) => {
-    return await createContent(data);
+    await createContent({
+      ...data,
+      project_id: projectId
+    });
+    setIsCreateOpen(false);
   };
 
   return (
@@ -137,36 +144,63 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         </div>
       </header>
 
-      {/* Main 3-Column Layout */}
-      <div className="flex-1 flex min-h-0">
-        
-        {/* Left: Idea Workshop */}
-        <div className="w-[350px] border-r border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
-           <IdeaWorkshop 
-             items={workshopItems}
-             onApprove={handleApprove}
-           />
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+        <div className="px-6 border-b border-border/40 dark:border-white/5 bg-muted/5">
+            <TabsList className="h-12 bg-transparent gap-6 p-0">
+                <TabsTrigger 
+                    value="production" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium"
+                >
+                    <LayoutGrid className="w-4 h-4 mr-2" />
+                    Производство
+                </TabsTrigger>
+                <TabsTrigger 
+                    value="competitors" 
+                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium"
+                >
+                    <Activity className="w-4 h-4 mr-2" />
+                    Конкурентная Разведка
+                </TabsTrigger>
+            </TabsList>
         </div>
 
-        {/* Center: Assembly Lines */}
-        <div className="flex-1 bg-background dark:bg-[#030303] flex flex-col min-w-0">
-           <AssemblyLines 
-             items={assemblyItems}
-             logs={logs}
-             onRetry={retryLine}
-             onForceComplete={forceComplete}
-           />
-        </div>
+        <TabsContent value="production" className="flex-1 flex min-h-0 m-0">
+          {/* Main 3-Column Layout */}
+          <div className="flex-1 flex min-h-0">
+            
+            {/* Left: Idea Workshop */}
+            <div className="w-[350px] border-r border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
+               <IdeaWorkshop 
+                 items={workshopItems}
+                 onApprove={handleApprove}
+               />
+            </div>
 
-        {/* Right: Shipping Dock */}
-        <div className="w-[350px] border-l border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
-           <ShippingDock 
-             items={shippingItems}
-             onManualPublish={handleManualPublish}
-           />
-        </div>
-        
-      </div>
+            {/* Center: Assembly Lines */}
+            <div className="flex-1 bg-background dark:bg-[#030303] flex flex-col min-w-0">
+               <AssemblyLines 
+                 items={assemblyItems}
+                 logs={logs}
+                 onRetry={retryLine}
+                 onForceComplete={forceComplete}
+               />
+            </div>
+
+            {/* Right: Shipping Dock */}
+            <div className="w-[350px] border-l border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
+               <ShippingDock 
+                 items={shippingItems}
+                 onManualPublish={handleManualPublish}
+               />
+            </div>
+            
+          </div>
+        </TabsContent>
+
+        <TabsContent value="competitors" className="flex-1 min-h-0 m-0 p-6 bg-background dark:bg-[#030303]">
+             <CompetitorMonitor projectId={projectId} />
+        </TabsContent>
+      </Tabs>
 
       <ReceptionDialog 
         open={isCreateOpen} 

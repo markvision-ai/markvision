@@ -180,6 +180,13 @@ export const useContentFactory = (projectId: string | null) => {
     if (!projectId) return null;
 
     try {
+      // 0. Get current user for RLS
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Ошибка авторизации: Пользователь не найден');
+        return null;
+      }
+
       // 1. Create task for n8n (Queue)
       // Cast supabase to any to bypass table type check for new table
       const { error: taskError } = await (supabase as any)
@@ -187,6 +194,7 @@ export const useContentFactory = (projectId: string | null) => {
         .insert([{ 
           ...data,
           project_id: projectId,
+          user_id: user.id, // Add user_id for RLS
           status: 'pending',
           created_at: new Date().toISOString()
         }]);
@@ -202,6 +210,7 @@ export const useContentFactory = (projectId: string | null) => {
         body_text: data.original_script || null, // Map original_script -> body_text
         source_url: data.source_url || null,
         project_id: projectId,
+        author_id: user.id, // Add author_id for RLS
         status: 'ideation',
         body: {
             // Initialize empty status fields in body
