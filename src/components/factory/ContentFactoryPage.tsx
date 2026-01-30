@@ -115,6 +115,19 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
      await updateContent(id, { status: 'sent' });
   };
 
+  const handleReject = async (id: string) => {
+     await updateContent(id, { 
+       status: 'ideation',
+       avatar_status: 'idle',
+       sora_status: 'idle',
+       carousel_status: 'idle',
+       threads_status: 'idle',
+       telegram_status: 'idle',
+       article_status: 'idle'
+     });
+     toast.info('Отправлено на доработку в Цех Идей');
+  };
+
   const handleCreateContent = async (data: any) => {
     await createContent({
       ...data,
@@ -201,6 +214,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
                <ShippingDock 
                  items={shippingItems}
                  onManualPublish={handleManualPublish}
+                 onReject={handleReject}
                />
             </div>
             

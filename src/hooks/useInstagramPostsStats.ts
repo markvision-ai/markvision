@@ -42,6 +42,7 @@ export const useInstagramPostsStats = (projectId: string | null) => {
         const { data, error: fetchError } = await supabase
           .from('instagram_posts_stats')
           .select('*')
+          .eq('project_id', projectId) // Filter by project_id
           .order('posted_at', { ascending: false })
           .limit(50);
 
