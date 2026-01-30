@@ -32,12 +32,20 @@ export const useNotifications = (projectId?: string) => {
   const [loading, setLoading] = useState(true);
   const [pushEnabled, setPushEnabled] = useState(false);
   const lastNotifiedIds = useRef<Set<string>>(new Set());
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const generateNotifications = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
+
+    // Cancel previous request if running
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     setLoading(true);
     const newNotifications: Notification[] = [];
@@ -52,9 +60,12 @@ export const useNotifications = (projectId?: string) => {
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
       // Fetch projects
-      const { data: projects } = await supabase
+      const { data: projects, error: projectsError } = await supabase
         .from('projects')
-        .select('id, name');
+        .select('id, name')
+        .abortSignal(signal);
+
+      if (projectsError) throw projectsError;
 
       if (!projects || projects.length === 0) {
         setNotifications([]);
@@ -63,18 +74,24 @@ export const useNotifications = (projectId?: string) => {
       }
 
       // Fetch current week data
-      const { data: currentWeekData } = await supabase
+      const { data: currentWeekData, error: currentError } = await supabase
         .from('daily_data')
         .select('*')
         .gte('date', weekAgo.toISOString().split('T')[0])
-        .lte('date', today.toISOString().split('T')[0]);
+        .lte('date', today.toISOString().split('T')[0])
+        .abortSignal(signal);
+
+      if (currentError) throw currentError;
 
       // Fetch previous week data for comparison
-      const { data: prevWeekData } = await supabase
+      const { data: prevWeekData, error: prevError } = await supabase
         .from('daily_data')
         .select('*')
         .gte('date', twoWeeksAgo.toISOString().split('T')[0])
-        .lt('date', weekAgo.toISOString().split('T')[0]);
+        .lt('date', weekAgo.toISOString().split('T')[0])
+        .abortSignal(signal);
+
+      if (prevError) throw prevError;
 
       // Aggregate by project
       const currentByProject = new Map<string, { leads: number; sales: number; spend: number; revenue: number }>();

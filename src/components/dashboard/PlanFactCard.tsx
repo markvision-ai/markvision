@@ -69,9 +69,9 @@ export const PlanFactCard = ({
       className={cn(
         "group relative overflow-hidden rounded-xl p-4",
         // Apple-style: subtle, clean
-        "bg-card/50 backdrop-blur-sm",
-        "border border-border/40",
-        "hover:border-border/60 hover:bg-card/60",
+        "bg-card/90 backdrop-blur-sm",
+        "border border-border",
+        "hover:border-border/80 hover:bg-card",
         isOverPerforming && "border-amber-400/40",
         "transition-all duration-200",
         className

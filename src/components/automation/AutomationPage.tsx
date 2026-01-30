@@ -129,7 +129,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           const text = await res.text();
           // Если ответ HTML (ошибка 500), пытаемся извлечь полезную информацию
           if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
-            errorText = `Сервер n8n вернул ошибку ${res.status}. Проверьте, что webhook /webhook/sync-markvision-flows настроен в n8n.`;
+            errorText = `Сервер n8n вернул ошибку ${res.status}. Возможные причины: ошибка в workflow n8n, неверные данные или сбой сервера. Проверьте логи n8n.`;
           } else {
             // Пытаемся распарсить как JSON
             try {

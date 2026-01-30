@@ -26,6 +26,10 @@ type UsedTables =
 export type LightweightDatabase = {
   public: {
     Tables: Pick<Database['public']['Tables'], UsedTables>
+    Views: Database['public']['Views']
+    Functions: Database['public']['Functions']
+    Enums: Database['public']['Enums']
+    CompositeTypes: Database['public']['CompositeTypes']
   }
 }
 

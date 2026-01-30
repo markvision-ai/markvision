@@ -49,6 +49,7 @@ export const useProjectData = (projectId: string | null) => {
   // Кэш для предотвращения лишних запросов
   const lastFetchTimeRef = useRef<number>(0);
   const lastProjectIdRef = useRef<string | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // ПЛАН берётся из записи за 1-е число текущего месяца
   const planData = useMemo((): PlanData => {
@@ -90,14 +91,28 @@ export const useProjectData = (projectId: string | null) => {
 
     console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
 
+    // Cancel previous request if any
+    if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
+
     try {
       const { data, error } = await supabase
         .from('daily_data')
         .select('*')
         .eq('project_id', effectiveProjectId)
-        .order('date', { ascending: true });
+        .order('date', { ascending: true })
+        .abortSignal(signal);
 
       if (error) {
+        // Suppress Abort/Cancel errors
+        if (error.code === '20' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+          console.warn('⚠️ useProjectData | Запрос daily_data отменен (AbortError)');
+          return;
+        }
+
         logError('Fetch daily data failed', error);
         console.error('❌ useProjectData | Ошибка загрузки daily_data:', error);
         toast.error('Ошибка загрузки данных: ' + error.message);
@@ -144,6 +159,14 @@ export const useProjectData = (projectId: string | null) => {
     const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
     console.log('📋 useProjectData | Загрузка ПЛАНА из plan_data за месяц:', firstDayOfMonth);
     
+    // Note: We don't abort plan data separately because it's usually called with daily_data
+    // and we want both to complete or fail together if controlled by the same signal.
+    // However, since they are separate functions, we can use the same abortControllerRef if we want.
+    // But for now let's just use the same signal if we were to combine them.
+    // Here we'll just check if component is unmounted or id changed via simple check, 
+    // but better to use the signal from the shared controller if possible.
+    // For simplicity, we won't use AbortController here as it's a single row fetch and fast.
+    
     try {
       const { data, error } = await supabase
         .from('plan_data')
@@ -153,6 +176,12 @@ export const useProjectData = (projectId: string | null) => {
         .maybeSingle();
 
       if (error) {
+        // Suppress Abort/Cancel errors
+        if (error.code === '20' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+          console.warn('⚠️ useProjectData | Запрос plan_data отменен (AbortError)');
+          return;
+        }
+
         logError('Fetch plan data failed', error);
         console.error('❌ useProjectData | Ошибка загрузки плана:', error);
         // Не показываем toast если это RLS ошибка - просто работаем без плана
