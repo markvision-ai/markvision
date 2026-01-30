@@ -67,12 +67,22 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
     if (!projectId) return;
     setIsGenerating(true);
     try {
-      await generateFactoryData(projectId);
-      // No reload needed, Realtime will update the UI
-      toast.success('Тестовые данные успешно сгенерированы');
+      const result = await generateFactoryData(projectId);
+      
+      if (result.error) {
+        console.error('Generation error:', result.error);
+        if (result.error.includes('User not authenticated') || result.error.includes('Auth check failed')) {
+           toast.error('Ошибка: Вы должны войти в систему для генерации данных');
+        } else {
+           toast.error(`Ошибка генерации: ${result.error}`);
+        }
+      } else {
+        // No reload needed, Realtime will update the UI
+        toast.success(`Данные сгенерированы: ${result.ordersCount} заказов, ${result.staffCount} сотрудников`);
+      }
     } catch (e) {
       console.error(e);
-      toast.error('Ошибка генерации данных');
+      toast.error('Критическая ошибка генерации данных');
     } finally {
       setIsGenerating(false);
     }

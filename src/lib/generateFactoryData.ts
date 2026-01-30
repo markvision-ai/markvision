@@ -55,14 +55,21 @@ function getLineStatus(mainStatus: string, lineType: string) {
 export const generateFactoryData = async (projectId: string) => {
   console.log('Starting Factory Data Generation...');
 
-  // Get current user for author_id
-  const { data: { user } } = await supabase.auth.getUser();
+  let user;
+  try {
+    // Get current user for author_id
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    user = data.user;
+  } catch (e) {
+    console.error('Auth check failed:', e);
+    return { staffCount: 0, ordersCount: 0, error: 'Auth check failed: ' + (e as any).message };
+  }
+
   console.log('Current User for Generation:', user?.id, user?.email);
   
   if (!user) {
     console.error('No authenticated user found. RLS may fail.');
-    // Don't throw, just log, maybe the policy allows anon (unlikely but possible)
-    // Actually, let's return error if no user, to be clear
     return { staffCount: 0, ordersCount: 0, error: 'User not authenticated' };
   }
 
