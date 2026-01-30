@@ -27,6 +27,12 @@ const SCENARIOS = [
 export const generateFactoryData = async (projectId: string) => {
   console.log('Starting Factory Data Generation...');
 
+  // Get current user for author_id
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    console.error('No authenticated user found. RLS may fail.');
+  }
+
   // 1. Generate Staff (50-100 employees)
   const staffCount = Math.floor(Math.random() * 50) + 50; // 50-100
   const staff = Array.from({ length: staffCount }).map(() => ({
@@ -72,6 +78,7 @@ export const generateFactoryData = async (projectId: string) => {
         tone: 'Professional' 
       }),
       // Store extended statuses in 'body' JSON column since they don't exist as columns
+      author_id: user?.id,
       body: {
         avatar_status: getLineStatus(status, 'avatar'),
         sora_status: getLineStatus(status, 'sora'),
