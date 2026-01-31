@@ -15,7 +15,7 @@ import { AssemblyLines } from './AssemblyLines';
 import { ShippingDock } from './ShippingDock';
 import { ReceptionDialog } from './ReceptionDialog';
 import { MonthlyReportDialog } from './MonthlyReportDialog';
-import { CompetitorMonitor } from './CompetitorMonitor';
+import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
 import { generateFactoryData } from '@/lib/generateFactoryData';
 
 interface ContentFactoryPageProps {
@@ -38,9 +38,12 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   
   const {
     content,
+    competitors,
     loading,
     createContent,
     updateContent,
+    addCompetitor,
+    removeCompetitor,
   } = useContentFactory(projectId);
 
   // Subscribe to realtime updates
