@@ -47,6 +47,7 @@ export interface Competitor {
   project_id: string;
   handle: string;
   platform: string;
+  avatar_url?: string | null;
   last_scanned_at: string | null;
   top_content_links: any | null;
   created_at: string;

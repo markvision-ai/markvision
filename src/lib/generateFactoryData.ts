@@ -218,13 +218,13 @@ export const generateFactoryData = async (projectId: string) => {
     console.log(`Generated ${ordersCount} production orders.`);
   }
 
-  // 3. Generate Competitors (Mock Data)
+  // 3. Generate Competitors (Mock Data - Dental Focused)
   const COMPETITORS = [
-    { handle: 'tech_insider', platform: 'instagram', followers: 125000, engagement: 4.5, posts: 1240 },
-    { handle: 'future_gadgets', platform: 'instagram', followers: 89000, engagement: 3.2, posts: 850 },
-    { handle: 'design_daily', platform: 'instagram', followers: 450000, engagement: 5.1, posts: 3200 },
-    { handle: 'auto_world_news', platform: 'instagram', followers: 210000, engagement: 2.8, posts: 1500 },
-    { handle: 'crypto_signals_pro', platform: 'instagram', followers: 55000, engagement: 6.7, posts: 450 }
+    { handle: 'dr.smile.kz', platform: 'instagram', followers: 15400, engagement: 5.2, posts: 420 },
+    { handle: 'dental_implants_expert', platform: 'instagram', followers: 8900, engagement: 3.8, posts: 150 },
+    { handle: 'stomatology.almaty', platform: 'instagram', followers: 45000, engagement: 2.1, posts: 1200 },
+    { handle: 'smile_design_lab', platform: 'instagram', followers: 21000, engagement: 6.5, posts: 340 },
+    { handle: 'healthy.teeth.pro', platform: 'instagram', followers: 5500, engagement: 4.7, posts: 85 }
   ];
 
   const competitors = COMPETITORS.map(c => ({

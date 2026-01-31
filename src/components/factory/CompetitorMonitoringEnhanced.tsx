@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, ExternalLink, Clock, Instagram, MessageCircle, Sparkles, TrendingUp, Eye, ArrowRight, Loader2, Lightbulb, BarChart2 } from 'lucide-react';
+import { Plus, Trash2, ExternalLink, Clock, Instagram, MessageCircle, Sparkles, TrendingUp, Eye, ArrowRight, Loader2, Lightbulb, BarChart2, Zap, User } from 'lucide-react';
 import { Competitor } from '@/hooks/useContentFactory';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -153,6 +154,18 @@ export const CompetitorMonitoringEnhanced = ({
     toast.success('Идея отправлена в Цех 1 (Сценарий)');
   };
 
+  const handleSendToGenerator = async (competitor: Competitor) => {
+      const sourceUrl = competitor.platform === 'instagram'
+        ? `https://instagram.com/${competitor.handle.replace('@', '')}`
+        : `https://tiktok.com/${competitor.handle}`;
+      
+      await onCreateFromIdea(
+          `Анализ конкурента: @${competitor.handle}`,
+          sourceUrl
+      );
+      toast.success(`@${competitor.handle} отправлен в генератор!`);
+  };
+
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full p-1">
       {/* Left Column: Competitors List */}
@@ -217,49 +230,61 @@ export const CompetitorMonitoringEnhanced = ({
                                     initial={{ opacity: 0, x: -10 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -10 }}
-                                    className="group flex items-center justify-between p-3 rounded-2xl border border-transparent hover:border-border/50 bg-transparent hover:bg-background/60 hover:shadow-sm transition-all duration-200"
+                                    className="group flex flex-col p-3 rounded-2xl border border-transparent hover:border-border/50 bg-transparent hover:bg-background/60 hover:shadow-sm transition-all duration-200"
                                 >
-                                    <div className="flex items-center gap-3 min-w-0">
-                                        <div className={cn(
-                                            "w-10 h-10 rounded-xl flex items-center justify-center text-white shadow-sm shrink-0 bg-gradient-to-br",
-                                            platform.color
-                                        )}>
-                                            {platform.icon}
+                                    <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                            <Avatar className="h-10 w-10 border border-border">
+                                                <AvatarImage src={competitor.avatar_url || undefined} />
+                                                <AvatarFallback>
+                                                    {competitor.handle ? competitor.handle[0].toUpperCase() : <User className="w-4 h-4" />}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div className="min-w-0">
+                                                <p className="font-medium text-sm truncate pr-2">{competitor.handle}</p>
+                                                {competitor.last_scanned_at && (
+                                                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
+                                                        <Clock className="w-3 h-3" />
+                                                        {format(new Date(competitor.last_scanned_at), 'd MMM HH:mm', { locale: ru })}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-sm truncate pr-2">{competitor.handle}</p>
-                                            {competitor.last_scanned_at && (
-                                                <div className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
-                                                    <Clock className="w-3 h-3" />
-                                                    {format(new Date(competitor.last_scanned_at), 'd MMM HH:mm', { locale: ru })}
-                                                </div>
-                                            )}
+                                        
+                                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 rounded-lg hover:bg-background hover:text-primary"
+                                                onClick={() => window.open(
+                                                    competitor.platform === 'instagram'
+                                                        ? `https://instagram.com/${competitor.handle.replace('@', '')}`
+                                                        : `https://tiktok.com/${competitor.handle}`,
+                                                    '_blank'
+                                                )}
+                                            >
+                                                <ExternalLink className="w-3.5 h-3.5" />
+                                            </Button>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
+                                                onClick={() => onRemove(competitor.id)}
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </Button>
                                         </div>
                                     </div>
-                                    
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 rounded-lg hover:bg-background hover:text-primary"
-                                            onClick={() => window.open(
-                                                competitor.platform === 'instagram'
-                                                    ? `https://instagram.com/${competitor.handle.replace('@', '')}`
-                                                    : `https://tiktok.com/${competitor.handle}`,
-                                                '_blank'
-                                            )}
-                                        >
-                                            <ExternalLink className="w-3.5 h-3.5" />
-                                        </Button>
-                                        <Button
-                                            variant="ghost"
-                                            size="icon"
-                                            className="h-8 w-8 rounded-lg hover:bg-destructive/10 hover:text-destructive"
-                                            onClick={() => onRemove(competitor.id)}
-                                        >
-                                            <Trash2 className="w-3.5 h-3.5" />
-                                        </Button>
-                                    </div>
+
+                                    <Button 
+                                        variant="default" 
+                                        size="sm"
+                                        className="w-full text-xs h-8 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white border-0 shadow-md opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                        onClick={() => handleSendToGenerator(competitor)}
+                                    >
+                                        <Zap className="w-3 h-3 mr-2" />
+                                        В ГЕНЕРАТОР MarkVision
+                                    </Button>
                                 </motion.div>
                             );
                         })}

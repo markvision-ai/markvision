@@ -222,7 +222,24 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         </TabsContent>
 
         <TabsContent value="competitors" className="flex-1 min-h-0 m-0 p-6 bg-background dark:bg-[#030303]">
-             <CompetitorMonitor projectId={projectId} />
+             <CompetitorMonitoringEnhanced 
+               projectId={projectId}
+               competitors={competitors}
+               onAdd={addCompetitor}
+               onRemove={removeCompetitor}
+               onCreateFromIdea={async (title, sourceUrl) => {
+                 await createContent({
+                   title,
+                   content_type: 'dental_video',
+                   source_url: sourceUrl,
+                   original_script: JSON.stringify({ 
+                     main_idea: title, 
+                     source_url: sourceUrl,
+                     tone: 'Expert'
+                   })
+                 });
+               }}
+             />
         </TabsContent>
       </Tabs>
 
