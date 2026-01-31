@@ -331,12 +331,22 @@ export const useContentFactory = (projectId: string | null) => {
   };
 
   const addCompetitor = async (accountHandle: string, platform: string) => {
-    if (!projectId) return null;
+    if (!projectId) {
+      console.error('No project ID found');
+      toast.error('Ошибка: ID проекта не найден');
+      return null;
+    }
 
     try {
       const { data, error } = await supabase
         .from('competitor_monitoring')
-        .insert([{ project_id: projectId, handle: accountHandle, platform }])
+        .insert([{ 
+          project_id: projectId, 
+          handle: accountHandle, 
+          platform,
+          status: 'active',
+          created_at: new Date().toISOString()
+        }])
         .select()
         .single();
 
@@ -344,9 +354,22 @@ export const useContentFactory = (projectId: string | null) => {
       setCompetitors(prev => [data, ...prev]);
       toast.success('Конкурент добавлен');
       return data;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding competitor:', error);
-      toast.error('Ошибка добавления конкурента');
+      console.error('Error details:', {
+        message: error?.message,
+        details: error?.details,
+        hint: error?.hint,
+        code: error?.code
+      });
+
+      if (error?.code === '42501') {
+        toast.error('Ошибка доступа: У вас нет прав на добавление конкурентов в этот проект');
+      } else if (error?.message?.includes('fetch')) {
+        toast.error('Ошибка соединения: Проверьте интернет');
+      } else {
+        toast.error(`Ошибка добавления: ${error?.message || 'Неизвестная ошибка'}`);
+      }
       return null;
     }
   };
