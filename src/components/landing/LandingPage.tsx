@@ -314,6 +314,7 @@ export const LandingPage = () => {
               {activeVariant?.text || (
                 <>
                   Мы берём на себя маркетинг, продажи и аналитику 
+                  <br />
                   Вы занимаетесь пациентами
                   ​<br className="hidden sm:block" />
                   ​

@@ -338,6 +338,15 @@ export const useContentFactory = (projectId: string | null) => {
     }
 
     try {
+      // Self-healing: Ensure user is a member of the project before adding
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+         const { data: memberData } = await supabase.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).single();
+         if (!memberData) {
+            await supabase.from('project_members').insert([{ project_id: projectId, user_id: user.id, role: 'owner' }]);
+         }
+      }
+
       const { data, error } = await supabase
         .from('competitor_monitoring')
         .insert([{ 
