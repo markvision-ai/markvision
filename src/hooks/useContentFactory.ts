@@ -344,7 +344,7 @@ export const useContentFactory = (projectId: string | null) => {
           project_id: projectId, 
           handle: accountHandle, 
           platform,
-          status: 'active',
+          // status column removed as it does not exist in the schema
           created_at: new Date().toISOString()
         }])
         .select()
