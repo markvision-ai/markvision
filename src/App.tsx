@@ -138,7 +138,7 @@ const App = () => (
         <Route path="/staff" element={<Index />} />
         <Route path="/inbox" element={<Index />} />
         <Route path="/scoring" element={<Index />} />
-        <Route path="/gamification" element={<Index />} />
+
         <Route path="/ab-testing" element={<Index />} />
         <Route path="/ab-tests" element={<Index />} />
         <Route path="/knowledge" element={<Index />} />

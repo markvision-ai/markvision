@@ -67,8 +67,6 @@ const menuSections = [
       { id: 'diagnostics', label: 'Диагностика', icon: HeartPulse },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: Target },
-      { id: 'gamification', label: 'Мотивация', icon: Trophy },
-      { id: 'automation', label: 'Автоматизация', icon: Zap },
     ]
   },
   {
@@ -84,10 +82,6 @@ const menuSections = [
     title: 'Настройки',
     items: [
       { id: 'settings', label: 'Настройки', icon: Settings },
-      { id: 'integrations', label: 'Подключения', icon: Plug },
-      { id: 'team', label: 'Сотрудники', icon: UsersRound },
-      { id: 'calendar', label: 'Календарь', icon: Calendar },
-      { id: 'knowledge', label: 'База знаний', icon: BookOpen },
     ]
   }
 ];

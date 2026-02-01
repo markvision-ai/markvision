@@ -10,7 +10,9 @@ import {
   Loader2,
   Save,
   AlertCircle,
-  Activity
+  Activity,
+  Users,
+  Plug
 } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,6 +22,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/externalSupabase';
+import { TeamManagement } from '@/components/team/TeamManagement';
+import IntegrationsManagementNew from '@/components/integrations/IntegrationsManagementNew';
 import { KnowledgeBaseTab } from './tabs/KnowledgeBaseTab';
 import { SecurityTab } from './tabs/SecurityTab';
 import { HelpTab } from './tabs/HelpTab';
@@ -75,6 +79,8 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
 
   const tabs = [
     { id: 'general', label: 'Общие', icon: Settings },
+    { id: 'team', label: 'Сотрудники', icon: Users },
+    { id: 'integrations', label: 'Подключения', icon: Plug },
     { id: 'knowledge', label: 'База знаний', icon: BookOpen },
     { id: 'security', label: 'Безопасность', icon: Shield },
     { id: 'health', label: 'Здоровье системы', icon: Activity },
@@ -201,23 +207,33 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
           </Card>
         </TabsContent>
 
-        {/* Tab 2: Knowledge Base */}
-        <TabsContent value="knowledge" className="mt-0">
+        {/* Tab 2: Team Management */}
+        <TabsContent value="team" className="space-y-6 mt-0">
+          <TeamManagement projects={projects} />
+        </TabsContent>
+
+        {/* Tab 3: Integrations */}
+        <TabsContent value="integrations" className="space-y-6 mt-0">
+          <IntegrationsManagementNew projectId={projectId} />
+        </TabsContent>
+
+        {/* Tab 4: Knowledge Base */}
+        <TabsContent value="knowledge" className="space-y-6 mt-0">
           <KnowledgeBaseTab projectId={projectId} />
         </TabsContent>
 
-        {/* Tab 3: Security */}
-        <TabsContent value="security" className="mt-0">
+        {/* Tab 5: Security */}
+        <TabsContent value="security" className="space-y-6 mt-0">
           <SecurityTab projectId={projectId} />
         </TabsContent>
 
-        {/* Tab 4: Technical Health */}
-        <TabsContent value="health" className="mt-0">
+        {/* Tab 6: Technical Health */}
+        <TabsContent value="health" className="space-y-6 mt-0">
           <TechnicalHealthTab projectId={projectId} />
         </TabsContent>
 
-        {/* Tab 5: Help */}
-        <TabsContent value="help" className="mt-0">
+        {/* Tab 7: Help */}
+        <TabsContent value="help" className="space-y-6 mt-0">
           <HelpTab projectId={projectId} />
         </TabsContent>
       </Tabs>

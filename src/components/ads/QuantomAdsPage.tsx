@@ -1,21 +1,24 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
 import { useLeads } from '@/hooks/useLeads';
+import { useContentFactory } from '@/hooks/useContentFactory';
+import { useProjectData } from '@/hooks/useProjectData';
 import { AdsSummaryCards } from './AdsSummaryCards';
 import { CampaignTable } from './CampaignTable';
 import { CampaignDrawer } from './CampaignDrawer';
-import { CreativeCenterTab } from './CreativeCenterTab';
 import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { AIStatusIndicator } from './AIStatusIndicator';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RefreshCw, Plus, Loader2, Zap, CalendarIcon } from 'lucide-react';
+import { AdsChatInterface } from './AdsChatInterface';
+import { RefreshCw, Plus, Loader2, Zap, CalendarIcon, Activity } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
+import { supabase } from '@/lib/externalSupabase';
+import { toast } from 'sonner';
 
 interface QuantomAdsPageProps {
   projectId: string | null;
@@ -24,19 +27,58 @@ interface QuantomAdsPageProps {
 export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   const { campaigns, loading, refetch, updateCampaign } = useCampaigns(projectId);
   const { leads } = useLeads(projectId);
+  const { content } = useContentFactory(projectId);
+  const { dailyData } = useProjectData(projectId);
   const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [autopilotEnabled, setAutopilotEnabled] = useState(false);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
   });
-  const [platformTab, setPlatformTab] = useState<'all' | 'facebook' | 'google' | 'tiktok' | 'creative'>('all');
 
-  // Filter campaigns by platform
-  const filteredCampaigns = useMemo(() => {
-    if (platformTab === 'all' || platformTab === 'creative') return campaigns;
-    return campaigns.filter(c => c.platform === platformTab);
-  }, [campaigns, platformTab]);
+  // Load Autopilot Status
+  useEffect(() => {
+    if (!projectId) return;
+    const fetchSettings = async () => {
+      try {
+        const { data, error } = await (supabase as any)
+          .from('project_settings')
+          .select('autopilot_enabled')
+          .eq('project_id', projectId)
+          .single();
+        
+        if (data) {
+          setAutopilotEnabled(data.autopilot_enabled);
+        }
+      } catch (e) {
+        console.error('Failed to load project settings', e);
+      }
+    };
+    fetchSettings();
+  }, [projectId]);
+
+  const toggleAutopilot = async (enabled: boolean) => {
+    if (!projectId) return;
+    setAutopilotEnabled(enabled);
+    try {
+      const { error } = await (supabase as any)
+        .from('project_settings')
+        .upsert({ project_id: projectId, autopilot_enabled: enabled }, { onConflict: 'project_id' });
+      
+      if (error) throw error;
+      toast.success(enabled ? 'ИИ-Автопилот включен' : 'ИИ-Автопилот выключен');
+    } catch (e) {
+      console.error('Failed to update autopilot', e);
+      toast.error('Ошибка сохранения настроек');
+      setAutopilotEnabled(!enabled);
+    }
+  };
+
+  // Filter campaigns (Meta Only)
+  const metaCampaigns = useMemo(() => {
+    return campaigns.filter(c => c.platform === 'facebook' || c.platform === 'instagram' || !c.platform); // Default to meta if platform is missing or matches
+  }, [campaigns]);
 
   // Calculate leads per campaign based on utm_campaign matching
   const leadsPerCampaign = useMemo(() => {
@@ -62,13 +104,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
   // Summary calculations
   const summaryMetrics = useMemo(() => {
-    const relevantCampaigns = platformTab === 'all' || platformTab === 'creative' 
-      ? campaigns 
-      : campaigns.filter(c => c.platform === platformTab);
-    
-    const totalSpent = relevantCampaigns.reduce((sum, c) => sum + c.spent_today, 0);
-    const totalLeads = relevantCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
-    const totalRevenue = relevantCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
+    const totalSpent = metaCampaigns.reduce((sum, c) => sum + c.spent_today, 0);
+    const totalLeads = metaCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
+    const totalRevenue = metaCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
     
     return {
       totalSpent,
@@ -76,7 +114,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       avgCPA: totalLeads > 0 ? totalSpent / totalLeads : 0,
       overallROAS: totalSpent > 0 ? totalRevenue / totalSpent : 0,
     };
-  }, [campaigns, platformTab, leadsPerCampaign, revenuePerCampaign]);
+  }, [metaCampaigns, leadsPerCampaign, revenuePerCampaign]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -105,196 +143,130 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   };
 
   return (
-    <div className="space-y-6 bg-background text-foreground">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
-            <Zap className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
-              <AIStatusIndicator />
+    <div className="flex h-[calc(100vh-6rem)] overflow-hidden bg-background text-foreground relative">
+      {/* Main Content Area */}
+      <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        {/* Header */}
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 bg-blue-500/10 rounded-lg">
+                <Zap className="w-6 h-6 text-blue-500" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
+                  <AIStatusIndicator />
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Командный центр управления Meta Ads
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Управление рекламными кампаниями
-            </p>
+
+            {/* Autopilot Switch */}
+            <div className="flex items-center gap-4 bg-card/50 border border-border p-2 pr-4 rounded-full backdrop-blur-sm">
+               <div className={`w-10 h-10 rounded-full flex items-center justify-center ${autopilotEnabled ? 'bg-green-500/20 text-green-500 animate-pulse' : 'bg-muted text-muted-foreground'}`}>
+                 <Activity className="w-5 h-5" />
+               </div>
+               <div className="flex flex-col">
+                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Master Switch</span>
+                 <div className="flex items-center gap-2">
+                   <span className={`font-bold ${autopilotEnabled ? 'text-green-400 shadow-[0_0_10px_rgba(74,222,128,0.5)]' : 'text-foreground'}`}>
+                     ИИ-АВТОПИЛОТ
+                   </span>
+                   <Switch 
+                     checked={autopilotEnabled}
+                     onCheckedChange={toggleAutopilot}
+                     className="data-[state=checked]:bg-green-500"
+                   />
+                 </div>
+               </div>
+               {autopilotEnabled && (
+                 <span className="text-[10px] text-green-500 font-medium animate-pulse ml-2 hidden sm:inline-block">
+                   Марк управляет ставками
+                 </span>
+               )}
+            </div>
+          </div>
+
+          {/* Control Panel */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 dark:bg-card/50 rounded-lg border border-border">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button variant="outline" size="sm" onClick={() => handleQuickDate(0)} className="text-xs">Сегодня</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickDate(1)} className="text-xs">Вчера</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickDate(7)} className="text-xs">7 дней</Button>
+              <Button variant="outline" size="sm" onClick={() => handleQuickDate(30)} className="text-xs">30 дней</Button>
+            </div>
+
+            <div className="flex items-center gap-2 flex-1">
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="justify-start text-left font-normal text-sm">
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {dateRange?.from ? (
+                      dateRange.to ? `${format(dateRange.from, 'dd MMM', { locale: ru })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: ru })}` : format(dateRange.from, 'dd MMM yyyy', { locale: ru })
+                    ) : <span>Выберите период</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
+                  <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={ru} className="rounded-md bg-background" />
+                </PopoverContent>
+              </Popover>
+
+              <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
+                <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              </Button>
+
+              <Button className="ml-auto bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-4 h-4 mr-2" />
+                <span className="hidden sm:inline">Добавить кампанию</span>
+              </Button>
+            </div>
           </div>
         </div>
 
-        {/* Control Panel */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 dark:bg-card/50 rounded-lg border border-border">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(0)}
-              className="text-xs"
-            >
-              Сегодня
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(1)}
-              className="text-xs"
-            >
-              Вчера
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(7)}
-              className="text-xs"
-            >
-              7 дней
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(30)}
-              className="text-xs"
-            >
-              30 дней
-            </Button>
-          </div>
+        {/* Summary Cards */}
+        <AdsSummaryCards
+          totalSpent={summaryMetrics.totalSpent}
+          totalLeads={summaryMetrics.totalLeads}
+          avgCPA={summaryMetrics.avgCPA}
+          overallROAS={summaryMetrics.overallROAS}
+        />
 
-          <div className="flex items-center gap-2 flex-1">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start text-left font-normal text-sm">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, 'dd MMM', { locale: ru })} -{' '}
-                        {format(dateRange.to, 'dd MMM yyyy', { locale: ru })}
-                      </>
-                    ) : (
-                      format(dateRange.from, 'dd MMM yyyy', { locale: ru })
-                    )
-                  ) : (
-                    <span>Выберите период</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                  locale={ru}
-                  className="rounded-md bg-background"
-                />
-              </PopoverContent>
-            </Popover>
+        {/* Campaign Funnel Chart */}
+        <CampaignFunnelChart campaigns={metaCampaigns} leads={leads} />
 
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handleRefresh} 
-              disabled={refreshing}
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
-
-            <Button className="ml-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Добавить кампанию</span>
-              <span className="sm:hidden">Добавить</span>
-            </Button>
-          </div>
+        {/* Campaigns Table (Meta Only) */}
+        <div className="rounded-lg border border-border bg-card">
+           <div className="p-4 border-b border-border">
+             <h3 className="font-semibold flex items-center gap-2">
+               <div className="w-2 h-2 rounded-full bg-blue-500" />
+               Facebook & Instagram Campaigns
+             </h3>
+           </div>
+           <CampaignTable
+             campaigns={metaCampaigns}
+             leadsPerCampaign={leadsPerCampaign}
+             onCampaignClick={handleCampaignClick}
+             onUpdateCampaign={updateCampaign}
+           />
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <AdsSummaryCards
-        totalSpent={summaryMetrics.totalSpent}
-        totalLeads={summaryMetrics.totalLeads}
-        avgCPA={summaryMetrics.avgCPA}
-        overallROAS={summaryMetrics.overallROAS}
-      />
-
-      {/* Campaign Funnel Chart */}
-      <CampaignFunnelChart campaigns={campaigns} leads={leads} />
-
-      {/* Platform Tabs */}
-      <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
-        <TabsList className="w-full justify-start bg-muted/50 dark:bg-muted/30 p-1 overflow-x-auto flex-nowrap border border-border">
-          <TabsTrigger value="all" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            Все платформы
-          </TabsTrigger>
-          <TabsTrigger value="facebook" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
-            <span className="hidden sm:inline">Facebook / Instagram</span>
-            <span className="sm:hidden">FB</span>
-          </TabsTrigger>
-          <TabsTrigger value="google" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
-            <span className="hidden sm:inline">Google Ads</span>
-            <span className="sm:hidden">Google</span>
-          </TabsTrigger>
-          <TabsTrigger value="tiktok" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-black dark:bg-white rounded text-[10px] text-white dark:text-black font-bold flex items-center justify-center">T</div>
-            <span className="hidden sm:inline">TikTok Ads</span>
-            <span className="sm:hidden">TikTok</span>
-          </TabsTrigger>
-          <TabsTrigger value="creative" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <Zap className="w-4 h-4 text-success" />
-            <span className="hidden sm:inline">Центр Запуска и Тестирования</span>
-            <span className="sm:hidden">Креативы</span>
-          </TabsTrigger>
-        </TabsList>
-
-        {/* All Platforms */}
-        <TabsContent value="all" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* Facebook */}
-        <TabsContent value="facebook" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* Google */}
-        <TabsContent value="google" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* TikTok */}
-        <TabsContent value="tiktok" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* Creative Center */}
-        <TabsContent value="creative" className="mt-4">
-          <CreativeCenterTab projectId={projectId} />
-        </TabsContent>
-      </Tabs>
+      {/* Chat Interface (Right Side) */}
+      <div className="w-[450px] border-l border-border/40 bg-black/90 backdrop-blur-xl relative flex flex-col shadow-2xl z-10">
+        <AdsChatInterface 
+          projectId={projectId} 
+          contextData={{
+            campaigns: metaCampaigns,
+            leads: leads,
+            contentItems: content,
+            dailyData: dailyData,
+            summary: summaryMetrics
+          }}
+        />
+      </div>
 
       {/* Campaign Drawer */}
       <CampaignDrawer

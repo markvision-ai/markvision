@@ -59,7 +59,7 @@ const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => (
 const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
 const OmnichannelInbox = lazy(() => import('./inbox/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
 const LeadScoring = lazy(() => import('./scoring/LeadScoring').then(m => ({ default: m.LeadScoring })));
-const GamificationHub = lazy(() => import('./gamification/GamificationHub').then(m => ({ default: m.GamificationHub })));
+
 const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ default: m.ABOptimizer })));
 const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
 const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })));
@@ -399,7 +399,6 @@ export const AnalyticsPlatform = () => {
       case 'inbox': return '📬 Входящие';
       case 'finance': return '💰 Финансы и прибыль';
       case 'scoring': return '🔥 Рейтинг заявок';
-      case 'gamification': return '🏆 Мотивация';
       case 'ab-testing': return '🧪 A/B Оптимизатор';
       case 'knowledge': return '📚 База знаний';
       case 'health': return '🩺 Состояние системы';
@@ -641,7 +640,7 @@ export const AnalyticsPlatform = () => {
               ));
 
               registerWidget('ai-assistant', (
-                <AIAssistant />
+                <AIAssistant hideDashboard={true} />
               ));
             }
 
@@ -761,11 +760,7 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'gamification' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <GamificationHub projectId={currentProjectId} />
-        </Suspense>
-      )}
+
 
       {activeTab === 'ab-testing' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
@@ -824,7 +819,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

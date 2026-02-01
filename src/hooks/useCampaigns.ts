@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 export interface Campaign {
   id: string;
   project_id: string;
-  platform: 'facebook' | 'tiktok' | 'google';
+  platform: 'facebook' | 'tiktok' | 'google' | 'instagram';
   external_id: string | null;
   name: string;
   status: boolean;

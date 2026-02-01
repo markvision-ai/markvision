@@ -12,7 +12,8 @@ import {
   Loader2,
   Video,
   MessageCircle,
-  Send
+  Send,
+  Zap
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
+import { AutomationPage } from '../automation/AutomationPage';
 
 interface AdAccount {
   id: string;
@@ -89,6 +91,9 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   const [modalSelectedInstagram, setModalSelectedInstagram] = useState<string>('');
   const [modalLoading, setModalLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
+
+  // Automation Modal
+  const [isAutomationOpen, setIsAutomationOpen] = useState(false);
 
   const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
@@ -357,7 +362,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-6 space-y-6">
+    <div className="space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -513,6 +518,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { 
+            id: 'automation', 
+            name: 'Автоматизация (n8n)', 
+            icon: <Zap className="w-5 h-5" />,
+            color: 'from-orange-500/20 to-red-600/20',
+            iconColor: 'text-orange-500',
+            action: () => setIsAutomationOpen(true)
+          },
+          { 
             id: 'google', 
             name: 'Google Ads', 
             icon: <Target className="w-5 h-5" />,
@@ -547,10 +560,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3 }}
           >
-            <Card className={cn(
-              "bg-card backdrop-blur-[16px] border-border",
-              "shadow-sm dark:shadow-lg hover:shadow-md transition-shadow"
-            )}>
+            <Card 
+              className={cn(
+                "bg-card backdrop-blur-[16px] border-border",
+                "shadow-sm dark:shadow-lg hover:shadow-md transition-shadow",
+                integration.action && "cursor-pointer hover:border-primary/50"
+              )}
+              onClick={integration.action}
+            >
               <CardContent className="p-4">
                 <div className="flex flex-col items-center text-center space-y-3">
                   <div className={cn(
@@ -576,6 +593,28 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
           </motion.div>
         ))}
       </div>
+
+      {/* Automation Modal */}
+      <Dialog open={isAutomationOpen} onOpenChange={setIsAutomationOpen}>
+        <DialogContent className="max-w-[90vw] h-[90vh] overflow-y-auto bg-background border-border">
+          <DialogHeader>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Управление автоматизациями</span>
+            </DialogTitle>
+            <DialogDescription>
+              Настройка и управление сценариями n8n
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <AutomationPage projectId={currentProjectId} />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAutomationOpen(false)}>
+              Закрыть
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Modal: Resource Selection */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>

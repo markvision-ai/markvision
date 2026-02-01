@@ -103,11 +103,9 @@ const menuGroups = [
     icon: ShoppingCart,
     items: [
       { id: 'crm', label: 'CRM', icon: Kanban },
-      { id: 'calendar', label: 'Календарь', icon: CalendarDays },
       { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: FlameKindling },
-      { id: 'gamification', label: 'Мотивация', icon: Trophy },
     ]
   },
   {
@@ -126,10 +124,6 @@ const menuGroups = [
     icon: Settings,
     items: [
       { id: 'settings', label: 'Настройки', icon: Settings },
-      { id: 'integrations', label: 'Подключения', icon: Plug },
-      { id: 'team', label: 'Сотрудники и доступ', icon: Users },
-      { id: 'staff', label: 'Персонал', icon: UserCog },
-      { id: 'knowledge', label: 'База знаний', icon: BookOpen },
       { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
       { id: 'health', label: 'Состояние системы', icon: Activity },
       { id: 'help', label: 'Помощь', icon: HelpCircle },

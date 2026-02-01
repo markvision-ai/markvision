@@ -227,18 +227,6 @@ export const AppSidebar = ({
         icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
         tab: "scoring",
       },
-      {
-        label: "Мотивация",
-        href: "/gamification",
-        icon: <IconTrophy className="h-5 w-5 flex-shrink-0" />,
-        tab: "gamification",
-      },
-      {
-        label: "Автоматизация",
-        href: "/automation",
-        icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
-        tab: "automation",
-      },
     ],
     analytics: [
       {
@@ -272,24 +260,6 @@ export const AppSidebar = ({
         href: "/settings",
         icon: <IconSettings className="h-5 w-5 flex-shrink-0" />,
         tab: "settings",
-      },
-      {
-        label: "Подключения",
-        href: "/integrations",
-        icon: <IconPlugConnected className="h-5 w-5 flex-shrink-0" />,
-        tab: "integrations",
-      },
-      {
-        label: "Сотрудники и доступ",
-        href: "/team",
-        icon: <IconUsersGroup className="h-5 w-5 flex-shrink-0" />,
-        tab: "team",
-      },
-      {
-        label: "Календарь",
-        href: "/calendar",
-        icon: <IconCalendar className="h-5 w-5 flex-shrink-0" />,
-        tab: "calendar",
       },
     ],
   };
