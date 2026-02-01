@@ -120,9 +120,32 @@ async function processAgentRequest(supabase: any, projectId: string, payload: an
           ]
         }
       };
-    } catch (e) {
+    } catch (e: any) {
       return { message: `Ошибка API: ${e.message}`, type: "error" };
     }
+  }
+
+  // INTENT: BUDGET CHECK
+  if (query.includes('бюджет') || query.includes('budget')) {
+      try {
+          const accessToken = await getAccessToken(supabase, projectId);
+          const adAccountId = "act_1005197113823722"; 
+          
+          const campaigns = await fetchActiveCampaigns(accessToken, adAccountId);
+          
+          if (campaigns.length === 0) {
+              return { message: "Активных кампаний с бюджетом не найдено.", type: "text" };
+          }
+
+          const totalDailyBudget = campaigns.reduce((sum: number, c: any) => sum + (parseInt(c.daily_budget || '0') / 100), 0);
+          
+          return {
+              message: `💰 Общий дневной бюджет: ${totalDailyBudget.toLocaleString()} ₸\nАктивных кампаний: ${campaigns.length}`,
+              type: "text"
+          };
+      } catch (e: any) {
+          return { message: `Ошибка проверки бюджета: ${e.message}`, type: "error" };
+      }
   }
 
   // INTENT: STOP ADS
@@ -149,11 +172,86 @@ async function processAgentRequest(supabase: any, projectId: string, payload: an
   };
 }
 
-async function executeAgentAction(supabase: any, projectId: string, payload: any) {
+async function executeAgentAction(supabase: any, projectId: string, payload: any, authHeader?: string) {
     const actionId = payload.action_id;
     const adAccountId = "act_1005197113823722"; // Should be dynamic in production
 
     try {
+        // Handle Content Factory Actions
+        if (actionId.startsWith('create_')) {
+            if (!authHeader) {
+                return { message: "Ошибка: Необходима авторизация", type: "error" };
+            }
+            const token = authHeader.replace("Bearer ", "");
+            const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+            
+            if (authError || !user) {
+                return { message: "Ошибка авторизации: Пользователь не определен", type: "error" };
+            }
+
+            const contentTypeMap: Record<string, string> = {
+                'create_avatar_video': 'avatar_video',
+                'create_static_post': 'static_post',
+                'create_carousel': 'carousel',
+                'create_article': 'article'
+            };
+
+            const contentType = contentTypeMap[actionId];
+            if (!contentType) {
+                 return { message: "Неизвестный тип контента", type: "error" };
+            }
+
+            const title = `Draft ${contentType} - ${new Date().toLocaleTimeString()}`;
+            
+            // 1. Create task for n8n (Queue)
+            const { error: taskError } = await supabase
+                .from('content_tasks')
+                .insert([{ 
+                    project_id: projectId,
+                    user_id: user.id,
+                    content_type: contentType,
+                    title: title,
+                    status: 'pending',
+                    created_at: new Date().toISOString()
+                }]);
+
+            if (taskError) {
+                console.error('Task creation error:', taskError);
+                return { message: `Ошибка создания задачи: ${taskError.message}`, type: "error" };
+            }
+
+            // 2. Create item in Factory (UI Visualization)
+            const dbPayload = {
+                title: title,
+                platform_type: contentType,
+                project_id: projectId,
+                author_id: user.id,
+                status: 'ideation',
+                body: {
+                    avatar_status: 'idle',
+                    sora_status: 'idle',
+                    carousel_status: 'idle',
+                    threads_status: 'idle',
+                    telegram_status: 'idle',
+                    article_status: 'idle'
+                }
+            };
+
+            const { error: factoryError } = await supabase
+                .from('content_factory')
+                .insert([dbPayload]);
+
+            if (factoryError) {
+                 console.error('Factory creation error:', factoryError);
+                 // We don't stop here as the task is already created, but we should warn
+            }
+
+            return {
+                message: `✅ Задача на создание "${contentType}" успешно добавлена в очередь Контент-Завода.`,
+                type: "success"
+            };
+        }
+
         const accessToken = await getAccessToken(supabase, projectId);
         
         // Fetch active campaigns to act upon

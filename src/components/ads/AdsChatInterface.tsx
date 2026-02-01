@@ -14,7 +14,12 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
-  ArrowRight
+  ArrowRight,
+  Video,
+  Layers,
+  FileText,
+  Mic,
+  Music
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -136,6 +141,45 @@ const ActionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actio
           <ArrowRight className="w-3 h-3 ml-2 opacity-70" />
         </Button>
       ))}
+    </div>
+  );
+};
+
+const ContentSelectionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actionId: string, label: string) => void }) => {
+  const getIcon = (action: any) => {
+    const id = action.action_id || '';
+    const label = action.label || '';
+    
+    if (id.includes('video') || label.includes('Видео')) return <Video className="w-5 h-5 text-blue-400" />;
+    if (id.includes('post') || label.includes('пост')) return <ImageIcon className="w-5 h-5 text-pink-400" />;
+    if (id.includes('carousel') || label.includes('Карусель')) return <Layers className="w-5 h-5 text-purple-400" />;
+    if (id.includes('article') || label.includes('Статья')) return <FileText className="w-5 h-5 text-orange-400" />;
+    
+    return <Sparkles className="w-5 h-5 text-yellow-400" />;
+  };
+
+  return (
+    <div className="mt-2 flex flex-col gap-3 min-w-[300px]">
+       {data.title && (
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+          <Sparkles className="w-3 h-3" />
+          {data.title}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        {data.actions?.map((action, idx) => (
+          <button
+            key={idx}
+            onClick={() => onExecute(action.action_id, action.label)}
+            className="flex flex-col items-center justify-center gap-2 p-3 bg-card/50 hover:bg-muted/80 border border-border/50 hover:border-emerald-500/50 rounded-xl transition-all active:scale-95 group"
+          >
+            <div className="p-2 rounded-full bg-background/50 group-hover:bg-background transition-colors">
+              {getIcon(action)}
+            </div>
+            <span className="text-xs font-medium text-center">{action.label}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
@@ -457,7 +501,11 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                       {msg.type === 'widget' && msg.widget_data && (
                                         <div className="mt-3 pt-3 border-t border-border/50">
                                           {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
-                                          {(msg.widget_data.actions?.length ?? 0) > 0 && (
+                                          {msg.widget_type === 'content_selection_card' && (
+                                            <ContentSelectionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
+                                          )}
+                                          {/* Only show generic actions if NOT a specific widget that handles actions internally */}
+                                          {msg.widget_type !== 'content_selection_card' && (msg.widget_data.actions?.length ?? 0) > 0 && (
                                             <ActionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
                                           )}
                                         </div>
