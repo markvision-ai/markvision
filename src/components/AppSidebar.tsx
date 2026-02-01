@@ -113,6 +113,7 @@ export const AppSidebar = ({
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
+  const { theme, toggleTheme } = useTheme();
   const isSuperAdmin = userId ? SUPER_ADMIN_UIDS.includes(userId) : false;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();

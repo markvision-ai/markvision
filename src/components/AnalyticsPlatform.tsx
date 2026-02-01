@@ -130,6 +130,7 @@ const formatNumber = (value: number): string => {
 };
 
 export const AnalyticsPlatform = () => {
+  const { theme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   
