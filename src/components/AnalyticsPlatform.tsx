@@ -176,7 +176,7 @@ export const AnalyticsPlatform = () => {
   }, [location.pathname]);
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
-  const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
+  const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
   const { hasErrors: systemHasErrors } = useSystemHealth(currentProjectId);
   
   // CRITICAL: Super admin UUID - bypass all loading states
