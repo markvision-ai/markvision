@@ -39,7 +39,10 @@ import {
   IconPlus,
   IconCheck,
   IconSettings,
+  IconSun,
+  IconMoon,
 } from "@tabler/icons-react";
+import { useTheme } from "@/hooks/useTheme";
 import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
@@ -446,6 +449,18 @@ export const AppSidebar = ({
 
           {/* User Profile & Logout */}
           <div className="border-t border-border pt-4">
+            <SidebarLink
+              link={{
+                label: theme === 'dark' ? 'Светлая тема' : 'Тёмная тема',
+                href: "#",
+                icon: theme === 'dark' ? (
+                  <IconSun className="h-5 w-5 flex-shrink-0 text-yellow-500" />
+                ) : (
+                  <IconMoon className="h-5 w-5 flex-shrink-0 text-blue-400" />
+                ),
+                onClick: toggleTheme,
+              }}
+            />
             <SidebarLink
               link={{
                 label: userProfile?.name || "Пользователь",

@@ -26,9 +26,8 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
-  Sun,
-  Moon
 } from 'lucide-react';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -183,12 +182,12 @@ export const MobileMenuDrawer = ({
             >
               {theme === 'dark' ? (
                 <>
-                  <Sun className="w-4 h-4" />
+                  <IconSun className="w-4 h-4 text-yellow-500" />
                   <span className="text-xs">Светлая</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-4 h-4" />
+                  <IconMoon className="w-4 h-4 text-blue-400" />
                   <span className="text-xs">Тёмная</span>
                 </>
               )}
