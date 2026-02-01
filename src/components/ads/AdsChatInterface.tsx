@@ -342,14 +342,13 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                     </div>
                                 ) : (
                                     <div className={cn(
-                                      "prose prose-sm max-w-none leading-relaxed",
-                                      msg.role === 'user' ? "prose-invert" : "dark:prose-invert"
+                                      "prose prose-sm max-w-none leading-relaxed prose-invert"
                                     )}>
                                         <ReactMarkdown 
                                             components={{
                                                 p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
                                                 strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
-                                                code: ({node, ...props}) => <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                                                code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono" {...props} />
                                             }}
                                         >
                                             {msg.content}

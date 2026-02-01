@@ -236,7 +236,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             Google Ads
           </TabsTrigger>
           <TabsTrigger value="tiktok" className="gap-2">
-            <div className="w-4 h-4 bg-black dark:bg-white rounded text-[10px] text-white dark:text-black font-bold flex items-center justify-center">T</div>
+            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center">T</div>
             TikTok
           </TabsTrigger>
         </TabsList>
@@ -539,7 +539,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             {/* Preview Frame */}
             <div className="flex flex-col items-center">
               <div
-                className={`relative bg-white dark:bg-gray-900 rounded-lg overflow-hidden shadow-xl border border-gray-300 dark:border-gray-700 ${
+                className={`relative bg-card rounded-lg overflow-hidden shadow-xl border border-border ${
                   previewFormat === 'feed' 
                     ? 'w-full aspect-[4/5]' 
                     : 'w-[200px] aspect-[9/16]'

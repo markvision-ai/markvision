@@ -60,7 +60,7 @@ const contentTypes: { value: ContentType; label: string; description: string; ic
     description: 'Текстовый пост',
     icon: <MessageSquare className="w-5 h-5" />,
     platformType: 'Text',
-    color: 'bg-zinc-500/10 text-zinc-600',
+    color: 'bg-zinc-500/10 text-zinc-400',
   },
   {
     value: 'tg_text',

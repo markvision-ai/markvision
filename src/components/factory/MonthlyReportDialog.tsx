@@ -214,7 +214,7 @@ export function MonthlyReportDialog({ projectId }: MonthlyReportDialogProps) {
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity duration-500" />
                         
                         <div className="absolute top-4 left-4">
-                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/20 backdrop-blur-md text-white font-bold border border-white/20">
+                           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-black/40 backdrop-blur-md text-white font-bold border border-white/10">
                              #{index + 1}
                            </div>
                         </div>
@@ -229,7 +229,7 @@ export function MonthlyReportDialog({ projectId }: MonthlyReportDialogProps) {
                             {post.caption || 'Без описания'}
                           </p>
                           <div className="flex items-center gap-4 text-xs font-medium text-white/80">
-                            <div className="flex items-center gap-1.5 bg-white/10 px-2 py-1 rounded-lg backdrop-blur-sm">
+                            <div className="flex items-center gap-1.5 bg-black/20 px-2 py-1 rounded-lg backdrop-blur-sm">
                               <MessageCircle className="w-3.5 h-3.5" />
                               <span>{post.comments_count || 0}</span>
                             </div>

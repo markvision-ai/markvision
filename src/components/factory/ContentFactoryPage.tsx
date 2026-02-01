@@ -165,7 +165,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
             className="h-9"
           >
             <Plus className="w-4 h-4 mr-2" />
-            Новая Партия
+            Создать публикацию
           </Button>
         </div>
       </header>

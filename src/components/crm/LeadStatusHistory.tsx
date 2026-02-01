@@ -74,7 +74,7 @@ export const LeadStatusHistory = ({ leadId }: LeadStatusHistoryProps) => {
               'absolute left-0 top-0 w-[15px] h-[15px] rounded-full bg-gradient-to-br flex items-center justify-center',
               newStyle.gradient
             )}>
-              <div className="w-1.5 h-1.5 rounded-full bg-white" />
+              <div className="w-1.5 h-1.5 rounded-full bg-background" />
             </div>
             
             <div className="space-y-2 ml-2">

@@ -95,7 +95,7 @@ export const BackgroundGradientLight = ({
           "bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600"
         )}
       />
-      <div className={cn("relative z-10 bg-white rounded-[22px]", className)}>
+      <div className={cn("relative z-10 bg-zinc-900 rounded-[22px]", className)}>
         {children}
       </div>
     </div>

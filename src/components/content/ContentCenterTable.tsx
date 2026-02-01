@@ -7,6 +7,7 @@ import { useInstagramPostsStats } from '@/hooks/useInstagramPostsStats';
 import { LaunchOrbitalModal } from './LaunchOrbitalModal';
 import { formatDistanceToNow, format, startOfDay, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface ContentCenterTableProps {
   projectId: string | null;
@@ -103,15 +104,15 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
-        <div className="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-red-900/20 flex items-center justify-center">
           <Play className="w-8 h-8 text-red-600" />
         </div>
         <div className="text-center space-y-2 max-w-md">
           <p className="font-semibold text-lg text-destructive">Ошибка загрузки</p>
           <p className="text-sm text-muted-foreground">{error}</p>
           {error.includes('не найдена') && (
-            <div className="mt-4 p-4 bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-800 text-left">
-              <p className="text-xs font-semibold text-red-900 dark:text-red-100 mb-2">
+            <div className="mt-4 p-4 bg-red-950/20 rounded-lg border border-red-800 text-left">
+              <p className="text-xs font-semibold text-red-100 mb-2">
                 🔧 Решение:
               </p>
               <p className="text-xs text-muted-foreground">
@@ -127,7 +128,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
   if (posts.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
-        <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-violet-900/20 flex items-center justify-center">
           <Play className="w-8 h-8 text-violet-600" />
         </div>
         <div className="text-center space-y-2 max-w-md">
@@ -135,8 +136,8 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
           <p className="text-sm text-muted-foreground">
             Таблица создана, но данные еще не загружены.
           </p>
-          <div className="mt-4 p-4 bg-violet-50 dark:bg-violet-950/20 rounded-lg border border-violet-200 dark:border-violet-800 text-left">
-            <p className="text-xs font-semibold text-violet-900 dark:text-violet-100 mb-2">
+          <div className="mt-4 p-4 bg-violet-950/20 rounded-lg border border-violet-800 text-left">
+            <p className="text-xs font-semibold text-violet-100 mb-2">
               📋 Что делать:
             </p>
             <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
@@ -145,7 +146,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
               <li>Дождись завершения выполнения</li>
               <li>Обнови эту страницу (F5)</li>
             </ol>
-            <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-violet-200 dark:border-violet-800">
+            <p className="text-xs text-muted-foreground mt-3 pt-3 border-t border-violet-800">
               💡 Workflow также запускается автоматически каждый день в 01:05
             </p>
           </div>
@@ -157,7 +158,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
   if (postsByDay.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4 p-6">
-        <div className="w-16 h-16 rounded-full bg-violet-100 dark:bg-violet-900/20 flex items-center justify-center">
+        <div className="w-16 h-16 rounded-full bg-violet-900/20 flex items-center justify-center">
           <Play className="w-8 h-8 text-violet-600" />
         </div>
         <div className="text-center space-y-2 max-w-md">
@@ -236,7 +237,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                           )}
                           {post.media_type?.toLowerCase().includes('video') && (
                             <div className="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                              <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/20">
+                              <div className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/20">
                                 <Play className="w-3.5 h-3.5 text-white fill-white" />
                               </div>
                             </div>
@@ -283,7 +284,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                   <div className="flex flex-col items-end gap-1">
                     <span className="text-sm font-semibold text-foreground">{post.leads_count || 0} лидов</span>
                     {post.paid_leads > 0 && (
-                       <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                       <span className="text-[10px] font-medium px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">
                           {post.paid_leads} оплачено
                        </span>
                     )}
@@ -299,7 +300,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                 <td className="p-5 text-right align-middle">
                   <span className={cn(
                     "text-sm font-bold",
-                    post.revenue > 0 ? "text-emerald-600 dark:text-emerald-400" : "text-muted-foreground/50"
+                    post.revenue > 0 ? "text-emerald-400" : "text-muted-foreground/50"
                   )}>
                     {post.revenue > 0 ? `${formatNumber(post.revenue)} ₸` : '—'}
                   </span>

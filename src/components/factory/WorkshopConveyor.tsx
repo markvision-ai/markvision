@@ -176,7 +176,7 @@ const DraggableContentCard = ({ item, isOverlay = false }: { item: ContentItem; 
              {/* Play overlay if video */}
             {item.content_type === 'avatar_video' && (
                 <div className="absolute inset-0 flex items-center justify-center bg-black/10">
-                    <div className="w-4 h-4 rounded-full bg-white/90 shadow-sm flex items-center justify-center">
+                    <div className="w-4 h-4 rounded-full bg-foreground/90 shadow-sm flex items-center justify-center">
                         <div className="w-0 h-0 border-t-[3px] border-t-transparent border-l-[5px] border-l-black border-b-[3px] border-b-transparent ml-0.5" />
                     </div>
                 </div>

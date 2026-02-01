@@ -69,7 +69,7 @@ const socialLinks = [{
   href: "https://tiktok.com/@markvision.ai"
 }];
 export const Footer = () => {
-  return <footer className="relative bg-slate-50/80 backdrop-blur-xl border-t border-slate-200/50">
+  return <footer className="relative bg-background/95 backdrop-blur-xl border-t border-border">
       {/* Main Footer Content */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
         {/* Desktop: 2-column grid, Mobile: stacked */}
@@ -85,7 +85,7 @@ export const Footer = () => {
                 </AuroraText>
               </span>
             </div>
-            <p className="text-slate-500 text-sm leading-relaxed max-w-sm">
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-sm">
               Первая автономная система управления прибылью для медицинского бизнеса. Наследие, созданное для будущего.
             </p>
           </div>
@@ -95,12 +95,12 @@ export const Footer = () => {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-8">
               {/* Column 1: Platform */}
               <div>
-                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                <h4 className="font-semibold text-foreground mb-4 text-xs uppercase tracking-wider">
                   Платформа
                 </h4>
                 <ul className="space-y-2.5">
                   {platformLinks.map(link => <li key={link.name}>
-                      <Link to={link.href} className="text-slate-500 hover:text-blue-600 transition-colors text-sm">
+                      <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
                         {link.name}
                       </Link>
                     </li>)}
@@ -109,14 +109,14 @@ export const Footer = () => {
 
               {/* Column 2: Ecosystem */}
               <div>
-                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                <h4 className="font-semibold text-foreground mb-4 text-xs uppercase tracking-wider">
                   Экосистема
                 </h4>
                 <ul className="space-y-2.5">
                   {ecosystemLinks.map(link => <li key={link.name}>
-                      <Link to={link.href} className="text-slate-500 hover:text-blue-600 transition-colors text-sm inline-flex flex-wrap items-center gap-1.5">
+                      <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm inline-flex flex-wrap items-center gap-1.5">
                         <span>{link.name}</span>
-                        {link.badge && <span className="text-[9px] px-1.5 py-0.5 bg-blue-100 text-blue-600 rounded-full font-medium whitespace-nowrap">
+                        {link.badge && <span className="text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary rounded-full font-medium whitespace-nowrap">
                             {link.badge}
                           </span>}
                       </Link>
@@ -126,12 +126,12 @@ export const Footer = () => {
 
               {/* Column 3: Resources */}
               <div>
-                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                <h4 className="font-semibold text-foreground mb-4 text-xs uppercase tracking-wider">
                   Ресурсы
                 </h4>
                 <ul className="space-y-2.5">
                   {resourceLinks.map(link => <li key={link.name}>
-                      <Link to={link.href} className="text-slate-500 hover:text-blue-600 transition-colors text-sm">
+                      <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
                         {link.name}
                       </Link>
                     </li>)}
@@ -140,12 +140,12 @@ export const Footer = () => {
 
               {/* Column 4: Legal */}
               <div>
-                <h4 className="font-semibold text-slate-900 mb-4 text-xs uppercase tracking-wider">
+                <h4 className="font-semibold text-foreground mb-4 text-xs uppercase tracking-wider">
                   Юридическое
                 </h4>
                 <ul className="space-y-2.5">
                   {legalLinks.map(link => <li key={link.name}>
-                      <Link to={link.href} className="text-slate-500 hover:text-blue-600 transition-colors text-sm">
+                      <Link to={link.href} className="text-muted-foreground hover:text-primary transition-colors text-sm">
                         {link.name}
                       </Link>
                     </li>)}
@@ -157,18 +157,18 @@ export const Footer = () => {
       </div>
 
       {/* Divider */}
-      <div className="border-t border-slate-200/70" />
+      <div className="border-t border-border" />
 
       {/* Bottom Bar */}
       <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Contact Info */}
-          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm text-slate-500">
-            <a href="tel:+77472842595" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
+          <div className="flex flex-wrap items-center justify-center sm:justify-start gap-4 sm:gap-6 text-sm text-muted-foreground">
+            <a href="tel:+77472842595" className="flex items-center gap-2 hover:text-primary transition-colors">
               <Phone className="w-4 h-4" />
               <span>+7 747 284 2595</span>
             </a>
-            <a href="mailto:markvision@mail.ru" className="flex items-center gap-2 hover:text-blue-600 transition-colors">
+            <a href="mailto:markvision@mail.ru" className="flex items-center gap-2 hover:text-primary transition-colors">
               <Mail className="w-4 h-4" />
               <span>markvision@mail.ru</span>
             </a>
@@ -180,13 +180,13 @@ export const Footer = () => {
             scale: 1.1
           }} whileTap={{
             scale: 0.95
-          }} className="w-9 h-9 rounded-full bg-slate-100 hover:bg-blue-100 flex items-center justify-center text-slate-500 hover:text-blue-600 transition-all" aria-label={social.name}>
+          }} className="w-9 h-9 rounded-full bg-muted hover:bg-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary transition-all" aria-label={social.name}>
                 <social.icon className="w-4 h-4" />
               </motion.a>)}
           </div>
 
           {/* Copyright */}
-          <p className="text-xs text-slate-400 text-center sm:text-right">
+          <p className="text-xs text-muted-foreground text-center sm:text-right">
             © 2026 MarkVision AI
           </p>
         </div>

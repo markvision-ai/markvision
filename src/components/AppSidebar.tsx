@@ -184,7 +184,7 @@ export const AppSidebar = ({
     ],
     marketing: [
       {
-        label: "ИИ таргетолог",
+        label: "Управление рекламой",
         href: "/quantum-ads",
         icon: <IconAd2 className="h-5 w-5 flex-shrink-0" />,
         tab: "quantom-ads",

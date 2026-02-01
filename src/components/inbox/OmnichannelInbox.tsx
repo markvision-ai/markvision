@@ -97,7 +97,7 @@ const channelIcons: Record<string, React.ReactNode> = {
 const channelColors: Record<string, string> = {
   whatsapp: 'bg-green-500',
   instagram: 'bg-pink-500',
-  tiktok: 'bg-black dark:bg-white',
+  tiktok: 'bg-black text-white',
   chat: 'bg-blue-500',
 };
 

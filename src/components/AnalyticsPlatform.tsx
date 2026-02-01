@@ -355,13 +355,13 @@ export const AnalyticsPlatform = () => {
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
 
-  const handleDataChange = (date: string, field: keyof DailyData, value: number) => {
+  const handleDataChange = useCallback((date: string, field: keyof DailyData, value: number) => {
     updateDailyData(date, field, value);
-  };
+  }, [updateDailyData]);
 
-  const handlePlanChange = (field: keyof PlanData, value: number, month?: string) => {
+  const handlePlanChange = useCallback((field: keyof PlanData, value: number, month?: string) => {
     updatePlanData(field, value, month);
-  };
+  }, [updatePlanData]);
 
   const funnelSteps = [
     { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },

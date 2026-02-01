@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
   addMonths, subMonths, startOfWeek, endOfWeek, subWeeks, 
@@ -19,6 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { SummaryCard } from './SummaryCard';
 
 interface DailyData {
   date: string;
@@ -143,20 +144,18 @@ const EditableCell = ({
   );
 };
 
-type PresetKey = 'today' | 'yesterday' | 'week' | 'lastWeek' | 'month' | 'lastMonth' | 'quarter' | 'year';
+type PresetKey = 'month' | 'lastMonth' | 'quarter' | 'year' | 'custom';
 
 const PRESETS: { key: PresetKey; label: string }[] = [
-  { key: 'today', label: 'Сегодня' },
-  { key: 'yesterday', label: 'Вчера' },
-  { key: 'week', label: 'Эта неделя' },
-  { key: 'lastWeek', label: 'Прошл. неделя' },
   { key: 'month', label: 'Этот месяц' },
   { key: 'lastMonth', label: 'Прошл. месяц' },
   { key: 'quarter', label: 'Квартал' },
   { key: 'year', label: 'Год' },
 ];
 
-export const DataTable = ({
+
+
+export const DataTable = React.memo(({
   dailyData,
   onDataChange,
   planData,
@@ -196,20 +195,6 @@ export const DataTable = ({
     let newRange: DateRange;
 
     switch (preset) {
-      case 'today':
-        newRange = { from: now, to: now };
-        break;
-      case 'yesterday':
-        const yesterday = subDays(now, 1);
-        newRange = { from: yesterday, to: yesterday };
-        break;
-      case 'week':
-        newRange = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
-        break;
-      case 'lastWeek':
-        const lastWeek = subWeeks(now, 1);
-        newRange = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
-        break;
       case 'month':
         newRange = { from: startOfMonth(now), to: endOfMonth(now) };
         break;
@@ -319,134 +304,63 @@ export const DataTable = ({
     <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
       <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-        {/* Стоимость клиента */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              Стоимость клиента
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <ShoppingCart className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* Стоимость диагностики */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              Стоимость диагностики
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <Target className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* Стоимость лида */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              Стоимость лида
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <Users className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Показы→Лид) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              CR (Показы→Лид)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {impressionToLeadConv !== null ? (
-              <>
-                {formatCR(impressionToLeadConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
-              </>
-            ) : (
-              <span className="text-slate-400">—</span>
-            )}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Лид→Диагностика) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              CR (Лид→Диагностика)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <Target className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {leadToDiagnosticConv !== null ? (
-              <>
-                {formatCR(leadToDiagnosticConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
-              </>
-            ) : (
-              <span className="text-slate-400">—</span>
-            )}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Диагностика→Продажа) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-800/80 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-300 leading-tight">
-              CR (Диагностика→Продажа)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-700 flex items-center justify-center text-slate-700 dark:text-slate-300 flex-shrink-0">
-              <ShoppingCart className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {diagnosticToSaleConv !== null ? (
-              <>
-                {formatCR(diagnosticToSaleConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
-              </>
-            ) : (
-              <span className="text-slate-400">—</span>
-            )}
-          </div>
-          <div className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight">
-            {diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
-          </div>
-        </div>
+        <SummaryCard
+          title="Стоимость клиента"
+          icon={ShoppingCart}
+          value={customerCost !== null ? formatCurrency(customerCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="Стоимость диагностики"
+          icon={Target}
+          value={diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="Стоимость лида"
+          icon={Users}
+          value={leadCost !== null ? formatCurrency(leadCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="CR (Показы→Лид)"
+          icon={TrendingUp}
+          value={impressionToLeadConv !== null ? (
+            <>
+              {formatCR(impressionToLeadConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="CR (Лид→Диагностика)"
+          icon={Target}
+          value={leadToDiagnosticConv !== null ? (
+            <>
+              {formatCR(leadToDiagnosticConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="CR (Диагностика→Продажа)"
+          icon={ShoppingCart}
+          value={diagnosticToSaleConv !== null ? (
+            <>
+              {formatCR(diagnosticToSaleConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
+        />
       </div>
 
       <div className="bg-card border rounded-xl">
@@ -489,7 +403,7 @@ export const DataTable = ({
                   selected={dateRange}
                   onSelect={(range) => {
                     setDateRange(range);
-                    setActivePreset('today'); // Reset preset highlighting roughly
+                    setActivePreset('custom'); // Reset preset highlighting roughly
                   }}
                   numberOfMonths={2}
                   locale={ru}
@@ -675,4 +589,4 @@ export const DataTable = ({
       </div>
     </div>
   );
-};
+});

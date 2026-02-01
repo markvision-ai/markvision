@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import compression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    compression(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "pwa-icons/*.png"],
@@ -102,10 +104,11 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           // Vendor chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['framer-motion'],
+          'ui-vendor': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-dropdown-menu'],
           'chart-vendor': ['recharts'],
           'date-vendor': ['date-fns'],
           'pdf-vendor': ['html2canvas', 'jspdf'],
+          'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
           // Large components
           'reports': ['./src/components/reports/ReportGenerator.tsx'],
           'crm': ['./src/components/crm/CRMPage.tsx'],

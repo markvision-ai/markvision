@@ -1,12 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import AnalyticsPlatform from '@/components/AnalyticsPlatform';
-import LandingPage from '@/components/landing/LandingPage';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const AnalyticsPlatform = lazy(() => import('@/components/AnalyticsPlatform'));
+const LandingPage = lazy(() => import('@/components/landing/LandingPage'));
 
 const Index = () => {
   const { user, loading } = useAuth();

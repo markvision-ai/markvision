@@ -84,7 +84,7 @@ const sourceTypeColors: Record<string, string> = {
   video: 'bg-red-500',
   affiliate: 'bg-emerald-500',
   sms: 'bg-indigo-500',
-  other: 'bg-gray-500',
+  other: 'bg-slate-600',
 };
 
 export const AttributionTable = ({
@@ -254,7 +254,7 @@ export const AttributionTable = ({
               <TableRow key={item.channelName}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <div className={`w-2 h-8 rounded-full ${sourceTypeColors[item.sourceType] || 'bg-gray-500'}`} />
+                    <div className={`w-2 h-8 rounded-full ${sourceTypeColors[item.sourceType] || 'bg-slate-600'}`} />
                     <div>
                       <p className="font-medium">{item.channelName}</p>
                       <p className="text-xs text-muted-foreground">

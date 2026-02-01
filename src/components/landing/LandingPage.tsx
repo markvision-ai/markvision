@@ -189,42 +189,42 @@ export const LandingPage = () => {
       setLoading(false);
     }
   };
-  return <div className="min-h-screen bg-white overflow-x-hidden font-['Inter',sans-serif]">
+  return <div className="min-h-screen bg-black overflow-x-hidden font-['Inter',sans-serif]">
       {/* Premium Sticky Navbar */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-2xl border-b border-slate-100/50 safe-area-top">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-2xl border-b border-white/10 safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <img alt="MarkVision AI" className="w-8 h-8 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" src="/lovable-uploads/3263a132-db41-45fb-80ef-e0dddeb8aebc.png" />
-            <span className="font-semibold text-sm sm:text-xl text-slate-900 tracking-tight">
+            <span className="font-semibold text-sm sm:text-xl text-white tracking-tight">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
             </span>
           </div>
           
           {/* Desktop Nav */}
           <nav className="hidden md:flex items-center gap-8 lg:gap-10">
-            <button onClick={() => scrollToSection("brand")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
+            <button onClick={() => scrollToSection("brand")} className="text-zinc-400 hover:text-white font-medium transition-colors text-[15px]">
               О проекте
             </button>
-            <button onClick={() => scrollToSection("modules")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
+            <button onClick={() => scrollToSection("modules")} className="text-zinc-400 hover:text-white font-medium transition-colors text-[15px]">
               Возможности
             </button>
-            <button onClick={() => scrollToSection("guarantee")} className="text-slate-500 hover:text-slate-900 font-medium transition-colors text-[15px]">
+            <button onClick={() => scrollToSection("guarantee")} className="text-zinc-400 hover:text-white font-medium transition-colors text-[15px]">
               Гарантия
             </button>
           </nav>
 
           <div className="hidden md:flex items-center gap-3 lg:gap-4">
-            <Button variant="ghost" onClick={() => navigate("/auth")} className="text-slate-600 hover:text-slate-900 font-medium rounded-2xl px-4 lg:px-5">
+            <Button variant="ghost" onClick={() => navigate("/auth")} className="text-zinc-400 hover:text-white font-medium rounded-2xl px-4 lg:px-5 hover:bg-zinc-800">
               Войти
             </Button>
-            <Button onClick={() => scrollToSection("signup")} className="bg-slate-900 hover:bg-slate-800 text-white rounded-2xl px-5 lg:px-6 font-medium shadow-lg shadow-slate-900/20 hover:shadow-xl hover:shadow-slate-900/25 transition-all">
+            <Button onClick={() => scrollToSection("signup")} className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl px-5 lg:px-6 font-medium shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all">
               Начать бесплатно
             </Button>
           </div>
 
           {/* Mobile Menu Button */}
-          <button className="md:hidden p-2 -mr-2 rounded-xl hover:bg-slate-100 transition-colors active:bg-slate-200" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X className="w-6 h-6 text-slate-700" /> : <Menu className="w-6 h-6 text-slate-700" />}
+          <button className="md:hidden p-2 -mr-2 rounded-xl hover:bg-zinc-800 transition-colors active:bg-zinc-700" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+            {mobileMenuOpen ? <X className="w-6 h-6 text-zinc-300" /> : <Menu className="w-6 h-6 text-zinc-300" />}
           </button>
         </div>
 
@@ -235,21 +235,21 @@ export const LandingPage = () => {
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="md:hidden bg-white border-t border-slate-100 px-4 py-6 space-y-2">
-            <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
+      }} className="md:hidden bg-zinc-900 border-t border-zinc-800 px-4 py-6 space-y-2">
+            <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-3 px-3 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-xl font-medium text-base transition-colors">
               О проекте
             </button>
-            <button onClick={() => scrollToSection("modules")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
+            <button onClick={() => scrollToSection("modules")} className="block w-full text-left py-3 px-3 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-xl font-medium text-base transition-colors">
               Возможности
             </button>
-            <button onClick={() => scrollToSection("guarantee")} className="block w-full text-left py-3 px-3 text-slate-700 hover:text-slate-900 hover:bg-slate-50 rounded-xl font-medium text-base transition-colors">
+            <button onClick={() => scrollToSection("guarantee")} className="block w-full text-left py-3 px-3 text-zinc-300 hover:text-white hover:bg-zinc-800 rounded-xl font-medium text-base transition-colors">
               Гарантия
             </button>
             <div className="pt-4 space-y-3 px-1">
-              <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-2xl h-12 text-base font-medium border-slate-200">
+              <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-2xl h-12 text-base font-medium border-zinc-700 text-zinc-300 bg-transparent hover:bg-zinc-800">
                 Войти в систему
               </Button>
-              <Button onClick={() => scrollToSection("signup")} className="w-full bg-slate-900 hover:bg-slate-800 text-white rounded-2xl h-12 text-base font-medium">
+              <Button onClick={() => scrollToSection("signup")} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground rounded-2xl h-12 text-base font-medium">
                 Начать бесплатно
               </Button>
             </div>
@@ -257,10 +257,10 @@ export const LandingPage = () => {
       </header>
 
       {/* BLOCK 1: Hero */}
-      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-20 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-gradient-to-b from-slate-50 via-white to-white overflow-hidden">
+      <section ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center px-4 sm:px-6 pt-20 sm:pt-28 md:pt-32 pb-12 sm:pb-16 md:pb-20 bg-black overflow-hidden">
         {/* Subtle gradient orbs - hidden on mobile for performance */}
-        <div className="hidden sm:block absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-100/40 to-indigo-100/40 rounded-full blur-3xl opacity-60" />
-        <div className="hidden sm:block absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-cyan-100/30 to-blue-100/30 rounded-full blur-3xl opacity-50" />
+        <div className="hidden sm:block absolute top-20 left-1/4 w-[600px] h-[600px] bg-gradient-to-r from-blue-900/20 to-indigo-900/20 rounded-full blur-3xl opacity-60" />
+        <div className="hidden sm:block absolute bottom-20 right-1/4 w-[500px] h-[500px] bg-gradient-to-r from-cyan-900/20 to-blue-900/20 rounded-full blur-3xl opacity-50" />
         
         <div className="relative z-10 w-full max-w-5xl mx-auto text-center">
           {/* Badge */}
@@ -272,9 +272,9 @@ export const LandingPage = () => {
           y: 0
         }} transition={{
           duration: 0.6
-        }} className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-50 rounded-full mb-5 sm:mb-8">
-            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600" />
-            <span className="text-xs sm:text-sm font-medium text-blue-700">Умная система для клиник</span>
+        }} className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-blue-900/20 rounded-full mb-5 sm:mb-8">
+            <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-400" />
+            <span className="text-xs sm:text-sm font-medium text-blue-300">Умная система для клиник</span>
           </motion.div>
 
           {/* Main Headline - с поддержкой A/B тестов */}
@@ -287,7 +287,7 @@ export const LandingPage = () => {
         }} transition={{
           delay: 0.1,
           duration: 0.7
-        }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8 text-5xl">
+        }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-white tracking-tight leading-[1.1] mb-5 sm:mb-8 text-5xl">
             {activeVariant?.title || (
               <>
                 Хватит терять
@@ -310,7 +310,7 @@ export const LandingPage = () => {
           delay: 0.2,
           duration: 0.6
         }} className="max-w-3xl mx-auto mb-6 sm:mb-10 md:mb-12 space-y-3 sm:space-y-5 px-2 sm:px-6">
-            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">
+            <p className="text-sm sm:text-base md:text-lg lg:text-xl text-zinc-400 leading-relaxed sm:leading-loose">
               {activeVariant?.text || (
                 <>
                   Мы берём на себя маркетинг, продажи и аналитику 
@@ -321,12 +321,12 @@ export const LandingPage = () => {
                 </>
               )}
             </p>
-            <p className="text-xl sm:text-xl md:text-2xl font-semibold text-slate-800">
+            <p className="text-xl sm:text-xl md:text-2xl font-semibold text-zinc-200">
               Увеличьте выручку на
               <br />
-              <span className="text-blue-600">+500 000 ₸ в день</span>
+              <span className="text-blue-500">+500 000 ₸ в день</span>
             </p>
-            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-slate-400">
+            <p className="text-xs sm:text-sm md:text-base lg:text-lg text-zinc-500">
               без дополнительного бюджета
             </p>
           </motion.div>
@@ -343,14 +343,14 @@ export const LandingPage = () => {
           duration: 0.7
         }} className="w-full max-w-3xl mx-auto mb-8 sm:mb-12 px-1 sm:px-0">
             <BackgroundGradient containerClassName="rounded-2xl sm:rounded-[32px]" className="rounded-xl sm:rounded-[28px] overflow-hidden">
-              <div className="relative aspect-video bg-gradient-to-br from-slate-900 to-slate-800 rounded-xl sm:rounded-[28px] overflow-hidden">
+              <div className="relative aspect-video bg-zinc-900 rounded-xl sm:rounded-[28px] overflow-hidden">
                 <div className="absolute inset-0 flex items-center justify-center">
                   {!videoWatched ? <motion.button onClick={handleVideoPlay} whileHover={{
                   scale: 1.05
                 }} whileTap={{
                   scale: 0.98
-                }} disabled={isPlaying} className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-white/95 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/20 group transition-all disabled:opacity-70">
-                      {isPlaying ? <Loader2 className="w-7 h-7 sm:w-10 sm:h-10 text-blue-600 animate-spin" /> : <Play className="w-7 h-7 sm:w-10 sm:h-10 text-slate-900 ml-1 sm:ml-1.5 group-hover:text-blue-600 transition-colors" />}
+                }} disabled={isPlaying} className="w-16 h-16 sm:w-24 sm:h-24 md:w-28 md:h-28 rounded-full bg-zinc-800/90 backdrop-blur flex items-center justify-center shadow-2xl shadow-black/40 group transition-all disabled:opacity-70">
+                      {isPlaying ? <Loader2 className="w-7 h-7 sm:w-10 sm:h-10 text-blue-500 animate-spin" /> : <Play className="w-7 h-7 sm:w-10 sm:h-10 text-white ml-1 sm:ml-1.5 group-hover:text-blue-500 transition-colors" />}
                     </motion.button> : <motion.div initial={{
                   scale: 0.8,
                   opacity: 0
@@ -364,7 +364,7 @@ export const LandingPage = () => {
                 </div>
                 
                 {/* Progress bar */}
-                <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-slate-700/50">
+                <div className="absolute bottom-0 left-0 right-0 h-1 sm:h-1.5 bg-zinc-800/50">
                   <motion.div className="h-full bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full" initial={{
                   width: 0
                 }} animate={{
@@ -375,11 +375,11 @@ export const LandingPage = () => {
                 </div>
 
                 {/* Video thumbnail overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent pointer-events-none" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
               </div>
             </BackgroundGradient>
             
-            <p className="text-center text-slate-400 text-xs sm:text-sm mt-3 sm:mt-5">Посмотрите видео, чтобы получить доступ</p>
+            <p className="text-center text-zinc-500 text-xs sm:text-sm mt-3 sm:mt-5">Посмотрите видео, чтобы получить доступ</p>
           </motion.div>
 
           {/* CTA Button */}
@@ -393,7 +393,7 @@ export const LandingPage = () => {
           delay: 0.5,
           duration: 0.6
         }} className="flex flex-col items-center justify-center gap-4 px-2 sm:px-0">
-            <Button size="lg" onClick={openMarkChatbot} className={`relative rounded-2xl sm:rounded-3xl px-6 sm:px-10 py-6 sm:py-8 text-base sm:text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${videoWatched ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]" : "bg-slate-200 text-slate-400 cursor-not-allowed"}`} disabled={!videoWatched}>
+            <Button size="lg" onClick={openMarkChatbot} className={`relative rounded-2xl sm:rounded-3xl px-6 sm:px-10 py-6 sm:py-8 text-base sm:text-lg font-semibold shadow-2xl transition-all w-full sm:w-auto ${videoWatched ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-blue-500/30 hover:shadow-blue-500/40 hover:scale-[1.02]" : "bg-zinc-800 text-zinc-500 cursor-not-allowed"}`} disabled={!videoWatched}>
               {videoWatched && <span className="absolute inset-0 rounded-2xl sm:rounded-3xl bg-gradient-to-r from-blue-400 to-indigo-400 animate-pulse opacity-30" />}
               <span className="relative flex items-center justify-center gap-2 sm:gap-3">
                 <MessageCircle className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -406,7 +406,7 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 2: How it works */}
-      <section className="py-24 lg:py-32 px-6 bg-white">
+      <section className="py-24 lg:py-32 px-6 bg-black">
         <div className="max-w-6xl mx-auto">
           <motion.div initial={{
           opacity: 0,
@@ -419,13 +419,13 @@ export const LandingPage = () => {
         }} transition={{
           duration: 0.6
         }} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 tracking-tight">
+            <h2 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-6 tracking-tight">
               Как это{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 работает
               </span>
             </h2>
-            <p className="text-xl text-slate-500 max-w-2xl mx-auto font-light">Система сама ведёт пациента от заявки до визита в клинику </p>
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto font-light">Система сама ведёт пациента от заявки до визита в клинику </p>
           </motion.div>
 
           <motion.div initial={{
@@ -438,7 +438,7 @@ export const LandingPage = () => {
           once: true
         }} transition={{
           duration: 0.7
-        }} className="rounded-[32px] overflow-hidden border border-slate-200/80 shadow-2xl shadow-slate-200/50 bg-white">
+        }} className="rounded-[32px] overflow-hidden border border-border shadow-2xl shadow-black/20 bg-card">
             <BeamVisualization />
           </motion.div>
         </div>
@@ -476,15 +476,15 @@ export const LandingPage = () => {
             
             {/* Text Content */}
             <div className="order-1 lg:order-2">
-              <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-6 sm:mb-10 leading-tight tracking-tight">
+              <h2 className="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 sm:mb-10 leading-tight tracking-tight">
                 Почему проект назван{" "}
                 <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                   в честь моего сына?
                 </span>
               </h2>
-              <div className="space-y-4 sm:space-y-6 text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed">
+              <div className="space-y-4 sm:space-y-6 text-sm sm:text-base lg:text-lg text-muted-foreground leading-relaxed">
                 <p>
-                  Проект MarkVision получил своё имя в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-slate-900 font-medium">это ответственность и наследие</span>.
+                  Проект MarkVision получил своё имя в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-foreground font-medium">это ответственность и наследие</span>.
                 </p>
                 <p>
                   Я лично контролирую результат работы каждой клиники, которая сотрудничает с нами. Система строится таким образом, чтобы я мог гордиться её результатами перед своим сыном.
@@ -492,7 +492,7 @@ export const LandingPage = () => {
                 <p>
                   Мы не просто настраиваем рекламу — мы внедряем порядок и системность в ваш бизнес.
                 </p>
-                <p className="font-semibold text-slate-900 pt-2">
+                <p className="font-semibold text-foreground pt-2">
                   — Основатель MarkVision AI
                 </p>
               </div>
@@ -502,7 +502,7 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 4: What's included */}
-      <section id="modules" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-white">
+      <section id="modules" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-background">
         <div className="max-w-7xl mx-auto">
           <motion.div initial={{
           opacity: 0,
@@ -515,13 +515,13 @@ export const LandingPage = () => {
         }} transition={{
           duration: 0.6
         }} className="text-center mb-8 sm:mb-12 lg:mb-16">
-            <h2 className="sm:text-4xl md:text-5xl lg:text-6xl font-bold text-slate-900 mb-4 sm:mb-6 tracking-tight text-3xl">
+            <h2 className="sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 tracking-tight text-3xl">
               Что входит в{" "}
               <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                 систему
               </span>
             </h2>
-            <p className="sm:text-lg lg:text-xl text-slate-500 max-w-2xl mx-auto font-light px-4 text-base">
+            <p className="sm:text-lg lg:text-xl text-muted-foreground max-w-2xl mx-auto font-light px-4 text-base">
               Всё, что нужно для роста вашей клиники — в одном месте
             </p>
           </motion.div>
@@ -544,12 +544,12 @@ export const LandingPage = () => {
               scale: 1.02
             }} transition={{
               duration: 0.3
-            }} className="h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200/80 shadow-md sm:shadow-lg shadow-slate-100/50 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-blue-100/50 hover:border-blue-200/80 transition-all cursor-pointer group">
+            }} className="h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[28px] bg-card border border-border shadow-md sm:shadow-lg shadow-black/10 hover:shadow-xl sm:hover:shadow-2xl hover:shadow-primary/10 hover:border-primary/20 transition-all cursor-pointer group">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 lg:w-16 lg:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center text-blue-600 mb-4 sm:mb-5 group-hover:from-blue-100 group-hover:to-indigo-100 transition-colors">
                     {module.icon}
                   </div>
-                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 mb-2 sm:mb-3 group-hover:text-blue-600 transition-colors">{module.title}</h3>
-                  <p className="text-slate-500 leading-relaxed text-xs sm:text-sm lg:text-base">
+                  <h3 className="text-base sm:text-lg lg:text-xl font-bold text-foreground mb-2 sm:mb-3 group-hover:text-primary transition-colors">{module.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed text-xs sm:text-sm lg:text-base">
                     {module.description}
                   </p>
                 </motion.div>
@@ -582,14 +582,14 @@ export const LandingPage = () => {
       </section>
 
       {/* BLOCK 6: Registration Form - Neon Style */}
-      <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-slate-950 relative overflow-hidden">
+      <section id="signup" ref={signupRef} className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-black relative overflow-hidden">
         {/* Neon Background Effects */}
         <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-[120px] animate-pulse" style={{
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-cyan-500/10 rounded-full blur-[120px] animate-pulse" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px] animate-pulse" style={{
           animationDelay: '1s'
         }} />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/10 rounded-full blur-[150px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-blue-500/5 rounded-full blur-[150px]" />
         </div>
         
         {/* Grid Pattern */}
@@ -619,7 +619,7 @@ export const LandingPage = () => {
               <h2 className="text-2xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-5 tracking-tight bg-gradient-to-r from-white via-cyan-200 to-white bg-clip-text text-transparent drop-shadow-[0_0_30px_rgba(6,182,212,0.5)]">
                 Начните бесплатно
               </h2>
-              <p className="text-sm sm:text-lg text-slate-400 px-4">
+              <p className="text-sm sm:text-lg text-muted-foreground px-4">
                 7 дней доступа ко всем функциям системы
               </p>
             </div>
@@ -639,7 +639,7 @@ export const LandingPage = () => {
                       <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
                       <div className="relative">
                         <Building2 className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
-                        <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.clinicName ? 'border-red-500/50' : ''}`} />
+                        <Input type="text" placeholder='Клиника "Здоровье"' value={formData.clinicName} onChange={e => handleChange('clinicName', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-muted/80 text-sm sm:text-base transition-all ${errors.clinicName ? 'border-red-500/50' : ''}`} />
                       </div>
                     </div>
                     {errors.clinicName && <p className="text-xs text-red-400 ml-1">{errors.clinicName}</p>}
@@ -652,7 +652,7 @@ export const LandingPage = () => {
                       <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
                       <div className="relative">
                         <Mail className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
-                        <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.email ? 'border-red-500/50' : ''}`} />
+                        <Input type="email" placeholder="email@example.com" value={formData.email} onChange={e => handleChange('email', e.target.value)} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-muted/80 text-sm sm:text-base transition-all ${errors.email ? 'border-red-500/50' : ''}`} />
                       </div>
                     </div>
                     {errors.email && <p className="text-xs text-red-400 ml-1">{errors.email}</p>}
@@ -665,8 +665,8 @@ export const LandingPage = () => {
                       <div className="absolute -inset-[1px] bg-gradient-to-r from-cyan-500/50 to-blue-500/50 rounded-xl sm:rounded-2xl opacity-0 group-focus-within/input:opacity-100 blur-sm transition-opacity" />
                       <div className="relative">
                         <Lock className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
-                        <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-11 sm:pl-14 pr-11 sm:pr-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${errors.password ? 'border-red-500/50' : ''}`} />
-                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-cyan-400 transition-colors">
+                        <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={formData.password} onChange={e => handleChange('password', e.target.value)} className={`pl-11 sm:pl-14 pr-11 sm:pr-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-muted/80 text-sm sm:text-base transition-all ${errors.password ? 'border-red-500/50' : ''}`} />
+                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-cyan-400 transition-colors">
                           {showPassword ? <EyeOff className="w-4 h-4 sm:w-5 sm:h-5" /> : <Eye className="w-4 h-4 sm:w-5 sm:h-5" />}
                         </button>
                       </div>
@@ -681,7 +681,7 @@ export const LandingPage = () => {
                       <div className={`absolute -inset-[1px] rounded-xl sm:rounded-2xl blur-sm transition-opacity ${promoValid === true ? 'bg-gradient-to-r from-emerald-500/50 to-green-500/50 opacity-100' : 'bg-gradient-to-r from-cyan-500/50 to-blue-500/50 opacity-0 group-focus-within/input:opacity-100'}`} />
                       <div className="relative">
                         <Gift className="absolute left-4 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-cyan-400/60" />
-                        <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-slate-800/50 border-slate-700/50 text-white placeholder:text-slate-500 focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-slate-800/80 text-sm sm:text-base transition-all ${promoValid === true ? 'border-emerald-500/50 bg-emerald-950/30' : ''}`} />
+                        <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-11 sm:pl-14 rounded-xl sm:rounded-2xl h-12 sm:h-14 bg-muted/50 border-border text-foreground placeholder:text-muted-foreground focus:border-cyan-500/50 focus:ring-cyan-500/20 focus:bg-muted/80 text-sm sm:text-base transition-all ${promoValid === true ? 'border-emerald-500/50 bg-emerald-950/30' : ''}`} />
                         {promoValid === true && <CheckCircle2 className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]" />}
                       </div>
                     </div>
@@ -713,7 +713,7 @@ export const LandingPage = () => {
 
                 {/* Login Link */}
                 <div className="mt-6 sm:mt-8 text-center">
-                  <span className="text-sm sm:text-base text-slate-500">Уже есть аккаунт? </span>
+                  <span className="text-sm sm:text-base text-muted-foreground">Уже есть аккаунт? </span>
                   <button onClick={() => navigate('/auth')} className="text-sm sm:text-base text-cyan-400 hover:text-cyan-300 font-medium transition-colors drop-shadow-[0_0_10px_rgba(6,182,212,0.5)] hover:drop-shadow-[0_0_15px_rgba(6,182,212,0.8)]">
                     Войти
                   </button>

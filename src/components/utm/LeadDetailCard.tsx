@@ -29,12 +29,12 @@ const formatCurrency = (value: number): string => {
 };
 
 const sourceTypeColors: Record<string, string> = {
-  'paid': 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-200',
-  'organic': 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-200',
-  'social': 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900 dark:text-blue-200',
-  'email': 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900 dark:text-purple-200',
-  'referral': 'bg-pink-100 text-pink-800 border-pink-300 dark:bg-pink-900 dark:text-pink-200',
-  'direct': 'bg-gray-100 text-gray-800 border-gray-300 dark:bg-gray-900 dark:text-gray-200',
+  'paid': 'bg-orange-900/50 text-orange-200 border-orange-800',
+  'organic': 'bg-green-900/50 text-green-200 border-green-800',
+  'social': 'bg-blue-900/50 text-blue-200 border-blue-800',
+  'email': 'bg-purple-900/50 text-purple-200 border-purple-800',
+  'referral': 'bg-pink-900/50 text-pink-200 border-pink-800',
+  'direct': 'bg-secondary text-secondary-foreground border-border',
 };
 
 export const LeadDetailCard = ({ lead, projectId }: LeadDetailCardProps) => {

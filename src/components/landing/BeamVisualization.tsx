@@ -15,10 +15,10 @@ const Circle = forwardRef<HTMLDivElement, {
   label
 }, ref) => {
   return <div className="flex flex-col items-center gap-2 sm:gap-3">
-      <div ref={ref} className={cn("z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-slate-200/80 bg-white shadow-lg shadow-slate-100/50 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-100/50", className)}>
+      <div ref={ref} className={cn("z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-border bg-card shadow-lg shadow-blue-500/20 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-500/40", className)}>
         {children}
       </div>
-      {label && <span className="text-[10px] sm:text-xs font-medium text-slate-500 text-center max-w-[70px] sm:max-w-[90px] leading-tight">
+      {label && <span className="text-[10px] sm:text-xs font-medium text-muted-foreground text-center max-w-[70px] sm:max-w-[90px] leading-tight">
           {label}
         </span>}
     </div>;
@@ -37,7 +37,7 @@ export function BeamVisualization({
   const crmRef = useRef<HTMLDivElement>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
   const financeRef = useRef<HTMLDivElement>(null);
-  return <div className={cn("relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-slate-50/50 to-white p-6 sm:p-10 lg:p-14", className)} ref={containerRef}>
+  return <div className={cn("relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-background to-background/80 border border-border p-6 sm:p-10 lg:p-14", className)} ref={containerRef}>
       <div className="flex size-full max-w-5xl flex-row items-stretch justify-between gap-4 sm:gap-8 lg:gap-16">
         {/* Left side - Input sources */}
         <div className="flex flex-col justify-center gap-4 sm:gap-6 lg:gap-8">
@@ -94,11 +94,11 @@ export function BeamVisualization({
             {/* Glow effect */}
             <div className="absolute inset-0 rounded-3xl sm:rounded-[28px] bg-gradient-to-br from-blue-400 to-cyan-500 blur-2xl opacity-30 scale-150" />
             
-            <div ref={centerRef} className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-white shadow-2xl shadow-blue-500/20 overflow-hidden p-2">
+            <div ref={centerRef} className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-card shadow-2xl shadow-blue-500/20 overflow-hidden p-2">
               <img alt="MarkVision AI" className="w-full h-full object-contain" src="/lovable-uploads/a7974b47-022e-433a-aedb-db426f5bd01d.png" />
             </div>
           </motion.div>
-          <span className="mt-4 text-sm sm:text-base font-semibold text-slate-800 tracking-tight">
+          <span className="mt-4 text-sm sm:text-base font-semibold text-foreground tracking-tight">
             MarkVision AI
           </span>
         </div>

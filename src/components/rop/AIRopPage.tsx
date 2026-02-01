@@ -295,7 +295,7 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
                 <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     idx === 0 ? 'bg-yellow-500 text-yellow-950' :
-                    idx === 1 ? 'bg-gray-400 text-gray-950' :
+                    idx === 1 ? 'bg-slate-400 text-slate-950' :
                     idx === 2 ? 'bg-orange-500 text-orange-950' :
                     'bg-muted text-muted-foreground'
                   }`}>

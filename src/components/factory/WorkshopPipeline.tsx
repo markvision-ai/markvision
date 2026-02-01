@@ -158,14 +158,14 @@ const ContentCardWorkshop = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -20 }}
-      className="bg-zinc-900/40 backdrop-blur-md border border-white/5 rounded-xl p-4 hover:border-violet-500/20 hover:shadow-[0_0_20px_-10px_rgba(124,58,237,0.2)] transition-all duration-300 group"
+      className="bg-card/40 backdrop-blur-md border border-border rounded-xl p-4 hover:border-violet-500/20 hover:shadow-[0_0_20px_-10px_rgba(124,58,237,0.2)] transition-all duration-300 group"
     >
       <div className="flex items-start justify-between gap-3 mb-3">
-        <Badge variant="outline" className="bg-white/5 border-white/10 text-white/60 gap-1.5 font-normal px-2 py-1">
+        <Badge variant="outline" className="bg-muted/10 border-border text-muted-foreground gap-1.5 font-normal px-2 py-1">
           {getFormatIcon(item.content_type)}
           {getFormatLabel(item.content_type)}
         </Badge>
-        <span className="text-[10px] text-white/30 font-mono">
+        <span className="text-[10px] text-muted-foreground font-mono">
           {format(new Date(item.created_at), 'dd MMM', { locale: ru })}
         </span>
       </div>
@@ -180,9 +180,9 @@ const ContentCardWorkshop = ({
           size="sm"
           onClick={generateHormoziScript}
           disabled={!!isProcessing}
-          className="h-8 bg-white/5 hover:bg-violet-500/20 hover:text-violet-300 text-white/60 border border-white/5 hover:border-violet-500/30 transition-all text-xs gap-1.5"
+          className="h-8 bg-muted/10 hover:bg-violet-500/20 hover:text-violet-300 text-muted-foreground border border-border hover:border-violet-500/30 transition-all text-xs gap-1.5"
         >
-          {isProcessing === item.id ? (
+          {isProcessing ? (
             <Loader2 className="w-3 h-3 animate-spin" />
           ) : (
             <Sparkles className="w-3 h-3" />
@@ -282,7 +282,7 @@ export const WorkshopPipeline = ({
               </AnimatePresence>
               
               {getWorkshopContent(workshop.id).length === 0 && (
-                <div className="flex flex-col items-center justify-center h-32 text-white/20 border-2 border-dashed border-white/5 rounded-xl">
+                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground/50 border-2 border-dashed border-border rounded-xl">
                   {workshop.icon}
                   <p className="text-sm mt-2">Нет задач</p>
                 </div>

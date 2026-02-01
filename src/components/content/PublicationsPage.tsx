@@ -36,11 +36,11 @@ const ChannelIcon = ({ channel, className }: { channel: string, className?: stri
   switch (channel.toLowerCase()) {
     case 'instagram': return <Instagram className={cn("text-pink-500", className)} />;
     case 'youtube': return <Youtube className={cn("text-red-500", className)} />;
-    case 'tiktok': return <div className={cn("text-black dark:text-white font-bold text-xs flex items-center justify-center bg-white/10 rounded-full w-5 h-5", className)}>TT</div>;
-    case 'threads': return <div className={cn("text-black dark:text-white font-bold text-xs", className)}>@</div>;
-    case 'telegram': return <Send className={cn("text-blue-400", className)} />;
-    case 'site': return <Globe className={cn("text-blue-500", className)} />;
-    default: return <LayoutGrid className={cn("text-gray-400", className)} />;
+    case 'tiktok': return <div className={cn("text-foreground font-bold text-xs flex items-center justify-center bg-muted rounded-full w-5 h-5", className)}>TT</div>;
+    case 'threads': return <div className={cn("text-foreground font-bold text-xs", className)}>@</div>;
+    case 'telegram': return <Send className={cn("text-sky-500", className)} />;
+    case 'site': return <Globe className={cn("text-primary", className)} />;
+    default: return <LayoutGrid className={cn("text-muted-foreground", className)} />;
   }
 };
 
@@ -70,7 +70,7 @@ interface PostStats {
 export const PublicationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostStats[]>([]);
-  const [period, setPeriod] = useState<'today' | 'week' | 'month' | 'all'>('month');
+  const [period, setPeriod] = useState<'month' | 'all'>('month');
   const [selectedChannel, setSelectedChannel] = useState<string>('all');
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostStats | null>(null);
@@ -114,8 +114,17 @@ export const PublicationsPage = () => {
         }
 
         // 3. Merge Data
+        // Group leads by post_id for O(1) lookup
+        const leadsByPost = new Map<string, any[]>();
+        leadsData.forEach(lead => {
+          if (!lead.post_id) return;
+          const existing = leadsByPost.get(lead.post_id) || [];
+          existing.push(lead);
+          leadsByPost.set(lead.post_id, existing);
+        });
+
         const mergedPosts: PostStats[] = postsData.map(post => {
-          const postLeads = leadsData.filter(l => l.post_id === post.post_id);
+          const postLeads = leadsByPost.get(post.post_id) || [];
           
           const leadsCount = postLeads.length;
           // Heuristic for diagnostics: status contains 'diagnostic' or 'meeting' or 'consultation'
@@ -175,11 +184,7 @@ export const PublicationsPage = () => {
 
     // Period Filter
     const now = new Date();
-    if (period === 'today') {
-      filtered = filtered.filter(p => p.posted_at && isWithinInterval(parseISO(p.posted_at), { start: subDays(now, 1), end: now }));
-    } else if (period === 'week') {
-      filtered = filtered.filter(p => p.posted_at && isWithinInterval(parseISO(p.posted_at), { start: startOfWeek(now, { weekStartsOn: 1 }), end: now }));
-    } else if (period === 'month') {
+    if (period === 'month') {
       filtered = filtered.filter(p => p.posted_at && isWithinInterval(parseISO(p.posted_at), { start: startOfMonth(now), end: now }));
     }
 
@@ -224,26 +229,24 @@ export const PublicationsPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#030303] text-foreground p-6 font-sans">
+    <div className="min-h-screen bg-background text-foreground p-6 font-sans">
       <div className="max-w-[1800px] mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight">
+            <h1 className="text-3xl font-bold text-foreground tracking-tight">
               Публикации
             </h1>
-            <p className="text-gray-400 mt-1 text-sm">
+            <p className="text-muted-foreground mt-1 text-sm">
               Аналитика контента и управление продвижением
             </p>
           </div>
           
-          <div className="flex items-center gap-3 bg-white/5 p-1 rounded-xl border border-white/5 backdrop-blur-md">
+          <div className="flex items-center gap-3 bg-card/50 p-1 rounded-xl border border-border/50 backdrop-blur-md">
             <Tabs value={period} onValueChange={(v) => setPeriod(v as any)} className="w-auto">
               <TabsList className="bg-transparent h-9 p-0 gap-1">
-                <TabsTrigger value="today" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-gray-400 text-xs px-3 h-7 rounded-lg transition-all">Сегодня</TabsTrigger>
-                <TabsTrigger value="week" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-gray-400 text-xs px-3 h-7 rounded-lg transition-all">Неделя</TabsTrigger>
-                <TabsTrigger value="month" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-gray-400 text-xs px-3 h-7 rounded-lg transition-all">Месяц</TabsTrigger>
-                <TabsTrigger value="all" className="data-[state=active]:bg-white/10 data-[state=active]:text-white text-gray-400 text-xs px-3 h-7 rounded-lg transition-all">Все время</TabsTrigger>
+                <TabsTrigger value="month" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary text-muted-foreground text-xs px-3 h-7 rounded-lg transition-all">Месяц</TabsTrigger>
+                <TabsTrigger value="all" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary text-muted-foreground text-xs px-3 h-7 rounded-lg transition-all">Все время</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
@@ -258,8 +261,8 @@ export const PublicationsPage = () => {
               size="sm"
               onClick={() => setSelectedChannel(channel)}
               className={cn(
-                "gap-2 border border-white/5 bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white transition-all rounded-xl px-4",
-                selectedChannel === channel && "bg-blue-500/20 text-blue-400 border-blue-500/20 hover:bg-blue-500/30"
+                "gap-2 border border-border/50 bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all rounded-xl px-4",
+                selectedChannel === channel && "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
               )}
             >
               {channel === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel} className="w-4 h-4" />}
@@ -269,15 +272,15 @@ export const PublicationsPage = () => {
         </div>
 
         {/* Table Header */}
-        <div className="w-full overflow-hidden rounded-2xl border border-white/5 bg-[#0A0A0A]">
-          <div className="grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 border-b border-white/5 bg-white/[0.02] text-xs font-medium text-gray-500 uppercase tracking-wider items-center">
+        <div className="w-full overflow-hidden rounded-2xl border border-border/50 bg-card">
+          <div className="grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 border-b border-border/50 bg-muted/50 text-xs font-medium text-muted-foreground uppercase tracking-wider items-center">
             <div>Контент</div>
             <div>Канал</div>
             <div className="text-center">Охват</div>
             <div className="text-center">Клики</div>
             <div className="text-center">Комменты</div>
             {/* Funnel Header Group */}
-            <div className="col-span-3 text-center text-blue-400/80 border-b border-blue-500/20 pb-1 mx-2">
+            <div className="col-span-3 text-center text-primary/80 border-b border-primary/20 pb-1 mx-2">
               Воронка
             </div>
             <div className="text-right">Выручка</div>
@@ -288,13 +291,13 @@ export const PublicationsPage = () => {
           {/* To match "distinct columns", we label them in the main header but grouped. Let's rely on row values and tooltip/labels */}
 
           {/* Table Body */}
-          <div className="divide-y divide-white/5">
+          <div className="divide-y divide-border/50">
             {loading ? (
               <div className="flex items-center justify-center py-32">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
+                <Loader2 className="w-8 h-8 animate-spin text-primary" />
               </div>
             ) : filteredPosts.length === 0 ? (
-              <div className="text-center py-32 text-gray-500">
+              <div className="text-center py-32 text-muted-foreground">
                 Нет публикаций за выбранный период
               </div>
             ) : (
@@ -305,15 +308,15 @@ export const PublicationsPage = () => {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95 }}
-                    className="group grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 items-center hover:bg-white/[0.02] transition-colors duration-200 relative overflow-hidden"
+                    className="group grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 items-center hover:bg-muted/30 transition-colors duration-200 relative overflow-hidden"
                   >
                     {/* Content */}
                     <div className="flex items-center gap-4 min-w-0 relative z-10">
-                      <div className="h-[60px] w-[60px] rounded-xl bg-gray-900 border border-white/10 overflow-hidden flex-shrink-0 relative group-hover:border-white/20 transition-colors">
+                      <div className="h-[60px] w-[60px] rounded-xl bg-muted border border-border/50 overflow-hidden flex-shrink-0 relative group-hover:border-border transition-colors">
                         {post.media_url ? (
                           <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
                         ) : (
-                          <div className="h-full w-full flex items-center justify-center text-gray-600">
+                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
                             <Eye className="w-6 h-6" />
                           </div>
                         )}
@@ -323,10 +326,10 @@ export const PublicationsPage = () => {
                         </div>
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-200 truncate pr-4" title={post.caption || ''}>
+                        <p className="text-sm font-medium text-foreground truncate pr-4" title={post.caption || ''}>
                           {post.caption || 'Без названия'}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {post.posted_at ? format(parseISO(post.posted_at), 'dd MMM, HH:mm', { locale: ru }) : '-'}
                         </p>
                       </div>
@@ -334,32 +337,32 @@ export const PublicationsPage = () => {
 
                     {/* Channel */}
                     <div className="flex items-center gap-2 relative z-10">
-                      <div className="p-2 rounded-full bg-white/5 border border-white/5">
+                      <div className="p-2 rounded-full bg-muted/50 border border-border/50">
                         <ChannelIcon channel={post.channel} className="w-4 h-4" />
                       </div>
-                      <span className="text-sm text-gray-300 capitalize">{post.channel}</span>
+                      <span className="text-sm text-muted-foreground capitalize">{post.channel}</span>
                     </div>
 
                     {/* Reach */}
                     <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-300">
-                        <Eye className="w-3.5 h-3.5 text-gray-500" />
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <Eye className="w-3.5 h-3.5 text-muted-foreground/70" />
                         <span>{new Intl.NumberFormat('ru-RU').format(post.reach)}</span>
                       </div>
                     </div>
 
                     {/* Clicks */}
                     <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-300">
-                         <MousePointer2 className="w-3.5 h-3.5 text-gray-500" />
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                         <MousePointer2 className="w-3.5 h-3.5 text-muted-foreground/70" />
                          <span>{post.clicks}</span>
                       </div>
                     </div>
 
                     {/* Comments */}
                     <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-gray-300">
-                        <MessageCircle className="w-3.5 h-3.5 text-gray-500" />
+                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <MessageCircle className="w-3.5 h-3.5 text-muted-foreground/70" />
                         <span>{post.comments}</span>
                       </div>
                     </div>
@@ -367,32 +370,32 @@ export const PublicationsPage = () => {
                     {/* Funnel Group (3 columns visually connected) */}
                     <div className="col-span-3 relative z-10">
                       {/* Blue Glow Background for this section */}
-                      <div className="absolute inset-0 -inset-x-2 bg-blue-500/5 blur-lg rounded-full opacity-50 group-hover:opacity-80 transition-opacity pointer-events-none" />
+                      <div className="absolute inset-0 -inset-x-2 bg-primary/5 blur-lg rounded-full opacity-50 group-hover:opacity-80 transition-opacity pointer-events-none" />
                       
                       <div className="relative grid grid-cols-3 gap-2 items-center text-center">
                         {/* Leads */}
                         <div className="flex flex-col items-center">
-                           <span className="text-sm font-semibold text-white">{post.leads_count}</span>
-                           <span className="text-[10px] text-blue-400 uppercase tracking-tight">Лиды</span>
+                           <span className="text-sm font-semibold text-foreground">{post.leads_count}</span>
+                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Лиды</span>
                         </div>
                         
                         {/* Diagnostics */}
-                        <div className="flex flex-col items-center border-l border-white/5">
-                           <span className="text-sm font-semibold text-white">{post.diagnostics_count}</span>
-                           <span className="text-[10px] text-blue-400 uppercase tracking-tight">Диагн.</span>
+                        <div className="flex flex-col items-center border-l border-border/50">
+                           <span className="text-sm font-semibold text-foreground">{post.diagnostics_count}</span>
+                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Диагн.</span>
                         </div>
 
                         {/* Sales */}
-                        <div className="flex flex-col items-center border-l border-white/5">
-                           <span className="text-sm font-semibold text-emerald-400">{post.sales_count}</span>
-                           <span className="text-[10px] text-emerald-500/70 uppercase tracking-tight">Прод.</span>
+                        <div className="flex flex-col items-center border-l border-border/50">
+                           <span className="text-sm font-semibold text-green-600 dark:text-green-400">{post.sales_count}</span>
+                           <span className="text-[10px] text-green-600/70 dark:text-green-400/70 uppercase tracking-tight">Прод.</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Revenue */}
                     <div className="text-right relative z-10">
-                      <span className="text-sm font-bold text-emerald-400">
+                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
                         {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
                       </span>
                     </div>
@@ -402,7 +405,7 @@ export const PublicationsPage = () => {
                       <Button 
                         size="sm" 
                         onClick={() => handlePromoteClick(post)}
-                        className="bg-blue-600 hover:bg-blue-500 text-white shadow-[0_0_20px_-5px_rgba(37,99,235,0.4)] hover:shadow-[0_0_25px_-5px_rgba(37,99,235,0.6)] border-0 transition-all duration-300 w-full"
+                        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 w-full"
                       >
                         <Rocket className="w-3.5 h-3.5 mr-2" />
                         Продвигать
@@ -418,26 +421,26 @@ export const PublicationsPage = () => {
 
       {/* Promote Dialog */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-[#0A0A0A] border-white/10 text-gray-200">
+        <DialogContent className="sm:max-w-[425px] bg-background border-border text-foreground">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-white">
-              <Rocket className="w-5 h-5 text-blue-500" />
+            <DialogTitle className="flex items-center gap-2 text-foreground">
+              <Rocket className="w-5 h-5 text-primary" />
               Запуск продвижения
             </DialogTitle>
-            <DialogDescription className="text-gray-400">
+            <DialogDescription className="text-muted-foreground">
               ИИ-таргетолог проанализировал пост и подготовил прогноз эффективности.
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4 space-y-4">
-            <div className="p-4 rounded-xl bg-white/5 border border-white/5 flex gap-4">
-               <div className="h-20 w-20 rounded-lg bg-black/40 overflow-hidden flex-shrink-0 border border-white/10">
+            <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex gap-4">
+               <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0 border border-border/10">
                  {selectedPost?.media_url && (
                    <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
                  )}
                </div>
                <div className="min-w-0 flex-1">
-                 <h4 className="font-medium text-sm text-white line-clamp-2 mb-2">{selectedPost?.caption}</h4>
+                 <h4 className="font-medium text-sm text-foreground line-clamp-2 mb-2">{selectedPost?.caption}</h4>
                  <div className="flex flex-wrap gap-2">
                    <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px]">
                      <Eye className="w-3 h-3 mr-1" /> {selectedPost?.reach}
@@ -462,7 +465,7 @@ export const PublicationsPage = () => {
           </div>
 
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="hover:bg-white/5 text-gray-400 hover:text-white">Отмена</Button>
+            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="hover:bg-muted text-muted-foreground hover:text-foreground">Отмена</Button>
             <Button onClick={confirmPromote} disabled={promoting} className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20">
               {promoting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Rocket className="w-4 h-4 mr-2" />}
               Запустить ракету

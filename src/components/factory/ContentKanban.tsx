@@ -167,7 +167,7 @@ const ContentCard = ({
       className="group bg-zinc-900/40 backdrop-blur-md border border-white/5 rounded-xl p-3 hover:border-violet-500/20 hover:shadow-[0_0_20px_-10px_rgba(124,58,237,0.2)] transition-all duration-300"
     >
       <div className="flex items-start justify-between gap-2 mb-2">
-        <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-white/5 border-white/10 text-white/60 gap-1 font-normal">
+        <Badge variant="outline" className="h-5 px-1.5 text-[10px] bg-muted/10 border-border text-muted-foreground gap-1 font-normal">
           {getFormatIcon(item.content_type)}
           {item.content_type}
         </Badge>

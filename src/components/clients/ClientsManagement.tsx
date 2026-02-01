@@ -94,7 +94,7 @@ const getSourceInfo = (source: string): { label: string; color: string; icon: st
     return { label: 'Instagram', color: 'bg-pink-500/20 text-pink-500 border-pink-500/30', icon: '📷' };
   }
   if (s.includes('tiktok') || s.includes('tt')) {
-    return { label: 'TikTok', color: 'bg-slate-800/20 text-slate-300 border-slate-500/30', icon: '🎵' };
+    return { label: 'TikTok', color: 'bg-slate-800/20 text-foreground border-slate-500/30', icon: '🎵' };
   }
   if (s.includes('youtube') || s.includes('yt')) {
     return { label: 'YouTube', color: 'bg-red-600/20 text-red-600 border-red-600/30', icon: '▶️' };

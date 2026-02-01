@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Moon, Sun, Menu, Users, Image, Loader2, X } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
+import { Search, Menu, Users, Image, Loader2, X } from 'lucide-react';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
@@ -58,7 +57,6 @@ export const Header = ({
   onCreateProject,
   showProjectSelector = false,
 }: HeaderProps) => {
-  const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -209,19 +207,6 @@ export const Header = ({
             )}
           </AnimatePresence>
         </div>
-
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 hover:bg-secondary rounded-lg transition-colors"
-          title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 md:w-5 md:h-5" />
-          ) : (
-            <Moon className="w-4 h-4 md:w-5 md:h-5" />
-          )}
-        </button>
 
         {/* Notifications */}
         <NotificationsDropdown />

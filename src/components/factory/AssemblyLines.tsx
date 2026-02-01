@@ -1,4 +1,4 @@
-import { ContentItem } from '@/types/factory';
+import { ContentItem } from '@/hooks/useContentFactory';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Bot, 
@@ -41,16 +41,16 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
   const [consoleOpen, setConsoleOpen] = useState(true);
 
   return (
-    <div className={cn("h-full flex flex-col bg-background dark:bg-[#030303] relative overflow-hidden", className)}>
+    <div className={cn("h-full flex flex-col bg-background relative overflow-hidden", className)}>
       {/* Header */}
-      <div className="p-6 border-b border-border/40 dark:border-white/5 flex justify-between items-center bg-background/80 dark:bg-[#030303]/80 backdrop-blur-xl z-20">
+      <div className="p-6 border-b border-border flex justify-between items-center bg-background/80 backdrop-blur-xl z-20">
         <div className="flex items-center gap-3">
           <div className="p-2.5 rounded-xl bg-orange-500/10 border border-orange-500/20">
             <Activity className="w-5 h-5 text-orange-500" />
           </div>
           <div>
-            <h2 className="text-lg font-bold text-foreground dark:text-white tracking-tight">ГЛАВНЫЙ КОНВЕЙЕР</h2>
-            <p className="text-[10px] text-muted-foreground dark:text-white/50 font-mono uppercase tracking-wider">Активное производство: {items.length} ед.</p>
+            <h2 className="text-lg font-bold text-foreground tracking-tight">ГЛАВНЫЙ КОНВЕЙЕР</h2>
+            <p className="text-[10px] text-muted-foreground font-mono uppercase tracking-wider">Активное производство: {items.length} ед.</p>
           </div>
         </div>
       </div>
@@ -61,7 +61,7 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
           {items.length === 0 ? (
             <motion.div 
               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-              className="h-64 flex flex-col items-center justify-center text-muted-foreground/40 dark:text-white/20 border border-dashed border-border/40 dark:border-white/10 rounded-2xl bg-muted/20 dark:bg-white/[0.02]"
+              className="h-64 flex flex-col items-center justify-center text-muted-foreground/40 border border-dashed border-border/40 rounded-2xl bg-muted/20"
             >
               <Box className="w-12 h-12 mb-4 opacity-20" />
               <p className="text-sm">Линии остановлены</p>
@@ -75,28 +75,28 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.95 }}
-                className="group relative bg-card dark:bg-[#0A0A0A] border border-border/40 dark:border-white/5 rounded-2xl p-6 shadow-sm dark:shadow-lg hover:border-blue-500/30 dark:hover:border-white/10 transition-all"
+                className="group relative bg-card border border-border rounded-2xl p-6 shadow-sm hover:border-blue-500/30 transition-all"
               >
                 {/* Unit Header */}
-                <div className="flex justify-between items-center mb-6 pb-4 border-b border-border/40 dark:border-white/5">
+                <div className="flex justify-between items-center mb-6 pb-4 border-b border-border/40">
                   <div className="flex items-center gap-4">
-                     <div className="h-12 w-12 rounded-xl bg-muted dark:bg-white/5 flex items-center justify-center border border-border/40 dark:border-white/10">
-                        <span className="text-lg font-mono font-bold text-muted-foreground dark:text-white/40">{item.content_type?.slice(0, 2).toUpperCase() || 'ID'}</span>
+                     <div className="h-12 w-12 rounded-xl bg-muted flex items-center justify-center border border-border/40">
+                        <span className="text-lg font-mono font-bold text-muted-foreground">{item.content_type?.slice(0, 2).toUpperCase() || 'ID'}</span>
                      </div>
                      <div>
-                        <h3 className="text-base font-bold text-foreground dark:text-white leading-tight">{item.title}</h3>
+                        <h3 className="text-base font-bold text-foreground leading-tight">{item.title}</h3>
                         <div className="flex items-center gap-2 mt-1">
-                           <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-border/40 dark:border-white/10 text-muted-foreground dark:text-white/40 font-mono">
+                           <Badge variant="outline" className="text-[9px] h-4 px-1.5 border-border/40 text-muted-foreground font-mono">
                               ID: {item.id.slice(0, 4)}
                            </Badge>
-                           <span className="text-[10px] text-muted-foreground/60 dark:text-white/30 uppercase tracking-wider">Запуск: {new Date(item.created_at).toLocaleTimeString()}</span>
+                           <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider">Запуск: {new Date(item.created_at).toLocaleTimeString()}</span>
                         </div>
                      </div>
                   </div>
                   <div className="flex items-center gap-2">
                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20">
                         <div className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse shadow-[0_0_8px_#3b82f6]" />
-                        <span className="text-[10px] font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wider">В РАБОТЕ</span>
+                        <span className="text-[10px] font-bold text-blue-500 uppercase tracking-wider">В РАБОТЕ</span>
                      </div>
                   </div>
                 </div>
@@ -111,7 +111,7 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
                       const isFailed = status === 'failed';
 
                       return (
-                        <div key={line.id} className="relative h-14 bg-muted/30 dark:bg-[#0E0E0E] border border-border/40 dark:border-white/5 rounded-xl flex items-center px-4 overflow-hidden group/track">
+                        <div key={line.id} className="relative h-14 bg-muted/30 border border-border/40 rounded-xl flex items-center px-4 overflow-hidden group/track">
                            {/* Animated Background Progress for Processing */}
                            {isProcessing && (
                              <motion.div 
@@ -130,7 +130,7 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
                            {/* Icon Box */}
                            <div className={cn(
                              "w-8 h-8 rounded-lg flex items-center justify-center mr-4 relative z-10 transition-colors",
-                             isProcessing ? "bg-background/80 dark:bg-white/10 text-foreground dark:text-white" : "bg-muted dark:bg-white/5 text-muted-foreground dark:text-white/30",
+                             isProcessing ? "bg-background/80 text-foreground" : "bg-muted text-muted-foreground",
                              isCompleted && "bg-green-500/20 text-green-500",
                              isFailed && "bg-red-500/20 text-red-500"
                            )}>
@@ -145,20 +145,20 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
                               <div className="flex justify-between items-center mb-1">
                                  <span className={cn(
                                    "text-xs font-bold uppercase tracking-wider",
-                                   isProcessing ? "text-foreground dark:text-white" : "text-muted-foreground dark:text-white/40"
+                                   isProcessing ? "text-foreground" : "text-muted-foreground"
                                  )}>
                                    {line.label}
                                  </span>
                                  <span className={cn(
                                    "text-[9px] font-mono",
-                                   isProcessing ? line.color : "text-muted-foreground/50 dark:text-white/20"
+                                   isProcessing ? line.color : "text-muted-foreground/50"
                                  )}>
                                    {status.toUpperCase()}
                                  </span>
                               </div>
                               
                               {/* Progress Bar */}
-                              <div className="h-1 w-full bg-muted/50 dark:bg-white/5 rounded-full overflow-hidden">
+                              <div className="h-1 w-full bg-muted/50 rounded-full overflow-hidden">
                                  <motion.div 
                                     className={cn("h-full shadow-[0_0_10px_currentColor]", isFailed ? "bg-red-500" : isCompleted ? "bg-green-500" : line.color.replace('text-', 'bg-'))}
                                     initial={{ width: 0 }}
@@ -171,12 +171,12 @@ export const AssemblyLines = ({ items, className, logs = [], onRetry, onForceCom
                            {/* Actions (Hover) */}
                            <div className="ml-4 opacity-0 group-hover/track:opacity-100 transition-opacity flex gap-2 z-20">
                               {isFailed && onRetry && (
-                                <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-muted dark:hover:bg-white/10 text-muted-foreground dark:text-white/50 hover:text-foreground dark:hover:text-white" onClick={() => onRetry(item.id, line.id)}>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-muted text-muted-foreground hover:text-foreground" onClick={() => onRetry(item.id, line.id)}>
                                   <RefreshCw className="w-3 h-3" />
                                 </Button>
                               )}
                               {isProcessing && onForceComplete && (
-                                <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-muted dark:hover:bg-white/10 text-muted-foreground dark:text-white/50 hover:text-foreground dark:hover:text-white" onClick={() => onForceComplete(item.id, line.id)}>
+                                <Button size="icon" variant="ghost" className="h-6 w-6 hover:bg-muted text-muted-foreground hover:text-foreground" onClick={() => onForceComplete(item.id, line.id)}>
                                   <FastForward className="w-3 h-3" />
                                 </Button>
                               )}

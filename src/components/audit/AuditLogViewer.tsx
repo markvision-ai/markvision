@@ -70,7 +70,7 @@ const actionIcons: Record<string, React.ReactNode> = {
   create: <Plus className="w-4 h-4 text-blue-500" />,
   update: <Pencil className="w-4 h-4 text-orange-500" />,
   delete: <Trash2 className="w-4 h-4 text-red-500" />,
-  view: <Eye className="w-4 h-4 text-gray-500" />,
+  view: <Eye className="w-4 h-4 text-muted-foreground" />,
   export: <Download className="w-4 h-4 text-purple-500" />,
   status_change: <Activity className="w-4 h-4 text-cyan-500" />,
   permission_change: <Settings className="w-4 h-4 text-indigo-500" />,
@@ -147,7 +147,7 @@ export const AuditLogViewer = () => {
       const { data, error } = await query;
 
       if (error) throw error;
-      setLogs(data || []);
+      setLogs((data as any) || []);
     } catch (error) {
       console.error('Error fetching audit logs:', error);
     } finally {
