@@ -87,8 +87,7 @@ async function processAgentRequest(supabase: any, projectId: string, payload: an
   if (query.includes('аудит') || query.includes('audit') || query.includes('статистика')) {
     try {
       const accessToken = await getAccessToken(supabase, projectId);
-      // Hardcoded preferred account or fetch dynamic
-      const adAccountId = "act_1005197113823722"; 
+      const adAccountId = await getAdAccountId(accessToken);
       
       const insights = await fetchFacebookInsights(accessToken, adAccountId);
 
@@ -134,7 +133,7 @@ async function processAgentRequest(supabase: any, projectId: string, payload: an
   if (query.includes('бюджет') || query.includes('budget')) {
       try {
           const accessToken = await getAccessToken(supabase, projectId);
-          const adAccountId = "act_1005197113823722"; 
+          const adAccountId = await getAdAccountId(accessToken);
           
           const campaigns = await fetchActiveCampaigns(accessToken, adAccountId);
           
@@ -378,8 +377,7 @@ async function getAdAccountId(accessToken: string): Promise<string> {
         console.error("Failed to fetch ad account ID", e);
     }
     
-    // Fallback to hardcoded ID (Dentistry Uali)
-    return "act_1005197113823722"; 
+    throw new Error("No active Ad Account found connected to this user."); 
 }
 
 // --- HELPERS ---
