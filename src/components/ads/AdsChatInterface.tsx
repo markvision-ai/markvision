@@ -277,21 +277,23 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
   ];
 
   return (
-    <div className="flex flex-col h-full w-full text-white relative overflow-hidden bg-black/90">
-      <BackgroundBeams className="absolute inset-0 z-0 opacity-30" />
+    <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-background">
+      <div className="hidden dark:block">
+        <BackgroundBeams className="absolute inset-0 z-0 opacity-30" />
+      </div>
       
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between p-4 border-b border-white/5 bg-black/20 backdrop-blur-md">
+      <div className="relative z-10 flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]" />
-          <span className="font-semibold tracking-wide text-sm text-gray-200">AI ANALYST_V2.0</span>
+          <span className="font-semibold tracking-wide text-sm text-foreground">AI ANALYST_V2.0</span>
         </div>
         <Button 
             variant="ghost" 
             size="sm" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="h-7 text-xs text-gray-400 hover:text-white hover:bg-white/5 transition-colors"
+            className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
             <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
             SYNC ALL
@@ -316,10 +318,10 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                         <div className={cn(
                             "w-8 h-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm backdrop-blur-md",
                             msg.role === 'user' 
-                                ? "bg-white/5 border-white/10 text-white" 
+                                ? "bg-primary text-primary-foreground border-primary" 
                                 : msg.role === 'system'
-                                    ? "bg-white/5 border-white/5 text-gray-400"
-                                    : "bg-white/5 border-white/10 text-white"
+                                    ? "bg-muted border-border text-muted-foreground"
+                                    : "bg-card border-border text-foreground"
                         )}>
                             {msg.role === 'user' ? <User className="w-4 h-4" /> : msg.role === 'system' ? <Zap className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                         </div>
@@ -328,10 +330,10 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                             <div className={cn(
                                 "p-3.5 text-sm backdrop-blur-md shadow-sm border",
                                 msg.role === 'user' 
-                                    ? "bg-white/10 border-white/5 rounded-2xl rounded-tr-sm text-gray-100" 
+                                    ? "bg-primary text-primary-foreground border-primary rounded-2xl rounded-tr-sm" 
                                     : msg.role === 'system'
-                                        ? "bg-white/5 border-white/5 rounded-2xl rounded-tl-sm text-gray-400 font-mono text-xs"
-                                        : "bg-black/40 border-white/10 rounded-2xl rounded-tl-sm text-gray-300"
+                                        ? "bg-muted/50 border-border rounded-2xl rounded-tl-sm text-muted-foreground font-mono text-xs"
+                                        : "bg-card border-border rounded-2xl rounded-tl-sm text-foreground"
                             )}>
                                 {msg.role === 'system' ? (
                                     <div className="flex items-center gap-2">
@@ -339,12 +341,15 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                         {msg.content}
                                     </div>
                                 ) : (
-                                    <div className="prose prose-invert prose-sm max-w-none leading-relaxed">
+                                    <div className={cn(
+                                      "prose prose-sm max-w-none leading-relaxed",
+                                      msg.role === 'user' ? "prose-invert" : "dark:prose-invert"
+                                    )}>
                                         <ReactMarkdown 
                                             components={{
                                                 p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
-                                                strong: ({node, ...props}) => <span className="font-semibold text-white" {...props} />,
-                                                code: ({node, ...props}) => <code className="bg-white/10 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                                                strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
+                                                code: ({node, ...props}) => <code className="bg-black/10 dark:bg-white/10 px-1 py-0.5 rounded text-xs font-mono" {...props} />
                                             }}
                                         >
                                             {msg.content}
@@ -352,7 +357,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                     </div>
                                 )}
                             </div>
-                            <span className="text-[10px] text-gray-500 px-1">
+                            <span className="text-[10px] text-muted-foreground px-1">
                                 {format(new Date(msg.created_at || new Date()), 'HH:mm')}
                             </span>
                         </div>
@@ -369,7 +374,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-bounce" style={{ animationDelay: '150ms' }} />
                             <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-xs text-emerald-500/50">Анализирую данные...</span>
+                        <span className="text-xs text-muted-foreground">Анализирую данные...</span>
                     </motion.div>
                 )}
             </div>
@@ -377,14 +382,14 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       </div>
 
       {/* Input Area */}
-      <div className="relative z-10 p-4 bg-black/40 border-t border-white/5 backdrop-blur-xl">
+      <div className="relative z-10 p-4 bg-background/80 border-t border-border backdrop-blur-xl">
         {/* Quick Commands */}
         <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide mask-fade-right">
             {quickCommands.map((cmd, i) => (
                 <button
                     key={i}
                     onClick={() => setInputValue(cmd.label)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-white/10 bg-white/5 hover:bg-white/10 hover:border-emerald-500/30 transition-all text-xs text-gray-400 hover:text-emerald-400 whitespace-nowrap active:scale-95"
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-muted/50 hover:bg-muted hover:border-emerald-500/30 transition-all text-xs text-muted-foreground hover:text-emerald-500 whitespace-nowrap active:scale-95"
                 >
                     <cmd.icon className="w-3.5 h-3.5" />
                     {cmd.label}
@@ -399,7 +404,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Спроси Марка о рекламе или контенте..."
-                className="bg-white/5 border-white/10 focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500/30 text-gray-200 placeholder:text-gray-600 pr-10 h-11 rounded-xl transition-all hover:bg-white/10"
+                className="bg-muted/50 border-border focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500/30 text-foreground placeholder:text-muted-foreground pr-10 h-11 rounded-xl transition-all hover:bg-muted"
                 disabled={isLoading}
             />
             <Button 
@@ -411,7 +416,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                 <Send className="w-4 h-4" />
             </Button>
         </div>
-        <div className="mt-3 flex justify-between items-center text-[10px] text-gray-600">
+        <div className="mt-3 flex justify-between items-center text-[10px] text-muted-foreground">
             <span>Доступ: Leads, Daily Data, Content Items</span>
             <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>Online</span>
         </div>

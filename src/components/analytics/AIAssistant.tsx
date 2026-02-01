@@ -128,84 +128,88 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
           </div>
           
           <div className="flex items-center gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 gap-2 hidden sm:flex">
-                  <Filter className="w-4 h-4" />
-                  <span className="hidden lg:inline">Фильтры</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-80" align="end">
-                <div className="grid gap-4">
-                  <div className="space-y-2">
-                    <h4 className="font-medium leading-none">Настройки отображения</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Настройте период и видимость метрик.
-                    </p>
-                  </div>
-                  <div className="grid gap-2">
-                    <div className="grid grid-cols-3 items-center gap-4">
-                      <Label htmlFor="date-range">Период</Label>
-                      <Select value={dateRange} onValueChange={setDateRange}>
-                        <SelectTrigger id="date-range" className="col-span-2 h-8">
-                          <SelectValue placeholder="Выберите период" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="24h">24 часа</SelectItem>
-                          <SelectItem value="7d">7 дней</SelectItem>
-                          <SelectItem value="30d">30 дней</SelectItem>
-                          <SelectItem value="90d">3 месяца</SelectItem>
-                        </SelectContent>
-                      </Select>
+            {!hideDashboard && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-2 hidden sm:flex">
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden lg:inline">Фильтры</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Настройки отображения</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Настройте период и видимость метрик.
+                      </p>
                     </div>
-                    <div className="space-y-2 mt-2">
-                      <Label>Метрики</Label>
-                      <div className="grid gap-2">
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="show-spend" className="text-sm font-normal">Расход</Label>
-                          <Switch 
-                            id="show-spend" 
-                            checked={visibleMetrics.spend}
-                            onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, spend: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="show-revenue" className="text-sm font-normal">Выручка</Label>
-                          <Switch 
-                            id="show-revenue" 
-                            checked={visibleMetrics.revenue}
-                            onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, revenue: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="show-romi" className="text-sm font-normal">ROMI</Label>
-                          <Switch 
-                            id="show-romi" 
-                            checked={visibleMetrics.romi}
-                            onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, romi: c }))}
-                          />
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <Label htmlFor="show-cpl" className="text-sm font-normal">CPL</Label>
-                          <Switch 
-                            id="show-cpl" 
-                            checked={visibleMetrics.cpl}
-                            onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, cpl: c }))}
-                          />
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-3 items-center gap-4">
+                        <Label htmlFor="date-range">Период</Label>
+                        <Select value={dateRange} onValueChange={setDateRange}>
+                          <SelectTrigger id="date-range" className="col-span-2 h-8">
+                            <SelectValue placeholder="Выберите период" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="24h">24 часа</SelectItem>
+                            <SelectItem value="7d">7 дней</SelectItem>
+                            <SelectItem value="30d">30 дней</SelectItem>
+                            <SelectItem value="90d">3 месяца</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2 mt-2">
+                        <Label>Метрики</Label>
+                        <div className="grid gap-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-spend" className="text-sm font-normal">Расход</Label>
+                            <Switch 
+                              id="show-spend" 
+                              checked={visibleMetrics.spend}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, spend: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-revenue" className="text-sm font-normal">Выручка</Label>
+                            <Switch 
+                              id="show-revenue" 
+                              checked={visibleMetrics.revenue}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, revenue: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-romi" className="text-sm font-normal">ROMI</Label>
+                            <Switch 
+                              id="show-romi" 
+                              checked={visibleMetrics.romi}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, romi: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-cpl" className="text-sm font-normal">CPL</Label>
+                            <Switch 
+                              id="show-cpl" 
+                              checked={visibleMetrics.cpl}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, cpl: c }))}
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </PopoverContent>
-            </Popover>
+                </PopoverContent>
+              </Popover>
+            )}
 
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="hidden sm:block">
-              <TabsList className="grid w-[200px] grid-cols-2">
-                <TabsTrigger value="dashboard">Дашборд</TabsTrigger>
-                <TabsTrigger value="chat">Чат</TabsTrigger>
-              </TabsList>
-            </Tabs>
+            {!hideDashboard && (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="hidden sm:block">
+                <TabsList className="grid w-[200px] grid-cols-2">
+                  <TabsTrigger value="dashboard">Дашборд</TabsTrigger>
+                  <TabsTrigger value="chat">Чат</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
             
             <Button 
               variant="outline" 

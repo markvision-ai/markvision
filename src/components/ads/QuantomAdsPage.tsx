@@ -155,7 +155,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
+                  <h1 className="text-2xl font-bold text-foreground">ИИ таргетолог</h1>
                   <AIStatusIndicator />
                 </div>
                 <p className="text-sm text-muted-foreground">
@@ -217,11 +217,6 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing}>
                 <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
               </Button>
-
-              <Button className="ml-auto bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-4 h-4 mr-2" />
-                <span className="hidden sm:inline">Добавить кампанию</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -255,7 +250,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       </div>
 
       {/* Chat Interface (Right Side) */}
-      <div className="w-[450px] border-l border-border/40 bg-black/90 backdrop-blur-xl relative flex flex-col shadow-2xl z-10">
+      <div className="w-[450px] border-l border-border/40 bg-background/90 backdrop-blur-xl relative flex flex-col shadow-2xl z-10">
         <AdsChatInterface 
           projectId={projectId} 
           contextData={{

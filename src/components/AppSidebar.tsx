@@ -20,7 +20,6 @@ import {
   IconInbox,
   IconChartBar,
   IconWallet,
-  IconSettings,
   IconUsersGroup,
   IconArrowLeft,
   IconActivity,
@@ -184,7 +183,7 @@ export const AppSidebar = ({
     ],
     marketing: [
       {
-        label: "Управление рекламой",
+        label: "ИИ таргетолог",
         href: "/quantum-ads",
         icon: <IconAd2 className="h-5 w-5 flex-shrink-0" />,
         tab: "quantom-ads",
@@ -254,21 +253,13 @@ export const AppSidebar = ({
         tab: "rop",
       },
     ],
-    infrastructure: [
-      {
-        label: "Настройки",
-        href: "/settings",
-        icon: <IconSettings className="h-5 w-5 flex-shrink-0" />,
-        tab: "settings",
-      },
-    ],
   };
 
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-white/5">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-white/5 h-screen sticky top-0">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
               {open ? <Logo hasErrors={systemHasErrors} /> : <LogoIcon hasErrors={systemHasErrors} />}
@@ -428,18 +419,6 @@ export const AppSidebar = ({
 
               <SidebarLabel label="Аналитика" />
               {links.analytics.map((link) => (
-                <SidebarLink
-                  key={link.tab}
-                  link={{
-                    ...link,
-                    onClick: () => handleNavigation(link.tab, link.href),
-                  }}
-                  isActive={activeTab === link.tab}
-                />
-              ))}
-
-              <SidebarLabel label="Инфраструктура" />
-              {links.infrastructure.map((link) => (
                 <SidebarLink
                   key={link.tab}
                   link={{

@@ -103,7 +103,7 @@ export const DesktopSidebar = ({
   return (
     <motion.aside
       className={cn(
-        "h-screen px-4 py-4 hidden md:flex md:flex-col flex-shrink-0 sticky top-0 left-0 z-40",
+        "h-screen px-4 py-4 hidden md:flex md:flex-col flex-shrink-0 sticky top-0 left-0 z-50",
         "bg-sidebar border-r border-white/5",
         className
       )}

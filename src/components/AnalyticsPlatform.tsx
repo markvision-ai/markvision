@@ -834,7 +834,7 @@ export const AnalyticsPlatform = () => {
   return (
     <DotPatternBackground>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full relative">
+        <div className="h-screen overflow-hidden flex w-full relative bg-background">
 
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 

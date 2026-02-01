@@ -189,7 +189,16 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     totals: typeof data.totals;
     dailyData: DailyDataPoint[];
     isLoading: boolean;
-  }>({ totals: data.totals, dailyData: [], isLoading: false });
+    planData?: {
+      spend: number;
+      impressions: number;
+      clicks: number;
+      leads: number;
+      diagnostics: number;
+      sales: number;
+      revenue: number;
+    };
+  }>({ totals: data.totals, dailyData: [], isLoading: false, planData: data.planData });
 
   // Load templates
   useEffect(() => {
@@ -291,6 +300,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       const fromDate = format(reportDateRange.from, 'yyyy-MM-dd');
       const toDate = format(reportDateRange.to, 'yyyy-MM-dd');
 
+      // 1. Fetch Daily Data
       const { data: dailyDataResult, error } = await supabase
         .from('daily_data')
         .select('*')
@@ -329,7 +339,33 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
       );
 
-      setReportData({ totals, dailyData, isLoading: false });
+      // 2. Fetch Plan Data (Previous Month)
+      const prevMonthDate = subMonths(reportDateRange.from, 1);
+      const prevMonthFirstDay = format(startOfMonth(prevMonthDate), 'yyyy-MM-dd');
+
+      const { data: planResult } = await supabase
+        .from('plan_data')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .eq('month', prevMonthFirstDay)
+        .maybeSingle();
+
+      const fetchedPlan = planResult ? {
+        spend: Number(planResult.spend) || 0,
+        impressions: Number(planResult.impressions) || 0,
+        clicks: Number(planResult.clicks) || 0,
+        leads: Number(planResult.leads) || 0,
+        diagnostics: Number(planResult.diagnostics) || 0,
+        sales: Number(planResult.sales) || 0,
+        revenue: Number(planResult.revenue) || 0,
+      } : { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+
+      setReportData({ 
+        totals, 
+        dailyData, 
+        isLoading: false,
+        planData: fetchedPlan
+      });
     };
 
     fetchReportData();
@@ -684,7 +720,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   };
 
   // Calculate plan/fact for display
-  const planDataValues = data.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+  const planDataValues = reportData.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
 
   const metrics = [
     { label: 'Расход', value: reportData.totals.spend, plan: planDataValues.spend, format: 'currency', inverse: true },
