@@ -173,8 +173,41 @@ async function syncFacebookAds(
     until: endDate.toISOString().split("T")[0],
   };
 
-  for (const account of adAccounts) {
-    if (account.account_status !== 1) continue; // Skip inactive accounts
+  // Filter for specific account if requested
+  let targetAccount = null;
+  const targetKeywords = ['стоматология', 'уали', 'uali'];
+  
+  // 1. Try to find specific account "Стоматология Уали"
+  targetAccount = adAccounts.find((acc: any) => {
+      const name = (acc.name || '').toLowerCase();
+      return targetKeywords.some(kw => name.includes(kw));
+  });
+
+  // 2. If not found, use the first ACTIVE account
+  if (!targetAccount) {
+      targetAccount = adAccounts.find((acc: any) => acc.account_status === 1);
+  }
+
+  // 3. Fallback to first available
+  if (!targetAccount && adAccounts.length > 0) {
+      targetAccount = adAccounts[0];
+  }
+
+  if (!targetAccount) {
+      console.log("No ad accounts found.");
+      return { campaigns: 0, totalSpend: 0 };
+  }
+  
+  console.log(`Syncing ad account: ${targetAccount.name} (${targetAccount.id})`);
+
+  // Only process this specific account
+  const accountsToSync = [targetAccount];
+
+  for (const account of accountsToSync) {
+    if (account.account_status !== 1) {
+        console.log(`Skipping inactive account: ${account.name}`);
+        continue; 
+    }
 
     // Sync Campaigns Structure
     try {

@@ -282,6 +282,9 @@ async function executeAgentAction(supabase: any, projectId: string, payload: any
         }
         
         if (actionId === 'scale_budget') {
+            if (!adAccountId) throw new Error("Ad Account ID required for this action");
+            const accessToken = await getAccessToken(supabase, projectId);
+
             // Real logic: Increase budget by 20% for first 3 campaigns
             const campaignsToScale = campaigns.slice(0, 3);
             let scaledCount = 0;
@@ -319,7 +322,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string) {
         `fields=id,name,status,daily_budget,insights.date_preset(last_30d){spend,actions,clicks},` +
         `adsets{id,name,status,insights.date_preset(last_30d){spend,actions,clicks},` +
         `ads{id,name,status,creative{thumbnail_url},insights.date_preset(last_30d){spend,actions,clicks}}}` +
-        `&effective_status=['ACTIVE','PAUSED','ARCHIVED']` + // Show all relevant statuses
+        `&effective_status=['ACTIVE']` + // Only ACTIVE as requested
         `&limit=100`; 
 
     console.log(`Fetching hierarchy from: ${url}`);
