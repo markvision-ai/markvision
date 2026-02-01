@@ -6,7 +6,7 @@ export interface Campaign {
   id: string;
   project_id: string;
   platform: 'facebook' | 'tiktok' | 'google' | 'instagram';
-  external_id: string | null;
+  external_id?: string | null;
   name: string;
   status: boolean;
   budget: number;

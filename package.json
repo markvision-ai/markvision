@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "db:migrate:ad-account-id": "node scripts/run-migration-ad-account-id.mjs",
+    "db:migrate:external-id": "node scripts/run-migration-external-id.mjs",
     "test": "vitest run"
   },
   "dependencies": {
