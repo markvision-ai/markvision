@@ -63,25 +63,25 @@
   }
 
   .dark {
-    /* Deep Dark Mode - #020617 equivalent */
-    --background: 222 47% 2%;
+    /* Deep Dark Mode - #000000 Pure Black */
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
 
-    /* Cards - Glassmorphism base #0f172a */
-    --card: 217 33% 8%;
+    /* Cards - Almost Black #050505 */
+    --card: 0 0% 2%;
     --card-foreground: 210 40% 98%;
 
-    --popover: 217 33% 10%;
+    --popover: 0 0% 2%;
     --popover-foreground: 210 40% 98%;
 
     /* Electric Blue - Single Accent Color */
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 33% 12%;
+    --secondary: 0 0% 5%;
     --secondary-foreground: 210 40% 98%;
 
-    --muted: 217 33% 15%;
+    --muted: 0 0% 5%;
     --muted-foreground: 215 20% 65%; /* Brighter for better contrast in dark theme (was 50%) */
 
     /* Accent = Primary for consistency */
@@ -98,6 +98,18 @@
     --warning-foreground: 0 0% 100%;
 
     /* Subtle borders - barely visible */
+    --border: 0 0% 10%;
+    --input: 0 0% 10%;
+    --ring: 217 91% 60%;
+
+    --sidebar: 0 0% 2%;
+    --sidebar-foreground: 240 5% 96%;
+    --sidebar-primary: 217 91% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 5%;
+    --sidebar-accent-foreground: 240 5% 96%;
+    --sidebar-border: 0 0% 10%;
+    --sidebar-ring: 217 91% 60%;
     --border: 217 33% 15%;
     --input: 217 33% 15%;
     --ring: 217 91% 60%;

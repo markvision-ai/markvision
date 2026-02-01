@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { 
   format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
-  subMonths
+  subMonths, addMonths
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Download, Target, Loader2, 
-  ShoppingCart, Users, TrendingUp 
+  ShoppingCart, Users, TrendingUp,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -136,12 +137,7 @@ const EditableCell = ({
   );
 };
 
-type PresetKey = 'month' | 'lastMonth' | 'custom';
 
-const PRESETS: { key: PresetKey; label: string }[] = [
-  { key: 'month', label: 'Этот месяц' },
-  { key: 'lastMonth', label: 'Прошл. месяц' },
-];
 
 
 
@@ -157,16 +153,7 @@ export const DataTable = React.memo(({
     to: endOfMonth(new Date()),
   });
 
-  const [activePreset, setActivePreset] = useState<PresetKey>('month');
 
-  // Если пользователь выбирает произвольный диапазон в календаре, сбрасываем пресет
-  useEffect(() => {
-    if (!dateRange?.from || !dateRange?.to) return;
-    
-    // Проверка соответствия текущего диапазона какому-либо пресету - сложная логика, 
-    // проще сбрасывать activePreset, если он не был установлен через кнопку.
-    // Но пока оставим ручное управление через handlePresetClick
-  }, [dateRange]);
 
   const daysInRange = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return [];
@@ -180,25 +167,19 @@ export const DataTable = React.memo(({
     }
   }, [dateRange]);
 
-  const handlePresetClick = (preset: PresetKey) => {
-    const now = new Date();
-    let newRange: DateRange;
 
-    switch (preset) {
-      case 'month':
-        newRange = { from: startOfMonth(now), to: endOfMonth(now) };
-        break;
-      case 'lastMonth':
-        const lastMonth = subMonths(now, 1);
-        newRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
-        break;
-      default:
-        return;
-    }
-
-    setDateRange(newRange);
-    setActivePreset(preset);
+  const handlePrevMonth = () => {
+    if (!dateRange?.from) return;
+    const prevMonth = subMonths(dateRange.from, 1);
+    setDateRange({ from: startOfMonth(prevMonth), to: endOfMonth(prevMonth) });
   };
+
+  const handleNextMonth = () => {
+    if (!dateRange?.from) return;
+    const nextMonth = addMonths(dateRange.from, 1);
+    setDateRange({ from: startOfMonth(nextMonth), to: endOfMonth(nextMonth) });
+  };
+
 
   const totals = useMemo(() => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
@@ -352,24 +333,28 @@ export const DataTable = React.memo(({
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
           
           {/* Controls Container */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
-            {/* Presets */}
-            <div className="flex flex-wrap gap-1">
-              {PRESETS.map((preset) => (
-                <button
-                  key={preset.key}
-                  onClick={() => handlePresetClick(preset.key)}
-                  className={cn(
-                    "px-2 py-1.5 text-xs font-medium rounded-md transition-colors",
-                    activePreset === preset.key
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
-                  )}
-                >
-                  {preset.label}
-                </button>
-              ))}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePrevMonth}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-sm font-medium capitalize min-w-[120px] text-center">
+              {dateRange?.from ? format(dateRange.from, 'LLLL yyyy', { locale: ru }) : ''}
             </div>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleNextMonth}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
           
           <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
@@ -483,52 +468,112 @@ export const DataTable = React.memo(({
                 return (
                   <tr 
                     key={dateKey} 
-                    className={`border-b hover:bg-foreground/[0.05] transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
+                    className={cn(
+                      "border-b border-border/40 hover:bg-muted/30 transition-colors",
+                      isToday && "bg-primary/5",
+                      isWeekend && "bg-muted/10"
+                    )}
                   >
-                    <td className={`p-2 md:p-3 sticky left-0 backdrop-blur-sm z-10 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'ring-1 ring-primary/30' : ''}`}>
-                      <div className="flex items-center gap-1 md:gap-2">
-                        <span className={`text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded font-semibold ${isWeekend ? 'bg-muted text-foreground/70 dark:text-foreground/80' : 'bg-primary/10 text-primary'}`}>
+                    <td className={cn(
+                      "p-2 md:p-3 sticky left-0 z-20 backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                      isToday ? "bg-primary/5" : isWeekend ? "bg-muted/10" : "bg-card"
+                    )}>
+                      <div className="flex flex-col">
+                        <span className={cn(
+                          "font-medium",
+                          isToday && "text-primary"
+                        )}>
+                          {format(day, 'dd.MM')}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground uppercase">
                           {WEEKDAYS[weekDay]}
                         </span>
-                        <span className={`font-semibold text-sm md:text-base ${isToday ? 'text-primary' : 'text-foreground'}`}>{format(day, 'd')}</span>
-                        {isToday && <span className="text-xs md:text-sm text-primary font-medium hidden sm:inline">(сегодня)</span>}
                       </div>
                     </td>
-                    {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
-                      const isRevenueCell = field === 'revenue';
-                      return (
-                        <td 
-                          key={field} 
-                          className={`p-1 md:p-2 ${isRevenueCell && isRevenueAboveAverage ? 'bg-blue-500/10 dark:bg-blue-500/10' : ''}`}
-                        >
-                          <EditableCell
-                            value={dayData?.[field] as number | undefined}
-                            onSave={(val) => onDataChange(dateKey, field, val)}
-                            className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm"
-                          />
-                      </td>
-                    );
-                  })}
+                    <td className="p-2 md:p-3 text-right text-muted-foreground/90">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.spend}
+                          onSave={(val) => onDataChange(dateKey, 'spend', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatCurrency(dayData?.spend || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.impressions}
+                          onSave={(val) => onDataChange(dateKey, 'impressions', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatNumber(dayData?.impressions || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.clicks}
+                          onSave={(val) => onDataChange(dateKey, 'clicks', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatNumber(dayData?.clicks || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right font-medium">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.leads}
+                          onSave={(val) => onDataChange(dateKey, 'leads', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-medium"
+                        />
+                      ) : formatNumber(dayData?.leads || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.followers}
+                          onSave={(val) => onDataChange(dateKey, 'followers', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatNumber(dayData?.followers || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.diagnostics}
+                          onSave={(val) => onDataChange(dateKey, 'diagnostics', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatNumber(dayData?.diagnostics || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.sales}
+                          onSave={(val) => onDataChange(dateKey, 'sales', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                        />
+                      ) : formatNumber(dayData?.sales || 0)}
+                    </td>
+                    <td className={cn(
+                      "p-2 md:p-3 text-right font-medium",
+                      isRevenueAboveAverage ? "text-emerald-600 dark:text-emerald-400" : ""
+                    )}>
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.revenue}
+                          onSave={(val) => onDataChange(dateKey, 'revenue', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-medium"
+                        />
+                      ) : formatCurrency(dayData?.revenue || 0)}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
-            <tfoot className="bg-secondary shadow-[0_-1px_0_0_rgba(0,0,0,0.1)]">
-              <tr className="font-bold text-foreground">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-10 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ИТОГО</td>
-                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>
     </div>
   );
 });
+
+DataTable.displayName = "DataTable";

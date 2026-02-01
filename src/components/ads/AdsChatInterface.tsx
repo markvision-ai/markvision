@@ -238,6 +238,16 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     return 'Принято. Анализирую запрос...';
   };
 
+  const fetchWithRetry = async (fn: () => Promise<any>, retries = 3, delay = 1000): Promise<any> => {
+    try {
+      return await fn();
+    } catch (error) {
+      if (retries <= 0) throw error;
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return fetchWithRetry(fn, retries - 1, delay * 2);
+    }
+  };
+
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
 
@@ -264,7 +274,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
     try {
       // Call ads-manager edge function directly for everything else
-      const { data, error } = await supabase.functions.invoke('ads-manager', {
+      const { data, error } = await fetchWithRetry(() => supabase.functions.invoke('ads-manager', {
         body: {
           action: 'chat_request',
           payload: {
@@ -278,7 +288,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
             }
           }
         }
-      });
+      }));
 
       if (error) throw error;
 
@@ -293,8 +303,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       }, 1000);
       
     } catch (error) {
-      console.error(error);
-      await saveMessage('assistant', 'Произошла ошибка при обработке запроса.', 'error');
+      console.error('Failed to process request:', error);
+      await saveMessage('assistant', 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.', 'error');
       setIsLoading(false);
     }
   };

@@ -14,7 +14,7 @@ const ThemeContext = createContext<ThemeContextType>({
   toggleTheme: () => {},
 });
 
-export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
+export const ThemeProvider = ({ children }: { children: React.ReactNode }): React.ReactElement => {
   const [theme, setTheme] = useState<Theme>(() => {
     // Check local storage first
     if (typeof window !== 'undefined') {
