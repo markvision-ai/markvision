@@ -40,7 +40,7 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
-  type?: 'text' | 'success' | 'error' | 'info';
+  type?: 'text' | 'success' | 'error' | 'info' | 'terminal_output';
   metadata?: any;
 }
 
@@ -247,17 +247,54 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     
     await saveMessage('user', text);
 
+    // Check for local commands (Content Factory)
+    if (text.toLowerCase().includes('контент-завод') || text.toLowerCase().includes('отправь это фото')) {
+        try {
+            const response = await processCommand(text);
+            setTimeout(async () => {
+                await saveMessage('assistant', response, 'text');
+                setIsLoading(false);
+            }, 1000);
+        } catch (error) {
+            console.error(error);
+            setIsLoading(false);
+        }
+        return;
+    }
+
     try {
-      const response = await processCommand(text);
-      
-      // Simulate thinking delay
+      // Call ads-manager edge function directly for everything else
+      const { data, error } = await supabase.functions.invoke('ads-manager', {
+        body: {
+          action: 'chat_request',
+          payload: {
+            project_id: projectId,
+            query: text,
+            context: {
+              spent_today: contextData.summary.totalSpent,
+              leads_today: contextData.summary.totalLeads,
+              roas: contextData.summary.overallROAS,
+              content_count: contextData.contentItems.length
+            }
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      // Simulate thinking delay for better UX
       setTimeout(async () => {
-          await saveMessage('assistant', response, 'text');
-          setIsLoading(false);
+        if (data?.type === 'terminal_output' && data.data?.raw_output) {
+            await saveMessage('assistant', data.data.raw_output, 'terminal_output');
+        } else {
+            await saveMessage('assistant', data?.message || 'Ответ получен', 'text');
+        }
+        setIsLoading(false);
       }, 1000);
       
     } catch (error) {
       console.error(error);
+      await saveMessage('assistant', 'Произошла ошибка при обработке запроса.', 'error');
       setIsLoading(false);
     }
   };
@@ -338,6 +375,10 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                 {msg.role === 'system' ? (
                                     <div className="flex items-center gap-2">
                                         <Terminal className="w-3 h-3" />
+                                        {msg.content}
+                                    </div>
+                                ) : msg.type === 'terminal_output' ? (
+                                    <div className="font-mono text-xs leading-relaxed whitespace-pre-wrap bg-black/50 p-2 rounded-md border border-green-900/50 text-green-500 shadow-inner">
                                         {msg.content}
                                     </div>
                                 ) : (

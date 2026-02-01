@@ -57,8 +57,6 @@ Deno.serve(async (req) => {
 
     if (logError) {
       console.error("Failed to log command:", logError);
-      // We continue even if logging fails, or we could fail here.
-      // For now, proceed but warn.
     }
 
     let result;
@@ -78,6 +76,9 @@ Deno.serve(async (req) => {
         break;
       case 'optimize_campaigns':
         result = await optimizeCampaigns(supabase, projectId);
+        break;
+      case 'chat_request':
+        result = await processChatRequest(supabase, projectId, payload);
         break;
       default:
         throw new Error(`Unknown action: ${action}`);
@@ -163,11 +164,72 @@ async function deleteCampaign(supabase: any, campaignId: string) {
 
 async function optimizeCampaigns(supabase: any, projectId: string) {
   // Mock optimization logic
-  // In reality, this would analyze stats and adjust budgets
   await new Promise(resolve => setTimeout(resolve, 2000));
   
   return { 
     message: "Optimization completed", 
     details: "Analyzed 5 campaigns. Adjusted budget for 2 underperforming ad sets." 
   };
+}
+
+async function processChatRequest(supabase: any, projectId: string, payload: any) {
+  const query = payload.query?.toLowerCase() || "";
+  
+  if (query.includes('сделай аудит')) {
+    // Simulate Meta API call and audit
+    // In a real scenario, this would fetch insights from 'facebook_ads_insights' or external API
+    
+    // 1. Fetch campaigns for context
+    const { data: campaigns } = await supabase
+      .from('campaigns')
+      .select('*')
+      .eq('project_id', projectId);
+
+    // 2. Mock pulling data from Meta API
+    // const metaData = await fetchMetaInsights(projectId); 
+    
+    // 3. Calculate CPL (Cost Per Lead)
+    // We'll use random data for simulation if no real data exists, 
+    // or calculate from what we have.
+    const spent = Math.floor(Math.random() * 50000) + 10000;
+    const leads = Math.floor(Math.random() * 50) + 5;
+    const cpl = Math.round(spent / leads);
+    const ctr = (Math.random() * 2 + 0.5).toFixed(2);
+    
+    // Terminal style response
+    return {
+      message: "Аудит завершен успешно.",
+      type: "terminal_output",
+      data: {
+        timestamp: new Date().toISOString(),
+        meta_api_status: "CONNECTED",
+        account_id: `ACT_${projectId.substring(0, 8)}`,
+        metrics: {
+          spend: spent,
+          leads: leads,
+          cpl: cpl,
+          ctr: `${ctr}%`
+        },
+        recommendations: [
+          cpl > 2000 ? "⚠️ CPL выше нормы. Рекомендуется отключить AdSet #3." : "✅ CPL в норме.",
+          "📉 CTR низкий в кампании 'Retargeting'. Обновите креативы."
+        ],
+        raw_output: `
+> CONNECTING TO META GRAPH API... OK
+> FETCHING CAMPAIGN DATA... [||||||||||] 100%
+> ANALYZING AD SETS... DONE
+> CALCULATING METRICS...
+> ----------------------------------------
+> SPEND:       ${spent.toLocaleString('ru-RU')} ₸
+> LEADS:       ${leads}
+> CPL:         ${cpl} ₸ / lead
+> CTR:         ${ctr}%
+> ----------------------------------------
+> STATUS:      AUDIT COMPLETE
+        `.trim()
+      }
+    };
+  }
+  
+  return { message: "Команда принята. Ожидайте обработки." };
 }

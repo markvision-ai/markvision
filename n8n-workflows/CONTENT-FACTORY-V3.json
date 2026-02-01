@@ -1,0 +1,561 @@
+{
+  "name": "CONTENT-FACTORY-V3",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "trigger-manual",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "path": "content-factory-v3",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "trigger-webhook",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        200,
+        460
+      ],
+      "webhookId": "content-factory-v3"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "input_text",
+              "value": "={{ $json.body.text || 'Новая идея для контента о будущем ИИ в маркетинге' }}"
+            },
+            {
+              "name": "project_id",
+              "value": "={{ $json.body.project_id || 'default_project' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "set-input",
+      "name": "Set Input Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 2,
+      "position": [
+        420,
+        380
+      ]
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Ты - эксперт по SMM в Telegram. Твоя задача - переписать входящий текст в формате поста для Telegram канала. Используй эмодзи, разбивку на абзацы и призыв к действию."
+            },
+            {
+              "content": "={{ $json.input_text }}"
+            }
+          ]
+        }
+      },
+      "id": "llm-telegram",
+      "name": "LLM Rewrite: Telegram",
+      "type": "@n8n/n8n-nodes-langchain.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        700,
+        100
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Ты - эксперт по Threads. Перепиши текст в формате треда (серии коротких сообщений). Первое сообщение должно быть цепляющим хуком."
+            },
+            {
+              "content": "={{ $json.input_text }}"
+            }
+          ]
+        }
+      },
+      "id": "llm-threads",
+      "name": "LLM Rewrite: Threads",
+      "type": "@n8n/n8n-nodes-langchain.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        700,
+        250
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Ты - редактор блога. Напиши полноценную статью на основе этого текста. Используй заголовки H2, H3 и маркированные списки."
+            },
+            {
+              "content": "={{ $json.input_text }}"
+            }
+          ]
+        }
+      },
+      "id": "llm-article",
+      "name": "LLM Rewrite: Article",
+      "type": "@n8n/n8n-nodes-langchain.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        700,
+        400
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.heygen.com/v1/video/generate",
+        "authentication": "headerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{ $json.input_text }}"
+            },
+            {
+              "name": "avatar_id",
+              "value": "default_avatar"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "api-heygen",
+      "name": "API: HeyGen Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        550
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_HEYGEN_CREDENTIAL_ID",
+          "name": "HeyGen API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/sora/generations",
+        "authentication": "headerAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "prompt",
+              "value": "={{ $json.input_text }}"
+            },
+            {
+              "name": "size",
+              "value": "1080x1920"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "api-sora",
+      "name": "API: Sora Video",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        700,
+        700
+      ],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "YOUR_SORA_CREDENTIAL_ID",
+          "name": "Sora API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-4o",
+        "messages": {
+          "values": [
+            {
+              "role": "system",
+              "content": "Ты - SMM менеджер Instagram. Напиши продающий пост для Instagram и предложи идею для визуала (Reels или карусель) на основе текста."
+            },
+            {
+              "content": "={{ $json.input_text }}"
+            }
+          ]
+        }
+      },
+      "id": "llm-instagram",
+      "name": "LLM Rewrite: Instagram",
+      "type": "@n8n/n8n-nodes-langchain.openAiChat",
+      "typeVersion": 1,
+      "position": [
+        700,
+        850
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "YOUR_OPENAI_CREDENTIAL_ID",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "Telegram Post Generated",
+            "description": "={{ $json.content }}",
+            "status": "completed",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "telegram"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-telegram",
+      "name": "Save Telegram",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        100
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "Threads Post Generated",
+            "description": "={{ $json.content }}",
+            "status": "completed",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "threads"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-threads",
+      "name": "Save Threads",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        250
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "Article Generated",
+            "description": "={{ $json.content }}",
+            "status": "completed",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "article"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-article",
+      "name": "Save Article",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        400
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "HeyGen Video Task",
+            "description": "Video generation started via API",
+            "status": "pending",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "heygen",
+            "meta_data": "={{ JSON.stringify($json) }}"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-heygen",
+      "name": "Save HeyGen Task",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        550
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "Sora Video Task",
+            "description": "Sora video generation requested",
+            "status": "pending",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "sora",
+            "meta_data": "={{ JSON.stringify($json) }}"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-sora",
+      "name": "Save Sora Task",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        700
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "tableName": "content_tasks",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "title": "Instagram Post Generated",
+            "description": "={{ $json.content }}",
+            "status": "completed",
+            "project_id": "={{ $('Set Input Data').item.json.project_id }}",
+            "platform": "instagram"
+          },
+          "matchingColumns": [],
+          "schemaId": "public"
+        }
+      },
+      "id": "save-instagram",
+      "name": "Save Instagram",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        1000,
+        850
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "YOUR_SUPABASE_CREDENTIAL_ID",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Set Input Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Data": {
+      "main": [
+        [
+          {
+            "node": "LLM Rewrite: Telegram",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LLM Rewrite: Threads",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LLM Rewrite: Article",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API: HeyGen Video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "API: Sora Video",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "LLM Rewrite: Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Rewrite: Telegram": {
+      "main": [
+        [
+          {
+            "node": "Save Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Rewrite: Threads": {
+      "main": [
+        [
+          {
+            "node": "Save Threads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Rewrite: Article": {
+      "main": [
+        [
+          {
+            "node": "Save Article",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API: HeyGen Video": {
+      "main": [
+        [
+          {
+            "node": "Save HeyGen Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "API: Sora Video": {
+      "main": [
+        [
+          {
+            "node": "Save Sora Task",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "LLM Rewrite: Instagram": {
+      "main": [
+        [
+          {
+            "node": "Save Instagram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

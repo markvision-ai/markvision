@@ -194,7 +194,7 @@ export const MobileMenuDrawer = ({
               )}
             </Button>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-medium flex-shrink-0">
