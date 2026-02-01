@@ -131,6 +131,7 @@ const App = () => (
         <Route path="/quantum-ads" element={<Index />} />
         <Route path="/factory" element={<Index />} />
         <Route path="/content-factory" element={<Index />} />
+        <Route path="/publications" element={<Index />} />
         <Route path="/reports" element={<Index />} />
         <Route path="/team" element={<Index />} />
         <Route path="/integrations" element={<Index />} />

@@ -54,6 +54,7 @@ const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPa
 const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
 const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
 const ContentFactoryPage = lazy(() => import('./factory/ContentFactoryPage').then(m => ({ default: m.ContentFactoryPage })));
+const PublicationsPage = lazy(() => import('./content/PublicationsPage').then(m => ({ default: m.PublicationsPage })));
 const StaffManagement = lazy(() => import('./staff/StaffManagement').then(m => ({ default: m.StaffManagement })));
 const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => ({ default: m.KnowledgeBase })));
 const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
@@ -389,6 +390,7 @@ export const AnalyticsPlatform = () => {
       case 'quantom-ads': return '🚀 Управление рекламой';
       case 'crm': return '🤝 CRM';
       case 'factory': return '🎬 Центр контента';
+      case 'publications': return '🚀 Публикации';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
       case 'reports': return '📄 Отчёты';
       case 'team': return '👥 Сотрудники и доступ';
@@ -667,6 +669,12 @@ export const AnalyticsPlatform = () => {
       {activeTab === 'factory' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />
+        </Suspense>
+      )}
+
+      {activeTab === 'publications' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <PublicationsPage />
         </Suspense>
       )}
 

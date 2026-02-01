@@ -200,6 +200,12 @@ export const AppSidebar = ({
         icon: <IconVideo className="h-5 w-5 flex-shrink-0" />,
         tab: "factory",
       },
+      {
+        label: "Публикации",
+        href: "/publications",
+        icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
+        tab: "publications",
+      },
     ],
     sales: [
       {
