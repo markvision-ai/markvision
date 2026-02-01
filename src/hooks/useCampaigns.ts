@@ -123,7 +123,7 @@ export function useCampaigns(projectId: string | null) {
           if (payload.eventType === 'INSERT') {
             const newCampaign = {
               ...payload.new,
-              platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+              platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
               rules: (payload.new.rules || {}) as Campaign['rules'],
               ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
             } as Campaign;
@@ -134,7 +134,7 @@ export function useCampaigns(projectId: string | null) {
                 ? {
                     ...c,
                     ...payload.new,
-                    platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+                    platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
                     rules: (payload.new.rules || {}) as Campaign['rules'],
                     ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
                   } as Campaign
