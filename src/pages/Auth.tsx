@@ -1,3 +1,4 @@
+import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react';
@@ -381,8 +382,8 @@ export default function Auth() {
         duration: 0.5
       }} className="text-center mb-8">
           <div className="relative inline-block mb-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative">
-              <img alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-2xl" src="/lovable-uploads/a2049d53-bda8-4d81-8685-0f32626b6feb.png" />
+            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative flex items-center justify-center">
+              <MarkVisionLogo className="w-full h-full drop-shadow-2xl" />
               {/* Glow effect */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full -z-10 scale-150" />
             </div>

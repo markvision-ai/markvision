@@ -13,6 +13,7 @@ import { Switch } from '@/components/ui/switch';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { AdsChatInterface } from './AdsChatInterface';
+import { ActiveAdsManager } from './ActiveAdsManager';
 import { RefreshCw, Plus, Loader2, Zap, CalendarIcon, Activity } from 'lucide-react';
 import { format, subDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -231,6 +232,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
         {/* Campaign Funnel Chart */}
         <CampaignFunnelChart campaigns={metaCampaigns} leads={leads} />
+
+        {/* Active Ads Manager (Live) */}
+        <ActiveAdsManager projectId={projectId} />
 
         {/* Campaigns Table (Meta Only) */}
         <div className="rounded-lg border border-border bg-card">

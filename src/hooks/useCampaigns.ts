@@ -80,7 +80,7 @@ export function useCampaigns(projectId: string | null) {
       const typedData = (data || []) as any[];
       setCampaigns(typedData.map(c => ({
         ...c,
-        platform: c.platform as 'facebook' | 'tiktok' | 'google' | 'instagram',
+        platform: (c.platform || 'facebook') as 'facebook' | 'tiktok' | 'google' | 'instagram',
         rules: (c.rules || {}) as Campaign['rules'],
         ai_log: (c.ai_log || []) as Campaign['ai_log'],
       })));
@@ -188,7 +188,7 @@ export function useCampaigns(projectId: string | null) {
       const typedData = data as any;
       setCampaigns(prev => [{
         ...typedData,
-        platform: typedData.platform as 'facebook' | 'tiktok' | 'google',
+        platform: (typedData.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
         rules: (typedData.rules || {}) as Campaign['rules'],
         ai_log: (typedData.ai_log || []) as Campaign['ai_log'],
       } as Campaign, ...prev]);

@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
@@ -228,13 +229,13 @@ export const Sidebar = ({
       {/* Logo */}
       <div className="p-4 md:p-6 border-b border-sidebar-muted">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+          <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
+            <MarkVisionLogo className="w-full h-full text-primary" />
+            <div className="absolute inset-0 bg-primary/20 blur-lg rounded-full" />
           </div>
-          <div>
-            <h1 className="font-bold text-base md:text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">MarkVision AI</h1>
-            <p className="text-xs text-sidebar-foreground/60">Умный маркетинг</p>
-          </div>
+          <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
+            MarkVision AI
+          </span>
         </div>
       </div>
 

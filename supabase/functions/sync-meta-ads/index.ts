@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -149,7 +150,7 @@ async function syncFacebookAds(
 ): Promise<{ campaigns: number; totalSpend: number }> {
   // Get ad accounts
   const accountsRes = await fetch(
-    `https://graph.facebook.com/v19.0/me/adaccounts?access_token=${accessToken}&fields=id,name,account_status`
+    `https://graph.facebook.com/v21.0/me/adaccounts?access_token=${accessToken}&fields=id,name,account_status`
   );
   const accountsData = await accountsRes.json();
 
@@ -177,7 +178,7 @@ async function syncFacebookAds(
 
     // Fetch campaign insights
     const insightsRes = await fetch(
-      `https://graph.facebook.com/v19.0/${account.id}/insights?` +
+      `https://graph.facebook.com/v21.0/${account.id}/insights?` +
       `access_token=${accessToken}&` +
       `fields=campaign_id,campaign_name,spend,clicks,impressions,reach,cpm,cpc,ctr&` +
       `level=campaign&` +
@@ -232,7 +233,7 @@ async function syncInstagramContent(
 ): Promise<{ posts: number; reels: number }> {
   // Get Instagram business account
   const pagesRes = await fetch(
-    `https://graph.facebook.com/v19.0/me/accounts?access_token=${accessToken}&fields=instagram_business_account`
+    `https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}&fields=instagram_business_account`
   );
   const pagesData = await pagesRes.json();
 
@@ -250,7 +251,7 @@ async function syncInstagramContent(
 
     // Fetch media
     const mediaRes = await fetch(
-      `https://graph.facebook.com/v19.0/${igAccountId}/media?` +
+      `https://graph.facebook.com/v21.0/${igAccountId}/media?` +
       `access_token=${accessToken}&` +
       `fields=id,caption,media_type,permalink,thumbnail_url,timestamp,like_count,comments_count&` +
       `limit=50`

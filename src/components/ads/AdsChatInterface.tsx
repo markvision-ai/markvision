@@ -65,7 +65,7 @@ interface Message {
   content: string;
   created_at: string;
   type?: 'text' | 'success' | 'error' | 'info' | 'widget';
-  widget_type?: 'audit_card' | 'confirmation_card' | 'action_card';
+  widget_type?: 'audit_card' | 'confirmation_card' | 'action_card' | 'content_selection_card';
   widget_data?: WidgetData;
   metadata?: any;
 }
@@ -490,7 +490,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                               components={{
                                                   p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
                                                   strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
-                                                  code: ({node, ...props}) => <code className="bg-black/20 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                                                  code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono" {...props} />
                                               }}
                                           >
                                               {msg.content}
