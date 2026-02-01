@@ -359,8 +359,8 @@ export const AnalyticsPlatform = () => {
     updateDailyData(date, field, value);
   };
 
-  const handlePlanChange = (field: keyof PlanData, value: number) => {
-    updatePlanData(field, value);
+  const handlePlanChange = (field: keyof PlanData, value: number, month?: string) => {
+    updatePlanData(field, value, month);
   };
 
   const funnelSteps = [
@@ -653,11 +653,12 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'table' && currentProjectId && (
         <DataTable 
-          dailyData={dailyData}
-          onDataChange={handleDataChange}
-          planData={planData}
-          onPlanChange={handlePlanChange}
-        />
+                dailyData={dailyData} 
+                onDataChange={handleDataChange}
+                planData={planData}
+                plansMap={plansMap}
+                onPlanChange={handlePlanChange}
+              />
       )}
 
       {activeTab === 'quantom-ads' && currentProjectId && (

@@ -339,15 +339,15 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
       );
 
-      // 2. Fetch Plan Data (Previous Month)
-      const prevMonthDate = subMonths(reportDateRange.from, 1);
-      const prevMonthFirstDay = format(startOfMonth(prevMonthDate), 'yyyy-MM-dd');
+      // 2. Fetch Plan Data (Current Month based on start date)
+      const targetMonthDate = startOfMonth(reportDateRange.from);
+      const targetMonthStr = format(targetMonthDate, 'yyyy-MM-dd');
 
       const { data: planResult } = await supabase
         .from('plan_data')
         .select('*')
         .eq('project_id', data.projectId)
-        .eq('month', prevMonthFirstDay)
+        .eq('month', targetMonthStr)
         .maybeSingle();
 
       const fetchedPlan = planResult ? {
@@ -1070,9 +1070,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                             {metric.format === 'currency' ? formatCurrency(metric.value) : formatNumber(metric.value)}
                           </td>
                           <td className={`border border-border p-3 text-center font-semibold ${statusColor}`}>
-                            {metric.plan > 0 ? `${percent.toFixed(0)}%` : '—'}
-                            {status === 'success' && !metric.inverse && ' ✓'}
-                            {status === 'danger' && !metric.inverse && ' ↓'}
+                            <div className="flex flex-col items-center">
+                              <span>{metric.plan > 0 ? `${percent.toFixed(0)}%` : '—'}</span>
+                              {metric.plan > 0 && Math.abs(percent - 100) > 0 && (
+                                <span className="text-[10px] opacity-80">
+                                  {percent > 100 ? '+' : ''}{(percent - 100).toFixed(0)}%
+                                </span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );

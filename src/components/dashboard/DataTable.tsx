@@ -1,7 +1,24 @@
 import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
+import { 
+  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
+  addMonths, subMonths, startOfWeek, endOfWeek, subWeeks, 
+  startOfYear, endOfYear, startOfQuarter, endOfQuarter, subDays,
+  isSameMonth, isSameDay
+} from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Download, Target, Loader2, ShoppingCart, Users, TrendingUp } from 'lucide-react';
+import { 
+  ChevronLeft, ChevronRight, Download, Target, Loader2, 
+  ShoppingCart, Users, TrendingUp, Calendar as CalendarIcon 
+} from 'lucide-react';
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 interface DailyData {
   date: string;
@@ -58,7 +75,8 @@ interface DataTableProps {
   dailyData: Record<string, DailyData>;
   onDataChange: (date: string, field: keyof DailyData, value: number) => void;
   planData?: PlanData;
-  onPlanChange?: (field: keyof PlanData, value: number) => void;
+  plansMap?: Record<string, PlanData>;
+  onPlanChange?: (field: keyof PlanData, value: number, month?: string) => void;
 }
 
 // Editable cell component that only saves on blur
@@ -125,66 +143,143 @@ const EditableCell = ({
   );
 };
 
+type PresetKey = 'today' | 'yesterday' | 'week' | 'lastWeek' | 'month' | 'lastMonth' | 'quarter' | 'year';
+
+const PRESETS: { key: PresetKey; label: string }[] = [
+  { key: 'today', label: 'Сегодня' },
+  { key: 'yesterday', label: 'Вчера' },
+  { key: 'week', label: 'Эта неделя' },
+  { key: 'lastWeek', label: 'Прошл. неделя' },
+  { key: 'month', label: 'Этот месяц' },
+  { key: 'lastMonth', label: 'Прошл. месяц' },
+  { key: 'quarter', label: 'Квартал' },
+  { key: 'year', label: 'Год' },
+];
+
 export const DataTable = ({
   dailyData,
   onDataChange,
   planData,
+  plansMap,
   onPlanChange
 }: DataTableProps) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({
-    start: monthStart,
-    end: monthEnd
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
   });
 
-  const totals = useMemo(() => {
-    const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
-    const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
+  const [activePreset, setActivePreset] = useState<PresetKey>('month');
+
+  // Если пользователь выбирает произвольный диапазон в календаре, сбрасываем пресет
+  useEffect(() => {
+    if (!dateRange?.from || !dateRange?.to) return;
     
-    // Debug logging for subscribers sum
-    console.log('DataTable debug:', {
-      monthDaysCount: monthDays.length,
-      monthDataCount: monthData.length,
-      followersValues: monthData.map(d => d.followers),
-      followersSum: monthData.reduce((sum, day) => sum + (day.followers || 0), 0)
-    });
+    // Проверка соответствия текущего диапазона какому-либо пресету - сложная логика, 
+    // проще сбрасывать activePreset, если он не был установлен через кнопку.
+    // Но пока оставим ручное управление через handlePresetClick
+  }, [dateRange]);
 
+  const daysInRange = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return [];
+    try {
+      return eachDayOfInterval({
+        start: dateRange.from,
+        end: dateRange.to
+      });
+    } catch (e) {
+      return [];
+    }
+  }, [dateRange]);
+
+  const handlePresetClick = (preset: PresetKey) => {
+    const now = new Date();
+    let newRange: DateRange;
+
+    switch (preset) {
+      case 'today':
+        newRange = { from: now, to: now };
+        break;
+      case 'yesterday':
+        const yesterday = subDays(now, 1);
+        newRange = { from: yesterday, to: yesterday };
+        break;
+      case 'week':
+        newRange = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+        break;
+      case 'lastWeek':
+        const lastWeek = subWeeks(now, 1);
+        newRange = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
+        break;
+      case 'month':
+        newRange = { from: startOfMonth(now), to: endOfMonth(now) };
+        break;
+      case 'lastMonth':
+        const lastMonth = subMonths(now, 1);
+        newRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+        break;
+      case 'quarter':
+        newRange = { from: startOfQuarter(now), to: endOfQuarter(now) };
+        break;
+      case 'year':
+        newRange = { from: startOfYear(now), to: endOfYear(now) };
+        break;
+      default:
+        return;
+    }
+
+    setDateRange(newRange);
+    setActivePreset(preset);
+  };
+
+  const totals = useMemo(() => {
+    const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
+    const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
+    
     return {
-      spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
-      impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
-      clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
-      leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
-      followers: monthData.reduce((sum, day) => sum + (day.followers || 0), 0),
-      diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
-      sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
-      revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)
+      spend: rangeData.reduce((sum, day) => sum + (day.spend || 0), 0),
+      impressions: rangeData.reduce((sum, day) => sum + (day.impressions || 0), 0),
+      clicks: rangeData.reduce((sum, day) => sum + (day.clicks || 0), 0),
+      leads: rangeData.reduce((sum, day) => sum + (day.leads || 0), 0),
+      followers: rangeData.reduce((sum, day) => sum + (day.followers || 0), 0),
+      diagnostics: rangeData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
+      sales: rangeData.reduce((sum, day) => sum + (day.sales || 0), 0),
+      revenue: rangeData.reduce((sum, day) => sum + (day.revenue || 0), 0)
     };
-  }, [dailyData, daysInMonth]);
+  }, [dailyData, daysInRange]);
 
-  // Calculated metrics (возвращаем null при делении на 0)
-  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
-  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
-  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
-  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
-  const ctr = totals.impressions > 0 ? Math.round(totals.clicks / totals.impressions * 100) : 0; // Округлено до целого
-  const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
+  // Определяем, какой план показывать
+  // Логика: Если выбранный диапазон начинается в определенном месяце, показываем план этого месяца.
+  const effectivePlanData = useMemo(() => {
+    if (!dateRange?.from) return planData;
+
+    if (plansMap) {
+      const monthKey = format(startOfMonth(dateRange.from), 'yyyy-MM-dd');
+      return plansMap[monthKey] || null;
+    }
+    
+    return planData;
+  }, [plansMap, dateRange, planData]);
+
+  // Calculated metrics
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null;
+  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null;
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null;
+  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null;
+  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null;
+  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null;
   
-  // Calculate average revenue for heatmap
+  // Average revenue for heatmap
   const averageRevenue = useMemo(() => {
-    const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
-    const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
-    if (monthData.length === 0) return 0;
-    const totalRevenue = monthData.reduce((sum, day) => sum + (day.revenue || 0), 0);
-    return totalRevenue / monthData.length;
-  }, [dailyData, daysInMonth]);
+    const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
+    const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
+    if (rangeData.length === 0) return 0;
+    const totalRevenue = rangeData.reduce((sum, day) => sum + (day.revenue || 0), 0);
+    return totalRevenue / rangeData.length;
+  }, [dailyData, daysInRange]);
 
   const exportToCSV = () => {
     const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Диагностики', 'Продажи', 'Выручка'];
-    const rows = daysInMonth.map(day => {
+    const rows = daysInRange.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
       const dayClicks = data?.clicks || 0;
@@ -216,7 +311,7 @@ export const DataTable = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `analytics_${format(currentMonth, 'yyyy-MM')}.csv`;
+    link.download = `analytics_${dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : 'export'}.csv`;
     link.click();
   };
 
@@ -355,21 +450,73 @@ export const DataTable = ({
       </div>
 
       <div className="bg-card border rounded-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 md:p-4 border-b gap-2">
-          <div className="flex items-center gap-1 md:gap-2">
-            <button onClick={() => setCurrentMonth(prev => subMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-            <h2 className="text-sm md:text-lg font-semibold capitalize min-w-[120px] md:min-w-[180px] text-center">
-              {format(currentMonth, 'LLLL yyyy', { locale: ru })}
-            </h2>
-            <button onClick={() => setCurrentMonth(prev => addMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
+        {/* Header with Date Range Selection */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
+          
+          {/* Controls Container */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 w-full lg:w-auto">
+            {/* Date Range Picker */}
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "w-full sm:w-[260px] justify-start text-left font-normal",
+                    !dateRange && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {dateRange?.from ? (
+                    dateRange.to ? (
+                      <>
+                        {format(dateRange.from, "d MMM yyyy", { locale: ru })} -{" "}
+                        {format(dateRange.to, "d MMM yyyy", { locale: ru })}
+                      </>
+                    ) : (
+                      format(dateRange.from, "d MMM yyyy", { locale: ru })
+                    )
+                  ) : (
+                    <span>Выберите период</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={dateRange?.from}
+                  selected={dateRange}
+                  onSelect={(range) => {
+                    setDateRange(range);
+                    setActivePreset('today'); // Reset preset highlighting roughly
+                  }}
+                  numberOfMonths={2}
+                  locale={ru}
+                />
+              </PopoverContent>
+            </Popover>
+
+            {/* Presets */}
+            <div className="flex flex-wrap gap-1">
+              {PRESETS.map((preset) => (
+                <button
+                  key={preset.key}
+                  onClick={() => handlePresetClick(preset.key)}
+                  className={cn(
+                    "px-2 py-1.5 text-xs font-medium rounded-md transition-colors",
+                    activePreset === preset.key
+                      ? "bg-primary text-primary-foreground"
+                      : "bg-secondary hover:bg-secondary/80 text-secondary-foreground"
+                  )}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
           </div>
           
-          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm">
+          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
             <Download className="w-3 h-3 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Экспорт CSV</span>
           </button>
@@ -393,23 +540,34 @@ export const DataTable = ({
             </thead>
             <tbody>
               {/* Plan Row - editable at top */}
-              {planData && (
+              {effectivePlanData && (
                 <tr className="bg-primary/10 font-semibold border-b border-primary/20 backdrop-blur-sm">
                   <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-30 flex items-center gap-1 md:gap-2 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
-                    <span>ПЛАН</span>
+                    <div className="flex flex-col">
+                      <span>ПЛАН</span>
+                      {dateRange?.from && (
+                        <span className="text-[10px] text-primary/70 font-normal">
+                          {format(dateRange.from, 'LLLL', { locale: ru })}
+                        </span>
+                      )}
+                    </div>
                   </td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
                     <td key={field} className="p-1 md:p-2">
                       {onPlanChange ? (
                         <EditableCell
-                          value={planData[field]}
-                          onSave={(val) => onPlanChange(field, val)}
+                          value={effectivePlanData[field]}
+                          onSave={(val) => {
+                             // Pass the specific month key for the update
+                             const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
+                             onPlanChange(field, val, monthKey);
+                          }}
                           className="w-full text-right bg-primary/5 border border-primary/20 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm font-semibold"
                         />
                       ) : (
                         <span className="block text-right px-1.5 md:px-3 py-1.5 md:py-2">
-                          {field === 'spend' || field === 'revenue' ? formatCurrency(planData[field]) : formatNumber(planData[field])}
+                          {field === 'spend' || field === 'revenue' ? formatCurrency(effectivePlanData[field]) : formatNumber(effectivePlanData[field])}
                         </span>
                       )}
                     </td>
@@ -431,12 +589,12 @@ export const DataTable = ({
               </tr>
 
               {/* Percentage Row - third */}
-              {planData && (
+              {effectivePlanData && (
                 <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
                   <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
-                    const plan = planData[field];
+                    const plan = effectivePlanData[field];
                     
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     // Heatmap colors: >= 100% - bright green, 80-99% - yellow, < 80% - soft red
@@ -457,7 +615,7 @@ export const DataTable = ({
                 </tr>
               )}
               {/* Daily data rows */}
-              {daysInMonth.map(day => {
+              {daysInRange.map(day => {
                 const dateKey = format(day, 'yyyy-MM-dd');
                 const weekDay = getWeekDay(day);
                 const isWeekend = weekDay >= 5;

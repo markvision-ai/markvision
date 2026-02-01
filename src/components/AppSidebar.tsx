@@ -38,6 +38,7 @@ import {
   IconChevronDown,
   IconPlus,
   IconCheck,
+  IconSettings,
 } from "@tabler/icons-react";
 import { supabase } from "@/lib/externalSupabase";
 import { toast } from "sonner";
@@ -257,6 +258,12 @@ export const AppSidebar = ({
         href: "/rop",
         icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
         tab: "rop",
+      },
+      {
+        label: "Настройки",
+        href: "/settings",
+        icon: <IconSettings className="h-5 w-5 flex-shrink-0" />,
+        tab: "settings",
       },
     ],
   };

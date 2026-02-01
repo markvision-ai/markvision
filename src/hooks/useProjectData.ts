@@ -45,7 +45,7 @@ export const useProjectData = (projectId: string | null) => {
   
   const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(effectiveProjectId);
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
-  const [rawPlanData, setRawPlanData] = useState<DailyData | null>(null);
+  const [plansMap, setPlansMap] = useState<Record<string, PlanData>>({});
   const [loading, setLoading] = useState(true);
   
   // Кэш для предотвращения лишних запросов
@@ -53,9 +53,12 @@ export const useProjectData = (projectId: string | null) => {
   const lastProjectIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // ПЛАН берётся из записи за 1-е число текущего месяца
+  // ПЛАН берётся из записи за 1-е число текущего месяца (или из plansMap)
   const planData = useMemo((): PlanData => {
-    if (!rawPlanData) {
+    const currentMonthKey = format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    const currentPlan = plansMap[currentMonthKey];
+    
+    if (!currentPlan) {
       return {
         spend: 0,
         impressions: 0,
@@ -67,17 +70,8 @@ export const useProjectData = (projectId: string | null) => {
         revenue: 0,
       };
     }
-    return {
-      spend: rawPlanData.spend || 0,
-      impressions: rawPlanData.impressions || 0,
-      clicks: rawPlanData.clicks || 0,
-      leads: rawPlanData.leads || 0,
-      followers: rawPlanData.followers || 0,
-      diagnostics: rawPlanData.diagnostics || 0,
-      sales: rawPlanData.sales || 0,
-      revenue: rawPlanData.revenue || 0,
-    };
-  }, [rawPlanData]);
+    return currentPlan;
+  }, [plansMap]);
 
   // Fetch daily data with better caching
   const fetchDailyData = useCallback(async (force = false) => {
@@ -123,14 +117,8 @@ export const useProjectData = (projectId: string | null) => {
 
       console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
       
-      // DEBUG: Log followers data to diagnose missing totals
-      const followersDebug = data?.map(r => ({ date: r.date, followers: r.followers }));
-      console.log('📊 useProjectData | Данные подписчиков (Debug):', followersDebug);
-      
       const dataMap: Record<string, DailyData> = {};
       data?.forEach((row) => {
-        // FIX: Prioritize specific subscriber columns (ig_followers_new/new_followers) over generic 'followers'
-        // which might be empty or used differently.
         const followersDelta = Number(row.ig_followers_new) || Number(row.new_followers) || Number(row.followers) || 0;
 
         dataMap[row.date] = {
@@ -162,16 +150,9 @@ export const useProjectData = (projectId: string | null) => {
     }
   }, [effectiveProjectId]);
 
-  // Fetch plan data from plan_data table
+  // Fetch ALL plan data
   const fetchPlanData = useCallback(async (force = false) => {
-    const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    console.log('📋 useProjectData | Загрузка ПЛАНА из plan_data за месяц:', firstDayOfMonth);
-    
-    // Use the same abort controller signal if available, or just proceed.
-    // Ideally we should have a separate controller or use the shared one if they run together.
-    // Since we run them in Promise.all in useEffect, we can use the same signal from abortControllerRef
-    // But we need to be careful not to abort if only one is called independently.
-    // Let's rely on the fact that useEffect cancels everything.
+    console.log('📋 useProjectData | Загрузка ВСЕХ планов из plan_data');
     
     const signal = abortControllerRef.current?.signal;
 
@@ -180,12 +161,9 @@ export const useProjectData = (projectId: string | null) => {
         .from('plan_data')
         .select('*')
         .eq('project_id', effectiveProjectId)
-        .eq('month', firstDayOfMonth)
-        .abortSignal(signal || undefined) // Use signal if available
-        .maybeSingle();
+        .abortSignal(signal || undefined);
 
       if (error) {
-        // Suppress Abort/Cancel errors
         if (error.code === '20' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
           console.warn('⚠️ useProjectData | Запрос plan_data отменен (AbortError)');
           return;
@@ -193,7 +171,6 @@ export const useProjectData = (projectId: string | null) => {
 
         logError('Fetch plan data failed', error);
         console.error('❌ useProjectData | Ошибка загрузки плана:', error);
-        // Не показываем toast если это RLS ошибка - просто работаем без плана
         if (error.code !== '42501') {
           toast.error('Ошибка загрузки плана: ' + error.message);
         }
@@ -201,22 +178,25 @@ export const useProjectData = (projectId: string | null) => {
       }
 
       if (data) {
-        console.log('✅ useProjectData | ПЛАН загружен:', data);
-        setRawPlanData({
-          date: data.month,
-          spend: Number(data.spend) || 0,
-          impressions: Number(data.impressions) || 0,
-          clicks: Number(data.clicks) || 0,
-          leads: Number(data.leads) || 0,
-          followers: Number(data.followers) || 0,
-          followers_total: 0, // План обычно не содержит общего количества, но поле нужно для типизации
-          diagnostics: Number(data.diagnostics) || 0,
-          sales: Number(data.sales) || 0,
-          revenue: Number(data.revenue) || 0,
+        console.log('✅ useProjectData | Планы загружены:', data.length);
+        const newPlansMap: Record<string, PlanData> = {};
+        
+        data.forEach(plan => {
+          if (plan.month) {
+            newPlansMap[plan.month] = {
+              spend: Number(plan.spend) || 0,
+              impressions: Number(plan.impressions) || 0,
+              clicks: Number(plan.clicks) || 0,
+              leads: Number(plan.leads) || 0,
+              followers: Number(plan.followers) || 0,
+              diagnostics: Number(plan.diagnostics) || 0,
+              sales: Number(plan.sales) || 0,
+              revenue: Number(plan.revenue) || 0,
+            };
+          }
         });
-      } else {
-        console.log('⚠️ useProjectData | ПЛАН не найден для месяца:', firstDayOfMonth);
-        setRawPlanData(null);
+        
+        setPlansMap(newPlansMap);
       }
     } catch (err: any) {
       if (err.name === 'AbortError' || err.message?.includes('aborted')) {
@@ -227,135 +207,54 @@ export const useProjectData = (projectId: string | null) => {
     }
   }, [effectiveProjectId]);
 
-  // Update or insert daily data using UPSERT with optimistic UI
-  const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
-    // Validate input
-    const validation = validateFieldValue(field, value);
-    if (!validation.success) {
-      toast.error(validation.error || 'Некорректное значение');
-      return;
-    }
-
-    console.log('💾 updateDailyData | Сохраняем:', { date, field, value, project_id: effectiveProjectId });
-
-    // Store previous state for rollback
-    const previousData = { ...dailyData };
-
-    // Optimistically update local state INSTANTLY
-    setDailyData(prev => ({
-      ...prev,
-      [date]: {
-        date,
-        spend: prev[date]?.spend || 0,
-        impressions: prev[date]?.impressions || 0,
-        clicks: prev[date]?.clicks || 0,
-        leads: prev[date]?.leads || 0,
-        followers: prev[date]?.followers || 0,
-        diagnostics: prev[date]?.diagnostics || 0,
-        sales: prev[date]?.sales || 0,
-        revenue: prev[date]?.revenue || 0,
-        ...prev[date],
-        [field]: value,
-      },
-    }));
-
-    try {
-      // Use UPSERT with proper conflict handling
-      const upsertData = {
-        project_id: effectiveProjectId,
-        date,
-        spend: field === 'spend' ? value : (dailyData[date]?.spend || 0),
-        impressions: field === 'impressions' ? value : (dailyData[date]?.impressions || 0),
-        clicks: field === 'clicks' ? value : (dailyData[date]?.clicks || 0),
-        leads: field === 'leads' ? value : (dailyData[date]?.leads || 0),
-        followers: field === 'followers' ? value : (dailyData[date]?.followers || 0),
-        diagnostics: field === 'diagnostics' ? value : (dailyData[date]?.diagnostics || 0),
-        sales: field === 'sales' ? value : (dailyData[date]?.sales || 0),
-        revenue: field === 'revenue' ? value : (dailyData[date]?.revenue || 0),
-        updated_at: new Date().toISOString(),
-      };
-
-      const { error } = await supabase
-        .from('daily_data')
-        .upsert(upsertData, {
-          onConflict: 'project_id,date',
-          ignoreDuplicates: false
-        });
-
-      if (error) {
-        throw error;
-      }
-
-      console.log('✅ updateDailyData | Успешно сохранено');
-      // Silent success - no toast for each save
-    } catch (error: any) {
-      logError('Save daily data failed', error);
-      console.error('❌ updateDailyData | Ошибка:', error);
-      toast.error('Ошибка сохранения: ' + error.message);
-      // Rollback to previous state
-      setDailyData(previousData);
-    }
-  }, [effectiveProjectId, dailyData]);
-
-  // Update plan data with optimistic UI
-  const updatePlanData = useCallback(async (field: keyof PlanData, value: number) => {
-    // Check permission - разрешаем всем с доступом к проекту
+  // Update plan data with optimistic UI and month support
+  const updatePlanData = useCallback(async (field: keyof PlanData, value: number, month?: string) => {
     if (!isAdmin && !canEditPlan) {
-      // Пробуем сохранить всё равно - RLS проверит права
       console.log('⚠️ updatePlanData | Пробуем сохранить без явных прав');
     }
 
-    // Validate input
     const validation = validateFieldValue(field, value);
     if (!validation.success) {
       toast.error(validation.error || 'Некорректное значение');
       return;
     }
 
-    const firstDayOfMonth = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: firstDayOfMonth, field, value, project_id: effectiveProjectId });
+    const targetMonth = month || format(startOfMonth(new Date()), 'yyyy-MM-dd');
+    
+    console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: targetMonth, field, value, project_id: effectiveProjectId });
 
-    // Store previous state
-    const previousPlanData = rawPlanData;
+    const previousPlansMap = { ...plansMap };
 
-    // Optimistically update local state INSTANTLY
-    setRawPlanData(prev => prev ? {
-      ...prev,
-      [field]: value,
-    } : {
-      date: firstDayOfMonth,
-      spend: field === 'spend' ? value : 0,
-      impressions: field === 'impressions' ? value : 0,
-      clicks: field === 'clicks' ? value : 0,
-      leads: field === 'leads' ? value : 0,
-      followers: field === 'followers' ? value : 0,
-      followers_total: 0,
-      diagnostics: field === 'diagnostics' ? value : 0,
-      sales: field === 'sales' ? value : 0,
-      revenue: field === 'revenue' ? value : 0,
+    setPlansMap(prev => {
+      const existingPlan = prev[targetMonth] || {
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0
+      };
+      
+      return {
+        ...prev,
+        [targetMonth]: {
+          ...existingPlan,
+          [field]: value
+        }
+      };
     });
 
     try {
-      // Use UPSERT for plan data (store in 'projects' table via RPC or dedicated 'plans' table)
-      // Currently, we store plan in 'daily_data' with a specific date marker (first day of month) or separate logic
-      // BUT WAIT: The current code below tries to save to 'daily_data' which might be wrong if we want separate Plan
-      // Let's check how 'rawPlanData' is fetched. It seems it is fetched from 'daily_data' too?
-      // No, looking at fetch logic (not shown fully but implied), usually plans are separate.
-      // Assuming plans are stored in 'daily_data' for now based on 'month' field usage? 
-      // ERROR: 'daily_data' table usually has 'date' column, not 'month'.
-      
-      // Let's fix the column name if it's daily_data
+      const currentPlan = plansMap[targetMonth] || {
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0
+      };
+
       const upsertData = {
         project_id: effectiveProjectId,
-        month: firstDayOfMonth, // Correct: plan_data uses 'month'
-        spend: field === 'spend' ? value : (rawPlanData?.spend || 0),
-        impressions: field === 'impressions' ? value : (rawPlanData?.impressions || 0),
-        clicks: field === 'clicks' ? value : (rawPlanData?.clicks || 0),
-        leads: field === 'leads' ? value : (rawPlanData?.leads || 0),
-        followers: field === 'followers' ? value : (rawPlanData?.followers || 0),
-        diagnostics: field === 'diagnostics' ? value : (rawPlanData?.diagnostics || 0),
-        sales: field === 'sales' ? value : (rawPlanData?.sales || 0),
-        revenue: field === 'revenue' ? value : (rawPlanData?.revenue || 0),
+        month: targetMonth,
+        spend: field === 'spend' ? value : currentPlan.spend,
+        impressions: field === 'impressions' ? value : currentPlan.impressions,
+        clicks: field === 'clicks' ? value : currentPlan.clicks,
+        leads: field === 'leads' ? value : currentPlan.leads,
+        followers: field === 'followers' ? value : currentPlan.followers,
+        diagnostics: field === 'diagnostics' ? value : currentPlan.diagnostics,
+        sales: field === 'sales' ? value : currentPlan.sales,
+        revenue: field === 'revenue' ? value : currentPlan.revenue,
         updated_at: new Date().toISOString(),
       };
 
@@ -371,14 +270,93 @@ export const useProjectData = (projectId: string | null) => {
       }
 
       console.log('✅ updatePlanData | ПЛАН успешно сохранён');
-      toast.success('План сохранён', { duration: 1000 });
     } catch (error: any) {
       logError('Save plan data failed', error);
       console.error('❌ updatePlanData | Ошибка:', error);
       toast.error('Ошибка сохранения плана: ' + error.message);
-      setRawPlanData(previousPlanData);
+      setPlansMap(previousPlansMap);
     }
-  }, [effectiveProjectId, isAdmin, canEditPlan, rawPlanData]);
+  }, [effectiveProjectId, isAdmin, canEditPlan, plansMap]);
+
+  // Update daily data with optimistic UI
+  const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
+    if (!isAdmin && !canEditDailyData) {
+       console.log('⚠️ updateDailyData | Пробуем сохранить без явных прав');
+    }
+
+    const validation = validateFieldValue(field, value);
+    if (!validation.success) {
+      toast.error(validation.error || 'Некорректное значение');
+      return;
+    }
+
+    console.log('💾 updateDailyData | Сохраняем ФАКТ:', { date, field, value, project_id: effectiveProjectId });
+
+    const previousDailyData = { ...dailyData };
+
+    setDailyData(prev => {
+      const existingData = prev[date] || {
+        date: date,
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
+        diagnostics: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
+      };
+
+      return {
+        ...prev,
+        [date]: {
+          ...existingData,
+          [field]: value
+        }
+      };
+    });
+
+    try {
+      const currentData = dailyData[date] || {
+        date: date,
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
+        diagnostics: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
+      };
+      
+      // Merge current data with new value for the payload
+      const dataToSave = {
+        ...currentData,
+        [field]: value
+      };
+
+      const upsertPayload = {
+        project_id: effectiveProjectId,
+        date: date,
+        spend: dataToSave.spend,
+        impressions: dataToSave.impressions,
+        clicks: dataToSave.clicks,
+        leads: dataToSave.leads,
+        followers: dataToSave.followers,
+        followers_total: dataToSave.followers_total,
+        diagnostics: dataToSave.diagnostics,
+        sales: dataToSave.sales,
+        revenue: dataToSave.revenue,
+        updated_at: new Date().toISOString(),
+      };
+
+      const { error } = await supabase
+        .from('daily_data')
+        .upsert(upsertPayload, {
+          onConflict: 'project_id,date',
+          ignoreDuplicates: false
+        });
+
+      if (error) throw error;
+
+      console.log('✅ updateDailyData | ФАКТ успешно сохранён');
+
+    } catch (error: any) {
+      logError('Save daily data failed', error);
+      console.error('❌ updateDailyData | Ошибка:', error);
+      toast.error('Ошибка сохранения данных: ' + error.message);
+      setDailyData(previousDailyData);
+    }
+  }, [effectiveProjectId, isAdmin, canEditDailyData, dailyData]);
+
 
   // Оптимизированный useEffect - загрузка только при смене проекта
   useEffect(() => {
@@ -420,6 +398,7 @@ export const useProjectData = (projectId: string | null) => {
     loading,
     updateDailyData,
     updatePlanData,
+    plansMap,
     canEditPlan: isAdmin || canEditPlan,
     canEditDailyData: isAdmin || canEditDailyData,
     canViewSales: isAdmin || canViewSales,
