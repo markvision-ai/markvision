@@ -10,7 +10,11 @@ import {
   Activity,
   Image as ImageIcon,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,13 +29,28 @@ import ReactMarkdown from 'react-markdown';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ContentItem } from '@/hooks/useContentFactory';
-// We define a local interface for DailyData to avoid circular dependency issues if any,
-// or just use 'any' if strictly needed, but better to match the shape.
+
 interface DailyData {
   date: string;
   spend: number;
   leads: number;
   revenue: number;
+}
+
+interface WidgetData {
+  title?: string;
+  metrics?: {
+    label: string;
+    value: string | number;
+    trend?: 'up' | 'down' | 'neutral' | 'good' | 'bad';
+    subtext?: string;
+  }[];
+  actions?: {
+    label: string;
+    action_id: string;
+    style?: 'primary' | 'destructive' | 'outline';
+  }[];
+  details?: string;
 }
 
 interface Message {
@@ -40,7 +59,9 @@ interface Message {
   role: 'user' | 'assistant' | 'system';
   content: string;
   created_at: string;
-  type?: 'text' | 'success' | 'error' | 'info' | 'terminal_output';
+  type?: 'text' | 'success' | 'error' | 'info' | 'widget';
+  widget_type?: 'audit_card' | 'confirmation_card' | 'action_card';
+  widget_data?: WidgetData;
   metadata?: any;
 }
 
@@ -50,7 +71,7 @@ interface AdsChatInterfaceProps {
     campaigns: any[];
     leads: any[];
     contentItems: ContentItem[];
-    dailyData: Record<string, any>; // Using any for flexibility with DailyData record
+    dailyData: Record<string, any>;
     summary: {
       totalSpent: number;
       totalLeads: number;
@@ -60,10 +81,72 @@ interface AdsChatInterfaceProps {
   };
 }
 
+// --- Widget Components ---
+
+const AuditWidget = ({ data }: { data: WidgetData }) => {
+  return (
+    <div className="mt-2 flex flex-col gap-3 min-w-[300px]">
+      {data.title && (
+        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+          <Activity className="w-3 h-3" />
+          {data.title}
+        </div>
+      )}
+      <div className="grid grid-cols-2 gap-2">
+        {data.metrics?.map((metric, idx) => (
+          <div key={idx} className="bg-card/50 border border-border/50 p-3 rounded-xl backdrop-blur-sm">
+            <div className="text-[10px] text-muted-foreground mb-1">{metric.label}</div>
+            <div className="flex items-end gap-2">
+              <span className="text-lg font-bold tabular-nums text-foreground">{metric.value}</span>
+              {metric.trend && (
+                <div className={cn(
+                  "text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 mb-1",
+                  metric.trend === 'up' || metric.trend === 'good' ? "bg-emerald-500/10 text-emerald-500" :
+                  metric.trend === 'down' || metric.trend === 'bad' ? "bg-red-500/10 text-red-500" :
+                  "bg-muted text-muted-foreground"
+                )}>
+                  {metric.trend === 'up' || metric.trend === 'good' ? <TrendingUp className="w-3 h-3" /> :
+                   metric.trend === 'down' || metric.trend === 'bad' ? <TrendingDown className="w-3 h-3" /> :
+                   <Minus className="w-3 h-3" />}
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ActionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actionId: string, label: string) => void }) => {
+  return (
+    <div className="mt-2 flex flex-wrap gap-2">
+      {data.actions?.map((action, idx) => (
+        <Button
+          key={idx}
+          variant={action.style === 'destructive' ? 'destructive' : action.style === 'outline' ? 'outline' : 'default'}
+          size="sm"
+          onClick={() => onExecute(action.action_id, action.label)}
+          className={cn(
+            "text-xs h-8 shadow-sm transition-all active:scale-95",
+            action.style === 'primary' && "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
+          )}
+        >
+          {action.label}
+          <ArrowRight className="w-3 h-3 ml-2 opacity-70" />
+        </Button>
+      ))}
+    </div>
+  );
+};
+
+// --- Main Component ---
+
 export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfaceProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingText, setLoadingText] = useState('Анализирую данные...');
   const [isSyncing, setIsSyncing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,12 +166,11 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       if (data) {
         setMessages(data);
       } else if (!error && data === null) {
-          // If table doesn't exist or empty, use local fallback or empty
           setMessages([
              {
                 id: 'welcome',
                 role: 'assistant',
-                content: 'Quantum AI подключен. Контекст данных загружен (Leads, Daily Data, Content Items).',
+                content: 'Quantum AI v2.1 подключен. Готов к управлению рекламой.',
                 created_at: new Date().toISOString(),
                 type: 'info'
              }
@@ -98,7 +180,6 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
     fetchMessages();
 
-    // Subscribe to new messages
     const channel = (supabase as any)
       .channel('ai_chat_messages')
       .on('postgres_changes', { 
@@ -108,7 +189,6 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
         filter: `project_id=eq.${projectId}` 
       }, (payload: any) => {
         setMessages(prev => {
-            // Avoid duplicates
             if (prev.some(m => m.id === payload.new.id)) return prev;
             return [...prev, payload.new];
         });
@@ -130,7 +210,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     }
   }, [messages]);
 
-  const saveMessage = async (role: 'user' | 'assistant' | 'system', content: string, type: Message['type'] = 'text') => {
+  const saveMessage = async (role: 'user' | 'assistant' | 'system', content: string, type: Message['type'] = 'text', widgetData?: any) => {
     if (!projectId) return;
 
     const newMessage = {
@@ -138,13 +218,12 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       role,
       content,
       type,
+      widget_type: widgetData?.widget_type,
+      widget_data: widgetData?.data,
       created_at: new Date().toISOString()
     };
 
-    // Optimistic update
     const tempId = Date.now().toString();
-    // We only add to state if we are the originator, otherwise subscription handles it.
-    // However, to feel instant, we add it. Subscription duplicate check handles the rest.
     setMessages(prev => [...prev, { ...newMessage, id: tempId }]);
 
     try {
@@ -158,12 +237,39 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     }
   };
 
+  const handleExecuteAction = async (actionId: string, label: string) => {
+    await saveMessage('user', `[Действие] ${label}`);
+    setIsLoading(true);
+    setLoadingText('Выполняю действие...');
+
+    try {
+       const { data, error } = await supabase.functions.invoke('ads-manager', {
+        body: {
+          action: 'execute_action',
+          payload: {
+            project_id: projectId,
+            action_id: actionId
+          }
+        }
+      });
+
+      if (error) throw error;
+
+      await saveMessage('assistant', data.message || 'Действие выполнено', data.type || 'text', data);
+
+    } catch (error) {
+      console.error('Action failed:', error);
+      await saveMessage('assistant', 'Ошибка выполнения действия', 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSync = async () => {
     setIsSyncing(true);
     toast.info('Синхронизация данных с Meta Ads...');
     
     try {
-      // Create a command for sync
       if (projectId) {
         await (supabase as any).from('ai_commands').insert({
             project_id: projectId,
@@ -173,7 +279,6 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
         });
       }
       
-      // Simulate delay for visual feedback
       await new Promise(resolve => setTimeout(resolve, 2000));
       toast.success('Данные успешно обновлены');
       saveMessage('system', '[Марк: Данные успешно синхронизированы из Meta Ads и Supabase]', 'info');
@@ -182,60 +287,6 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     } finally {
       setIsSyncing(false);
     }
-  };
-
-  const processCommand = async (text: string) => {
-    const lowerText = text.toLowerCase();
-
-    // Content Factory Integration
-    if (lowerText.includes('контент-завод') || lowerText.includes('отправь это фото')) {
-      if (projectId) {
-         await (supabase as any).from('content_tasks').insert({
-             project_id: projectId,
-             title: 'Задача из чата',
-             description: text,
-             status: 'pending',
-             source: 'chat'
-         });
-      }
-      return 'Задание успешно отправлено на Контент-Завод. Статус: В очереди.';
-    }
-
-    // Default AI Command logic
-    if (projectId) {
-        await (supabase as any).from('ai_commands').insert({
-            project_id: projectId,
-            command: 'chat_request',
-            status: 'pending',
-            payload: { 
-                query: text,
-                context: {
-                    spent_today: contextData.summary.totalSpent,
-                    leads_today: contextData.summary.totalLeads,
-                    roas: contextData.summary.overallROAS,
-                    content_count: contextData.contentItems.length,
-                    recent_content: contextData.contentItems.slice(0, 3).map(c => c.title)
-                }
-            }
-        });
-    }
-
-    // Mock responses for demo purposes (since backend might not process immediately)
-    if (lowerText.includes('аудит')) {
-        return 'Запускаю полный аудит аккаунта... Проверяю структуру кампаний, качество креативов и настройки таргетинга. Отчет будет готов через минуту.';
-    }
-    
-    if (lowerText.includes('cpl')) {
-        const cpl = contextData.summary.avgCPA.toFixed(0);
-        return `Текущий CPL (Cost Per Lead) составляет **${cpl} ₸**. Это на ${(Math.random() * 10).toFixed(1)}% ниже, чем вчера. Рекомендую увеличить бюджет на кампанию "Retargeting".`;
-    }
-
-    if (lowerText.includes('контент')) {
-        const activeContent = contextData.contentItems.filter(c => c.status !== 'sent').length;
-        return `В Контент-Заводе сейчас **${activeContent}** активных задач. Последняя задача: "${contextData.contentItems[0]?.title || 'Нет задач'}".`;
-    }
-
-    return 'Принято. Анализирую запрос...';
   };
 
   const fetchWithRetry = async (fn: () => Promise<any>, retries = 3, delay = 1000): Promise<any> => {
@@ -255,25 +306,23 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     setInputValue('');
     setIsLoading(true);
     
+    // Cycle loading texts
+    const loadingStates = [
+      'Марк заходит в рекламный кабинет...',
+      'Анализирую статистику Meta Ads...',
+      'Проверяю бюджеты и ставки...',
+      'Формирую ответ...'
+    ];
+    let stateIdx = 0;
+    setLoadingText(loadingStates[0]);
+    const loadingInterval = setInterval(() => {
+      stateIdx = (stateIdx + 1) % loadingStates.length;
+      setLoadingText(loadingStates[stateIdx]);
+    }, 2000);
+    
     await saveMessage('user', text);
 
-    // Check for local commands (Content Factory)
-    if (text.toLowerCase().includes('контент-завод') || text.toLowerCase().includes('отправь это фото')) {
-        try {
-            const response = await processCommand(text);
-            setTimeout(async () => {
-                await saveMessage('assistant', response, 'text');
-                setIsLoading(false);
-            }, 1000);
-        } catch (error) {
-            console.error(error);
-            setIsLoading(false);
-        }
-        return;
-    }
-
     try {
-      // Call ads-manager edge function directly for everything else
       const { data, error } = await fetchWithRetry(() => supabase.functions.invoke('ads-manager', {
         body: {
           action: 'chat_request',
@@ -290,21 +339,21 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
         }
       }));
 
+      clearInterval(loadingInterval);
+
       if (error) throw error;
 
-      // Simulate thinking delay for better UX
-      setTimeout(async () => {
-        if (data?.type === 'terminal_output' && data.data?.raw_output) {
-            await saveMessage('assistant', data.data.raw_output, 'terminal_output');
-        } else {
-            await saveMessage('assistant', data?.message || 'Ответ получен', 'text');
-        }
-        setIsLoading(false);
-      }, 1000);
+      if (data?.type === 'widget') {
+        await saveMessage('assistant', data.message, 'widget', data);
+      } else {
+        await saveMessage('assistant', data?.message || 'Ответ получен', 'text');
+      }
       
     } catch (error) {
+      clearInterval(loadingInterval);
       console.error('Failed to process request:', error);
       await saveMessage('assistant', 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.', 'error');
+    } finally {
       setIsLoading(false);
     }
   };
@@ -318,8 +367,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
   const quickCommands = [
     { label: 'Аудит аккаунта', icon: Activity },
-    { label: 'Лучшие креативы', icon: Sparkles },
-    { label: 'Проверь CPL', icon: Terminal },
+    { label: 'Отключи плохие', icon: Zap },
+    { label: 'Проверь бюджет', icon: TrendingUp },
     { label: 'Контент-Завод', icon: ImageIcon },
   ];
 
@@ -333,7 +382,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       <div className="relative z-10 flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="flex items-center gap-3">
           <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]" />
-          <span className="font-semibold tracking-wide text-sm text-foreground">AI ANALYST_V2.0</span>
+          <span className="font-semibold tracking-wide text-sm text-foreground">AI ANALYST_V2.1</span>
         </div>
         <Button 
             variant="ghost" 
@@ -350,7 +399,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       {/* Messages */}
       <div className="flex-1 overflow-hidden relative z-10">
         <ScrollArea ref={scrollRef} className="h-full px-4 py-4">
-            <div className="space-y-6">
+            <div className="space-y-6 pb-4">
                 {messages.map((msg, idx) => (
                     <motion.div 
                         key={msg.id || idx}
@@ -373,9 +422,9 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                             {msg.role === 'user' ? <User className="w-4 h-4" /> : msg.role === 'system' ? <Zap className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
                         </div>
                         
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 w-full">
                             <div className={cn(
-                                "p-3.5 text-sm backdrop-blur-md shadow-sm border",
+                                "p-3.5 text-sm backdrop-blur-md shadow-sm border relative overflow-hidden",
                                 msg.role === 'user' 
                                     ? "bg-primary text-primary-foreground border-primary rounded-2xl rounded-tr-sm" 
                                     : msg.role === 'system'
@@ -387,24 +436,33 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                                         <Terminal className="w-3 h-3" />
                                         {msg.content}
                                     </div>
-                                ) : msg.type === 'terminal_output' ? (
-                                    <div className="font-mono text-xs leading-relaxed whitespace-pre-wrap bg-black/50 p-2 rounded-md border border-green-900/50 text-green-500 shadow-inner">
-                                        {msg.content}
-                                    </div>
                                 ) : (
-                                    <div className={cn(
-                                      "prose prose-sm max-w-none leading-relaxed prose-invert"
-                                    )}>
-                                        <ReactMarkdown 
-                                            components={{
-                                                p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
-                                                strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
-                                                code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono" {...props} />
-                                            }}
-                                        >
-                                            {msg.content}
-                                        </ReactMarkdown>
-                                    </div>
+                                    <>
+                                      <div className={cn(
+                                        "prose prose-sm max-w-none leading-relaxed prose-invert",
+                                        msg.role === 'user' && "text-primary-foreground"
+                                      )}>
+                                          <ReactMarkdown 
+                                              components={{
+                                                  p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
+                                                  strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
+                                                  code: ({node, ...props}) => <code className="bg-black/20 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                                              }}
+                                          >
+                                              {msg.content}
+                                          </ReactMarkdown>
+                                      </div>
+
+                                      {/* Widget Rendering */}
+                                      {msg.type === 'widget' && msg.widget_data && (
+                                        <div className="mt-3 pt-3 border-t border-border/50">
+                                          {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
+                                          {(msg.widget_data.actions?.length ?? 0) > 0 && (
+                                            <ActionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
+                                          )}
+                                        </div>
+                                      )}
+                                    </>
                                 )}
                             </div>
                             <span className="text-[10px] text-muted-foreground px-1">
@@ -413,18 +471,20 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                         </div>
                     </motion.div>
                 ))}
+                
+                {/* Loading Indicator */}
                 {isLoading && (
                     <motion.div 
                         initial={{ opacity: 0 }} 
                         animate={{ opacity: 1 }}
-                        className="flex items-center gap-2 pl-12"
+                        className="flex items-center gap-3 pl-2"
                     >
-                        <div className="flex gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500/50 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        <div className="flex gap-1 bg-card border border-border px-3 py-2 rounded-full shadow-sm">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
                         </div>
-                        <span className="text-xs text-muted-foreground">Анализирую данные...</span>
+                        <span className="text-xs text-muted-foreground animate-pulse">{loadingText}</span>
                     </motion.div>
                 )}
             </div>
