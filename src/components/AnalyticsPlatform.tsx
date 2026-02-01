@@ -16,6 +16,7 @@ import {
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
 import { useSystemHealth } from '@/hooks/useSystemHealth';
+import { useTheme } from '@/hooks/useTheme';
 
 import { AppSidebar } from './AppSidebar';
 import { DraggableDashboard } from './dashboard/DraggableDashboard';
