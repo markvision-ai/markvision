@@ -30,7 +30,6 @@ export interface Campaign {
 const CAMPAIGN_FIELDS = `
   id,
   project_id,
-  platform,
   external_id,
   name,
   status,

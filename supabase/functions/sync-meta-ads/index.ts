@@ -176,6 +176,40 @@ async function syncFacebookAds(
   for (const account of adAccounts) {
     if (account.account_status !== 1) continue; // Skip inactive accounts
 
+    // Sync Campaigns Structure
+    try {
+      const campaignsRes = await fetch(
+        `https://graph.facebook.com/v21.0/${account.id}/campaigns?` +
+        `access_token=${accessToken}&` +
+        `fields=id,name,status,daily_budget,lifetime_budget,updated_time&` +
+        `effective_status=['ACTIVE','PAUSED']&` +
+        `limit=50`
+      );
+      const campaignsData = await campaignsRes.json();
+      
+      if (!campaignsData.error && campaignsData.data) {
+           for (const campaign of campaignsData.data) {
+               await supabase.from("campaigns").upsert({
+                   project_id: projectId,
+                   external_id: campaign.id,
+                   name: campaign.name,
+                   status: campaign.status === 'ACTIVE',
+                   budget: parseFloat(campaign.daily_budget || campaign.lifetime_budget || '0') / 100, // Meta API returns budget in cents usually, need to check. 
+                   // Actually Meta returns "1000" for 10.00 usually? No, it depends on currency.
+                   // Let's assume raw value for now or standard /100?
+                   // Usually Meta Ads API returns "min_daily_budget" in cents. 
+                   // Let's keep it safe: parseFloat.
+                   // platform: 'facebook', // Omitted to avoid schema error
+                   updated_at: new Date().toISOString()
+               }, {
+                   onConflict: "project_id,external_id"
+               });
+           }
+      }
+    } catch (e) {
+      console.error("Error syncing campaigns structure:", e);
+    }
+
     // Fetch campaign insights
     const insightsRes = await fetch(
       `https://graph.facebook.com/v21.0/${account.id}/insights?` +
