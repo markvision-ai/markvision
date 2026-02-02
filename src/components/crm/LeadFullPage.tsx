@@ -46,6 +46,7 @@ import { ReferralsList } from './ReferralsList';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import {
   Tooltip,
   TooltipContent,

@@ -2,10 +2,47 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/externalSupabase';
 import { useLeads } from '@/hooks/useLeads';
-import { Loader2, ChevronRight, ChevronDown, AlertCircle, CheckCircle2, PauseCircle, PlayCircle, Image as ImageIcon, RefreshCw } from 'lucide-react';
+import { 
+  Loader2, 
+  ChevronRight, 
+  RefreshCw,
+  ArrowUpDown,
+  Settings2,
+  LayoutDashboard,
+  Download,
+  Pencil
+} from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+} from "@/components/ui/dropdown-menu";
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 interface ActiveAdsManagerProps {
   projectId: string | null;
@@ -49,13 +86,20 @@ interface RowData {
   status: string;
   spend: number;
   leadsMeta: number;
+  cpl: number;
   leadsCRM: number; // Diagnostics
+  diagCost: number;
   sales: number;
   revenue: number;
   roi: number;
   children?: RowData[];
   thumbnail?: string; // For ads
 }
+
+type SortConfig = {
+  key: keyof RowData | null;
+  direction: 'asc' | 'desc';
+};
 
 export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
   const { leads } = useLeads(projectId);
@@ -64,6 +108,18 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [toggling, setToggling] = useState<string | null>(null);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
+  const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
+    status: true,
+    spend: true,
+    leads: true,
+    cpl: true,
+    diagnostics: true,
+    diagCost: true,
+    sales: true,
+    revenue: true,
+    roi: true,
+  });
 
   useEffect(() => {
     if (!projectId) return;
@@ -74,12 +130,9 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
     setLoading(true);
     try {
         toast.info('Синхронизация с Meta Ads...');
-        // 1. Trigger backend sync for reports
         await supabase.functions.invoke('sync-meta-ads', {
             body: { projectId, syncType: 'ads' }
         });
-        
-        // 2. Refetch live hierarchy
         await fetchHierarchy();
         toast.success('Данные обновлены');
     } catch (e) {
@@ -127,7 +180,6 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      // Optimistic update
       updateLocalStatus(id, newStatus);
       toast.success(`Статус обновлен: ${newStatus}`);
     } catch (e) {
@@ -172,38 +224,31 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
       return parseFloat(insights?.data?.[0]?.spend || "0");
   };
 
-  // Process data into display tree
+  // Process data into tree structure
   const processedData = useMemo(() => {
     return hierarchy.map(campaign => {
-      // Calculate Campaign Level Metrics
       const spend = getSpend(campaign.insights);
       const leadsMeta = getLeadsCount(campaign.insights);
+      const cpl = leadsMeta > 0 ? spend / leadsMeta : 0;
       
-      // CRM Metrics for Campaign (Matched by UTM)
-      // Note: This is simplified matching. In production, we'd need robust attribution.
       const campaignLeads = leads.filter(l => l.utm_campaign === campaign.id || l.utm_campaign === campaign.name); 
       const leadsCRM = campaignLeads.length;
+      const diagCost = leadsCRM > 0 ? spend / leadsCRM : 0;
+      
       const paidLeads = campaignLeads.filter(l => l.status === 'paid');
       const sales = paidLeads.length;
       const revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-      const roi = spend > 0 ? revenue / spend : 0;
+      const roi = spend > 0 ? (revenue - spend) / spend * 100 : 0; // ROI as percentage
 
       const adsets = (campaign.adsets?.data || []).map(adset => {
         const adsetSpend = getSpend(adset.insights);
         const adsetLeadsMeta = getLeadsCount(adset.insights);
-        
-        // AdSet CRM attribution is harder without utm_term/content specific mapping, 
-        // assuming leads might have utm_content or similar. 
-        // For this task, we will just propagate 0 or implement if we had utm_term data in leads hook.
-        // The user only specified "Diagnostics (Count from leads where utm_campaign matches ID)".
-        // So for AdSets/Ads we might show 0 or proportional if not tracked.
-        // Let's stick to campaign level CRM data for now, or just show '-' for deeper levels 
-        // unless we want to filter leads by other UTMs if available.
-        // Assuming we only have utm_campaign reliably for now based on prompt.
+        const adsetCpl = adsetLeadsMeta > 0 ? adsetSpend / adsetLeadsMeta : 0;
         
         const ads = (adset.ads?.data || []).map(ad => {
              const adSpend = getSpend(ad.insights);
              const adLeadsMeta = getLeadsCount(ad.insights);
+             const adCpl = adLeadsMeta > 0 ? adSpend / adLeadsMeta : 0;
              return {
                  id: ad.id,
                  type: 'ad' as const,
@@ -211,7 +256,9 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
                  status: ad.status,
                  spend: adSpend,
                  leadsMeta: adLeadsMeta,
-                 leadsCRM: 0, // Not tracking ad level CRM yet
+                 cpl: adCpl,
+                 leadsCRM: 0, 
+                 diagCost: 0,
                  sales: 0,
                  revenue: 0,
                  roi: 0,
@@ -226,7 +273,9 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
             status: adset.status,
             spend: adsetSpend,
             leadsMeta: adsetLeadsMeta,
+            cpl: adsetCpl,
             leadsCRM: 0,
+            diagCost: 0,
             sales: 0,
             revenue: 0,
             roi: 0,
@@ -241,7 +290,9 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
         status: campaign.status,
         spend,
         leadsMeta,
+        cpl,
         leadsCRM,
+        diagCost,
         sales,
         revenue,
         roi,
@@ -250,156 +301,493 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
     });
   }, [hierarchy, leads]);
 
-  const renderRow = (row: RowData, level: number = 0) => {
-    const isExpanded = expandedRows.has(row.id);
-    const hasChildren = row.children && row.children.length > 0;
-    const isHighRoi = row.roi > 3;
+  // Sort Logic
+  const sortedData = useMemo(() => {
+    const sortNodes = (nodes: RowData[]): RowData[] => {
+      if (!sortConfig.key) return nodes;
 
-    return (
-      <div key={row.id} className="flex flex-col">
-        <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className={`
-            flex items-center py-3 px-4 border-b border-border/50
-            hover:bg-muted/50 transition-colors cursor-pointer group
-            ${isHighRoi ? 'bg-emerald-500/5 hover:bg-emerald-500/10' : ''}
-          `}
-          style={{ paddingLeft: `${level * 20 + 16}px` }}
-          onClick={() => hasChildren && toggleRow(row.id)}
-        >
-          {/* Name Column */}
-          <div className="flex-1 flex items-center gap-3 min-w-[300px]">
-            {hasChildren ? (
-              <ChevronRight className={`w-4 h-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
-            ) : <div className="w-4" />}
-            
-            <div className="relative">
-                {row.type === 'ad' && row.thumbnail ? (
-                    <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-border" />
-                ) : (
-                    <div className={`w-2 h-2 rounded-full ${row.status === 'ACTIVE' ? 'bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]' : 'bg-muted-foreground'}`} />
-                )}
-            </div>
+      const sorted = [...nodes].sort((a, b) => {
+        const aValue = a[sortConfig.key!];
+        const bValue = b[sortConfig.key!];
 
-            <div className="flex flex-col">
-                <span className={`text-sm font-medium ${isHighRoi ? 'text-emerald-500 drop-shadow-sm' : 'text-foreground'}`}>
-                    {row.name}
-                </span>
-                <span className="text-[10px] text-muted-foreground uppercase tracking-wider">{row.type} • ID: {row.id}</span>
-            </div>
-          </div>
+        if (aValue === bValue) return 0;
+        
+        const comparison = aValue > bValue ? 1 : -1;
+        return sortConfig.direction === 'asc' ? comparison : -comparison;
+      });
 
-          {/* Status Toggle */}
-          <div className="w-24 flex items-center justify-center" onClick={(e) => e.stopPropagation()}>
-             {toggling === row.id ? (
-                 <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
-             ) : (
-                <Switch 
-                    checked={row.status === 'ACTIVE'}
-                    onCheckedChange={(checked) => handleToggleStatus(row.id, row.status, { stopPropagation: () => {} } as any)}
-                    className="data-[state=checked]:bg-emerald-500"
-                />
-             )}
-          </div>
+      return sorted.map(node => ({
+        ...node,
+        children: node.children ? sortNodes(node.children) : undefined
+      }));
+    };
 
-          {/* Metrics */}
-          <div className="w-24 text-right text-sm text-muted-foreground">
-             {row.spend > 0 ? `${Math.round(row.spend).toLocaleString()} ₸` : '-'}
-          </div>
-          <div className="w-20 text-right text-sm text-foreground">
-             {row.leadsMeta}
-          </div>
-          <div className="w-24 text-right text-sm text-blue-500 font-medium">
-             {row.leadsCRM > 0 ? row.leadsCRM : '-'}
-          </div>
-          <div className="w-20 text-right text-sm text-emerald-500">
-             {row.sales > 0 ? row.sales : '-'}
-          </div>
-          <div className="w-28 text-right text-sm font-bold text-foreground">
-             {row.revenue > 0 ? `${row.revenue.toLocaleString()} ₸` : '-'}
-          </div>
-          <div className="w-20 text-right">
-             {row.roi > 0 ? (
-                 <span className={`text-xs font-bold px-1.5 py-0.5 rounded ${isHighRoi ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/50' : 'text-muted-foreground'}`}>
-                     x{row.roi.toFixed(2)}
-                 </span>
-             ) : '-'}
-          </div>
-        </motion.div>
+    return sortNodes(processedData);
+  }, [processedData, sortConfig]);
 
-        {/* Children */}
-        <AnimatePresence>
-          {isExpanded && row.children && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden bg-muted/20"
-            >
-              {row.children.map(child => renderRow(child, level + 1))}
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    );
+  // Flatten for rendering
+  const flattenRows = (nodes: RowData[], level = 0): (RowData & { level: number })[] => {
+    let result: (RowData & { level: number })[] = [];
+    nodes.forEach(node => {
+      result.push({ ...node, level });
+      if (expandedRows.has(node.id) && node.children) {
+        result = result.concat(flattenRows(node.children, level + 1));
+      }
+    });
+    return result;
+  };
+
+  const visibleRows = useMemo(() => flattenRows(sortedData), [sortedData, expandedRows]);
+
+  const handleSort = (key: keyof RowData) => {
+    setSortConfig(current => ({
+      key,
+      direction: current.key === key && current.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Formatters
+  const formatCurrency = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(val);
+  const formatNumber = (val: number) => new Intl.NumberFormat('ru-RU').format(val);
+  const formatPercent = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'percent', maximumFractionDigits: 1 }).format(val / 100);
+
+  const getSortIcon = (key: keyof RowData) => {
+    if (sortConfig.key !== key) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
+    return sortConfig.direction === 'asc' 
+      ? <ArrowUpDown className="w-3 h-3 ml-1 text-primary" />
+      : <ArrowUpDown className="w-3 h-3 ml-1 text-primary rotate-180" />;
+  };
+
+  // Export
+  const handleExport = () => {
+    const headers = [
+      'ID', 'Type', 'Name', 'Status', 'Spend', 'Leads (Meta)', 'CPL', 'Leads (CRM)', 'Diag Cost', 'Sales', 'Revenue', 'ROI'
+    ];
+    
+    const rows = visibleRows.map(row => [
+      row.id,
+      row.type,
+      `"${row.name.replace(/"/g, '""')}"`,
+      row.status,
+      row.spend.toFixed(2),
+      row.leadsMeta,
+      row.cpl.toFixed(2),
+      row.leadsCRM,
+      row.diagCost.toFixed(2),
+      row.sales,
+      row.revenue.toFixed(2),
+      (row.roi).toFixed(2) + '%'
+    ]);
+
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(r => r.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `ads_export_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Editing Logic
+  const [editingEntity, setEditingEntity] = useState<RowData | null>(null);
+  const [editName, setEditName] = useState('');
+  const [editBudget, setEditBudget] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const openEditDialog = (row: RowData, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingEntity(row);
+    setEditName(row.name);
+    if (row.type === 'campaign') {
+        const campaign = hierarchy.find(c => c.id === row.id);
+        setEditBudget(campaign?.daily_budget || '');
+    } else {
+        setEditBudget('');
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingEntity) return;
+    setSaving(true);
+    try {
+        const payload: any = { 
+            projectId, 
+            entityId: editingEntity.id, 
+            name: editName 
+        };
+        
+        if (editingEntity.type === 'campaign' && editBudget) {
+            payload.daily_budget = editBudget;
+        }
+
+        const { data, error } = await supabase.functions.invoke('ads-manager', {
+            body: { 
+                action: 'update_entity', 
+                payload 
+            }
+        });
+
+        if (error) throw error;
+        if (data.error) throw new Error(data.error);
+
+        const updateNode = (nodes: any[]): any[] => {
+            return nodes.map(node => {
+                if (node.id === editingEntity.id) {
+                    return { 
+                        ...node, 
+                        name: editName,
+                        daily_budget: editingEntity.type === 'campaign' ? editBudget : node.daily_budget
+                    };
+                }
+                if (node.adsets) return { ...node, adsets: { data: updateNode(node.adsets.data) } };
+                if (node.ads) return { ...node, ads: { data: updateNode(node.ads.data) } };
+                return node;
+            });
+        };
+        setHierarchy(prev => updateNode(prev));
+        
+        toast.success('Изменения сохранены');
+        setEditingEntity(null);
+    } catch (e) {
+        console.error('Failed to update', e);
+        toast.error('Ошибка сохранения');
+    } finally {
+        setSaving(false);
+    }
   };
 
   return (
-    <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-      <div className="p-4 border-b border-border flex items-center justify-between bg-muted/30">
-        <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
-            <CheckCircle2 className="w-5 h-5 text-blue-500" />
-            Active Ads Manager
-            {adAccountId && <span className="text-xs font-mono text-muted-foreground ml-2 px-2 py-0.5 bg-muted rounded border border-border">ID: {adAccountId}</span>}
-        </h2>
-        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-            <Button 
-                variant="outline" 
-                size="sm" 
-                className="h-7 gap-2 bg-transparent border-border hover:bg-muted text-foreground" 
-                onClick={handleForceSync} 
-                disabled={loading}
-            >
-                <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">Обновить</span>
-            </Button>
-            <div className="h-4 w-px bg-border hidden sm:block" />
-            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_5px_rgba(16,185,129,0.8)]" /> Active</span>
-            <span className="flex items-center gap-1.5"><div className="w-2 h-2 rounded-full bg-muted-foreground" /> Paused</span>
+    <div className="space-y-4">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-xl crm-card-glass border border-border/50">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center">
+             <LayoutDashboard className="w-5 h-5 text-blue-500" />
+          </div>
+          <div>
+             <h2 className="text-lg font-bold">Active Ads Manager</h2>
+             <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                   <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                   Live Sync
+                </span>
+                {adAccountId && (
+                  <span className="px-2 py-0.5 rounded bg-muted font-mono">
+                    ID: {adAccountId}
+                  </span>
+                )}
+             </div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <Button variant="outline" size="sm" onClick={handleForceSync} disabled={loading}>
+             <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
+             Обновить
+          </Button>
+          
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || visibleRows.length === 0}>
+             <Download className="w-4 h-4 mr-2" />
+             Экспорт
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Settings2 className="w-4 h-4 mr-2" />
+                Столбцы
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel>Видимость столбцов</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {Object.keys(columnVisibility).map(key => (
+                <DropdownMenuCheckboxItem
+                  key={key}
+                  checked={columnVisibility[key]}
+                  onCheckedChange={(checked) => setColumnVisibility(prev => ({ ...prev, [key]: checked }))}
+                >
+                  {key === 'status' ? 'Статус' :
+                   key === 'spend' ? 'Расходы' :
+                   key === 'leads' ? 'Лиды (Meta)' :
+                   key === 'cpl' ? 'CPL' :
+                   key === 'diagnostics' ? 'Диагностики' :
+                   key === 'diagCost' ? 'Стоимость диаг.' :
+                   key === 'sales' ? 'Продажи' :
+                   key === 'revenue' ? 'Выручка' :
+                   key === 'roi' ? 'ROI' : key}
+                </DropdownMenuCheckboxItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
-      <div className="min-w-full">
-        {/* Header */}
-        <div className="flex items-center py-2 px-4 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wider bg-muted/50">
-            <div className="flex-1">Campaign / AdSet / Ad</div>
-            <div className="w-24 text-center">Status</div>
-            <div className="w-24 text-right">Spent</div>
-            <div className="w-20 text-right">Meta Leads</div>
-            <div className="w-24 text-right text-blue-500">Diag (CRM)</div>
-            <div className="w-20 text-right text-emerald-500">Sales</div>
-            <div className="w-28 text-right">Revenue</div>
-            <div className="w-20 text-right">ROI</div>
-        </div>
+      <div className="rounded-xl border border-border/50 overflow-hidden bg-card/50 backdrop-blur-sm">
+        <Table>
+          <TableHeader>
+            <TableRow className="hover:bg-transparent border-b border-border/50">
+              <TableHead className="w-[350px]">
+                <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 -ml-3 hover:bg-transparent font-bold">
+                  Кампания / Группа / Объявление
+                  {getSortIcon('name')}
+                </Button>
+              </TableHead>
+              {columnVisibility.status && (
+                <TableHead className="w-[100px] text-center">Статус</TableHead>
+              )}
+              {columnVisibility.spend && (
+                <TableHead className="text-right">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="h-8 px-0 hover:bg-transparent font-bold">
+                    Расходы
+                    {getSortIcon('spend')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.leads && (
+                <TableHead className="text-right">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="h-8 px-0 hover:bg-transparent font-bold">
+                    Лиды
+                    {getSortIcon('leadsMeta')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.cpl && (
+                <TableHead className="text-right">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="h-8 px-0 hover:bg-transparent font-bold">
+                    CPL
+                    {getSortIcon('cpl')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.diagnostics && (
+                <TableHead className="text-right text-blue-400">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('leadsCRM')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
+                    Диаг. (CRM)
+                    {getSortIcon('leadsCRM')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.diagCost && (
+                <TableHead className="text-right text-blue-400">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('diagCost')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
+                    Цена диаг.
+                    {getSortIcon('diagCost')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.sales && (
+                <TableHead className="text-right text-emerald-400">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('sales')} className="h-8 px-0 hover:bg-transparent font-bold text-emerald-400">
+                    Продажи
+                    {getSortIcon('sales')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.revenue && (
+                <TableHead className="text-right text-emerald-400">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('revenue')} className="h-8 px-0 hover:bg-transparent font-bold text-emerald-400">
+                    Выручка
+                    {getSortIcon('revenue')}
+                  </Button>
+                </TableHead>
+              )}
+              {columnVisibility.roi && (
+                <TableHead className="text-right">
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="h-8 px-0 hover:bg-transparent font-bold">
+                    ROI
+                    {getSortIcon('roi')}
+                  </Button>
+                </TableHead>
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+               <TableRow>
+                 <TableCell colSpan={10} className="h-32 text-center">
+                    <div className="flex flex-col items-center justify-center gap-2 text-muted-foreground">
+                       <Loader2 className="w-6 h-6 animate-spin" />
+                       <span>Загрузка данных...</span>
+                    </div>
+                 </TableCell>
+               </TableRow>
+            ) : visibleRows.length === 0 ? (
+               <TableRow>
+                 <TableCell colSpan={10} className="h-32 text-center text-muted-foreground">
+                    Нет активных рекламных кампаний
+                 </TableCell>
+               </TableRow>
+            ) : (
+              visibleRows.map((row) => (
+                <TableRow 
+                  key={row.id} 
+                  className={cn(
+                    "group transition-colors hover:bg-muted/30",
+                    row.type === 'campaign' && "bg-muted/5 font-medium",
+                    row.level > 0 && "border-none"
+                  )}
+                >
+                  <TableCell className="py-3">
+                    <div 
+                      className="flex items-center gap-2 cursor-pointer select-none"
+                      style={{ paddingLeft: `${row.level * 24}px` }}
+                      onClick={() => row.children && row.children.length > 0 && toggleRow(row.id)}
+                    >
+                      {row.children && row.children.length > 0 ? (
+                        <ChevronRight className={cn(
+                          "w-4 h-4 text-muted-foreground transition-transform duration-200",
+                          expandedRows.has(row.id) && "rotate-90"
+                        )} />
+                      ) : (
+                        <div className="w-4 h-4" /> // Spacer
+                      )}
+                      
+                      <div className="relative shrink-0">
+                         {row.type === 'ad' && row.thumbnail ? (
+                             <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-border" />
+                         ) : (
+                             <div className={cn(
+                               "w-2 h-2 rounded-full",
+                               row.status === 'ACTIVE' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-muted-foreground"
+                             )} />
+                         )}
+                      </div>
 
-        {/* Body */}
-        {loading ? (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 className="w-8 h-8 animate-spin text-blue-500" />
-            </div>
-        ) : (
-            <div className="divide-y divide-border/50">
-                {processedData.length > 0 ? (
-                    processedData.map(row => renderRow(row))
-                ) : (
-                    <div className="p-8 text-center text-muted-foreground">
-                        Нет активных кампаний или данных.
+                      <div className="flex flex-col min-w-0 group/name">
+                        <div className="flex items-center gap-2">
+                           <span className="truncate max-w-[200px] md:max-w-[300px] text-sm font-medium" title={row.name}>
+                             {row.name}
+                           </span>
+                           <Button 
+                             variant="ghost" 
+                             size="icon" 
+                             className="h-6 w-6 opacity-0 group-hover/name:opacity-100 transition-opacity"
+                             onClick={(e) => openEditDialog(row, e)}
+                           >
+                             <Pencil className="w-3 h-3 text-muted-foreground" />
+                           </Button>
+                        </div>
+                        <span className="text-[10px] text-muted-foreground uppercase tracking-wider flex items-center gap-1">
+                           {row.type} 
+                           <span className="opacity-50">•</span> 
+                           ID: {row.id}
+                        </span>
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  {columnVisibility.status && (
+                    <TableCell className="text-center">
+                      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+                        {toggling === row.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                        ) : (
+                            <Switch 
+                                checked={row.status === 'ACTIVE'}
+                                onCheckedChange={(checked) => handleToggleStatus(row.id, row.status, { stopPropagation: () => {} } as any)}
+                                className={cn(
+                                  "data-[state=checked]:bg-emerald-500",
+                                  row.status !== 'ACTIVE' && "opacity-50"
+                                )}
+                            />
+                        )}
+                      </div>
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.spend && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm">
+                      {formatCurrency(row.spend)}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.leads && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm">
+                       {formatNumber(row.leadsMeta)}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.cpl && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm text-muted-foreground">
+                       {row.cpl > 0 ? formatCurrency(row.cpl) : '-'}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.diagnostics && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-blue-400">
+                       {row.leadsCRM > 0 ? formatNumber(row.leadsCRM) : '-'}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.diagCost && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm text-blue-400/80">
+                       {row.diagCost > 0 ? formatCurrency(row.diagCost) : '-'}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.sales && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-emerald-400">
+                       {row.sales > 0 ? formatNumber(row.sales) : '-'}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.revenue && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm text-emerald-400">
+                       {row.revenue > 0 ? formatCurrency(row.revenue) : '-'}
+                    </TableCell>
+                  )}
+
+                  {columnVisibility.roi && (
+                    <TableCell className="text-right tabular-nums font-mono text-sm">
+                       <span className={cn(
+                         row.roi > 0 ? "text-emerald-500" : row.roi < 0 ? "text-red-500" : "text-muted-foreground"
+                       )}>
+                         {row.roi !== 0 ? formatPercent(row.roi) : '-'}
+                       </span>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
+        <DialogContent>
+            <DialogHeader>
+                <DialogTitle>Редактирование {editingEntity?.type}</DialogTitle>
+                <DialogDescription>
+                    ID: {editingEntity?.id}
+                </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                    <Label>Название</Label>
+                    <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                </div>
+                {editingEntity?.type === 'campaign' && (
+                    <div className="space-y-2">
+                        <Label>Дневной бюджет</Label>
+                        <Input value={editBudget} onChange={(e) => setEditBudget(e.target.value)} placeholder="Например: 1000" />
                     </div>
                 )}
             </div>
-        )}
-      </div>
+            <DialogFooter>
+                <Button variant="outline" onClick={() => setEditingEntity(null)}>Отмена</Button>
+                <Button onClick={handleSaveEdit} disabled={saving}>
+                    {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                    Сохранить
+                </Button>
+            </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

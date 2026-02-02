@@ -317,11 +317,14 @@ async function fetchAdsHierarchy(supabase: any, projectId: string) {
     
     // Fetch hierarchy: Campaigns -> AdSets -> Ads
     // Including insights for last 30 days
+    // Added: impressions, cpc, cpm, ctr, action_values, purchase_ros to ensure completeness
+    const insightFields = `spend,actions,action_values,clicks,impressions,cpc,cpm,ctr,purchase_ros`;
+    
     const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
         `access_token=${accessToken}&` +
-        `fields=id,name,status,daily_budget,insights.date_preset(last_30d){spend,actions,clicks},` +
-        `adsets{id,name,status,insights.date_preset(last_30d){spend,actions,clicks},` +
-        `ads{id,name,status,creative{thumbnail_url},insights.date_preset(last_30d){spend,actions,clicks}}}` +
+        `fields=id,name,status,daily_budget,insights.date_preset(last_30d){${insightFields}},` +
+        `adsets{id,name,status,insights.date_preset(last_30d){${insightFields}},` +
+        `ads{id,name,status,creative{thumbnail_url},insights.date_preset(last_30d){${insightFields}}}}` +
         `&effective_status=['ACTIVE']` + // Only ACTIVE as requested
         `&limit=100`; 
 

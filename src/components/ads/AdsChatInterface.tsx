@@ -423,20 +423,20 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       </div>
       
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="flex items-center gap-3">
-          <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse shadow-[0_0_10px_#22c55e]" />
-          <span className="font-semibold tracking-wide text-sm text-foreground">AI ANALYST_V2.1</span>
+      <div className="relative z-10 flex items-center justify-between px-3 py-1.5 border-b border-border bg-background/80 backdrop-blur-md min-h-[40px]">
+        <div className="flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
+          <span className="font-semibold tracking-wide text-[10px] uppercase text-muted-foreground">AI Analyst V2.1</span>
         </div>
         <Button 
             variant="ghost" 
             size="sm" 
             onClick={handleSync}
             disabled={isSyncing}
-            className="h-7 text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
         >
-            <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            SYNC ALL
+            <RefreshCw className={`w-3 h-3 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            SYNC
         </Button>
       </div>
 

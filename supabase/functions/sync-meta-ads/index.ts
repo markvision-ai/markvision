@@ -247,7 +247,7 @@ async function syncFacebookAds(
     const insightsRes = await fetch(
       `https://graph.facebook.com/v21.0/${account.id}/insights?` +
       `access_token=${accessToken}&` +
-      `fields=campaign_id,campaign_name,spend,clicks,impressions,reach,cpm,cpc,ctr&` +
+      `fields=campaign_id,campaign_name,spend,clicks,impressions,reach,cpm,cpc,ctr,actions,action_values,purchase_ros&` +
       `level=campaign&` +
       `time_range=${JSON.stringify(dateRange)}&` +
       `time_increment=1`
@@ -267,8 +267,20 @@ async function syncFacebookAds(
       totalSpend += spend;
       totalCampaigns++;
 
+      // Extract conversions
+      const actions = insight.actions || [];
+      const actionValues = insight.action_values || [];
+      
+      const leads = getActionCount(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
+      const purchases = getActionCount(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      const revenue = getActionValue(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      const roas = parseFloat(insight.purchase_ros?.[0]?.value || '0');
+      
+      // Calculate ROI manually if ROAS is missing but we have revenue/spend
+      const roi = spend > 0 ? (revenue - spend) / spend : 0;
+
       // Upsert to marketing_stats
-      await supabase.from("marketing_stats").upsert({
+      const { error: upsertError } = await supabase.from("marketing_stats").upsert({
         project_id: projectId,
         source: "facebook",
         date: insight.date_start,
@@ -279,6 +291,10 @@ async function syncFacebookAds(
         cpm: parseFloat(insight.cpm) || 0,
         cpc: parseFloat(insight.cpc) || 0,
         ctr: parseFloat(insight.ctr) || 0,
+        leads: leads,
+        purchases: purchases,
+        revenue: revenue,
+        roi: roi, 
         campaign_id: insight.campaign_id,
         campaign_name: insight.campaign_name,
         ad_account_id: account.id,
@@ -287,10 +303,24 @@ async function syncFacebookAds(
       }, {
         onConflict: "project_id,source,date,campaign_id",
       });
+
+      if (upsertError) {
+          console.error(`Error upserting stats for campaign ${insight.campaign_name}:`, upsertError);
+      }
     }
   }
 
   return { campaigns: totalCampaigns, totalSpend };
+}
+
+function getActionCount(actions: any[], types: string[]): number {
+    const action = actions.find((a: any) => types.includes(a.action_type));
+    return action ? parseInt(action.value) : 0;
+}
+
+function getActionValue(actionValues: any[], types: string[]): number {
+    const action = actionValues.find((a: any) => types.includes(a.action_type));
+    return action ? parseFloat(action.value) : 0;
 }
 
 async function syncInstagramContent(
