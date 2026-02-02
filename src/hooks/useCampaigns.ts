@@ -26,19 +26,8 @@ export interface Campaign {
   updated_at: string;
 }
 
-// Select only needed fields for performance
-const CAMPAIGN_FIELDS = `
-  id,
-  project_id,
-  name,
-  budget,
-  spent_today,
-  autopilot_enabled,
-  rules,
-  ai_log,
-  created_at,
-  updated_at
-`;
+// Select all fields to avoid errors if specific columns are missing in DB
+const CAMPAIGN_FIELDS = '*';
 
 export function useCampaigns(projectId: string | null) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
@@ -76,10 +65,20 @@ export function useCampaigns(projectId: string | null) {
       
       const typedData = (data || []) as any[];
       setCampaigns(typedData.map(c => ({
-        ...c,
+        id: c.id,
+        project_id: c.project_id,
+        name: c.name,
+        created_at: c.created_at,
+        updated_at: c.updated_at,
+        // Safe defaults for potentially missing columns
         platform: (c.platform || 'facebook') as 'facebook' | 'tiktok' | 'google' | 'instagram',
+        status: c.status ?? true,
+        budget: c.budget || 0,
+        spent_today: c.spent_today || 0,
+        autopilot_enabled: c.autopilot_enabled || false,
         rules: (c.rules || {}) as Campaign['rules'],
         ai_log: (c.ai_log || []) as Campaign['ai_log'],
+        external_id: c.external_id || null
       })));
     } catch (error: any) {
       if (error.name === 'AbortError' || error.message?.includes('AbortError')) {

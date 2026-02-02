@@ -12,6 +12,7 @@
     "db:migrate:ad-account-id": "node scripts/run-migration-ad-account-id.mjs",
     "db:migrate:external-id": "node scripts/run-migration-external-id.mjs",
     "db:migrate:status": "node scripts/run-migration-status.mjs",
+    "db:migrate:fix-schema": "node scripts/run-migration-fix-schema.mjs",
     "test": "vitest run"
   },
   "dependencies": {
