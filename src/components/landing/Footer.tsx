@@ -78,7 +78,7 @@ export const Footer = () => {
           {/* Left Side: Brand (full width on mobile, 4 cols on desktop) */}
           <div className="lg:col-span-4">
             <div className="flex items-center gap-3 mb-4">
-              <img alt="MarkVision AI" className="w-12 h-12 rounded-xl object-cover shadow-lg shadow-blue-500/20" src="/lovable-uploads/eb2408a4-493e-4e86-b80e-d701896ef02f.png" />
+              <img alt="MarkVision AI" className="w-12 h-12 rounded-xl object-cover shadow-lg shadow-blue-500/20" src="/lovable-uploads/f75f250d-fdf3-4c89-9ec6-292f899b5822.png" />
               <span className="font-semibold text-xl">
                 <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
                   MarkVision AI
