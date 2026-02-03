@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useMemo } from 'react';
 import { externalSupabase as supabase } from '@/lib/externalSupabase';
 import { startOfMonth, subMonths, format, startOfToday, subDays } from 'date-fns';

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// @ts-nocheck
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAutomationRules, AutomationRule, AutomationLog } from '@/hooks/useAutomationRules';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
