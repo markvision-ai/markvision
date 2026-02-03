@@ -3,6 +3,7 @@ import { useCampaigns } from '@/hooks/useCampaigns';
 import { useLeads } from '@/hooks/useLeads';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { useProjectData } from '@/hooks/useProjectData';
+import { useAdPerformance } from '@/hooks/useAdPerformance';
 import { AdsSummaryCards } from './AdsSummaryCards';
 import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { AIStatusIndicator } from './AIStatusIndicator';
@@ -14,11 +15,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
 import { RefreshCw, Loader2, Zap, CalendarIcon, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { format, subDays, startOfMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
 import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
+import { KZT_RATE } from '@/constants/ads';
 
 interface QuantomAdsPageProps {
   projectId: string | null;
@@ -28,17 +30,29 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   const { campaigns, loading, refetch } = useCampaigns(projectId);
   const { leads } = useLeads(projectId);
   const { content } = useContentFactory(projectId);
-  const { dailyData } = useProjectData(projectId);
+  const { dailyData, refetch: refetchProjectData } = useProjectData(projectId);
   const [refreshing, setRefreshing] = useState(false);
   const [autopilotEnabled, setAutopilotEnabled] = useState(false);
+  const [metaOnline, setMetaOnline] = useState<boolean | null>(null);
+  const [metaStatusMessage, setMetaStatusMessage] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
   });
+  const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId);
+
+  // Auto-refresh data every 60 seconds - DISABLED to prevent Rate Limits
+  useEffect(() => {
+    // Disabled auto-refresh as per user request to avoid Meta API 400 errors
+    return () => {};
+  }, []);
 
   // Load Autopilot Status
   useEffect(() => {
     if (!projectId) return;
+    // Temporary disable due to missing table
+    /*
     const fetchSettings = async () => {
       try {
         const { data, error } = await (supabase as any)
@@ -55,10 +69,24 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       }
     };
     fetchSettings();
+    */
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId) {
+      setMetaOnline(null);
+      return;
+    }
+    // Healthcheck disabled to prevent background API calls
+    setMetaOnline(true); 
+    setMetaStatusMessage(null);
   }, [projectId]);
 
   const toggleAutopilot = async (enabled: boolean) => {
     if (!projectId) return;
+    // Temporary disable due to missing table
+    toast.info('Функция ИИ-Автопилота временно недоступна (обновление системы)');
+    /*
     setAutopilotEnabled(enabled);
     try {
       const { error } = await (supabase as any)
@@ -72,12 +100,41 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       toast.error('Ошибка сохранения настроек');
       setAutopilotEnabled(!enabled);
     }
+    */
   };
+
+  // Derive campaigns from leads if they don't exist in the explicit campaigns list
+  const allCampaigns = useMemo(() => {
+    const existingNames = new Set(campaigns.map(c => c.name));
+    const derived: any[] = [];
+    
+    leads.forEach(lead => {
+      if (lead.utm_campaign && !existingNames.has(lead.utm_campaign)) {
+        existingNames.add(lead.utm_campaign);
+        derived.push({
+          id: `derived-${lead.utm_campaign}`,
+          project_id: projectId || '',
+          name: lead.utm_campaign,
+          platform: lead.utm_source?.includes('google') ? 'google' : lead.utm_source?.includes('tiktok') ? 'tiktok' : 'facebook',
+          status: true,
+          budget: 0,
+          spent_today: 0,
+          autopilot_enabled: false,
+          rules: {},
+          ai_log: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
+      }
+    });
+    
+    return [...campaigns, ...derived];
+  }, [campaigns, leads, projectId]);
 
   // Filter campaigns (Meta Only)
   const metaCampaigns = useMemo(() => {
-    return campaigns.filter(c => c.platform === 'facebook' || c.platform === 'instagram' || !c.platform);
-  }, [campaigns]);
+    return allCampaigns.filter(c => c.platform === 'facebook' || c.platform === 'instagram' || !c.platform);
+  }, [allCampaigns]);
 
   // Calculate leads per campaign based on utm_campaign matching
   const leadsPerCampaign = useMemo(() => {
@@ -103,21 +160,127 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
   // Summary calculations
   const summaryMetrics = useMemo(() => {
-    const totalSpent = metaCampaigns.reduce((sum, c) => sum + c.spent_today, 0);
-    const totalLeads = metaCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
-    const totalRevenue = metaCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const fromStr = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined;
+    const toStr = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
+
+    // Default to strict ranges
+    const fromDate = fromStr || '0000-01-01';
+    const toDate = toStr || '9999-12-31';
     
+    // 1. Calculate History Stats from Daily Data (Official Source)
+    // Exclude Today from daily data aggregation to use real-time logs for today
+    const dailyDataList = Object.values(dailyData);
+    const historyStats = dailyDataList.filter(d => d.date >= fromDate && d.date <= toDate && d.date !== todayStr);
+    
+    const historySpent = historyStats.reduce((sum, d) => sum + (d.spend || 0), 0);
+    const historyLeads = historyStats.reduce((sum, d) => sum + (d.leads || 0), 0);
+    
+    // 2. Calculate Today Stats (Real-time from Active Ads Manager / Performance Logs)
+    let todaySpent = 0;
+    let todayLeads = 0;
+    
+    // Only calculate today's stats if the date range includes today
+    if (fromDate <= todayStr && toDate >= todayStr) {
+       // Fallback to Performance Logs (Real-time Meta)
+       const todayLogs = performanceLogs.filter(log => 
+         log.date_start === todayStr && 
+         (log.entity_type === 'CAMPAIGN' || log.entity_type === 'campaign')
+       );
+
+       // Deduplicate by entity_id: take the record with MAX spend (assuming cumulative snapshots)
+       // This prevents double counting if multiple logs exist for the same campaign today
+       const uniqueTodayCampaigns = Object.values(
+         todayLogs.reduce((acc, log) => {
+           const currentSpend = Number(log.spend) || 0;
+           const existingSpend = acc[log.entity_id] ? (Number(acc[log.entity_id].spend) || 0) : -1;
+           
+           if (!acc[log.entity_id] || currentSpend > existingSpend) {
+             acc[log.entity_id] = log;
+           }
+           return acc;
+         }, {} as Record<string, typeof todayLogs[0]>)
+       );
+
+       // Convert USD spend to KZT if needed, assuming logs are in USD (Meta default)
+       // ActiveAdsManager uses KZT_RATE. We should do the same.
+       todaySpent = uniqueTodayCampaigns.reduce((sum, log) => sum + ((Number(log.spend) || 0) * KZT_RATE), 0);
+       todayLeads = uniqueTodayCampaigns.reduce((sum, log) => sum + (Number(log.leads) || 0), 0);
+    }
+
+    const totalSpent = historySpent + todaySpent;
+    
+    // Revenue from CRM (Attributed Only - for valid ROMI)
+    const crmLeadsInRange = leads.filter(lead => {
+      if (!lead.created_at) return false;
+      const d = format(new Date(lead.created_at), 'yyyy-MM-dd');
+      return d >= fromDate && d <= toDate;
+    });
+    
+    const attributedCrmLeads = crmLeadsInRange.filter(l => l.utm_campaign);
+    const rawMetaLeads = historyLeads + todayLeads;
+    
+    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads) to match Table/Funnel
+    const totalLeads = Math.max(rawMetaLeads, attributedCrmLeads.length);
+    
+    const totalRevenue = attributedCrmLeads
+      .filter(l => l.status === 'paid' && l.deal_amount)
+      .reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+
     return {
       totalSpent,
       totalLeads,
-      avgCPA: totalLeads > 0 ? totalSpent / totalLeads : 0,
-      overallROAS: totalSpent > 0 ? totalRevenue / totalSpent : 0,
+      avgCpl: totalLeads > 0 ? totalSpent / totalLeads : 0,
+      romi: totalSpent > 0 ? ((totalRevenue - totalSpent) / totalSpent) * 100 : 0,
     };
-  }, [metaCampaigns, leadsPerCampaign, revenuePerCampaign]);
+  }, [performanceLogs, leads, dailyData, dateRange]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    
+    // 1. Force Sync with Meta (Edge Function)
+    if (projectId) {
+      try {
+        const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+        const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : fromDate;
+
+        const { data: syncData, error: syncError } = await supabase.functions.invoke('ads-manager', {
+            body: { 
+                action: 'sync_metrics', 
+                payload: { 
+                    projectId,
+                    date_range: { since: fromDate, until: toDate }
+                } 
+            }
+        });
+
+        if (syncError) throw syncError;
+        if (syncData?.type === 'error') {
+             console.error('Meta Sync Error:', syncData.message);
+             if (syncData.message?.includes('(#80004)')) {
+                 toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
+             } else {
+                 toast.warning(`Ошибка синхронизации с Meta: ${syncData.message}`);
+             }
+        } else {
+            toast.success(`Данные Meta Ads обновлены (${fromDate} - ${toDate})`);
+        }
+      } catch (e: any) {
+        console.error('Sync failed', e);
+        // Don't block refresh if sync fails (e.g. rate limit)
+      }
+    }
+
+    // 2. Refresh local data (UI Update)
+    // Increment trigger to force ActiveAdsManager refresh
+    setRefreshTrigger(prev => prev + 1);
+    
+    await Promise.all([
+      refetch(),
+      refetchProjectData(),
+      refetchAds()
+    ]);
+    
     setRefreshing(false);
   };
 
@@ -129,12 +292,34 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     );
   }
 
-  const handleQuickDate = (days: number) => {
+  const handleQuickDate = (range: number | 'month') => {
     const today = new Date();
-    setDateRange({
-      from: days === 0 ? today : subDays(today, days),
-      to: today,
-    });
+    if (range === 0) {
+      // Today
+      setDateRange({
+        from: today,
+        to: today,
+      });
+    } else if (range === 1) {
+      // Yesterday ONLY (strict)
+      const yesterday = subDays(today, 1);
+      setDateRange({
+        from: yesterday,
+        to: yesterday,
+      });
+    } else if (range === 'month') {
+      // This Month
+      setDateRange({
+        from: startOfMonth(today),
+        to: today,
+      });
+    } else {
+      // Last N days (including today)
+      setDateRange({
+        from: subDays(today, (range as number) - 1),
+        to: today,
+      });
+    }
   };
 
   return (
@@ -160,6 +345,13 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                   Автопилот активен
                 </div>
              )}
+             <div 
+               title={metaStatusMessage || (metaOnline ? 'Connected to Meta Graph API' : 'Connection Lost')}
+               className={`flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider px-2 py-1 rounded-full border ${metaOnline === null ? 'text-muted-foreground border-border bg-muted/30' : metaOnline ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-red-500 border-red-500/20 bg-red-500/5'}`}
+             >
+               <div className={`w-3 h-3 rounded-full ${metaOnline ? 'bg-green-500' : metaOnline === false ? 'bg-red-500' : 'bg-muted'}`} />
+               Meta {metaOnline ? 'Online' : metaOnline === false ? 'Offline' : 'Checking'}
+             </div>
              <AIStatusIndicator />
           </div>
         </div>
@@ -200,11 +392,12 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </div>
 
               {/* Date & Refresh Controls */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50 dark:bg-card/50 rounded-lg border border-border">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50  rounded-lg border border-border">
                 <div className="flex items-center gap-2 flex-wrap">
                   <Button variant="outline" size="sm" onClick={() => handleQuickDate(0)} className="text-xs h-8">Сегодня</Button>
                   <Button variant="outline" size="sm" onClick={() => handleQuickDate(1)} className="text-xs h-8">Вчера</Button>
                   <Button variant="outline" size="sm" onClick={() => handleQuickDate(7)} className="text-xs h-8">7 дней</Button>
+                  <Button variant="outline" size="sm" onClick={() => handleQuickDate('month')} className="text-xs h-8">Этот месяц</Button>
                 </div>
 
                 <div className="flex items-center gap-2 flex-1">
@@ -233,15 +426,29 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
             <AdsSummaryCards
               totalSpent={summaryMetrics.totalSpent}
               totalLeads={summaryMetrics.totalLeads}
-              avgCPA={summaryMetrics.avgCPA}
-              overallROAS={summaryMetrics.overallROAS}
+              avgCpl={summaryMetrics.avgCpl}
+              romi={summaryMetrics.romi}
             />
 
-            {/* Campaign Funnel Chart */}
-            <CampaignFunnelChart campaigns={metaCampaigns} leads={leads} />
-
-            {/* Active Ads Manager (Live) */}
-            <ActiveAdsManager projectId={projectId} />
+            <div className="grid gap-6">
+              <ActiveAdsManager 
+                projectId={projectId} 
+                dateRange={{
+                  from: dateRange?.from ?? new Date(),
+                  to: dateRange?.to ?? dateRange?.from ?? new Date()
+                }}
+                refreshTrigger={refreshTrigger}
+              />
+              
+              <CampaignFunnelChart 
+                projectId={projectId} 
+                dateRange={dateRange}
+                campaigns={metaCampaigns}
+                leads={leads}
+                adPerformance={performanceLogs}
+                dailyData={dailyData}
+              />
+            </div>
           </div>
         </TabsContent>
 

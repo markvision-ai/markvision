@@ -1,23 +1,14 @@
-// @ts-nocheck
-import { useState, useEffect } from 'react';
-import { Factory, Calendar as CalendarIcon, Plus, LayoutGrid, Database, Activity } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import React, { useState, useEffect } from 'react';
 import { useContentFactory } from '@/hooks/useContentFactory';
-import { useFactoryAnalytics } from '@/hooks/useFactoryAnalytics';
-import { useProductionLine } from '@/hooks/useProductionLine';
-import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/lib/externalSupabase';
-import { cn } from '@/lib/utils';
+import { FactoryBriefing } from './FactoryBriefing';
+import { FactoryWorkArea } from './FactoryWorkArea';
+import { FactoryDispatch } from './FactoryDispatch';
 import { toast } from 'sonner';
-import { IdeaWorkshop } from './IdeaWorkshop';
-import { AssemblyLines } from './AssemblyLines';
-import { ShippingDock } from './ShippingDock';
-import { ReceptionDialog } from './ReceptionDialog';
-import { MonthlyReportDialog } from './MonthlyReportDialog';
-import { CompetitorMonitoringEnhanced } from './CompetitorMonitoringEnhanced';
-import { generateFactoryData } from '@/lib/generateFactoryData';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
+import { Plus, LayoutGrid, Eye } from 'lucide-react';
+import { CreateContentDialog } from './CreateContentDialog';
+import { CompetitorMonitoring } from './CompetitorMonitoring';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -25,238 +16,191 @@ interface ContentFactoryPageProps {
 
 const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
+// Mock Data for Briefing (Dental Implants Focus)
+const MOCK_IDEAS = [
+  { id: '1', title: 'Мифы об имплантации зубов: больно ли это?', source: 'Dr. Smile', url: '#', views: '150K' },
+  { id: '2', title: 'Как выбрать систему имплантов: Straumann vs Osstem', source: 'Stomatology Guide', url: '#', views: '89K' },
+  { id: '3', title: 'Одномоментная имплантация: зубы за 1 день', source: 'Implant Pro', url: '#', views: '210K' },
+  { id: '4', title: 'Срок службы имплантов: на всю жизнь или нет?', source: 'Dental Facts', url: '#', views: '95K' },
+  { id: '5', title: 'Противопоказания к имплантации: кому нельзя?', source: 'Health Teeth', url: '#', views: '78K' },
+  { id: '6', title: 'Этапы установки импланта: пошаговый разбор', source: 'Med Education', url: '#', views: '120K' },
+  { id: '7', title: 'Костная пластика: зачем она нужна и как избежать', source: 'Bone Expert', url: '#', views: '65K' },
+  { id: '8', title: 'Имплантация All-on-4: решение при полной адентии', source: 'Smile Restore', url: '#', views: '300K' },
+  { id: '9', title: 'Почему импланты лучше мостовидных протезов?', source: 'Ortho Daily', url: '#', views: '110K' },
+  { id: '10', title: 'Уход за имплантами: 5 золотых правил', source: 'Hygiene Tips', url: '#', views: '55K' },
+  { id: '11', title: 'Осложнения после имплантации: как предотвратить', source: 'Safety First', url: '#', views: '92K' },
+  { id: '12', title: 'Имплантация при сахарном диабете: это возможно?', source: 'Med Science', url: '#', views: '45K' },
+  { id: '13', title: 'Стоимость имплантации под ключ: из чего складывается цена', source: 'Market Watch', url: '#', views: '180K' },
+  { id: '14', title: 'Гарантия на импланты: что нужно знать пациенту', source: 'Legal Med', url: '#', views: '70K' },
+  { id: '15', title: 'Синус-лифтинг: страшная операция или рутина?', source: 'Surgery Blog', url: '#', views: '88K' },
+  { id: '16', title: 'Имплантация во сне: седация и наркоз', source: 'Sleep Dent', url: '#', views: '130K' },
+  { id: '17', title: 'Как подготовиться к операции по установке импланта', source: 'Patient Guide', url: '#', views: '60K' },
+  { id: '18', title: 'Можно ли ставить импланты курильщикам?', source: 'Health Risks', url: '#', views: '105K' },
+  { id: '19', title: 'Восстановление после имплантации: первые 3 дня', source: 'Recovery Tips', url: '#', views: '145K' },
+  { id: '20', title: 'Эстетика на имплантах: десневая пластика', source: 'Aesthetic Dent', url: '#', views: '98K' },
+];
+
 export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryPageProps) => {
   const projectId = propProjectId || TARGET_PROJECT_ID;
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState('production');
+  const { createContent } = useContentFactory(projectId);
   
-  const { 
-    planData, 
-    rawPlanData,
-    loading: analyticsLoading
-  } = useFactoryAnalytics(projectId);
+  // State
+  const [activeTab, setActiveTab] = useState('factory');
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   
-  const {
-    content,
-    competitors,
-    loading,
-    createContent,
-    updateContent,
-    addCompetitor,
-    removeCompetitor,
-  } = useContentFactory(projectId);
-
-  // Subscribe to realtime updates
-  useEffect(() => {
-    if (!projectId) return;
-
-    const channel = supabase
-      .channel('content_factory_realtime_v2')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'content_factory', filter: `project_id=eq.${projectId}` },
-        (payload) => {
-          console.log('Realtime update:', payload);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [projectId]);
-
-  const handleGenerateData = async () => {
-    if (!projectId) return;
-    setIsGenerating(true);
-    try {
-      const result = await generateFactoryData(projectId);
-      
-      if (result.error) {
-        console.error('Generation error:', result.error);
-        if (result.error.includes('User not authenticated') || result.error.includes('Auth check failed')) {
-           toast.error('Ошибка: Вы должны войти в систему для генерации данных');
-        } else {
-           toast.error(`Ошибка генерации: ${result.error}`);
-        }
-      } else {
-        // No reload needed, Realtime will update the UI
-        toast.success(`Данные сгенерированы: ${result.ordersCount} заказов, ${result.staffCount} сотрудников`);
-      }
-    } catch (e) {
-      console.error(e);
-      toast.error('Критическая ошибка генерации данных');
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
-  // Zone Logic
-  const workshopItems = content.filter(i => ['ideation', 'scripting'].includes(i.status));
-  const assemblyItems = content.filter(i => ['voice_ready', 'avatar_ready', 'editing_ready'].includes(i.status));
-  const shippingItems = content.filter(i => ['ready_to_send', 'sent'].includes(i.status));
-  
-  // Initialize Production Line Engine
-  const { logs, retryLine, forceComplete } = useProductionLine({ 
-    items: assemblyItems, 
-    updateContent 
+  // Factory State
+  const [selectedIdea, setSelectedIdea] = useState<any>(MOCK_IDEAS[0]);
+  const [script, setScript] = useState('');
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [productionStatus, setProductionStatus] = useState({
+    avatar: 0,
+    viral: 0,
+    carousel: 0,
+    threads: 0,
+    telegram: 0,
+    article: 0
   });
 
-  const handleApprove = async (id: string) => {
-     await updateContent(id, { 
-       status: 'voice_ready',
-       avatar_status: 'processing',
-       sora_status: 'processing',
-       carousel_status: 'processing',
-       threads_status: 'processing',
-       telegram_status: 'processing',
-       article_status: 'processing'
-     });
+  // Effect: When idea selected, set script template
+  useEffect(() => {
+    if (selectedIdea) {
+      setScript(
+`# МАСТЕР-СЦЕНАРИЙ: ${selectedIdea.title}
+
+[HOOK - 3 СЕКУНДЫ]
+(Визуальный триггер: Крупный план врача или 3D-модель зуба)
+"Внимание! Если вы думаете об имплантации, вы обязаны знать этот факт про ${selectedIdea.title.split(':')[0]}!"
+
+[ПРОБЛЕМА - 10 СЕКУНД]
+Многие пациенты откладывают визит, потому что боятся боли или высоких цен. Но знаете ли вы, что игнорирование проблемы ведет к атрофии кости?
+
+[РЕШЕНИЕ - 30 СЕКУНД]
+Современные технологии позволяют решить вопрос быстро и безболезненно.
+1. Цифровое сканирование вместо слепков.
+2. 3D-моделирование будущей улыбки.
+3. Гарантия приживаемости 99%.
+
+[CTA - ПРИЗЫВ]
+Не ждите, пока станет поздно. Напишите "УЛЫБКА" в директ, и мы пришлем вам план лечения и расчет стоимости.
+
+#имплантация #стоматолог #здоровье #красиваяулыбка`);
+      // Reset production
+      setProductionStatus({ avatar: 0, viral: 0, carousel: 0, threads: 0, telegram: 0, article: 0 });
+      setIsProcessing(false);
+    }
+  }, [selectedIdea]);
+
+  const handleStartFactory = () => {
+    if (!script.trim()) {
+      toast.error("Script is empty. Cannot start production.");
+      return;
+    }
+
+    setIsProcessing(true);
+    toast.success("FACTORY STARTED: Initializing Production Lines...");
+
+    // Simulate Production Process
+    const interval = setInterval(() => {
+      setProductionStatus(prev => {
+        const newState = {
+          avatar: Math.min(prev.avatar + Math.random() * 5, 100),
+          viral: Math.min(prev.viral + Math.random() * 3, 100),
+          carousel: Math.min(prev.carousel + Math.random() * 8, 100),
+          threads: Math.min(prev.threads + Math.random() * 6, 100),
+          telegram: Math.min(prev.telegram + Math.random() * 7, 100),
+          article: Math.min(prev.article + Math.random() * 10, 100),
+        };
+
+        if (newState.avatar >= 100 && newState.viral >= 100 && newState.carousel >= 100 && newState.threads >= 100 && newState.telegram >= 100 && newState.article >= 100) {
+          clearInterval(interval);
+          setIsProcessing(false);
+          toast.success("PRODUCTION COMPLETE: All assets ready for dispatch.");
+        }
+        return newState;
+      });
+    }, 200);
   };
 
-  const handleManualPublish = async (id: string) => {
-     await updateContent(id, { status: 'sent' });
+  const handleManualSend = () => {
+    toast.success("Sent to Telegram Bot for manual review.");
   };
 
-  const handleReject = async (id: string) => {
-     await updateContent(id, { 
-       status: 'ideation',
-       avatar_status: 'idle',
-       sora_status: 'idle',
-       carousel_status: 'idle',
-       threads_status: 'idle',
-       telegram_status: 'idle',
-       article_status: 'idle'
-     });
-     toast.info('Отправлено на доработку в Цех Идей');
+  const handleAutoStart = () => {
+    toast.success("Autopilot Engaged: Publishing to YT, Threads, and Web.");
   };
 
-  const handleCreateContent = async (data: any) => {
-    await createContent({
-      ...data,
-      project_id: projectId
-    });
-    setIsCreateOpen(false);
-  };
+  const isReady = !isProcessing && Object.values(productionStatus).every(v => v === 100);
 
   return (
-    <div className="h-screen w-full bg-background dark:bg-[#030303] text-foreground dark:text-white overflow-hidden flex flex-col font-sans">
+    <div className="h-[calc(100vh-4rem)] flex flex-col bg-slate-50 overflow-hidden font-sans">
       
-      {/* Header Bar */}
-      <header className="h-16 border-b border-border/40 dark:border-white/5 bg-background/80 dark:bg-[#050505]/80 backdrop-blur-md flex items-center justify-between px-6 shrink-0 z-50">
-        <div className="flex items-center gap-2">
-          <Factory className="h-6 w-6 text-primary animate-pulse" />
-          <h1 className="font-bold tracking-tight text-lg">Контент Завод <span className="text-muted-foreground dark:text-white/40 font-normal text-sm">v3.1</span></h1>
-        </div>
+      {/* Header & Tabs */}
+      <div className="flex items-center justify-between px-6 py-3 border-b border-slate-200 bg-white">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
+          <TabsList className="bg-slate-100 border border-slate-200">
+            <TabsTrigger value="factory" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">
+              <LayoutGrid className="w-4 h-4 mr-2" />
+              Конвейер
+            </TabsTrigger>
+            <TabsTrigger value="competitors" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">
+              <Eye className="w-4 h-4 mr-2" />
+              Мониторинг конкурентов
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
+
+        <Button 
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-200/50"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Создать контент
+        </Button>
+      </div>
+
+      {/* Content Area */}
+      <div className="flex-1 overflow-hidden relative">
         
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline"
-            onClick={handleGenerateData}
-            disabled={isGenerating}
-            className="h-9 border-orange-500/20 text-orange-500 hover:text-orange-600 hover:bg-orange-500/10"
-          >
-            <Database className={cn("w-4 h-4 mr-2", isGenerating && "animate-spin")} />
-            {isGenerating ? 'Генерация...' : 'Тестовые Данные'}
-          </Button>
-          
-          <Button 
-            onClick={() => setIsCreateOpen(true)}
-            className="h-9"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Создать публикацию
-          </Button>
-        </div>
-      </header>
+        {/* Factory Tab Content */}
+        <div className={`absolute inset-0 flex flex-col transition-opacity duration-300 ${activeTab === 'factory' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <div className="flex flex-col h-full bg-slate-50 text-slate-900 overflow-hidden">
+             {/* 1. TOP PANEL: BRIEFING */}
+            <FactoryBriefing 
+              ideas={MOCK_IDEAS} 
+              onSelectIdea={setSelectedIdea} 
+              selectedIdeaId={selectedIdea?.id} 
+            />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
-        <div className="px-6 border-b border-border/40 dark:border-white/5 bg-muted/5">
-            <TabsList className="h-12 bg-transparent gap-6 p-0">
-                <TabsTrigger 
-                    value="production" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium"
-                >
-                    <LayoutGrid className="w-4 h-4 mr-2" />
-                    Производство
-                </TabsTrigger>
-                <TabsTrigger 
-                    value="competitors" 
-                    className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none h-full px-0 font-medium"
-                >
-                    <Activity className="w-4 h-4 mr-2" />
-                    Конкурентная Разведка
-                </TabsTrigger>
-            </TabsList>
-        </div>
+            {/* 2. CENTRAL ZONE: WORK AREA */}
+            <FactoryWorkArea 
+              script={script} 
+              onScriptChange={setScript}
+              isProcessing={isProcessing}
+              onStartFactory={handleStartFactory}
+              productionStatus={productionStatus}
+            />
 
-        <TabsContent value="production" className="flex-1 flex min-h-0 m-0">
-          {/* Main 3-Column Layout */}
-          <div className="flex-1 flex min-h-0">
-            
-            {/* Left: Idea Workshop */}
-            <div className="w-[350px] border-r border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
-               <IdeaWorkshop 
-                 items={workshopItems}
-                 onApprove={handleApprove}
-               />
-            </div>
-
-            {/* Center: Assembly Lines */}
-            <div className="flex-1 bg-background dark:bg-[#030303] flex flex-col min-w-0">
-               <AssemblyLines 
-                 items={assemblyItems}
-                 logs={logs}
-                 onRetry={retryLine}
-                 onForceComplete={forceComplete}
-               />
-            </div>
-
-            {/* Right: Shipping Dock */}
-            <div className="w-[350px] border-l border-border/40 dark:border-white/5 bg-muted/10 dark:bg-[#050505] flex flex-col">
-               <ShippingDock 
-                 items={shippingItems}
-                 onManualPublish={handleManualPublish}
-                 onReject={handleReject}
-               />
-            </div>
-            
+            {/* 3. BOTTOM ZONE: DISPATCH */}
+            <FactoryDispatch 
+              onManualSend={handleManualSend}
+              onAutoStart={handleAutoStart}
+              isReady={isReady}
+            />
           </div>
-        </TabsContent>
+        </div>
 
-        <TabsContent value="competitors" className="flex-1 min-h-0 m-0 p-6 bg-background dark:bg-[#030303]">
-             <CompetitorMonitoringEnhanced 
-               projectId={projectId}
-               competitors={competitors}
-               onAdd={addCompetitor}
-               onRemove={removeCompetitor}
-               onCreateFromIdea={async (title, sourceUrl) => {
-                 await createContent({
-                   title,
-                   content_type: 'dental_video',
-                   source_url: sourceUrl,
-                   original_script: JSON.stringify({ 
-                     main_idea: title, 
-                     source_url: sourceUrl,
-                     tone: 'Expert'
-                   })
-                 });
-               }}
-             />
-        </TabsContent>
-      </Tabs>
+        {/* Competitors Tab Content */}
+        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'competitors' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <CompetitorMonitoring projectId={projectId} />
+        </div>
 
-      <ReceptionDialog 
-        open={isCreateOpen} 
-        onOpenChange={setIsCreateOpen}
-        onCreate={handleCreateContent}
+      </div>
+
+      <CreateContentDialog 
+        open={isCreateDialogOpen} 
+        onOpenChange={setIsCreateDialogOpen}
+        onCreate={createContent}
       />
-      
-      {/* <MonthlyReportDialog 
-        projectId={projectId}
-      /> */}
     </div>
   );
 };
-

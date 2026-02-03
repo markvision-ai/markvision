@@ -67,11 +67,12 @@ export const useProjects = () => {
     }
 
     // Cancel previous request
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    // We don't abort anymore to avoid console errors
+    // if (abortControllerRef.current) {
+    //   abortControllerRef.current.abort();
+    // }
+    // abortControllerRef.current = new AbortController();
+    // const signal = abortControllerRef.current.signal;
 
     // CRITICAL: Super admin bypass - set fallback immediately
     if (isSuperAdminUser) {
@@ -82,8 +83,8 @@ export const useProjects = () => {
         const { data: allProjects } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
-          .order('created_at', { ascending: false })
-          .abortSignal(signal);
+          .order('created_at', { ascending: false });
+          // .abortSignal(signal);
         
         if (allProjects && allProjects.length > 0) {
           // Merge with fallback - ensure fallback is always first
@@ -124,8 +125,8 @@ export const useProjects = () => {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
-          .order('created_at', { ascending: false })
-          .abortSignal(signal);
+          .order('created_at', { ascending: false });
+          // .abortSignal(signal);
         
         if (!allError && allProjects) {
           projectsData = allProjects;
@@ -135,16 +136,16 @@ export const useProjects = () => {
         const { data: accessData, error: accessError } = await supabase
           .from('project_access')
           .select('project_id')
-          .eq('user_id', user.id)
-          .abortSignal(signal);
+          .eq('user_id', user.id);
+          // .abortSignal(signal);
 
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
           const { data } = await supabase
             .from('projects')
             .select('id, name, telegram_chat_id, onboarding_status')
-            .in('id', projectIds)
-            .abortSignal(signal);
+            .in('id', projectIds);
+            // .abortSignal(signal);
 
           projectsData = data || [];
         }

@@ -227,7 +227,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
     <div className="space-y-6">
       {/* Platform Selector */}
       <Tabs value={platform} onValueChange={(v) => setPlatform(v as any)}>
-        <TabsList className="w-full justify-start bg-muted/50 dark:bg-muted/30">
+        <TabsList className="w-full justify-start bg-muted/50 ">
           <TabsTrigger value="facebook" className="gap-2">
             <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
             Facebook / Instagram
@@ -245,7 +245,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Media Uploader - Цех 1 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-border bg-background ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Upload className="w-4 h-4" />
@@ -266,7 +266,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
               onDrop={handleDrop}
             >
               <div className="flex flex-col items-center gap-3">
-                <div className="p-3 bg-muted dark:bg-muted/50 rounded-full">
+                <div className="p-3 bg-muted  rounded-full">
                   <Upload className="w-6 h-6 text-muted-foreground" />
                 </div>
                 <div>
@@ -307,7 +307,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                     {assets.map(asset => (
                       <div
                         key={asset.id}
-                        className={`relative group aspect-square bg-muted dark:bg-muted/50 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
+                        className={`relative group aspect-square bg-muted  rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
                           selectedAsset?.id === asset.id 
                             ? 'border-primary ring-2 ring-primary/20' 
                             : 'border-transparent hover:border-border'
@@ -366,7 +366,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         </Card>
 
         {/* AI Copywriter - Цех 2 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-border bg-background ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Wand2 className="w-4 h-4 text-primary" />
@@ -381,7 +381,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                 value={productDescription}
                 onChange={(e) => setProductDescription(e.target.value)}
                 rows={3}
-                className="bg-background dark:bg-muted/20 text-foreground border-border"
+                className="bg-background  text-foreground border-border"
               />
             </div>
 
@@ -400,7 +400,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
             {/* Generated Content */}
             {generatedContent && (
-              <ScrollArea className="h-[280px] border border-border rounded-lg p-4 bg-muted/10 dark:bg-muted/5">
+              <ScrollArea className="h-[280px] border border-border rounded-lg p-4 bg-muted/10 ">
                 <div className="space-y-4">
                   {/* Headlines */}
                   {generatedContent.headlines.length > 0 && (
@@ -413,7 +413,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                       {generatedContent.headlines.map((headline, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-border/50"
+                          className="flex items-center justify-between p-2 bg-background  rounded-lg group border border-border/50"
                         >
                           <span className="text-sm text-foreground">{headline}</span>
                           <button
@@ -440,7 +440,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                       {generatedContent.descriptions.map((desc, i) => (
                         <div
                           key={i}
-                          className="flex items-start justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-border/50"
+                          className="flex items-start justify-between p-2 bg-background  rounded-lg group border border-border/50"
                         >
                           <span className="text-sm text-foreground">{desc}</span>
                           <button
@@ -464,7 +464,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                       <h4 className="text-sm font-medium text-foreground">
                         <Badge variant="outline" className="text-xs border-border">Основной текст</Badge>
                       </h4>
-                      <div className="p-3 bg-background dark:bg-muted/20 rounded-lg group relative border border-border/50">
+                      <div className="p-3 bg-background  rounded-lg group relative border border-border/50">
                         <pre className="text-sm whitespace-pre-wrap font-sans text-foreground">
                           {generatedContent.primaryText}
                         </pre>
@@ -509,7 +509,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         </Card>
 
         {/* Live Preview - Цех 3 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-border bg-background ">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Smartphone className="w-4 h-4" />
@@ -572,7 +572,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                     </div>
                   </>
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-muted/20 dark:bg-muted/10">
+                  <div className="w-full h-full flex items-center justify-center bg-muted/20 ">
                     <div className="text-center p-4">
                       <Smartphone className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
                       <p className="text-xs text-muted-foreground">

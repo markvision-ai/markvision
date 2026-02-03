@@ -116,7 +116,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                 🔧 Решение:
               </p>
               <p className="text-xs text-muted-foreground">
-                Выполни SQL скрипт <code className="bg-red-100 dark:bg-red-900/30 px-1 rounded">CREATE-INSTAGRAM-TABLE.sql</code> в Supabase SQL Editor
+                Выполни SQL скрипт <code className="bg-red-100  px-1 rounded">CREATE-INSTAGRAM-TABLE.sql</code> в Supabase SQL Editor
               </p>
             </div>
           )}

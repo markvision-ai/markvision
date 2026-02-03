@@ -65,15 +65,28 @@ export const ReferralsList = ({ leadId, projectId }: ReferralsListProps) => {
     const fetchReferrals = async () => {
       setLoading(true);
       try {
-        const { data, error } = await supabase
+        const { data, error } = await (supabase as any)
           .from('referrals')
           .select('*')
-          .eq('referrer_lead_id', leadId)
+          .eq('referrer_id', leadId)
           .eq('project_id', projectId)
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setReferrals(data || []);
+        
+        // Map DB response to UI interface
+        const mappedReferrals: Referral[] = (data || []).map((item: any) => ({
+          id: item.id,
+          referee_name: item.friend_name || 'Неизвестно',
+          referee_phone: item.friend_phone || '',
+          certificate_value: item.certificate_amount || 0,
+          status: (item.status as any) || 'pending',
+          sent_at: item.created_at, // Fallback
+          converted_at: item.status === 'converted' ? item.created_at : null, // Fallback
+          created_at: item.created_at || new Date().toISOString()
+        }));
+        
+        setReferrals(mappedReferrals);
       } catch (error) {
         console.error('Error fetching referrals:', error);
       } finally {

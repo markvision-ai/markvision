@@ -131,7 +131,7 @@ export const KanbanColumn = ({
             >
               <LeadCard
                 lead={lead}
-                onClick={() => onLeadClick(lead)}
+                onClick={() => onLeadClick?.(lead)}
                 selectionMode={selectionMode}
                 isSelected={selectedLeads.has(lead.id)}
                 onSelect={(selected) => onSelectLead?.(lead.id, selected)}

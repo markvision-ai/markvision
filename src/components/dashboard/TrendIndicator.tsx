@@ -26,8 +26,8 @@ export const TrendIndicator = ({
     <div className={cn(
       "inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[10px] font-medium",
       isPositive 
-        ? "bg-success/10 text-success dark:bg-success/20" 
-        : "bg-destructive/10 text-destructive dark:bg-destructive/20",
+        ? "bg-success/10 text-success " 
+        : "bg-destructive/10 text-destructive ",
       className
     )}>
       {isPositive ? (

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAutomationRules, AutomationRule, AutomationLog } from '@/hooks/useAutomationRules';
@@ -62,17 +61,19 @@ const triggerTypeLabels: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
-  new: 'Новая',
+  new: 'Новый лид',
   in_progress: 'В работе',
-  no_answer: 'Недозвон',
+  no_answer: 'Без ответа',
   appointment: 'Записан',
-  paid: 'Оплачено',
+  invoiced: 'Счет выставлен',
+  paid: 'Оплачен',
   cancelled: 'Отказ'
 };
 
 export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
   const { rules, logs, loading, toggleRule, fetchLogs } = useAutomationRules(projectId);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [activeTab, setActiveTab] = useState('rules');
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleLoadLogs = async () => {
@@ -215,7 +216,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
+                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600  border border-green-500/30"
                 onClick={() => handleActivateTemplate('instant_whatsapp')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -246,7 +247,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30"
+                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600  border border-orange-500/30"
                 onClick={() => handleActivateTemplate('followup_24h')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -277,7 +278,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
+                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600  border border-purple-500/30"
                 onClick={() => handleActivateTemplate('ltv_control')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -414,7 +415,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(log.executed_at), 'dd.MM HH:mm', { locale: ru })}
+                          {format(new Date(log.executed_at), 'dd HH:mm', { locale: ru })}
                         </span>
                       </div>
                       

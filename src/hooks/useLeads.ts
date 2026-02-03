@@ -98,11 +98,12 @@ export function useLeads(projectId: string | null) {
     }
 
     // Cancel previous request if running
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    // We don't abort anymore to avoid console errors
+    // if (abortControllerRef.current) {
+    //   abortControllerRef.current.abort();
+    // }
+    // abortControllerRef.current = new AbortController();
+    // const signal = abortControllerRef.current.signal;
 
     setLoading(true);
 
@@ -111,8 +112,8 @@ export function useLeads(projectId: string | null) {
         .from('leads')
         .select(LEAD_FIELDS)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
-        .abortSignal(signal);
+        .order('created_at', { ascending: false });
+        // .abortSignal(signal);
 
       // Apply filters
       if (filters.status) query = query.eq('status', filters.status);

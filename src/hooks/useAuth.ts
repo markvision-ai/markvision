@@ -159,7 +159,9 @@ export const useAuth = () => {
       const isAdminRole = role === 'admin' || role === 'super_admin';
       const isSuperAdminRole = role === 'super_admin';
       
-      console.log('🔐 Role check:', role || 'USER');
+      if (import.meta.env.DEV) {
+        console.log('🔐 Role check:', role || 'USER');
+      }
       
       setAuthState(prev => ({
         ...prev,

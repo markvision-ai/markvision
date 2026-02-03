@@ -69,7 +69,7 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: conv.fromColor }}
                       />
-                      <span className="text-sm font-semibold text-foreground/80 dark:text-foreground/90 truncate">{conv.from}</span>
+                      <span className="text-sm font-semibold text-foreground/80  truncate">{conv.from}</span>
                     </div>
                     <p className="text-base font-bold text-foreground leading-relaxed">
                       {new Intl.NumberFormat('ru-RU').format(conv.fromValue)}
@@ -96,7 +96,7 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
                   {/* To */}
                   <div className="flex-1 text-right min-w-0">
                     <div className="flex items-center gap-1.5 justify-end mb-0.5">
-                      <span className="text-sm font-semibold text-foreground/80 dark:text-foreground/90 truncate">{conv.to}</span>
+                      <span className="text-sm font-semibold text-foreground/80  truncate">{conv.to}</span>
                       <div 
                         className="w-2 h-2 rounded-full flex-shrink-0"
                         style={{ backgroundColor: conv.toColor }}

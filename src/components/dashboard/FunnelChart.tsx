@@ -29,11 +29,11 @@ export const FunnelChart = ({ steps }: FunnelChartProps) => {
           return (
             <div key={step.label} className="relative">
               <div className="flex items-center justify-between mb-1.5">
-                <span className="text-base font-semibold text-foreground/90 dark:text-foreground/95">{step.label}</span>
+                <span className="text-base font-semibold text-foreground/90 ">{step.label}</span>
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-semibold text-foreground">{formatNumber(step.value)}</span>
                   {conversionFromPrev && (
-                    <span className="text-sm font-semibold text-foreground/80 dark:text-foreground/90 bg-muted/50 px-2 py-0.5 rounded-full">
+                    <span className="text-sm font-semibold text-foreground/80  bg-muted/50 px-2 py-0.5 rounded-full">
                       {conversionFromPrev}%
                     </span>
                   )}

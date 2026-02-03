@@ -14,7 +14,7 @@ export const AIStatusIndicator = () => {
 
   useEffect(() => {
     if (!user) {
-      setStatus('offline');
+      setStatus('idle');
       return;
     }
 
@@ -68,10 +68,11 @@ export const AIStatusIndicator = () => {
         }
 
       } catch (err) {
-        // Silent error handling: switch to offline status without console spam
-        setStatus('offline');
-        // Optional: store error for debug but don't show to user unless critical
-        // console.error('AI Status check suppressed error:', err); 
+        if (typeof navigator !== 'undefined' && !navigator.onLine) {
+          setStatus('offline');
+        } else {
+          setStatus('idle');
+        }
       }
     };
 

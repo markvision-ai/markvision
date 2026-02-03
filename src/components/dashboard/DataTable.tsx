@@ -368,15 +368,15 @@ export const DataTable = React.memo(({
           <table className="w-full text-xs md:text-sm border-collapse">
             <thead className="sticky top-0 z-50 shadow-md bg-background">
               <tr className="border-b bg-secondary/95 backdrop-blur-sm">
-                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 sticky left-0 bg-secondary/95 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Диагностики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[120px]">Выручка</th>
+                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90  sticky left-0 bg-secondary/95 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Диагностики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
@@ -432,7 +432,7 @@ export const DataTable = React.memo(({
               {/* Percentage Row - third */}
               {effectivePlanData && (
                 <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
-                  <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
+                  <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80  text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
@@ -442,10 +442,10 @@ export const DataTable = React.memo(({
                     let colorClass = '';
                     if (field === 'spend') {
                       // For spend, <= 100% is good
-                      colorClass = percent <= 100 ? 'text-emerald-600 dark:text-emerald-400' : percent <= 120 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500/80 dark:text-red-400/80';
+                      colorClass = percent <= 100 ? 'text-emerald-600  : percent <= 120 ? 'text-yellow-600  : 'text-red-500/80 
                     } else {
                       // For other metrics, >= 100% is good
-                      colorClass = percent >= 100 ? 'text-emerald-600 dark:text-emerald-400' : percent >= 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500/80 dark:text-red-400/80';
+                      colorClass = percent >= 100 ? 'text-emerald-600  : percent >= 80 ? 'text-yellow-600  : 'text-red-500/80 
                     }
                     return (
                       <td key={field} className={`p-2 md:p-4 text-right font-medium ${colorClass}`}>
@@ -483,7 +483,7 @@ export const DataTable = React.memo(({
                           "font-medium",
                           isToday && "text-primary"
                         )}>
-                          {format(day, 'dd.MM')}
+                          {format(day, 'dd')}
                         </span>
                         <span className="text-[10px] text-muted-foreground uppercase">
                           {WEEKDAYS[weekDay]}
@@ -555,7 +555,7 @@ export const DataTable = React.memo(({
                     </td>
                     <td className={cn(
                       "p-2 md:p-3 text-right font-medium",
-                      isRevenueAboveAverage ? "text-emerald-600 dark:text-emerald-400" : ""
+                      isRevenueAboveAverage ? "text-emerald-600 " : ""
                     )}>
                       {onDataChange ? (
                         <EditableCell

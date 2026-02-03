@@ -247,7 +247,7 @@ async function syncFacebookAds(
     const insightsRes = await fetch(
       `https://graph.facebook.com/v21.0/${account.id}/insights?` +
       `access_token=${accessToken}&` +
-      `fields=campaign_id,campaign_name,spend,clicks,impressions,reach,cpm,cpc,ctr,actions,action_values,purchase_ros&` +
+      `fields=campaign_id,campaign_name,spend,clicks,impressions,reach,cpm,cpc,ctr,actions,action_values&` +
       `level=campaign&` +
       `time_range=${JSON.stringify(dateRange)}&` +
       `time_increment=1`

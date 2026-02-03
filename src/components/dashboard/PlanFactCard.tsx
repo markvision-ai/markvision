@@ -96,8 +96,8 @@ export const PlanFactCard = ({
               className={cn(
                 "text-[10px] font-semibold px-1.5 py-0 h-5",
                 isOnTrack 
-                  ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
-                  : "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                  ? "bg-emerald-500/10 text-emerald-600  border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600  border-amber-500/20"
               )}
               variant="outline"
             >

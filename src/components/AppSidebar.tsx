@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import markvisionLogo from "@/assets/markvision-logo-new.png";
+import { MarkVisionLogo } from "@/components/ui/MarkVisionLogo";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -389,7 +389,7 @@ export const AppSidebar = ({
                   display: open ? "inline-block" : "none",
                   opacity: open ? 1 : 0,
                 }}
-                className="text-sm font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80"
+                className="text-sm font-medium text-sidebar-foreground/70 "
               >
                 {realtimeStatus === 'SUBSCRIBED' ? 'Подключено' : 
                  realtimeStatus === 'CONNECTING' ? 'Подключение...' : 'Офлайн'}
@@ -545,11 +545,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <img 
-          src={markvisionLogo} 
-          alt="MarkVision AI" 
-          className="h-9 w-9 object-contain"
-        />
+        <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
@@ -564,7 +560,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
-        <span className="text-xs font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80 leading-relaxed">
+        <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">
           Умный маркетинг
         </span>
       </div>
@@ -580,11 +576,7 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <img 
-          src={markvisionLogo} 
-          alt="MarkVision AI" 
-          className="h-9 w-9 object-contain"
-        />
+        <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",

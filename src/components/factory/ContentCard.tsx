@@ -54,43 +54,43 @@ const contentTypeConfig: Record<ContentType, { label: string; icon: React.ReactN
     label: 'Аватар видео', 
     icon: <Video className="w-4 h-4" />, 
     bg: 'bg-blue-500/10', 
-    text: 'text-blue-600 dark:text-blue-400',
-    border: 'border-blue-200 dark:border-blue-800/30'
+    text: 'text-blue-600',
+    border: 'border-blue-200'
   },
   ai_video: { 
     label: 'AI Видео', 
     icon: <Film className="w-4 h-4" />, 
     bg: 'bg-purple-500/10', 
-    text: 'text-purple-600 dark:text-purple-400',
-    border: 'border-purple-200 dark:border-purple-800/30'
+    text: 'text-purple-600',
+    border: 'border-purple-200'
   },
   static_post: { 
     label: 'Статичный пост', 
     icon: <Image className="w-4 h-4" />, 
     bg: 'bg-green-500/10', 
-    text: 'text-green-600 dark:text-green-400',
-    border: 'border-green-200 dark:border-green-800/30'
+    text: 'text-green-600',
+    border: 'border-green-200'
   },
   carousel: { 
     label: 'Карусель', 
     icon: <Image className="w-4 h-4" />, 
     bg: 'bg-orange-500/10', 
-    text: 'text-orange-600 dark:text-orange-400',
-    border: 'border-orange-200 dark:border-orange-800/30'
+    text: 'text-orange-600',
+    border: 'border-orange-200'
   },
   threads: { 
     label: 'Threads', 
     icon: <MessageSquare className="w-4 h-4" />, 
     bg: 'bg-pink-500/10', 
-    text: 'text-pink-600 dark:text-pink-400',
-    border: 'border-pink-200 dark:border-pink-800/30'
+    text: 'text-pink-600',
+    border: 'border-pink-200'
   },
   tg_text: { 
     label: 'Telegram', 
     icon: <Send className="w-4 h-4" />, 
     bg: 'bg-sky-500/10', 
-    text: 'text-sky-600 dark:text-sky-400',
-    border: 'border-sky-200 dark:border-sky-800/30'
+    text: 'text-sky-600',
+    border: 'border-sky-200'
   },
 };
 

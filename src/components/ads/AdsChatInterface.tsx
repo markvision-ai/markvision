@@ -80,8 +80,8 @@ interface AdsChatInterfaceProps {
     summary: {
       totalSpent: number;
       totalLeads: number;
-      avgCPA: number;
-      overallROAS: number;
+      avgCpl: number;
+      romi: number;
     };
   };
 }
@@ -376,7 +376,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
             context: {
               spent_today: contextData.summary.totalSpent,
               leads_today: contextData.summary.totalLeads,
-              roas: contextData.summary.overallROAS,
+              romi: contextData.summary.romi,
+              cpl: contextData.summary.avgCpl,
               content_count: contextData.contentItems.length
             }
           }
@@ -418,7 +419,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
   return (
     <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-background">
-      <div className="hidden dark:block">
+      <div className="hidden ">
         <BackgroundBeams className="absolute inset-0 z-0 opacity-30" />
       </div>
       

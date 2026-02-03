@@ -523,7 +523,7 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
         {isUser ? (
           <p className="whitespace-pre-wrap">{message.content}</p>
         ) : (
-          <div className="prose prose-sm dark:prose-invert max-w-none">
+          <div className="prose prose-sm  max-w-none">
             <ReactMarkdown>{message.content || ''}</ReactMarkdown>
           </div>
         )}

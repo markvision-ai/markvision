@@ -23,7 +23,9 @@ import {
   Activity,
   RefreshCw,
   Gift,
-  Users
+  Users,
+  Copy,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -214,10 +216,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
   const currentStatusStyle = statusStyles[formData.status] || statusStyles.new;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 z-50 bg-background flex flex-col"
+        className="fixed inset-0 z-[100] bg-background flex flex-col"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -424,6 +426,47 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   </div>
                 </motion.section>
 
+                {/* Duplicates Section */}
+                {(lead.extra_data as any)?.duplicates && ((lead.extra_data as any).duplicates as any[]).length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="crm-card-glass rounded-xl p-5 border-l-4 border-l-orange-500"
+                  >
+                    <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                        <Copy className="w-4 h-4 text-white" />
+                      </div>
+                      Найдены дубликаты
+                    </h2>
+                    <div className="space-y-3">
+                      {((lead.extra_data as any).duplicates as any[]).map((dup, idx) => (
+                        <div key={idx} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20 flex items-start gap-3">
+                           <div className="mt-1">
+                             <AlertCircle className="w-4 h-4 text-orange-500" />
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium">Попытка создания дубля</p>
+                             <p className="text-xs text-muted-foreground mt-1">
+                               {new Date(dup.attempted_at).toLocaleString('ru-RU')}
+                             </p>
+                             {dup.source && (
+                               <p className="text-xs text-muted-foreground mt-0.5">
+                                 Источник: {dup.source}
+                               </p>
+                             )}
+                              {dup.name && dup.name !== lead.name && (
+                               <p className="text-xs text-muted-foreground mt-0.5">
+                                 Имя: {dup.name}
+                               </p>
+                             )}
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.section>
+                )}
 
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
@@ -598,6 +641,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
           onSuccess={() => setRefreshReferrals(prev => prev + 1)}
         />
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

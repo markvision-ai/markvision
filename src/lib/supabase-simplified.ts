@@ -51,6 +51,16 @@ export const supabase = createClient<LightweightDatabase>(SUPABASE_URL, SUPABASE
       return fetch(url, {
         ...options,
         cache: 'no-store',
+      }).catch(err => {
+        // Silently ignore AbortError to prevent console noise
+        if (err.name === 'AbortError' || err.message === 'The user aborted a request.') {
+          return new Response(JSON.stringify({ message: 'AbortError: Request aborted' }), { 
+            status: 499, 
+            statusText: 'Request Aborted',
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+        throw err;
       });
     }
   }

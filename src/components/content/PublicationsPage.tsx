@@ -388,15 +388,15 @@ export const PublicationsPage = () => {
 
                         {/* Sales */}
                         <div className="flex flex-col items-center border-l border-border/50">
-                           <span className="text-sm font-semibold text-green-600 dark:text-green-400">{post.sales_count}</span>
-                           <span className="text-[10px] text-green-600/70 dark:text-green-400/70 uppercase tracking-tight">Прод.</span>
+                           <span className="text-sm font-semibold text-green-600 ">{post.sales_count}</span>
+                           <span className="text-[10px] text-green-600/70  uppercase tracking-tight">Прод.</span>
                         </div>
                       </div>
                     </div>
 
                     {/* Revenue */}
                     <div className="text-right relative z-10">
-                      <span className="text-sm font-bold text-green-600 dark:text-green-400">
+                      <span className="text-sm font-bold text-green-600 ">
                         {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
                       </span>
                     </div>

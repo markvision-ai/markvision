@@ -13,7 +13,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
       
       {/* Dot Pattern - адаптивный */}
       <div 
-        className="absolute inset-0 opacity-[0.15] dark:opacity-[0.15]"
+        className="absolute inset-0 opacity-[0.15] "
         style={{
           backgroundImage: `radial-gradient(circle, hsl(var(--muted-foreground) / 0.3) 1px, transparent 1px)`,
           backgroundSize: '24px 24px'
@@ -24,7 +24,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Blue Glow - Top Left */}
         <div 
-          className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 dark:opacity-20"
+          className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--primary) / 0.5) 0%, transparent 70%)',
             top: '-200px',
@@ -34,7 +34,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
         
         {/* Purple/Secondary Glow - Bottom Right */}
         <div 
-          className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 dark:opacity-20"
+          className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--secondary) / 0.5) 0%, transparent 70%)',
             bottom: '-200px',
@@ -44,7 +44,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
 
         {/* Accent Glow - Center */}
         <div 
-          className="absolute w-[400px] h-[400px] rounded-full blur-3xl opacity-10 dark:opacity-10"
+          className="absolute w-[400px] h-[400px] rounded-full blur-3xl opacity-10 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--accent) / 0.5) 0%, transparent 70%)',
             top: '50%',

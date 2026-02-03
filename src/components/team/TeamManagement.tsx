@@ -328,8 +328,8 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
               {createdCredentials ? (
                 <div className="space-y-4 py-4">
                   <div className="flex items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                      <CheckCircle className="w-8 h-8 text-green-600 dark:text-green-400" />
+                    <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center">
+                      <CheckCircle className="w-8 h-8 text-green-600" />
                     </div>
                   </div>
                   
@@ -369,7 +369,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                   </Alert>
                   
                   {createdCredentials.emailSent ? (
-                    <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400 justify-center">
+                    <div className="flex items-center gap-2 text-sm text-green-600 justify-center">
                       <Mail className="w-4 h-4" />
                       Данные отправлены на email сотрудника
                     </div>

@@ -28,15 +28,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  DollarSign, 
   Plus, 
-  TrendingUp, 
-  TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  Wallet,
-  PiggyBank,
-  Download,
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Wallet, 
+  Download, 
   RefreshCw,
   Calendar,
   Filter,
@@ -55,12 +51,9 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend,
-  Cell,
-  PieChart,
-  Pie
+  Legend
 } from 'recharts';
-import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWithinInterval, parseISO } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
@@ -71,11 +64,11 @@ interface Transaction {
   type: string;
   category: string;
   amount: number;
-  currency: string;
-  description: string;
-  transaction_date: string;
+  currency: string | null;
+  description: string | null;
+  transaction_date: string | null;
   created_at: string;
-  lead_id?: string;
+  lead_id?: string | null;
 }
 
 interface FinanceDashboardProps {
@@ -185,7 +178,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .order('transaction_date', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data || []);
+      setTransactions((data as Transaction[]) || []);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching transactions:', error);
@@ -281,6 +274,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
     
     filteredTransactions.forEach(t => {
+      if (!t.transaction_date) return;
       const date = parseISO(t.transaction_date);
       const monthKey = format(date, 'yyyy-MM');
       const monthLabel = format(date, 'MMM', { locale: ru });
@@ -370,7 +364,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             variant="outline" 
             onClick={handleSyncAds} 
             disabled={syncing}
-            className="border-violet-500/50 text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/20"
+            className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
           >
             {syncing ? (
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />

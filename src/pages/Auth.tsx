@@ -425,13 +425,13 @@ export default function Auth() {
 
             {/* Mode Switcher */}
             {mode !== 'forgot-password' && (
-              <div className="flex gap-2 mb-6 p-1 bg-muted/50 dark:bg-muted/30 rounded-xl">
+              <div className="flex gap-2 mb-6 p-1 bg-muted/50  rounded-xl">
                 <button
                   type="button"
                   onClick={() => setMode('login')}
                   className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                     mode === 'login'
-                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      ? 'bg-background  text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -442,7 +442,7 @@ export default function Auth() {
                   onClick={() => setMode('signup')}
                   className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                     mode === 'signup'
-                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      ? 'bg-background  text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >

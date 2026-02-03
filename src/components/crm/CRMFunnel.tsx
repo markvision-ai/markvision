@@ -22,34 +22,62 @@ interface FunnelStep {
 
 export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
   const funnelData = useMemo(() => {
-    const newCount = leads.filter(l => l.status === 'new' || !l.status).length;
-    const diagnosticCount = leads.filter(l => l.status === 'in_progress' || l.status === 'diagnostics_completed').length;
-    const appointmentCount = leads.filter(l => l.status === 'appointment').length;
-    const paidLeads = leads.filter(l => l.status === 'paid');
-    const paidCount = paidLeads.length;
-    const totalAmount = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-    
-    // Замороженные деньги: сумма всех чеков лидов в каждом этапе
-    const newLeads = leads.filter(l => l.status === 'new' || !l.status);
-    const diagnosticLeads = leads.filter(l => l.status === 'in_progress' || l.status === 'diagnostics_completed');
-    const appointmentLeads = leads.filter(l => l.status === 'appointment');
-    
-    const frozenNew = newLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-    const frozenDiagnostic = diagnosticLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-    const frozenAppointment = appointmentLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-
     const steps: FunnelStep[] = [
-      { id: 'new', label: 'Новые лиды', count: leads.length, amount: frozenNew, gradient: 'from-blue-500 to-cyan-500', icon: Users },
-      { id: 'diagnostic', label: 'Прошли диагностику', count: diagnosticCount + appointmentCount + paidCount, amount: frozenDiagnostic, gradient: 'from-orange-500 to-amber-500', icon: Target },
-      { id: 'appointment', label: 'Записаны', count: appointmentCount + paidCount, amount: frozenAppointment, gradient: 'from-purple-500 to-pink-500', icon: Calendar },
-      { id: 'paid', label: 'Оплачено', count: paidCount, amount: totalAmount, gradient: 'from-emerald-500 to-green-500', icon: DollarSign },
+      { 
+        id: 'new', 
+        label: 'Все лиды', 
+        count: leads.filter(l => l.status !== 'Отказ').length, 
+        amount: leads.filter(l => l.status !== 'Отказ').reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-gray-500 to-slate-500', 
+        icon: Users 
+      },
+      { 
+        id: 'no_answer', 
+        label: 'Без ответа', 
+        count: leads.filter(l => ['Без ответа', 'В работе', 'Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).length,
+        amount: leads.filter(l => ['Без ответа', 'В работе', 'Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-blue-500 to-cyan-500', 
+        icon: Users 
+      },
+      { 
+        id: 'in_progress', 
+        label: 'В работе', 
+        count: leads.filter(l => ['В работе', 'Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).length,
+        amount: leads.filter(l => ['В работе', 'Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-indigo-500 to-blue-500', 
+        icon: Sparkles 
+      },
+      { 
+        id: 'invoiced', 
+        label: 'Счета', 
+        count: leads.filter(l => ['Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).length,
+        amount: leads.filter(l => ['Счет выставлен', 'Записан', 'Оплачен'].includes(l.status || '')).reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-violet-500 to-purple-500', 
+        icon: Target 
+      },
+      { 
+        id: 'appointment', 
+        label: 'Записаны', 
+        count: leads.filter(l => ['Записан', 'Оплачен'].includes(l.status || '')).length,
+        amount: leads.filter(l => ['Записан', 'Оплачен'].includes(l.status || '')).reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-fuchsia-500 to-pink-500', 
+        icon: Calendar 
+      },
+      { 
+        id: 'paid', 
+        label: 'Оплачено', 
+        count: leads.filter(l => l.status === 'Оплачен').length, 
+        amount: leads.filter(l => l.status === 'Оплачен').reduce((sum, l) => sum + (l.deal_amount || 0), 0),
+        gradient: 'from-emerald-500 to-green-500', 
+        icon: DollarSign 
+      },
     ];
 
     return steps;
   }, [leads]);
 
   const stats = useMemo(() => {
-    const paidLeads = leads.filter(l => l.status === 'paid');
+    const paidLeads = leads.filter(l => l.status === 'Оплачен');
     const totalRevenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
     const avgCheck = paidLeads.length > 0 ? totalRevenue / paidLeads.length : 0;
     const conversionRate = leads.length > 0 ? (paidLeads.length / leads.length) * 100 : 0;
@@ -156,14 +184,14 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                               {conversionFromPrev}%
                             </span>
                             {/* Процент потерь (обратный конверсии) */}
-                            <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-medium">
+                            <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600  font-medium">
                               Потеря: {(100 - parseFloat(conversionFromPrev)).toFixed(1)}%
                             </span>
                           </>
                         )}
                         {/* Замороженные деньги */}
                         {step.amount > 0 && (
-                          <span className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                          <span className="font-bold text-amber-600  bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                             💰 {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
                           </span>
                         )}

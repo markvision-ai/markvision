@@ -619,30 +619,39 @@ export type Database = {
       competitor_monitoring: {
         Row: {
           account_handle: string
+          avatar_url: string | null
           created_at: string
+          handle: string | null
           id: string
           is_active: boolean | null
           last_scanned_at: string | null
           platform: string
           project_id: string
+          top_content_links: Json | null
         }
         Insert: {
-          account_handle: string
+          account_handle?: string
+          avatar_url?: string | null
           created_at?: string
+          handle?: string | null
           id?: string
           is_active?: boolean | null
           last_scanned_at?: string | null
           platform?: string
           project_id: string
+          top_content_links?: Json | null
         }
         Update: {
           account_handle?: string
+          avatar_url?: string | null
           created_at?: string
+          handle?: string | null
           id?: string
           is_active?: boolean | null
           last_scanned_at?: string | null
           platform?: string
           project_id?: string
+          top_content_links?: Json | null
         }
         Relationships: [
           {

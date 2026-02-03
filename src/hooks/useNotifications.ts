@@ -60,7 +60,7 @@ export const useNotifications = (projectId?: string) => {
       const twoWeeksAgo = new Date(today);
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-      // Fetch projects
+      // Fetch projects first (needed for everything else)
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select('id, name')
@@ -69,30 +69,74 @@ export const useNotifications = (projectId?: string) => {
       if (projectsError) throw projectsError;
 
       if (!projects || projects.length === 0) {
-        setNotifications([]);
-        setLoading(false);
+        if (!signal.aborted) {
+          setNotifications([]);
+          setLoading(false);
+        }
         return;
       }
 
-      // Fetch current week data
-      const { data: currentWeekData, error: currentError } = await supabase
-        .from('daily_data')
-        .select('*')
-        .gte('date', weekAgo.toISOString().split('T')[0])
-        .lte('date', today.toISOString().split('T')[0])
-        .abortSignal(signal);
+      const todayStr = today.toISOString().split('T')[0];
+      const weekAgoStr = weekAgo.toISOString().split('T')[0];
+      const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
+      const weekAgoIso = weekAgo.toISOString();
 
-      if (currentError) throw currentError;
+      // Parallel Fetching for performance and to reduce "hanging" requests
+      const [
+        currentWeekResult,
+        prevWeekResult,
+        leadsResult,
+        webhooksResult,
+        recentDataResult
+      ] = await Promise.allSettled([
+        // 1. Current Week Data
+        supabase
+          .from('daily_data')
+          .select('*')
+          .gte('date', weekAgoStr)
+          .lte('date', todayStr)
+          .abortSignal(signal),
+        
+        // 2. Previous Week Data
+        supabase
+          .from('daily_data')
+          .select('*')
+          .gte('date', twoWeeksAgoStr)
+          .lt('date', weekAgoStr)
+          .abortSignal(signal),
 
-      // Fetch previous week data for comparison
-      const { data: prevWeekData, error: prevError } = await supabase
-        .from('daily_data')
-        .select('*')
-        .gte('date', twoWeeksAgo.toISOString().split('T')[0])
-        .lt('date', weekAgo.toISOString().split('T')[0])
-        .abortSignal(signal);
+        // 3. New Leads Today (Count only)
+        supabase
+          .from('leads')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', todayStr)
+          .abortSignal(signal),
 
-      if (prevError) throw prevError;
+        // 4. Webhook Errors (Count only)
+        supabase
+          .from('webhook_logs')
+          .select('*', { count: 'exact', head: true })
+          .eq('status', 'error')
+          .gte('received_at', weekAgoIso)
+          .abortSignal(signal),
+
+        // 5. Recent Data Gaps
+        supabase
+          .from('daily_data')
+          .select('project_id')
+          .in('date', Array.from({ length: 3 }, (_, i) => {
+             const d = new Date(today);
+             d.setDate(d.getDate() - i - 1);
+             return d.toISOString().split('T')[0];
+           }))
+          .abortSignal(signal)
+      ]);
+
+      // Process Results
+      const currentWeekData = currentWeekResult.status === 'fulfilled' ? currentWeekResult.value.data : [];
+      const prevWeekData = prevWeekResult.status === 'fulfilled' ? prevWeekResult.value.data : [];
+      
+      // ... Processing Logic ...
 
       // Aggregate by project
       const currentByProject = new Map<string, { leads: number; sales: number; spend: number; revenue: number }>();
@@ -220,59 +264,39 @@ export const useNotifications = (projectId?: string) => {
         }
       }
 
-      // Check for new leads today
-      const todayStr = today.toISOString().split('T')[0];
-      const { data: todayLeads, count } = await supabase
-        .from('leads')
-        .select('*', { count: 'exact', head: true })
-        .gte('created_at', todayStr)
-        .abortSignal(signal);
-
-      if (count && count > 0) {
-        newNotifications.push({
-          id: `new-leads-today`,
-          type: 'info',
-          title: 'Новые заявки',
-          message: `Сегодня поступило ${count} ${count === 1 ? 'заявка' : count < 5 ? 'заявки' : 'заявок'}`,
-          createdAt: new Date(),
-          read: false,
-        });
+      // Check for new leads today (Processed from Promise.all)
+      if (leadsResult.status === 'fulfilled') {
+        const { count } = leadsResult.value;
+        if (count && count > 0) {
+          newNotifications.push({
+            id: `new-leads-today`,
+            type: 'info',
+            title: 'Новые заявки',
+            message: `Сегодня поступило ${count} ${count === 1 ? 'заявка' : count < 5 ? 'заявки' : 'заявок'}`,
+            createdAt: new Date(),
+            read: false,
+          });
+        }
       }
 
-      // Check for system errors - webhook failures
-      const { data: failedWebhooks, count: failedCount } = await supabase
-        .from('webhook_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('status', 'error')
-        .gte('received_at', weekAgo.toISOString())
-        .abortSignal(signal);
-
-      if (failedCount && failedCount > 0) {
-        newNotifications.push({
-          id: `webhook-errors`,
-          type: 'error',
-          title: 'Ошибки вебхуков',
-          message: `${failedCount} ${failedCount === 1 ? 'ошибка' : failedCount < 5 ? 'ошибки' : 'ошибок'} при приёме данных за неделю`,
-          createdAt: new Date(),
-          read: false,
-        });
+      // Check for system errors - webhook failures (Processed from Promise.all)
+      if (webhooksResult.status === 'fulfilled') {
+        const { count: failedCount } = webhooksResult.value;
+        if (failedCount && failedCount > 0) {
+          newNotifications.push({
+            id: `webhook-errors`,
+            type: 'error',
+            title: 'Ошибки вебхуков',
+            message: `${failedCount} ${failedCount === 1 ? 'ошибка' : failedCount < 5 ? 'ошибки' : 'ошибок'} при приёме данных за неделю`,
+            createdAt: new Date(),
+            read: false,
+          });
+        }
       }
 
-      // Check for data gaps - no data for 3+ consecutive days
-      const lastThreeDays = Array.from({ length: 3 }, (_, i) => {
-        const d = new Date(today);
-        d.setDate(d.getDate() - i - 1);
-        return d.toISOString().split('T')[0];
-      });
-
-      // Fetch data availability for all projects in one query
-      const { data: recentData, error: recentDataError } = await supabase
-        .from('daily_data')
-        .select('project_id')
-        .in('date', lastThreeDays)
-        .abortSignal(signal);
-        
-      if (!recentDataError && recentData) {
+      // Check for data gaps - no data for 3+ consecutive days (Processed from Promise.all)
+      if (recentDataResult.status === 'fulfilled' && recentDataResult.value.data) {
+        const recentData = recentDataResult.value.data;
         // Create a set of project IDs that have data in the last 3 days
         const projectIdsWithData = new Set(recentData.map(d => d.project_id));
 
@@ -317,14 +341,17 @@ export const useNotifications = (projectId?: string) => {
 
       setNotifications(newNotifications);
     } catch (error: any) {
+      // Check for abort/network errors or empty messages to prevent console noise
       if (
+        !error ||
         error.name === 'AbortError' || 
         error.message?.includes('AbortError') || 
         error.message?.includes('aborted') ||
         error.message?.includes('Failed to fetch') ||
-        error.message?.includes('NetworkError')
+        error.message?.includes('NetworkError') ||
+        // Suppress empty message errors often caused by cancellations
+        (typeof error === 'object' && (!error.message || error.message.trim() === ''))
       ) {
-        // Ignore abort and network errors to prevent console noise
         return;
       }
       console.error('Error generating notifications:', error);
@@ -348,12 +375,21 @@ export const useNotifications = (projectId?: string) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      // Fetch system notifications
+      const client: any = supabase;
+      const { data, error } = await client
         .from('system_notifications')
         .select('*')
         .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
+
+      // Update is_read status if needed
+      await client
+        .from('system_notifications')
+        .update({ is_read: true }) 
+        .eq('user_id', user.id)
+        .eq('is_read', false);
 
       // Handle errors gracefully - if table doesn't exist, empty, or access denied, use empty array (not error)
       if (error) {
@@ -459,9 +495,11 @@ export const useNotifications = (projectId?: string) => {
 
     // Update in database
     try {
-      await supabase
+      // Cast supabase client to any to avoid deep type instantiation error
+      const client: any = supabase;
+      await client
         .from('system_notifications')
-        .update({ is_read: true } as any)
+        .update({ is_read: true })
         .eq('user_id', user.id)
         .eq('is_read', false);
     } catch (error) {

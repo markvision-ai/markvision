@@ -41,6 +41,7 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         categories: ["business", "productivity", "medical"],
         icons: [
+          { src: "/logo-vector-blue.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
           { src: "/pwa-icons/icon-72x72.png", sizes: "72x72", type: "image/png", purpose: "maskable any" },
           { src: "/pwa-icons/icon-96x96.png", sizes: "96x96", type: "image/png", purpose: "maskable any" },
           { src: "/pwa-icons/icon-128x128.png", sizes: "128x128", type: "image/png", purpose: "maskable any" },

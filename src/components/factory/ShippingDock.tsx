@@ -19,9 +19,9 @@ export const ShippingDock = ({ items, onManualPublish, onReject }: ShippingDockP
   const manualQueue = readyItems.filter(i => manualTypes.some(t => i.content_type?.toLowerCase().includes(t)));
 
   return (
-    <div className="h-full flex flex-col bg-muted/10 dark:bg-background border-l border-border/40 dark:border-white/5">
-       {/* Header */}
-       <div className="p-4 border-b border-border/40 dark:border-white/5 bg-background/50 backdrop-blur-sm">
+    <div className="h-full flex flex-col bg-muted/10 border-l border-border/40">
+      {/* Header */}
+       <div className="p-4 border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
@@ -86,8 +86,8 @@ export const ShippingDock = ({ items, onManualPublish, onReject }: ShippingDockP
                             <Button 
                                 size="sm" 
                                 variant="outline"
-                                className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 border-red-200 dark:border-red-900/30"
-                                onClick={() => onReject(item.id)}
+                                className="h-8 text-xs text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                              onClick={() => onReject(item.id)}
                             >
                                 Переделать
                             </Button>

@@ -3,15 +3,15 @@ import { DollarSign, Users, Target, TrendingUp } from 'lucide-react';
 interface AdsSummaryCardsProps {
   totalSpent: number;
   totalLeads: number;
-  avgCPA: number;
-  overallROAS: number;
+  avgCpl: number;
+  romi: number;
 }
 
 export const AdsSummaryCards = ({ 
   totalSpent, 
   totalLeads, 
-  avgCPA, 
-  overallROAS 
+  avgCpl, 
+  romi 
 }: AdsSummaryCardsProps) => {
   const formatCurrency = (value: number) => {
     if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн ₸`;
@@ -20,7 +20,7 @@ export const AdsSummaryCards = ({
 
   const cards = [
     {
-      title: 'Total Spent',
+      title: 'Общий расход',
       value: formatCurrency(totalSpent),
       icon: DollarSign,
       color: 'text-rose-400',
@@ -28,7 +28,7 @@ export const AdsSummaryCards = ({
       borderColor: 'border-rose-500/20',
     },
     {
-      title: 'Total Leads',
+      title: 'Лиды все',
       value: totalLeads.toString(),
       icon: Users,
       color: 'text-blue-400',
@@ -36,16 +36,16 @@ export const AdsSummaryCards = ({
       borderColor: 'border-blue-500/20',
     },
     {
-      title: 'Avg. CPA',
-      value: formatCurrency(avgCPA),
+      title: 'Стоимость лида все',
+      value: formatCurrency(avgCpl),
       icon: Target,
       color: 'text-amber-400',
       bgColor: 'bg-amber-500/10',
       borderColor: 'border-amber-500/20',
     },
     {
-      title: 'Overall ROAS',
-      value: overallROAS.toFixed(2) + 'x',
+      title: 'ROMI общий',
+      value: romi.toFixed(0) + '%',
       icon: TrendingUp,
       color: 'text-emerald-400',
       bgColor: 'bg-emerald-500/10',
@@ -58,7 +58,7 @@ export const AdsSummaryCards = ({
       {cards.map((card) => (
         <div
           key={card.title}
-          className="relative overflow-hidden rounded-xl bg-background dark:bg-card border border-border p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
+          className="relative overflow-hidden rounded-xl bg-background  border border-border p-3 sm:p-4 shadow-sm hover:shadow-md hover:border-primary/20 transition-all"
         >
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">

@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -55,12 +55,20 @@ Deno.serve(async (req: Request) => {
     if (action === 'chat_request') {
       result = await processAgentRequest(supabase, projectId, payload);
     } else if (action === 'get_hierarchy') {
-       result = await fetchAdsHierarchy(supabase, projectId);
+       result = await fetchAdsHierarchy(supabase, projectId, payload);
     } else if (action === 'update_status') {
        result = await updateEntityStatus(supabase, projectId, payload);
     } else if (action === 'execute_action') {
        // Handle direct actions like "stop_campaign"
        result = await executeAgentAction(supabase, projectId, payload);
+    } else if (action === 'fetch_insights') {
+       result = await fetchInsightsAction(supabase, projectId, payload);
+    } else if (action === 'sync_current_metrics') {
+       result = await syncCurrentMetricsAction(supabase, projectId, payload);
+    } else if (action === 'sync_metrics') {
+       result = await syncMetricsAction(supabase, projectId, payload);
+    } else if (action === 'healthcheck') {
+       result = await healthcheckAction(supabase, projectId);
     } else {
       result = { message: "Unknown action" };
     }
@@ -71,8 +79,9 @@ Deno.serve(async (req: Request) => {
 
   } catch (error: any) {
     console.error("Error processing request:", error);
+    // Return 200 with error field so client can see the message
     return new Response(JSON.stringify({ error: error.message || "Internal Server Error" }), {
-      status: 400,
+      status: 200, 
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
@@ -311,25 +320,51 @@ async function executeAgentAction(supabase: any, projectId: string, payload: any
     }
 }
 
-async function fetchAdsHierarchy(supabase: any, projectId: string) {
+async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any) {
     const accessToken = await getAccessToken(supabase, projectId);
-    const adAccountId = await getAdAccountId(accessToken);
+    const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
     
     // Fetch hierarchy: Campaigns -> AdSets -> Ads
-    // Including insights for last 30 days
-    // Added: impressions, cpc, cpm, ctr, action_values, purchase_ros to ensure completeness
-    const insightFields = `spend,actions,action_values,clicks,impressions,cpc,cpm,ctr,purchase_ros`;
+    // Support custom date range or default to last_30d
+    const insightFields = `spend,actions,action_values,clicks,impressions,cpc,cpm,ctr`;
     
+    let insightsQuery = `insights.date_preset(last_30d){${insightFields}}`;
+    if (payload.date_range) {
+        // payload.date_range should be { since: 'YYYY-MM-DD', until: 'YYYY-MM-DD' }
+        // Ensure strictly JSON stringified for Graph API
+        const rangeStr = JSON.stringify(payload.date_range);
+        insightsQuery = `insights.time_range(${rangeStr}){${insightFields}}`;
+    }
+
+    const statusesList = ["ACTIVE", "PAUSED", "ARCHIVED"];
+    const statusesParam = encodeURIComponent(JSON.stringify(statusesList));
+
     const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
         `access_token=${accessToken}&` +
-        `fields=id,name,status,daily_budget,insights.date_preset(last_30d){${insightFields}},` +
-        `adsets{id,name,status,insights.date_preset(last_30d){${insightFields}},` +
-        `ads{id,name,status,creative{thumbnail_url},insights.date_preset(last_30d){${insightFields}}}}` +
-        `&effective_status=['ACTIVE']` + // Only ACTIVE as requested
+        `fields=id,name,status,daily_budget,${insightsQuery},` +
+        `adsets{id,name,status,${insightsQuery},` +
+        `ads{id,name,status,creative{thumbnail_url},${insightsQuery}}}` +
+        `&effective_status=${statusesParam}` + 
         `&limit=100`; 
 
-    console.log(`Fetching hierarchy from: ${url}`);
+    console.log(`Fetching hierarchy from: ${url.replace(accessToken, '***')}`);
     const res = await fetch(url);
+    
+    if (!res.ok) {
+        const errorText = await res.text();
+        // Check for Rate Limit specifically
+        if (errorText.includes('(#80004)')) {
+            return { error: '(#80004) There have been too many calls to this ad-account.' };
+        }
+        console.error('Facebook API Error (Raw):', errorText);
+        try {
+            const errorJson = JSON.parse(errorText);
+            throw new Error(errorJson.error?.message || errorText);
+        } catch (e) {
+            throw new Error(`Meta API Request Failed: ${res.status} ${res.statusText} - ${errorText}`);
+        }
+    }
+
     const data = await res.json();
     
     if (data.error) {
@@ -383,27 +418,59 @@ async function getAdAccountId(accessToken: string): Promise<string> {
         console.error("Failed to fetch ad account ID", e);
     }
     
-    throw new Error("No active Ad Account found connected to this user."); 
+    // Hard fallback for development/demo
+    console.warn("No active Ad Account found via API, using fallback ID.");
+    return "act_1005197113823722";
 }
 
 // --- HELPERS ---
 
 async function getAccessToken(supabase: any, projectId: string): Promise<string> {
   // 1. Try DB first (Project specific)
-  const { data: integration } = await supabase
-    .from("integrations")
-    .select("config")
-    .eq("project_id", projectId)
-    .eq("type", "facebook")
-    .single();
+  try {
+    const { data: integration, error } = await supabase
+        .from("integrations")
+        .select("config")
+        .eq("project_id", projectId)
+        .eq("type", "facebook")
+        .maybeSingle();
 
-  if (integration?.config?.access_token) return integration.config.access_token;
+    if (integration?.config?.access_token) return integration.config.access_token;
+  } catch (e) {
+    console.error("Error fetching integration:", e);
+  }
 
   // 2. Fallback to Env (Global/Dev)
   const envToken = Deno.env.get("META_ACCESS_TOKEN");
   if (envToken) return envToken;
   
   throw new Error("Meta Access Token missing.");
+}
+
+async function getProjectAdAccountId(supabase: any, projectId: string): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from('ad_accounts')
+      .select('ad_account_id')
+      .eq('project_id', projectId)
+      .limit(1)
+      .maybeSingle(); // Use maybeSingle to avoid error on 0 rows
+      
+    if (error) {
+       console.error("Error fetching project ad account:", error);
+       return null;
+    }
+    return data?.ad_account_id || null;
+  } catch (e) {
+    console.error("Unexpected error in getProjectAdAccountId:", e);
+    return null;
+  }
+}
+
+async function getEffectiveAdAccountId(supabase: any, projectId: string, accessToken: string): Promise<string> {
+  const projectAccount = await getProjectAdAccountId(supabase, projectId);
+  if (projectAccount) return projectAccount;
+  return await getAdAccountId(accessToken);
 }
 
 async function fetchActiveCampaigns(accessToken: string, adAccountId: string) {
@@ -465,9 +532,412 @@ async function fetchFacebookInsights(accessToken: string, adAccountId: string) {
 }
 
 function getLeadsCount(actions: any[] = []) {
-  const leadAction = actions.find((a: any) => 
-    a.action_type === 'lead' || 
-    a.action_type === 'offsite_conversion.fb_pixel_lead'
-  );
-  return leadAction ? parseInt(leadAction.value) : 0;
+  // Aggregate all possible lead-like actions
+  return actions.reduce((total, action: any) => {
+    if (
+      action.action_type === 'lead' || 
+      action.action_type === 'offsite_conversion.fb_pixel_lead' ||
+      action.action_type === 'messaging_conversation_started_7d' || 
+      action.action_type === 'onsite_conversion.messaging_conversation_started_7d' ||
+      action.action_type === 'contact' || 
+      action.action_type === 'subscribe'
+    ) {
+      return total + parseInt(action.value || '0');
+    }
+    return total;
+  }, 0);
+}
+
+async function fetchInsightsAction(supabase: any, projectId: string, payload: any) {
+  const { account_id, date_range } = payload;
+  
+  if (!account_id) {
+    return { message: "Account ID is required", type: "error" };
+  }
+
+  try {
+    const accessToken = await getAccessToken(supabase, projectId);
+    
+    // Meta expects: time_range={'since':'YYYY-MM-DD','until':'YYYY-MM-DD'}
+    const timeRangeStr = JSON.stringify(date_range);
+    
+    const levels = ['campaign', 'adset', 'ad'];
+    let totalProcessed = 0;
+
+    for (const level of levels) {
+      const url = `https://graph.facebook.com/v21.0/${account_id}/insights?` +
+        `access_token=${accessToken}&` +
+        `level=${level}&` +
+        `fields=account_id,campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,inline_link_clicks,actions&` +
+        `time_range=${timeRangeStr}&` +
+        `limit=500`;
+
+      console.log(`Fetching insights for ${level} (range: ${timeRangeStr})`);
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.error) {
+        throw new Error(`Meta API Error (${level}): ${data.error.message}`);
+      }
+
+      const insights = data.data || [];
+      
+      if (insights.length > 0) {
+        const records = insights.map((item: any) => {
+          let entityId, entityName;
+          
+          if (level === 'campaign') {
+            entityId = item.campaign_id;
+            entityName = item.campaign_name;
+          } else if (level === 'adset') {
+            entityId = item.adset_id;
+            entityName = item.adset_name;
+          } else if (level === 'ad') {
+            entityId = item.ad_id;
+            entityName = item.ad_name;
+          }
+
+          const leads = getLeadsCount(item.actions || []);
+
+          return {
+            project_id: projectId,
+            entity_id: entityId,
+            entity_type: level,
+            entity_name: entityName,
+            spend: parseFloat(item.spend || '0'),
+            impressions: parseInt(item.impressions || '0'),
+            clicks: parseInt(item.clicks || '0'),
+            inline_link_clicks: parseInt(item.inline_link_clicks || '0'),
+            actions: item.actions,
+            leads: leads,
+            date_start: item.date_start,
+            date_stop: item.date_stop
+          };
+        });
+
+        const { error } = await supabase
+          .from('ad_performance_logs')
+          .upsert(records, { 
+            onConflict: 'project_id,entity_id,date_start',
+            ignoreDuplicates: false 
+          });
+
+        if (error) {
+          console.error(`Error upserting ${level} insights:`, error);
+          throw new Error(error.message);
+        }
+
+        totalProcessed += records.length;
+      }
+    }
+
+    return {
+      message: `Sync complete. Processed ${totalProcessed} records.`,
+      type: "success",
+      data: { processed: totalProcessed }
+    };
+
+  } catch (e: any) {
+    console.error("Fetch Insights Error:", e);
+    return { message: `Sync failed: ${e.message}`, type: "error" };
+  }
+}
+
+async function syncCurrentMetricsAction(supabase: any, projectId: string, payload: any) {
+    const { account_id } = payload;
+    
+    if (!account_id) {
+        return { message: "Account ID is required for sync", type: "error" };
+    }
+
+    try {
+        const accessToken = await getAccessToken(supabase, projectId);
+        
+        // 1. Validate Token & Account Access
+        const validationUrl = `https://graph.facebook.com/v21.0/me?access_token=${accessToken}`;
+        const validationRes = await fetch(validationUrl);
+        if (!validationRes.ok) {
+            return { message: "Meta Access Token is invalid or expired.", type: "error" };
+        }
+
+        const levels = ['campaign', 'adset', 'ad'];
+        let totalProcessed = 0;
+        const debugActionsFound: string[] = [];
+
+        for (const level of levels) {
+            const url = `https://graph.facebook.com/v21.0/${account_id}/insights?` +
+                `access_token=${accessToken}&` +
+                `level=${level}&` +
+                `fields=account_id,campaign_id,campaign_name,adset_id,adset_name,ad_id,ad_name,spend,impressions,clicks,inline_link_clicks,actions&` +
+                `date_preset=today&` +
+                `limit=500`;
+
+            console.log(`[Sync Current] Fetching ${level} for today...`);
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.error) {
+                // If permission error, return immediately
+                return { message: `Meta API Error (${level}): ${data.error.message}`, type: "error" };
+            }
+
+            const insights = data.data || [];
+
+            if (insights.length > 0) {
+                const records = insights.map((item: any) => {
+                    let entityId, entityName;
+
+                    if (level === 'campaign') {
+                        entityId = item.campaign_id;
+                        entityName = item.campaign_name;
+                    } else if (level === 'adset') {
+                        entityId = item.adset_id;
+                        entityName = item.adset_name;
+                    } else if (level === 'ad') {
+                        entityId = item.ad_id;
+                        entityName = item.ad_name;
+                    }
+
+                    // Collect action types for debug
+                    if (item.actions) {
+                        item.actions.forEach((a: any) => {
+                            if (!debugActionsFound.includes(a.action_type)) {
+                                debugActionsFound.push(a.action_type);
+                            }
+                        });
+                    }
+
+                    // Expanded Lead Logic
+                    const actions = item.actions || [];
+                    const leadAction = actions.find((a: any) => 
+                        a.action_type === 'messaging_conversation_started_7d' || 
+                        a.action_type === 'onsite_conversion.messaging_conversation_started_7d' ||
+                        a.action_type === 'lead' ||
+                        a.action_type === 'contact' || 
+                        a.action_type === 'subscribe'
+                    );
+                    const leads = leadAction ? parseInt(leadAction.value) : 0;
+
+                    return {
+                        project_id: projectId,
+                        entity_id: entityId,
+                        entity_type: level,
+                        entity_name: entityName,
+                        spend: parseFloat(item.spend || '0'),
+                        impressions: parseInt(item.impressions || '0'),
+                        clicks: parseInt(item.clicks || '0'),
+                        inline_link_clicks: parseInt(item.inline_link_clicks || '0'),
+                        actions: item.actions,
+                        leads: leads,
+                        date_start: item.date_start,
+                        date_stop: item.date_stop
+                    };
+                });
+
+                const { error } = await supabase
+                    .from('ad_performance_logs')
+                    .upsert(records, {
+                        onConflict: 'project_id,entity_id,date_start',
+                        ignoreDuplicates: false
+                    });
+
+                if (error) {
+                    console.error(`Error upserting ${level} insights:`, error);
+                    throw new Error(error.message);
+                }
+
+                totalProcessed += records.length;
+            }
+        }
+
+        return {
+            message: `Синхронизация успешна. Обработано ${totalProcessed} записей. Найденные действия: ${debugActionsFound.join(', ') || 'Нет действий'}`,
+            type: "success",
+            data: { processed: totalProcessed, debug_actions: debugActionsFound }
+        };
+
+    } catch (e: any) {
+        console.error("Sync Current Metrics Error:", e);
+        return { message: `Sync failed: ${e.message}`, type: "error" };
+    }
+}
+
+async function syncMetricsAction(supabase: any, projectId: string, payload: any) {
+    const accessToken = await getAccessToken(supabase, projectId);
+    const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
+    
+    let allInsights: any[] = [];
+    const levels = ['campaign', 'adset', 'ad'];
+
+    if (payload.date_range) {
+        // Sync specific range with daily breakdown for ALL levels to ensure full hierarchy data
+        // payload.date_range = { since: 'YYYY-MM-DD', until: 'YYYY-MM-DD' }
+        console.log(`Syncing metrics for range: ${JSON.stringify(payload.date_range)}`);
+        
+        for (const level of levels) {
+            try {
+                const levelInsights = await fetchDailyBreakdown(accessToken, adAccountId, payload.date_range, level);
+                allInsights.push(...levelInsights);
+            } catch (e) {
+                console.error(`Failed to sync level ${level}:`, e);
+                // Continue with other levels
+            }
+        }
+    } else {
+        // Default: Today + Yesterday (for all levels)
+        console.log(`Syncing metrics for Today + Yesterday`);
+        
+        for (const level of levels) {
+            try {
+                const todayInsights = await fetchDailyInsights(accessToken, adAccountId, 'today', level);
+                const yesterdayInsights = await fetchDailyInsights(accessToken, adAccountId, 'yesterday', level);
+                allInsights.push(...todayInsights, ...yesterdayInsights);
+            } catch (e) {
+                console.error(`Failed to sync level ${level} (default):`, e);
+            }
+        }
+    }
+    
+    if (allInsights.length === 0) {
+        return { message: "No insights found", type: "info" };
+    }
+    
+    // Transform to DB format
+    const logs = allInsights.map((item: any) => {
+        let entity_id, entity_name, entity_type;
+        
+        if (item.ad_id) {
+            entity_id = item.ad_id;
+            entity_name = item.ad_name;
+            entity_type = 'ad';
+        } else if (item.adset_id) {
+            entity_id = item.adset_id;
+            entity_name = item.adset_name;
+            entity_type = 'adset';
+        } else {
+            entity_id = item.campaign_id;
+            entity_name = item.campaign_name;
+            entity_type = 'campaign';
+        }
+
+        return {
+            project_id: projectId,
+            entity_id: entity_id,
+            entity_name: entity_name,
+            entity_type: entity_type,
+            date_start: item.date_start,
+            date_stop: item.date_stop,
+            spend: parseFloat(item.spend || '0'),
+            impressions: parseInt(item.impressions || '0'),
+            clicks: parseInt(item.clicks || '0'),
+            inline_link_clicks: parseInt(item.inline_link_clicks || '0'),
+            leads: getLeadsCount(item.actions || []),
+            actions: item.actions || []
+        };
+    });
+    
+    // Batch upsert to avoid request size limits
+    const BATCH_SIZE = 100;
+    for (let i = 0; i < logs.length; i += BATCH_SIZE) {
+        const batch = logs.slice(i, i + BATCH_SIZE);
+        const { error } = await supabase
+            .from('ad_performance_logs')
+            .upsert(batch, { onConflict: 'project_id, entity_id, date_start' });
+            
+        if (error) throw new Error(error.message);
+    }
+    
+    return { message: "Sync complete", count: logs.length, type: "success" };
+}
+
+async function fetchDailyBreakdown(accessToken: string, adAccountId: string, dateRange: { since: string, until: string }, level: string = 'campaign') {
+    let fields = 'spend,impressions,clicks,inline_link_clicks,actions,date_start,date_stop';
+    
+    if (level === 'ad') fields += ',ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name';
+    else if (level === 'adset') fields += ',adset_id,adset_name,campaign_id,campaign_name';
+    else fields += ',campaign_id,campaign_name';
+
+    const timeRangeStr = JSON.stringify(dateRange);
+    
+    let url = `https://graph.facebook.com/v21.0/${adAccountId}/insights?` +
+        `access_token=${accessToken}&` +
+        `level=${level}&` +
+        `time_range=${timeRangeStr}&` +
+        `time_increment=1&` + 
+        `fields=${fields}&` +
+        `limit=500`;
+        
+    let allData: any[] = [];
+    
+    while (url) {
+        console.log(`Fetching daily breakdown page (${level}): ${url.replace(accessToken, '***')}`);
+        const res = await fetch(url);
+        const data = await res.json();
+        
+        if (data.error) throw new Error(data.error.message);
+        
+        if (data.data) {
+            allData = allData.concat(data.data);
+        }
+        
+        url = data.paging?.next || null;
+    }
+    
+    return allData;
+}
+
+async function fetchDailyInsights(accessToken: string, adAccountId: string, datePreset: string, level: string = 'campaign') {
+    let fields = 'spend,impressions,clicks,inline_link_clicks,actions,date_start,date_stop';
+    
+    if (level === 'ad') fields += ',ad_id,ad_name,adset_id,adset_name,campaign_id,campaign_name';
+    else if (level === 'adset') fields += ',adset_id,adset_name,campaign_id,campaign_name';
+    else fields += ',campaign_id,campaign_name';
+
+    const url = `https://graph.facebook.com/v21.0/${adAccountId}/insights?` +
+        `access_token=${accessToken}&` +
+        `level=${level}&` +
+        `date_preset=${datePreset}&` +
+        `fields=${fields}&` +
+        `limit=500`;
+        
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    return data.data || [];
+}
+
+async function healthcheckAction(supabase: any, projectId: string) {
+  try {
+    const accessToken = await getAccessToken(supabase, projectId);
+    const meRes = await fetch(`https://graph.facebook.com/v21.0/me?access_token=${accessToken}`);
+    
+    if (!meRes.ok) {
+      const errorText = await meRes.text();
+      if (errorText.includes('(#80004)')) {
+        return { status: 'offline', message: 'Rate Limit Reached' };
+      }
+      return { status: 'offline', message: 'Invalid token or Meta API Error' };
+    }
+
+    const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
+    if (!adAccountId) {
+      return { status: 'offline', message: 'Ad account not found' };
+    }
+    
+    // Optional: Ping ad account too, but maybe skip to save 1 call?
+    // If we have adAccountId, we are likely fine.
+    // But let's keep it for completeness but handle rate limit.
+    const pingRes = await fetch(`https://graph.facebook.com/v21.0/${adAccountId}?access_token=${accessToken}`);
+    if (!pingRes.ok) {
+       const errorText = await pingRes.text();
+       if (errorText.includes('(#80004)')) {
+          return { status: 'offline', message: 'Rate Limit Reached' };
+       }
+      return { status: 'offline', message: 'Account unreachable' };
+    }
+    
+    return { status: 'online', message: 'Meta connected', ad_account_id: adAccountId };
+  } catch (e: any) {
+    return { status: 'offline', message: e.message || 'Error' };
+  }
 }

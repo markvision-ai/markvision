@@ -25,7 +25,7 @@ export const useLeadStatusHistory = (leadId: string | null) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from('lead_status_history')
         .select('*')
         .eq('lead_id', leadId)
@@ -60,7 +60,7 @@ export const logStatusChange = async (
   dealAmountChange?: number
 ) => {
   try {
-    const { error } = await supabase.from('lead_status_history').insert({
+    const { error } = await (supabase as any).from('lead_status_history').insert({
       lead_id: leadId,
       changed_by: userId,
       changed_by_name: userName,

@@ -3,7 +3,7 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { AuroraText } from "@/components/ui/aurora-text";
-import markvisionLogo from "@/assets/markvision-logo-new.png";
+import { MarkVisionLogo } from "@/components/ui/MarkVisionLogo";
 import { Instagram, Send, Youtube, Phone, Mail, ExternalLink } from "lucide-react";
 const platformLinks = [{
   name: "Главная панель",
@@ -78,7 +78,9 @@ export const Footer = () => {
           {/* Left Side: Brand (full width on mobile, 4 cols on desktop) */}
           <div className="lg:col-span-4">
             <div className="flex items-center gap-3 mb-4">
-              <img alt="MarkVision AI" className="w-12 h-12 object-contain" src={markvisionLogo} />
+              <div className="w-12 h-12 relative flex items-center justify-center">
+                <MarkVisionLogo className="w-full h-full drop-shadow-lg" />
+              </div>
               <span className="font-semibold text-xl">
                 <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
                   MarkVision AI

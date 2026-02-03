@@ -11,7 +11,7 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme */
+    /* Premium Light Theme - DEFAULT */
     --background: 0 0% 100%;
     --foreground: 222 47% 11%;
 
@@ -62,72 +62,49 @@
     --medical-teal: 217 70% 50%;
   }
 
+  /* Force Light Mode even if system is dark or class is present */
   .dark {
     /* Deep Dark Mode - #000000 Pure Black */
-    --background: 0 0% 0%;
-    --foreground: 210 40% 98%;
+    /* OVERRIDE TO LIGHT */
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    /* Cards - Almost Black #050505 */
-    --card: 0 0% 2%;
-    --card-foreground: 210 40% 98%;
+    --card: 0 0% 99%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 0 0% 2%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    /* Electric Blue - Single Accent Color */
     --primary: 217 91% 60%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 210 20% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 0 0% 5%;
-    --muted-foreground: 215 20% 65%; /* Brighter for better contrast in dark theme (was 50%) */
+    --muted: 210 20% 94%;
+    --muted-foreground: 220 14% 35%; 
 
-    /* Accent = Primary for consistency */
     --accent: 217 91% 60%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 51%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 40%;
+    --success: 142 76% 36%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 100%;
 
-    /* Subtle borders - barely visible */
-    --border: 0 0% 10%;
-    --input: 0 0% 10%;
+    --border: 214 32% 80%;
+    --input: 214 32% 91%;
     --ring: 217 91% 60%;
 
-    --sidebar: 0 0% 2%;
-    --sidebar-foreground: 240 5% 96%;
-    --sidebar-primary: 217 91% 60%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 5%;
-    --sidebar-accent-foreground: 240 5% 96%;
-    --sidebar-border: 0 0% 10%;
-    --sidebar-ring: 217 91% 60%;
-    --border: 217 33% 15%;
-    --input: 217 33% 15%;
-    --ring: 217 91% 60%;
+    --radius: 1.25rem;
 
-    /* Sidebar - Ultra dark */
-    --sidebar: 222 47% 3%;
-    --sidebar-foreground: 210 40% 98%;
-    --sidebar-muted: 217 33% 10%;
-
-    /* Monochrome blue chart colors */
-    --chart-1: 217 91% 60%;
-    --chart-2: 217 80% 55%;
-    --chart-3: 217 70% 50%;
-    --chart-4: 217 60% 45%;
-    --chart-5: 217 50% 40%;
-
-    --medical-blue: 217 91% 60%;
-    --medical-teal: 217 70% 55%;
+    --sidebar: 210 20% 97%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-muted: 210 20% 90%;
   }
 }
 

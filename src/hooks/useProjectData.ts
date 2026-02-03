@@ -13,7 +13,7 @@ const DEFAULT_PROJECT_ID = FALLBACK_PROJECT_ID;
 // Время устаревания данных (5 минут) - данные не будут перезапрашиваться чаще
 const STALE_TIME = 5 * 60 * 1000;
 
-interface DailyData {
+export interface DailyData {
   date: string;
   spend: number;
   impressions: number;
@@ -89,19 +89,20 @@ export const useProjectData = (projectId: string | null) => {
     console.log('📊 useProjectData | Загрузка daily_data для project_id:', effectiveProjectId);
 
     // Cancel previous request if any
-    if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    // We don't abort anymore to avoid console errors
+    // if (abortControllerRef.current) {
+    //    abortControllerRef.current.abort();
+    // }
+    // abortControllerRef.current = new AbortController();
+    // const signal = abortControllerRef.current.signal;
 
     try {
       const { data, error } = await supabase
         .from('daily_data')
         .select('*')
         .eq('project_id', effectiveProjectId)
-        .order('date', { ascending: true })
-        .abortSignal(signal);
+        .order('date', { ascending: true });
+        // .abortSignal(signal);
 
       if (error) {
         // Suppress Abort/Cancel errors
@@ -404,7 +405,9 @@ export const useProjectData = (projectId: string | null) => {
     canEditDailyData: isAdmin || canEditDailyData,
     canViewSales: isAdmin || canViewSales,
     canViewRevenue: isAdmin || canViewRevenue,
-    refetch: () => Promise.all([fetchDailyData(true), fetchPlanData(true)]),
+    refetch: async () => {
+      await Promise.all([fetchDailyData(true), fetchPlanData(true)]);
+    },
     effectiveProjectId,
   };
 };

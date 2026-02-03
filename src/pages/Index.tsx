@@ -26,7 +26,7 @@ const Index = () => {
       const hasError = searchParams.has('error');
       
       if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
-        console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
+        if (import.meta.env.DEV) console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
         navigate('/integrations', { replace: true });
         return true;
       }

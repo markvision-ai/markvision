@@ -2,6 +2,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLeads, Lead } from '@/hooks/useLeads';
 import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
+import { LeadFullPage } from './LeadFullPage';
 import { CRMFunnel } from './CRMFunnel';
 import { BulkActionsBar } from './BulkActionsBar';
 import { AddLeadDialog } from './AddLeadDialog';
@@ -52,13 +53,13 @@ const tabs = ['kanban', 'clients', 'funnel', 'automation'] as const;
 type TabValue = typeof tabs[number];
 
 const statusOptions = [
-  { id: 'new', label: 'Новый лид', color: 'from-blue-500 to-cyan-500' },
-  { id: 'invoiced', label: 'Счет выставлен', color: 'from-indigo-500 to-purple-500' },
-  { id: 'paid', label: 'Оплачено', color: 'from-emerald-500 to-green-500' },
-  { id: 'appointment', label: 'Записан', color: 'from-purple-500 to-pink-500' },
-  { id: 'in_progress', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
-  { id: 'no_answer', label: 'Недозвон', color: 'from-orange-500 to-red-500' },
-  { id: 'cancelled', label: 'Отказ', color: 'from-red-500 to-rose-500' },
+  { id: 'Новый лид', label: 'Новый лид', color: 'from-blue-500 to-cyan-500' },
+  { id: 'Без ответа', label: 'Без ответа', color: 'from-orange-500 to-red-500' },
+  { id: 'В работе', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
+  { id: 'Счет выставлен', label: 'Счет выставлен', color: 'from-indigo-500 to-purple-500' },
+  { id: 'Записан', label: 'Записан', color: 'from-purple-500 to-pink-500' },
+  { id: 'Оплачен', label: 'Оплачен', color: 'from-emerald-500 to-green-500' },
+  { id: 'Отказ', label: 'Отказ', color: 'from-red-500 to-rose-500' },
 ];
 
 const sourceOptions = [
@@ -116,7 +117,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
       }
 
       if (selectedStatuses.length > 0) {
-        const leadStatus = lead.status || 'new';
+        const leadStatus = lead.status || 'Новый лид';
         if (!selectedStatuses.includes(leadStatus)) return false;
       }
 
@@ -327,6 +328,16 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
     return filteredLeads.filter(lead => selectedLeads.has(lead.id));
   };
 
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
+
+  const handleLeadClick = (lead: Lead) => {
+    setSelectedLead(lead);
+  };
+
+  const handleCloseLead = () => {
+    setSelectedLead(null);
+  };
+
   return (
     <div className="space-y-6">
       {/* Ultra Premium Header */}
@@ -364,7 +375,11 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           
           <div className="flex items-center gap-2 w-full sm:w-auto">
             {projectId && (
-              <AddLeadDialog projectId={projectId} onLeadAdded={refetch} />
+              <AddLeadDialog 
+                projectId={projectId} 
+                onLeadAdded={refetch} 
+                onDuplicateFound={handleLeadClick}
+              />
             )}
             <Button
               variant={selectionMode ? "default" : "outline"}
@@ -754,6 +769,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   selectionMode={selectionMode}
                   selectedLeads={selectedLeads}
                   onSelectLead={handleSelectLead}
+                  onLeadClick={handleLeadClick}
                 />
               ) : activeTab === 'clients' ? (
                 <ClientsManagement projectId={projectId} />
@@ -808,6 +824,18 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               Сбросить фильтры
             </Button>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Selected Lead Modal */}
+      <AnimatePresence>
+        {selectedLead && (
+          <LeadFullPage 
+            lead={selectedLead} 
+            projectId={effectiveProjectId} 
+            onClose={handleCloseLead} 
+            onUpdate={refetch} 
+          />
         )}
       </AnimatePresence>
     </div>

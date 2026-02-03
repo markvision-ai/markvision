@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
@@ -178,213 +177,126 @@ export const useContentFactory = (projectId: string | null) => {
     };
   }, [projectId]);
 
-  const createContent = async (data: { title: string; content_type: ContentType; original_script?: string; source_url?: string }) => {
+  const ensureProjectMember = async (projectId: string, userId: string) => {
+    try {
+      const { data: member } = await supabase
+        .from('project_members')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!member) {
+        // Fetch organization_id if needed
+        const { data: project } = await supabase
+          .from('projects')
+          .select('organization_id')
+          .eq('id', projectId)
+          .single();
+
+        const payload: any = { 
+          project_id: projectId, 
+          user_id: userId, 
+          role: 'owner' 
+        };
+        
+        if (project?.organization_id) {
+          payload.organization_id = project.organization_id;
+        }
+
+        const { error } = await supabase
+          .from('project_members')
+          .insert([payload]);
+          
+        if (error) console.error('Auto-join project failed:', error);
+      }
+    } catch (e) {
+      console.error('Error in ensureProjectMember:', e);
+    }
+  };
+
+  const createContent = async (data: any) => {
     if (!projectId) return null;
 
     try {
       // 0. Get current user for RLS
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('Ошибка авторизации: Пользователь не найден');
-        return null;
+      
+      if (user) {
+        await ensureProjectMember(projectId, user.id);
       }
-
+      
       // 1. Create task for n8n (Queue)
-      // Cast supabase to any to bypass table type check for new table
       const { error: taskError } = await (supabase as any)
         .from('content_tasks')
         .insert([{ 
           ...data,
           project_id: projectId,
-          user_id: user.id, // Add user_id for RLS
-          status: 'pending',
+          user_id: user?.id, // Add user_id for RLS if available
           created_at: new Date().toISOString()
         }]);
 
-      if (taskError) {
-        console.warn('Error creating content_task:', taskError);
-      }
-
-      // 2. Create item in Factory (UI Visualization)
-      const dbPayload = {
-        title: data.title,
-        platform_type: data.content_type, // Map content_type -> platform_type
-        body_text: data.original_script || null, // Map original_script -> body_text
-        source_url: data.source_url || null,
-        project_id: projectId,
-        author_id: user.id, // Add author_id for RLS
-        status: 'ideation',
-        body: {
-            // Initialize empty status fields in body
-            avatar_status: 'idle',
-            sora_status: 'idle',
-            carousel_status: 'idle',
-            threads_status: 'idle',
-            telegram_status: 'idle',
-            article_status: 'idle'
-        }
-      };
-
-      const { data: created, error } = await supabase
-        .from('content_factory')
-        .insert([dbPayload])
-        .select()
-        .single();
-
-      if (error) throw error;
-      toast.success('Производство запущено! (Task + Factory)');
-      return mapDbToContentItem(created);
+      if (taskError) throw taskError;
+      
+      toast.success('Задача на создание контента отправлена');
+      return true;
     } catch (error) {
       console.error('Error creating content:', error);
-      toast.error('Ошибка создания контента');
+      toast.error('Ошибка при создании контента');
       return null;
     }
   };
 
-  const updateContent = async (id: string, data: Partial<ContentItem>) => {
-    // Optimistic update
-    const previousContent = [...content];
-    const previousItem = content.find(item => item.id === id);
+  const addCompetitor = async (platform: string, handle: string) => {
+    if (!projectId) return null;
     
-    // Apply optimistic change immediately
-    setContent(prev => prev.map(item => item.id === id ? { ...item, ...data } : item));
-
     try {
-      if (!previousItem) throw new Error("Item not found");
-
-      // Merge current item with updates
-      const merged = { ...previousItem, ...data };
-      
-      // Construct body from merged virtual fields
-      const body = {
-        ...previousItem._original_body,
-        avatar_status: merged.avatar_status,
-        heygen_url: merged.heygen_url,
-        sora_status: merged.sora_status,
-        sora_url: merged.sora_url,
-        carousel_status: merged.carousel_status,
-        design_url: merged.design_url,
-        threads_status: merged.threads_status,
-        threads_text: merged.threads_text,
-        telegram_status: merged.telegram_status,
-        telegram_text: merged.telegram_text,
-        article_status: merged.article_status,
-        seo_text: merged.seo_text,
-      };
-
-      const dbPayload: any = {
-         body: body,
-         updated_at: new Date().toISOString()
-      };
-
-      if (data.title !== undefined) dbPayload.title = data.title;
-      if (data.content_type !== undefined) dbPayload.platform_type = data.content_type;
-      if (data.original_script !== undefined) dbPayload.body_text = data.original_script;
-      if (data.source_url !== undefined) dbPayload.source_url = data.source_url;
-      if (data.audio_url !== undefined) dbPayload.voice_url = data.audio_url;
-      if (data.final_video_url !== undefined) dbPayload.video_url = data.final_video_url;
-      if (data.status !== undefined) dbPayload.status = data.status;
-
-      const { error } = await supabase
-        .from('content_factory')
-        .update(dbPayload)
-        .eq('id', id);
-
-      if (error) throw error;
-      // Success toast is optional for drag-drop to reduce noise, but good for explicit actions
-      // toast.success('Контент обновлён');
-      return true;
-    } catch (error) {
-      console.error('Error updating content:', error);
-      // Revert to previous state on error
-      if (previousItem) {
-        setContent(prev => prev.map(item => item.id === id ? previousItem : item));
-      } else {
-        // Fallback: restore full list if item tracking failed
-        setContent(previousContent);
-      }
-      toast.error('Ошибка обновления');
-      return false;
-    }
-  };
-
-  const deleteContent = async (id: string) => {
-    // Optimistic delete
-    const previousContent = [...content];
-    setContent(prev => prev.filter(item => item.id !== id));
-
-    try {
-      const { error } = await supabase
-        .from('content_factory')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      toast.success('Контент удалён');
-      return true;
-    } catch (error) {
-      console.error('Error deleting content:', error);
-      // Revert
-      setContent(previousContent);
-      toast.error('Ошибка удаления');
-      return false;
-    }
-  };
-
-  const addCompetitor = async (accountHandle: string, platform: string) => {
-    if (!projectId) {
-      console.error('No project ID found');
-      toast.error('Ошибка: ID проекта не найден');
-      return null;
-    }
-
-    try {
-      // Self-healing: Ensure user is a member of the project before adding
+      // Get current user for RLS
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-         const { data: memberData } = await supabase.from('project_members').select('id').eq('project_id', projectId).eq('user_id', user.id).single();
-         if (!memberData) {
-            await supabase.from('project_members').insert([{ project_id: projectId, user_id: user.id, role: 'owner' }]);
-         }
+      
+      if (!user) {
+         throw new Error('User not authenticated');
       }
 
+      await ensureProjectMember(projectId, user.id);
+
+      // Insert competitor
       const { data, error } = await supabase
         .from('competitor_monitoring')
-        .insert([{ 
-          project_id: projectId, 
-          handle: accountHandle, 
+        .insert([{
+          project_id: projectId,
           platform,
-          // status column removed as it does not exist in the schema
+          handle,
           created_at: new Date().toISOString()
         }])
         .select()
         .single();
 
       if (error) throw error;
-      setCompetitors(prev => [data, ...prev]);
+      
+      // Map response to Competitor interface
+      const newItem: Competitor = {
+        id: data.id,
+        project_id: data.project_id,
+        handle: data.handle || data.account_handle,
+        platform: data.platform,
+        avatar_url: data.avatar_url || null,
+        last_scanned_at: data.last_scanned_at,
+        top_content_links: data.top_content_links || null,
+        created_at: data.created_at
+      };
+      
+      setCompetitors(prev => [newItem, ...prev]);
       toast.success('Конкурент добавлен');
-      return data;
-    } catch (error: any) {
+      return newItem;
+    } catch (error) {
       console.error('Error adding competitor:', error);
-      console.error('Error details:', {
-        message: error?.message,
-        details: error?.details,
-        hint: error?.hint,
-        code: error?.code
-      });
-
-      if (error?.code === '42501') {
-        toast.error('Ошибка доступа: У вас нет прав на добавление конкурентов в этот проект');
-      } else if (error?.message?.includes('fetch')) {
-        toast.error('Ошибка соединения: Проверьте интернет');
-      } else {
-        toast.error(`Ошибка добавления: ${error?.message || 'Неизвестная ошибка'}`);
-      }
+      toast.error('Ошибка добавления конкурента');
       return null;
     }
   };
 
-  const removeCompetitor = async (id: string) => {
+  const deleteCompetitor = async (id: string) => {
     try {
       const { error } = await supabase
         .from('competitor_monitoring')
@@ -392,53 +304,13 @@ export const useContentFactory = (projectId: string | null) => {
         .eq('id', id);
 
       if (error) throw error;
+      
       setCompetitors(prev => prev.filter(c => c.id !== id));
-      toast.success('Конкурент удалён');
-      return true;
+      toast.success('Конкурент удален');
     } catch (error) {
-      console.error('Error removing competitor:', error);
+      console.error('Error deleting competitor:', error);
       toast.error('Ошибка удаления');
-      return false;
     }
-  };
-
-  // Webhook triggers for n8n
-  const triggerWebhook = async (action: string, payload: Record<string, unknown>) => {
-    // This will be called by n8n webhooks configured in settings
-    if (import.meta.env.DEV) console.log('Triggering webhook:', action, payload);
-    toast.info(`Отправлено в n8n: ${action}`);
-    // In production, this would POST to your n8n webhook URL
-    return true;
-  };
-
-  const triggerVoice = async (contentId: string, script: string, voiceSettings?: Record<string, unknown>) => {
-    await updateContent(contentId, { status: 'scripting' });
-    return triggerWebhook('trigger_voice', { content_id: contentId, script, voice_settings: voiceSettings });
-  };
-
-  const triggerAvatar = async (contentId: string, audioUrl: string, avatarId?: string) => {
-    await updateContent(contentId, { status: 'voice_ready' });
-    return triggerWebhook('trigger_avatar', { content_id: contentId, audio_url: audioUrl, avatar_id: avatarId });
-  };
-
-  const triggerAiVideo = async (contentId: string, script: string, style?: string) => {
-    await updateContent(contentId, { status: 'scripting' });
-    return triggerWebhook('trigger_ai_video', { content_id: contentId, script, style });
-  };
-
-  const triggerEdit = async (contentId: string, videoUrl: string, captionsStyle?: string) => {
-    await updateContent(contentId, { status: 'avatar_ready' });
-    return triggerWebhook('trigger_edit', { content_id: contentId, video_url: videoUrl, captions_style: captionsStyle });
-  };
-
-  const triggerPublish = async (contentId: string, finalVideoUrl: string, caption: string, platforms: string[]) => {
-    await updateContent(contentId, { status: 'ready_to_send' });
-    return triggerWebhook('trigger_publish', { 
-      content_id: contentId, 
-      final_video_url: finalVideoUrl, 
-      caption, 
-      platforms 
-    });
   };
 
   return {
@@ -446,15 +318,8 @@ export const useContentFactory = (projectId: string | null) => {
     competitors,
     loading,
     createContent,
-    updateContent,
-    deleteContent,
     addCompetitor,
-    removeCompetitor,
-    refetch: fetchContent,
-    triggerVoice,
-    triggerAvatar,
-    triggerAiVideo,
-    triggerEdit,
-    triggerPublish,
+    deleteCompetitor,
+    refresh: fetchContent
   };
 };

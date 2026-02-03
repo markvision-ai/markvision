@@ -41,17 +41,39 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { KZT_RATE } from '@/constants/ads';
+
+import { format } from 'date-fns';
+import { DateRange } from 'react-day-picker';
 
 interface ActiveAdsManagerProps {
   projectId: string | null;
+  dateRange: DateRange | undefined;
+  refreshTrigger?: number;
 }
 
 interface MetaInsight {
   spend: string;
   actions?: { action_type: string; value: string }[];
   clicks?: string;
+}
+
+interface AdInsightRecord {
+    entity_id: string;
+    name?: string;
+    spend: number;
+    leads: number;
+    clicks: number;
+    impressions: number;
 }
 
 interface Ad {
@@ -85,13 +107,18 @@ interface RowData {
   name: string;
   status: string;
   spend: number;
+  spendKZT: number;
   leadsMeta: number;
+  clicks?: number;
+  impressions?: number;
   cpl: number;
   leadsCRM: number; // Diagnostics
   diagCost: number;
   sales: number;
   revenue: number;
   roi: number;
+  ctr: string;
+  cpc: number;
   children?: RowData[];
   thumbnail?: string; // For ads
 }
@@ -101,13 +128,15 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
-export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
+export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
   const { leads } = useLeads(projectId);
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
+  const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [toggling, setToggling] = useState<string | null>(null);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     status: true,
@@ -121,44 +150,468 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
     roi: true,
   });
 
+  // Filter leads by date range for accurate CRM metrics
+  const filteredLeads = useMemo(() => {
+    if (!dateRange?.from) return leads;
+    
+    const fromStr = format(dateRange.from, 'yyyy-MM-dd');
+    const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
+
+    return leads.filter(l => {
+        if (!l.created_at) return false;
+        const leadDate = format(new Date(l.created_at), 'yyyy-MM-dd');
+        return leadDate >= fromStr && leadDate <= toStr;
+    });
+  }, [leads, dateRange]);
+
+  // Normalization Helper for Loose Matching
+  const normalize = (str: string | undefined | null) => {
+      if (!str) return '';
+      // Remove emojis, special chars, keep only alphanumeric and cyrillic
+      return decodeURIComponent(str).toLowerCase().replace(/[^a-z0-9а-яё]/g, '');
+  };
+
+  // Merge Hierarchy with Derived Campaigns from CRM AND Ad Performance Logs
+  const fullHierarchy = useMemo(() => {
+    if (!hierarchy) return [];
+    
+    const existingIds = new Set(hierarchy.map(c => c.id));
+    const derived: Campaign[] = [];
+    const processedUtms = new Set<string>();
+
+    // 1. Derive from Leads (CRM)
+    filteredLeads.forEach(lead => {
+        const utm = lead.utm_campaign;
+        if (!utm) return;
+        
+        // Skip if this UTM is already processed
+        if (processedUtms.has(utm)) return;
+
+        // Check if this UTM matches any existing campaign ID or Name (Loose Match)
+        const normUtm = normalize(utm);
+        
+        const matchFound = hierarchy.some(c => {
+            const normName = normalize(c.name);
+            const normId = normalize(c.id);
+            
+            // Direct Match
+            if (c.id === utm || normName === normUtm) return true;
+            
+            // Inclusion Match (if strictly long enough to avoid false positives)
+            // e.g. "implants" matches "implants_january"
+            if (normUtm.length > 3 && normName.length > 3) {
+                if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+            }
+            
+            return false;
+        });
+        
+        if (!matchFound) {
+            processedUtms.add(utm);
+            derived.push({
+                id: utm, // Use UTM as ID
+                name: utm, // Use UTM as Name
+                status: 'ACTIVE', // Show as Active to ensure visibility
+                daily_budget: '0',
+                insights: { data: [] },
+                adsets: { data: [] }
+            });
+        }
+    });
+
+    // 2. Derive from Ad Insights (Logs)
+    Object.values(adInsights).forEach(insight => {
+        const campaignId = insight.entity_id;
+        
+        // Skip if already in hierarchy
+        if (existingIds.has(campaignId)) return;
+        
+        // Skip if already processed via leads
+        if (processedUtms.has(campaignId)) return;
+        
+        // Check loose match by Name
+        if (insight.name) {
+             const normName = normalize(insight.name);
+             const matchFound = hierarchy.some(c => normalize(c.name) === normName);
+             if (matchFound) return;
+        }
+
+        processedUtms.add(campaignId);
+        derived.push({
+            id: campaignId,
+            name: insight.name || campaignId,
+            status: 'ACTIVE',
+            daily_budget: '0',
+            insights: { data: [] },
+            adsets: { data: [] }
+        });
+    });
+
+    return [...hierarchy, ...derived];
+  }, [hierarchy, filteredLeads, adInsights]);
+
+
+  const fetchAdInsights = async () => {
+      if (!projectId) return;
+      
+      const since = format(dateRange.from, 'yyyy-MM-dd');
+      const until = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : since;
+      
+      try {
+          const { data, error } = await (supabase as any)
+              .from('ad_performance_logs')
+              .select('*')
+              .eq('project_id', projectId)
+              .gte('date_start', since)
+              .lte('date_start', until);
+
+          if (error) throw error;
+
+          const insightsMap: Record<string, AdInsightRecord> = {};
+          
+          // Deduplicate logs: keep only the latest entry per (entity_id, date_start)
+          // We assume the entry with higher spend is more recent/complete for that day
+          const uniqueLogs: Record<string, any> = {};
+          data?.forEach((item: any) => {
+              const key = `${item.entity_id}_${item.date_start}`;
+              const currentSpend = Number(item.spend) || 0;
+              const existingSpend = uniqueLogs[key] ? (Number(uniqueLogs[key].spend) || 0) : -1;
+              
+              if (!uniqueLogs[key] || currentSpend >= existingSpend) {
+                  uniqueLogs[key] = item;
+              }
+          });
+
+          Object.values(uniqueLogs).forEach((item: any) => {
+              if (!insightsMap[item.entity_id]) {
+                  insightsMap[item.entity_id] = {
+                      entity_id: item.entity_id,
+                      name: item.entity_name,
+                      spend: 0,
+                      leads: 0,
+                      clicks: 0,
+                      impressions: 0
+                  };
+              }
+              const record = insightsMap[item.entity_id];
+              record.spend += Number(item.spend);
+              record.leads += Number(item.leads);
+              record.clicks += Number(item.clicks);
+              record.impressions += Number(item.impressions);
+          });
+          setAdInsights(insightsMap);
+
+      } catch (e) {
+          console.error('Failed to fetch insights from DB', e);
+      }
+  };
+
+  // Circuit Breaker for Rate Limits
+  const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
+
+  // Stable key for dateRange to prevent unnecessary refetches
+  const dateRangeKey = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return '';
+    return `${format(dateRange.from, 'yyyy-MM-dd')}_${format(dateRange.to, 'yyyy-MM-dd')}`;
+  }, [dateRange]);
+
   useEffect(() => {
-    if (!projectId) return;
-    fetchHierarchy();
-  }, [projectId]);
+    if (projectId && dateRangeKey && dateRange?.from) {
+      // Check circuit breaker
+      if (Date.now() < rateLimitUntil) {
+          console.warn('Meta API requests paused due to Rate Limit.');
+          return;
+      }
+      
+      // 1. Load Local Data Immediately (History + cached Today)
+      fetchHierarchy(false);
+      fetchAdInsights();
+
+      // 2. Smart Sync for Today (if in range) to satisfy "Today from FB API" requirement
+      // We only sync TODAY to avoid rate limits on historical data (which should be in DB)
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const fromStr = format(dateRange.from, 'yyyy-MM-dd');
+      const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
+
+      const lastSyncKey = `ads_sync_${projectId}_${todayStr}`;
+      const lastSyncTime = sessionStorage.getItem(lastSyncKey);
+      const now = Date.now();
+
+      // Sync if:
+      // 1. Today is in the selected range
+      // 2. We haven't synced in the last 5 minutes (300000ms) to avoid Rate Limits on refresh
+      if (todayStr >= fromStr && todayStr <= toStr) {
+          if (lastSyncTime && (now - parseInt(lastSyncTime)) < 300000) {
+              console.log('Skipping Smart Sync (recently synced)');
+              return;
+          }
+
+          console.log('Auto-syncing Today...', todayStr);
+          sessionStorage.setItem(lastSyncKey, now.toString()); // Mark as syncing immediately
+
+          supabase.functions.invoke('ads-manager', {
+              body: { 
+                  action: 'sync_metrics', 
+                  payload: { 
+                      projectId,
+                      date_range: { since: todayStr, until: todayStr } 
+                  } 
+              }
+          }).then(({ data, error }) => {
+              if (data?.error?.includes('#80004')) {
+                   console.warn('Rate Limit hit during auto-sync');
+                   setRateLimitUntil(Date.now() + 60000 * 5); // 5 min pause
+                   sessionStorage.removeItem(lastSyncKey); // Retry later if failed
+              } else if (!error && !data?.error) {
+                   console.log('Today synced successfully, refreshing insights...');
+                   fetchAdInsights(); // Refresh to show new data
+              } else {
+                   sessionStorage.removeItem(lastSyncKey); // Retry if other error
+              }
+          }).catch(err => {
+              console.error('Auto-sync failed', err);
+              sessionStorage.removeItem(lastSyncKey);
+          });
+      }
+    }
+  }, [projectId, dateRangeKey, rateLimitUntil]);
+
+  useEffect(() => {
+    if (projectId && refreshTrigger > 0) {
+      if (Date.now() < rateLimitUntil) {
+          console.warn('Meta API sync skipped due to Rate Limit.');
+          return;
+      }
+      // ONLY fetch from DB to avoid hitting Meta API limits
+      fetchAdInsights();
+      // fetchHierarchy(); // Disable hierarchy fetch on auto-refresh too
+    }
+  }, [refreshTrigger, rateLimitUntil]);
+
+    // Export to CSV
+    const handleExportCSV = () => {
+        if (!processedData.length) return;
+        
+        const headers = ['Name', 'Status', 'Spend (KZT)', 'Leads (Meta)', 'Clicks', 'Impressions', 'CTR', 'CPC', 'CPL'];
+        const rows = processedData.map(row => [
+            row.name,
+            row.status,
+            row.spendKZT.toFixed(2),
+            row.leadsMeta,
+            row.clicks,
+            row.impressions,
+            row.ctr,
+            row.cpc,
+            row.cpl
+        ]);
+
+        const csvContent = "data:text/csv;charset=utf-8," 
+            + headers.join(",") + "\n" 
+            + rows.map(e => e.join(",")).join("\n");
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `ads_report_${format(new Date(), 'yyyy-MM-dd')}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
 
   const handleForceSync = async () => {
     setLoading(true);
     try {
-        toast.info('Синхронизация с Meta Ads...');
-        await supabase.functions.invoke('sync-meta-ads', {
-            body: { projectId, syncType: 'ads' }
+        // 1. Call sync_metrics
+        const { data: syncData, error: syncError } = await supabase.functions.invoke('ads-manager', {
+            body: { 
+                action: 'sync_metrics', 
+                payload: { 
+                    projectId,
+                    date_range: dateRange?.from ? { 
+                        since: format(dateRange.from, 'yyyy-MM-dd'), 
+                        until: format(dateRange.to || dateRange.from, 'yyyy-MM-dd') 
+                    } : undefined
+                } 
+            }
         });
-        await fetchHierarchy();
-        toast.success('Данные обновлены');
-    } catch (e) {
+
+        if (syncError) throw syncError;
+        if (syncData?.type === 'error') throw new Error(syncData.message);
+
+        // 2. Refresh local insights from DB
+        await fetchAdInsights();
+        await fetchHierarchy(true);
+
+        if (syncData.message) {
+            toast.success(syncData.message);
+        } else {
+            toast.success('Данные Meta Ads обновлены');
+        }
+    } catch (e: any) {
         console.error('Sync failed', e);
-        toast.error('Ошибка синхронизации');
+        if (e.message?.includes('(#80004)')) {
+            toast.warning('Meta API: Превышен лимит запросов. Синхронизация пропущена.');
+        } else {
+            toast.error(`Ошибка синхронизации: ${e.message}`);
+        }
+    } finally {
         setLoading(false);
     }
   };
 
-  const fetchHierarchy = async () => {
+  const fetchHierarchy = async (forceApi = false) => {
     setLoading(true);
     try {
+      // 0. Try Local DB First (if not forced) to save API calls
+      if (!forceApi) {
+          // 0.1 Try 'campaigns' table
+          const { data: localCampaigns } = await (supabase as any)
+            .from('campaigns')
+            .select('*')
+            .eq('project_id', projectId)
+            .order('created_at', { ascending: false });
+
+          if (localCampaigns && localCampaigns.length > 0) {
+              const localHierarchy = localCampaigns.map((c: any) => ({
+                  id: c.external_id || c.id,
+                  name: c.name,
+                  status: c.status ? 'ACTIVE' : 'PAUSED',
+                  daily_budget: c.budget ? c.budget.toString() : '0',
+                  insights: { data: [] },
+                  adsets: { data: [] }
+              }));
+              setHierarchy(localHierarchy);
+              setLoading(false);
+              return; // Exit early if we have local data
+          }
+
+          // 0.2 Try 'ad_performance_logs' table (if campaigns is empty)
+          // This prevents API calls even if structure table is empty, as long as we have logs
+          const { data: logs } = await (supabase as any)
+             .from('ad_performance_logs')
+             .select('entity_id, entity_name, spend')
+             .eq('project_id', projectId)
+             .eq('entity_type', 'campaign')
+             .order('date_start', { ascending: false });
+             
+          if (logs && logs.length > 0) {
+             const uniqueMap = new Map();
+             logs.forEach((log: any) => {
+                 if (!uniqueMap.has(log.entity_id)) {
+                     uniqueMap.set(log.entity_id, {
+                         id: log.entity_id,
+                         name: log.entity_name || `Campaign ${log.entity_id}`,
+                         status: 'ACTIVE', 
+                         daily_budget: '0',
+                         insights: { data: [] },
+                         adsets: { data: [] }
+                     });
+                 }
+             });
+             const fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
+             setHierarchy(fallbackHierarchy);
+             setLoading(false);
+             return; // Exit early!
+          }
+      }
+
+      const payload: any = { projectId };
+      
+      if (dateRange?.from && dateRange?.to) {
+          payload.date_range = {
+              since: format(dateRange.from, 'yyyy-MM-dd'),
+              until: format(dateRange.to, 'yyyy-MM-dd')
+          };
+      }
+
+      // 1. Try to fetch from Meta API via Edge Function
       const { data, error } = await supabase.functions.invoke('ads-manager', {
-        body: { action: 'get_hierarchy', payload: { projectId } }
+        body: { action: 'get_hierarchy', payload }
       });
 
-      if (error) throw error;
-      if (data.error) throw new Error(data.error);
+      // 2. Fallback Logic for Rate Limits or Errors
+      if (error || !data || data.error) {
+        console.error('Edge Function/Meta API Error:', error || data?.error);
+        
+        const isRateLimit = data?.error?.includes('(#80004)') || data?.error?.includes('rate-limiting');
+        
+        if (isRateLimit) {
+            toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
+        } else if (data?.error?.includes('No active Ad Account')) {
+            toast.error('Рекламный аккаунт не найден.');
+            return;
+        } else {
+            // Only show toast for non-rate-limit errors to reduce noise
+            console.warn('Using local fallback due to API error');
+        }
 
+        // FETCH FALLBACK FROM DB (campaigns table)
+        // This ensures the user sees something even if Meta is down
+        let fallbackHierarchy: Campaign[] = [];
+
+        // 1. Try 'campaigns' table (structure source)
+        const { data: localCampaigns } = await (supabase as any)
+          .from('campaigns')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('created_at', { ascending: false });
+
+        if (localCampaigns && localCampaigns.length > 0) {
+            // Map DB structure to Hierarchy structure
+            fallbackHierarchy = localCampaigns.map((c: any) => ({
+                id: c.external_id || c.id, // Prefer external_id (Meta ID) if available
+                name: c.name,
+                status: c.status ? 'ACTIVE' : 'PAUSED',
+                daily_budget: c.budget ? c.budget.toString() : '0',
+                insights: { data: [] }, // No insights in hierarchy structure, handled by adInsights map
+                adsets: { data: [] } // We don't have adsets structure in DB, flat list only
+            }));
+        } else {
+             // 2. Try 'ad_performance_logs' (data source)
+             // If we have no structure, try to reconstruct from performance logs
+             const { data: logs } = await (supabase as any)
+                 .from('ad_performance_logs')
+                 .select('entity_id, entity_name, spend')
+                 .eq('project_id', projectId)
+                 .eq('entity_type', 'campaign')
+                 .order('date_start', { ascending: false }); // Get most recent first
+                 
+             if (logs && logs.length > 0) {
+                 const uniqueMap = new Map();
+                 logs.forEach((log: any) => {
+                     if (!uniqueMap.has(log.entity_id)) {
+                         uniqueMap.set(log.entity_id, {
+                             id: log.entity_id,
+                             name: log.entity_name || `Campaign ${log.entity_id}`,
+                             status: 'ACTIVE', // Default to ACTIVE to ensure visibility in fallback mode
+                             daily_budget: '0',
+                             insights: { data: [] },
+                             adsets: { data: [] }
+                         });
+                     }
+                 });
+                 fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
+             }
+        }
+
+        if (fallbackHierarchy.length > 0) {
+            setHierarchy(fallbackHierarchy);
+            // Don't return yet, allow finally block to run
+        } else {
+             // If local DB is also empty, we truly have no data
+             // Only then we might leave hierarchy empty
+        }
+        return;
+      }
+
+      // Success Path
       setHierarchy(data.data || []);
       if (data.adAccountId) {
           setAdAccountId(data.adAccountId);
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error('Failed to fetch ads hierarchy', e);
-      toast.error('Ошибка загрузки структуры рекламы');
+      toast.error(`Ошибка загрузки структуры рекламы: ${e.message || 'Неизвестная ошибка'}`);
     } finally {
       setLoading(false);
     }
@@ -212,94 +665,223 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
     setExpandedRows(newExpanded);
   };
 
-  const getLeadsCount = (insights?: { data: MetaInsight[] }) => {
-    if (!insights?.data?.[0]?.actions) return 0;
-    const action = insights.data[0].actions.find((a: any) => 
-      a.action_type === 'lead' || a.action_type === 'offsite_conversion.fb_pixel_lead'
-    );
-    return action ? parseInt(action.value) : 0;
-  };
-
-  const getSpend = (insights?: { data: MetaInsight[] }) => {
-      return parseFloat(insights?.data?.[0]?.spend || "0");
-  };
-
   // Process data into tree structure
   const processedData = useMemo(() => {
-    return hierarchy.map(campaign => {
-      const spend = getSpend(campaign.insights);
-      const leadsMeta = getLeadsCount(campaign.insights);
-      const cpl = leadsMeta > 0 ? spend / leadsMeta : 0;
-      
-      const campaignLeads = leads.filter(l => l.utm_campaign === campaign.id || l.utm_campaign === campaign.name); 
-      const leadsCRM = campaignLeads.length;
-      const diagCost = leadsCRM > 0 ? spend / leadsCRM : 0;
-      
-      const paidLeads = campaignLeads.filter(l => l.status === 'paid');
-      const sales = paidLeads.length;
-      const revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-      const roi = spend > 0 ? (revenue - spend) / spend * 100 : 0; // ROI as percentage
+    const getMetrics = (id: string, node?: any) => {
+        const record = adInsights[id];
+        let spend = record?.spend || 0;
+        let leadsMeta = record?.leads || 0;
+        let clicks = record?.clicks || 0;
+        let impressions = record?.impressions || 0;
 
-      const adsets = (campaign.adsets?.data || []).map(adset => {
-        const adsetSpend = getSpend(adset.insights);
-        const adsetLeadsMeta = getLeadsCount(adset.insights);
-        const adsetCpl = adsetLeadsMeta > 0 ? adsetSpend / adsetLeadsMeta : 0;
+        // Fallback removed to prevent mixing Lifetime (API) and Daily (DB) data.
+        // We rely strictly on DB logs for consistent aggregation.
+
+        const spendKZT = spend * KZT_RATE;
+        return { spend, leadsMeta, clicks, impressions, spendKZT };
+    };
+
+    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, leadsCRM: number }) => {
+       if (status === 'DELETED' || status === 'ARCHIVED') return false;
+       
+       // ALWAYS show items that have performance data in the selected period,
+       // regardless of their current status or the "Active Only" toggle.
+       // This ensures historical data (e.g. from Feb 1st) is visible even if the campaign is now paused.
+       if (metrics.spend > 0 || metrics.leadsMeta > 0 || metrics.leadsCRM > 0) {
+           return true;
+       }
+
+       if (showActiveOnly && status !== 'ACTIVE') return false;
+       return true;
+    };
+
+    // Helper to process nodes recursively with bottom-up aggregation
+    const processNode = (node: any, type: 'campaign' | 'adset' | 'ad'): RowData => {
+        const ownMetrics = getMetrics(node.id, node);
         
-        const ads = (adset.ads?.data || []).map(ad => {
-             const adSpend = getSpend(ad.insights);
-             const adLeadsMeta = getLeadsCount(ad.insights);
-             const adCpl = adLeadsMeta > 0 ? adSpend / adLeadsMeta : 0;
-             return {
-                 id: ad.id,
-                 type: 'ad' as const,
-                 name: ad.name,
-                 status: ad.status,
-                 spend: adSpend,
-                 leadsMeta: adLeadsMeta,
-                 cpl: adCpl,
-                 leadsCRM: 0, 
-                 diagCost: 0,
-                 sales: 0,
-                 revenue: 0,
-                 roi: 0,
-                 thumbnail: ad.creative?.thumbnail_url
-             };
+        let children: RowData[] = [];
+        let childrenSum = { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, leadsCRM: 0 };
+
+        // Process children if they exist
+        const rawChildren = type === 'campaign' ? node.adsets?.data : (type === 'adset' ? node.ads?.data : []);
+        
+        if (rawChildren && rawChildren.length > 0) {
+            const childType = type === 'campaign' ? 'adset' : 'ad';
+            // Map ALL children first (without filtering) to correctly calculate parent sums
+            const allProcessedChildren = rawChildren.map((child: any) => processNode(child, childType));
+            
+            // Sum up metrics from all children
+            childrenSum = allProcessedChildren.reduce((acc: any, child: RowData) => ({
+                spend: acc.spend + child.spend,
+                leadsMeta: acc.leadsMeta + child.leadsMeta,
+                clicks: (acc.clicks || 0) + (child.clicks || 0),
+                impressions: (acc.impressions || 0) + (child.impressions || 0),
+                spendKZT: acc.spendKZT + child.spendKZT,
+                leadsCRM: (acc.leadsCRM || 0) + child.leadsCRM
+            }), { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, leadsCRM: 0 });
+
+            // Filter for display based on Status AND Metrics
+            children = allProcessedChildren.filter((child: RowData) => 
+                shouldShow(child.status, child.id, { 
+                    spend: child.spend, 
+                    leadsMeta: child.leadsMeta, 
+                    leadsCRM: child.leadsCRM 
+                })
+            );
+        }
+
+        // Final Metrics: Max(Own, SumChildren) to ensure consistency (Pyramid Rule)
+        const finalSpend = Math.max(ownMetrics.spend, childrenSum.spend);
+        const finalSpendKZT = Math.max(ownMetrics.spendKZT, childrenSum.spendKZT);
+        
+        const rawLeadsMeta = Math.max(ownMetrics.leadsMeta, childrenSum.leadsMeta);
+        const finalClicks = Math.max(ownMetrics.clicks, childrenSum.clicks);
+        const finalImpressions = Math.max(ownMetrics.impressions, childrenSum.impressions);
+        
+        // CRM Metrics Logic
+        // Filter leads relevant to this node based on UTM parameters
+        const nodeLeads = filteredLeads.filter(l => {
+            const normId = normalize(node.id);
+            const normName = normalize(node.name);
+
+            if (type === 'campaign') {
+                const utm = l.utm_campaign;
+                if (!utm) return false;
+                const normUtm = normalize(utm);
+                
+                // 1. Exact Match (ID or Name)
+                if (utm === node.id || normUtm === normName) return true;
+                
+                // 2. Loose Match (Inclusion)
+                if (normUtm.length > 3 && normName.length > 3) {
+                     if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+                }
+                return false;
+
+            } else if (type === 'adset') {
+                const utm = l.utm_term; // Standard UTM for AdSet
+                if (!utm) return false;
+                const normUtm = normalize(utm);
+                
+                if (utm === node.id || normUtm === normName) return true;
+                if (normUtm.length > 3 && normName.length > 3) {
+                     if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+                }
+                return false;
+
+            } else if (type === 'ad') {
+                const utm = l.utm_content; // Standard UTM for Ad
+                if (!utm) return false;
+                const normUtm = normalize(utm);
+
+                if (utm === node.id || normUtm === normName) return true;
+                if (normUtm.length > 3 && normName.length > 3) {
+                     if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+                }
+                return false;
+            }
+            return false;
         });
 
-        return {
-            id: adset.id,
-            type: 'adset' as const,
-            name: adset.name,
-            status: adset.status,
-            spend: adsetSpend,
-            leadsMeta: adsetLeadsMeta,
-            cpl: adsetCpl,
-            leadsCRM: 0,
-            diagCost: 0,
-            sales: 0,
-            revenue: 0,
-            roi: 0,
-            children: ads
-        };
-      });
+        // Leads CRM: For campaigns, if direct matching fails (0), try using children sum
+        // This handles cases where leads match AdSets (via utm_term) but not Campaign (via utm_campaign)
+        let leadsCRM = nodeLeads.length;
+        if (leadsCRM === 0 && type === 'campaign' && childrenSum.leadsCRM > 0) {
+             leadsCRM = childrenSum.leadsCRM;
+        }
 
-      return {
-        id: campaign.id,
-        type: 'campaign' as const,
-        name: campaign.name,
-        status: campaign.status,
-        spend,
-        leadsMeta,
-        cpl,
-        leadsCRM,
-        diagCost,
-        sales,
-        revenue,
-        roi,
-        children: adsets
-      };
-    });
-  }, [hierarchy, leads]);
+        // Smart Leads Logic: Use Max(Meta, CRM)
+        const finalLeadsMeta = Math.max(rawLeadsMeta, leadsCRM);
+
+        // Calculate derivatives (using Smart Leads count)
+        const cpl = finalLeadsMeta > 0 ? finalSpendKZT / finalLeadsMeta : 0;
+
+        const paidLeads = nodeLeads.filter(l => l.status === 'paid');
+        const sales = paidLeads.length;
+        const revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+
+        const diagCost = leadsCRM > 0 ? finalSpendKZT / leadsCRM : 0;
+        const roi = finalSpendKZT > 0 ? (revenue - finalSpendKZT) / finalSpendKZT * 100 : 0;
+        
+        const ctr = finalImpressions > 0 ? ((finalClicks / finalImpressions) * 100).toFixed(2) + '%' : '0%';
+        const cpc = finalClicks > 0 ? finalSpendKZT / finalClicks : 0;
+
+        // Push Down Logic: If there is exactly one child (1:1 relationship),
+        // ensure the child inherits the parent's final metrics to prevent data gaps.
+        // This addresses the "1 Campaign = 1 Group = 1 Ad" consistency requirement.
+        if (children.length === 1) {
+             const applyMetricsRecursively = (target: RowData, sourceMetrics: any) => {
+                 target.spend = sourceMetrics.spend;
+                 target.spendKZT = sourceMetrics.spendKZT;
+                 target.leadsMeta = sourceMetrics.leadsMeta;
+                 target.clicks = sourceMetrics.clicks;
+                 target.impressions = sourceMetrics.impressions;
+                 target.cpl = sourceMetrics.cpl;
+                 target.leadsCRM = sourceMetrics.leadsCRM;
+                 target.diagCost = sourceMetrics.diagCost;
+                 target.sales = sourceMetrics.sales;
+                 target.revenue = sourceMetrics.revenue;
+                 target.roi = sourceMetrics.roi;
+                 target.ctr = sourceMetrics.ctr;
+                 target.cpc = sourceMetrics.cpc;
+
+                 // Continue propagating down if the target also has exactly one child
+                 if (target.children && target.children.length === 1) {
+                     applyMetricsRecursively(target.children[0], sourceMetrics);
+                 }
+             };
+
+             const metricsToPush = {
+                 spend: finalSpend,
+                 spendKZT: finalSpendKZT,
+                 leadsMeta: finalLeadsMeta,
+                 clicks: finalClicks,
+                 impressions: finalImpressions,
+                 cpl: cpl,
+                 leadsCRM: leadsCRM,
+                 diagCost: diagCost,
+                 sales: sales,
+                 revenue: revenue,
+                 roi: roi,
+                 ctr: ctr,
+                 cpc: cpc
+             };
+
+             applyMetricsRecursively(children[0], metricsToPush);
+        }
+
+        return {
+            id: node.id,
+            type,
+            name: node.name,
+            status: node.status,
+            spend: finalSpend,
+            spendKZT: finalSpendKZT,
+            leadsMeta: finalLeadsMeta,
+            clicks: finalClicks,
+            impressions: finalImpressions,
+            cpl,
+            leadsCRM,
+            diagCost,
+            sales,
+            revenue,
+            roi,
+            ctr,
+            cpc,
+            thumbnail: type === 'ad' ? node.creative?.thumbnail_url : undefined,
+            children
+        };
+    };
+
+    return fullHierarchy
+        .map(campaign => processNode(campaign, 'campaign'))
+        .filter(campaign => shouldShow(campaign.status, campaign.id, {
+            spend: campaign.spend,
+            leadsMeta: campaign.leadsMeta,
+            leadsCRM: campaign.leadsCRM
+        }));
+
+    }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly]);
 
   // Sort Logic
   const sortedData = useMemo(() => {
@@ -351,6 +933,17 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
   const formatNumber = (val: number) => new Intl.NumberFormat('ru-RU').format(val);
   const formatPercent = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'percent', maximumFractionDigits: 1 }).format(val / 100);
 
+  // Footer Totals Calculation
+  const totalSpendKZT = processedData.reduce((sum, row) => sum + row.spendKZT, 0);
+  const totalLeadsMeta = processedData.reduce((sum, row) => sum + row.leadsMeta, 0);
+  const totalLeadsCRM = processedData.reduce((sum, row) => sum + row.leadsCRM, 0);
+  const totalSales = processedData.reduce((sum, row) => sum + row.sales, 0);
+  const totalRevenue = processedData.reduce((sum, row) => sum + row.revenue, 0);
+  
+  // Unattributed Logic (Leads that exist in CRM date range but didn't match any campaign)
+  // const allCrmLeadsCount = filteredLeads.length;
+  // const unattributedLeads = Math.max(0, allCrmLeadsCount - totalLeadsCRM);
+
   const getSortIcon = (key: keyof RowData) => {
     if (sortConfig.key !== key) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
     return sortConfig.direction === 'asc' 
@@ -358,41 +951,7 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
       : <ArrowUpDown className="w-3 h-3 ml-1 text-primary rotate-180" />;
   };
 
-  // Export
-  const handleExport = () => {
-    const headers = [
-      'ID', 'Type', 'Name', 'Status', 'Spend', 'Leads (Meta)', 'CPL', 'Leads (CRM)', 'Diag Cost', 'Sales', 'Revenue', 'ROI'
-    ];
-    
-    const rows = visibleRows.map(row => [
-      row.id,
-      row.type,
-      `"${row.name.replace(/"/g, '""')}"`,
-      row.status,
-      row.spend.toFixed(2),
-      row.leadsMeta,
-      row.cpl.toFixed(2),
-      row.leadsCRM,
-      row.diagCost.toFixed(2),
-      row.sales,
-      row.revenue.toFixed(2),
-      (row.roi).toFixed(2) + '%'
-    ]);
 
-    const csvContent = [
-      headers.join(','),
-      ...rows.map(r => r.join(','))
-    ].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `ads_export_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
 
   // Editing Logic
   const [editingEntity, setEditingEntity] = useState<RowData | null>(null);
@@ -462,6 +1021,7 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
     }
   };
 
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 rounded-xl crm-card-glass border border-border/50">
@@ -485,13 +1045,26 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <Button variant="outline" size="sm" onClick={handleForceSync} disabled={loading}>
-             <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
-             Обновить
-          </Button>
+          <div className="flex items-center gap-2">
+             <Button variant="outline" size="sm" onClick={handleForceSync} disabled={loading} className="hidden md:flex">
+                <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
+                Синхронизация
+             </Button>
+
+             <div className="flex items-center space-x-2 bg-muted/50 p-1.5 rounded-lg border border-border/50">
+                <Switch
+                    id="active-mode"
+                    checked={showActiveOnly}
+                    onCheckedChange={setShowActiveOnly}
+                />
+                <Label htmlFor="active-mode" className="text-xs font-medium cursor-pointer">
+                    {showActiveOnly ? 'Только активные' : 'Все кампании'}
+                </Label>
+             </div>
+
+
           
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={loading || visibleRows.length === 0}>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={loading || visibleRows.length === 0}>
              <Download className="w-4 h-4 mr-2" />
              Экспорт
           </Button>
@@ -534,7 +1107,7 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
             <TableRow className="hover:bg-transparent border-b border-border/50">
               <TableHead className="w-[350px]">
                 <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 -ml-3 hover:bg-transparent font-bold">
-                  Кампания / Группа / Объявление
+                  Кампания
                   {getSortIcon('name')}
                 </Button>
               </TableHead>
@@ -703,19 +1276,22 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
 
                   {columnVisibility.spend && (
                     <TableCell className="text-right tabular-nums font-mono text-sm">
-                      {formatCurrency(row.spend)}
+                      {formatCurrency(row.spendKZT)}
                     </TableCell>
                   )}
 
                   {columnVisibility.leads && (
-                    <TableCell className="text-right tabular-nums font-mono text-sm">
+                    <TableCell className={cn(
+                        "text-right tabular-nums font-mono text-sm",
+                        row.status === 'ACTIVE' && row.leadsMeta === 0 && row.spendKZT > 2000 && "bg-red-500/20 text-red-500 font-bold"
+                    )}>
                        {formatNumber(row.leadsMeta)}
                     </TableCell>
                   )}
 
                   {columnVisibility.cpl && (
                     <TableCell className="text-right tabular-nums font-mono text-sm text-muted-foreground">
-                       {row.cpl > 0 ? formatCurrency(row.cpl) : '-'}
+                       {row.leadsMeta === 0 ? '0 ₸' : formatCurrency(row.cpl)}
                     </TableCell>
                   )}
 
@@ -755,6 +1331,24 @@ export const ActiveAdsManager = ({ projectId }: ActiveAdsManagerProps) => {
                 </TableRow>
               ))
             )}
+
+            {/* Totals Row */}
+            {!loading && processedData.length > 0 && (
+                <TableRow className="bg-muted/50 font-bold hover:bg-muted/50 border-t-2 border-border">
+                    <TableCell>ИТОГО</TableCell>
+                    {columnVisibility.status && <TableCell />}
+                    {columnVisibility.spend && <TableCell className="text-right">{formatCurrency(totalSpendKZT)}</TableCell>}
+                    {columnVisibility.leads && <TableCell className="text-right">{formatNumber(totalLeadsMeta)}</TableCell>}
+                    {columnVisibility.cpl && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.diagnostics && <TableCell className="text-right text-blue-400">{formatNumber(totalLeadsCRM)}</TableCell>}
+                    {columnVisibility.diagCost && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.sales && <TableCell className="text-right text-emerald-400">{formatNumber(totalSales)}</TableCell>}
+                    {columnVisibility.revenue && <TableCell className="text-right text-emerald-400">{formatCurrency(totalRevenue)}</TableCell>}
+                    {columnVisibility.roi && <TableCell className="text-right">-</TableCell>}
+                </TableRow>
+            )}
+            
+            {/* Unattributed Row Removed per user request */}
           </TableBody>
         </Table>
       </div>

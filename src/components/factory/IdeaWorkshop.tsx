@@ -14,9 +14,9 @@ interface IdeaWorkshopProps {
 
 export const IdeaWorkshop = ({ items, onApprove }: IdeaWorkshopProps) => {
   return (
-    <div className="h-full flex flex-col bg-muted/10 dark:bg-background border-r border-border/40 dark:border-white/5">
+    <div className="h-full flex flex-col bg-muted/10 border-r border-border/40">
       {/* Header */}
-      <div className="p-4 border-b border-border/40 dark:border-white/5 bg-background/50 backdrop-blur-sm">
+      <div className="p-4 border-b border-border/40 bg-background/50 backdrop-blur-sm">
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-blue-500/10 text-blue-500">

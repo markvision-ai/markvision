@@ -378,7 +378,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             <Badge
                               className={cn(
                                 'text-[14px] shrink-0',
-                                isActive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
+                                isActive ? 'bg-emerald-500/15 text-emerald-600  border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
                               )}
                             >
                               {isActive ? 'ВКЛ' : 'ВЫКЛ'}
