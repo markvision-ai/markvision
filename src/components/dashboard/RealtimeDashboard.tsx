@@ -17,7 +17,8 @@ import {
     Facebook,
     Webhook,
     UserPlus,
-    MessageCircle
+    MessageCircle,
+    Stethoscope
   } from 'lucide-react';
 import { supabase } from '@/lib/supabase-simplified';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -50,16 +51,22 @@ interface RealtimeTransaction {
   created_at: string | null;
 }
 
+import { useProjectData } from '@/hooks/useProjectData';
+import { format } from 'date-fns';
+
 interface RealtimeDashboardProps {
   projectId: string | null;
 }
 
 export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
+  const { dailyData: projectDailyData } = useProjectData(projectId);
+  
   const [metrics, setMetrics] = useState<RealtimeMetric[]>([
     { label: 'Лиды сегодня', value: 0, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
     { label: 'Новые подписчики', value: 0, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
     { label: 'Выручка сегодня', value: 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
     { label: 'Продажи', value: 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
+    { label: 'Диагностики', value: 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
     { label: 'Активность', value: 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
   ]);
   
@@ -76,21 +83,30 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     whatsapp: false
   });
 
-  // Fetch initial data
+  // Update metrics when projectDailyData changes
+  useEffect(() => {
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const todayData = projectDailyData[todayStr];
+    
+    // Set metrics - always show values, default to 0 if no data
+    // Use merged data from useProjectData (includes Realtime Ads Logs)
+    const followersToday = todayData ? (todayData.followers || todayData.new_followers || todayData.ig_followers_new || 0) : 0;
+    
+    setMetrics([
+      { label: 'Лиды сегодня', value: todayData?.leads || 0, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
+      { label: 'Новые подписчики', value: followersToday, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
+      { label: 'Выручка сегодня', value: todayData?.revenue || 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
+      { label: 'Продажи', value: todayData?.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
+      { label: 'Диагностики', value: todayData?.diagnostics || 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
+      { label: 'Активность', value: todayData?.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
+    ]);
+  }, [projectDailyData]);
+
+  // Fetch initial data (Leads, Transactions, System Status)
   useEffect(() => {
     if (!projectId) return;
 
     const fetchInitialData = async () => {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Fetch today's data - always show 0 if no data
-      const { data: dailyData } = await supabase
-        .from('daily_data')
-        .select('*')
-        .eq('project_id', projectId)
-        .eq('date', today)
-        .maybeSingle();
-
       // Fetch recent leads (last 10)
       const { data: leads } = await supabase
         .from('leads')
@@ -99,7 +115,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Fetch recent transactions (payments)
+      if (leads) {
+        setRecentLeads(leads);
+      }
+
+      // Fetch recent transactions (last 10)
       const { data: transactions } = await supabase
         .from('transactions')
         .select('id, type, amount, category, created_at')
@@ -107,19 +127,9 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         .order('created_at', { ascending: false })
         .limit(10);
 
-      // Set metrics - always show values, default to 0 if no data
-      const followersToday = dailyData ? (dailyData.followers_today || dailyData.new_followers || dailyData.ig_followers_new || 0) : 0;
-      
-      setMetrics([
-        { label: 'Лиды сегодня', value: dailyData?.leads || 0, previousValue: 0, format: 'number', icon: <Users className="h-5 w-5" />, color: 'text-blue-500' },
-        { label: 'Новые подписчики', value: followersToday, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
-        { label: 'Выручка сегодня', value: dailyData?.revenue || 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
-        { label: 'Продажи', value: dailyData?.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-        { label: 'Активность', value: dailyData?.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
-      ]);
-
-      if (leads) setRecentLeads(leads);
-      if (transactions) setRecentTransactions(transactions);
+      if (transactions) {
+        setRecentTransactions(transactions);
+      }
       
       // Fetch system statuses
       // Meta (Facebook) status from ad_accounts
@@ -192,7 +202,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           setTimeout(() => setPulseEffect(null), 1000);
           
           if (payload.new && typeof payload.new === 'object') {
-            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number; new_followers?: number; followers_today?: number; ig_followers_new?: number; followers?: number };
+            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number; new_followers?: number; followers_today?: number; ig_followers_new?: number; followers?: number; diagnostics?: number };
             
             const newFollowers = newData.followers_today || newData.new_followers || newData.ig_followers_new || newData.followers || 0;
             
@@ -201,7 +211,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
               { ...prev[1], previousValue: prev[1].value, value: newFollowers },
               { ...prev[2], previousValue: prev[2].value, value: Math.round(newData.revenue || 0) },
               { ...prev[3], previousValue: prev[3].value, value: newData.sales || 0 },
-              { ...prev[4], previousValue: prev[4].value, value: newData.clicks || 0 },
+              { ...prev[4], previousValue: prev[4].value, value: newData.diagnostics || 0 },
+              { ...prev[5], previousValue: prev[5].value, value: newData.clicks || 0 },
             ]);
           }
         }

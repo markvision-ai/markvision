@@ -37,6 +37,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
             headers: { 'Content-Type': 'application/json' }
           });
         }
+        // Log other errors
+        console.error('Supabase fetch error:', err);
         throw err;
       });
     }

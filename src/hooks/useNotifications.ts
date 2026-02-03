@@ -42,11 +42,12 @@ export const useNotifications = (projectId?: string) => {
     }
 
     // Cancel previous request if running
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
-    }
-    abortControllerRef.current = new AbortController();
-    const signal = abortControllerRef.current.signal;
+    // We don't abort anymore to avoid console errors
+    // if (abortControllerRef.current) {
+    //   abortControllerRef.current.abort();
+    // }
+    // abortControllerRef.current = new AbortController();
+    // const signal = abortControllerRef.current.signal;
 
     setLoading(true);
     const newNotifications: Notification[] = [];
@@ -63,16 +64,16 @@ export const useNotifications = (projectId?: string) => {
       // Fetch projects first (needed for everything else)
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
-        .select('id, name')
-        .abortSignal(signal);
+        .select('id, name');
+        // .abortSignal(signal);
 
       if (projectsError) throw projectsError;
 
       if (!projects || projects.length === 0) {
-        if (!signal.aborted) {
+        // if (!signal.aborted) {
           setNotifications([]);
           setLoading(false);
-        }
+        // }
         return;
       }
 
@@ -94,31 +95,31 @@ export const useNotifications = (projectId?: string) => {
           .from('daily_data')
           .select('*')
           .gte('date', weekAgoStr)
-          .lte('date', todayStr)
-          .abortSignal(signal),
+          .lte('date', todayStr),
+          // .abortSignal(signal),
         
         // 2. Previous Week Data
         supabase
           .from('daily_data')
           .select('*')
           .gte('date', twoWeeksAgoStr)
-          .lt('date', weekAgoStr)
-          .abortSignal(signal),
+          .lt('date', weekAgoStr),
+          // .abortSignal(signal),
 
         // 3. New Leads Today (Count only)
         supabase
           .from('leads')
           .select('*', { count: 'exact', head: true })
-          .gte('created_at', todayStr)
-          .abortSignal(signal),
+          .gte('created_at', todayStr),
+          // .abortSignal(signal),
 
         // 4. Webhook Errors (Count only)
         supabase
           .from('webhook_logs')
           .select('*', { count: 'exact', head: true })
           .eq('status', 'error')
-          .gte('received_at', weekAgoIso)
-          .abortSignal(signal),
+          .gte('received_at', weekAgoIso),
+          // .abortSignal(signal),
 
         // 5. Recent Data Gaps
         supabase
@@ -129,7 +130,7 @@ export const useNotifications = (projectId?: string) => {
              d.setDate(d.getDate() - i - 1);
              return d.toISOString().split('T')[0];
            }))
-          .abortSignal(signal)
+          // .abortSignal(signal)
       ]);
 
       // Process Results

@@ -95,7 +95,7 @@ export function BeamVisualization({
             <div className="absolute inset-0 rounded-3xl sm:rounded-[28px] bg-gradient-to-br from-blue-400 to-cyan-500 blur-2xl opacity-30 scale-150" />
             
             <div ref={centerRef} className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-card shadow-2xl shadow-blue-500/20 overflow-hidden p-2">
-              <MarkVisionLogo className="w-full h-full drop-shadow-xl" />
+              <MarkVisionLogo size="100%" className="drop-shadow-xl" />
             </div>
           </motion.div>
           <span className="mt-4 text-sm sm:text-base font-semibold text-foreground tracking-tight">

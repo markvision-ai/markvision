@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import markvisionLogo from '@/assets/markvision-logo-new.png';
+import markvisionLogo from '@/assets/markvision-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
@@ -229,8 +229,8 @@ export const Sidebar = ({
       {/* Logo */}
       <div className="p-4 md:p-6 border-b border-sidebar-muted">
         <div className="flex items-center gap-3">
-          <div className="relative w-8 h-8 md:w-10 md:h-10 flex items-center justify-center">
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain" />
+          <div className="relative h-10 md:h-12 w-auto flex items-center justify-center">
+            <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-auto object-contain mix-blend-multiply" />
           </div>
           <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
             MarkVision AI

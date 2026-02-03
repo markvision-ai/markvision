@@ -97,12 +97,68 @@ export const useProjectData = (projectId: string | null) => {
     // const signal = abortControllerRef.current.signal;
 
     try {
-      const { data, error } = await supabase
-        .from('daily_data')
-        .select('*')
-        .eq('project_id', effectiveProjectId)
-        .order('date', { ascending: true });
-        // .abortSignal(signal);
+      // Use local date to match UI expectation (ActiveAdsManager uses format(new Date(), 'yyyy-MM-dd'))
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+
+      // AUTO-SYNC META ADS: Trigger sync if not done recently (shared logic with ActiveAdsManager)
+      // This ensures Main Dashboard has fresh data even if user hasn't visited Ads Manager
+      const lastSyncKey = `ads_sync_${effectiveProjectId}_${todayStr}`;
+      const lastSyncTime = sessionStorage.getItem(lastSyncKey);
+      const nowMs = Date.now();
+      
+      // Sync if not synced in last 5 minutes (300000ms)
+      if (!lastSyncTime || (nowMs - parseInt(lastSyncTime)) > 300000) {
+        console.log('🔄 useProjectData | Triggering Auto-Sync for Meta Ads...');
+        sessionStorage.setItem(lastSyncKey, nowMs.toString());
+        
+        // Fire and forget - the realtime subscription will catch the updates
+        supabase.functions.invoke('ads-manager', {
+          body: { 
+            action: 'sync_metrics', 
+            payload: { 
+              projectId: effectiveProjectId,
+              date_range: { since: todayStr, until: todayStr } 
+            } 
+          }
+        }).then(({ data, error }) => {
+           if (error || data?.error) {
+             console.warn('⚠️ useProjectData | Auto-sync failed or rate limited:', error || data?.error);
+             // If failed, clear storage so we retry next time (or maybe keep it to avoid spamming?)
+             // Better to keep it for at least a minute to avoid loop
+           } else {
+             console.log('✅ useProjectData | Auto-sync initiated successfully');
+           }
+        });
+      }
+
+      // Parallel fetch: Daily Data + Real-time Ad Logs for Today
+      console.log(`📊 useProjectData | Fetching ads data for todayStr: ${todayStr}, project: ${effectiveProjectId}`);
+      const [dailyResult, adsResult] = await Promise.all([
+        supabase
+          .from('daily_data')
+          .select('*')
+          .eq('project_id', effectiveProjectId)
+          .order('date', { ascending: true }),
+        
+        // Fetch ad logs for today to ensure real-time spend/metrics visibility
+        supabase
+          .from('ad_performance_logs')
+          .select('*')
+          .eq('project_id', effectiveProjectId)
+          .eq('date_start', todayStr)
+      ]);
+
+      const { data, error } = dailyResult;
+      const { data: adsLogs, error: adsError } = adsResult;
+
+      if (adsError) {
+        console.error('❌ useProjectData | Error fetching ads logs:', adsError);
+      } else {
+        console.log(`✅ useProjectData | Fetched ${adsLogs?.length || 0} ads logs for today`);
+        if (adsLogs?.length) {
+            console.log('🔍 First ad log sample:', adsLogs[0]);
+        }
+      }
 
       if (error) {
         // Suppress Abort/Cancel errors
@@ -120,6 +176,8 @@ export const useProjectData = (projectId: string | null) => {
       console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
       
       const dataMap: Record<string, DailyData> = {};
+      
+      // 1. Process standard daily_data
       data?.forEach((row) => {
         const followersDelta = Number(row.ig_followers_new) || Number(row.new_followers) || Number(row.followers) || 0;
 
@@ -138,6 +196,68 @@ export const useProjectData = (projectId: string | null) => {
           revenue: Number(row.revenue) || 0,
         };
       });
+
+      // 2. Process & Merge Real-time Ads Data for Today
+      if (adsLogs && adsLogs.length > 0) {
+        console.log(`📊 useProjectData | Merging ${adsLogs.length} ad logs for today (${todayStr})`);
+        
+        // Deduplicate logs (logic from ActiveAdsManager)
+        const uniqueLogs: Record<string, any> = {};
+        adsLogs.forEach((item: any) => {
+            const key = `${item.entity_id}_${item.date_start}`;
+            const currentSpend = Number(item.spend) || 0;
+            const existingSpend = uniqueLogs[key] ? (Number(uniqueLogs[key].spend) || 0) : -1;
+            
+            if (!uniqueLogs[key] || currentSpend >= existingSpend) {
+                uniqueLogs[key] = item;
+            }
+        });
+
+        // Calculate totals
+        let todaySpend = 0;
+        let todayImpressions = 0;
+        let todayClicks = 0;
+        let todayLeads = 0;
+
+        Object.values(uniqueLogs).forEach((log: any) => {
+          todaySpend += Number(log.spend) || 0;
+          todayImpressions += Number(log.impressions) || 0;
+          todayClicks += Number(log.clicks) || 0;
+          todayLeads += Number(log.leads) || 0;
+        });
+
+        // Initialize today's entry if missing
+        if (!dataMap[todayStr]) {
+           dataMap[todayStr] = {
+             date: todayStr,
+             spend: 0,
+             impressions: 0,
+             clicks: 0,
+             leads: 0,
+             followers: 0,
+             followers_total: 0,
+             diagnostics: 0,
+             sales: 0,
+             revenue: 0,
+             ig_followers_new: 0,
+             new_followers: 0
+           };
+        }
+
+        // Overwrite with real-time aggregated values
+        // We assume ad_performance_logs is the source of truth for today's Ad metrics
+        dataMap[todayStr].spend = todaySpend;
+        dataMap[todayStr].impressions = todayImpressions;
+        dataMap[todayStr].clicks = todayClicks;
+        // Merge leads: Use MAX(CRM Leads, Ad Leads) to avoid undercounting if CRM is slow, 
+        // or overcounting if Ad API is duplicating. 
+        // Usually, CRM leads (from daily_data) are more reliable for business logic, 
+        // but for "Ads Management" context, ad logs are used.
+        // Let's use logic from CampaignFunnelChart: MAX(Meta Logs, CRM Leads)
+        dataMap[todayStr].leads = Math.max(dataMap[todayStr].leads, todayLeads);
+        
+        console.log('✅ useProjectData | Updated today with real-time ads data:', { todaySpend, todayImpressions, todayClicks, todayLeads });
+      }
 
       setDailyData(dataMap);
       lastFetchTimeRef.current = now;
@@ -388,9 +508,29 @@ export const useProjectData = (projectId: string | null) => {
     };
 
     loadData();
+
+    // Subscribe to ad_performance_logs changes to auto-refresh when Ads Manager syncs
+    const channel = supabase
+      .channel(`project-data-ads-${effectiveProjectId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ad_performance_logs',
+          filter: `project_id=eq.${effectiveProjectId}`
+        },
+        (payload) => {
+           console.log('🔔 useProjectData | Realtime update from ad_performance_logs:', payload.eventType);
+           // Refresh daily data (which includes ads merge logic)
+           fetchDailyData(true);
+        }
+      )
+      .subscribe();
     
     return () => {
       isMounted = false;
+      supabase.removeChannel(channel);
     };
   }, [effectiveProjectId]); // Только при смене проекта!
 
