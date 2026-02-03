@@ -1779,12 +1779,49 @@ export type Database = {
           },
         ]
       }
+      project_members: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string | null
+          project_id: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          project_id: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string | null
+          project_id?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           created_at: string
           id: string
           name: string
+          n8n_webhook_url: string | null
           onboarding_status: string | null
+          organization_id: string | null
           owner_id: string
           telegram_chat_id: string | null
           updated_at: string
@@ -1793,7 +1830,9 @@ export type Database = {
           created_at?: string
           id?: string
           name: string
+          n8n_webhook_url?: string | null
           onboarding_status?: string | null
+          organization_id?: string | null
           owner_id: string
           telegram_chat_id?: string | null
           updated_at?: string
@@ -1802,7 +1841,9 @@ export type Database = {
           created_at?: string
           id?: string
           name?: string
+          n8n_webhook_url?: string | null
           onboarding_status?: string | null
+          organization_id?: string | null
           owner_id?: string
           telegram_chat_id?: string | null
           updated_at?: string

@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -91,6 +90,13 @@ const contentTypeConfig: Record<ContentType, { label: string; icon: React.ReactN
     bg: 'bg-sky-500/10', 
     text: 'text-sky-600',
     border: 'border-sky-200'
+  },
+  dental_video: { 
+    label: 'Стоматология', 
+    icon: <Video className="w-4 h-4" />, 
+    bg: 'bg-teal-500/10', 
+    text: 'text-teal-600',
+    border: 'border-teal-200'
   },
 };
 
