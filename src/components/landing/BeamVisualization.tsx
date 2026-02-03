@@ -91,16 +91,12 @@ export function BeamVisualization({
           duration: 0.5,
           type: "spring"
         }} className="relative">
-            {/* Glow effect */}
-            <div className="absolute inset-0 rounded-3xl sm:rounded-[28px] bg-gradient-to-br from-blue-400 to-cyan-500 blur-2xl opacity-30 scale-150" />
+            {/* Glow effect removed as per request */}
             
-            <div ref={centerRef} className="relative z-10 flex h-24 w-24 sm:h-32 sm:w-32 items-center justify-center rounded-3xl sm:rounded-[28px] bg-card shadow-2xl shadow-blue-500/20 overflow-hidden p-2">
-              <MarkVisionLogo size="100%" className="drop-shadow-xl" />
+            <div ref={centerRef} className="relative z-10 flex h-28 w-28 sm:h-40 sm:w-40 items-center justify-center p-0">
+              <MarkVisionLogo size="100%" className="drop-shadow-2xl scale-125" />
             </div>
           </motion.div>
-          <span className="mt-4 text-sm sm:text-base font-semibold text-foreground tracking-tight">
-            MarkVision AI
-          </span>
         </div>
 
         {/* Right side - Output destinations */}

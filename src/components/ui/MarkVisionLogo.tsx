@@ -21,8 +21,8 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
     <img 
       src={logoNew}
       alt="MarkVision AI Logo"
-      className={cn("transition-all duration-300 block object-contain mix-blend-multiply", className)}
-      style={{ height: iconSize, width: 'auto' }}
+      className={cn("transition-all duration-300 block object-contain", className)}
+      style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
     />
   );
 

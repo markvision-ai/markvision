@@ -194,8 +194,8 @@ export const LandingPage = () => {
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-2xl border-b border-border safe-area-top">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="h-10 sm:h-14 w-auto relative flex items-center justify-center">
-              <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-auto object-contain mix-blend-multiply" />
+            <div className="h-12 w-12 sm:h-16 sm:w-16 relative flex items-center justify-center overflow-hidden rounded-lg">
+              <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-full object-contain scale-125" />
             </div>
             <span className="font-semibold text-sm sm:text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-blue-500 to-foreground/80">
               MarkVision AI

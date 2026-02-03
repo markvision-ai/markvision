@@ -380,14 +380,10 @@ export default function Auth() {
         delay: 0.1,
         duration: 0.5
       }} className="text-center mb-8">
-          <div className="relative inline-block mb-4">
-            <div className="h-24 sm:h-32 w-auto mx-auto relative flex items-center justify-center">
-              <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-auto object-contain mix-blend-multiply" />
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full -z-10 scale-150" />
-            </div>
+          <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto relative flex items-center justify-center overflow-hidden rounded-xl">
+            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-2xl scale-125" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold -mt-2">
             <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent">
               MarkVision AI
             </span>

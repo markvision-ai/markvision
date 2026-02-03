@@ -227,10 +227,10 @@ export const Sidebar = ({
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-4 md:p-6 border-b border-sidebar-muted">
-        <div className="flex items-center gap-3">
-          <div className="relative h-10 md:h-12 w-auto flex items-center justify-center">
-            <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-auto object-contain mix-blend-multiply" />
+      <div className="p-2 border-b border-sidebar-muted">
+        <div className="flex items-center gap-2">
+          <div className="relative h-12 w-12 md:h-14 md:w-14 flex items-center justify-center overflow-hidden rounded-lg">
+            <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-full object-contain scale-125" />
           </div>
           <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
             MarkVision AI
