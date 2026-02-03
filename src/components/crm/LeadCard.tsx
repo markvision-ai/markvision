@@ -237,9 +237,9 @@ export const LeadCard = ({
         hasHighScore && !needsAttention && 'shadow-lg shadow-red-500/30 ring-1 ring-red-500/20',
         // Golden background for MEGA leads (budget > 1M)
         isGoldenLead && !needsAttention
-          ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80    border-2 border-amber-400/70  
+          ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80    border-2 border-amber-400/70'
           : !needsAttention,
-        needsAttention && 'bg-red-50/40 
+        needsAttention && 'bg-red-50/40', 
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg hover:bg-card/70',
         !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-foreground/20',

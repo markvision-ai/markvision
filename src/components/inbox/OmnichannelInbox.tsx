@@ -603,7 +603,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                   "text-xs border-0",
                   selectedThread.channel === 'whatsapp' && 'bg-green-500/20 text-green-600',
                   selectedThread.channel === 'instagram' && 'bg-pink-500/20 text-pink-600',
-                  selectedThread.channel === 'tiktok' && 'bg-black/20 text-black 
+                  selectedThread.channel === 'tiktok' && 'bg-black/20 text-black'
                 )}>
                   {selectedThread.channel}
                 </Badge>
