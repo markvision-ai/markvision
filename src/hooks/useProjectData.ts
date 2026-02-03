@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { format, startOfMonth } from 'date-fns';

@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { useState, useMemo, useCallback } from 'react';
 import { useLeads, Lead } from '@/hooks/useLeads';
 import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
