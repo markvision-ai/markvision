@@ -368,7 +368,7 @@ export default function Auth() {
       y: 0
     }} transition={{
       duration: 0.5
-    }} className="w-full max-w-md relative z-10">
+    }} className="w-full max-w-lg relative z-10">
         {/* Logo Section */}
         <motion.div initial={{
         scale: 0.8,
