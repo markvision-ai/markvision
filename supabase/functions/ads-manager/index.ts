@@ -766,7 +766,7 @@ async function syncMetricsAction(supabase: any, projectId: string, payload: any)
     const accessToken = await getAccessToken(supabase, projectId);
     const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
     
-    let allInsights: any[] = [];
+    const allInsights: any[] = [];
     const levels = ['campaign', 'adset', 'ad'];
 
     if (payload.date_range) {

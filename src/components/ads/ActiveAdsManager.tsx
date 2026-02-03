@@ -669,10 +669,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const processedData = useMemo(() => {
     const getMetrics = (id: string, node?: any) => {
         const record = adInsights[id];
-        let spend = record?.spend || 0;
-        let leadsMeta = record?.leads || 0;
-        let clicks = record?.clicks || 0;
-        let impressions = record?.impressions || 0;
+        const spend = record?.spend || 0;
+        const leadsMeta = record?.leads || 0;
+        const clicks = record?.clicks || 0;
+        const impressions = record?.impressions || 0;
 
         // Fallback removed to prevent mixing Lifetime (API) and Daily (DB) data.
         // We rely strictly on DB logs for consistent aggregation.

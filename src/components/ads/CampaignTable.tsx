@@ -23,7 +23,7 @@ interface CampaignTableProps {
 const PlatformIcon = ({ platform }: { platform: string }) => {
   const icons: Record<string, { icon: string; bgClass: string }> = {
     facebook: { icon: 'f', bgClass: 'bg-[#1877F2]' },
-    tiktok: { icon: 'T', bgClass: 'bg-foreground  },
+    tiktok: { icon: 'T', bgClass: 'bg-foreground' },
     google: { icon: 'G', bgClass: 'bg-[#EA4335]' },
   };
 

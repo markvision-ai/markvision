@@ -9,7 +9,7 @@ const __dirname = path.dirname(__filename);
 
 // Load env manually
 const envPath = path.resolve(__dirname, '../.env');
-let envConfig: Record<string, string> = {};
+const envConfig: Record<string, string> = {};
 try {
   const envContent = fs.readFileSync(envPath, 'utf-8');
   envContent.split('\n').forEach(line => {
