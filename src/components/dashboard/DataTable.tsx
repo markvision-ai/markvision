@@ -442,10 +442,10 @@ export const DataTable = React.memo(({
                     let colorClass = '';
                     if (field === 'spend') {
                       // For spend, <= 100% is good
-                      colorClass = percent <= 100 ? 'text-emerald-600  : percent <= 120 ? 'text-yellow-600  : 'text-red-500/80 
+                      colorClass = percent <= 100 ? 'text-emerald-600' : percent <= 120 ? 'text-yellow-600' : 'text-red-500/80'
                     } else {
                       // For other metrics, >= 100% is good
-                      colorClass = percent >= 100 ? 'text-emerald-600  : percent >= 80 ? 'text-yellow-600  : 'text-red-500/80 
+                      colorClass = percent >= 100 ? 'text-emerald-600' : percent >= 80 ? 'text-yellow-600' : 'text-red-500/80'
                     }
                     return (
                       <td key={field} className={`p-2 md:p-4 text-right font-medium ${colorClass}`}>
