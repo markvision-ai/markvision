@@ -60,4 +60,4 @@ channel.subscribe((status) => {
 });
 
 // Лог для проверки в консоли браузера
-console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');
+// console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');

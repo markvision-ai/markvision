@@ -316,8 +316,14 @@ export const useNotifications = (projectId?: string) => {
 
       setNotifications(newNotifications);
     } catch (error: any) {
-      if (error.name === 'AbortError' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
-        // Ignore abort errors
+      if (
+        error.name === 'AbortError' || 
+        error.message?.includes('AbortError') || 
+        error.message?.includes('aborted') ||
+        error.message?.includes('Failed to fetch') ||
+        error.message?.includes('NetworkError')
+      ) {
+        // Ignore abort and network errors to prevent console noise
         return;
       }
       console.error('Error generating notifications:', error);
