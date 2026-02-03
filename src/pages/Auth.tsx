@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input';
 import { supabase, checkConnection } from '@/lib/externalSupabase';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import markvisionLogo from '@/assets/markvision-logo-new.png';
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 
 // Standalone audit log function for auth events (can't use hook before user exists)
