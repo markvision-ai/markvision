@@ -16,7 +16,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { useABTestRotator } from "@/hooks/useABTestRotator";
 import founderWithMark from "@/assets/founder-with-mark.png";
-import { MarkVisionLogo } from "@/components/ui/MarkVisionLogo";
+import markvisionLogo from "@/assets/markvision-logo-new.png";
 const modules = [{
   title: "Контент за вас",
   description: "200+ постов и видео в месяц. Мы сами придумываем, снимаем и публикуем. Вам не нужен SMM-специалист.",
@@ -195,7 +195,7 @@ export const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="w-8 h-8 sm:w-11 sm:h-11 relative flex items-center justify-center">
-              <MarkVisionLogo className="w-full h-full drop-shadow-lg" />
+              <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-lg" />
             </div>
             <span className="font-semibold text-sm sm:text-xl tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-foreground via-blue-500 to-foreground/80">
               MarkVision AI
