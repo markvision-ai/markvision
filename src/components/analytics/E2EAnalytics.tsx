@@ -130,7 +130,7 @@ const getSourceCategory = (utm_source: string | null): string => {
 };
 
 // Visit statuses
-const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']; 
+const VISIT_STATUSES = ['visit_completed', 'diagnostics_completed', 'qualified', 'proposal', 'purchased']; 
 const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {

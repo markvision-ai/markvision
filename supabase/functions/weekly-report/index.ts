@@ -17,7 +17,7 @@ interface WeeklyStats {
   impressions: number;
   clicks: number;
   leads: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -27,7 +27,7 @@ interface PlanData {
   impressions: number;
   clicks: number;
   leads: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -231,20 +231,20 @@ serve(async (req) => {
           impressions: acc.impressions + (day.impressions || 0),
           clicks: acc.clicks + (day.clicks || 0),
           leads: acc.leads + (day.leads || 0),
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          visits: acc.visits + (day.visits || day.diagnostics || 0),
           sales: acc.sales + (day.sales || 0),
           revenue: acc.revenue + (day.revenue || 0),
-        }), { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 });
+        }), { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 });
 
         const previous: WeeklyStats = (previousWeekData || []).reduce((acc, day) => ({
           spend: acc.spend + (day.spend || 0),
           impressions: acc.impressions + (day.impressions || 0),
           clicks: acc.clicks + (day.clicks || 0),
           leads: acc.leads + (day.leads || 0),
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
+          visits: acc.visits + (day.visits || day.diagnostics || 0),
           sales: acc.sales + (day.sales || 0),
           revenue: acc.revenue + (day.revenue || 0),
-        }), { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 });
+        }), { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 });
 
         // Calculate weekly portion of plan (7/30 days)
         const weeklyPlanFactor = 7 / 30;
@@ -253,10 +253,10 @@ serve(async (req) => {
           impressions: (planData.impressions || 0) * weeklyPlanFactor,
           clicks: (planData.clicks || 0) * weeklyPlanFactor,
           leads: (planData.leads || 0) * weeklyPlanFactor,
-          diagnostics: (planData.diagnostics || 0) * weeklyPlanFactor,
+          visits: (planData.visits || planData.diagnostics || 0) * weeklyPlanFactor,
           sales: (planData.sales || 0) * weeklyPlanFactor,
           revenue: (planData.revenue || 0) * weeklyPlanFactor,
-        } : { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+        } : { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 };
 
         // Calculate metrics
         const cpl = current.leads > 0 ? current.spend / current.leads : 0;

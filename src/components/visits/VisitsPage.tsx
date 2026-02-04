@@ -62,9 +62,9 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
     queryFn: async () => {
       if (!projectId) return [];
       
-      // First try to get from diagnostic_results table
+      // First try to get from visit_results table
       const { data: visitResultsData, error: visitError } = await supabase
-        .from('diagnostic_results')
+        .from('visit_results')
         .select(`
           *,
           lead:leads(id, name, phone, status, deal_amount)

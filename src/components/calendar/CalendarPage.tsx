@@ -239,7 +239,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
             <CalendarIcon className="w-6 h-6 text-primary" />
             MarkCalendar
           </h2>
-          <p className="text-muted-foreground">Расписание диагностик и приёмов</p>
+          <p className="text-muted-foreground">Расписание визитов и приёмов</p>
         </div>
 
         <div className="flex items-center gap-2">

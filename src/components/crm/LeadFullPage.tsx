@@ -346,7 +346,9 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(statusLabels).map(([key, label]) => (
+                          {Object.entries(statusLabels)
+                            .filter(([key]) => key !== 'diagnostics_completed' || formData.status === 'diagnostics_completed')
+                            .map(([key, label]) => (
                             <SelectItem key={key} value={key}>
                               <div className="flex items-center gap-2">
                                 <div className={cn('w-2 h-2 rounded-full bg-gradient-to-r', statusStyles[key]?.gradient)} />

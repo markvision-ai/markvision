@@ -129,13 +129,13 @@ export const VisitCard = ({ lead, projectId, onUpdate, onClose }: VisitCardProps
   const saveExpertSession = async () => {
     setLoading(true);
     try {
-      // Save to visit_results table (using legacy name until DB migration)
+      // Save to visit_results table
       const { error: visitError } = await supabase
-        .from('diagnostic_results') 
+        .from('visit_results') 
         .insert({
           lead_id: lead.id,
           project_id: projectId,
-          diagnostic_type: expertSession.visitType, // keeping column name until DB migration
+          visit_type: expertSession.visitType,
           result: 'completed',
           notes: JSON.stringify({
             currentSituation: expertSession.currentSituation,

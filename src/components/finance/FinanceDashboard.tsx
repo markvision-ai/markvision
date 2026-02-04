@@ -38,7 +38,9 @@ import {
   Filter,
   Percent,
   Zap,
-  Loader2
+  Loader2,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -58,6 +60,7 @@ import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
 import { AgencyAnalytics } from './AgencyAnalytics';
+import { GoalDecomposition } from './GoalDecomposition';
 
 interface Transaction {
   id: string;
@@ -440,8 +443,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         </Card>
       </div>
 
-      <Tabs defaultValue="dashboard">
+      <Tabs defaultValue="strategy">
         <TabsList className="flex-wrap">
+          <TabsTrigger value="strategy">🎯 Стратегия</TabsTrigger>
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
           {isSuperAdmin && (
             <TabsTrigger value="agency">💰 Мои Проекты (Агентство)</TabsTrigger>
@@ -455,6 +459,10 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             <AgencyAnalytics />
           </TabsContent>
         )}
+
+        <TabsContent value="strategy" className="mt-4">
+          <GoalDecomposition projectId={projectId} />
+        </TabsContent>
 
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           {/* Bar Chart */}

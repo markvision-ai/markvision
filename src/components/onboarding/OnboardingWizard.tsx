@@ -515,7 +515,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 📝 Скрипт продаж:
 1. Поприветствовать клиента
 2. Уточнить проблему
-3. Предложить бесплатную диагностику
+3. Предложить бесплатный визит
 4. Записать на удобное время`}
                 className="min-h-[300px] rounded-2xl text-base bg-background border-border"
               />

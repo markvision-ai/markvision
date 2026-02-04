@@ -987,11 +987,11 @@ export type Database = {
           },
         ]
       }
-      diagnostic_results: {
+      visit_results: {
         Row: {
           completed_at: string | null
           created_at: string | null
-          diagnostic_type: string | null
+          visit_type: string | null
           id: string
           lead_id: string | null
           notes: string | null
@@ -1001,7 +1001,7 @@ export type Database = {
         Insert: {
           completed_at?: string | null
           created_at?: string | null
-          diagnostic_type?: string | null
+          visit_type?: string | null
           id?: string
           lead_id?: string | null
           notes?: string | null
@@ -1011,7 +1011,7 @@ export type Database = {
         Update: {
           completed_at?: string | null
           created_at?: string | null
-          diagnostic_type?: string | null
+          visit_type?: string | null
           id?: string
           lead_id?: string | null
           notes?: string | null
@@ -1857,6 +1857,65 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "project_context_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_kpi: {
+        Row: {
+          avg_check: number
+          budget_needed: number
+          conv_lead_visit: number
+          conv_visit_sale: number
+          cpl_forecast: number
+          created_at: string
+          fixed_costs: number
+          id: string
+          leads_plan: number
+          project_id: string
+          revenue_goal: number
+          sales_plan: number
+          updated_at: string
+          visits_plan: number
+        }
+        Insert: {
+          avg_check?: number
+          budget_needed?: number
+          conv_lead_visit?: number
+          conv_visit_sale?: number
+          cpl_forecast?: number
+          created_at?: string
+          fixed_costs?: number
+          id?: string
+          leads_plan?: number
+          project_id: string
+          revenue_goal?: number
+          sales_plan?: number
+          updated_at?: string
+          visits_plan?: number
+        }
+        Update: {
+          avg_check?: number
+          budget_needed?: number
+          conv_lead_visit?: number
+          conv_visit_sale?: number
+          cpl_forecast?: number
+          created_at?: string
+          fixed_costs?: number
+          id?: string
+          leads_plan?: number
+          project_id?: string
+          revenue_goal?: number
+          sales_plan?: number
+          updated_at?: string
+          visits_plan?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_kpi_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: true
             referencedRelation: "projects"
