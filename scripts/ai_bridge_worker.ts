@@ -1,5 +1,4 @@
 import { createClient } from '@supabase/supabase-js';
-import { exec } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
@@ -57,18 +56,22 @@ const tools: Anthropic.Tool[] = [
 
 // --- Helper Functions ---
 async function getKZTRate(): Promise<number> {
-  return new Promise((resolve) => {
-    const scriptPath = path.resolve(__dirname, 'fetch_kzt_rate.sh');
-    exec(`"${scriptPath}"`, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`Error executing fetch_kzt_rate.sh: ${error.message}`);
-        resolve(503.44);
-        return;
-      }
-      const rate = parseFloat(stdout.trim());
-      resolve(isNaN(rate) || rate <= 0 ? 503.44 : rate);
-    });
-  });
+  try {
+    const response = await fetch("https://api.exchangerate-api.com/v4/latest/USD");
+    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+    
+    const data = await response.json();
+    const rate = data?.rates?.KZT;
+    
+    if (typeof rate === 'number' && rate > 0) {
+      return rate;
+    }
+    console.error("Error: KZT rate not found in response");
+    return 503.44; // Fallback
+  } catch (error: any) {
+    console.error(`Error fetching KZT rate: ${error.message}`);
+    return 503.44; // Fallback
+  }
 }
 
 function getFileContent(filename: string): string {
