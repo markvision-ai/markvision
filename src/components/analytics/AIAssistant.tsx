@@ -94,27 +94,33 @@ const useMarkStatus = () => {
 
     const fetchStatus = async () => {
       const { data } = await supabase
-        .from('system_status' as any)
-        .select('last_seen')
-        .order('last_seen', { ascending: false })
+        .from('system_health')
+        .select('last_check_at')
+        .eq('service_name', 'ai_worker')
+        .order('last_check_at', { ascending: false })
         .limit(1)
         .single();
       
       if (data) {
-        checkStatus((data as any).last_seen);
+        checkStatus(data.last_check_at);
       }
     };
 
     fetchStatus();
 
     // Subscribe to updates
-    const channel = supabase.channel('system_status_mark')
+    const channel = supabase.channel('system_health_ai_worker')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'system_status' },
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'system_health',
+          filter: "service_name=eq.ai_worker"
+        },
         (payload: any) => {
-          if (payload.new && payload.new.last_seen) {
-            checkStatus(payload.new.last_seen);
+          if (payload.new && payload.new.last_check_at) {
+            checkStatus(payload.new.last_check_at);
           }
         }
       )

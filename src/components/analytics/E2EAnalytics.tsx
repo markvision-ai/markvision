@@ -33,7 +33,7 @@ import {
 } from 'recharts';
 import { format, parseISO, startOfDay, isWithinInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
+import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { AIAssistant } from './AIAssistant';
 
 interface E2EAnalyticsProps {
@@ -139,7 +139,6 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activePreset, setActivePreset] = useState<PresetKey | 'custom'>('month');
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date()
@@ -355,10 +354,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       {/* Date Picker & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <DateRangePicker 
-          date={dateRange}
-          setDate={setDateRange}
-          activePreset={activePreset}
-          setActivePreset={setActivePreset}
+          dateRange={dateRange}
+          onDateRangeChange={setDateRange}
         />
         <Button variant="outline" size="sm" onClick={() => { fetchLeads(); fetchDailyData(); }}>
           <Loader2 className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
