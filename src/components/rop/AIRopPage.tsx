@@ -323,30 +323,9 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
 };
 
 // Компонент рекомендаций по увеличению дохода
-const RevenueRecommendationsCard = () => {
-  const recommendations = [
-    {
-      icon: <Target className="w-5 h-5" />,
-      title: 'Увеличить бюджет на Google Ads',
-      description: 'При увеличении бюджета на 20% прогнозируется +35 лидов/месяц с текущим CPL',
-      impact: '+₸420,000 выручки',
-      color: 'text-blue-500'
-    },
-    {
-      icon: <Zap className="w-5 h-5" />,
-      title: 'Оптимизировать воронку записи',
-      description: 'Конверсия из визита в оплату ниже среднего. Рекомендуется доработать скрипт',
-      impact: '+15% конверсии',
-      color: 'text-yellow-500'
-    },
-    {
-      icon: <DollarSign className="w-5 h-5" />,
-      title: 'Добавить upsell на консультации',
-      description: 'Средний чек можно увеличить за счёт дополнительных услуг',
-      impact: '+₸8,000 к AOV',
-      color: 'text-green-500'
-    }
-  ];
+const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
+  const latestAudit = audits && audits.length > 0 ? audits[0] : null;
+  const growthPoints = latestAudit?.growth_points || [];
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
@@ -358,20 +337,23 @@ const RevenueRecommendationsCard = () => {
         <CardDescription>ИИ-анализ возможностей роста</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {recommendations.map((rec, idx) => (
-          <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
-            <div className={`shrink-0 ${rec.color}`}>{rec.icon}</div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-medium">{rec.title}</p>
-                <Badge variant="secondary" className="shrink-0 text-xs">
-                  {rec.impact}
-                </Badge>
+        {growthPoints.length > 0 ? (
+          growthPoints.map((point, idx) => (
+            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
+              <div className="shrink-0 text-primary">
+                <Target className="w-5 h-5" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{point}</p>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Нет активных рекомендаций.</p>
+            <p className="text-xs mt-1">Запустите аудит для получения точек роста.</p>
           </div>
-        ))}
+        )}
       </CardContent>
     </Card>
   );
@@ -405,7 +387,7 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
     if (!objection.trim()) return;
     
     // Формируем промпт согласно инструкции
-    let prompt = `Ты — ИИ РОП. Помоги менеджеру отработать возражение: ${objection}`;
+    let prompt = `Ты — ИИ РОП (Руководитель отдела продаж). Проанализируй это возражение клиента и напиши скрипт для менеджера, как его закрыть. Возражение: "${objection}"`;
     if (response.trim()) {
       prompt += `\n\nКонтекст (вариант менеджера): ${response}`;
     }
@@ -632,7 +614,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
         {/* Recommendations Tab */}
         <TabsContent value="recommendations" className="mt-6">
-          <RevenueRecommendationsCard />
+          <RevenueRecommendationsCard audits={audits} />
         </TabsContent>
 
         {/* Training Tab */}

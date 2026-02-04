@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   Send, 
   User, 
@@ -76,7 +77,63 @@ const suggestedQuestions = [
   { text: 'Оптимизация бюджета', icon: BarChart3 },
 ];
 
+const useMarkStatus = () => {
+  const [isOnline, setIsOnline] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = (lastSeenStr: string | null) => {
+      if (!lastSeenStr) {
+        setIsOnline(false);
+        return;
+      }
+      const lastSeen = new Date(lastSeenStr);
+      const now = new Date();
+      const diffSeconds = (now.getTime() - lastSeen.getTime()) / 1000;
+      setIsOnline(diffSeconds < 60);
+    };
+
+    const fetchStatus = async () => {
+      const { data } = await supabase
+        .from('system_status' as any)
+        .select('last_seen')
+        .order('last_seen', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data) {
+        checkStatus((data as any).last_seen);
+      }
+    };
+
+    fetchStatus();
+
+    // Subscribe to updates
+    const channel = supabase.channel('system_status_mark')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'system_status' },
+        (payload: any) => {
+          if (payload.new && payload.new.last_seen) {
+            checkStatus(payload.new.last_seen);
+          }
+        }
+      )
+      .subscribe();
+
+    // Periodic check to detect offline if no updates come in
+    const interval = setInterval(fetchStatus, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return isOnline;
+};
+
 export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps) => {
+  const isMarkOnline = useMarkStatus();
   const [activeTab, setActiveTab] = useState(hideDashboard ? 'chat' : 'dashboard');
   const [isExpanded, setIsExpanded] = useState(false);
   const [dateRange, setDateRange] = useState('7d');
@@ -134,7 +191,15 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
-              <h2 className="text-xl font-bold tracking-tight">AI Центр Аналитики</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-tight">AI Центр Аналитики</h2>
+                <Badge variant="outline" className={cn(
+                  "ml-2 transition-colors h-5 text-[10px] px-1.5",
+                  isMarkOnline ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                )}>
+                  Статус Марка: {isMarkOnline ? 'Online' : 'Offline'}
+                </Badge>
+              </div>
               <p className="text-sm text-muted-foreground">Интеллектуальный анализ ваших показателей</p>
             </div>
           </div>
@@ -388,6 +453,7 @@ const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) =>
 const ChatInterface = ({ context, suggestedQuestions }: any) => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage, clearChat } = useAIChat();
+  const isOnline = useMarkStatus();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -424,7 +490,13 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
           </div>
           <div>
             <CardTitle className="text-sm font-medium">AI Ассистент</CardTitle>
-            <CardDescription className="text-xs">Онлайн</CardDescription>
+            <div className="flex items-center gap-1.5">
+              <span className={cn("relative flex h-2 w-2")}>
+                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", isOnline ? "bg-green-400" : "bg-red-400")}></span>
+                <span className={cn("relative inline-flex rounded-full h-2 w-2", isOnline ? "bg-green-500" : "bg-red-500")}></span>
+              </span>
+              <CardDescription className="text-xs">{isOnline ? 'Online' : 'Offline'}</CardDescription>
+            </div>
           </div>
         </div>
         <TooltipProvider>

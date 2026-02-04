@@ -96,14 +96,24 @@ export const useAIChat = () => {
 
       console.log('✅ AI Bridge Task Created:', task.id);
 
-      // Set 30s timeout
+      // Set 45s warning and 90s timeout
+      const warningTimeout = setTimeout(() => {
+        setMessages(prev => prev.map(m => {
+          if (m.id !== assistantId || !m.isStreaming) return m;
+          return {
+            ...m,
+            content: m.content || 'Марк выполняет сложный аудит, пожалуйста, подождите...',
+          };
+        }));
+      }, 45000);
+
       timeoutRef.current = setTimeout(() => {
         setIsLoading(false);
         setMessages(prev => prev.map(m => {
           if (m.id !== assistantId) return m;
           return {
             ...m,
-            content: 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен.',
+            content: m.content || 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен.',
             isStreaming: false
           };
         }));
@@ -111,7 +121,7 @@ export const useAIChat = () => {
           supabase.removeChannel(activeChannelRef.current);
           activeChannelRef.current = null;
         }
-      }, 30000);
+      }, 90000);
 
       // 5. Subscribe to changes
       const channel = supabase.channel(`ai_bridge_${task.id}`)
@@ -127,12 +137,9 @@ export const useAIChat = () => {
             const newTask = payload.new;
             // console.log('🔄 AI Bridge Update:', newTask);
 
-            // Clear timeout if we get a response (any update with content or logs, or completion)
+            // Clear timeouts if we get a meaningful response
             if (newTask.response || (newTask.execution_logs && newTask.execution_logs.length > 0)) {
-               if (timeoutRef.current) {
-                 clearTimeout(timeoutRef.current);
-                 timeoutRef.current = null;
-               }
+               if (warningTimeout) clearTimeout(warningTimeout);
             }
 
             setMessages(prev => prev.map(m => {
@@ -153,6 +160,7 @@ export const useAIChat = () => {
               setIsLoading(false);
               supabase.removeChannel(channel);
               activeChannelRef.current = null;
+              if (warningTimeout) clearTimeout(warningTimeout);
               if (timeoutRef.current) {
                  clearTimeout(timeoutRef.current);
                  timeoutRef.current = null;

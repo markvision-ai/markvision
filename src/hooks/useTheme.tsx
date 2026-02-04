@@ -16,11 +16,11 @@ const ThemeContext = createContext<ThemeContextType>({
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Always start with light theme - clear any saved dark preference
     if (typeof window !== 'undefined') {
-      localStorage.setItem('ui-theme', 'light');
+      const savedTheme = localStorage.getItem('ui-theme') as Theme;
+      return savedTheme || 'dark';
     }
-    return 'light';
+    return 'dark';
   });
 
   useEffect(() => {
