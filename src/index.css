@@ -11,100 +11,78 @@
 
 @layer base {
   :root {
-    /* Premium Light Theme - DEFAULT */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    /* Deep Black Mode - DEFAULT */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 99%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 94%;
-    --muted-foreground: 220 14% 35%; /* Darker for better contrast in light theme */
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217 91% 60%;
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --radius: 0.5rem;
 
-    --border: 214 32% 80%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-
-    --radius: 1.25rem;
-
-    --sidebar: 210 20% 97%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-muted: 210 20% 90%;
-
-    --chart-1: 217 91% 60%;
-    --chart-2: 217 70% 50%;
-    --chart-3: 217 60% 45%;
-    --chart-4: 217 50% 40%;
-    --chart-5: 217 40% 35%;
-    
-    --medical-blue: 217 91% 60%;
-    --medical-teal: 217 70% 50%;
+    --sidebar: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-muted: 0 0% 10%;
   }
 
-  /* Force Light Mode even if system is dark or class is present */
+  /* Force Deep Dark Mode */
   .dark {
     /* Deep Dark Mode - #000000 Pure Black */
-    /* OVERRIDE TO LIGHT */
-    --background: 0 0% 100%;
-    --foreground: 222 47% 11%;
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 99%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 217 91% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 210 20% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 20% 94%;
-    --muted-foreground: 220 14% 35%; 
+    --muted: 0 0% 10%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 217 91% 60%;
+    --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 76% 36%;
-    --success-foreground: 0 0% 100%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 0 0% 100%;
 
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --radius: 0.5rem;
 
-    --border: 214 32% 80%;
-    --input: 214 32% 91%;
-    --ring: 217 91% 60%;
-
-    --radius: 1.25rem;
-
-    --sidebar: 210 20% 97%;
-    --sidebar-foreground: 222 47% 11%;
-    --sidebar-muted: 210 20% 90%;
+    --sidebar: 0 0% 0%;
+    --sidebar-foreground: 0 0% 100%;
+    --sidebar-muted: 0 0% 10%;
   }
 }
 

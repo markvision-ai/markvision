@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,8 @@ import {
   Zap,
   Brain,
   MessageCircle,
-  ArrowUpRight
+  ArrowUpRight,
+  Terminal
 } from 'lucide-react';
 import { useAIRop, AIRopTask, AIRopAudit } from '@/hooks/useAIRop';
 import { format } from 'date-fns';
@@ -85,6 +87,7 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
   const configs: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
     pending: { label: 'Ожидание', variant: 'secondary', icon: <Clock className="w-3 h-3" /> },
     processing: { label: 'Анализ...', variant: 'default', icon: <Loader2 className="w-3 h-3 animate-spin" /> },
+    in_progress: { label: 'Анализ...', variant: 'default', icon: <Loader2 className="w-3 h-3 animate-spin" /> },
     completed: { label: 'Завершено', variant: 'outline', icon: <CheckCircle2 className="w-3 h-3" /> },
     error: { label: 'Ошибка', variant: 'destructive', icon: <AlertCircle className="w-3 h-3" /> }
   };
@@ -104,21 +107,21 @@ const TaskCard = ({ task }: { task: AIRopTask }) => (
     <CardContent className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-foreground mb-2">{task.task_text}</p>
-          {task.status === 'processing' && (
+          <p className="text-sm text-foreground mb-2">{task.prompt}</p>
+          {task.status === 'in_progress' && (
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>ИИ анализирует систему...</span>
             </div>
           )}
-          {task.result && (
+          {task.response && (
             <div className="mt-3 p-3 bg-muted/30 rounded-lg">
-              <p className="text-sm text-foreground/90">{task.result}</p>
+              <p className="text-sm text-foreground/90">{task.response}</p>
             </div>
           )}
-          {task.error_message && (
+          {task.status === 'error' && (
             <div className="mt-3 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-              <p className="text-sm text-destructive">{task.error_message}</p>
+              <p className="text-sm text-destructive">Произошла ошибка при выполнении задачи</p>
             </div>
           )}
         </div>
@@ -374,20 +377,44 @@ const RevenueRecommendationsCard = () => {
   );
 };
 
+// Компонент терминального вывода
+const TerminalResponse = ({ text, isTyping }: { text: string; isTyping?: boolean }) => (
+  <div className="mt-4 rounded-lg bg-black p-4 font-mono text-sm text-green-400 border border-green-900 shadow-inner overflow-hidden">
+    <div className="flex items-center gap-2 border-b border-green-900/50 pb-2 mb-2">
+       <Terminal className="w-3 h-3" />
+       <span className="text-xs opacity-50">MARK_VISION_AI_CORE_V2.5</span>
+    </div>
+    <div className="whitespace-pre-wrap leading-relaxed">
+      {text || <span className="text-green-400/30">Ожидание ответа от ядра...</span>}
+      {isTyping && <span className="animate-pulse ml-1">_</span>}
+    </div>
+  </div>
+);
+
 // Компонент для добавления возражений в Марка
-const ObjectionsTrainerCard = () => {
+const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreateTask: (task: string) => Promise<any>, isSubmitting: boolean, tasks: AIRopTask[] }) => {
   const [objection, setObjection] = useState('');
   const [response, setResponse] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [localTask, setLocalTask] = useState<AIRopTask | null>(null);
+
+  // Use task from real-time list if available (for updates), otherwise fallback to local initial state
+  const activeTask = currentTaskId ? (tasks.find(t => t.id === currentTaskId) || localTask) : null;
 
   const handleSave = async () => {
-    if (!objection.trim() || !response.trim()) return;
-    setSaving(true);
-    // Симуляция сохранения
-    await new Promise(r => setTimeout(r, 1000));
-    setSaving(false);
-    setObjection('');
-    setResponse('');
+    if (!objection.trim()) return;
+    
+    // Формируем промпт согласно инструкции
+    let prompt = `Ты — ИИ РОП. Помоги менеджеру отработать возражение: ${objection}`;
+    if (response.trim()) {
+      prompt += `\n\nКонтекст (вариант менеджера): ${response}`;
+    }
+
+    const task = await onCreateTask(prompt);
+    if (task) {
+      setCurrentTaskId(task.id);
+      setLocalTask(task);
+    }
   };
 
   return (
@@ -397,7 +424,7 @@ const ObjectionsTrainerCard = () => {
           <MessageCircle className="w-5 h-5 text-primary" />
           <CardTitle className="text-lg">Обучение ИИ-Марка возражениям</CardTitle>
         </div>
-        <CardDescription>Добавьте возражение и ответ для обучения бота</CardDescription>
+        <CardDescription>Введите возражение, чтобы получить разбор от ИИ-РОПа</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -410,9 +437,9 @@ const ObjectionsTrainerCard = () => {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Правильный ответ</label>
+          <label className="text-sm font-medium">Ваш вариант ответа (необязательно)</label>
           <Textarea
-            placeholder="Как Марк должен отвечать на это возражение..."
+            placeholder="Ваш вариант ответа для проверки..."
             value={response}
             onChange={(e) => setResponse(e.target.value)}
             className="min-h-[80px]"
@@ -420,12 +447,21 @@ const ObjectionsTrainerCard = () => {
         </div>
         <Button 
           onClick={handleSave} 
-          disabled={saving || !objection.trim() || !response.trim()}
+          disabled={isSubmitting || !objection.trim()}
           className="w-full gap-2"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-          Добавить в базу знаний Марка
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+          Получить разбор от ИИ
         </Button>
+
+        {activeTask && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <TerminalResponse 
+              text={activeTask.response || ''} 
+              isTyping={['pending', 'in_progress', 'processing'].includes(activeTask.status)} 
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -601,7 +637,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
         {/* Training Tab */}
         <TabsContent value="training" className="mt-6">
-          <ObjectionsTrainerCard />
+          <ObjectionsTrainerCard onCreateTask={createTask} isSubmitting={submitting} tasks={tasks} />
         </TabsContent>
       </Tabs>
     </div>

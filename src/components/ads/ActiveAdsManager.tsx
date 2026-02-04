@@ -944,6 +944,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const totalSales = processedData.reduce((sum, row) => sum + row.sales, 0);
   const totalRevenue = processedData.reduce((sum, row) => sum + row.revenue, 0);
   
+  const totalCpl = totalLeadsMeta > 0 ? totalSpendKZT / totalLeadsMeta : 0;
+  const totalVisitCost = totalVisits > 0 ? totalSpendKZT / totalVisits : 0;
+  const totalRoi = totalSpendKZT > 0 ? (totalRevenue - totalSpendKZT) / totalSpendKZT * 100 : 0;
+  
   // Unattributed Logic (Leads that exist in CRM date range but didn't match any campaign)
   // const allCrmLeadsCount = filteredLeads.length;
   // const unattributedLeads = Math.max(0, allCrmLeadsCount - totalVisits);
@@ -1343,12 +1347,18 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     {columnVisibility.status && <TableCell />}
                     {columnVisibility.spend && <TableCell className="text-right">{formatCurrency(totalSpendKZT)}</TableCell>}
                     {columnVisibility.leads && <TableCell className="text-right">{formatNumber(totalLeadsMeta)}</TableCell>}
-                    {columnVisibility.cpl && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.cpl && <TableCell className="text-right">{formatCurrency(totalCpl)}</TableCell>}
                     {columnVisibility.visits && <TableCell className="text-right text-blue-400">{formatNumber(totalVisits)}</TableCell>}
-                    {columnVisibility.visitCost && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.visitCost && <TableCell className="text-right text-blue-400/80">{formatCurrency(totalVisitCost)}</TableCell>}
                     {columnVisibility.sales && <TableCell className="text-right text-emerald-400">{formatNumber(totalSales)}</TableCell>}
                     {columnVisibility.revenue && <TableCell className="text-right text-emerald-400">{formatCurrency(totalRevenue)}</TableCell>}
-                    {columnVisibility.roi && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.roi && <TableCell className="text-right">
+                       <span className={cn(
+                         totalRoi > 0 ? "text-emerald-500" : totalRoi < 0 ? "text-red-500" : "text-muted-foreground"
+                       )}>
+                         {totalRoi !== 0 ? formatPercent(totalRoi) : '-'}
+                       </span>
+                    </TableCell>}
                 </TableRow>
             )}
             

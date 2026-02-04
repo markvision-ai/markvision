@@ -210,15 +210,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       if (data) {
         setMessages(data);
       } else if (!error && data === null) {
-          setMessages([
-             {
-                id: 'welcome',
-                role: 'assistant',
-                content: 'Quantum AI v2.1 подключен. Готов к управлению рекламой.',
-                created_at: new Date().toISOString(),
-                type: 'info'
-             }
-          ]);
+          // No messages found, do not add fake welcome message
+          setMessages([]);
       }
     };
 
@@ -286,25 +279,60 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     setIsLoading(true);
     setLoadingText('Выполняю действие...');
 
+    const activeProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+
     try {
-       const { data, error } = await supabase.functions.invoke('ads-manager', {
-        body: {
-          action: 'execute_action',
-          payload: {
-            project_id: projectId,
-            action_id: actionId
-          }
-        }
-      });
+       // Create Bridge Task for Action
+      const { data: task, error } = await (supabase as any)
+        .from('ai_bridge_tasks')
+        .insert({
+          project_id: activeProjectId,
+          prompt: `[ACTION] ${actionId} ${label}`, // Encoding action in prompt
+          status: 'pending'
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      await saveMessage('assistant', data.message || 'Действие выполнено', data.type || 'text', data);
+      // Set 30s timeout
+      const timeoutId = setTimeout(() => {
+        setIsLoading(false);
+        toast.error('Марк не отвечает. Убедитесь, что терминал на Макбуке запущен');
+        saveMessage('system', 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен', 'error');
+        supabase.removeChannel(channel);
+      }, 30000);
+
+      // Subscribe to task updates
+      const channel = supabase.channel(`ai_bridge_action_${task.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'ai_bridge_tasks',
+            filter: `id=eq.${task.id}`,
+          },
+          (payload: any) => {
+            const newTask = payload.new;
+            
+            if (newTask.status === 'completed' || newTask.status === 'failed') {
+              clearTimeout(timeoutId);
+              setIsLoading(false);
+              supabase.removeChannel(channel);
+              
+              if (newTask.status === 'failed') {
+                saveMessage('assistant', 'Ошибка выполнения действия', 'error');
+              }
+               // Success handled by ai_chat_messages subscription
+            }
+          }
+        )
+        .subscribe();
 
     } catch (error) {
       console.error('Action failed:', error);
       await saveMessage('assistant', 'Ошибка выполнения действия', 'error');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -349,57 +377,67 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     const text = inputValue;
     setInputValue('');
     setIsLoading(true);
+    setLoadingText('Ожидаю ответ Марка...');
     
-    // Cycle loading texts
-    const loadingStates = [
-      'Марк заходит в рекламный кабинет...',
-      'Анализирую статистику Meta Ads...',
-      'Проверяю бюджеты и ставки...',
-      'Формирую ответ...'
-    ];
-    let stateIdx = 0;
-    setLoadingText(loadingStates[0]);
-    const loadingInterval = setInterval(() => {
-      stateIdx = (stateIdx + 1) % loadingStates.length;
-      setLoadingText(loadingStates[stateIdx]);
-    }, 2000);
-    
+    // Save user message immediately
     await saveMessage('user', text);
 
-    try {
-      const { data, error } = await fetchWithRetry(() => supabase.functions.invoke('ads-manager', {
-        body: {
-          action: 'chat_request',
-          payload: {
-            project_id: projectId,
-            query: text,
-            context: {
-              spent_today: contextData.summary.totalSpent,
-              leads_today: contextData.summary.totalLeads,
-              romi: contextData.summary.romi,
-              cpl: contextData.summary.avgCpl,
-              content_count: contextData.contentItems.length
-            }
-          }
-        }
-      }));
+    const activeProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-      clearInterval(loadingInterval);
+    try {
+      // Create Bridge Task
+      const { data: task, error } = await (supabase as any)
+        .from('ai_bridge_tasks')
+        .insert({
+          project_id: activeProjectId,
+          prompt: text,
+          status: 'pending'
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
-      if (data?.type === 'widget') {
-        await saveMessage('assistant', data.message, 'widget', data);
-      } else {
-        await saveMessage('assistant', data?.message || 'Ответ получен', 'text');
-      }
+      // Set 30s timeout
+      const timeoutId = setTimeout(() => {
+        setIsLoading(false);
+        toast.error('Марк не отвечает. Убедитесь, что терминал на Макбуке запущен');
+        saveMessage('system', 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен', 'error');
+        supabase.removeChannel(channel);
+      }, 30000);
+
+      // Subscribe to task updates
+      const channel = supabase.channel(`ai_bridge_ads_${task.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'ai_bridge_tasks',
+            filter: `id=eq.${task.id}`,
+          },
+          (payload: any) => {
+            const newTask = payload.new;
+            
+            if (newTask.status === 'completed' || newTask.status === 'failed') {
+              clearTimeout(timeoutId);
+              setIsLoading(false);
+              supabase.removeChannel(channel);
+              
+              if (newTask.status === 'failed') {
+                saveMessage('assistant', 'Произошла ошибка при обработке запроса', 'error');
+              }
+              // Success case: The worker should have written the response to ai_chat_messages, 
+              // which we are already subscribed to in the useEffect.
+            }
+          }
+        )
+        .subscribe();
       
     } catch (error) {
-      clearInterval(loadingInterval);
       console.error('Failed to process request:', error);
-      await saveMessage('assistant', 'Произошла ошибка при обработке запроса. Пожалуйста, попробуйте позже.', 'error');
-    } finally {
       setIsLoading(false);
+      await saveMessage('assistant', 'Ошибка отправки запроса', 'error');
     }
   };
 

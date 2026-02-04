@@ -62,7 +62,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       if (!projectId) return [];
       
       // First try to get from visit_results table
-      const { data: visitResultsData, error: visitError } = await supabase
+      const { data: visitResultsData, error: visitError } = await (supabase as any)
         .from('visit_results')
         .select(`
           *,
@@ -77,7 +77,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       }
       
       // Fallback to leads with diagnostic-related statuses
-      const { data: leads, error: leadsError } = await supabase
+      const { data: leads, error: leadsError } = await (supabase as any)
         .from('leads')
         .select('*')
         .eq('project_id', projectId)

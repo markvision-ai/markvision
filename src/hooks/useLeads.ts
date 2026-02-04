@@ -107,7 +107,7 @@ export function useLeads(projectId: string | null) {
     setLoading(true);
 
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('leads')
         .select(LEAD_FIELDS)
         .eq('project_id', projectId)
@@ -224,11 +224,11 @@ export function useLeads(projectId: string | null) {
       // Get current lead for audit logging
       const currentLead = leads.find(l => l.id === leadId);
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('leads')
         .update({
           ...updates,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq('id', leadId);
 

@@ -32,6 +32,7 @@ export const useAIChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const activeChannelRef = useRef<any>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const sendMessage = useCallback(async (message: string, context?: DataContext) => {
     // 1. Auth check
@@ -74,8 +75,6 @@ export const useAIChat = () => {
 
       if (chatError) {
         console.error('Failed to save chat message:', chatError);
-        // We continue execution to ensure the task is created even if history save fails, 
-        // or we could throw. Given user intent "write BOTH", maybe we should log error but proceed.
       }
 
       const payload = {
@@ -97,6 +96,23 @@ export const useAIChat = () => {
 
       console.log('✅ AI Bridge Task Created:', task.id);
 
+      // Set 30s timeout
+      timeoutRef.current = setTimeout(() => {
+        setIsLoading(false);
+        setMessages(prev => prev.map(m => {
+          if (m.id !== assistantId) return m;
+          return {
+            ...m,
+            content: 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен.',
+            isStreaming: false
+          };
+        }));
+        if (activeChannelRef.current) {
+          supabase.removeChannel(activeChannelRef.current);
+          activeChannelRef.current = null;
+        }
+      }, 30000);
+
       // 5. Subscribe to changes
       const channel = supabase.channel(`ai_bridge_${task.id}`)
         .on(
@@ -110,6 +126,14 @@ export const useAIChat = () => {
           (payload) => {
             const newTask = payload.new;
             // console.log('🔄 AI Bridge Update:', newTask);
+
+            // Clear timeout if we get a response (any update with content or logs, or completion)
+            if (newTask.response || (newTask.execution_logs && newTask.execution_logs.length > 0)) {
+               if (timeoutRef.current) {
+                 clearTimeout(timeoutRef.current);
+                 timeoutRef.current = null;
+               }
+            }
 
             setMessages(prev => prev.map(m => {
               if (m.id !== assistantId) return m;
@@ -129,6 +153,10 @@ export const useAIChat = () => {
               setIsLoading(false);
               supabase.removeChannel(channel);
               activeChannelRef.current = null;
+              if (timeoutRef.current) {
+                 clearTimeout(timeoutRef.current);
+                 timeoutRef.current = null;
+              }
             }
           }
         )
@@ -141,6 +169,10 @@ export const useAIChat = () => {
       toast.error('Ошибка отправки: ' + error.message);
       setMessages(prev => prev.filter(m => m.id !== assistantId));
       setIsLoading(false);
+      if (timeoutRef.current) {
+         clearTimeout(timeoutRef.current);
+         timeoutRef.current = null;
+      }
     }
   }, []);
 
@@ -149,7 +181,10 @@ export const useAIChat = () => {
       supabase.removeChannel(activeChannelRef.current);
       activeChannelRef.current = null;
       setIsLoading(false);
-      // Optional: Update status in DB to 'cancelled'
+      if (timeoutRef.current) {
+         clearTimeout(timeoutRef.current);
+         timeoutRef.current = null;
+      }
     }
   }, []);
 
@@ -162,6 +197,9 @@ export const useAIChat = () => {
     return () => {
       if (activeChannelRef.current) {
         supabase.removeChannel(activeChannelRef.current);
+      }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
       }
     };
   }, []);
