@@ -327,34 +327,32 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       fetchHierarchy(false);
       fetchAdInsights();
 
-      // 2. Smart Sync for Today (if in range) to satisfy "Today from FB API" requirement
-      // We only sync TODAY to avoid rate limits on historical data (which should be in DB)
+      // 2. Smart Sync Logic
+      // We sync if we haven't synced this specific range recently to ensure data consistency
       const todayStr = format(new Date(), 'yyyy-MM-dd');
       const fromStr = format(dateRange.from, 'yyyy-MM-dd');
       const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
 
-      const lastSyncKey = `ads_sync_${projectId}_${todayStr}`;
+      // Use a unique key for this specific date range
+      const lastSyncKey = `ads_sync_${projectId}_${fromStr}_${toStr}`;
       const lastSyncTime = sessionStorage.getItem(lastSyncKey);
       const now = Date.now();
 
-      // Sync if:
-      // 1. Today is in the selected range
-      // 2. We haven't synced in the last 5 minutes (300000ms) to avoid Rate Limits on refresh
-      if (todayStr >= fromStr && todayStr <= toStr) {
-          if (lastSyncTime && (now - parseInt(lastSyncTime)) < 300000) {
-              console.log('Skipping Smart Sync (recently synced)');
-              return;
-          }
-
-          console.log('Auto-syncing Today...', todayStr);
+      // Check if we should sync:
+      // 1. Not synced recently (5 mins cooldown)
+      // 2. Rate limit not active
+      if (!lastSyncTime || (now - parseInt(lastSyncTime)) > 300000) {
+          console.log(`Auto-syncing range: ${fromStr} to ${toStr}`);
           sessionStorage.setItem(lastSyncKey, now.toString()); // Mark as syncing immediately
+
+          toast.info('Синхронизация данных с Meta Ads...');
 
           supabase.functions.invoke('ads-manager', {
               body: { 
                   action: 'sync_metrics', 
                   payload: { 
                       projectId,
-                      date_range: { since: todayStr, until: todayStr } 
+                      date_range: { since: fromStr, until: toStr } 
                   } 
               }
           }).then(({ data, error }) => {
@@ -362,10 +360,14 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                    console.warn('Rate Limit hit during auto-sync');
                    setRateLimitUntil(Date.now() + 60000 * 5); // 5 min pause
                    sessionStorage.removeItem(lastSyncKey); // Retry later if failed
+                   toast.warning('Meta API: Лимит запросов. Пауза 5 мин.');
               } else if (!error && !data?.error) {
-                   console.log('Today synced successfully, refreshing insights...');
+                   console.log('Range synced successfully, refreshing insights...');
+                   toast.success('Данные Meta Ads обновлены');
                    fetchAdInsights(); // Refresh to show new data
+                   fetchHierarchy(true); // Refresh hierarchy too in case of new campaigns
               } else {
+                   console.error('Sync error response:', data);
                    sessionStorage.removeItem(lastSyncKey); // Retry if other error
               }
           }).catch(err => {

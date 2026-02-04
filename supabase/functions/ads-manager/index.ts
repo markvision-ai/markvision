@@ -516,12 +516,12 @@ async function increaseCampaignBudget(accessToken: string, campaignId: string, c
     return true;
 }
 
-async function fetchFacebookInsights(accessToken: string, adAccountId: string) {
+async function fetchFacebookInsights(accessToken: string, adAccountId: string, datePreset: string = 'last_30d') {
   // Using v21.0 as requested
   const url = `https://graph.facebook.com/v21.0/${adAccountId}/insights?` +
     `access_token=${accessToken}&` +
     `fields=spend,clicks,impressions,actions,cpc,cpm,ctr&` +
-    `date_preset=last_30d`;
+    `date_preset=${datePreset}`;
 
   console.log(`Fetching: ${url}`);
   const res = await fetch(url);
