@@ -94,7 +94,7 @@ export function BeamVisualization({
             {/* Glow effect removed as per request */}
             
             <div ref={centerRef} className="relative z-10 flex h-28 w-28 sm:h-40 sm:w-40 items-center justify-center p-0">
-              <MarkVisionLogo size="100%" className="drop-shadow-2xl scale-125" />
+              <MarkVisionLogo size="100%" type="text" className="drop-shadow-2xl scale-125 mix-blend-multiply" />
             </div>
           </motion.div>
         </div>

@@ -1,10 +1,12 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import logoNew from '@/assets/markvision-logo.png';
+import logoNew from '@/assets/markvision-logo-2.png';
+import logoOld from '@/assets/markvision-logo.png';
 
 interface MarkVisionLogoProps {
   className?: string;
   variant?: 'full' | 'icon'; // full = icon + text, icon = just symbol
+  type?: 'default' | 'text'; // default = old logo (icon only), text = new logo (with text)
   size?: number | string; // Size in px
   theme?: 'light' | 'dark' | 'auto'; // Force a theme or use auto
 }
@@ -12,14 +14,16 @@ interface MarkVisionLogoProps {
 export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({ 
   className = "", 
   variant = 'icon',
+  type = 'default',
   size,
   theme = 'auto'
 }) => {
   const iconSize = size || (variant === 'full' ? 40 : 60);
+  const logoSrc = type === 'text' ? logoNew : logoOld;
 
   const logoImg = (
     <img 
-      src={logoNew}
+      src={logoSrc}
       alt="MarkVision AI Logo"
       className={cn("transition-all duration-300 block object-contain", className)}
       style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
