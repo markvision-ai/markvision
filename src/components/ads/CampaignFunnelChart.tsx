@@ -171,7 +171,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
     const totalLeads = Math.max(totalLeadsMeta, attributedLeads.length);
     
     const appointmentLeads = attributedLeads.filter(l => 
-        l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress' || l.status === 'visit_completed' || l.status === 'diagnostics_completed'
+        l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress' || l.status === 'visit_completed'
     ).length;
     
     const paidLeads = attributedLeads.filter(l => l.status === 'paid').length;

@@ -47,7 +47,6 @@ const getStatusConfig = (status: string | null) => {
     case 'appointment':
       return { label: 'Записан на визит', icon: <Calendar className="w-4 h-4" />, className: 'bg-blue-500/20 text-blue-500' };
     case 'visit_completed':
-    case 'diagnostics_completed':
       return { label: 'Визит пройден', icon: <CheckCircle className="w-4 h-4" />, className: 'bg-purple-500/20 text-purple-500' };
     default:
       return { label: 'В обработке', icon: <ClipboardCheck className="w-4 h-4" />, className: 'bg-yellow-500/20 text-yellow-500' };
@@ -82,7 +81,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
         .from('leads')
         .select('*')
         .eq('project_id', projectId)
-        .in('status', ['appointment', 'visit_completed', 'diagnostics_completed', 'paid', 'cancelled'])
+        .in('status', ['appointment', 'visit_completed', 'paid', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -166,7 +165,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
                         {lead.name || lead.phone || 'Без имени'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
-                        {result.visit_type || result.diagnostic_type || 'Визит'}
+                        {result.visit_type || 'Визит'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
                         {new Date(result.created_at || lead.created_at).toLocaleDateString('ru-RU')}

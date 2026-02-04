@@ -130,7 +130,7 @@ const getSourceCategory = (utm_source: string | null): string => {
 };
 
 // Visit statuses
-const VISIT_STATUSES = ['visit_completed', 'diagnostics_completed', 'qualified', 'proposal', 'purchased']; 
+const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']; 
 const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
@@ -185,7 +185,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       // Map database 'diagnostics' field to 'visits' if needed, or just use visits
       const mappedData = (data || []).map((item: any) => ({
         ...item,
-        visits: item.visits || 0,
+        visits: item.visits || item.diagnostics || 0,
       }));
       
       setDailyData(mappedData as DailyData[]);

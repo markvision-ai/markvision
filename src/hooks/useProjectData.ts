@@ -374,7 +374,7 @@ export const useProjectData = (projectId: string | null) => {
         clicks: field === 'clicks' ? value : currentPlan.clicks,
         leads: field === 'leads' ? value : currentPlan.leads,
         followers: field === 'followers' ? value : currentPlan.followers,
-        diagnostics: field === 'visits' ? value : currentPlan.visits,
+        visits: field === 'visits' ? value : currentPlan.visits,
         sales: field === 'sales' ? value : currentPlan.sales,
         revenue: field === 'revenue' ? value : currentPlan.revenue,
         updated_at: new Date().toISOString(),
