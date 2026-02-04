@@ -163,7 +163,7 @@ Format your response in Markdown.`;
       console.log('🤖 Sending request to Anthropic (Streaming)...');
       
       const stream = anthropic.messages.stream({
-        model: "claude-3-5-sonnet-20241022",
+        model: "claude-3-5-sonnet-latest",
         max_tokens: 4096,
         system: systemPrompt,
         messages: messages,
@@ -225,9 +225,27 @@ Format your response in Markdown.`;
 
   } catch (error: any) {
     console.error('❌ Error processing task:', error);
+    
+    let userMessage = `Произошла техническая ошибка: ${error.message}`;
+    
+    // User-friendly error mapping
+    if (error.message?.includes('not found') || error.status === 404) {
+      userMessage = "⚠️ **Ошибка конфигурации AI**\n\nМодель `claude-3-5-sonnet-latest` не найдена или недоступна для вашего ключа.\nПожалуйста, проверьте API ключ в `.env` и доступ к моделям в консоли Anthropic.";
+    } else if (error.message?.includes('credit') || error.message?.includes('balance') || error.status === 402) {
+      userMessage = "💳 **Ошибка оплаты API**\n\nНедостаточно средств на балансе Anthropic. Работа AI приостановлена.\nПожалуйста, пополните счет в консоли разработчика.";
+    } else if (error.status === 401) {
+       userMessage = "🔑 **Ошибка доступа**\n\nНеверный API ключ Anthropic. Проверьте файл `.env.local`.";
+    } else if (error.status === 429) {
+       userMessage = "⏳ **Слишком много запросов**\n\nПревышен лимит использования API. Пожалуйста, подождите немного.";
+    } else if (error.status >= 500) {
+       userMessage = "🔥 **Ошибка сервера Anthropic**\n\nСервис временно недоступен. Попробуйте повторить запрос через минуту.";
+    }
+
+    // Update task with user-friendly message as result, so it appears in chat
     await supabase.from('ai_bridge_tasks').update({ 
-      status: 'failed', 
-      error: error.message,
+      status: 'completed', // Completed so UI renders the message
+      result: userMessage,
+      error: error.message, // Keep raw error for debug
       updated_at: new Date().toISOString()
     }).eq('id', task.id);
   }
