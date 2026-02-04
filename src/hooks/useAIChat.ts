@@ -64,17 +64,32 @@ export const useAIChat = () => {
     }]);
 
     try {
+      // 3.5 Save user message to history
+      const { error: chatError } = await supabase.from('ai_chat_messages').insert({
+        project_id: BRIDGE_PROJECT_ID,
+        role: 'user',
+        content: message,
+        type: 'text'
+      });
+
+      if (chatError) {
+        console.error('Failed to save chat message:', chatError);
+        // We continue execution to ensure the task is created even if history save fails, 
+        // or we could throw. Given user intent "write BOTH", maybe we should log error but proceed.
+      }
+
+      const payload = {
+        project_id: BRIDGE_PROJECT_ID,
+        prompt: message,
+        status: 'pending'
+      };
+      
+      console.log('Sending to bridge:', payload);
+
       // 4. Insert into ai_bridge_tasks
       const { data: task, error } = await supabase
         .from('ai_bridge_tasks')
-        .insert({
-          project_id: BRIDGE_PROJECT_ID,
-          user_input: message,
-          status: 'pending',
-          execution_logs: [],
-          response: null,
-          // context: context // Pass context if table supports it, otherwise skip or stringify
-        })
+        .insert(payload)
         .select()
         .single();
 

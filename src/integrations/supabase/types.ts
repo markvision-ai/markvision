@@ -238,6 +238,91 @@ export type Database = {
           },
         ]
       }
+      ai_bridge_tasks: {
+        Row: {
+          created_at: string
+          execution_logs: Json | null
+          id: string
+          project_id: string
+          prompt: string
+          response: Json | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          execution_logs?: Json | null
+          id?: string
+          project_id: string
+          prompt: string
+          response?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          execution_logs?: Json | null
+          id?: string
+          project_id?: string
+          prompt?: string
+          response?: Json | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_bridge_tasks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_chat_messages: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          project_id: string
+          role: string
+          type: string
+          widget_data: Json | null
+          widget_type: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          project_id: string
+          role: string
+          type?: string
+          widget_data?: Json | null
+          widget_type?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          project_id?: string
+          role?: string
+          type?: string
+          widget_data?: Json | null
+          widget_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_chat_messages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ai_rop_audits: {
         Row: {
           audit_date: string
