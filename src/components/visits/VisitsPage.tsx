@@ -7,11 +7,11 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/externalSupabase';
 import { useQuery } from '@tanstack/react-query';
 
-interface DiagnosticsPageProps {
+interface VisitsPageProps {
   projectId: string | null;
 }
 
-const diagnosticTypes = [
+const visitTypes = [
   {
     id: 'marketing-audit',
     title: 'Маркетинг-аудит',
@@ -27,7 +27,7 @@ const diagnosticTypes = [
   {
     id: 'business-health',
     title: 'Здоровье бизнеса',
-    description: 'Комплексная диагностика финансов, процессов и команды',
+    description: 'Комплексный анализ финансов, процессов и команды',
     icon: <Building className="w-6 h-6" />,
   },
   {
@@ -45,24 +45,25 @@ const getStatusConfig = (status: string | null) => {
     case 'cancelled':
       return { label: 'Отказ', icon: <XCircle className="w-4 h-4" />, className: 'bg-red-500/20 text-red-500' };
     case 'appointment':
-      return { label: 'Записан на диагностику', icon: <Calendar className="w-4 h-4" />, className: 'bg-blue-500/20 text-blue-500' };
+      return { label: 'Записан на визит', icon: <Calendar className="w-4 h-4" />, className: 'bg-blue-500/20 text-blue-500' };
+    case 'visit_completed':
     case 'diagnostics_completed':
-      return { label: 'Диагностика пройдена', icon: <CheckCircle className="w-4 h-4" />, className: 'bg-purple-500/20 text-purple-500' };
+      return { label: 'Визит пройден', icon: <CheckCircle className="w-4 h-4" />, className: 'bg-purple-500/20 text-purple-500' };
     default:
       return { label: 'В обработке', icon: <ClipboardCheck className="w-4 h-4" />, className: 'bg-yellow-500/20 text-yellow-500' };
   }
 };
 
-export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
+export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   const [selectedType, setSelectedType] = useState<string | null>(null);
   
-  const { data: diagnosticResults, isLoading } = useQuery({
-    queryKey: ['diagnostic-results', projectId],
+  const { data: visitResults, isLoading } = useQuery({
+    queryKey: ['visit-results', projectId],
     queryFn: async () => {
       if (!projectId) return [];
       
       // First try to get from diagnostic_results table
-      const { data: diagResults, error: diagError } = await supabase
+      const { data: visitResultsData, error: visitError } = await supabase
         .from('diagnostic_results')
         .select(`
           *,
@@ -72,8 +73,8 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
         .order('created_at', { ascending: false })
         .limit(50);
       
-      if (!diagError && diagResults && diagResults.length > 0) {
-        return diagResults;
+      if (!visitError && visitResultsData && visitResultsData.length > 0) {
+        return visitResultsData;
       }
       
       // Fallback to leads with diagnostic-related statuses
@@ -81,7 +82,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
         .from('leads')
         .select('*')
         .eq('project_id', projectId)
-        .in('status', ['appointment', 'diagnostics_completed', 'paid', 'cancelled'])
+        .in('status', ['appointment', 'visit_completed', 'diagnostics_completed', 'paid', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -90,7 +91,6 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
         id: lead.id,
         lead_id: lead.id,
         lead: lead,
-        diagnostic_type: 'Диагностика',
         result: lead.status,
         completed_at: lead.updated_at,
         created_at: lead.created_at,
@@ -99,7 +99,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
     enabled: !!projectId,
   });
 
-  const hoverItems = diagnosticTypes.map((type) => ({
+  const hoverItems = visitTypes.map((type) => ({
     ...type,
     onClick: () => setSelectedType(type.id),
   }));
@@ -114,14 +114,14 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
 
   return (
     <div className="space-y-8">
-      {/* Diagnostic Types Selection */}
+      {/* Visit Types Selection */}
       <div className="bg-card border border-border/50 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-primary/10">
             <FileText className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Типы диагностик</h2>
+            <h2 className="text-xl font-bold text-foreground">Типы визитов</h2>
             <p className="text-muted-foreground text-sm">Выберите тип анкеты для отправки клиенту</p>
           </div>
         </div>
@@ -131,16 +131,16 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
 
       {/* Results Table */}
       <div className="bg-card border border-border/50 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты диагностик</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты визитов</h3>
         
-        {!diagnosticResults || diagnosticResults.length === 0 ? (
+        {!visitResults || visitResults.length === 0 ? (
           <div className="bg-muted/30 rounded-xl p-12 text-center">
             <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
               <ClipboardCheck className="w-8 h-8 text-primary" />
             </div>
-            <h4 className="text-foreground font-medium mb-2">Нет результатов диагностик</h4>
+            <h4 className="text-foreground font-medium mb-2">Нет результатов визитов</h4>
             <p className="text-muted-foreground text-sm">
-              Данные появятся здесь после прохождения диагностик клиентами
+              Данные появятся здесь после прохождения визитов клиентами
             </p>
           </div>
         ) : (
@@ -156,7 +156,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
                 </tr>
               </thead>
               <tbody>
-                {diagnosticResults.map((result: any) => {
+                {visitResults.map((result: any) => {
                   const lead = result.lead || result;
                   const statusConfig = getStatusConfig(lead.status);
                   
@@ -166,7 +166,7 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
                         {lead.name || lead.phone || 'Без имени'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
-                        {result.diagnostic_type || 'Диагностика'}
+                        {result.visit_type || result.diagnostic_type || 'Визит'}
                       </td>
                       <td className="py-3 px-4 text-muted-foreground">
                         {new Date(result.created_at || lead.created_at).toLocaleDateString('ru-RU')}
@@ -194,12 +194,12 @@ export const DiagnosticsPage = ({ projectId }: DiagnosticsPageProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {diagnosticTypes.find(t => t.id === selectedType)?.title}
+              {visitTypes.find(t => t.id === selectedType)?.title}
             </DialogTitle>
           </DialogHeader>
           <div className="py-4 space-y-4">
             <p className="text-muted-foreground">
-              {diagnosticTypes.find(t => t.id === selectedType)?.description}
+              {visitTypes.find(t => t.id === selectedType)?.description}
             </p>
             <div className="bg-muted/50 rounded-lg p-4">
               <p className="text-sm text-foreground/80">

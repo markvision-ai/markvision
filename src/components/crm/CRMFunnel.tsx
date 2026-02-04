@@ -184,14 +184,14 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                               {conversionFromPrev}%
                             </span>
                             {/* Процент потерь (обратный конверсии) */}
-                            <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600  font-medium">
+                            <span className="text-xs px-2 py-1 rounded-full bg-red-500/10 text-red-600 dark:text-red-400 font-medium">
                               Потеря: {(100 - parseFloat(conversionFromPrev)).toFixed(1)}%
                             </span>
                           </>
                         )}
                         {/* Замороженные деньги */}
                         {step.amount > 0 && (
-                          <span className="font-bold text-amber-600  bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
+                          <span className="font-bold text-amber-600 dark:text-amber-400 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-sm backdrop-blur-sm">
                             💰 {new Intl.NumberFormat('ru-RU').format(step.amount)} ₸
                           </span>
                         )}

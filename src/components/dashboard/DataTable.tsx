@@ -21,7 +21,7 @@ interface DailyData {
   clicks: number;
   leads: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -32,7 +32,7 @@ interface PlanData {
   clicks: number;
   leads: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -191,7 +191,7 @@ export const DataTable = React.memo(({
       clicks: rangeData.reduce((sum, day) => sum + (day.clicks || 0), 0),
       leads: rangeData.reduce((sum, day) => sum + (day.leads || 0), 0),
       followers: rangeData.reduce((sum, day) => sum + (day.followers || 0), 0),
-      diagnostics: rangeData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
+      visits: rangeData.reduce((sum, day) => sum + (day.visits || 0), 0),
       sales: rangeData.reduce((sum, day) => sum + (day.sales || 0), 0),
       revenue: rangeData.reduce((sum, day) => sum + (day.revenue || 0), 0)
     };
@@ -212,11 +212,11 @@ export const DataTable = React.memo(({
 
   // Calculated metrics
   const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null;
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null;
+  const visitCost = totals.visits > 0 ? Math.round(totals.spend / totals.visits) : null;
   const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null;
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null;
-  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null;
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null;
+  const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null;
+  const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null;
   
   // Average revenue for heatmap
   const averageRevenue = useMemo(() => {
@@ -228,7 +228,7 @@ export const DataTable = React.memo(({
   }, [dailyData, daysInRange]);
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Диагностики', 'Продажи', 'Выручка'];
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Визиты', 'Продажи', 'Выручка'];
     const rows = daysInRange.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
@@ -249,7 +249,7 @@ export const DataTable = React.memo(({
         dayLeads, 
         dayFollowers, 
         dayCpl, 
-        data?.diagnostics || 0, 
+        data?.visits || 0, 
         data?.sales || 0, 
         data?.revenue || 0,
       ].join(',');
@@ -276,10 +276,10 @@ export const DataTable = React.memo(({
           subtitle={customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
         />
         <SummaryCard
-          title="Стоимость диагностики"
+          title="Стоимость визита"
           icon={Target}
-          value={diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-muted-foreground">—</span>}
-          subtitle={diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
+          value={visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}
         />
         <SummaryCard
           title="Стоимость лида"
@@ -301,31 +301,31 @@ export const DataTable = React.memo(({
           subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
         />
         <SummaryCard
-          title="CR (Лид→Диагностика)"
-          icon={Target}
-          value={leadToDiagnosticConv !== null ? (
-            <>
-              {formatCR(leadToDiagnosticConv).replace('%', '')}
-              <span className="text-muted-foreground">%</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-          subtitle={leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
-        />
-        <SummaryCard
-          title="CR (Диагностика→Продажа)"
-          icon={ShoppingCart}
-          value={diagnosticToSaleConv !== null ? (
-            <>
-              {formatCR(diagnosticToSaleConv).replace('%', '')}
-              <span className="text-muted-foreground">%</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-          subtitle={diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
-        />
+            title="CR (Лид→Визит)"
+            icon={Target}
+            value={leadToVisitConv !== null ? (
+              <>
+                {formatCR(leadToVisitConv).replace('%', '')}
+                <span className="text-muted-foreground">%</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            )}
+            subtitle={leadToVisitConv !== null ? 'Визиты / лиды' : 'Нет данных'}
+          />
+          <SummaryCard
+            title="CR (Визит→Продажа)"
+            icon={ShoppingCart}
+            value={visitToSaleConv !== null ? (
+              <>
+                {formatCR(visitToSaleConv).replace('%', '')}
+                <span className="text-muted-foreground">%</span>
+              </>
+            ) : (
+              <span className="text-muted-foreground">—</span>
+            )}
+            subtitle={visitToSaleConv !== null ? 'Продажи / визиты' : 'Нет данных'}
+          />
       </div>
 
       <div className="bg-card border rounded-xl">
@@ -374,7 +374,7 @@ export const DataTable = React.memo(({
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Клики</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Лиды</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Диагностики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Визиты</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[80px]">Продажи</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
@@ -394,7 +394,7 @@ export const DataTable = React.memo(({
                       )}
                     </div>
                   </td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => (
                     <td key={field} className="p-1 md:p-2">
                       {onPlanChange ? (
                         <EditableCell
@@ -424,7 +424,7 @@ export const DataTable = React.memo(({
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
+                <td className="p-2 md:p-4 text-right">{formatNumber(totals.visits)}</td>
                 <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
                 <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
               </tr>
@@ -433,7 +433,7 @@ export const DataTable = React.memo(({
               {effectivePlanData && (
                 <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
                   <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80  text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
                     
@@ -538,11 +538,11 @@ export const DataTable = React.memo(({
                     <td className="p-2 md:p-3 text-right">
                       {onDataChange ? (
                         <EditableCell
-                          value={dayData?.diagnostics}
-                          onSave={(val) => onDataChange(dateKey, 'diagnostics', val)}
+                          value={dayData?.visits}
+                          onSave={(val) => onDataChange(dateKey, 'visits', val)}
                           className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
                         />
-                      ) : formatNumber(dayData?.diagnostics || 0)}
+                      ) : formatNumber(dayData?.visits || 0)}
                     </td>
                     <td className="p-2 md:p-3 text-right">
                       {onDataChange ? (

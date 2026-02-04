@@ -112,8 +112,8 @@ interface RowData {
   clicks?: number;
   impressions?: number;
   cpl: number;
-  leadsCRM: number; // Diagnostics
-  diagCost: number;
+  visits: number;
+  visitCost: number;
   sales: number;
   revenue: number;
   roi: number;
@@ -143,8 +143,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     spend: true,
     leads: true,
     cpl: true,
-    diagnostics: true,
-    diagCost: true,
+    visits: true,
+    visitCost: true,
     sales: true,
     revenue: true,
     roi: true,
@@ -394,17 +394,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     const handleExportCSV = () => {
         if (!processedData.length) return;
         
-        const headers = ['Name', 'Status', 'Spend (KZT)', 'Leads (Meta)', 'Clicks', 'Impressions', 'CTR', 'CPC', 'CPL'];
+        const headers = ['Name', 'Status', 'Spend (KZT)', 'Leads (Meta)', 'Visits (CRM)', 'Clicks', 'Impressions', 'CTR', 'CPC', 'CPL', 'Visit Cost'];
         const rows = processedData.map(row => [
             row.name,
             row.status,
             row.spendKZT.toFixed(2),
             row.leadsMeta,
+            row.visits,
             row.clicks,
             row.impressions,
             row.ctr,
             row.cpc,
-            row.cpl
+            row.cpl,
+            row.visitCost.toFixed(2)
         ]);
 
         const csvContent = "data:text/csv;charset=utf-8," 
@@ -683,13 +685,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         return { spend, leadsMeta, clicks, impressions, spendKZT };
     };
 
-    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, leadsCRM: number }) => {
+    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
        if (status === 'DELETED' || status === 'ARCHIVED') return false;
        
        // ALWAYS show items that have performance data in the selected period,
        // regardless of their current status or the "Active Only" toggle.
        // This ensures historical data (e.g. from Feb 1st) is visible even if the campaign is now paused.
-       if (metrics.spend > 0 || metrics.leadsMeta > 0 || metrics.leadsCRM > 0) {
+       if (metrics.spend > 0 || metrics.leadsMeta > 0 || metrics.visits > 0) {
            return true;
        }
 
@@ -702,7 +704,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         const ownMetrics = getMetrics(node.id, node);
         
         let children: RowData[] = [];
-        let childrenSum = { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, leadsCRM: 0 };
+        let childrenSum = { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, visits: 0 };
 
         // Process children if they exist
         const rawChildren = type === 'campaign' ? node.adsets?.data : (type === 'adset' ? node.ads?.data : []);
@@ -719,15 +721,15 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 clicks: (acc.clicks || 0) + (child.clicks || 0),
                 impressions: (acc.impressions || 0) + (child.impressions || 0),
                 spendKZT: acc.spendKZT + child.spendKZT,
-                leadsCRM: (acc.leadsCRM || 0) + child.leadsCRM
-            }), { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, leadsCRM: 0 });
+                visits: (acc.visits || 0) + child.visits
+            }), { spend: 0, leadsMeta: 0, clicks: 0, impressions: 0, spendKZT: 0, visits: 0 });
 
             // Filter for display based on Status AND Metrics
             children = allProcessedChildren.filter((child: RowData) => 
                 shouldShow(child.status, child.id, { 
                     spend: child.spend, 
                     leadsMeta: child.leadsMeta, 
-                    leadsCRM: child.leadsCRM 
+                    visits: child.visits 
                 })
             );
         }
@@ -785,15 +787,15 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             return false;
         });
 
-        // Leads CRM: For campaigns, if direct matching fails (0), try using children sum
+        // Leads CRM (now Visits): For campaigns, if direct matching fails (0), try using children sum
         // This handles cases where leads match AdSets (via utm_term) but not Campaign (via utm_campaign)
-        let leadsCRM = nodeLeads.length;
-        if (leadsCRM === 0 && type === 'campaign' && childrenSum.leadsCRM > 0) {
-             leadsCRM = childrenSum.leadsCRM;
+        let visits = nodeLeads.length;
+        if (visits === 0 && type === 'campaign' && childrenSum.visits > 0) {
+             visits = childrenSum.visits;
         }
 
         // Smart Leads Logic: Use Max(Meta, CRM)
-        const finalLeadsMeta = Math.max(rawLeadsMeta, leadsCRM);
+        const finalLeadsMeta = Math.max(rawLeadsMeta, visits);
 
         // Calculate derivatives (using Smart Leads count)
         const cpl = finalLeadsMeta > 0 ? finalSpendKZT / finalLeadsMeta : 0;
@@ -802,7 +804,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         const sales = paidLeads.length;
         const revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
 
-        const diagCost = leadsCRM > 0 ? finalSpendKZT / leadsCRM : 0;
+        const visitCost = visits > 0 ? finalSpendKZT / visits : 0;
         const roi = finalSpendKZT > 0 ? (revenue - finalSpendKZT) / finalSpendKZT * 100 : 0;
         
         const ctr = finalImpressions > 0 ? ((finalClicks / finalImpressions) * 100).toFixed(2) + '%' : '0%';
@@ -819,8 +821,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                  target.clicks = sourceMetrics.clicks;
                  target.impressions = sourceMetrics.impressions;
                  target.cpl = sourceMetrics.cpl;
-                 target.leadsCRM = sourceMetrics.leadsCRM;
-                 target.diagCost = sourceMetrics.diagCost;
+                 target.visits = sourceMetrics.visits;
+                 target.visitCost = sourceMetrics.visitCost;
                  target.sales = sourceMetrics.sales;
                  target.revenue = sourceMetrics.revenue;
                  target.roi = sourceMetrics.roi;
@@ -840,8 +842,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                  clicks: finalClicks,
                  impressions: finalImpressions,
                  cpl: cpl,
-                 leadsCRM: leadsCRM,
-                 diagCost: diagCost,
+                 visits: visits,
+                 visitCost: visitCost,
                  sales: sales,
                  revenue: revenue,
                  roi: roi,
@@ -863,8 +865,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             clicks: finalClicks,
             impressions: finalImpressions,
             cpl,
-            leadsCRM,
-            diagCost,
+            visits,
+            visitCost,
             sales,
             revenue,
             roi,
@@ -880,7 +882,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         .filter(campaign => shouldShow(campaign.status, campaign.id, {
             spend: campaign.spend,
             leadsMeta: campaign.leadsMeta,
-            leadsCRM: campaign.leadsCRM
+            visits: campaign.visits
         }));
 
     }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly]);
@@ -938,13 +940,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   // Footer Totals Calculation
   const totalSpendKZT = processedData.reduce((sum, row) => sum + row.spendKZT, 0);
   const totalLeadsMeta = processedData.reduce((sum, row) => sum + row.leadsMeta, 0);
-  const totalLeadsCRM = processedData.reduce((sum, row) => sum + row.leadsCRM, 0);
+  const totalVisits = processedData.reduce((sum, row) => sum + row.visits, 0);
   const totalSales = processedData.reduce((sum, row) => sum + row.sales, 0);
   const totalRevenue = processedData.reduce((sum, row) => sum + row.revenue, 0);
   
   // Unattributed Logic (Leads that exist in CRM date range but didn't match any campaign)
   // const allCrmLeadsCount = filteredLeads.length;
-  // const unattributedLeads = Math.max(0, allCrmLeadsCount - totalLeadsCRM);
+  // const unattributedLeads = Math.max(0, allCrmLeadsCount - totalVisits);
 
   const getSortIcon = (key: keyof RowData) => {
     if (sortConfig.key !== key) return <ArrowUpDown className="w-3 h-3 ml-1 text-muted-foreground/50" />;
@@ -1091,8 +1093,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                    key === 'spend' ? 'Расходы' :
                    key === 'leads' ? 'Лиды (Meta)' :
                    key === 'cpl' ? 'CPL' :
-                   key === 'diagnostics' ? 'Диагностики' :
-                   key === 'diagCost' ? 'Стоимость диаг.' :
+                   key === 'visits' ? 'Визиты' :
+                   key === 'visitCost' ? 'Стоимость визита' :
                    key === 'sales' ? 'Продажи' :
                    key === 'revenue' ? 'Выручка' :
                    key === 'roi' ? 'ROI' : key}
@@ -1140,19 +1142,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   </Button>
                 </TableHead>
               )}
-              {columnVisibility.diagnostics && (
-                <TableHead className="text-right text-blue-400">
-                   <Button variant="ghost" size="sm" onClick={() => handleSort('leadsCRM')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
-                    Диаг. (CRM)
-                    {getSortIcon('leadsCRM')}
-                  </Button>
-                </TableHead>
+              {columnVisibility.visits && (
+                <TableHead className="text-right min-w-[100px]">
+                <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
+                  Виз. (CRM)
+                  {getSortIcon('visits')}
+                </Button>
+              </TableHead>
               )}
-              {columnVisibility.diagCost && (
+              {columnVisibility.visitCost && (
                 <TableHead className="text-right text-blue-400">
-                   <Button variant="ghost" size="sm" onClick={() => handleSort('diagCost')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
-                    Цена диаг.
-                    {getSortIcon('diagCost')}
+                   <Button variant="ghost" size="sm" onClick={() => handleSort('visitCost')} className="h-8 px-0 hover:bg-transparent font-bold text-blue-400">
+                    Стоимость визита
+                    {getSortIcon('visitCost')}
                   </Button>
                 </TableHead>
               )}
@@ -1297,15 +1299,15 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     </TableCell>
                   )}
 
-                  {columnVisibility.diagnostics && (
+                  {columnVisibility.visits && (
                     <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-blue-400">
-                       {row.leadsCRM > 0 ? formatNumber(row.leadsCRM) : '-'}
+                       {row.visits > 0 ? formatNumber(row.visits) : '-'}
                     </TableCell>
                   )}
 
-                  {columnVisibility.diagCost && (
+                  {columnVisibility.visitCost && (
                     <TableCell className="text-right tabular-nums font-mono text-sm text-blue-400/80">
-                       {row.diagCost > 0 ? formatCurrency(row.diagCost) : '-'}
+                       {row.visitCost > 0 ? formatCurrency(row.visitCost) : '-'}
                     </TableCell>
                   )}
 
@@ -1342,8 +1344,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     {columnVisibility.spend && <TableCell className="text-right">{formatCurrency(totalSpendKZT)}</TableCell>}
                     {columnVisibility.leads && <TableCell className="text-right">{formatNumber(totalLeadsMeta)}</TableCell>}
                     {columnVisibility.cpl && <TableCell className="text-right">-</TableCell>}
-                    {columnVisibility.diagnostics && <TableCell className="text-right text-blue-400">{formatNumber(totalLeadsCRM)}</TableCell>}
-                    {columnVisibility.diagCost && <TableCell className="text-right">-</TableCell>}
+                    {columnVisibility.visits && <TableCell className="text-right text-blue-400">{formatNumber(totalVisits)}</TableCell>}
+                    {columnVisibility.visitCost && <TableCell className="text-right">-</TableCell>}
                     {columnVisibility.sales && <TableCell className="text-right text-emerald-400">{formatNumber(totalSales)}</TableCell>}
                     {columnVisibility.revenue && <TableCell className="text-right text-emerald-400">{formatCurrency(totalRevenue)}</TableCell>}
                     {columnVisibility.roi && <TableCell className="text-right">-</TableCell>}

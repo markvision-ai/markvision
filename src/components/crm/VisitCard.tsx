@@ -26,7 +26,7 @@ import {
   Zap
 } from 'lucide-react';
 
-interface DiagnosticCardProps {
+interface VisitCardProps {
   lead: {
     id: string;
     name?: string | null;
@@ -52,7 +52,7 @@ interface QualificationData {
 }
 
 interface ExpertSessionData {
-  diagnosticType: string;
+  visitType: string;
   currentSituation: string;
   obstacles: string;
   dreamOutcome: string;
@@ -61,9 +61,9 @@ interface ExpertSessionData {
   notes: string;
 }
 
-const DIAGNOSTIC_PRICE = 9900;
+const VISIT_PRICE = 9900;
 
-export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: DiagnosticCardProps) => {
+export const VisitCard = ({ lead, projectId, onUpdate, onClose }: VisitCardProps) => {
   const [activeStage, setActiveStage] = useState<'qualification' | 'expert'>('qualification');
   const [loading, setLoading] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -81,12 +81,12 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
 
   // Stage 2: Expert Session Data
   const [expertSession, setExpertSession] = useState<ExpertSessionData>({
-    diagnosticType: 'marketing-audit',
+    visitType: 'marketing-audit',
     currentSituation: '',
     obstacles: '',
     dreamOutcome: '',
     proposedSolution: '',
-    investmentRequired: DIAGNOSTIC_PRICE,
+    investmentRequired: VISIT_PRICE,
     notes: '',
   });
 
@@ -125,17 +125,17 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
     }
   };
 
-  // Save Expert Session (Stage 2) and complete diagnostic
+  // Save Expert Session (Stage 2) and complete visit
   const saveExpertSession = async () => {
     setLoading(true);
     try {
-      // Save to diagnostic_results table
-      const { error: diagError } = await supabase
-        .from('diagnostic_results')
+      // Save to visit_results table (using legacy name until DB migration)
+      const { error: visitError } = await supabase
+        .from('diagnostic_results') 
         .insert({
           lead_id: lead.id,
           project_id: projectId,
-          diagnostic_type: expertSession.diagnosticType,
+          diagnostic_type: expertSession.visitType, // keeping column name until DB migration
           result: 'completed',
           notes: JSON.stringify({
             currentSituation: expertSession.currentSituation,
@@ -150,8 +150,8 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
           completed_at: new Date().toISOString(),
         });
 
-      if (diagError) {
-        console.error('Diagnostic results error:', diagError);
+      if (visitError) {
+        console.error('Visit results error:', visitError);
         // Continue anyway - save to lead
       }
 
@@ -168,21 +168,21 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         expertSession: JSON.parse(JSON.stringify(expertSession)),
         gapValue: gapValue,
         monthlyLoss: monthlyLoss,
-        diagnosticCompletedAt: new Date().toISOString(),
+        visitCompletedAt: new Date().toISOString(),
       };
       
       const { error: leadError } = await supabase
         .from('leads')
         .update({
           extra_data: extraData as any,
-          status: 'diagnostics_completed',
+          status: 'visit_completed',
           updated_at: new Date().toISOString(),
         })
         .eq('id', lead.id);
 
       if (leadError) throw leadError;
 
-      toast.success('Диагностика завершена! Можно предлагать решение.');
+      toast.success('Визит завершен! Можно предлагать решение.');
       onUpdate?.();
     } catch (error) {
       console.error('Error saving expert session:', error);
@@ -201,7 +201,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         .from('leads')
         .update({
           status: 'Записан',
-          deal_amount: (lead.deal_amount || 0) + DIAGNOSTIC_PRICE,
+          deal_amount: (lead.deal_amount || 0) + VISIT_PRICE,
           appointment_date: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
@@ -215,10 +215,10 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         .insert({
           project_id: projectId,
           type: 'income',
-          category: 'diagnostics',
-          amount: DIAGNOSTIC_PRICE,
+          category: 'visits',
+          amount: VISIT_PRICE,
           currency: 'KZT',
-          description: `Диагностика: ${lead.name || 'клиент'}`,
+          description: `Визит: ${lead.name || 'клиент'}`,
           lead_id: lead.id,
           transaction_date: new Date().toISOString(),
         });
@@ -227,7 +227,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
         console.warn('Transaction sync warning:', transactionError);
       }
 
-      toast.success(`Клиент записан! Доход: ${DIAGNOSTIC_PRICE.toLocaleString()} ₸`);
+      toast.success(`Клиент записан! Доход: ${VISIT_PRICE.toLocaleString()} ₸`);
       setShowConfirmDialog(false);
       onUpdate?.();
       onClose?.();
@@ -256,7 +256,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
           </div>
         </div>
         <Badge variant={activeStage === 'qualification' ? 'outline' : 'default'}>
-          {activeStage === 'qualification' ? 'Этап 1: Квалификация' : 'Этап 2: Диагностика'}
+          {activeStage === 'qualification' ? 'Этап 1: Квалификация' : 'Этап 2: Визит'}
         </Badge>
       </div>
 
@@ -385,7 +385,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
                 ) : (
                   <ArrowRight className="w-4 h-4 mr-2" />
                 )}
-                Сохранить и перейти к диагностике
+                Сохранить и перейти к визиту
               </Button>
             </CardContent>
           </Card>
@@ -405,10 +405,10 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
-                <Label>Тип диагностики</Label>
+                <Label>Тип визита</Label>
                 <Select
-                  value={expertSession.diagnosticType}
-                  onValueChange={(v) => setExpertSession(prev => ({ ...prev, diagnosticType: v }))}
+                  value={expertSession.visitType}
+                  onValueChange={(v) => setExpertSession(prev => ({ ...prev, visitType: v }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -503,7 +503,7 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
                   disabled={loading}
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
-                  Сохранить диагностику
+                  Сохранить визит
                 </Button>
                 <Button 
                   onClick={() => setShowConfirmDialog(true)} 
@@ -511,53 +511,30 @@ export const DiagnosticCard = ({ lead, projectId, onUpdate, onClose }: Diagnosti
                   disabled={loading}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
-                  Записать ({DIAGNOSTIC_PRICE.toLocaleString()} ₸)
+                  Записать ({VISIT_PRICE.toLocaleString()} ₸)
                 </Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
 
-      {/* Confirmation Dialog */}
-      <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
-              Подтверждение записи
-            </DialogTitle>
-            <DialogDescription>
-              Клиент будет записан на диагностику, и выручка будет добавлена в MarkFinance.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex justify-between items-center">
-                <span>Клиент:</span>
-                <span className="font-medium">{lead.name || 'Без имени'}</span>
-              </div>
-              <div className="flex justify-between items-center mt-2">
-                <span>Телефон:</span>
-                <span className="font-medium">{lead.phone || '-'}</span>
-              </div>
-              <div className="flex justify-between items-center mt-2 text-lg">
-                <span>Сумма:</span>
-                <span className="font-bold text-green-600">{DIAGNOSTIC_PRICE.toLocaleString()} ₸</span>
-              </div>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowConfirmDialog(false)} className="flex-1">
-                Отмена
-              </Button>
-              <Button onClick={completeBooking} className="flex-1 bg-green-600 hover:bg-green-700" disabled={loading}>
-                {loading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <CheckCircle className="w-4 h-4 mr-2" />}
-                Подтвердить
+        <Dialog open={showConfirmDialog} onOpenChange={setShowConfirmDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Записать клиента?</DialogTitle>
+              <DialogDescription>
+                Это создаст запись в календаре и транзакцию на {VISIT_PRICE.toLocaleString()} ₸.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end gap-3 py-4">
+              <Button variant="outline" onClick={() => setShowConfirmDialog(false)}>Отмена</Button>
+              <Button onClick={completeBooking} className="bg-green-600 hover:bg-green-700">
+                Подтвердить запись
               </Button>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </Tabs>
     </div>
   );
 };

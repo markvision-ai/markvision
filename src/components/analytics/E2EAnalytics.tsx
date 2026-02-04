@@ -33,7 +33,7 @@ import {
 } from 'recharts';
 import { format, parseISO, startOfDay, isWithinInterval } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 import { AIAssistant } from './AIAssistant';
 
 interface E2EAnalyticsProps {
@@ -42,7 +42,7 @@ interface E2EAnalyticsProps {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
@@ -67,7 +67,7 @@ interface DailyData {
   clicks: number;
   impressions: number;
   leads: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -129,8 +129,8 @@ const getSourceCategory = (utm_source: string | null): string => {
   return 'other';
 };
 
-// Diagnostic statuses
-const DIAGNOSTIC_STATUSES = ['diagnostic', 'qualified', 'proposal', 'purchased'];
+// Visit statuses
+const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']; 
 const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
@@ -138,6 +138,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activePreset, setActivePreset] = useState<PresetKey | 'custom'>('month');
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date()
@@ -180,7 +181,14 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setDailyData((data || []) as DailyData[]);
+      
+      // Map database 'diagnostics' field to 'visits' if needed, or just use visits
+      const mappedData = (data || []).map((item: any) => ({
+        ...item,
+        visits: item.visits || 0,
+      }));
+      
+      setDailyData(mappedData as DailyData[]);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching daily data:', error);
@@ -245,22 +253,22 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       clicks: acc.clicks + Number(day.clicks || 0),
       impressions: acc.impressions + Number(day.impressions || 0),
       leads: acc.leads + Number(day.leads || 0),
-      diagnostics: acc.diagnostics + Number(day.diagnostics || 0),
+      visits: acc.visits + Number(day.visits || 0),
       sales: acc.sales + Number(day.sales || 0),
       revenue: acc.revenue + Number(day.revenue || 0),
-    }), { spend: 0, clicks: 0, impressions: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 });
+    }), { spend: 0, clicks: 0, impressions: 0, leads: 0, visits: 0, sales: 0, revenue: 0 });
 
     // If no daily data, use leads data
     if (filteredDailyData.length === 0) {
       const leadsCount = filteredLeads.length;
-      const diagCount = filteredLeads.filter(l => DIAGNOSTIC_STATUSES.includes(l.status || '')).length;
+      const visitCount = filteredLeads.filter(l => VISIT_STATUSES.includes(l.status || '')).length;
       const salesCount = filteredLeads.filter(l => SALE_STATUSES.includes(l.status || '')).length;
       const revenueSum = filteredLeads.filter(l => l.status === 'purchased').reduce((sum, l) => sum + (l.deal_amount || 0), 0);
       
       return {
         ...totals,
         leads: leadsCount || totals.leads,
-        diagnostics: diagCount || totals.diagnostics,
+        visits: visitCount || totals.visits,
         sales: salesCount || totals.sales,
         revenue: revenueSum || totals.revenue,
       };
@@ -273,7 +281,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
   const siteStats = useMemo(() => {
     const sites: Record<string, { 
       leads: number; 
-      diagnostics: number; 
+      visits: number; 
       sales: number; 
       revenue: number;
     }> = {};
@@ -281,11 +289,11 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     filteredLeads.forEach(lead => {
       const siteUrl = lead.extra_data?.site_url || lead.utm_campaign || 'Не указан';
       if (!sites[siteUrl]) {
-        sites[siteUrl] = { leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+        sites[siteUrl] = { leads: 0, visits: 0, sales: 0, revenue: 0 };
       }
       sites[siteUrl].leads++;
-      if (DIAGNOSTIC_STATUSES.includes(lead.status || '')) {
-        sites[siteUrl].diagnostics++;
+      if (VISIT_STATUSES.includes(lead.status || '')) {
+        sites[siteUrl].visits++;
       }
       if (lead.status === 'purchased') {
         sites[siteUrl].sales++;
@@ -296,7 +304,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     return Object.entries(sites).map(([site, data]) => ({
       site,
       leads: data.leads,
-      diagnostics: data.diagnostics,
+      visits: data.visits,
       sales: data.sales,
       revenue: data.revenue,
       cr2: data.leads > 0 ? (data.sales / data.leads) * 100 : 0,
@@ -365,16 +373,16 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
   // ==================== TAB 3: Traffic Sources (by utm_source) ====================
   const sourceStats = useMemo(() => {
-    const sources: Record<string, { leads: number; diagnostics: number; sales: number; revenue: number }> = {};
+    const sources: Record<string, { leads: number; visits: number; sales: number; revenue: number }> = {};
 
     filteredLeads.forEach(lead => {
       const source = getSourceCategory(lead.utm_source);
       if (!sources[source]) {
-        sources[source] = { leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+        sources[source] = { leads: 0, visits: 0, sales: 0, revenue: 0 };
       }
       sources[source].leads++;
-      if (DIAGNOSTIC_STATUSES.includes(lead.status || '')) {
-        sources[source].diagnostics++;
+      if (VISIT_STATUSES.includes(lead.status || '')) {
+        sources[source].visits++;
       }
       if (lead.status === 'purchased') {
         sources[source].sales++;
@@ -387,7 +395,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     return Object.entries(sources).map(([source, data]) => {
       const config = SOURCE_CONFIG[source] || SOURCE_CONFIG.other;
       const proportionalSpend = (data.leads / totalLeads) * filteredTotals.spend;
-      const costPerDiagnostic = data.diagnostics > 0 ? proportionalSpend / data.diagnostics : 0;
+      const costPerVisit = data.visits > 0 ? proportionalSpend / data.visits : 0;
       
       return {
         source,
@@ -395,11 +403,11 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         icon: config.icon,
         color: config.color,
         leads: data.leads,
-        diagnostics: data.diagnostics,
+        visits: data.visits,
         sales: data.sales,
         revenue: data.revenue,
         spend: proportionalSpend,
-        costPerDiagnostic
+        costPerVisit
       };
     }).sort((a, b) => b.leads - a.leads);
   }, [filteredLeads, filteredTotals]);
@@ -409,9 +417,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     return sourceStats.map(s => ({
       name: s.label,
       leads: s.leads,
-      diagnostics: s.diagnostics,
+      visits: s.visits,
       sales: s.sales,
-      conversion: s.leads > 0 ? (s.diagnostics / s.leads) * 100 : 0
+      conversion: s.leads > 0 ? (s.visits / s.leads) * 100 : 0
     }));
   }, [sourceStats]);
 
@@ -422,7 +430,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       impressions: filteredTotals.impressions,
       clicks: filteredTotals.clicks,
       leads: filteredTotals.leads,
-      diagnostics: filteredTotals.diagnostics,
+      visits: filteredTotals.visits,
       sales: filteredTotals.sales,
       revenue: filteredTotals.revenue,
       cpl: filteredTotals.leads > 0 ? filteredTotals.spend / filteredTotals.leads : 0,
@@ -474,6 +482,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             <DateRangePicker 
               dateRange={dateRange} 
               onDateRangeChange={setDateRange} 
+              onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
             />
             <Badge variant="secondary" className="text-xs">
               ROMI: {Math.round(romi)}%
@@ -533,7 +542,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                               <tr>
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Сайт</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
-                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Диагностики</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Визиты</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">CR2 %</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">Выручка</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">ROI</th>
@@ -544,7 +553,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                                 <tr key={site.site} className="hover:bg-secondary/30 transition-colors">
                                   <td className="p-3 font-medium max-w-[200px] truncate">{site.site}</td>
                                   <td className="p-3 text-right">{site.leads}</td>
-                                  <td className="p-3 text-right">{site.diagnostics}</td>
+                                  <td className="p-3 text-right">{site.visits}</td>
                                   <td className="p-3 text-right">
                                     <Badge variant="outline">{Math.round(site.cr2)}%</Badge>
                                   </td>
@@ -751,8 +760,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                                 <th className="text-left p-3 text-sm font-medium text-muted-foreground">Источник</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">Расход</th>
                                 <th className="text-right p-3 text-sm font-medium text-muted-foreground">Лиды</th>
-                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Диагностики</th>
-                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Цена 1 диагностики</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Визиты</th>
+                                <th className="text-right p-3 text-sm font-medium text-muted-foreground">Цена 1 визита</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y divide-border">
@@ -771,9 +780,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                                   </td>
                                   <td className="p-3 text-right">{formatCurrency(source.spend)}</td>
                                   <td className="p-3 text-right font-medium">{source.leads}</td>
-                                  <td className="p-3 text-right">{source.diagnostics}</td>
+                                  <td className="p-3 text-right">{source.visits}</td>
                                   <td className="p-3 text-right font-medium text-primary">
-                                    {formatCurrency(source.costPerDiagnostic)}
+                                    {formatCurrency(source.costPerVisit)}
                                   </td>
                                 </tr>
                               ))}
@@ -829,9 +838,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                               radius={[0, 4, 4, 0]}
                             />
                             <Bar 
-                              dataKey="diagnostics" 
+                              dataKey="visits" 
                               fill="hsl(262.1 83.3% 57.8%)" 
-                              name="Диагностики"
+                              name="Визиты"
                               radius={[0, 4, 4, 0]}
                             />
                             <Bar 

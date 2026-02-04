@@ -30,7 +30,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     { metric: 'Охват', plan: 500000, fact: 0, unit: '' },
     { metric: 'Комментарии', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Лиды', plan: 0, fact: 0, unit: 'шт' },
-    { metric: 'Диагностики', plan: 0, fact: 0, unit: 'шт' },
+    { metric: 'Визиты', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Продажи', plan: 0, fact: 0, unit: 'шт' },
     { metric: 'Сумма продаж', plan: 0, fact: 0, unit: '₸' },
   ]);
@@ -50,8 +50,8 @@ export const useInstagramPlanFact = (projectId: string | null) => {
         reach: aggregatedStats.reach || 0,
         comments: aggregatedStats.comments || 0,
         followers: aggregatedStats.followers || 0,
-        leads: 0, // Будет заполняться с сайта через UTM метки
-        diagnostics: aggregatedStats.diagnostics || 0,
+        leads: aggregatedStats.leads || 0,
+        visits: aggregatedStats.visits || 0,
         sales: aggregatedStats.sales || 0,
         revenue: aggregatedStats.revenue || 0,
       };
@@ -65,7 +65,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
         comments: 0,
         followers: 0,
         leads: 0, // Будет заполняться с сайта через UTM метки
-        diagnostics: 0,
+        visits: 0,
         sales: 0,
         revenue: 0,
       };
@@ -101,7 +101,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
     const totalComments = periodPosts.reduce((sum, p) => sum + (p.comments || 0), 0);
 
     // Бизнес-метрики (из постов, если есть)
-    const totalDiagnostics = periodPosts.reduce((sum, p) => sum + (p.leads_count || 0), 0);
+    const totalVisits = periodPosts.reduce((sum, p) => sum + (p.visits_count || 0), 0);
     const totalSales = periodPosts.reduce((sum, p) => sum + (p.paid_leads || 0), 0);
     const totalRevenue = periodPosts.reduce((sum, p) => sum + (p.revenue || 0), 0);
 
@@ -117,7 +117,7 @@ export const useInstagramPlanFact = (projectId: string | null) => {
       comments: totalComments,
       followers: 0, // TODO: получить из Instagram Insights API
       leads: 0, // Будет заполняться с сайта через UTM метки
-      diagnostics: totalDiagnostics,
+      visits: totalVisits,
       sales: totalSales,
       revenue: totalRevenue,
     };
@@ -150,8 +150,8 @@ export const useInstagramPlanFact = (projectId: string | null) => {
         case 'Лиды':
           newFact = calculatedFact.leads;
           break;
-        case 'Диагностики':
-          newFact = calculatedFact.diagnostics;
+        case 'Визиты':
+          newFact = calculatedFact.visits;
           break;
         case 'Продажи':
           newFact = calculatedFact.sales;

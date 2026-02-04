@@ -22,7 +22,7 @@ interface GrowthPointsProps {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
@@ -31,7 +31,7 @@ interface GrowthPointsProps {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
@@ -48,8 +48,8 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
   // Calculate metrics
   const ctr = totals.impressions > 0 ? (totals.clicks / totals.impressions) * 100 : 0;
   const leadConv = totals.clicks > 0 ? (totals.leads / totals.clicks) * 100 : 0;
-  const diagConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : 0;
-  const saleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : 0;
+  const visitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : 0;
+  const saleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : 0;
   const cpl = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : 0;
   const cac = totals.sales > 0 ? totals.spend / totals.sales : 0;
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
@@ -59,7 +59,7 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
   const benchmarks = {
     ctr: 2.5,
     leadConv: 3.0,
-    diagConv: 40,
+    visitConv: 40,
     saleConv: 25,
     cpl: 3000,
     romi: 100,
@@ -92,16 +92,16 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
       potentialGain: Math.round(totals.leads * ((benchmarks.leadConv - leadConv) / leadConv) * 0.3),
     },
     {
-      id: 'diag_conv',
-      title: 'Повысить явку на диагностику',
-      current: diagConv,
-      benchmark: benchmarks.diagConv,
+      id: 'visit_conv',
+      title: 'Повысить явку на визит',
+      current: visitConv,
+      benchmark: benchmarks.visitConv,
       unit: '%',
-      status: diagConv >= benchmarks.diagConv ? 'good' : diagConv >= benchmarks.diagConv * 0.7 ? 'warning' : 'critical',
+      status: visitConv >= benchmarks.visitConv ? 'good' : visitConv >= benchmarks.visitConv * 0.7 ? 'warning' : 'critical',
       impact: 'medium',
-      description: 'Увеличьте долю лидов, которые приходят на диагностику',
+      description: 'Увеличьте долю лидов, которые приходят на визит',
       actions: ['Внедрить напоминания', 'Улучшить скрипты звонков', 'Предложить бонус за визит'],
-      potentialGain: Math.round((benchmarks.diagConv - diagConv) / 100 * totals.leads * 0.2 * aov),
+      potentialGain: Math.round((benchmarks.visitConv - visitConv) / 100 * totals.leads * 0.2 * aov),
     },
     {
       id: 'sale_conv',
@@ -113,7 +113,7 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
       impact: 'high',
       description: 'Повысьте эффективность работы с клиентами на этапе продажи',
       actions: ['Обучить менеджеров', 'Улучшить презентацию услуг', 'Внедрить CRM-систему'],
-      potentialGain: Math.round((benchmarks.saleConv - saleConv) / 100 * totals.diagnostics * aov),
+      potentialGain: Math.round((benchmarks.saleConv - saleConv) / 100 * totals.visits * aov),
     },
   ].filter(o => o.status !== 'good').sort((a, b) => {
     const impactOrder = { high: 0, medium: 1, low: 2 };
@@ -123,7 +123,7 @@ export const GrowthPoints = ({ totals, planData }: GrowthPointsProps) => {
   const achievements = [
     ctr >= benchmarks.ctr && { label: 'CTR выше нормы', value: `${ctr.toFixed(1)}%` },
     leadConv >= benchmarks.leadConv && { label: 'Отличная конверсия лидов', value: `${leadConv.toFixed(1)}%` },
-    diagConv >= benchmarks.diagConv && { label: 'Высокая явка', value: `${diagConv.toFixed(0)}%` },
+    visitConv >= benchmarks.visitConv && { label: 'Высокая явка', value: `${visitConv.toFixed(0)}%` },
     saleConv >= benchmarks.saleConv && { label: 'Сильные продажи', value: `${saleConv.toFixed(0)}%` },
     romi >= benchmarks.romi && { label: 'ROMI в норме', value: `${romi.toFixed(0)}%` },
   ].filter(Boolean);

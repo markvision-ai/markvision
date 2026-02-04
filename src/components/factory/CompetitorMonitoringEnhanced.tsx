@@ -65,7 +65,7 @@ const IdeaCard = ({ idea, onCreateContent, isCreating }: IdeaCardProps) => {
         <div className="flex-1 space-y-2">
           <div className="flex items-center gap-2 flex-wrap">
             <div className="p-1.5 bg-yellow-500/10 rounded-lg">
-                <Lightbulb className="w-3.5 h-3.5 text-yellow-600 " />
+                <Lightbulb className="w-3.5 h-3.5 text-yellow-600 dark:text-yellow-400" />
             </div>
             <Badge variant="secondary" className="bg-secondary/50 backdrop-blur-sm text-[10px] border-0 font-medium tracking-wide">
               <TrendingUp className="w-3 h-3 mr-1" />

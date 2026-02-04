@@ -198,7 +198,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
               <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Охват</th>
               <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Комментарии</th>
               <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Результат</th>
-              <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Диагностики</th>
+              <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Визиты</th>
               <th className="text-right p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Выручка</th>
               <th className="text-center p-5 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">Действие</th>
             </tr>
@@ -291,7 +291,7 @@ export const ContentCenterTable = ({ projectId }: ContentCenterTableProps) => {
                   </div>
                 </td>
 
-                {/* Диагностики */}
+                {/* Визиты */}
                 <td className="p-5 text-right align-middle">
                   <span className="text-sm font-semibold text-foreground">{post.leads_count || 0}</span>
                 </td>

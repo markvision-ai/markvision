@@ -73,7 +73,8 @@ interface ClientsManagementProps {
 const STATUS_OPTIONS = [
   { value: 'new', label: 'Новый', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30' },
   { value: 'contacted', label: 'Связались', color: 'bg-purple-500/20 text-purple-500 border-purple-500/30' },
-  { value: 'diagnostic', label: 'На диагностике', color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' },
+  { value: 'visit_in_progress', label: 'Визит', color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' },
+  { value: 'diagnostic', label: 'Визит (архив)', color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' },
   { value: 'qualified', label: 'Квалифицирован', color: 'bg-cyan-500/20 text-cyan-500 border-cyan-500/30' },
   { value: 'proposal', label: 'Предложение', color: 'bg-orange-500/20 text-orange-500 border-orange-500/30' },
   { value: 'purchased', label: 'Купил', color: 'bg-green-500/20 text-green-500 border-green-500/30' },
@@ -337,7 +338,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     const statusLabels: Record<string, string> = {
       new: 'Новый',
       contacted: 'Связались',
-      diagnostic: 'На диагностике',
+      visit_in_progress: 'Визит',
+      diagnostic: 'Визит (архив)',
       qualified: 'Квалифицирован',
       proposal: 'Предложение',
       purchased: 'Купил',
@@ -593,22 +595,22 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <td className="p-4">
                       <div className="flex flex-wrap gap-1.5">
                         {lead.utm_source && (
-                          <Badge className="bg-blue-500/20 text-blue-600  border-blue-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30 text-xs px-2 py-0.5">
                             {lead.utm_source}
                           </Badge>
                         )}
                         {lead.utm_medium && (
-                          <Badge className="bg-purple-500/20 text-purple-600  border-purple-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30 text-xs px-2 py-0.5">
                             {lead.utm_medium}
                           </Badge>
                         )}
                         {lead.utm_campaign && (
-                          <Badge className="bg-green-500/20 text-green-600  border-green-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 text-xs px-2 py-0.5">
                             {lead.utm_campaign}
                           </Badge>
                         )}
                         {lead.utm_content && (
-                          <Badge className="bg-orange-500/20 text-orange-600  border-orange-500/30 text-xs px-2 py-0.5 truncate max-w-[100px]" title={lead.utm_content}>
+                          <Badge className="bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30 text-xs px-2 py-0.5 truncate max-w-[100px]" title={lead.utm_content}>
                             {lead.utm_content}
                           </Badge>
                         )}

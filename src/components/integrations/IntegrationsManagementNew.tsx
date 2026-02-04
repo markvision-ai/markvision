@@ -1,4 +1,3 @@
-// @ts-nocheck
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -367,8 +366,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-foreground ">Интеграции</h1>
-          <p className="text-sm text-muted-foreground  mt-1">Управление подключенными сервисами</p>
+          <h1 className="text-2xl font-bold text-foreground dark:text-foreground">Интеграции</h1>
+          <p className="text-sm text-muted-foreground dark:text-muted-foreground mt-1">Управление подключенными сервисами</p>
         </div>
         <Button 
           variant="outline" 
@@ -386,7 +385,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
         {/* Facebook Marketing Card */}
         <Card className={cn(
           "bg-card backdrop-blur-[16px] border-border",
-          "shadow-sm "
+          "shadow-sm dark:shadow-lg"
         )}>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -448,7 +447,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
         {/* Instagram Business Card */}
         <Card className={cn(
           "bg-card backdrop-blur-[16px] border-border",
-          "shadow-sm "
+          "shadow-sm dark:shadow-lg"
         )}>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -497,7 +496,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 </div>
                 <div className="flex items-center gap-2 p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span className="text-xs font-medium text-emerald-600 ">
+                  <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
                     Синхронизация Reels активна
                   </span>
                 </div>
@@ -564,7 +563,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
             <Card 
               className={cn(
                 "bg-card backdrop-blur-[16px] border-border",
-                "shadow-sm  hover:shadow-md transition-shadow",
+                "shadow-sm dark:shadow-lg hover:shadow-md transition-shadow",
                 integration.action && "cursor-pointer hover:border-primary/50"
               )}
               onClick={integration.action}
@@ -621,10 +620,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] bg-background border-border">
           <DialogHeader>
-            <DialogTitle className="text-foreground ">
+            <DialogTitle className="text-foreground dark:text-foreground">
               {modalType === 'facebook' ? 'Выбор ресурсов Facebook' : 'Выбор Instagram профиля'}
             </DialogTitle>
-            <DialogDescription className="text-muted-foreground ">
+            <DialogDescription className="text-muted-foreground dark:text-muted-foreground">
               {modalType === 'facebook' 
                 ? 'Выберите рекламный кабинет и страницу для подключения'
                 : 'Выберите Instagram профиль для подключения'}
@@ -637,14 +636,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                 <>
                   {/* Ad Accounts Section */}
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground  mb-3">Выберите рекламный кабинет</h3>
+                    <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите рекламный кабинет</h3>
                     <div className="space-y-2">
                       {modalLoading ? (
                         <div className="flex justify-center py-4">
                           <Loader2 className="w-5 h-5 animate-spin text-primary" />
                         </div>
                       ) : availableAdAccounts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground ">Нет доступных рекламных кабинетов</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных рекламных кабинетов</p>
                       ) : (
                         availableAdAccounts.map((account) => (
                           <button
@@ -653,12 +652,12 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                             className={cn(
                               "w-full text-left p-3 rounded-lg border transition-all",
                               modalSelectedAdAccount === account.id
-                                ? "bg-primary/10 border-primary text-foreground "
-                                : "bg-background/50  border-border/50 hover:bg-background  text-foreground "
+                                ? "bg-primary/10 border-primary text-foreground dark:text-foreground"
+                                : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
                             )}
                           >
                             <p className="text-sm font-medium">{account.name ?? '—'}</p>
-                            <p className="text-xs text-muted-foreground ">{account.account_id ?? '—'}</p>
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">{account.account_id ?? '—'}</p>
                           </button>
                         ))
                       )}
@@ -667,10 +666,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
                   {/* Pages Section */}
                   <div>
-                    <h3 className="text-sm font-semibold text-foreground  mb-3">Выберите страницу</h3>
+                    <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите страницу</h3>
                     <div className="space-y-2">
                       {availablePages.length === 0 ? (
-                        <p className="text-sm text-muted-foreground ">Нет доступных страниц</p>
+                        <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных страниц</p>
                       ) : (
                         availablePages.map((page) => (
                           <button
@@ -679,12 +678,12 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                             className={cn(
                               "w-full text-left p-3 rounded-lg border transition-all",
                               modalSelectedPage === page.id
-                                ? "bg-primary/10 border-primary text-foreground "
-                                : "bg-background/50  border-border/50 hover:bg-background  text-foreground "
+                                ? "bg-primary/10 border-primary text-foreground dark:text-foreground"
+                                : "bg-background/50 dark:bg-background/50 border-border/50 hover:bg-background dark:hover:bg-background text-foreground dark:text-foreground"
                             )}
                           >
                             <p className="text-sm font-medium">{page.name ?? '—'}</p>
-                            <p className="text-xs text-muted-foreground ">Страница Facebook</p>
+                            <p className="text-xs text-muted-foreground dark:text-muted-foreground">Страница Facebook</p>
                           </button>
                         ))
                       )}
@@ -694,14 +693,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
               ) : (
                 /* Instagram Section - только профили с instagram_business_account */
                 <div>
-                  <h3 className="text-sm font-semibold text-foreground  mb-3">Выберите Instagram профиль</h3>
+                  <h3 className="text-sm font-semibold text-foreground dark:text-foreground mb-3">Выберите Instagram профиль</h3>
                   <div className="space-y-2">
                     {modalLoading ? (
                       <div className="flex justify-center py-4">
                         <Loader2 className="w-5 h-5 animate-spin text-primary" />
                       </div>
                     ) : availableInstagramAccounts.length === 0 ? (
-                      <p className="text-sm text-muted-foreground ">Нет доступных Instagram профилей</p>
+                      <p className="text-sm text-muted-foreground dark:text-muted-foreground">Нет доступных Instagram профилей</p>
                     ) : (
                       availableInstagramAccounts.map((account) => (
                         <button
@@ -725,7 +724,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
                             <div>
                               <p className="text-sm font-medium">@{account.username ?? '—'}</p>
                               {(account.followers_count != null && account.followers_count > 0) && (
-                                <p className="text-xs text-muted-foreground ">
+                                <p className="text-xs text-muted-foreground dark:text-muted-foreground">
                                   {Number(account.followers_count).toLocaleString('ru-RU')} подписчиков
                                 </p>
                               )}

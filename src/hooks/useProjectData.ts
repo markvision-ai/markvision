@@ -23,18 +23,18 @@ export interface DailyData {
   followers_total: number;
   ig_followers_new?: number; // Added for compatibility
   new_followers?: number;    // Added for compatibility
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
 
-interface PlanData {
+export interface PlanData {
   spend: number;
   impressions: number;
   clicks: number;
   leads: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -66,7 +66,7 @@ export const useProjectData = (projectId: string | null) => {
         clicks: 0,
         leads: 0,
         followers: 0,
-        diagnostics: 0,
+        visits: 0,
         sales: 0,
         revenue: 0,
       };
@@ -191,7 +191,7 @@ export const useProjectData = (projectId: string | null) => {
           followers_total: Number(row.followers_total) || 0,
           ig_followers_new: Number(row.ig_followers_new) || 0,
           new_followers: Number(row.new_followers) || 0,
-          diagnostics: Number(row.diagnostics) || 0,
+          visits: Number(row.visits) || Number(row.diagnostics) || 0,
           sales: Number(row.sales) || 0,
           revenue: Number(row.revenue) || 0,
         };
@@ -311,7 +311,7 @@ export const useProjectData = (projectId: string | null) => {
               clicks: Number(plan.clicks) || 0,
               leads: Number(plan.leads) || 0,
               followers: Number(plan.followers) || 0,
-              diagnostics: Number(plan.diagnostics) || 0,
+              visits: Number(plan.visits) || Number(plan.diagnostics) || 0,
               sales: Number(plan.sales) || 0,
               revenue: Number(plan.revenue) || 0,
             };
@@ -349,7 +349,7 @@ export const useProjectData = (projectId: string | null) => {
 
     setPlansMap(prev => {
       const existingPlan = prev[targetMonth] || {
-        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0
       };
       
       return {
@@ -363,7 +363,7 @@ export const useProjectData = (projectId: string | null) => {
 
     try {
       const currentPlan = plansMap[targetMonth] || {
-        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0
+        spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0
       };
 
       const upsertData = {
@@ -374,7 +374,7 @@ export const useProjectData = (projectId: string | null) => {
         clicks: field === 'clicks' ? value : currentPlan.clicks,
         leads: field === 'leads' ? value : currentPlan.leads,
         followers: field === 'followers' ? value : currentPlan.followers,
-        diagnostics: field === 'diagnostics' ? value : currentPlan.diagnostics,
+        diagnostics: field === 'visits' ? value : currentPlan.visits,
         sales: field === 'sales' ? value : currentPlan.sales,
         revenue: field === 'revenue' ? value : currentPlan.revenue,
         updated_at: new Date().toISOString(),
@@ -420,7 +420,7 @@ export const useProjectData = (projectId: string | null) => {
       const existingData = prev[date] || {
         date: date,
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
-        diagnostics: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
+        visits: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
       };
 
       return {
@@ -436,7 +436,7 @@ export const useProjectData = (projectId: string | null) => {
       const currentData = dailyData[date] || {
         date: date,
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
-        diagnostics: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
+        visits: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
       };
       
       // Merge current data with new value for the payload
@@ -454,7 +454,7 @@ export const useProjectData = (projectId: string | null) => {
         leads: dataToSave.leads,
         followers: dataToSave.followers,
         followers_total: dataToSave.followers_total,
-        diagnostics: dataToSave.diagnostics,
+        diagnostics: dataToSave.visits,
         sales: dataToSave.sales,
         revenue: dataToSave.revenue,
         updated_at: new Date().toISOString(),

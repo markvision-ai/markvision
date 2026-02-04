@@ -171,7 +171,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
     const totalLeads = Math.max(totalLeadsMeta, attributedLeads.length);
     
     const appointmentLeads = attributedLeads.filter(l => 
-        l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress'
+        l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress' || l.status === 'visit_completed' || l.status === 'diagnostics_completed'
     ).length;
     
     const paidLeads = attributedLeads.filter(l => l.status === 'paid').length;
@@ -325,8 +325,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
       const spendKZT = logs.reduce((sum, log) => sum + ((log.spend || 0) * KZT_RATE), 0);
 
-      const diagnostics = filteredLeads
-        .filter(l => ['appointment', 'paid', 'in_progress'].includes(l.status))
+      const visits = filteredLeads
+        .filter(l => ['appointment', 'paid', 'visit_completed', 'diagnostics_completed'].includes(l.status))
         .filter(isMatch).length;
 
       const paid = filteredLeads
@@ -346,7 +346,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         impressions,
         clicks,
         spend: spendKZT,
-        diagnostics,
+        visits,
         paid,
         revenue,
         conversionRate: adLeads > 0 ? (paid / adLeads) * 100 : 0,
@@ -363,12 +363,12 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           leads: number, 
           platform: string, 
           spend: number, 
-          diagnostics: number, 
+          visits: number, 
           sales: number, 
           revenue: number 
       }> = {
-        'Google Ads': { leads: 0, platform: 'google', spend: 0, diagnostics: 0, sales: 0, revenue: 0 },
-        'TikTok Ads': { leads: 0, platform: 'tiktok', spend: 0, diagnostics: 0, sales: 0, revenue: 0 }
+        'Google Ads': { leads: 0, platform: 'google', spend: 0, visits: 0, sales: 0, revenue: 0 },
+        'TikTok Ads': { leads: 0, platform: 'tiktok', spend: 0, visits: 0, sales: 0, revenue: 0 }
       };
       
       campaignBreakdown.forEach(c => {
@@ -377,13 +377,13 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
               leads: 0, 
               platform: c.platform,
               spend: 0,
-              diagnostics: 0,
+              visits: 0,
               sales: 0,
               revenue: 0
           };
           stats[pName].leads += c.leads;
           stats[pName].spend += c.spend;
-          stats[pName].diagnostics += (c as any).diagnostics || 0;
+          stats[pName].visits += (c as any).visits || 0;
           stats[pName].sales += c.paid;
           stats[pName].revenue += c.revenue;
       });
@@ -398,7 +398,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
             value: s.leads,
             spend: s.spend,
             cpl: s.leads > 0 ? s.spend / s.leads : 0,
-            diagnostics: s.diagnostics,
+            visits: s.visits,
             sales: s.sales,
             revenue: s.revenue,
             percentage: totalLeads > 0 ? (s.leads / totalLeads) * 100 : 0
@@ -407,7 +407,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
   }, [campaignBreakdown]);
 
   const handleExportCSV = () => {
-    const headers = ['Campaign', 'Platform', 'Leads', 'Impressions', 'Clicks', 'Spend KZT', 'Paid', 'Revenue', 'Conversion Rate'];
+    const headers = ['Campaign', 'Platform', 'Leads', 'Impressions', 'Clicks', 'Spend KZT', 'Visits', 'Paid', 'Revenue', 'Conversion Rate'];
     const rows = campaignBreakdown.map(c => [
       `"${c.fullName.replace(/"/g, '""')}"`,
       c.platform,
@@ -415,6 +415,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
       c.impressions,
       c.clicks,
       Math.round(c.spend),
+      c.visits,
       c.paid,
       c.revenue,
       c.conversionRate.toFixed(2) + '%'
@@ -541,7 +542,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                              </div>
                              <div className="text-center p-1.5 rounded bg-background/50 border border-border/50">
                                 <div className="text-muted-foreground mb-0.5 text-[10px]">Записи</div>
-                                <div className="font-medium">{channel.diagnostics}</div>
+                                <div className="font-medium">{channel.visits}</div>
                              </div>
                              <div className="text-center p-1.5 rounded bg-background/50 border border-border/50">
                                 <div className="text-muted-foreground mb-0.5 text-[10px]">Продажи</div>

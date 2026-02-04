@@ -11,17 +11,17 @@ interface ReportData {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
   metrics: {
     customerCost: number;
-    diagnosticCost: number;
+    visitCost: number;
     leadCost: number;
     impressionToLeadConv: number;
-    leadToDiagnosticConv: number;
-    diagnosticToSaleConv: number;
+    leadToVisitConv: number;
+    visitToSaleConv: number;
     roas: number;
   };
 }

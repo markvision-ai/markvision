@@ -66,7 +66,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     { label: 'Новые подписчики', value: 0, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
     { label: 'Выручка сегодня', value: 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
     { label: 'Продажи', value: 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-    { label: 'Диагностики', value: 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
+    { label: 'Визиты', value: 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
     { label: 'Активность', value: 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
   ]);
   
@@ -97,7 +97,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       { label: 'Новые подписчики', value: followersToday, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
       { label: 'Выручка сегодня', value: todayData?.revenue || 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
       { label: 'Продажи', value: todayData?.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-      { label: 'Диагностики', value: todayData?.diagnostics || 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
+      { label: 'Визиты', value: todayData?.visits || 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
       { label: 'Активность', value: todayData?.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
     ]);
   }, [projectDailyData]);
@@ -202,7 +202,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           setTimeout(() => setPulseEffect(null), 1000);
           
           if (payload.new && typeof payload.new === 'object') {
-            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number; new_followers?: number; followers_today?: number; ig_followers_new?: number; followers?: number; diagnostics?: number };
+            const newData = payload.new as { leads?: number; revenue?: number; sales?: number; clicks?: number; new_followers?: number; followers_today?: number; ig_followers_new?: number; followers?: number; visits?: number; diagnostics?: number };
             
             const newFollowers = newData.followers_today || newData.new_followers || newData.ig_followers_new || newData.followers || 0;
             
@@ -211,7 +211,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
               { ...prev[1], previousValue: prev[1].value, value: newFollowers },
               { ...prev[2], previousValue: prev[2].value, value: Math.round(newData.revenue || 0) },
               { ...prev[3], previousValue: prev[3].value, value: newData.sales || 0 },
-              { ...prev[4], previousValue: prev[4].value, value: newData.diagnostics || 0 },
+             { ...prev[4], previousValue: prev[4].value, value: newData.visits || newData.diagnostics || 0 },
               { ...prev[5], previousValue: prev[5].value, value: newData.clicks || 0 },
             ]);
           }

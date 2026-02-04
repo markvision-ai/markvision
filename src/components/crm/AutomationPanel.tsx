@@ -216,7 +216,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600  border border-green-500/30"
+                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
                 onClick={() => handleActivateTemplate('instant_whatsapp')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -247,7 +247,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600  border border-orange-500/30"
+                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30"
                 onClick={() => handleActivateTemplate('followup_24h')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -278,7 +278,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600  border border-purple-500/30"
+                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
                 onClick={() => handleActivateTemplate('ltv_control')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />

@@ -61,6 +61,8 @@ const statusLabels: Record<string, string> = {
   invoiced: 'Счет выставлен',
   paid: 'Оплачено',
   appointment: 'Записан',
+  visit_completed: 'Визит пройден',
+  diagnostics_completed: 'Визит пройден',
   in_progress: 'В работе',
   no_answer: 'Недозвон',
   cancelled: 'Отказ',
@@ -71,6 +73,8 @@ const statusStyles: Record<string, { bg: string; text: string; gradient: string 
   invoiced: { bg: 'bg-indigo-500/20', text: 'text-indigo-500', gradient: 'from-indigo-500 to-violet-500' },
   paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-emerald-500 to-green-500' },
   appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
+  visit_completed: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-500', gradient: 'from-fuchsia-500 to-pink-500' },
+  diagnostics_completed: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-500', gradient: 'from-fuchsia-500 to-pink-500' },
   in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
   no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
   cancelled: { bg: 'bg-destructive/20', text: 'text-destructive', gradient: 'from-red-500 to-rose-500' },
@@ -100,18 +104,18 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   });
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [visitLoading, setVisitLoading] = useState(false);
   const [viralLoopOpen, setViralLoopOpen] = useState(false);
   const [refreshReferrals, setRefreshReferrals] = useState(0);
 
-  // Check if diagnosis has already been done (status is appointment or paid)
-  const isDiagnosisDone = formData.status === 'appointment' || formData.status === 'paid';
-  const isDiagnosisDisabled = formData.status === 'cancelled';
+  // Check if visit has already been done (status is appointment or paid)
+  const isVisitDone = ['appointment', 'paid', 'visit_completed', 'diagnostics_completed'].includes(formData.status || '');
+  const isVisitDisabled = formData.status === 'cancelled';
 
-  const handleDiagnosisClick = async () => {
-    if (isDiagnosisDisabled) return;
+  const handleVisitClick = async () => {
+    if (isVisitDisabled) return;
     
-    setDiagnosisLoading(true);
+    setVisitLoading(true);
     try {
       // If status is new or no_answer, change to in_progress first
       if (formData.status === 'new' || formData.status === 'no_answer') {
@@ -145,19 +149,20 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         setFormData(prev => ({ ...prev, status: 'in_progress' }));
         onUpdate?.();
         
-        toast.success('Статус обновлен, переход к диагностике...');
+        toast.success('Статус обновлен, переход к визиту...');
       } else {
-        toast.info('Переход к диагностике...');
+        toast.info('Переход к визиту...');
       }
       
       // Build URL and open in new tab AFTER successful status update
-      const diagnosticsUrl = `https://diagnostoka.vercel.app/?lead_id=${lead.id}`;
-      window.open(diagnosticsUrl, '_blank');
+      // Updated to new visits app URL
+      const visitUrl = `https://markvision-visits.vercel.app/?lead_id=${lead.id}`;
+      window.open(visitUrl, '_blank');
     } catch (error) {
-      console.error('Error updating status for diagnosis:', error);
+      console.error('Error updating status for visit:', error);
       toast.error('Ошибка обновления статуса');
     } finally {
-      setDiagnosisLoading(false);
+      setVisitLoading(false);
     }
   };
 
@@ -366,34 +371,34 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
                       </div>
                     </div>
-                    {/* Diagnosis Button */}
+                    {/* Visit Button */}
                     <div className="pt-2">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
-                              onClick={handleDiagnosisClick}
-                              disabled={isDiagnosisDisabled || diagnosisLoading}
+                              onClick={handleVisitClick}
+                              disabled={isVisitDisabled || visitLoading}
                               className={cn(
                                 'w-full text-white transition-all',
-                                isDiagnosisDone 
+                                isVisitDone 
                                   ? 'bg-purple-500 hover:bg-purple-600' 
                                   : 'bg-blue-500 hover:bg-blue-600',
-                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
                               )}
                             >
-                              {diagnosisLoading ? (
+                              {visitLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              ) : isDiagnosisDone ? (
+                              ) : isVisitDone ? (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                               ) : (
                                 <Activity className="w-4 h-4 mr-2" />
                               )}
-                              {isDiagnosisDone ? 'Повторить диагностику' : 'Провести диагностику'}
+                              {isVisitDone ? 'Повторить визит' : 'Провести визит'}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="max-w-xs">
-                            <p>Данные диагностики автоматически сохранятся в историю этого клиента</p>
+                            <p>Данные визита автоматически сохранятся в историю этого клиента</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -404,13 +409,13 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           <TooltipTrigger asChild>
                             <Button
                               onClick={() => setViralLoopOpen(true)}
-                              disabled={isDiagnosisDisabled}
+                              disabled={isVisitDisabled}
                               className={cn(
                                 'w-full text-white transition-all shadow-lg',
                                 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500',
                                 'hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600',
                                 'hover:shadow-blue-500/50 hover:scale-[1.02]',
-                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
                               )}
                             >
                               <Gift className="w-4 h-4 mr-2" />

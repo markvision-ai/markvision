@@ -21,7 +21,7 @@ import { useTheme } from '@/hooks/useTheme';
 import { AppSidebar } from './AppSidebar';
 import { DraggableDashboard } from './dashboard/DraggableDashboard';
 import { Header } from './layout/Header';
-import { MetricCard } from './dashboard/MetricCard';
+import { PresetKey } from '@/components/dashboard/DateRangePicker';
 import { PlanFactCard } from './dashboard/PlanFactCard';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
@@ -32,7 +32,7 @@ import { AIAssistant } from './analytics/AIAssistant';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
-import { useProjectData } from '@/hooks/useProjectData';
+import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -66,7 +66,7 @@ const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ de
 const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
 const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })));
 const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ default: m.CalendarPage })));
-const DiagnosticsPage = lazy(() => import('./diagnostics/DiagnosticsPage').then(m => ({ default: m.DiagnosticsPage })));
+const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default: m.VisitsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 
@@ -77,28 +77,7 @@ const ModuleLoader = () => (
   </div>
 );
 
-interface DailyData {
-  date: string;
-  spend: number;
-  impressions: number;
-  clicks?: number;
-  leads: number;
-  followers: number;
-  followers_total?: number;
-  diagnostics: number;
-  sales: number;
-  revenue: number;
-}
-
-interface PlanData {
-  spend: number;
-  impressions: number;
-  clicks: number;
-  leads: number;
-  diagnostics: number;
-  sales: number;
-  revenue: number;
-}
+// Removed duplicate interfaces
 
 interface DateRange {
   from: Date;
@@ -197,6 +176,7 @@ export const AnalyticsPlatform = () => {
     await refetchProjects();
   }, [refetch, refetchProjects]);
 
+  const [activePreset, setActivePreset] = useState<PresetKey | 'custom'>('month');
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -259,11 +239,11 @@ export const AnalyticsPlatform = () => {
         clicks: acc.clicks + (day.clicks || 0),
         leads: acc.leads + (day.leads || 0),
         followers: acc.followers + (day.followers || 0),
-        diagnostics: acc.diagnostics + (day.diagnostics || 0),
+        visits: acc.visits + (day.visits || 0),
         sales: acc.sales + (day.sales || 0),
         revenue: acc.revenue + (day.revenue || 0),
       }),
-      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
     );
 
     // DEBUG: Log for followers issue
@@ -327,11 +307,11 @@ export const AnalyticsPlatform = () => {
         clicks: acc.clicks + (day.clicks || 0),
         leads: acc.leads + (day.leads || 0),
         followers: acc.followers + (day.followers || 0),
-        diagnostics: acc.diagnostics + (day.diagnostics || 0),
+        visits: acc.visits + (day.visits || 0),
         sales: acc.sales + (day.sales || 0),
         revenue: acc.revenue + (day.revenue || 0),
       }),
-      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
+      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
     );
 
     return {
@@ -344,11 +324,11 @@ export const AnalyticsPlatform = () => {
 
   // Computed metrics (возвращаем null при делении на 0)
   const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
+  const visitCost = totals.visits > 0 ? Math.round(totals.spend / totals.visits) : null; // Стоимость визита
   const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
-  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
+  const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null; // CR (Лид→Визит)
+  const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null; // CR (Визит→Продажа)
   
   // ROMI, Рентабельность, ROAS
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
@@ -369,7 +349,7 @@ export const AnalyticsPlatform = () => {
     { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
     { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-    { label: 'Диагностики', value: totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
     { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
   ];
 
@@ -380,7 +360,7 @@ export const AnalyticsPlatform = () => {
     { label: 'Клики', current: totals.clicks, previous: previousWeekTotals.clicks, format: 'number' as const },
     { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
     { label: 'Подписчики', current: totals.followers, previous: previousWeekTotals.followers, format: 'number' as const },
-    { label: 'Диагностики', current: totals.diagnostics, previous: previousWeekTotals.diagnostics, format: 'number' as const },
+    { label: 'Визиты', current: totals.visits, previous: previousWeekTotals.visits, format: 'number' as const },
     { label: 'Продажи', current: totals.sales, previous: previousWeekTotals.sales, format: 'number' as const },
     { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
   ];
@@ -408,7 +388,7 @@ export const AnalyticsPlatform = () => {
       case 'health': return '🩺 Состояние системы';
       case 'realtime': return '⚡ Живая лента';
       case 'onboarding': return '🧭 Онбординг';
-      case 'diagnostics': return '📋 Диагностика';
+      case 'visits': return '📋 Визиты';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
       default: return 'Раздел в разработке';
@@ -467,10 +447,10 @@ export const AnalyticsPlatform = () => {
                   format="number"
                 />
                 <PlanFactCard
-                  label="Диагностики"
-                  value={totals.diagnostics}
-                  plan={planData.diagnostics}
-                  fact={totals.diagnostics}
+                  label="Визиты"
+                  value={totals.visits}
+                  plan={planData.visits}
+                  fact={totals.visits}
                   icon={<Target className="w-4 h-4 md:w-5 md:h-5" />}
                   format="number"
                 />
@@ -513,21 +493,21 @@ export const AnalyticsPlatform = () => {
                   </div>
                 </div>
 
-                {/* Стоимость диагностики */}
+                {/* Стоимость визита */}
                 <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
                   <div className="flex items-center justify-between gap-2 mb-1.5">
                     <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      Стоимость диагностики
+                      Стоимость визита
                     </div>
                     <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
                       <Activity className="w-3 h-3" />
                     </div>
                   </div>
                   <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-muted-foreground/50">—</span>}
+                    {visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground/50">—</span>}
                   </div>
                   <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {diagnosticCost !== null ? 'Расход / Диагностики' : 'Нет данных'}
+                    {visitCost !== null ? 'Расход / Визиты' : 'Нет данных'}
                   </div>
                 </div>
 
@@ -644,7 +624,19 @@ export const AnalyticsPlatform = () => {
               ));
 
               registerWidget('ai-assistant', (
-                <AIAssistant hideDashboard={true} />
+                <AIAssistant 
+                  hideDashboard={true} 
+                  context={{
+                    spend: totals.spend,
+                    impressions: totals.impressions,
+                    clicks: totals.clicks,
+                    leads: totals.leads,
+                    visits: totals.visits,
+                    sales: totals.sales,
+                    revenue: totals.revenue,
+                    projectId: currentProjectId
+                  }} 
+                />
               ));
             }
 
@@ -703,11 +695,11 @@ export const AnalyticsPlatform = () => {
             planData,
             metrics: {
               customerCost: customerCost ?? 0,
-              diagnosticCost: diagnosticCost ?? 0,
+              visitCost: visitCost ?? 0,
               leadCost: leadCost ?? 0,
               impressionToLeadConv: impressionToLeadConv ?? 0,
-              leadToDiagnosticConv: leadToDiagnosticConv ?? 0,
-              diagnosticToSaleConv: diagnosticToSaleConv ?? 0,
+              leadToVisitConv: leadToVisitConv ?? 0,
+              visitToSaleConv: visitToSaleConv ?? 0,
               romi: romi ?? 0,
               profitability: profitability ?? 0,
               roas: roas ?? 0,
@@ -716,7 +708,7 @@ export const AnalyticsPlatform = () => {
               { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
               { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
               { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-              { label: 'Диагностики', value: totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+              { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
               { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
             ]
           }} />
@@ -797,9 +789,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'diagnostics' && currentProjectId && (
+      {activeTab === 'visits' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <DiagnosticsPage projectId={currentProjectId} />
+          <VisitsPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -830,7 +822,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
@@ -883,6 +875,7 @@ export const AnalyticsPlatform = () => {
               subtitle={currentProject?.name}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
+              onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
               showDatePicker={activeTab === 'dashboard'}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
               projects={projectsList}

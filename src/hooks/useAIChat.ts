@@ -1,6 +1,8 @@
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
+
+const BRIDGE_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
 export interface ChatMessage {
   id: string;
@@ -8,6 +10,7 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   isStreaming?: boolean;
+  logs?: string[];
 }
 
 interface DataContext {
@@ -15,7 +18,7 @@ interface DataContext {
   impressions?: number;
   clicks?: number;
   leads?: number;
-  diagnostics?: number;
+  visits?: number;
   sales?: number;
   revenue?: number;
   cpl?: number;
@@ -25,21 +28,20 @@ interface DataContext {
   projectId?: string;
 }
 
-const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ai-analytics-chat`;
-
 export const useAIChat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const activeChannelRef = useRef<any>(null);
 
   const sendMessage = useCallback(async (message: string, context?: DataContext) => {
-    // Get user's session token
+    // 1. Auth check
     const { data: { session } } = await supabase.auth.getSession();
     if (!session?.access_token) {
       toast.error('Требуется авторизация');
       return null;
     }
 
+    // 2. Add user message
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
@@ -47,135 +49,106 @@ export const useAIChat = () => {
       timestamp: new Date(),
     };
 
-    // Get conversation history (last 10 messages for context)
-    const conversationHistory = messages.slice(-10).map(m => ({
-      role: m.role,
-      content: m.content
-    }));
-
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Create placeholder for assistant message
+    // 3. Add placeholder assistant message
     const assistantId = crypto.randomUUID();
     setMessages(prev => [...prev, {
       id: assistantId,
       role: 'assistant',
-      content: '',
+      content: '', // Start empty
       timestamp: new Date(),
       isStreaming: true,
+      logs: []
     }]);
 
-    abortControllerRef.current = new AbortController();
-
     try {
-      const response = await fetch(CHAT_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`,
-        },
-        body: JSON.stringify({ 
-          message, 
-          context,
-          projectId: context?.projectId,
-          history: conversationHistory,
-          stream: true
-        }),
-        signal: abortControllerRef.current.signal,
-      });
+      // 4. Insert into ai_bridge_tasks
+      const { data: task, error } = await supabase
+        .from('ai_bridge_tasks')
+        .insert({
+          project_id: BRIDGE_PROJECT_ID,
+          user_input: message,
+          status: 'pending',
+          execution_logs: [],
+          response: null,
+          // context: context // Pass context if table supports it, otherwise skip or stringify
+        })
+        .select()
+        .single();
 
-      if (!response.ok) {
-        if (response.status === 429) {
-          throw new Error('Превышен лимит запросов. Попробуйте позже.');
-        }
-        if (response.status === 402) {
-          throw new Error('Необходимо пополнить баланс AI.');
-        }
-        throw new Error('Ошибка сервера');
-      }
+      if (error) throw error;
 
-      if (!response.body) {
-        throw new Error('No response body');
-      }
+      console.log('✅ AI Bridge Task Created:', task.id);
 
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let textBuffer = '';
-      let fullContent = '';
+      // 5. Subscribe to changes
+      const channel = supabase.channel(`ai_bridge_${task.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'ai_bridge_tasks',
+            filter: `id=eq.${task.id}`,
+          },
+          (payload) => {
+            const newTask = payload.new;
+            // console.log('🔄 AI Bridge Update:', newTask);
 
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
+            setMessages(prev => prev.map(m => {
+              if (m.id !== assistantId) return m;
 
-        textBuffer += decoder.decode(value, { stream: true });
+              const isCompleted = newTask.status === 'completed';
+              
+              return {
+                ...m,
+                logs: newTask.execution_logs || [],
+                content: newTask.response || m.content,
+                isStreaming: !isCompleted
+              };
+            }));
 
-        // Process line-by-line
-        let newlineIndex: number;
-        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
-          let line = textBuffer.slice(0, newlineIndex);
-          textBuffer = textBuffer.slice(newlineIndex + 1);
-
-          if (line.endsWith('\r')) line = line.slice(0, -1);
-          if (line.startsWith(':') || line.trim() === '') continue;
-          if (!line.startsWith('data: ')) continue;
-
-          const jsonStr = line.slice(6).trim();
-          if (jsonStr === '[DONE]') break;
-
-          try {
-            const parsed = JSON.parse(jsonStr);
-            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
-            if (content) {
-              fullContent += content;
-              setMessages(prev => prev.map(m => 
-                m.id === assistantId 
-                  ? { ...m, content: fullContent }
-                  : m
-              ));
+            if (newTask.status === 'completed') {
+              console.log('✅ AI Bridge Response Completed');
+              setIsLoading(false);
+              supabase.removeChannel(channel);
+              activeChannelRef.current = null;
             }
-          } catch {
-            // Incomplete JSON, put back and wait
-            textBuffer = line + '\n' + textBuffer;
-            break;
           }
-        }
-      }
+        )
+        .subscribe();
 
-      // Mark streaming as complete
-      setMessages(prev => prev.map(m => 
-        m.id === assistantId 
-          ? { ...m, isStreaming: false }
-          : m
-      ));
+      activeChannelRef.current = channel;
 
-      return fullContent;
-    } catch (error) {
-      if ((error as Error).name === 'AbortError') {
-        return null;
-      }
-      
-      const errorMessage = error instanceof Error ? error.message : 'Ошибка отправки сообщения';
-      toast.error(errorMessage);
-      console.error('AI Chat error:', error);
-      
-      // Remove the empty assistant message on error
+    } catch (error: any) {
+      console.error('❌ AI Bridge Error:', error);
+      toast.error('Ошибка отправки: ' + error.message);
       setMessages(prev => prev.filter(m => m.id !== assistantId));
-      return null;
-    } finally {
       setIsLoading(false);
-      abortControllerRef.current = null;
     }
-  }, [messages]);
+  }, []);
 
   const stopGeneration = useCallback(() => {
-    if (abortControllerRef.current) {
-      abortControllerRef.current.abort();
+    if (activeChannelRef.current) {
+      supabase.removeChannel(activeChannelRef.current);
+      activeChannelRef.current = null;
+      setIsLoading(false);
+      // Optional: Update status in DB to 'cancelled'
     }
   }, []);
 
   const clearChat = useCallback(() => {
     setMessages([]);
+  }, []);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (activeChannelRef.current) {
+        supabase.removeChannel(activeChannelRef.current);
+      }
+    };
   }, []);
 
   return {

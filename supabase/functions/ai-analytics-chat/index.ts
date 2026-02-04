@@ -168,7 +168,7 @@ ${context ? `
 - Показы: ${context.impressions?.toLocaleString('ru-RU') || 0}
 - Клики: ${context.clicks?.toLocaleString('ru-RU') || 0}
 - Лиды: ${context.leads?.toLocaleString('ru-RU') || 0}
-- Диагностики: ${context.diagnostics?.toLocaleString('ru-RU') || 0}
+- Визиты: ${(context.visits || context.diagnostics)?.toLocaleString('ru-RU') || 0}
 - Продажи: ${context.sales?.toLocaleString('ru-RU') || 0}
 - Выручка: ${context.revenue?.toLocaleString('ru-RU') || 0} ₸
 

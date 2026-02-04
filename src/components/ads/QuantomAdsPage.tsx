@@ -9,13 +9,12 @@ import { CampaignFunnelChart } from './CampaignFunnelChart';
 import { AIStatusIndicator } from './AIStatusIndicator';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
-import { RefreshCw, Loader2, Zap, CalendarIcon, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
-import { format, subDays, startOfMonth } from 'date-fns';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
+import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
+import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
 import { supabase } from '@/lib/externalSupabase';
@@ -40,6 +39,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     from: new Date(),
     to: new Date(),
   });
+  const [activePreset, setActivePreset] = useState<PresetKey | undefined>(undefined);
   const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId);
 
   // Auto-refresh data every 60 seconds - DISABLED to prevent Rate Limits
@@ -292,36 +292,6 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     );
   }
 
-  const handleQuickDate = (range: number | 'month') => {
-    const today = new Date();
-    if (range === 0) {
-      // Today
-      setDateRange({
-        from: today,
-        to: today,
-      });
-    } else if (range === 1) {
-      // Yesterday ONLY (strict)
-      const yesterday = subDays(today, 1);
-      setDateRange({
-        from: yesterday,
-        to: yesterday,
-      });
-    } else if (range === 'month') {
-      // This Month
-      setDateRange({
-        from: startOfMonth(today),
-        to: today,
-      });
-    } else {
-      // Last N days (including today)
-      setDateRange({
-        from: subDays(today, (range as number) - 1),
-        to: today,
-      });
-    }
-  };
-
   return (
     <div className="h-[calc(100vh-6rem)] bg-background text-foreground relative flex flex-col">
       <Tabs defaultValue="dashboard" className="flex-1 flex flex-col overflow-hidden">
@@ -393,30 +363,19 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
               {/* Date & Refresh Controls */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50  rounded-lg border border-border">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button variant="outline" size="sm" onClick={() => handleQuickDate(0)} className="text-xs h-8">Сегодня</Button>
-                  <Button variant="outline" size="sm" onClick={() => handleQuickDate(1)} className="text-xs h-8">Вчера</Button>
-                  <Button variant="outline" size="sm" onClick={() => handleQuickDate(7)} className="text-xs h-8">7 дней</Button>
-                  <Button variant="outline" size="sm" onClick={() => handleQuickDate('month')} className="text-xs h-8">Этот месяц</Button>
-                </div>
-
                 <div className="flex items-center gap-2 flex-1">
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="justify-start text-left font-normal text-sm h-8">
-                        <CalendarIcon className="mr-2 h-3 w-3" />
-                        {dateRange?.from ? (
-                          dateRange.to ? `${format(dateRange.from, 'dd MMM', { locale: ru })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: ru })}` : format(dateRange.from, 'dd MMM yyyy', { locale: ru })
-                        ) : <span>Выберите период</span>}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
-                      <Calendar initialFocus mode="range" defaultMonth={dateRange?.from} selected={dateRange} onSelect={setDateRange} numberOfMonths={2} locale={ru} className="rounded-md bg-background" />
-                    </PopoverContent>
-                  </Popover>
+                  <DateRangePicker 
+                    dateRange={{
+                      from: dateRange?.from ?? new Date(),
+                      to: dateRange?.to ?? new Date()
+                    }}
+                    onDateRangeChange={(range) => setDateRange(range)}
+                    onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+                    align="start"
+                  />
 
-                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-8 w-8">
-                    <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-10 w-10">
+                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                   </Button>
                 </div>
               </div>

@@ -220,10 +220,10 @@ export const AppSidebar = ({
         tab: "crm",
       },
       {
-        label: "Диагностика",
-        href: "/diagnostics",
+        label: "Визиты",
+        href: "/visits",
         icon: <IconClipboardCheck className="h-5 w-5 flex-shrink-0" />,
-        tab: "diagnostics",
+        tab: "visits",
       },
       {
         label: "Входящие",

@@ -30,7 +30,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 
 // Icons for channels
 const ChannelIcon = ({ channel, className }: { channel: string, className?: string }) => {
@@ -63,7 +63,7 @@ interface PostStats {
   // Funnel stats
   clicks: number;
   leads_count: number;
-  diagnostics_count: number;
+  visits_count: number;
   sales_count: number;
   revenue: number;
 }
@@ -71,7 +71,10 @@ interface PostStats {
 export const PublicationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostStats[]>([]);
-  const [period, setPeriod] = useState<'month' | 'all'>('month');
+  const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
+    from: startOfMonth(new Date()),
+    to: new Date()
+  });
   const [selectedChannel, setSelectedChannel] = useState<string>('all');
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostStats | null>(null);
@@ -128,9 +131,9 @@ export const PublicationsPage = () => {
           const postLeads = leadsByPost.get(post.post_id) || [];
           
           const leadsCount = postLeads.length;
-          // Heuristic for diagnostics: status contains 'diagnostic' or 'meeting' or 'consultation'
-          const diagnosticsCount = postLeads.filter(l => 
-            ['diagnostic', 'meeting', 'consultation', 'scheduled'].some(s => l.status?.toLowerCase().includes(s))
+          // Calculate metrics
+          const visitsCount = postLeads.filter(l => 
+            ['visit_completed', 'visit', 'meeting', 'consultation', 'scheduled'].some(s => l.status?.toLowerCase().includes(s))
           ).length;
           
           // Heuristic for sales: status 'won', 'paid' or deal_amount > 0
@@ -155,7 +158,7 @@ export const PublicationsPage = () => {
             channel: 'instagram', // Default to instagram as we pull from instagram_posts_stats
             clicks: Math.floor((post.reach || 0) * 0.05), // Placeholder calculation for clicks (5% CTR) as data is missing
             leads_count: leadsCount,
-            diagnostics_count: diagnosticsCount,
+            visits_count: visitsCount,
             sales_count: salesCount,
             revenue: revenue
           };
@@ -172,7 +175,7 @@ export const PublicationsPage = () => {
     };
 
     fetchData();
-  }, [period]); 
+  }, []); 
 
   // Filter Logic
   const filteredPosts = useMemo(() => {
@@ -184,13 +187,22 @@ export const PublicationsPage = () => {
     }
 
     // Period Filter
-    const now = new Date();
-    if (period === 'month') {
-      filtered = filtered.filter(p => p.posted_at && isWithinInterval(parseISO(p.posted_at), { start: startOfMonth(now), end: now }));
+    if (dateRange.from && dateRange.to) {
+      filtered = filtered.filter(p => {
+        if (!p.posted_at) return false;
+        // Adjust end date to end of day to include posts from that day
+        const end = new Date(dateRange.to);
+        end.setHours(23, 59, 59, 999);
+        
+        return isWithinInterval(parseISO(p.posted_at), { 
+          start: dateRange.from, 
+          end: end 
+        });
+      });
     }
 
     return filtered;
-  }, [posts, period, selectedChannel]);
+  }, [posts, dateRange, selectedChannel]);
 
   // Promote Action
   const handlePromoteClick = (post: PostStats) => {
@@ -243,13 +255,12 @@ export const PublicationsPage = () => {
             </p>
           </div>
           
-          <div className="flex items-center gap-3 bg-card/50 p-1 rounded-xl border border-border/50 backdrop-blur-md">
-            <Tabs value={period} onValueChange={(v) => setPeriod(v as any)} className="w-auto">
-              <TabsList className="bg-transparent h-9 p-0 gap-1">
-                <TabsTrigger value="month" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary text-muted-foreground text-xs px-3 h-7 rounded-lg transition-all">Месяц</TabsTrigger>
-                <TabsTrigger value="all" className="data-[state=active]:bg-primary/10 data-[state=active]:text-primary text-muted-foreground text-xs px-3 h-7 rounded-lg transition-all">Все время</TabsTrigger>
-              </TabsList>
-            </Tabs>
+          <div className="flex items-center gap-3">
+            <DateRangePicker 
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              align="end"
+            />
           </div>
         </div>
 
@@ -380,10 +391,10 @@ export const PublicationsPage = () => {
                            <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Лиды</span>
                         </div>
                         
-                        {/* Diagnostics */}
+                        {/* Visits */}
                         <div className="flex flex-col items-center border-l border-border/50">
-                           <span className="text-sm font-semibold text-foreground">{post.diagnostics_count}</span>
-                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Диагн.</span>
+                           <span className="text-sm font-semibold text-foreground">{post.visits_count}</span>
+                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Виз.</span>
                         </div>
 
                         {/* Sales */}

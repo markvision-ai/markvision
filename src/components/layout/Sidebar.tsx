@@ -104,7 +104,7 @@ const menuGroups = [
     icon: ShoppingCart,
     items: [
       { id: 'crm', label: 'CRM', icon: Kanban },
-      { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
+      { id: 'visits', label: 'Визиты', icon: ClipboardCheck },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: FlameKindling },
     ]

@@ -16,7 +16,14 @@ import {
   Bot,
   Settings2,
   Calendar as CalendarIcon,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Terminal,
+  Cpu,
+  Activity,
+  Copy,
+  Check
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -51,7 +58,7 @@ interface AIAssistantProps {
     impressions?: number;
     clicks?: number;
     leads?: number;
-    diagnostics?: number;
+    visits?: number;
     sales?: number;
     revenue?: number;
     cpl?: number;
@@ -462,11 +469,17 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
                 ))}
               </AnimatePresence>
               {isLoading && (
-                <div className="flex items-center gap-2 text-muted-foreground text-xs pl-2">
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-primary rounded-full animate-bounce delay-200" />
-                  AI печатает...
+                <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10 animate-pulse">
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Cpu className="w-4 h-4 text-primary animate-spin-slow" />
+                    </div>
+                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-md animate-pulse" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-primary">Марк анализирует данные...</span>
+                    <span className="text-xs text-muted-foreground">Подключаюсь к Claude Code Bridge</span>
+                  </div>
                 </div>
               )}
             </div>
@@ -499,34 +512,227 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
   );
 };
 
+const LogViewer = ({ logs }: { logs: string[] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (!logs || logs.length === 0) return null;
+
+  return (
+    <div className="w-full mb-2">
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors w-fit"
+      >
+        <Terminal className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+          System Logs ({logs.length})
+        </span>
+        {isOpen ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
+      </div>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mt-2"
+          >
+            <div className="bg-[#1e1e1e] text-green-400 p-3 text-[10px] font-mono leading-relaxed rounded-lg shadow-inner max-h-[200px] overflow-y-auto border border-white/10">
+              {logs.map((log, i) => (
+                <div key={i} className="flex gap-2 border-b border-white/5 last:border-0 py-1">
+                  <span className="opacity-40 select-none text-gray-500">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="break-all">{log}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const StatsCard = ({ data }: { data: any }) => {
+  const metrics = [
+    { label: 'Расход', value: data.spend, format: 'currency' },
+    { label: 'Лиды', value: data.leads, format: 'number' },
+    { label: 'CTR', value: data.ctr, format: 'percent' },
+    { label: 'Цена лида', value: data.cpl, format: 'currency' },
+    { label: 'ROMI', value: data.romi, format: 'percent' },
+    { label: 'Выручка', value: data.revenue, format: 'currency' }
+  ].filter(m => m.value !== undefined && m.value !== null);
+
+  if (metrics.length === 0) return null;
+
+  const formatValue = (val: number, type: string) => {
+    if (type === 'currency') return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(val);
+    if (type === 'percent') return `${val}%`;
+    return val;
+  };
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
+      {metrics.map((m, i) => (
+        <div key={i} className="relative overflow-hidden group bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.1)] transition-all duration-300">
+           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
+           <span className="text-lg font-bold text-foreground drop-shadow-sm relative z-10">{formatValue(m.value, m.format)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
+const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => {
+  const [displayedText, setDisplayedText] = useState(isStreaming ? '' : text);
+  
+  useEffect(() => {
+    if (!isStreaming) {
+      setDisplayedText(text);
+      return;
+    }
+
+    if (displayedText === text) return;
+
+    if (text.length < displayedText.length) {
+       setDisplayedText(text);
+       return;
+    }
+
+    const timeout = setTimeout(() => {
+       setDisplayedText(text.slice(0, displayedText.length + 1));
+    }, speed);
+
+    return () => clearTimeout(timeout);
+  }, [text, displayedText, isStreaming, speed]);
+
+  return displayedText;
+};
+
 const MessageBubble = ({ message }: { message: ChatMessage }) => {
   const isUser = message.role === 'user';
+  const [copied, setCopied] = useState(false);
   
+  // Try parsing JSON content
+  let jsonContent = null;
+  let textContent = message.content;
+
+  try {
+    if (!isUser && message.content) {
+      // Check if pure JSON
+      if (message.content.trim().startsWith('{')) {
+         jsonContent = JSON.parse(message.content);
+         textContent = ""; // Hide raw JSON if successfully parsed
+      } 
+      // Check for JSON block
+      else if (message.content.includes('```json')) {
+         const match = message.content.match(/```json\n([\s\S]*?)\n```/);
+         if (match) {
+           jsonContent = JSON.parse(match[1]);
+           // Remove the JSON block from text content to avoid duplicate display
+           textContent = message.content.replace(match[0], '');
+         }
+      }
+    }
+  } catch (e) {
+    // ignore parse errors
+  }
+
+  // Apply typewriter effect to text content
+  const displayedText = useStreamTypewriter(textContent || '', !!message.isStreaming);
+
+  const handleCopy = () => {
+    const textToCopy = [
+      jsonContent ? `Метрики:\n${JSON.stringify(jsonContent, null, 2)}` : '',
+      textContent
+    ].filter(Boolean).join('\n\n');
+    
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      className={cn("flex gap-3", isUser ? "flex-row-reverse" : "flex-row")}
+      className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}
     >
-      <div className={cn(
-        "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow-sm",
-        isUser ? "bg-background" : "bg-primary/10 border-primary/20"
-      )}>
-        {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary" />}
-      </div>
-      <div className={cn(
-        "max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm",
-        isUser 
-          ? "bg-primary text-primary-foreground rounded-tr-sm" 
-          : "bg-card border rounded-tl-sm"
-      )}>
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div className="prose prose-sm  max-w-none">
-            <ReactMarkdown>{message.content || ''}</ReactMarkdown>
-          </div>
-        )}
+      {!isUser && message.logs && message.logs.length > 0 && (
+         <div className="pl-11 w-full max-w-[90%]">
+            <LogViewer logs={message.logs} />
+         </div>
+      )}
+
+      <div className={cn("flex gap-3 max-w-[90%]", isUser ? "flex-row-reverse" : "flex-row")}>
+        <div className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow-sm h-fit",
+          isUser ? "bg-background" : "bg-primary/10 border-primary/20"
+        )}>
+          {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary" />}
+        </div>
+        
+        <div className="flex flex-col gap-2 w-full">
+          {(isUser || textContent || jsonContent) && (
+            <div className={cn(
+              "rounded-2xl px-4 py-3 text-sm shadow-sm",
+              isUser 
+                ? "bg-primary text-primary-foreground rounded-tr-sm" 
+                : "bg-card border rounded-tl-sm"
+            )}>
+              {isUser ? (
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              ) : (
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {jsonContent && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                         <Activity className="w-4 h-4" />
+                         <span className="text-xs font-medium">Результаты анализа:</span>
+                      </div>
+                      <StatsCard data={jsonContent} />
+                    </div>
+                  )}
+                  
+                  {textContent && (
+                    <ReactMarkdown
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-4 mb-2" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] mt-3 mb-2" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-none space-y-1 my-2 pl-0" {...props} />,
+                        li: ({node, ...props}) => (
+                          <li className="flex items-start gap-2 relative pl-4" {...props}>
+                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+                            <span className="text-muted-foreground">{props.children}</span>
+                          </li>
+                        ),
+                        p: ({node, ...props}) => <p className="leading-relaxed mb-2 text-muted-foreground" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-semibold text-foreground" {...props} />,
+                      }}
+                    >
+                      {displayedText}
+                    </ReactMarkdown>
+                  )}
+                  
+                  <div className="mt-4 pt-2 border-t border-white/5 flex justify-end">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleCopy}
+                      className="text-[10px] text-muted-foreground hover:text-foreground gap-1.5 h-6 px-2 hover:bg-white/5"
+                    >
+                      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                      {copied ? 'Скопировано' : 'Скопировать отчет'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );

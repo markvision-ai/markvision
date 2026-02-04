@@ -12,7 +12,7 @@ export interface ContentProductionStats {
   reach: number;
   comments: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
   created_at: string;
@@ -64,11 +64,11 @@ export const useContentProductionStats = (projectId: string | null, periodStart:
               reach: (acc.reach || 0) + (r.reach ?? 0),
               comments: (acc.comments || 0) + (r.comments ?? 0),
               followers: (acc.followers || 0) + (r.followers ?? 0),
-              diagnostics: (acc.diagnostics || 0) + (r.diagnostics ?? 0),
+              visits: (acc.visits || 0) + (r.visits ?? r.diagnostics ?? 0),
               sales: (acc.sales || 0) + (r.sales ?? 0),
               revenue: (acc.revenue || 0) + (r.revenue ?? 0),
             }),
-            { publications: 0, stories: 0, reach: 0, comments: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
+            { publications: 0, stories: 0, reach: 0, comments: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
           );
           data = {
             id: rows[0].id,

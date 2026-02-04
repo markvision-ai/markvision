@@ -11,6 +11,8 @@ const statusLabels: Record<string, string> = {
   in_progress: 'В работе',
   no_answer: 'Недозвон',
   appointment: 'Записан',
+  visit_completed: 'Визит пройден',
+  diagnostics_completed: 'Визит пройден',
   paid: 'Оплачено',
   cancelled: 'Отказ',
 };
@@ -20,6 +22,8 @@ const statusStyles: Record<string, { bg: string; text: string; gradient: string 
   in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
   no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
   appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
+  visit_completed: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
+  diagnostics_completed: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
   paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-emerald-500 to-green-500' },
   cancelled: { bg: 'bg-destructive/20', text: 'text-destructive', gradient: 'from-red-500 to-rose-500' },
 };

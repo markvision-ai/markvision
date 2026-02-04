@@ -122,7 +122,7 @@ const App = () => (
         <Route path="/realtime" element={<Index />} />
         <Route path="/table" element={<Index />} />
         <Route path="/crm" element={<Index />} />
-        <Route path="/diagnostics" element={<Index />} />
+        <Route path="/visits" element={<Index />} />
         <Route path="/analytics" element={<Index />} />
         <Route path="/e2e-analytics" element={<Index />} />
         <Route path="/finance" element={<Index />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Search, Menu, Users, Image, Loader2, X } from 'lucide-react';
-import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
 import { supabase } from '@/lib/externalSupabase';
@@ -24,6 +24,7 @@ interface HeaderProps {
   subtitle?: string;
   dateRange?: DateRange;
   onDateRangeChange?: (range: DateRange) => void;
+  onPresetChange?: (preset: PresetKey | 'custom') => void;
   showDatePicker?: boolean;
   onMobileMenuClick?: () => void;
   // Project selector props
@@ -50,6 +51,7 @@ export const Header = ({
   dateRange, 
   onDateRangeChange,
   showDatePicker = false,
+  onPresetChange,
   onMobileMenuClick,
   projects = [],
   currentProjectId,
@@ -98,7 +100,8 @@ export const Header = ({
           <div className="hidden sm:block">
             <DateRangePicker 
               dateRange={dateRange} 
-              onDateRangeChange={onDateRangeChange} 
+              onDateRangeChange={onDateRangeChange}
+              onPresetChange={onPresetChange}
             />
           </div>
         )}

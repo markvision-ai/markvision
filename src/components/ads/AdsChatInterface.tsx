@@ -419,7 +419,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
   return (
     <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-background">
-      <div className="hidden ">
+      <div className="hidden dark:block">
         <BackgroundBeams className="absolute inset-0 z-0 opacity-30" />
       </div>
       
