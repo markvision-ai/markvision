@@ -72,9 +72,10 @@ interface Transaction {
   transaction_date: string | null;
   created_at: string;
   lead_id?: string | null;
+  project_id: string;
 }
 
-interface FinanceDashboardProps {
+export interface FinanceDashboardProps {
   projectId: string;
 }
 
@@ -178,7 +179,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .from('transactions')
         .select('*')
         .eq('project_id', projectId)
-        .order('transaction_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTransactions((data as Transaction[]) || []);
@@ -209,7 +210,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         amount: newTransaction.amount,
         description: newTransaction.description,
         currency: 'KZT',
-        transaction_date: new Date().toISOString(),
+        // created_at will be set automatically
       }]);
 
       if (error) throw error;
@@ -253,7 +254,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     }
 
     return transactions.filter(t => {
-      const transactionDate = parseISO(t.transaction_date);
+      const dateStr = t.transaction_date || t.created_at;
+      const transactionDate = parseISO(dateStr);
       const dateMatch = !startDate || transactionDate >= startDate;
       const categoryMatch = categoryFilter === 'all' || t.category === categoryFilter;
       return dateMatch && categoryMatch;
@@ -277,8 +279,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
     
     filteredTransactions.forEach(t => {
-      if (!t.transaction_date) return;
-      const date = parseISO(t.transaction_date);
+      const dateStr = t.transaction_date || t.created_at;
+      if (!dateStr) return;
+      const date = parseISO(dateStr);
       const monthKey = format(date, 'yyyy-MM');
       const monthLabel = format(date, 'MMM', { locale: ru });
       

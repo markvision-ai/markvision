@@ -109,16 +109,18 @@ export const useNotifications = (projectId?: string) => {
         // 3. New Leads Today (Count only)
         supabase
           .from('leads')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', todayStr),
+          .select('id', { count: 'exact' })
+          .gte('created_at', todayStr)
+          .limit(1),
           // .abortSignal(signal),
 
         // 4. Webhook Errors (Count only)
         supabase
           .from('webhook_logs')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('status', 'error')
-          .gte('received_at', weekAgoIso),
+          .gte('received_at', weekAgoIso)
+          .limit(1),
           // .abortSignal(signal),
 
         // 5. Recent Data Gaps

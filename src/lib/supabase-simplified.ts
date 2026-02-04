@@ -39,7 +39,7 @@ const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Initialize lightweight client
-export const supabase = createClient<LightweightDatabase>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+export const supabase: any = createClient<LightweightDatabase>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: window.localStorage,
     persistSession: true,

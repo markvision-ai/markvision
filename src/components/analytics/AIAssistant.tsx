@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   Send, 
@@ -689,7 +689,7 @@ const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => 
   return displayedText;
 };
 
-const MessageBubble = ({ message }: { message: ChatMessage }) => {
+const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ message }, ref) => {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
   
@@ -734,8 +734,10 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
 
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 10, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
       className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}
     >
       {!isUser && message.logs && message.logs.length > 0 && (
@@ -777,12 +779,12 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
                   {textContent && (
                     <ReactMarkdown
                       components={{
-                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)] mt-4 mb-2" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.5)] mt-3 mb-2" {...props} />,
+                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-foreground mt-4 mb-2" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-foreground mt-3 mb-2" {...props} />,
                         ul: ({node, ...props}) => <ul className="list-none space-y-1 my-2 pl-0" {...props} />,
                         li: ({node, ...props}) => (
                           <li className="flex items-start gap-2 relative pl-4" {...props}>
-                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_var(--primary)]" />
+                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
                             <span className="text-muted-foreground">{props.children}</span>
                           </li>
                         ),
@@ -794,12 +796,12 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
                     </ReactMarkdown>
                   )}
                   
-                  <div className="mt-4 pt-2 border-t border-white/5 flex justify-end">
+                  <div className="mt-4 pt-2 border-t border-border/50 flex justify-end">
                     <Button 
                       variant="ghost" 
                       size="sm" 
                       onClick={handleCopy}
-                      className="text-[10px] text-muted-foreground hover:text-foreground gap-1.5 h-6 px-2 hover:bg-white/5"
+                      className="text-[10px] text-muted-foreground hover:text-foreground gap-1.5 h-6 px-2"
                     >
                       {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
                       {copied ? 'Скопировано' : 'Скопировать отчет'}
@@ -813,4 +815,6 @@ const MessageBubble = ({ message }: { message: ChatMessage }) => {
       </div>
     </motion.div>
   );
-};
+});
+
+MessageBubble.displayName = 'MessageBubble';

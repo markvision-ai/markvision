@@ -129,7 +129,8 @@ type SortConfig = {
 };
 
 export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
-  const { leads } = useLeads(projectId);
+  const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const { leads } = useLeads(pid);
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
@@ -252,7 +253,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
 
   const fetchAdInsights = async () => {
-      if (!projectId) return;
+      if (!pid) return;
       
       const since = format(dateRange.from, 'yyyy-MM-dd');
       const until = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : since;
@@ -261,7 +262,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           const { data, error } = await (supabase as any)
               .from('ad_performance_logs')
               .select('*')
-              .eq('project_id', projectId)
+              .eq('project_id', pid)
               .gte('date_start', since)
               .lte('date_start', until);
 
@@ -316,7 +317,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   }, [dateRange]);
 
   useEffect(() => {
-    if (projectId && dateRangeKey && dateRange?.from) {
+    if (pid && dateRangeKey && dateRange?.from) {
       // Check circuit breaker
       if (Date.now() < rateLimitUntil) {
           console.warn('Meta API requests paused due to Rate Limit.');
@@ -334,7 +335,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
 
       // Use a unique key for this specific date range
-      const lastSyncKey = `ads_sync_${projectId}_${fromStr}_${toStr}`;
+      const lastSyncKey = `ads_sync_${pid}_${fromStr}_${toStr}`;
       const lastSyncTime = sessionStorage.getItem(lastSyncKey);
       const now = Date.now();
 
@@ -351,7 +352,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               body: { 
                   action: 'sync_metrics', 
                   payload: { 
-                      projectId,
+                      projectId: pid,
                       date_range: { since: fromStr, until: toStr } 
                   } 
               }
@@ -379,7 +380,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   }, [projectId, dateRangeKey, rateLimitUntil]);
 
   useEffect(() => {
-    if (projectId && refreshTrigger > 0) {
+    if (pid && refreshTrigger > 0) {
       if (Date.now() < rateLimitUntil) {
           console.warn('Meta API sync skipped due to Rate Limit.');
           return;
@@ -430,7 +431,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             body: { 
                 action: 'sync_metrics', 
                 payload: { 
-                    projectId,
+                    projectId: pid,
                     date_range: dateRange?.from ? { 
                         since: format(dateRange.from, 'yyyy-MM-dd'), 
                         until: format(dateRange.to || dateRange.from, 'yyyy-MM-dd') 
@@ -472,7 +473,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           const { data: localCampaigns } = await (supabase as any)
             .from('campaigns')
             .select('*')
-            .eq('project_id', projectId)
+            .eq('project_id', pid)
             .order('created_at', { ascending: false });
 
           if (localCampaigns && localCampaigns.length > 0) {
@@ -494,7 +495,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           const { data: logs } = await (supabase as any)
              .from('ad_performance_logs')
              .select('entity_id, entity_name, spend')
-             .eq('project_id', projectId)
+             .eq('project_id', pid)
              .eq('entity_type', 'campaign')
              .order('date_start', { ascending: false });
              
@@ -519,7 +520,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           }
       }
 
-      const payload: any = { projectId };
+      const payload: any = { projectId: pid };
       
       if (dateRange?.from && dateRange?.to) {
           payload.date_range = {
@@ -557,7 +558,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         const { data: localCampaigns } = await (supabase as any)
           .from('campaigns')
           .select('*')
-          .eq('project_id', projectId)
+          .eq('project_id', pid)
           .order('created_at', { ascending: false });
 
         if (localCampaigns && localCampaigns.length > 0) {
@@ -984,7 +985,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     setSaving(true);
     try {
         const payload: any = { 
-            projectId, 
+            projectId: pid, 
             entityId: editingEntity.id, 
             name: editName 
         };

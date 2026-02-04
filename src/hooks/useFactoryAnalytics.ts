@@ -117,11 +117,12 @@ export const useFactoryAnalytics = (projectId: string | null) => {
         // Leads Count
         const { count: leadsCount, error: leadsError } = await supabase
           .from('leads')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('project_id', effectiveProjectId)
           .eq('lead_source', 'organic')
           .gte('created_at', dateRange.from!.toISOString())
           .lte('created_at', dateRange.to!.toISOString())
+          .limit(1)
           .abortSignal(signal);
 
         if (leadsError) throw leadsError;
@@ -130,12 +131,13 @@ export const useFactoryAnalytics = (projectId: string | null) => {
         // Adjust statuses based on actual CRM workflow if known, otherwise assume standard success statuses
         const { count: salesCount, error: salesError } = await supabase
           .from('leads')
-          .select('*', { count: 'exact', head: true })
+          .select('id', { count: 'exact' })
           .eq('project_id', effectiveProjectId)
           .eq('lead_source', 'organic')
           .in('status', ['won', 'paid', 'completed', 'success', 'closed_won'])
           .gte('created_at', dateRange.from!.toISOString())
           .lte('created_at', dateRange.to!.toISOString())
+          .limit(1)
           .abortSignal(signal);
         
         if (salesError) throw salesError;

@@ -54,12 +54,13 @@ const getStatusConfig = (status: string | null) => {
 };
 
 export const VisitsPage = ({ projectId }: VisitsPageProps) => {
+  const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
   const [selectedType, setSelectedType] = useState<string | null>(null);
   
   const { data: visitResults, isLoading } = useQuery({
-    queryKey: ['visit-results', projectId],
+    queryKey: ['visit-results', pid],
     queryFn: async () => {
-      if (!projectId) return [];
+      if (!pid) return [];
       
       // First try to get from visit_results table
       const { data: visitResultsData, error: visitError } = await (supabase as any)
@@ -68,7 +69,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
           *,
           lead:leads(id, name, phone, status, deal_amount)
         `)
-        .eq('project_id', projectId)
+        .eq('project_id', pid)
         .order('created_at', { ascending: false })
         .limit(50);
       
@@ -80,7 +81,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       const { data: leads, error: leadsError } = await (supabase as any)
         .from('leads')
         .select('*')
-        .eq('project_id', projectId)
+        .eq('project_id', pid)
         .in('status', ['appointment', 'visit_completed', 'paid', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(50);
@@ -95,7 +96,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
         created_at: lead.created_at,
       }));
     },
-    enabled: !!projectId,
+    enabled: !!pid,
   });
 
   const hoverItems = visitTypes.map((type) => ({

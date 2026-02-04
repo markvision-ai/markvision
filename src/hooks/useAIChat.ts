@@ -96,16 +96,20 @@ export const useAIChat = () => {
 
       console.log('✅ AI Bridge Task Created:', task.id);
 
-      // Set 45s warning and 90s timeout
+      // Set warning and timeout
       const warningTimeout = setTimeout(() => {
         setMessages(prev => prev.map(m => {
           if (m.id !== assistantId || !m.isStreaming) return m;
-          return {
-            ...m,
-            content: m.content || 'Марк выполняет сложный аудит, пожалуйста, подождите...',
-          };
+          // Only show this if we haven't received any response yet
+          if (!m.content || m.content === 'Марк изучает данные Meta Ads и Нацбанка...') {
+             return {
+               ...m,
+               content: 'Марк выполняет сложный аудит, пожалуйста, подождите...',
+             };
+          }
+          return m;
         }));
-      }, 45000);
+      }, 30000);
 
       timeoutRef.current = setTimeout(() => {
         setIsLoading(false);
@@ -121,7 +125,7 @@ export const useAIChat = () => {
           supabase.removeChannel(activeChannelRef.current);
           activeChannelRef.current = null;
         }
-      }, 90000);
+      }, 60000);
 
       // 5. Subscribe to changes
       const channel = supabase.channel(`ai_bridge_${task.id}`)
@@ -147,10 +151,17 @@ export const useAIChat = () => {
 
               const isCompleted = newTask.status === 'completed';
               
+              let newContent = newTask.response || m.content;
+              
+              // Custom running message logic
+              if (newTask.status === 'running' && !newTask.response) {
+                 newContent = 'Марк изучает данные Meta Ads и Нацбанка...';
+              }
+
               return {
                 ...m,
                 logs: newTask.execution_logs || [],
-                content: newTask.response || m.content,
+                content: newContent,
                 isStreaming: !isCompleted
               };
             }));

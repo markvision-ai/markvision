@@ -430,7 +430,7 @@ export const Sidebar = ({
   return (
     <>
       {/* Desktop Sidebar - Narrower and minimalist */}
-      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r-0">
+      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r border-white/5">
         <SidebarContent />
       </aside>
 
