@@ -90,12 +90,15 @@ export function BeamVisualization({
           delay: 0.5,
           duration: 0.5,
           type: "spring"
-        }} className="relative">
+        }} className="relative flex flex-col items-center">
             {/* Glow effect removed as per request */}
             
             <div ref={centerRef} className="relative z-10 flex h-28 w-28 sm:h-40 sm:w-40 items-center justify-center p-0">
-              <MarkVisionLogo size="100%" type="text" className="scale-125 mix-blend-multiply" />
+              <MarkVisionLogo size="100%" type="default" className="scale-125 mix-blend-multiply" />
             </div>
+            <span className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent -mt-6 sm:-mt-8 z-20 relative">
+              MarkVision AI
+            </span>
           </motion.div>
         </div>
 
