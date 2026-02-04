@@ -291,7 +291,9 @@ async function startWorker() {
           });
           
         if (statusError) {
-           console.warn('Legacy Heartbeat warning:', statusError.message);
+           console.error('❌ Ошибка записи пульса:', statusError.message);
+        } else {
+           console.log('✅ Пульс успешно записан в БД');
         }
 
         // 2. Update New system_health (For future dashboard)
@@ -307,7 +309,6 @@ async function startWorker() {
 
         const payload = {
           service_name: 'ai_worker',
-          service_type: 'worker',
           status: 'operational',
           last_check_at: nowIso,
           updated_at: nowIso,
