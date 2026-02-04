@@ -120,13 +120,13 @@ export function BeamVisualization({
       </div>
 
       {/* Animated beams - Left to Center */}
-      <AnimatedBeam containerRef={containerRef} fromRef={instagramRef} toRef={centerRef} curvature={-50} gradientStartColor="#E4405F" gradientStopColor="#3b82f6" duration={2} />
-      <AnimatedBeam containerRef={containerRef} fromRef={tiktokRef} toRef={centerRef} gradientStartColor="#69C9D0" gradientStopColor="#3b82f6" duration={2.2} />
-      <AnimatedBeam containerRef={containerRef} fromRef={googleRef} toRef={centerRef} curvature={50} gradientStartColor="#EA4335" gradientStopColor="#3b82f6" duration={2.4} />
+      <AnimatedBeam containerRef={containerRef} fromRef={instagramRef} toRef={centerRef} curvature={-50} gradientStartColor="#E4405F" gradientStopColor="#3b82f6" duration={2} className="z-20" />
+      <AnimatedBeam containerRef={containerRef} fromRef={tiktokRef} toRef={centerRef} gradientStartColor="#69C9D0" gradientStopColor="#3b82f6" duration={2.2} className="z-20" />
+      <AnimatedBeam containerRef={containerRef} fromRef={googleRef} toRef={centerRef} curvature={50} gradientStartColor="#EA4335" gradientStopColor="#3b82f6" duration={2.4} className="z-20" />
       
       {/* Center to Right */}
-      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={crmRef} curvature={-50} gradientStartColor="#3b82f6" gradientStopColor="#6366f1" duration={2.3} />
-      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={analyticsRef} gradientStartColor="#3b82f6" gradientStopColor="#8b5cf6" duration={2.5} />
-      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={financeRef} curvature={50} gradientStartColor="#3b82f6" gradientStopColor="#10b981" duration={2.7} />
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={crmRef} curvature={-50} gradientStartColor="#3b82f6" gradientStopColor="#6366f1" duration={2.3} className="z-20" />
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={analyticsRef} gradientStartColor="#3b82f6" gradientStopColor="#8b5cf6" duration={2.5} className="z-20" />
+      <AnimatedBeam containerRef={containerRef} fromRef={centerRef} toRef={financeRef} curvature={50} gradientStartColor="#3b82f6" gradientStopColor="#10b981" duration={2.7} className="z-20" />
     </div>;
 }
