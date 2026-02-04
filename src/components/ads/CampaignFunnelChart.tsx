@@ -326,8 +326,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
       const spendKZT = logs.reduce((sum, log) => sum + ((log.spend || 0) * KZT_RATE), 0);
 
       const visits = filteredLeads
-        .filter(l => ['appointment', 'paid', 'visit_completed', 'diagnostics_completed'].includes(l.status))
-        .filter(isMatch).length;
+      .filter(l => ['appointment', 'paid', 'visit_completed'].includes(l.status))
+      .filter(isMatch).length;
 
       const paid = filteredLeads
         .filter(l => l.status === 'paid')
