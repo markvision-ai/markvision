@@ -94,15 +94,13 @@ const useMarkStatus = () => {
 
     const fetchStatus = async () => {
       const { data } = await supabase
-        .from('system_health')
-        .select('last_check_at')
-        .eq('service_name', 'ai_worker')
-        .order('last_check_at', { ascending: false })
-        .limit(1)
+        .from('system_status')
+        .select('last_seen')
+        .eq('id', 'mark-ai-worker')
         .single();
-      
+
       if (data) {
-        checkStatus(data.last_check_at);
+        checkStatus(data.last_seen);
       }
     };
 

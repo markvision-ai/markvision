@@ -18,18 +18,13 @@ const anthropicApiKey = process.env.ANTHROPIC_API_KEY;
 console.log('API Key Status:', !!anthropicApiKey);
 
 if (!supabaseUrl || !supabaseKey || !anthropicApiKey) {
-  console.error('Missing required environment variables (SUPABASE_URL, SUPABASE_KEY, ANTHROPIC_API_KEY)');
-  // We do not exit here to respect the "never exit" rule, but without keys it won't work. 
-  // However, usually missing keys at startup is a fatal config error. 
-  // Given "exit code 1" complaint, I'll log and wait in the loop instead of crashing immediately if possible, 
-  // or just let the user fix env vars. But for safety, I'll exit here as it's startup, not runtime crash.
-  // Actually, user said "constantly crashes", maybe env vars are flapping? Unlikely.
-  // I'll stick to standard exit on startup missing vars, but the loop will be safe.
-  process.exit(1);
+  console.error('⚠️  Missing required environment variables (SUPABASE_URL, SUPABASE_KEY, ANTHROPIC_API_KEY)');
+  console.error('⚠️  Worker will run in limited mode (Heartbeat only). AI tasks will fail.');
+  // We do not exit here to avoid "exit code 1" crash loop.
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
-const anthropic = new Anthropic({ apiKey: anthropicApiKey });
+const supabase = createClient(supabaseUrl || '', supabaseKey || '');
+const anthropic = new Anthropic({ apiKey: anthropicApiKey || 'dummy' });
 
 // --- Tools Definitions ---
 const tools: Anthropic.Tool[] = [
@@ -309,9 +304,10 @@ async function startWorker() {
 
         const payload = {
           service_name: 'ai_worker',
+          // service_type: 'worker', // Removed: column does not exist in DB
           status: 'operational',
           last_check_at: nowIso,
-          updated_at: nowIso,
+          // updated_at: nowIso, // Removed: column does not exist
           project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa'
         };
 

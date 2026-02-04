@@ -42,7 +42,7 @@ async function testHeartbeat() {
   console.log('2. Testing system_health insert/update...');
   const payload = {
     service_name: 'ai_worker',
-    service_type: 'worker',
+    // service_type: 'worker', // Removed
     status: 'operational',
     last_check_at: nowIso,
     updated_at: nowIso,

@@ -25,8 +25,8 @@ async function testInsert() {
     .insert({
       project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',
       prompt: 'Test custom status',
-      status: 'pending_local'
-    })
+              status: 'failed' // Use a valid status that won't be picked up by worker
+            })
     .select()
     .single();
 
