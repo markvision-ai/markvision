@@ -3,7 +3,7 @@ import { Search, Menu, Users, Image, Loader2, X } from 'lucide-react';
 import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';

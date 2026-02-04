@@ -1,6 +1,6 @@
 // @ts-nocheck
 import { useState, useEffect, useMemo } from 'react';
-import { externalSupabase as supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, subMonths, format, startOfToday, subDays } from 'date-fns';
 import { toast } from 'sonner';
 

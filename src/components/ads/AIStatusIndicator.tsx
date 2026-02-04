@@ -17,16 +17,12 @@ export const AIStatusIndicator = () => {
       return;
     }
 
-    const checkStatus = async () => {
+    const checkInitialStatus = async () => {
       try {
-        // Validate user ID exists
-        if (!user.id) {
-            throw new Error('User ID is missing');
-        }
+        if (!user.id) return;
 
-        // Check for any pending or in_progress commands
-        // Filter by user_id AND project_id
-        const { data: activeCommands, error: activeError } = await supabase
+        // Check active commands
+        const { data: activeCommands } = await supabase
           .from('ai_commands')
           .select('id')
           .eq('user_id', user.id)
@@ -34,16 +30,14 @@ export const AIStatusIndicator = () => {
           .in('status', ['pending', 'in_progress'])
           .limit(1);
 
-        if (activeError) throw activeError;
-
         if (activeCommands && activeCommands.length > 0) {
           setStatus('working');
           setLastError(null);
           return;
         }
 
-        // If no active commands, check the last completed/failed command to show status
-        const { data: lastCommand, error: lastErrorQuery } = await supabase
+        // Check last command
+        const { data: lastCommand } = await supabase
           .from('ai_commands')
           .select('status, error')
           .eq('user_id', user.id)
@@ -52,36 +46,54 @@ export const AIStatusIndicator = () => {
           .limit(1)
           .maybeSingle();
 
-        if (lastErrorQuery) throw lastErrorQuery;
-
         if (lastCommand) {
-           if (lastCommand.status === 'failed') {
+          if (lastCommand.status === 'failed') {
             setStatus('error');
             setLastError(lastCommand.error);
           } else {
             setStatus('idle');
             setLastError(null);
           }
-        } else {
-            setStatus('idle');
         }
-
-      } catch (err) {
-        if (typeof navigator !== 'undefined' && !navigator.onLine) {
-          setStatus('offline');
-        } else {
-          setStatus('idle');
-        }
+      } catch (error) {
+        console.error('Error checking status:', error);
       }
     };
 
-    // Initial check
-    checkStatus();
+    checkInitialStatus();
 
-    // Poll every 3 seconds
-    const interval = setInterval(checkStatus, 3000);
+    // Subscribe to Realtime updates
+    const channel = supabase
+      .channel('ai_status_updates')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'ai_commands',
+          filter: `project_id=eq.${TARGET_PROJECT_ID}`
+        },
+        (payload: any) => {
+          if (payload.new && payload.new.user_id === user.id) {
+            const newStatus = payload.new.status;
+            if (['pending', 'in_progress'].includes(newStatus)) {
+              setStatus('working');
+              setLastError(null);
+            } else if (newStatus === 'failed') {
+              setStatus('error');
+              setLastError(payload.new.error);
+            } else if (newStatus === 'completed') {
+              setStatus('idle');
+              setLastError(null);
+            }
+          }
+        }
+      )
+      .subscribe();
 
-    return () => clearInterval(interval);
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   if (status === 'working') {

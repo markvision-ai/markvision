@@ -46,7 +46,7 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { useAIReport } from '@/hooks/useAIReport';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DailyDataPoint {
   date: string;

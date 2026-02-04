@@ -42,7 +42,7 @@ import {
   Zap,
   RefreshCw
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BackgroundGradient } from '@/components/ui/background-gradient';
 import { cn } from '@/lib/utils';

@@ -4,7 +4,7 @@ import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
 import { Eye, EyeOff, Lock, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function ResetPassword() {

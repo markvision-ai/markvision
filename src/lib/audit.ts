@@ -1,4 +1,4 @@
-import { supabase } from './externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface AuditLogEntry {
   projectId: string;

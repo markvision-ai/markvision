@@ -35,7 +35,7 @@ import { useAIRop, AIRopTask, AIRopAudit } from '@/hooks/useAIRop';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIRopPageProps {
   projectId: string | null;

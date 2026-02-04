@@ -4,7 +4,7 @@ import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2, CheckCi
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
 interface VisitsPageProps {

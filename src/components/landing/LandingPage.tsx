@@ -11,7 +11,7 @@ import { HoverEffect } from "@/components/ui/card-hover-effect";
 import { Footer } from "./Footer";
 import { AuroraText } from "@/components/ui/aurora-text";
 import { ArrowRight, Play, Menu, X, Building2, Mail, Lock, Gift, Eye, EyeOff, CheckCircle2, Loader2, Sparkles, Video, Bot, BarChart3, Wallet, UserCheck, FileText, Shield, MessageCircle } from "lucide-react";
-import { supabase } from "@/lib/externalSupabase";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { z } from "zod";
 import { useABTestRotator } from "@/hooks/useABTestRotator";

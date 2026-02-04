@@ -17,7 +17,7 @@ import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText }
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { KZT_RATE } from '@/constants/ads';
 
