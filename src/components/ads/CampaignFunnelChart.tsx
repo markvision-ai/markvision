@@ -313,14 +313,9 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           return false;
       };
 
-      // Calculate leads from CRM (Attributed) to match Summary logic
-      // We prioritize CRM data because it's the "source of truth" for the user (377 vs 55)
-      const crmLeadsCount = filteredLeads.filter(isMatch).length;
-      
-      // Use CRM leads if available, otherwise fallback to Meta logs
-      // This ensures "Top Campaigns" and "Efficiency" match the "Summary" block
+      // CONSISTENCY: Используем только Meta Leads для соответствия с Active Ads Manager
       const metaLeads = logs.reduce((sum, log) => sum + (log.leads || 0), 0);
-      const adLeads = Math.max(metaLeads, crmLeadsCount);
+      const adLeads = metaLeads;
 
       const spendKZT = logs.reduce((sum, log) => sum + ((log.spend || 0) * KZT_RATE), 0);
 

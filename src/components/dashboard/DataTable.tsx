@@ -419,14 +419,14 @@ export const DataTable = React.memo(({
               {/* Fact Totals Row - second */}
               <tr className="bg-secondary/95 backdrop-blur-sm font-semibold border-b border-border/50">
                 <td className="p-2 md:p-4 sticky left-0 bg-secondary/95 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
-                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.visits)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.followers)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.visits)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right text-emerald-600">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
@@ -490,78 +490,81 @@ export const DataTable = React.memo(({
                         </span>
                       </div>
                     </td>
-                    <td className="p-2 md:p-3 text-right text-muted-foreground/90">
+                    <td className="p-2 md:p-3 text-right text-foreground">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.spend}
                           onSave={(val) => onDataChange(dateKey, 'spend', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatCurrency(dayData?.spend || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right">
+                    <td className="p-2 md:p-3 text-right text-foreground">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.impressions}
                           onSave={(val) => onDataChange(dateKey, 'impressions', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.impressions || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right">
+                    <td className="p-2 md:p-3 text-right text-foreground">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.clicks}
                           onSave={(val) => onDataChange(dateKey, 'clicks', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.clicks || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right font-medium">
+                    <td className="p-2 md:p-3 text-right text-foreground font-medium">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.leads}
                           onSave={(val) => onDataChange(dateKey, 'leads', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-medium"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
                         />
                       ) : formatNumber(dayData?.leads || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right">
+                    <td className="p-2 md:p-3 text-right text-foreground">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.followers}
                           onSave={(val) => onDataChange(dateKey, 'followers', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.followers || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right">
+                    <td className="p-2 md:p-3 text-right text-foreground">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.visits}
                           onSave={(val) => onDataChange(dateKey, 'visits', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.visits || 0)}
                     </td>
-                    <td className="p-2 md:p-3 text-right">
+                    <td className="p-2 md:p-3 text-right text-foreground font-medium">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.sales}
                           onSave={(val) => onDataChange(dateKey, 'sales', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
                         />
                       ) : formatNumber(dayData?.sales || 0)}
                     </td>
                     <td className={cn(
-                      "p-2 md:p-3 text-right font-medium",
-                      isRevenueAboveAverage ? "text-emerald-600 " : ""
+                      "p-2 md:p-3 text-right font-semibold",
+                      isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
                     )}>
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.revenue}
                           onSave={(val) => onDataChange(dateKey, 'revenue', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-medium"
+                          className={cn(
+                            "w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-semibold",
+                            isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
+                          )}
                         />
                       ) : formatCurrency(dayData?.revenue || 0)}
                     </td>

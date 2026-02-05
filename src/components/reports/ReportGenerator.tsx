@@ -44,7 +44,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAIReport } from '@/hooks/useAIReport';
+// AI Report disabled (hook removed)
+// import { useAIReport } from '@/hooks/useAIReport';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -160,7 +161,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<PresetKey>('month');
   const reportRef = useRef<HTMLDivElement>(null);
-  const { isGenerating: isGeneratingAI, aiAnalysis, generateAIReport } = useAIReport();
+  // AI Report disabled
+  const isGeneratingAI = false;
+  const aiAnalysis = null;
+  const generateAIReport = async () => { toast.info('AI отчёты временно недоступны'); };
 
   // Templates state
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);

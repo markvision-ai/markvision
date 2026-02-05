@@ -6,12 +6,12 @@ import { PostingDashboard } from './PostingDashboard';
 
 export const ContentFactoryV4 = () => {
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-slate-100 overflow-hidden rounded-lg border border-slate-200 shadow-sm">
+    <div className="flex flex-col h-[calc(100vh-6rem)] bg-background overflow-hidden rounded-xl border border-border shadow-2xl dark:shadow-black/20 m-4">
       {/* Top: Ideas Feed */}
       <IdeasHeader />
 
       {/* Main Workspace: 3 Columns */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden divide-x divide-border bg-muted/5 dark:bg-background">
         {/* Left: Script Workshop */}
         <ScriptWorkshop />
 

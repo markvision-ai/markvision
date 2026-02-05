@@ -15,7 +15,8 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
-import { useSystemHealth } from '@/hooks/useSystemHealth';
+// System health check disabled (hook removed)
+// import { useSystemHealth } from '@/hooks/useSystemHealth';
 import { useTheme } from '@/hooks/useTheme';
 
 import { AppSidebar } from './AppSidebar';
@@ -158,7 +159,7 @@ export const AnalyticsPlatform = () => {
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
   const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
-  const { hasErrors: systemHasErrors } = useSystemHealth(currentProjectId);
+  const systemHasErrors = false; // System health check disabled
   
   // CRITICAL: Super admin UUID - bypass all loading states
   const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';

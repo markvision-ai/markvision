@@ -219,9 +219,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     
     const attributedCrmLeads = crmLeadsInRange.filter(l => l.utm_campaign);
     const rawMetaLeads = historyLeads + todayLeads;
-    
-    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads) to match Table/Funnel
-    const totalLeads = Math.max(rawMetaLeads, attributedCrmLeads.length);
+
+    // CONSISTENCY: Используем только Meta Leads для соответствия с Active Ads Manager
+    const totalLeads = rawMetaLeads;
     
     const totalRevenue = attributedCrmLeads
       .filter(l => l.status === 'paid' && l.deal_amount)

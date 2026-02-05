@@ -25,6 +25,17 @@ export interface FinancialFact {
   revenue: number;
 }
 
+export interface PlanIndicators {
+  spend: number;
+  impressions: number;
+  clicks: number;
+  leads: number;
+  followers: number;
+  visits: number;
+  sales: number;
+  revenue: number;
+}
+
 export const useFinancialMonthData = (projectId: string, monthDate: Date) => {
   const [loading, setLoading] = useState(true);
   const [plan, setPlan] = useState<FinancialPlan | null>(null);
@@ -34,6 +45,16 @@ export const useFinancialMonthData = (projectId: string, monthDate: Date) => {
     clicks: 0,
     leads: 0,
     subscribers: 0,
+    visits: 0,
+    sales: 0,
+    revenue: 0,
+  });
+  const [planIndicators, setPlanIndicators] = useState<PlanIndicators>({
+    spend: 0,
+    impressions: 0,
+    clicks: 0,
+    leads: 0,
+    followers: 0,
     visits: 0,
     sales: 0,
     revenue: 0,
@@ -61,6 +82,29 @@ export const useFinancialMonthData = (projectId: string, monthDate: Date) => {
       }
       
       setPlan(planData || null);
+
+      // 1.1 Fetch Plan Indicators from plan_data (table of indicators)
+      const { data: planRow, error: planRowError } = await supabase
+        .from('plan_data')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('month', monthStr)
+        .maybeSingle();
+
+      if (planRowError && planRowError.code !== 'PGRST116') {
+        console.error('Error fetching plan_data row:', planRowError);
+      }
+
+      setPlanIndicators({
+        spend: Number(planRow?.spend) || 0,
+        impressions: Number(planRow?.impressions) || 0,
+        clicks: Number(planRow?.clicks) || 0,
+        leads: Number(planRow?.leads) || 0,
+        followers: Number(planRow?.followers) || 0,
+        visits: Number(planRow?.diagnostics) || 0,
+        sales: Number(planRow?.sales) || 0,
+        revenue: Number(planRow?.revenue) || 0,
+      });
 
       // 2. Fetch Fact Data from daily_data (Source of Truth)
       const { data: dailyData, error: dailyError } = await supabase
@@ -207,5 +251,5 @@ export const useFinancialMonthData = (projectId: string, monthDate: Date) => {
     }
   };
 
-  return { loading, plan, fact, savePlan, refetch: fetchData };
+  return { loading, plan, planIndicators, fact, savePlan, refetch: fetchData };
 };

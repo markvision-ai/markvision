@@ -14,7 +14,8 @@ import { ArrowRight, Play, Menu, X, Building2, Mail, Lock, Gift, Eye, EyeOff, Ch
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { z } from "zod";
-import { useABTestRotator } from "@/hooks/useABTestRotator";
+// A/B testing disabled (hook removed)
+// import { useABTestRotator } from "@/hooks/useABTestRotator";
 import founderWithMark from "@/assets/founder-with-mark.png";
 import markvisionLogo from "@/assets/markvision-logo.png";
 const modules = [{
@@ -60,9 +61,8 @@ export const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const signupRef = useRef<HTMLDivElement>(null);
   
-  // A/B Test Rotator - получаем projectId из URL или localStorage
-  const projectId = searchParams.get('project_id') || localStorage.getItem('activeProjectId');
-  const { activeVariant } = useABTestRotator(projectId);
+  // A/B Test disabled
+  const activeVariant = null;
 
   // Registration form state
   const [loading, setLoading] = useState(false);

@@ -581,7 +581,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
 
         {/* Platform Spend Tab - New Pie Chart */}
         <TabsContent value="platforms" className="mt-4 space-y-6">
-          <PlatformSpendChart projectId={projectId} />
+          <PlatformSpendChart projectId={projectId} datePreset={datePreset} />
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-4">
