@@ -321,7 +321,7 @@ export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps
               Добавить цель
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto rounded-lg">
             <DialogHeader>
               <DialogTitle>Создание SMART цели</DialogTitle>
               <DialogDescription>

@@ -6,6 +6,7 @@ import { useFinancialMonthData } from '@/hooks/useFinancialMonthData';
 import { format, subMonths, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChannelFinancialModel, ChannelData } from './ChannelFinancialModel';
+import { DecompositionNotifications } from './DecompositionNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FinancialDecompositionProps {
@@ -161,6 +162,7 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       </div>
 
       <div className="space-y-6 animate-in fade-in-50 duration-300">
+        <DecompositionNotifications channelName="финансовая модель" />
         <ChannelFinancialModel 
           channelName="Финансовая модель"
           data={modelData}

@@ -120,18 +120,21 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
     bgClass: string;
     trend?: 'up' | 'down';
   }) => (
-    <div className={cn("p-4 rounded-xl border flex flex-col justify-between h-full transition-all duration-200 hover:shadow-md", bgClass, colorClass.replace('text-', 'border-').replace('600', '200'))}>
+    <div className={cn("p-4 rounded-xl border flex flex-col justify-between h-full transition-all duration-200 hover:shadow-md", bgClass, colorClass.replace('text-', 'border-').replace('600', '200'))} role="region" aria-label={`${title}: ${value}`}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <div className={cn("p-1.5 rounded-full bg-background/50", colorClass)}>
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4" aria-hidden="true" />
           </div>
           <span className={cn("text-sm font-semibold opacity-90", colorClass)}>{title}</span>
         </div>
         {trend && (
-          trend === 'up' 
-            ? <ArrowUpRight className="h-4 w-4 text-emerald-600" /> 
-            : <ArrowDownRight className="h-4 w-4 text-red-600" />
+          <div className="flex items-center" aria-label={trend === 'up' ? "Trending up" : "Trending down"}>
+            {trend === 'up' 
+              ? <ArrowUpRight className="h-4 w-4 text-emerald-600" aria-hidden="true" /> 
+              : <ArrowDownRight className="h-4 w-4 text-red-600" aria-hidden="true" />
+            }
+          </div>
         )}
       </div>
       <div>
@@ -152,18 +155,20 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
         <CardTitle className="text-lg font-semibold tracking-tight">{t.title}</CardTitle>
       </CardHeader>
       
-      <CardContent className="p-6 space-y-8 flex-1">
+      <CardContent className="p-4 sm:p-6 space-y-8 flex-1">
         {/* Input Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-1.5">
               <Label htmlFor="margin-input" className="text-sm font-medium text-muted-foreground">{t.margin}</Label>
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" />
+                  <TooltipTrigger asChild>
+                    <button type="button" className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full" aria-label={t.marginDesc}>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" aria-hidden="true" />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top">
                     <p className="max-w-xs">{t.marginDesc}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -175,7 +180,9 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               value={margin} 
               onChange={(e) => setMargin(Number(e.target.value))}
               className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              aria-describedby="margin-desc"
             />
+            <span id="margin-desc" className="sr-only">{t.marginDesc}</span>
           </div>
           
           <div className="space-y-2">
@@ -183,10 +190,12 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               <Label htmlFor="freq-input" className="text-sm font-medium text-muted-foreground">{t.freq}</Label>
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" />
+                  <TooltipTrigger asChild>
+                    <button type="button" className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full" aria-label={t.freqDesc}>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" aria-hidden="true" />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top">
                     <p className="max-w-xs">{t.freqDesc}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -198,7 +207,9 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               value={freq} 
               onChange={(e) => setFreq(Number(e.target.value))}
               className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              aria-describedby="freq-desc"
             />
+            <span id="freq-desc" className="sr-only">{t.freqDesc}</span>
           </div>
 
           <div className="space-y-2">
@@ -206,10 +217,12 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               <Label htmlFor="lifetime-input" className="text-sm font-medium text-muted-foreground">{t.lifetime}</Label>
               <TooltipProvider>
                 <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" />
+                  <TooltipTrigger asChild>
+                    <button type="button" className="focus:outline-none focus:ring-2 focus:ring-primary rounded-full" aria-label={t.lifetimeDesc}>
+                      <Info className="h-3.5 w-3.5 text-muted-foreground/50 hover:text-primary transition-colors" aria-hidden="true" />
+                    </button>
                   </TooltipTrigger>
-                  <TooltipContent>
+                  <TooltipContent side="top">
                     <p className="max-w-xs">{t.lifetimeDesc}</p>
                   </TooltipContent>
                 </Tooltip>
@@ -221,12 +234,14 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               value={lifetime} 
               onChange={(e) => setLifetime(Number(e.target.value))}
               className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              aria-describedby="lifetime-desc"
             />
+            <span id="lifetime-desc" className="sr-only">{t.lifetimeDesc}</span>
           </div>
         </div>
 
         {/* Results Section */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           <ResultCard 
             title={t.ltv} 
             value={formatCurrency(ltv)} 
