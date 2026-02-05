@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useContentFactory } from '@/hooks/useContentFactory';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ContentAnalysisByLinkProps {
   projectId: string;
@@ -47,35 +48,27 @@ export const ContentAnalysisByLink = ({ projectId }: ContentAnalysisByLinkProps)
     setIsAnalyzing(true);
     setResult(null);
 
-    // Simulate AI Analysis delay
-    setTimeout(() => {
-      // Mock result based on URL type (just for demo variety)
-      const isReels = url.includes('instagram') || url.includes('reel');
-      
-      const mockResult: AnalysisResult = {
-        topic: isReels ? "Как выбрать идеальные виниры" : "Стратегия продвижения в 2024",
-        hook: isReels 
-          ? "Визуальный триггер: Крупный план идеальной улыбки + Текст 'Никогда не делай это с зубами!'" 
-          : "Заголовок: 3 ошибки, которые убивают ваши охваты",
-        script_structure: [
-          "0:00-0:03 - Шокирующее заявление или визуальный хук",
-          "0:03-0:15 - Описание боли клиента (почему старые методы не работают)",
-          "0:15-0:45 - Презентация решения (ваш продукт/услуга) с доказательствами",
-          "0:45-0:55 - Социальное доказательство (отзыв или кейс)"
-        ],
-        cta: isReels ? "Напиши 'УЛЫБКА' в директ для консультации" : "Переходи по ссылке в шапке профиля",
-        virality_factors: [
-          "Высокая динамика смены кадров (каждые 2-3 сек)",
-          "Использование трендового звука",
-          "Спорное утверждение в начале вызывает комментарии"
-        ],
-        summary: "Это видео успешно, потому что бьет точно в боль аудитории и предлагает простое, понятное решение. Хук удерживает внимание, а четкий призыв к действию конвертирует просмотры в лиды."
-      };
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-content-link', {
+        body: { url }
+      });
 
-      setResult(mockResult);
-      setIsAnalyzing(false);
+      if (error) {
+        throw new Error(error.message || 'Ошибка при вызове функции анализа');
+      }
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      
+      setResult(data);
       toast.success('Анализ завершен!');
-    }, 2500);
+    } catch (error: any) {
+      console.error('Analysis error:', error);
+      toast.error(error.message || 'Не удалось проанализировать ссылку. Возможно, превышен лимит или сервис недоступен.');
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleCreateScenario = async () => {
