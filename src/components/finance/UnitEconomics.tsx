@@ -21,6 +21,10 @@ const translations = {
     roiDesc: 'Возврат маркетинговых инвестиций',
     payback: 'Окупаемость',
     paybackDesc: 'Продаж для возврата CAC',
+    paybackTime: 'Срок окупаемости',
+    paybackTimeDesc: 'Месяцев для возврата CAC',
+    ratio: 'LTV/CAC',
+    ratioDesc: 'Отношение прибыли к стоимости привлечения (>3:1 отлично)',
     calcFor: 'Расчет для',
     avgCheck: 'Ср. чека'
   },
@@ -34,10 +38,14 @@ const translations = {
     lifetimeDesc: 'Average customer lifetime (how many months they buy).',
     ltv: 'LTV',
     ltvDesc: 'Lifetime Value per customer',
-    roi: 'ROI (LTV/CAC)',
+    roi: 'ROI',
     roiDesc: 'Return on Marketing Investment',
     payback: 'Payback',
     paybackDesc: 'Sales needed to recover CAC',
+    paybackTime: 'Payback Time',
+    paybackTimeDesc: 'Months to recover CAC',
+    ratio: 'LTV/CAC',
+    ratioDesc: 'Ratio of LTV to CAC (>3:1 is great)',
     calcFor: 'Calculation for',
     avgCheck: 'Avg Check'
   }
@@ -57,7 +65,9 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
 
   const [ltv, setLtv] = useState<number>(0);
   const [payback, setPayback] = useState<number>(0);
+  const [paybackTime, setPaybackTime] = useState<number>(0);
   const [roi, setRoi] = useState<number>(0);
+  const [ratio, setRatio] = useState<number>(0);
 
   useEffect(() => {
     // Profit per user per period
@@ -71,9 +81,17 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
     const paybackCount = profitPerSale > 0 ? cac / profitPerSale : 0;
     setPayback(paybackCount);
 
+    // Payback Time (months) = Payback Sales / Frequency
+    const pTime = freq > 0 ? paybackCount / freq : 0;
+    setPaybackTime(pTime);
+
     // ROI = (LTV - CAC) / CAC * 100
     const calculatedRoi = cac > 0 ? ((calculatedLtv - cac) / cac) * 100 : 0;
     setRoi(calculatedRoi);
+
+    // LTV/CAC Ratio
+    const calcRatio = cac > 0 ? calculatedLtv / cac : 0;
+    setRatio(calcRatio);
 
   }, [avgCheck, cac, margin, freq, lifetime]);
 
@@ -213,29 +231,46 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
             title={t.ltv} 
             value={formatCurrency(ltv)} 
             subtitle={t.ltvDesc} 
-            icon={DollarSign}
-            colorClass="text-blue-600"
-            bgClass="bg-blue-50/50 dark:bg-blue-900/10"
-            trend={ltv > cac * 3 ? 'up' : undefined}
+            icon={Calculator}
+            colorClass="text-violet-600"
+            bgClass="bg-violet-500/10"
+            trend={undefined}
           />
-          
           <ResultCard 
             title={t.roi} 
-            value={`${Math.round(roi)}%`} 
+            value={`${roi.toFixed(0)}%`} 
             subtitle={t.roiDesc} 
             icon={TrendingUp}
-            colorClass={roi > 100 ? "text-emerald-600" : "text-orange-600"}
-            bgClass={roi > 100 ? "bg-emerald-50/50 dark:bg-emerald-900/10" : "bg-orange-50/50 dark:bg-orange-900/10"}
+            colorClass={roi > 0 ? "text-emerald-600" : "text-red-600"}
+            bgClass={roi > 0 ? "bg-emerald-500/10" : "bg-red-500/10"}
             trend={roi > 0 ? 'up' : 'down'}
           />
-
+          <ResultCard 
+            title={t.ratio} 
+            value={`${ratio.toFixed(1)}:1`} 
+            subtitle={t.ratioDesc} 
+            icon={TrendingUp}
+            colorClass={ratio >= 3 ? "text-emerald-600" : ratio >= 1 ? "text-yellow-600" : "text-red-600"}
+            bgClass={ratio >= 3 ? "bg-emerald-500/10" : ratio >= 1 ? "bg-yellow-500/10" : "bg-red-500/10"}
+            trend={ratio >= 1 ? 'up' : 'down'}
+          />
           <ResultCard 
             title={t.payback} 
-            value={payback === Infinity ? '∞' : payback.toFixed(1)} 
+            value={payback.toFixed(1)} 
             subtitle={t.paybackDesc} 
             icon={Clock}
+            colorClass="text-blue-600"
+            bgClass="bg-blue-500/10"
+            trend={undefined}
+          />
+          <ResultCard 
+            title={t.paybackTime} 
+            value={`${paybackTime.toFixed(1)} мес`} 
+            subtitle={t.paybackTimeDesc} 
+            icon={Clock}
             colorClass="text-orange-600"
-            bgClass="bg-orange-50/50 dark:bg-orange-900/10"
+            bgClass="bg-orange-500/10"
+            trend={undefined}
           />
         </div>
 

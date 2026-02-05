@@ -42,6 +42,12 @@ const Index = () => {
   // Check if user has projects with completed onboarding
   useEffect(() => {
     const checkUserProjects = async () => {
+      // E2E Test Bypass
+      if (import.meta.env.DEV && localStorage.getItem('E2E_TEST_MODE') === 'true') {
+        setCheckingProjects(false);
+        return;
+      }
+
       if (!user) {
         setCheckingProjects(false);
         return;

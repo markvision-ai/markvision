@@ -32,6 +32,28 @@ export const useAuth = () => {
   });
 
   useEffect(() => {
+    // E2E Test Mode Bypass
+    if (import.meta.env.DEV && typeof window !== 'undefined' && window.localStorage.getItem('E2E_TEST_MODE') === 'true') {
+      const mockUser = {
+        id: 'e2e-test-user',
+        email: 'e2e@example.com',
+        app_metadata: {},
+        user_metadata: {},
+        aud: 'authenticated',
+        created_at: new Date().toISOString()
+      };
+      
+      setAuthState({
+        user: mockUser as any,
+        session: { access_token: 'mock', token_type: 'bearer', user: mockUser } as any,
+        loading: false,
+        isAdmin: true,
+        isSuperAdmin: true,
+        profile: { id: 'e2e-test-user', name: 'E2E User', email: 'e2e@example.com' }
+      });
+      return;
+    }
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         const currentUser = session?.user ?? null;

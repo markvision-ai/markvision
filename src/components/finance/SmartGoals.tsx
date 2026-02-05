@@ -58,7 +58,9 @@ const translations = {
     resourcesDescLong: 'У меня есть необходимые навыки, бюджет, время и команда для достижения этой цели.',
     emptyState: 'Нет активных целей',
     emptyStateDesc: 'Нажмите "Добавить цель", чтобы создать свою первую SMART цель',
-    urgent: 'Срочно'
+    urgent: 'Срочно',
+    goalSummary: 'Итоговая цель:',
+    byDate: 'к'
   },
   en: {
     title: 'SMART Goals',
@@ -151,9 +153,10 @@ const DEFAULT_TEMPLATES = [
 
 interface SmartGoalsProps {
   lang?: 'ru' | 'en';
+  channel?: string;
 }
 
-export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
+export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps) => {
   const t = translations[lang];
   const [goals, setGoals] = useState<SmartGoal[]>([]);
   const [open, setOpen] = useState(false);
@@ -175,7 +178,8 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
 
   // Load from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('smart_goals_v2');
+    const storageKey = `smart_goals_v2_${channel}`;
+    const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -183,13 +187,16 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
       } catch (e) {
         console.error('Failed to parse goals', e);
       }
+    } else {
+      setGoals([]);
     }
-  }, []);
+  }, [channel]);
 
   // Save to localStorage
   useEffect(() => {
-    localStorage.setItem('smart_goals_v2', JSON.stringify(goals));
-  }, [goals]);
+    const storageKey = `smart_goals_v2_${channel}`;
+    localStorage.setItem(storageKey, JSON.stringify(goals));
+  }, [goals, channel]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -324,31 +331,31 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full mt-4">
               <TabsList className="grid w-full grid-cols-5 mb-6">
-                <TabsTrigger value="specific" disabled={!validateStep('specific') && activeTab !== 'specific'}>S</TabsTrigger>
-                <TabsTrigger value="measurable" disabled={!validateStep('measurable') && activeTab !== 'measurable'}>M</TabsTrigger>
-                <TabsTrigger value="achievable" disabled={!validateStep('achievable') && activeTab !== 'achievable'}>A</TabsTrigger>
-                <TabsTrigger value="relevant" disabled={!validateStep('relevant') && activeTab !== 'relevant'}>R</TabsTrigger>
-                <TabsTrigger value="timebound" disabled={!validateStep('timebound') && activeTab !== 'timebound'}>T</TabsTrigger>
+                <TabsTrigger value="specific" disabled={!validateStep('specific') && activeTab !== 'specific'} aria-label={t.specificLabel}>S</TabsTrigger>
+                <TabsTrigger value="measurable" disabled={!validateStep('measurable') && activeTab !== 'measurable'} aria-label={t.metricLabel}>M</TabsTrigger>
+                <TabsTrigger value="achievable" disabled={!validateStep('achievable') && activeTab !== 'achievable'} aria-label={t.resourceLabel}>A</TabsTrigger>
+                <TabsTrigger value="relevant" disabled={!validateStep('relevant') && activeTab !== 'relevant'} aria-label={t.relevantLabel}>R</TabsTrigger>
+                <TabsTrigger value="timebound" disabled={!validateStep('timebound') && activeTab !== 'timebound'} aria-label={t.deadlineLabel}>T</TabsTrigger>
               </TabsList>
 
               {/* Step 1: Specific */}
               <TabsContent value="specific" className="space-y-4">
                 <div className="space-y-4 py-2">
                   <div className="space-y-2">
-                    <Label htmlFor="title" className="text-base">Название цели</Label>
+                    <Label htmlFor="title" className="text-base">{t.stepSpecific}</Label>
                     <Input 
                       id="title" 
-                      placeholder="Краткое название (например, 'Рост продаж')" 
+                      placeholder={t.stepSpecificPlaceholder} 
                       value={formData.title}
                       onChange={(e) => handleInputChange('title', e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="specific" className="text-base">Specific (Конкретика)</Label>
-                    <p className="text-sm text-muted-foreground">Что именно вы хотите улучшить? Опишите результат максимально подробно.</p>
+                    <Label htmlFor="specific" className="text-base">{t.specificLabel}</Label>
+                    <p className="text-sm text-muted-foreground">{t.specificDesc}</p>
                     <Textarea 
                       id="specific" 
-                      placeholder="Я хочу увеличить..." 
+                      placeholder={t.specificPlaceholder} 
                       className="min-h-[100px]"
                       value={formData.specific}
                       onChange={(e) => handleInputChange('specific', e.target.value)}
@@ -357,7 +364,7 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                 </div>
                 <div className="flex justify-end pt-4">
                   <Button onClick={() => handleNext('specific', 'measurable')}>
-                    Далее <ArrowRight className="ml-2 h-4 w-4" />
+                    {t.next} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -367,17 +374,19 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                 <div className="space-y-4 py-2">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-base">Показатель (Метрика)</Label>
+                      <Label htmlFor="metricName" className="text-base">{t.metricLabel}</Label>
                       <Input 
-                        placeholder="Например: Выручка, Лиды" 
+                        id="metricName"
+                        placeholder={t.metricPlaceholder} 
                         value={formData.metricName}
                         onChange={(e) => handleInputChange('metricName', e.target.value)}
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-base">Ед. измерения</Label>
+                      <Label htmlFor="unit" className="text-base">{t.unitLabel}</Label>
                       <Input 
-                        placeholder="KZT, шт, %" 
+                        id="unit"
+                        placeholder={t.unitPlaceholder} 
                         value={formData.unit}
                         onChange={(e) => handleInputChange('unit', e.target.value)}
                       />
@@ -385,8 +394,9 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label className="text-base">Текущее значение</Label>
+                      <Label htmlFor="currentValue" className="text-base">{t.currentLabel}</Label>
                       <Input 
+                        id="currentValue"
                         type="number" 
                         placeholder="0" 
                         value={formData.currentValue}
@@ -394,8 +404,9 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label className="text-base">Целевое значение</Label>
+                      <Label htmlFor="targetValue" className="text-base">{t.targetLabel}</Label>
                       <Input 
+                        id="targetValue"
                         type="number" 
                         placeholder="1000000" 
                         value={formData.targetValue}
@@ -403,11 +414,20 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                       />
                     </div>
                   </div>
+                  {formData.currentValue && formData.targetValue && (
+                    <div className="p-4 rounded-lg bg-muted/50 text-sm">
+                      <div className="flex justify-between mb-2">
+                        <span>{t.progress}</span>
+                        <span>{Math.round((Number(formData.currentValue) / Number(formData.targetValue)) * 100)}%</span>
+                      </div>
+                      <Progress value={(Number(formData.currentValue) / Number(formData.targetValue)) * 100} />
+                    </div>
+                  )}
                 </div>
                 <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab('specific')}>Назад</Button>
+                  <Button variant="outline" onClick={() => setActiveTab('specific')}>{t.back}</Button>
                   <Button onClick={() => handleNext('measurable', 'achievable')}>
-                    Далее <ArrowRight className="ml-2 h-4 w-4" />
+                    {t.next} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -423,27 +443,27 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                     />
                     <div className="space-y-1">
                       <Label htmlFor="resources" className="text-base font-medium cursor-pointer">
-                        Ресурсы подтверждены
+                        {t.resourceCheck}
                       </Label>
                       <p className="text-sm text-muted-foreground">
-                        У меня есть необходимые навыки, бюджет, время и команда для достижения этой цели.
+                        {t.resourcesDescLong}
                       </p>
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="risks" className="text-base">Риски и препятствия (Опционально)</Label>
+                    <Label htmlFor="risks" className="text-base">{t.risksLabel} {t.optional}</Label>
                     <Textarea 
                       id="risks" 
-                      placeholder="Что может помешать?" 
+                      placeholder={t.risksPlaceholder} 
                       value={formData.risks}
                       onChange={(e) => handleInputChange('risks', e.target.value)}
                     />
                   </div>
                 </div>
                 <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab('measurable')}>Назад</Button>
+                  <Button variant="outline" onClick={() => setActiveTab('measurable')}>{t.back}</Button>
                   <Button onClick={() => handleNext('achievable', 'relevant')}>
-                    Далее <ArrowRight className="ml-2 h-4 w-4" />
+                    {t.next} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -452,11 +472,11 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
               <TabsContent value="relevant" className="space-y-4">
                 <div className="space-y-4 py-2">
                   <div className="space-y-2">
-                    <Label htmlFor="relevant" className="text-base">Relevant (Актуальность)</Label>
-                    <p className="text-sm text-muted-foreground">Почему эта цель важна именно сейчас? Как она соотносится с миссией компании?</p>
+                    <Label htmlFor="relevant" className="text-base">{t.relevantLabel}</Label>
+                    <p className="text-sm text-muted-foreground">{t.relevantDesc} {t.missionRelation}</p>
                     <Textarea 
                       id="relevant" 
-                      placeholder="Эта цель поможет..." 
+                      placeholder={t.relevantPlaceholder} 
                       className="min-h-[100px]"
                       value={formData.relevant}
                       onChange={(e) => handleInputChange('relevant', e.target.value)}
@@ -464,9 +484,9 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                   </div>
                 </div>
                 <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab('achievable')}>Назад</Button>
+                  <Button variant="outline" onClick={() => setActiveTab('achievable')}>{t.back}</Button>
                   <Button onClick={() => handleNext('relevant', 'timebound')}>
-                    Далее <ArrowRight className="ml-2 h-4 w-4" />
+                    {t.next} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>
               </TabsContent>
@@ -475,7 +495,7 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
               <TabsContent value="timebound" className="space-y-4">
                 <div className="space-y-4 py-2">
                   <div className="space-y-2">
-                    <Label htmlFor="deadline" className="text-base">Дедлайн</Label>
+                    <Label htmlFor="deadline" className="text-base">{t.deadlineLabel}</Label>
                     <Input 
                       id="deadline" 
                       type="date" 
@@ -486,16 +506,16 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                   
                   {formData.deadline && (
                     <div className="p-4 rounded-lg bg-blue-50 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 text-sm">
-                      <div className="font-medium mb-1">Итоговая цель:</div>
-                      "{formData.specific}" к {format(new Date(formData.deadline), 'd MMMM yyyy', { locale: ru })}
+                      <div className="font-medium mb-1">{t.goalSummary}</div>
+                      "{formData.specific}" {t.byDate} {format(new Date(formData.deadline), 'd MMMM yyyy', { locale: lang === 'ru' ? ru : enUS })}
                     </div>
                   )}
                 </div>
                 <div className="flex justify-between pt-4">
-                  <Button variant="outline" onClick={() => setActiveTab('relevant')}>Назад</Button>
+                  <Button variant="outline" onClick={() => setActiveTab('relevant')}>{t.back}</Button>
                   <Button onClick={handleCreate} className="bg-emerald-600 hover:bg-emerald-700 text-white">
                     <Check className="mr-2 h-4 w-4" />
-                    Создать цель
+                    {t.createButton}
                   </Button>
                 </div>
               </TabsContent>
@@ -510,9 +530,9 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
             <div className="p-4 bg-muted/50 rounded-full mb-4">
               <Target className="h-8 w-8 opacity-40" />
             </div>
-            <p className="text-sm font-medium">Нет активных целей</p>
+            <p className="text-sm font-medium">{t.emptyState}</p>
             <p className="text-xs text-muted-foreground mt-1 max-w-[200px] text-center">
-              Нажмите "Добавить цель", чтобы создать свою первую SMART цель
+              {t.emptyStateDesc}
             </p>
           </div>
         ) : (
@@ -528,11 +548,11 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-base">{goal.title}</h4>
-                        {goal.status === 'completed' && <Badge className="bg-emerald-500 hover:bg-emerald-600">Выполнено</Badge>}
-                        {isOverdue && <Badge variant="destructive">Просрочено</Badge>}
+                        {goal.status === 'completed' && <Badge className="bg-emerald-500 hover:bg-emerald-600">{t.completed}</Badge>}
+                        {isOverdue && <Badge variant="destructive">{t.overdue}</Badge>}
                         {daysLeft <= 3 && daysLeft >= 0 && goal.status !== 'completed' && (
                           <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">
-                            Срочно
+                            {t.urgent}
                           </Badge>
                         )}
                       </div>
@@ -551,7 +571,7 @@ export const SmartGoals = ({ lang = 'ru' }: SmartGoalsProps) => {
                   <div className="space-y-3">
                     <div className="flex items-end justify-between text-sm">
                       <div className="space-y-1">
-                        <div className="text-xs text-muted-foreground">Прогресс</div>
+                        <div className="text-xs text-muted-foreground">{t.progress}</div>
                         <div className="font-mono font-medium flex items-baseline gap-1">
                           <span className="text-lg">{goal.measurable.current}</span>
                           <span className="text-muted-foreground">/ {goal.measurable.target} {goal.measurable.unit}</span>

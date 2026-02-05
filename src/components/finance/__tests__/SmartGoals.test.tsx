@@ -60,7 +60,10 @@ describe('SmartGoals Component', () => {
 
     // Fill inputs
     fireEvent.change(screen.getByLabelText('Название цели'), { target: { value: 'Test Goal' } });
-    fireEvent.change(screen.getByLabelText('Specific (Конкретика)'), { target: { value: 'I want to increase revenue by 10% by end of year' } });
+    const specificInput = screen.getAllByLabelText('Specific (Конкретика)').find(el => el.tagName === 'TEXTAREA' || el.tagName === 'INPUT');
+    if (specificInput) {
+      fireEvent.change(specificInput, { target: { value: 'I want to increase revenue by 10% by end of year' } });
+    }
     
     fireEvent.click(nextButton);
     
