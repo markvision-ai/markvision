@@ -61,6 +61,7 @@ import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
 import { AgencyAnalytics } from './AgencyAnalytics';
 import { GoalDecomposition } from './GoalDecomposition';
+import { FinancialDecomposition } from './FinancialDecomposition';
 
 interface Transaction {
   id: string;
@@ -451,8 +452,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           <TabsTrigger value="strategy">🎯 Стратегия</TabsTrigger>
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
           {isSuperAdmin && (
-            <TabsTrigger value="agency">💰 Мои Проекты (Агентство)</TabsTrigger>
+            <TabsTrigger value="agency">Агентская аналитика</TabsTrigger>
           )}
+          <TabsTrigger value="decomposition">Декомпозиция</TabsTrigger>
           <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
@@ -462,6 +464,10 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             <AgencyAnalytics />
           </TabsContent>
         )}
+
+        <TabsContent value="decomposition" className="mt-4">
+          <FinancialDecomposition projectId={projectId} />
+        </TabsContent>
 
         <TabsContent value="strategy" className="mt-4">
           <GoalDecomposition projectId={projectId} />
