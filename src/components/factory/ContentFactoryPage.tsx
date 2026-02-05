@@ -6,9 +6,10 @@ import { FactoryDispatch } from './FactoryDispatch';
 import { toast } from 'sonner';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, LayoutGrid, Eye } from 'lucide-react';
+import { Plus, LayoutGrid, Eye, Sparkles } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
+import { ContentAnalysisByLink } from './ContentAnalysisByLink';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -146,6 +147,10 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
               <Eye className="w-4 h-4 mr-2" />
               Мониторинг конкурентов
             </TabsTrigger>
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-slate-900 text-slate-500">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Анализ по ссылке
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -192,6 +197,11 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         {/* Competitors Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'competitors' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
           <CompetitorMonitoring projectId={projectId} />
+        </div>
+
+        {/* Analysis Tab Content */}
+        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'analysis' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <ContentAnalysisByLink projectId={projectId} />
         </div>
 
       </div>
