@@ -14,6 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [checkingProjects, setCheckingProjects] = useState(true);
+  const [projectCheckError, setProjectCheckError] = useState<string | null>(null);
 
   // КРИТИЧНО: Проверка OAuth параметров ПЕРЕД любыми редиректами
   useEffect(() => {
@@ -68,6 +69,10 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error checking projects:', error);
+        // Only set error if it's a network error/fetch failure to allow retry
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+           setProjectCheckError('Ошибка подключения к серверу. Проверьте интернет или отключите AdBlock.');
+        }
       } finally {
         setCheckingProjects(false);
       }
@@ -130,6 +135,21 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (projectCheckError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4 text-center">
+        <div className="text-destructive font-semibold">Ошибка загрузки</div>
+        <p className="text-muted-foreground max-w-md">{projectCheckError}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Попробовать снова
+        </button>
       </div>
     );
   }

@@ -26,7 +26,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
       }
       return fetch(url, {
         ...options,
-        cache: 'no-store',
+        // Removed explicit cache: 'no-store' to let browser/Supabase handle caching logic
+        // and avoid potential conflicts with browser extensions or service workers
       }).catch(err => {
         // Silently ignore AbortError to prevent console noise
         if (err.name === 'AbortError' || err.message === 'The user aborted a request.') {

@@ -163,12 +163,11 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
     });
 
     // Only count leads that have a UTM campaign (Attributed to Ads)
-    // This avoids showing Organic leads in the Ads Funnel (e.g. 373 vs 51)
     const attributedLeads = leadsInRange.filter(l => l.utm_campaign);
-    
-    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads)
-    // This ensures the Funnel matches the Table and Overview counts (e.g. 133 vs 55)
-    const totalLeads = Math.max(totalLeadsMeta, attributedLeads.length);
+
+    // CONSISTENCY: Используем Meta Leads для соответствия с Active Ads Manager
+    // CRM leads (attributedLeads) используются только для глубокой воронки (записи, продажи)
+    const totalLeads = totalLeadsMeta;
     
     const appointmentLeads = attributedLeads.filter(l => 
         l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress' || l.status === 'visit_completed'

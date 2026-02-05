@@ -1,5 +1,6 @@
+
 import { useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
@@ -10,7 +11,6 @@ import {
   TableHead, 
   TableHeader, 
   TableRow,
-  TableFooter
 } from '@/components/ui/table';
 import {
   Select,
@@ -20,19 +20,20 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  Zap,
   Loader2,
-  Sparkles,
   TrendingUp,
   Target,
-  Wallet
+  Wallet,
+  Users,
+  Building2,
+  DollarSign
 } from 'lucide-react';
 import { useAgencyFinances } from '@/hooks/useAgencyFinances';
 
 const TIERS = [
-  { value: 'lite', label: 'Lite', color: 'bg-blue-500/20 text-blue-400 border-blue-500/50' },
-  { value: 'pro', label: 'Pro', color: 'bg-violet-500/20 text-violet-400 border-violet-500/50' },
-  { value: 'legacy', label: 'Legacy', color: 'bg-amber-500/20 text-amber-400 border-amber-500/50' }
+  { value: 'lite', label: 'Lite', color: 'text-blue-500 border-blue-200 bg-blue-50' },
+  { value: 'pro', label: 'Pro', color: 'text-violet-500 border-violet-200 bg-violet-50' },
+  { value: 'legacy', label: 'Legacy', color: 'text-amber-500 border-amber-200 bg-amber-50' }
 ] as const;
 
 const formatCurrency = (value: number): string => {
@@ -43,13 +44,12 @@ const formatUSD = (value: number): string => {
   return '$' + new Intl.NumberFormat('en-US').format(Math.round(value));
 };
 
-// Exchange rate: 1 USD = 450 KZT (примерный курс)
+// Exchange rate: 1 USD = 450 KZT
 const KZT_TO_USD = 450;
 
 export const AgencyAnalytics = () => {
   const { finances, loading, savingIds, totals, updateFinance } = useAgencyFinances();
 
-  // Calculate net profit for a project
   const calculateNetProfit = (finance: typeof finances[0]): number => {
     if (finance.yuri_net_profit !== undefined) {
       return finance.yuri_net_profit;
@@ -57,12 +57,7 @@ export const AgencyAnalytics = () => {
     return finance.package_revenue - finance.total_expenses;
   };
 
-  // Annual goal: $100,000
   const ANNUAL_GOAL_USD = 100000;
-  const ANNUAL_GOAL_KZT = ANNUAL_GOAL_USD * KZT_TO_USD;
-  const MONTHLY_GOAL_KZT = ANNUAL_GOAL_KZT / 12;
-  
-  // Current progress
   const yuriProfitUSD = totals.yuriNetProfit / KZT_TO_USD;
   const annualProjectionUSD = yuriProfitUSD * 12;
   const progressPercent = Math.min((annualProjectionUSD / ANNUAL_GOAL_USD) * 100, 100);
@@ -76,263 +71,186 @@ export const AgencyAnalytics = () => {
   }
 
   return (
-    <div className="space-y-6">
-      {/* TOTAL RADAR - GLOW CARD */}
-      <Card className="relative overflow-hidden border-0 bg-gradient-to-br from-emerald-500/20 via-green-500/10 to-transparent">
-        {/* Glow effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 via-green-500/10 to-transparent opacity-50 blur-3xl" />
-        
-        <CardContent className="relative pt-8 pb-8">
-          <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
-            {/* Left: Main Profit */}
-            <div className="flex items-center gap-4">
-              <div className="p-4 rounded-2xl bg-emerald-500/20 backdrop-blur">
-                <Zap className="w-10 h-10 text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm text-emerald-400/80 font-medium mb-1">
-                  💰 Чистая прибыль Юрия за месяц
-                </p>
-                <div className="flex items-baseline gap-3">
-                  <p className="text-5xl font-bold text-emerald-400 tabular-nums tracking-tight glow-text">
-                    {formatCurrency(totals.yuriNetProfit)}
-                  </p>
-                  <p className="text-2xl text-emerald-400/60">
-                    ({formatUSD(yuriProfitUSD)})
-                  </p>
-                </div>
-              </div>
+    <div className="space-y-8">
+      
+      {/* Top Metrics - Minimalist Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="shadow-none border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Чистая прибыль (мес)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {formatCurrency(totals.yuriNetProfit)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatUSD(yuriProfitUSD)}
+            </p>
+          </CardContent>
+        </Card>
 
-            {/* Right: Goal Progress */}
-            <div className="w-full lg:w-96">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center gap-2">
-                  <Target className="w-4 h-4 text-emerald-400" />
-                  <span className="text-sm text-muted-foreground">
-                    Цель: {formatUSD(ANNUAL_GOAL_USD)} / год
-                  </span>
-                </div>
-                <span className="text-sm font-semibold text-emerald-400">
-                  {progressPercent.toFixed(0)}%
-                </span>
-              </div>
-              
-              <Progress 
-                value={progressPercent} 
-                className="h-3 bg-emerald-950/30"
-              />
-              
-              <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                <span>Прогноз: {formatUSD(annualProjectionUSD)} / год</span>
-                <span className={annualProjectionUSD >= ANNUAL_GOAL_USD ? 'text-emerald-400' : 'text-orange-400'}>
-                  {annualProjectionUSD >= ANNUAL_GOAL_USD 
-                    ? `+${formatUSD(annualProjectionUSD - ANNUAL_GOAL_USD)}` 
-                    : `${formatUSD(annualProjectionUSD - ANNUAL_GOAL_USD)}`
-                  }
-                </span>
-              </div>
+        <Card className="shadow-none border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Цель: {formatUSD(ANNUAL_GOAL_USD)}/год
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-end justify-between mb-2">
+              <span className="text-2xl font-bold">{progressPercent.toFixed(0)}%</span>
+              <span className="text-xs text-muted-foreground mb-1">
+                Прогноз: {formatUSD(annualProjectionUSD)}
+              </span>
             </div>
-          </div>
+            <Progress value={progressPercent} className="h-1.5" />
+          </CardContent>
+        </Card>
 
-          {/* Bottom: Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 mt-6 pt-6 border-t border-emerald-500/20">
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Выручка</p>
-              <p className="text-lg font-bold text-blue-400">{formatCurrency(totals.totalRevenue)}</p>
+        <Card className="shadow-none border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Общая выручка
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {formatCurrency(totals.totalRevenue)}
             </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Расходы</p>
-              <p className="text-lg font-bold text-orange-400">{formatCurrency(totals.totalExpenses)}</p>
+            <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
+              <TrendingUp className="w-3 h-3" />
+              <span>Все проекты</span>
             </div>
-            <div className="text-center">
-              <p className="text-xs text-muted-foreground mb-1">Проектов в ₸+</p>
-              <p className="text-lg font-bold text-emerald-400">{totals.profitableProjects} / {totals.projectsCount}</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* TABLE */}
-      <Card className="bg-card/80 backdrop-blur border-border/50">
-        <CardHeader className="pb-3">
-          <div className="flex items-center gap-2">
-            <Wallet className="w-5 h-5 text-violet-400" />
-            <CardTitle className="text-lg">Детализация по проектам</CardTitle>
+        <Card className="shadow-none border-border/60">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Проекты
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {totals.projectsCount}
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">
+              В плюсе: <span className="text-green-600 font-medium">{totals.profitableProjects}</span>
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Table - Clean & Minimal */}
+      <Card className="shadow-none border-border/60">
+        <CardHeader className="border-b border-border/40 pb-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base font-semibold">Детализация по проектам</CardTitle>
+              <CardDescription className="text-xs mt-1">Управление тарифами и финансами</CardDescription>
+            </div>
+            <Building2 className="w-4 h-4 text-muted-foreground" />
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="border-border/50 hover:bg-transparent">
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium">
-                    Проект
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium w-28">
-                    Тариф
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium w-36">
-                    Выручка ₸
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium min-w-48">
-                    Команда
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium w-36">
-                    Расходы (ЗП+Софт) ₸
-                  </TableHead>
-                  <TableHead className="text-xs uppercase tracking-wider text-muted-foreground/70 font-medium w-36 text-right">
-                    💰 Прибыль Юрия
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {finances.map((finance) => {
-                  const netProfit = calculateNetProfit(finance);
-                  const isSaving = savingIds.has(finance.project_id);
-                  
-                  return (
-                    <TableRow 
-                      key={finance.project_id} 
-                      className="border-border/30 hover:bg-muted/5 transition-colors"
-                    >
-                      <TableCell className="font-medium">
-                        <div className="flex items-center gap-2">
-                          {isSaving && <Loader2 className="w-3 h-3 animate-spin text-primary" />}
-                          <span className="truncate max-w-[200px]">{finance.project_name}</span>
-                        </div>
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Select
-                          value={finance.tier}
-                          onValueChange={(value) => updateFinance(finance.project_id, 'tier', value)}
-                        >
-                          <SelectTrigger className="h-8 bg-background/50 border-border/50 text-xs">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {TIERS.map(tier => (
-                              <SelectItem key={tier.value} value={tier.value}>
-                                <Badge 
-                                  variant="outline" 
-                                  className={`text-xs ${tier.color}`}
-                                >
-                                  {tier.label}
-                                </Badge>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
-                      
-                      <TableCell>
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent border-border/40">
+                <TableHead className="w-[250px] font-medium text-xs uppercase text-muted-foreground">Проект</TableHead>
+                <TableHead className="w-[120px] font-medium text-xs uppercase text-muted-foreground">Тариф</TableHead>
+                <TableHead className="w-[180px] font-medium text-xs uppercase text-muted-foreground">Выручка</TableHead>
+                <TableHead className="font-medium text-xs uppercase text-muted-foreground">Команда</TableHead>
+                <TableHead className="w-[180px] font-medium text-xs uppercase text-muted-foreground">Расходы</TableHead>
+                <TableHead className="w-[150px] text-right font-medium text-xs uppercase text-muted-foreground">Прибыль</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {finances.map((finance) => {
+                const netProfit = calculateNetProfit(finance);
+                const isSaving = savingIds.has(finance.project_id);
+                
+                return (
+                  <TableRow 
+                    key={finance.project_id} 
+                    className="border-border/40 hover:bg-muted/30"
+                  >
+                    <TableCell className="font-medium py-4">
+                      <div className="flex items-center gap-2">
+                        {isSaving && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
+                        <span className="text-sm">{finance.project_name}</span>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell className="py-4">
+                      <Select
+                        value={finance.tier}
+                        onValueChange={(value) => updateFinance(finance.project_id, 'tier', value)}
+                      >
+                        <SelectTrigger className="h-7 w-[100px] text-xs border-transparent bg-secondary/50 hover:bg-secondary focus:ring-0">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIERS.map(tier => (
+                            <SelectItem key={tier.value} value={tier.value}>
+                              <Badge variant="outline" className={`text-[10px] px-1 py-0 border-0 ${tier.color}`}>
+                                {tier.label}
+                              </Badge>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    
+                    <TableCell className="py-4">
+                      <div className="relative">
                         <Input
                           type="number"
                           value={finance.package_revenue || ''}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            updateFinance(finance.project_id, 'package_revenue', value);
-                          }}
-                          onBlur={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            if (value !== finance.package_revenue) {
-                              updateFinance(finance.project_id, 'package_revenue', value);
-                            }
-                          }}
-                          className="h-8 bg-background/50 border-border/50 text-sm"
+                          onChange={(e) => updateFinance(finance.project_id, 'package_revenue', parseFloat(e.target.value) || 0)}
+                          className="h-8 w-32 bg-transparent border-transparent hover:border-border focus:border-primary text-sm font-mono transition-colors pl-2"
                           placeholder="0"
                         />
-                      </TableCell>
-                      
-                      <TableCell>
-                        <Input
-                          value={finance.team_members}
-                          onChange={(e) => {
-                            updateFinance(finance.project_id, 'team_members', e.target.value);
-                          }}
-                          onBlur={(e) => {
-                            if (e.target.value !== finance.team_members) {
-                              updateFinance(finance.project_id, 'team_members', e.target.value);
-                            }
-                          }}
-                          className="h-8 bg-background/50 border-border/50 text-sm"
-                          placeholder="Алия, Иван, Марина"
-                        />
-                      </TableCell>
-                      
-                      <TableCell>
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">₸</span>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell className="py-4">
+                      <Input
+                        value={finance.team_members}
+                        onChange={(e) => updateFinance(finance.project_id, 'team_members', e.target.value)}
+                        className="h-8 bg-transparent border-transparent hover:border-border focus:border-primary text-sm transition-colors"
+                        placeholder="Участники..."
+                      />
+                    </TableCell>
+                    
+                    <TableCell className="py-4">
+                      <div className="relative">
                         <Input
                           type="number"
                           value={finance.total_expenses || ''}
-                          onChange={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            updateFinance(finance.project_id, 'total_expenses', value);
-                          }}
-                          onBlur={(e) => {
-                            const value = parseFloat(e.target.value) || 0;
-                            if (value !== finance.total_expenses) {
-                              updateFinance(finance.project_id, 'total_expenses', value);
-                            }
-                          }}
-                          className="h-8 bg-background/50 border-border/50 text-sm"
+                          onChange={(e) => updateFinance(finance.project_id, 'total_expenses', parseFloat(e.target.value) || 0)}
+                          className="h-8 w-32 bg-transparent border-transparent hover:border-border focus:border-primary text-sm font-mono transition-colors pl-2"
                           placeholder="0"
                         />
-                      </TableCell>
-                      
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {netProfit > 0 && <Sparkles className="w-3 h-3 text-emerald-400" />}
-                          <span className={`font-bold text-sm glow-text ${
-                            netProfit >= 0 
-                              ? 'text-emerald-400' 
-                              : 'text-red-400'
-                          }`}>
-                            {formatCurrency(netProfit)}
-                          </span>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-              <TableFooter>
-                <TableRow className="bg-muted/10 border-t-2 border-border/50">
-                  <TableCell className="font-bold text-foreground">
-                    ИТОГО
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="font-semibold text-blue-400">
-                    {formatCurrency(totals.totalRevenue)}
-                  </TableCell>
-                  <TableCell />
-                  <TableCell className="font-semibold text-orange-400">
-                    {formatCurrency(totals.totalExpenses)}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <TrendingUp className="w-4 h-4 text-emerald-400" />
-                      <span className={`font-bold text-lg glow-text ${
-                        totals.yuriNetProfit >= 0 
-                          ? 'text-emerald-400' 
-                          : 'text-red-400'
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">₸</span>
+                      </div>
+                    </TableCell>
+                    
+                    <TableCell className="text-right py-4">
+                      <span className={`font-mono font-medium text-sm ${
+                        netProfit >= 0 ? 'text-green-600' : 'text-red-500'
                       }`}>
-                        {formatCurrency(totals.yuriNetProfit)}
+                        {formatCurrency(netProfit)}
                       </span>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              </TableFooter>
-            </Table>
-          </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      <style>{`
-        .glow-text {
-          text-shadow: 0 0 20px currentColor;
-        }
-      `}</style>
     </div>
   );
 };

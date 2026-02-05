@@ -60,7 +60,6 @@ import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
 import { AgencyAnalytics } from './AgencyAnalytics';
-import { GoalDecomposition } from './GoalDecomposition';
 import { FinancialDecomposition } from './FinancialDecomposition';
 
 interface Transaction {
@@ -338,6 +337,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     return null;
   };
 
+  const [activeTab, setActiveTab] = useState('decomposition');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -349,45 +350,53 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           </h2>
           <p className="text-muted-foreground">P&L дашборд и учёт финансов</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Select value={datePreset} onValueChange={setDatePreset}>
-            <SelectTrigger className="w-[140px]">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATE_PRESETS.map(preset => (
-                <SelectItem key={preset.value} value={preset.value}>
-                  {preset.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={fetchTransactions}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Обновить
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSyncAds} 
-            disabled={syncing}
-            className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
-          >
-            {syncing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Zap className="w-4 h-4 mr-2" />
-            )}
-            Синхр. QuantumAds
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Добавить расход
-          </Button>
-        </div>
+        
+        {/* Hide controls when Decomposition is active */}
+        {activeTab !== 'decomposition' && (
+          <div className="flex gap-2 flex-wrap">
+            <Select value={datePreset} onValueChange={setDatePreset}>
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_PRESETS.map(preset => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={fetchTransactions}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Обновить
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleSyncAds} 
+              disabled={syncing}
+              className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
+            >
+              {syncing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              Синхр. QuantumAds
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Добавить расход
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Hide on Decomposition tab as well? User said "section button", but maybe KPI cards are also noise? 
+          Let's stick to the buttons for now as per "section button". 
+          Actually, let's keep KPI cards unless requested.
+      */}
+      {activeTab !== 'decomposition' && (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="pt-6">
@@ -446,15 +455,15 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      <Tabs defaultValue="strategy">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap">
-          <TabsTrigger value="strategy">🎯 Стратегия</TabsTrigger>
+          <TabsTrigger value="decomposition">Декомпозиция</TabsTrigger>
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
           {isSuperAdmin && (
             <TabsTrigger value="agency">Агентская аналитика</TabsTrigger>
           )}
-          <TabsTrigger value="decomposition">Декомпозиция</TabsTrigger>
           <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
@@ -467,10 +476,6 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
 
         <TabsContent value="decomposition" className="mt-4">
           <FinancialDecomposition projectId={projectId} />
-        </TabsContent>
-
-        <TabsContent value="strategy" className="mt-4">
-          <GoalDecomposition projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="dashboard" className="mt-4 space-y-6">

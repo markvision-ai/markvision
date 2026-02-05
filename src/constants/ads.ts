@@ -1,1 +1,1 @@
-export const KZT_RATE = 450;
+export const KZT_RATE = 498; // Актуальный курс USD/KZT (февраль 2026)
