@@ -15,10 +15,10 @@ interface FinancialDecompositionProps {
 
 export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProps) => {
   // Global Inputs
-  const [budget, setBudget] = useState<number>(100000);
+  const [revenueGoal, setRevenueGoal] = useState<number>(10000000); // Цель по выручке
   const [avgCheck, setAvgCheck] = useState<number>(500000);
-  const [crLeadToDiag, setCrLeadToDiag] = useState<number>(10);
-  const [crDiagToSale, setCrDiagToSale] = useState<number>(30);
+  const [crLeadToVisit, setCrLeadToVisit] = useState<number>(10);
+  const [crVisitToSale, setCrVisitToSale] = useState<number>(30);
 
   // Scenario Specific Inputs (CPL)
   const [cplBest, setCplBest] = useState<number>(1500);
@@ -29,25 +29,28 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
 
   // Helper to calculate row data
   const calculateRow = (name: string, cpl: number) => {
-    // 1. Leads = Budget / CPL
-    const leads = Math.floor(budget / (cpl || 1));
+    // 1. Sales Needed = Revenue Goal / Avg Check
+    const sales = Math.ceil(revenueGoal / (avgCheck || 1));
     
-    // 2. Diagnostics = Leads * CR1
-    const diagnostics = Math.floor(leads * (crLeadToDiag / 100));
+    // 2. Visits Needed = Sales Needed / (CR Visit->Sale / 100)
+    const visits = Math.ceil(sales / ((crVisitToSale || 1) / 100));
     
-    // 3. Sales = Diagnostics * CR2
-    const sales = Math.floor(diagnostics * (crDiagToSale / 100));
+    // 3. Leads Needed = Visits Needed / (CR Lead->Visit / 100)
+    const leads = Math.ceil(visits / ((crLeadToVisit || 1) / 100));
     
-    // 4. Revenue = Sales * Avg Check
+    // 4. Budget Required = Leads Needed * CPL
+    const budget = leads * cpl;
+    
+    // 5. Revenue (Forecast) = Sales * Avg Check (Should match goal approx)
     const revenue = sales * avgCheck;
     
-    // 5. Cost per Diagnostic = Budget / Diagnostics
-    const costPerDiag = diagnostics > 0 ? Math.round(budget / diagnostics) : 0;
+    // 6. CPV (Cost Per Visit) = Budget / Visits
+    const cpv = visits > 0 ? Math.round(budget / visits) : 0;
     
-    // 6. Cost per Patient (CAC) = Budget / Sales
+    // 7. CAC (Cost Per Customer) = Budget / Sales
     const cac = sales > 0 ? Math.round(budget / sales) : 0;
     
-    // 7. ROMI = (Revenue - Budget) / Budget * 100
+    // 8. ROMI = (Revenue - Budget) / Budget * 100
     const romi = budget > 0 ? Math.round(((revenue - budget) / budget) * 100) : 0;
 
     return {
@@ -55,12 +58,12 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       budget,
       leads,
       cpl,
-      diagnostics,
+      visits,
       sales,
       avgCheck,
-      crLeadToDiag,
-      costPerDiag,
-      crDiagToSale,
+      crLeadToVisit,
+      cpv,
+      crVisitToSale,
       cac,
       revenue,
       romi
@@ -90,11 +93,11 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
         .from('project_kpi')
         .upsert({
           project_id: projectId,
-          revenue_goal: avg.revenue, // Using calculated revenue as goal based on budget
+          revenue_goal: revenueGoal,
           avg_check: avgCheck,
-          budget_needed: budget,
+          budget_needed: avg.budget,
           sales_plan: avg.sales,
-          visits_plan: avg.diagnostics, // Using diagnostics as visits
+          visits_plan: avg.visits,
           leads_plan: avg.leads,
           updated_at: new Date().toISOString()
         }, { onConflict: 'project_id' });
@@ -102,18 +105,19 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       if (kpiError) throw kpiError;
 
       // Send to AI
-      const prompt = `Проанализируй финансовую декомпозицию (Лидген Инста План).
-Бюджет: ${formatCurrency(budget)}
+      const prompt = `Проанализируй финансовую декомпозицию.
+Цель по выручке: ${formatCurrency(revenueGoal)}
 Средний чек: ${formatCurrency(avgCheck)}
-CR Лид->Диагностика: ${crLeadToDiag}%
-CR Диагностика->Продажа: ${crDiagToSale}%
+Требуемый бюджет (Средний сценарий): ${formatCurrency(avg.budget)}
+CR Лид->Визит: ${crLeadToVisit}%
+CR Визит->Продажа: ${crVisitToSale}%
 
 Сценарии:
-1. Лучший (CPL ${cplBest}): ${scenarios[0].leads} лидов -> ${scenarios[0].sales} продаж. Выручка: ${formatCurrency(scenarios[0].revenue)}. ROMI: ${scenarios[0].romi}%
-2. Средний (CPL ${cplAvg}): ${scenarios[1].leads} лидов -> ${scenarios[1].sales} продаж. Выручка: ${formatCurrency(scenarios[1].revenue)}. ROMI: ${scenarios[1].romi}%
-3. Худший (CPL ${cplWorst}): ${scenarios[2].leads} лидов -> ${scenarios[2].sales} продаж. Выручка: ${formatCurrency(scenarios[2].revenue)}. ROMI: ${scenarios[2].romi}%
+1. Лучший (CPL ${cplBest}): Бюджет ${formatCurrency(scenarios[0].budget)} -> ${scenarios[0].leads} лидов -> ${scenarios[0].sales} продаж. ROMI: ${scenarios[0].romi}%
+2. Средний (CPL ${cplAvg}): Бюджет ${formatCurrency(scenarios[1].budget)} -> ${scenarios[1].leads} лидов -> ${scenarios[1].sales} продаж. ROMI: ${scenarios[1].romi}%
+3. Худший (CPL ${cplWorst}): Бюджет ${formatCurrency(scenarios[2].budget)} -> ${scenarios[2].leads} лидов -> ${scenarios[2].sales} продаж. ROMI: ${scenarios[2].romi}%
 
-Дай рекомендации по снижению CPL и повышению конверсий.`;
+Дай рекомендации по оптимизации бюджета и повышению конверсий.`;
 
       const { error: aiError } = await supabase
         .from('ai_bridge_tasks')
@@ -139,39 +143,39 @@ CR Диагностика->Продажа: ${crDiagToSale}%
       {/* Global Settings Bar */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg border border-border/50">
         <div className="space-y-2">
-          <Label>Бюджет (₸)</Label>
+          <Label className="text-xs uppercase text-muted-foreground font-bold">Цель (Выручка)</Label>
           <Input 
             type="number" 
-            value={budget} 
-            onChange={(e) => setBudget(Number(e.target.value))} 
-            className="bg-background"
+            value={revenueGoal} 
+            onChange={(e) => setRevenueGoal(Number(e.target.value))} 
+            className="bg-background font-mono text-lg"
           />
         </div>
         <div className="space-y-2">
-          <Label>Средний чек (₸)</Label>
+          <Label className="text-xs uppercase text-muted-foreground font-bold">Ср. чек</Label>
           <Input 
             type="number" 
             value={avgCheck} 
             onChange={(e) => setAvgCheck(Number(e.target.value))} 
-            className="bg-background"
+            className="bg-background font-mono"
           />
         </div>
         <div className="space-y-2">
-          <Label>CR в Диагностику (%)</Label>
+          <Label className="text-xs uppercase text-muted-foreground font-bold">CR Лид -> Визит (%)</Label>
           <Input 
             type="number" 
-            value={crLeadToDiag} 
-            onChange={(e) => setCrLeadToDiag(Number(e.target.value))} 
-            className="bg-background"
+            value={crLeadToVisit} 
+            onChange={(e) => setCrLeadToVisit(Number(e.target.value))} 
+            className="bg-background font-mono"
           />
         </div>
         <div className="space-y-2">
-          <Label>CR в Продажу (%)</Label>
+          <Label className="text-xs uppercase text-muted-foreground font-bold">CR Визит -> Продажа (%)</Label>
           <Input 
             type="number" 
-            value={crDiagToSale} 
-            onChange={(e) => setCrDiagToSale(Number(e.target.value))} 
-            className="bg-background"
+            value={crVisitToSale} 
+            onChange={(e) => setCrVisitToSale(Number(e.target.value))} 
+            className="bg-background font-mono"
           />
         </div>
       </div>
@@ -179,7 +183,7 @@ CR Диагностика->Продажа: ${crDiagToSale}%
       {/* Main Table */}
       <Card className="border-border/50 shadow-sm overflow-hidden">
         <CardHeader className="flex flex-row items-center justify-between py-4">
-          <CardTitle className="text-lg font-medium">Лидген инста План</CardTitle>
+          <CardTitle className="text-lg font-medium">Финансовая модель</CardTitle>
           <Button onClick={handleSaveAndAnalyze} disabled={loading} size="sm">
             {loading ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
             Сохранить план
@@ -190,17 +194,17 @@ CR Диагностика->Продажа: ${crDiagToSale}%
             <Table>
               <TableHeader>
                 <TableRow className="hover:bg-transparent bg-muted/50 border-b border-border">
-                  <TableHead className="w-[180px] font-bold text-foreground">Варианты событий</TableHead>
+                  <TableHead className="w-[180px] font-bold text-foreground">Сценарий</TableHead>
                   <TableHead className="text-center">Бюджет</TableHead>
-                  <TableHead className="text-center bg-blue-500/10 text-blue-600 font-semibold border-x border-blue-100/20">Кол-во лидов<br/>(заявок)</TableHead>
-                  <TableHead className="text-center w-[120px]">Стоимость<br/>лида (CPL)</TableHead>
-                  <TableHead className="text-center">Кол-во<br/>диагностик</TableHead>
-                  <TableHead className="text-center">Кол-во<br/>продаж</TableHead>
-                  <TableHead className="text-center">Средний<br/>чек</TableHead>
-                  <TableHead className="text-center">CR из лида<br/>в Диагностику</TableHead>
-                  <TableHead className="text-center">Стоимость<br/>Диагностики</TableHead>
-                  <TableHead className="text-center">CR из диаг.<br/>в продажу</TableHead>
-                  <TableHead className="text-center">Стоимость<br/>пациента</TableHead>
+                  <TableHead className="text-center bg-blue-500/10 text-blue-600 font-semibold border-x border-blue-100/20">Лиды</TableHead>
+                  <TableHead className="text-center w-[100px]">CPL</TableHead>
+                  <TableHead className="text-center">Визиты</TableHead>
+                  <TableHead className="text-center">Продажи</TableHead>
+                  <TableHead className="text-center">Ср. чек</TableHead>
+                  <TableHead className="text-center text-xs">CR Лид<br/>→Визит</TableHead>
+                  <TableHead className="text-center text-xs">Цена<br/>Визита</TableHead>
+                  <TableHead className="text-center text-xs">CR Визит<br/>→Продажа</TableHead>
+                  <TableHead className="text-center">CAC</TableHead>
                   <TableHead className="text-center font-bold">Выручка</TableHead>
                   <TableHead className="text-center font-bold">ROMI</TableHead>
                 </TableRow>
@@ -212,7 +216,7 @@ CR Диагностика->Продажа: ${crDiagToSale}%
                     index === 0 ? "bg-emerald-500/5" : 
                     index === 1 ? "bg-yellow-500/5" : "bg-red-500/5"
                   )}>
-                    <TableCell className="font-medium whitespace-nowrap">{row.name}</TableCell>
+                    <TableCell className="font-medium whitespace-nowrap text-xs">{row.name}</TableCell>
                     <TableCell className="text-center font-mono text-xs">{formatCurrency(row.budget)}</TableCell>
                     
                     {/* Calculated Leads */}
@@ -222,7 +226,7 @@ CR Диагностика->Продажа: ${crDiagToSale}%
                     <TableCell className="text-center p-2">
                       <Input 
                         type="number"
-                        className="h-8 w-24 mx-auto text-center font-mono text-xs"
+                        className="h-7 w-20 mx-auto text-center font-mono text-xs px-1"
                         value={
                           index === 0 ? cplBest : 
                           index === 1 ? cplAvg : cplWorst
@@ -236,12 +240,12 @@ CR Диагностика->Продажа: ${crDiagToSale}%
                       />
                     </TableCell>
                     
-                    <TableCell className="text-center">{row.diagnostics}</TableCell>
+                    <TableCell className="text-center">{row.visits}</TableCell>
                     <TableCell className="text-center font-bold">{row.sales}</TableCell>
                     <TableCell className="text-center font-mono text-xs">{formatCurrency(row.avgCheck)}</TableCell>
-                    <TableCell className="text-center">{row.crLeadToDiag}%</TableCell>
-                    <TableCell className="text-center font-mono text-xs">{formatCurrency(row.costPerDiag)}</TableCell>
-                    <TableCell className="text-center">{row.crDiagToSale}%</TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground">{row.crLeadToVisit}%</TableCell>
+                    <TableCell className="text-center font-mono text-xs">{formatCurrency(row.cpv)}</TableCell>
+                    <TableCell className="text-center text-xs text-muted-foreground">{row.crVisitToSale}%</TableCell>
                     <TableCell className="text-center font-mono text-xs">{formatCurrency(row.cac)}</TableCell>
                     <TableCell className="text-center font-bold text-foreground">{formatCurrency(row.revenue)}</TableCell>
                     <TableCell className={cn("text-center font-bold", 
