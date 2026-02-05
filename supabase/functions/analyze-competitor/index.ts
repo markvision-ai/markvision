@@ -60,7 +60,8 @@ async function checkRateLimitAndLog(
 }
 
 interface RequestBody {
-  url: string;
+  handle: string;
+  platform: string;
 }
 
 serve(async (req: Request) => {
@@ -92,25 +93,25 @@ serve(async (req: Request) => {
       );
     }
 
-    const { url } = await req.json() as RequestBody;
+    const { handle, platform } = await req.json() as RequestBody;
 
-    if (!url) {
+    if (!handle || !platform) {
       return new Response(
-        JSON.stringify({ error: 'Missing required field: url' }),
+        JSON.stringify({ error: 'Missing required fields: handle, platform' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const { allowed, remaining } = await checkRateLimitAndLog(
       user.id,
-      'lovable_ai_content_analysis',
-      'analyze-content-link'
+      'ai_analysis',
+      'analyze-competitor'
     );
 
     if (!allowed) {
       return new Response(
-        JSON.stringify({ error: 'Rate limit exceeded. Please try again later.', retryAfter: 3600 }),
-        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Retry-After': '3600' } }
+        JSON.stringify({ error: 'Rate limit exceeded' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -119,23 +120,31 @@ serve(async (req: Request) => {
       throw new Error('GEMINI_API_KEY is not configured');
     }
 
-    const prompt = `Ты — эксперт по вирусному контенту и анализу социальных сетей.
-Проанализируй контент по этой ссылке: ${url}
+    const prompt = `Ты — эксперт по SMM и вирусному контенту.
+Проанализируй аккаунт @${handle} на платформе ${platform}.
+Поскольку у тебя нет прямого доступа к истории просмотров, используй свои знания о популярных блогах и типичных стратегиях в этой нише (судя по никнейму и платформе).
 
-Твоя задача — сделать детальный разбор ("reverse engineering") этого видео/поста.
-Если ты не можешь получить прямой доступ к видео, проанализируй URL и предположи структуру на основе типичного успешного контента в этой нише, но сделай это максимально реалистично.
+Твоя задача:
+1. Определить (или предположить с высокой точностью) нишу и целевую аудиторию.
+2. Выявить ключевые форматы контента, которые вероятно использует этот аккаунт.
+3. Предложить 5 идей для вирусных роликов, которые можно адаптировать из стратегии этого конкурента.
 
-Верни ответ СТРОГО в формате JSON со следующими полями:
+Верни ответ СТРОГО в формате JSON:
 {
-  "topic": "Основная тема видео (коротко)",
-  "hook": "Описание хука/начала (первые 3 секунды): что цепляет внимание?",
-  "script_structure": ["Шаг 1: ...", "Шаг 2: ...", "Шаг 3: ..."],
-  "cta": "Призыв к действию (CTA), который использован или мог бы быть использован",
-  "virality_factors": ["Фактор 1 (почему залетело)", "Фактор 2", "Фактор 3"],
-  "summary": "Краткое резюме стратегии этого ролика (2-3 предложения)"
+  "niche": "Ниша (напр. Стоматология, Лайфстайл, Юмор)",
+  "target_audience": "Описание ЦА",
+  "strategy_summary": "Краткий анализ стратегии",
+  "ideas": [
+    {
+      "title": "Заголовок идеи 1",
+      "concept": "Описание сценария/формата",
+      "why_viral": "Почему это залетит"
+    },
+    ... (еще 4 идеи)
+  ]
 }
 
-Ответ должен быть на РУССКОМ языке. Не используй markdown разметку в ответе, только чистый JSON.`;
+Ответ на русском языке. Только чистый JSON без markdown.`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`, {
       method: 'POST',
@@ -159,28 +168,22 @@ serve(async (req: Request) => {
     const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
 
     if (!content) {
-      throw new Error('No content in AI response');
+      throw new Error('No content received from AI');
     }
 
-    let parsedContent;
-    try {
-      const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      parsedContent = JSON.parse(cleanContent);
-    } catch (parseError) {
-      console.error('Failed to parse AI response as JSON:', content);
-      throw new Error('Failed to parse AI response');
-    }
+    // Clean markdown if present
+    const jsonStr = content.replace(/```json\n|\n```/g, '').trim();
+    const parsedData = JSON.parse(jsonStr);
 
     return new Response(
-      JSON.stringify(parsedContent),
+      JSON.stringify(data),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
-  } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error';
-    console.error('Error in analyze-content-link:', error);
+  } catch (error: any) {
+    console.error('Analysis error:', error);
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ error: error.message || 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }

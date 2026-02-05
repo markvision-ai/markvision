@@ -10,20 +10,35 @@ import {
   Globe,
   Loader2,
   Sparkles,
-  Zap
+  Zap,
+  Play,
+  FileText,
+  Target,
+  Users
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CompetitorMonitoringProps {
   projectId: string;
 }
 
 export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) => {
-  const { competitors, addCompetitor, deleteCompetitor, loading } = useContentFactory(projectId);
+  const { competitors, addCompetitor, deleteCompetitor, updateCompetitor, loading } = useContentFactory(projectId);
   const [newHandle, setNewHandle] = useState('');
   const [isAdding, setIsAdding] = useState(false);
+  const [analyzingIds, setAnalyzingIds] = useState<Record<string, boolean>>({});
 
   // Auto-detect platform based on input
   const detectPlatform = (text: string): 'instagram' | 'tiktok' => {
@@ -53,6 +68,35 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
     await addCompetitor(currentPlatform, handle);
     setNewHandle('');
     setIsAdding(false);
+  };
+
+  const handleAnalyze = async (competitor: any) => {
+    try {
+      setAnalyzingIds(prev => ({ ...prev, [competitor.id]: true }));
+      toast.info(`Запуск анализа @${competitor.handle}...`);
+
+      const { data, error } = await supabase.functions.invoke('analyze-competitor', {
+        body: {
+          handle: competitor.handle,
+          platform: competitor.platform
+        }
+      });
+
+      if (error) throw error;
+
+      await updateCompetitor(competitor.id, {
+        top_content_links: data, // Storing the analysis result here
+        last_scanned_at: new Date().toISOString()
+      });
+
+      toast.success(`Анализ @${competitor.handle} завершен!`);
+
+    } catch (error) {
+      console.error('Analysis error:', error);
+      toast.error('Ошибка анализа конкурента');
+    } finally {
+      setAnalyzingIds(prev => ({ ...prev, [competitor.id]: false }));
+    }
   };
 
   const platformConfig = {
@@ -163,6 +207,10 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
         <AnimatePresence mode='popLayout'>
           {competitors.map((comp, index) => {
             const config = platformConfig[comp.platform as keyof typeof platformConfig] || platformConfig.instagram;
+            const isAnalyzing = analyzingIds[comp.id];
+            const hasAnalysis = !!comp.top_content_links;
+            const analysis = comp.top_content_links as any;
+
             return (
               <motion.div
                 key={comp.id}
@@ -171,40 +219,154 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
                 transition={{ delay: index * 0.05 }}
-                className="group relative bg-white p-6 rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+                className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
               >
-                <div className="flex items-start justify-between mb-5">
-                  <div className="flex items-center gap-4">
-                    <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm", config.bg, config.color, config.border)}>
-                      {config.icon}
+                <div className="p-6 pb-4 flex-1">
+                  <div className="flex items-start justify-between mb-5">
+                    <div className="flex items-center gap-4">
+                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm", config.bg, config.color, config.border)}>
+                        {config.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-slate-900 text-lg tracking-tight">@{comp.handle}</h3>
+                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                          <Globe className="w-3 h-3" />
+                          {config.label}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-slate-900 text-lg tracking-tight">@{comp.handle}</h3>
-                      <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
-                        <Globe className="w-3 h-3" />
-                        {config.label}
-                      </p>
-                    </div>
+                    {hasAnalysis && (
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+                        <Sparkles className="w-3 h-3" />
+                        Анализ готов
+                      </span>
+                    )}
                   </div>
-                  <div className="flex items-center">
-                    <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                      LIVE
-                    </span>
+
+                  {hasAnalysis && (
+                     <div className="space-y-3 mb-4">
+                        <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                          <Target className="w-3.5 h-3.5 text-purple-500" />
+                          Ниша: {analysis.niche}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
+                          <Users className="w-3.5 h-3.5 text-blue-500" />
+                          ЦА: {analysis.target_audience?.slice(0, 30)}...
+                        </div>
+                     </div>
+                  )}
+
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                    <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
+                      <Zap className="w-3 h-3 text-amber-500" />
+                      <span>{comp.last_scanned_at ? `Обновлено: ${new Date(comp.last_scanned_at).toLocaleDateString()}` : 'Не сканировалось'}</span>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
-                  <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                    <Zap className="w-3 h-3 text-amber-500" />
-                    <span>Добавлен: {new Date(comp.created_at).toLocaleDateString()}</span>
-                  </div>
-                  <button 
+                {/* Actions Footer */}
+                <div className="bg-slate-50/50 p-4 border-t border-slate-100 flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={cn("flex-1 gap-2 font-medium", isAnalyzing && "opacity-80")}
+                    onClick={() => handleAnalyze(comp)}
+                    disabled={isAnalyzing}
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                        Анализируем...
+                      </>
+                    ) : (
+                      <>
+                        <Play className="w-4 h-4 text-purple-600" />
+                        {hasAnalysis ? 'Обновить' : 'Анализировать'}
+                      </>
+                    )}
+                  </Button>
+
+                  {hasAnalysis && (
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="default" size="sm" className="bg-slate-900 text-white hover:bg-slate-800">
+                          <FileText className="w-4 h-4 mr-2" />
+                          Отчет
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+                        <DialogHeader>
+                          <DialogTitle className="flex items-center gap-2 text-xl">
+                            <Sparkles className="w-5 h-5 text-purple-600" />
+                            Анализ конкурента @{comp.handle}
+                          </DialogTitle>
+                        </DialogHeader>
+                        <ScrollArea className="flex-1 pr-4 -mr-4">
+                          <div className="space-y-6 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                  <Target className="w-4 h-4 text-purple-500" />
+                                  Ниша
+                                </h4>
+                                <p className="text-sm text-slate-600">{analysis.niche}</p>
+                              </div>
+                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-blue-500" />
+                                  Целевая аудитория
+                                </h4>
+                                <p className="text-sm text-slate-600">{analysis.target_audience}</p>
+                              </div>
+                            </div>
+
+                            {analysis.strategy_summary && (
+                              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
+                                <h4 className="text-sm font-semibold text-purple-900 mb-2">Стратегия</h4>
+                                <p className="text-sm text-purple-700 leading-relaxed">{analysis.strategy_summary}</p>
+                              </div>
+                            )}
+
+                            <div>
+                              <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-amber-500" />
+                                Вирусные идеи (5)
+                              </h4>
+                              <div className="space-y-3">
+                                {analysis.ideas?.map((idea: any, i: number) => (
+                                  <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-purple-200 hover:shadow-md transition-all">
+                                    <div className="flex items-start justify-between gap-4">
+                                      <div className="flex-1">
+                                        <h5 className="font-bold text-slate-900 mb-1">{idea.title}</h5>
+                                        <p className="text-sm text-slate-600 mb-3">{idea.concept}</p>
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="secondary" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+                                            Why Viral: {idea.why_viral}
+                                          </Badge>
+                                        </div>
+                                      </div>
+                                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
+                                        #{i + 1}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </ScrollArea>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+
+                  <Button 
+                    variant="ghost" 
+                    size="icon"
                     onClick={() => deleteCompetitor(comp.id)}
-                    className="text-slate-300 hover:text-red-500 transition-colors p-2 hover:bg-red-50 rounded-lg"
+                    className="text-slate-300 hover:text-red-500 hover:bg-red-50"
                   >
                     <Trash2 className="w-4 h-4" />
-                  </button>
+                  </Button>
                 </div>
               </motion.div>
             );

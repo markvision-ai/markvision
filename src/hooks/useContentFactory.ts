@@ -251,26 +251,14 @@ export const useContentFactory = (projectId: string | null) => {
     if (!projectId) return null;
     
     try {
-      // Get current user for RLS
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-         throw new Error('User not authenticated');
-      }
-
-      await ensureProjectMember(projectId, user.id);
-
-      // Insert competitor
-      const { data, error } = await supabase
-        .from('competitor_monitoring')
-        .insert([{
-          project_id: projectId,
+      // Use Edge Function to bypass RLS and ensure project membership
+      const { data, error } = await supabase.functions.invoke('create-competitor', {
+        body: {
+          projectId,
           platform,
-          handle,
-          created_at: new Date().toISOString()
-        }])
-        .select()
-        .single();
+          handle
+        }
+      });
 
       if (error) throw error;
       
@@ -278,7 +266,7 @@ export const useContentFactory = (projectId: string | null) => {
       const newItem: Competitor = {
         id: data.id,
         project_id: data.project_id,
-        handle: data.handle || data.account_handle,
+        handle: data.handle,
         platform: data.platform,
         avatar_url: data.avatar_url || null,
         last_scanned_at: data.last_scanned_at,
@@ -313,6 +301,28 @@ export const useContentFactory = (projectId: string | null) => {
     }
   };
 
+  const updateCompetitor = async (id: string, updates: Partial<Competitor>) => {
+    try {
+      const { error } = await supabase
+        .from('competitor_monitoring')
+        .update({
+          top_content_links: updates.top_content_links,
+          last_scanned_at: updates.last_scanned_at
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+
+      setCompetitors(prev => prev.map(c => 
+        c.id === id ? { ...c, ...updates } : c
+      ));
+      toast.success('Данные обновлены');
+    } catch (error) {
+      console.error('Error updating competitor:', error);
+      toast.error('Ошибка обновления');
+    }
+  };
+
   return {
     content,
     competitors,
@@ -320,6 +330,7 @@ export const useContentFactory = (projectId: string | null) => {
     createContent,
     addCompetitor,
     deleteCompetitor,
+    updateCompetitor,
     refresh: fetchContent
   };
 };

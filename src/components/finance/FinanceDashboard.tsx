@@ -182,7 +182,20 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTransactions((data as Transaction[]) || []);
+      
+      const formattedData: Transaction[] = (data || []).map((item: any) => ({
+        id: item.id,
+        type: item.type || 'expense',
+        category: item.category || 'other',
+        amount: item.amount || 0,
+        currency: item.currency || 'KZT',
+        description: item.description || '',
+        transaction_date: item.created_at, // Use created_at as fallback
+        created_at: item.created_at,
+        project_id: item.project_id
+      }));
+
+      setTransactions(formattedData);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching transactions:', error);

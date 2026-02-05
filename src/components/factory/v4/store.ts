@@ -1,0 +1,217 @@
+import { create } from 'zustand';
+
+export type Idea = {
+  id: string;
+  title: string;
+  source: string;
+  views: string;
+  viralScore: number;
+};
+
+export type ScriptStatus = 'pending' | 'writing' | 'ready';
+
+export type Script = {
+  id: string;
+  title: string;
+  status: ScriptStatus;
+  content?: string;
+};
+
+export type ContentType = 'avatar_video' | 'viral_video' | 'carousel' | 'threads' | 'seo_blog' | 'tg_post';
+
+export type ProductionItem = {
+  type: ContentType;
+  status: 'idle' | 'generating' | 'ready' | 'error';
+  content?: any; // Preview data
+};
+
+export type PostingStatus = 'pending' | 'sending' | 'published' | 'error';
+
+export type PostingItem = {
+  id: string;
+  channel: string; // 'TikTok', 'YouTube Shorts', 'Telegram', etc.
+  status: PostingStatus;
+  link?: string;
+  error?: string;
+};
+
+interface FactoryState {
+  ideas: Idea[];
+  scripts: Script[];
+  activeScriptId: string | null;
+  productionLines: Record<ContentType, ProductionItem>;
+  postingQueue: PostingItem[];
+
+  // Actions
+  setIdeas: (ideas: Idea[]) => void;
+  moveIdeaToWorkshop: (idea: Idea) => void;
+  updateScriptStatus: (id: string, status: ScriptStatus) => void;
+  setActiveScript: (id: string) => void;
+  startProduction: (type: ContentType) => void;
+  startAllProductions: () => void;
+  updateProductionItem: (type: ContentType, updates: Partial<ProductionItem>) => void;
+  approveAllToPosting: () => void;
+  updatePostingStatus: (id: string, status: PostingStatus) => void;
+}
+
+export const useFactoryStore = create<FactoryState>((set, get) => ({
+  ideas: [
+    { id: '1', title: 'Мифы об имплантации: больно ли?', source: 'Dr. Smile', views: '150K', viralScore: 95 },
+    { id: '2', title: 'Straumann vs Osstem: Битва титанов', source: 'StomGuide', views: '89K', viralScore: 88 },
+    { id: '3', title: 'Зубы за 1 день: Реальность?', source: 'ImplantPro', views: '210K', viralScore: 98 },
+    { id: '4', title: 'Осложнения: Как избежать?', source: 'SafetyDent', views: '120K', viralScore: 85 },
+    { id: '5', title: 'Цена улыбки: Из чего складывается?', source: 'MarketWatch', views: '180K', viralScore: 92 },
+    { id: '6', title: 'Виниры vs Люминиры: В чем разница?', source: 'AestheticDaily', views: '145K', viralScore: 90 },
+    { id: '7', title: 'Отбеливание Zoom 4: Вредно или нет?', source: 'WhiteSmile', views: '110K', viralScore: 87 },
+    { id: '8', title: 'Брекеты или Элайнеры: Что выбрать?', source: 'OrthoWorld', views: '200K', viralScore: 96 },
+    { id: '9', title: 'Лечение каналов под микроскопом', source: 'EndoExpert', views: '95K', viralScore: 82 },
+    { id: '10', title: 'Детская стоматология без слез', source: 'KidsDent', views: '130K', viralScore: 89 },
+  ],
+  scripts: [],
+  activeScriptId: null,
+  productionLines: {
+    avatar_video: { type: 'avatar_video', status: 'idle' },
+    viral_video: { type: 'viral_video', status: 'idle' },
+    carousel: { type: 'carousel', status: 'idle' },
+    threads: { type: 'threads', status: 'idle' },
+    seo_blog: { type: 'seo_blog', status: 'idle' },
+    tg_post: { type: 'tg_post', status: 'idle' },
+  },
+  postingQueue: [],
+
+  setIdeas: (ideas) => set({ ideas }),
+
+  moveIdeaToWorkshop: (idea) => {
+    const newScript: Script = {
+      id: crypto.randomUUID(),
+      title: idea.title,
+      status: 'pending',
+    };
+    
+    set((state) => ({
+      ideas: state.ideas.filter((i) => i.id !== idea.id),
+      scripts: [...state.scripts, newScript],
+    }));
+
+    // Simulate AI Writing
+    setTimeout(() => {
+      get().updateScriptStatus(newScript.id, 'writing');
+      setTimeout(() => {
+        get().updateScriptStatus(newScript.id, 'ready');
+      }, 2000);
+    }, 500);
+  },
+
+  updateScriptStatus: (id, status) =>
+    set((state) => ({
+      scripts: state.scripts.map((s) => (s.id === id ? { ...s, status } : s)),
+    })),
+
+  setActiveScript: (id) => set((state) => ({ 
+    activeScriptId: id,
+    // Reset production lines when switching script
+    productionLines: {
+      avatar_video: { type: 'avatar_video', status: 'idle' },
+      viral_video: { type: 'viral_video', status: 'idle' },
+      carousel: { type: 'carousel', status: 'idle' },
+      threads: { type: 'threads', status: 'idle' },
+      seo_blog: { type: 'seo_blog', status: 'idle' },
+      tg_post: { type: 'tg_post', status: 'idle' },
+    }
+  })),
+
+  startProduction: (type) => {
+    set((state) => ({
+      productionLines: {
+        ...state.productionLines,
+        [type]: { ...state.productionLines[type], status: 'generating' },
+      },
+    }));
+
+    // Simulate Generation
+    setTimeout(() => {
+      set((state) => ({
+        productionLines: {
+          ...state.productionLines,
+          [type]: { ...state.productionLines[type], status: 'ready' },
+        },
+      }));
+    }, 3000);
+  },
+
+  startAllProductions: () => {
+    const types: ContentType[] = ['avatar_video', 'viral_video', 'carousel', 'threads', 'seo_blog', 'tg_post'];
+    
+    // Set all to generating
+    set((state) => {
+      const newLines = { ...state.productionLines };
+      types.forEach(type => {
+        newLines[type] = { ...newLines[type], status: 'generating' };
+      });
+      return { productionLines: newLines };
+    });
+
+    // Simulate different generation times
+    const delays = {
+      tg_post: 2000,
+      threads: 2500,
+      seo_blog: 3000,
+      carousel: 4000,
+      viral_video: 5000,
+      avatar_video: 6000
+    };
+
+    types.forEach(type => {
+      setTimeout(() => {
+        set((state) => ({
+          productionLines: {
+            ...state.productionLines,
+            [type]: { ...state.productionLines[type], status: 'ready' },
+          },
+        }));
+      }, delays[type]);
+    });
+  },
+
+  updateProductionItem: (type, updates) =>
+    set((state) => ({
+      productionLines: {
+        ...state.productionLines,
+        [type]: { ...state.productionLines[type], ...updates },
+      },
+    })),
+
+  approveAllToPosting: () => {
+    const newPostingItems: PostingItem[] = [
+      { id: crypto.randomUUID(), channel: 'TikTok', status: 'pending' },
+      { id: crypto.randomUUID(), channel: 'YouTube Shorts', status: 'pending' },
+      { id: crypto.randomUUID(), channel: 'Telegram Channel', status: 'pending' },
+      { id: crypto.randomUUID(), channel: 'Threads', status: 'pending' },
+      { id: crypto.randomUUID(), channel: 'Website Blog', status: 'pending' },
+    ];
+
+    set((state) => ({
+      postingQueue: [...state.postingQueue, ...newPostingItems],
+    }));
+
+    // Simulate Posting
+    // TODO: Replace with n8n webhook call
+    // Example: await fetch('https://n8n.markvision.ai/webhook/posting', { method: 'POST', body: JSON.stringify(newPostingItems) });
+    
+    newPostingItems.forEach((item, index) => {
+      setTimeout(() => {
+        get().updatePostingStatus(item.id, 'sending');
+        setTimeout(() => {
+          get().updatePostingStatus(item.id, Math.random() > 0.1 ? 'published' : 'error');
+        }, 1500);
+      }, index * 1000);
+    });
+  },
+
+  updatePostingStatus: (id, status) =>
+    set((state) => ({
+      postingQueue: state.postingQueue.map((item) =>
+        item.id === id ? { ...item, status } : item
+      ),
+    })),
+}));
