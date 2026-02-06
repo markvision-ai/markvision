@@ -154,17 +154,20 @@ export const SidebarLink = ({
       to={link.href}
       onClick={handleClick}
       className={cn(
-        "flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
+        "relative flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
         isActive 
-          ? "bg-primary/15 text-primary border border-primary/30" 
+          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20" 
           : "hover:bg-sidebar-muted text-sidebar-foreground/70 hover:text-sidebar-foreground",
         className
       )}
       {...props}
     >
+      {isActive && (
+        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6)]" />
+      )}
       <div className={cn(
         "flex-shrink-0 transition-colors duration-200",
-        isActive ? "text-primary" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
+        isActive ? "text-emerald-500" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
       )}>
         {link.icon}
       </div>
@@ -176,7 +179,7 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium whitespace-pre transition-colors duration-200",
-          isActive ? "text-primary" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
+          isActive ? "text-emerald-500" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
         )}
       >
         {link.label}

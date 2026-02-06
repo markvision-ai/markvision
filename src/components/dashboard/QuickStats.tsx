@@ -26,6 +26,17 @@ interface QuickStatsProps {
 }
 
 export const QuickStats = ({ stats }: QuickStatsProps) => {
+  const getHint = (label: string) => {
+    const l = label.toLowerCase();
+    if (l.includes('выруч') || l.includes('доход')) return 'Доход за выбранный период';
+    if (l.includes('расход') || l.includes('spend')) return 'Затраты на рекламу/маркетинг';
+    if (l.includes('лид')) return 'Количество целевых обращений';
+    if (l.includes('romi')) return 'Рентабельность маркетинга';
+    if (l.includes('cpl')) return 'Стоимость привлечённого лида';
+    if (l.includes('cac')) return 'Стоимость привлечённого клиента';
+    if (l.includes('aov') || l.includes('ср чек')) return 'Средний чек';
+    return 'Ключевой показатель';
+  };
   return (
     <div className="bg-card/60 backdrop-blur-sm border border-border/50 rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
@@ -85,7 +96,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
                   </div>
 
                   {/* Previous value */}
-                  <div className="text-[9px] text-muted-foreground/50 truncate">
+                  <div className="text-[9px] text-muted-foreground/50 truncate" title={getHint(stat.label)}>
                     {formatValue(stat.previous, stat.format)}
                   </div>
                 </div>
