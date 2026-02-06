@@ -553,17 +553,7 @@ export const LandingPage = () => {
       {/* BLOCK 3: Brand Story */}
       <section id="brand" className="py-16 sm:py-20 lg:py-32 px-4 sm:px-6 bg-gradient-to-b from-slate-50/80 to-white" aria-labelledby="brand-heading">
         <div className="max-w-6xl mx-auto">
-          <motion.div initial={{
-          opacity: 0,
-          y: 40
-        }} whileInView={{
-          opacity: 1,
-          y: 0
-        }} viewport={{
-          once: true
-        }} transition={{
-          duration: 0.7
-        }} className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
+          <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-20 items-center">
             {/* Photo */}
             <div className="order-2 lg:order-1">
               <motion.div whileHover={{
@@ -595,24 +585,23 @@ export const LandingPage = () => {
                 </span>
               </h2>
 
-              <div className="space-y-5 sm:space-y-7">
-                {/* Quote block */}
-                <motion.div initial={{ opacity: 0, x: 20 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.5 }} className="relative pl-5 sm:pl-6 border-l-[3px] border-blue-500 bg-gradient-to-r from-blue-50/60 to-transparent py-4 sm:py-5 pr-4 sm:pr-6 rounded-r-xl">
-                  <Quote className="absolute -left-3 -top-3 w-6 h-6 text-blue-400 bg-white rounded-full p-0.5" />
-                  <p className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed italic">
-                    Проект MarkVision получил своё имя в честь моего сына Марка. Для меня это не просто бизнес — <span className="text-slate-900 font-semibold not-italic">это ответственность и наследие</span>.
-                  </p>
-                </motion.div>
-
-                {/* Body paragraphs with better hierarchy */}
-                <motion.div initial={{ opacity: 0, y: 15 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3, duration: 0.5 }} className="space-y-4 sm:space-y-5">
-                  <p className="text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed sm:leading-loose">
-                    Я лично контролирую результат работы каждой клиники, которая сотрудничает с нами. Система строится таким образом, чтобы я мог гордиться её результатами перед своим сыном.
-                  </p>
-                  <p className="text-sm sm:text-base lg:text-lg text-slate-600 leading-relaxed sm:leading-loose">
-                    Мы не просто настраиваем рекламу — мы внедряем порядок и системность в ваш бизнес.
-                  </p>
-                </motion.div>
+              <div className="space-y-4 sm:space-y-6">
+                <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.4 }} className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed">
+                  <span className="text-slate-900 font-semibold">MarkVision</span> — это не просто название компании, это личное обязательство. Проект назван в честь моего сына Марка, что символизирует глубину ответственности, которую я несу за каждый результат.
+                </motion.p>
+                <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.1, duration: 0.4 }} className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed">
+                  Это наш семейный стандарт качества, который я переношу в бизнес:
+                </motion.p>
+                <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.2, duration: 0.4 }} className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed">
+                  <span className="text-slate-900 font-semibold">Личный контроль:</span> Я лично проверяю результаты работы каждой клиники‑партнёра.
+                </motion.p>
+                <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.3, duration: 0.4 }} className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed">
+                  <span className="text-slate-900 font-semibold">Системный подход:</span> Мы выстраиваем процессы так, чтобы я мог с гордостью показать их итог своему сыну.
+                </motion.p>
+                <motion.p initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4, duration: 0.4 }} className="text-sm sm:text-base lg:text-lg text-slate-700 leading-relaxed">
+                  <span className="text-slate-900 font-semibold">Наследие, а не просто услуга:</span> Мы создаём не просто рекламные кампании, а внедряем порядок, системность и устойчивые бизнес‑процессы, на которых можно строить будущее.
+                </motion.p>
+              </div>
 
                 {/* Founder signature */}
                 <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4, duration: 0.5 }} className="flex items-center gap-4 pt-3 sm:pt-4 border-t border-slate-100">
@@ -626,7 +615,7 @@ export const LandingPage = () => {
                 </motion.div>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </section>
 
