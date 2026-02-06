@@ -27,6 +27,9 @@ import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { FunnelWidget } from './dashboard/FunnelWidget';
 import { AIAssistant } from './analytics/AIAssistant';
+import { WelcomeHero } from './dashboard/WelcomeHero';
+import { QuickActions } from './dashboard/QuickActions';
+import { ComputedMetricCard } from './dashboard/ComputedMetricCard';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
@@ -351,6 +354,25 @@ export const AnalyticsPlatform = () => {
         <DraggableDashboard>
           {(registerWidget) => {
             // Register all widgets - the DraggableDashboard will render them in sorted order
+
+            // Welcome Hero - персонализированное приветствие с ключевыми KPI
+            registerWidget('welcome-hero', (
+              <WelcomeHero
+                userName={profile?.name}
+                keyMetrics={{
+                  revenue: totals.revenue,
+                  leads: totals.leads,
+                  romi: romi
+                }}
+                systemStatus={systemHasErrors ? 'error' : 'healthy'}
+              />
+            ));
+
+            // Quick Actions - быстрый доступ к модулям
+            registerWidget('quick-actions', (
+              <QuickActions onTabChange={handleTabChange} />
+            ));
+
             registerWidget('metrics', (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 stagger-children animate">
                 <PlanFactCard
@@ -414,127 +436,48 @@ export const AnalyticsPlatform = () => {
 
             registerWidget('computed', (
               <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                {/* Стоимость клиента */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      Стоимость клиента
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <ShoppingCart className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Стоимость диагностики */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      Стоимость диагностики
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <Target className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Стоимость лида */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      Стоимость лида
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <Users className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* ROMI */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      ROMI
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <TrendingUp className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {romi !== null ? (
-                      <>
-                        {formatCR(romi).replace('%', '')}
-                        <span className="text-slate-400">%</span>
-                      </>
-                    ) : (
-                      <span className="text-slate-400">—</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {romi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Рентабельность */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      Рентабельность
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <BarChart3 className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {profitability !== null ? (
-                      <>
-                        {formatCR(profitability).replace('%', '')}
-                        <span className="text-slate-400">%</span>
-                      </>
-                    ) : (
-                      <span className="text-slate-400">—</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {profitability !== null ? '(Выручка - Расходы) / Выручка' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* ROAS */}
-                <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                      ROAS
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-                      <DollarSign className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                    {roas !== null ? formatROAS(roas) : <span className="text-slate-400">—</span>}
-                  </div>
-                  <div className="text-[10px] text-slate-500 leading-tight">
-                    {roas !== null ? 'Выручка / Расходы' : 'Нет данных'}
-                  </div>
-                </div>
+                <ComputedMetricCard
+                  label="Стоимость клиента"
+                  value={customerCost}
+                  icon={<ShoppingCart className="w-3 h-3" />}
+                  format="currency"
+                  subtitle="Расходы / продажи"
+                />
+                <ComputedMetricCard
+                  label="Стоимость диагностики"
+                  value={diagnosticCost}
+                  icon={<Target className="w-3 h-3" />}
+                  format="currency"
+                  subtitle="Расходы / диагностики"
+                />
+                <ComputedMetricCard
+                  label="Стоимость лида"
+                  value={leadCost}
+                  icon={<Users className="w-3 h-3" />}
+                  format="currency"
+                  subtitle="Расходы / лиды"
+                />
+                <ComputedMetricCard
+                  label="ROMI"
+                  value={romi}
+                  icon={<TrendingUp className="w-3 h-3" />}
+                  format="percent"
+                  subtitle="(Выручка - Расходы) / Расходы"
+                />
+                <ComputedMetricCard
+                  label="Рентабельность"
+                  value={profitability}
+                  icon={<BarChart3 className="w-3 h-3" />}
+                  format="percent"
+                  subtitle="(Выручка - Расходы) / Выручка"
+                />
+                <ComputedMetricCard
+                  label="ROAS"
+                  value={roas}
+                  icon={<DollarSign className="w-3 h-3" />}
+                  format="multiplier"
+                  subtitle="Выручка / Расходы"
+                />
               </div>
             ));
 
@@ -563,7 +506,21 @@ export const AnalyticsPlatform = () => {
               ));
 
               registerWidget('ai-assistant', (
-                <AIAssistant />
+                <AIAssistant
+                  context={{
+                    spend: totals.spend,
+                    impressions: totals.impressions,
+                    clicks: totals.clicks,
+                    leads: totals.leads,
+                    diagnostics: totals.diagnostics,
+                    sales: totals.sales,
+                    revenue: totals.revenue,
+                    cpl: leadCost ?? undefined,
+                    cac: customerCost ?? undefined,
+                    romi: romi ?? undefined,
+                    projectId: currentProjectId,
+                  }}
+                />
               ));
             }
 

@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // ЖЕСТКОЕ ПОДКЛЮЧЕНИЕ ВНЕШНЕЙ БАЗЫ (PYSCCZCU)
@@ -11,32 +11,42 @@ console.log('DEBUG: VITE_SUPABASE_URL:', SUPABASE_URL ? 'Defined' : 'Undefined',
 // Твой основной Project ID
 export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    storage: window.localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
-  },
-  global: {
-    fetch: (url, options) => {
-      // Add connection log if not already logged
-      if (!window['__supabase_logged']) {
-         console.log('Connecting to Supabase at:', SUPABASE_URL);
-         window['__supabase_logged'] = true;
+// Singleton pattern to prevent multiple GoTrueClient instances
+let supabaseInstance: SupabaseClient<Database> | null = null;
+
+function getSupabaseClient() {
+  if (!supabaseInstance) {
+    supabaseInstance = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        storage: window.localStorage,
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      global: {
+        fetch: (url, options) => {
+          // Add connection log if not already logged
+          if (!window['__supabase_logged']) {
+            console.log('Connecting to Supabase at:', SUPABASE_URL);
+            window['__supabase_logged'] = true;
+          }
+          return fetch(url, {
+            ...options,
+            cache: 'no-store',
+          });
+        }
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        }
       }
-      return fetch(url, {
-        ...options,
-        cache: 'no-store',
-      });
-    }
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10,
-    }
+    });
   }
-});
+  return supabaseInstance;
+}
+
+export const supabase = getSupabaseClient();
 
 // Управление Realtime подключением
 let reconnectAttempts = 0;

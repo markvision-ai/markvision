@@ -1,0 +1,171 @@
+{
+  "name": "CAPI-Send-Conversion",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "capi-conversion",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "capi-conversion"
+    },
+    {
+      "parameters": {
+        "jsCode": "const input = $input.first().json.body || $input.first().json;\nconst projectId = input.project_id;\nconst leadId = input.lead_id;\nconst eventName = input.event_name;\nconst eventTime = input.event_time || Math.floor(Date.now() / 1000);\nconst leadData = input.lead_data || {};\n\nif (!projectId) throw new Error('project_id is required');\nif (!leadId) throw new Error('lead_id is required');\nif (!eventName) throw new Error('event_name is required');\n\nreturn {\n  json: {\n    project_id: projectId,\n    lead_id: leadId,\n    event_name: eventName,\n    event_time: typeof eventTime === 'number' ? eventTime : Math.floor(new Date(eventTime).getTime() / 1000),\n    value: input.value || leadData.deal_amount || 0,\n    currency: input.currency || 'RUB'\n  }\n};"
+      },
+      "id": "validate-input",
+      "name": "Validate Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/leads?id=eq.{{ $json.lead_id }}&select=*",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "get-lead",
+      "name": "Get Lead Data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [690, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-service-key",
+          "name": "Supabase Service Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/pixel_configs?project_id=eq.{{ $('Validate Input').item.json.project_id }}&is_active=eq.true&select=*",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "get-pixel-config",
+      "name": "Get Pixel Config",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [910, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-service-key",
+          "name": "Supabase Service Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const inputData = $('Validate Input').first().json;\nconst leadArray = $('Get Lead Data').first().json;\nconst pixelArray = $input.first().json;\n\nconst lead = Array.isArray(leadArray) ? leadArray[0] : leadArray;\nconst pixelConfig = Array.isArray(pixelArray) ? pixelArray[0] : pixelArray;\n\nif (!lead) throw new Error('Lead not found');\nif (!pixelConfig || !pixelConfig.fb_pixel_id) {\n  return { json: { skip: true, reason: 'No pixel configured' } };\n}\n\nconst crypto = require('crypto');\nconst hash = (value) => {\n  if (!value) return null;\n  return crypto.createHash('sha256').update(value.toLowerCase().trim()).digest('hex');\n};\n\nconst normalizePhone = (phone) => {\n  if (!phone) return null;\n  let digits = phone.replace(/\\\\D/g, '');\n  if (digits.startsWith('8') && digits.length === 11) digits = '7' + digits.slice(1);\n  if (!digits.startsWith('7') && digits.length === 10) digits = '7' + digits;\n  return digits;\n};\n\nconst userData = {\n  em: lead.email ? [hash(lead.email)] : undefined,\n  ph: lead.phone ? [hash(normalizePhone(lead.phone))] : undefined,\n  fn: lead.name ? [hash(lead.name.split(' ')[0])] : undefined,\n  ln: lead.name && lead.name.split(' ')[1] ? [hash(lead.name.split(' ')[1])] : undefined,\n  fbc: lead.fbc || undefined,\n  fbp: lead.fbp || undefined\n};\nObject.keys(userData).forEach(key => userData[key] === undefined && delete userData[key]);\n\nconst customData = {\n  value: inputData.value || lead.deal_amount || 0,\n  currency: inputData.currency || 'RUB',\n  content_name: lead.clinic_name || 'Lead',\n  content_category: 'medical'\n};\n\nconst eventNameMap = {\n  'Schedule': 'Schedule', 'schedule': 'Schedule', 'diagnostic': 'Schedule', 'diagnostic_scheduled': 'Schedule',\n  'Purchase': 'Purchase', 'purchase': 'Purchase', 'sold': 'Purchase', 'sale': 'Purchase',\n  'Lead': 'Lead', 'lead': 'Lead', 'new': 'Lead'\n};\n\nconst fbEventName = eventNameMap[inputData.event_name] || inputData.event_name;\nconst eventId = `${lead.id}_${fbEventName}_${inputData.event_time}`;\n\nreturn {\n  json: {\n    skip: false,\n    pixel_id: pixelConfig.fb_pixel_id,\n    access_token: pixelConfig.fb_access_token,\n    test_event_code: pixelConfig.fb_test_event_code,\n    event: {\n      event_name: fbEventName,\n      event_time: inputData.event_time,\n      event_id: eventId,\n      event_source_url: lead.site_url || lead.extra_data?.url,\n      action_source: 'website',\n      user_data: userData,\n      custom_data: customData\n    },\n    lead_id: lead.id,\n    project_id: inputData.project_id,\n    fbclid: lead.fbclid,\n    fb_ad_id: lead.fb_ad_id,\n    fb_campaign_id: lead.fb_campaign_id\n  }\n};"
+      },
+      "id": "prepare-capi-event",
+      "name": "Prepare CAPI Event",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "strict" },
+          "conditions": [{ "id": "skip-check", "leftValue": "={{ $json.skip }}", "rightValue": false, "operator": { "type": "boolean", "operation": "equals" } }],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-skip",
+      "name": "Should Send?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1350, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.pixel_id }}/events?access_token={{ $json.access_token }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ data: [$json.event], test_event_code: $json.test_event_code || undefined }) }}",
+        "options": { "response": { "response": { "fullResponse": true, "responseFormat": "json" } } }
+      },
+      "id": "send-to-facebook",
+      "name": "Send to Facebook CAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1570, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/capi_events",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ project_id: $('Prepare CAPI Event').item.json.project_id, lead_id: $('Prepare CAPI Event').item.json.lead_id, event_name: $('Prepare CAPI Event').item.json.event.event_name, event_time: new Date($('Prepare CAPI Event').item.json.event.event_time * 1000).toISOString(), event_id: $('Prepare CAPI Event').item.json.event.event_id, platform: 'facebook', status: $json.statusCode === 200 ? 'sent' : 'failed', response: $json.body, sent_at: new Date().toISOString() }) }}",
+        "options": {}
+      },
+      "id": "log-to-supabase",
+      "name": "Log to Supabase",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1790, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-service-key",
+          "name": "Supabase Service Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, event_id: $('Prepare CAPI Event').item.json.event.event_id, fb_response: $('Send to Facebook CAPI').item.json } }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [2010, 200]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, skipped: true, reason: $json.reason } }}",
+        "options": { "responseCode": 200 }
+      },
+      "id": "respond-skipped",
+      "name": "Respond Skipped",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1570, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": { "main": [[{ "node": "Validate Input", "type": "main", "index": 0 }]] },
+    "Validate Input": { "main": [[{ "node": "Get Lead Data", "type": "main", "index": 0 }]] },
+    "Get Lead Data": { "main": [[{ "node": "Get Pixel Config", "type": "main", "index": 0 }]] },
+    "Get Pixel Config": { "main": [[{ "node": "Prepare CAPI Event", "type": "main", "index": 0 }]] },
+    "Prepare CAPI Event": { "main": [[{ "node": "Should Send?", "type": "main", "index": 0 }]] },
+    "Should Send?": { "main": [[{ "node": "Send to Facebook CAPI", "type": "main", "index": 0 }], [{ "node": "Respond Skipped", "type": "main", "index": 0 }]] },
+    "Send to Facebook CAPI": { "main": [[{ "node": "Log to Supabase", "type": "main", "index": 0 }]] },
+    "Log to Supabase": { "main": [[{ "node": "Respond Success", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1" },
+  "staticData": null,
+  "tags": [{ "name": "markvision" }, { "name": "capi" }, { "name": "facebook" }],
+  "triggerCount": 1,
+  "meta": { "instanceId": "markvision-capi" }
+}

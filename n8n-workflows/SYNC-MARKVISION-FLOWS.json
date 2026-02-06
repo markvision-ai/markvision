@@ -1,0 +1,169 @@
+{
+  "name": "sync-markvision-flows",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "sync-markvision-flows",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "sync-markvision-flows"
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ $env.N8N_HOST || 'https://n8n.zapoinov.com' }}/api/v1/workflows",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "active",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-workflows",
+      "name": "Get Active Workflows",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [470, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "n8n-api-key",
+          "name": "n8n API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Получаем project_id из входящего запроса\nconst projectId = $('Webhook').first().json.body?.project_id || '64c94e87-630c-470e-8ab1-8f7c8c835efa';\n\n// Получаем список workflows из API\nconst workflows = $input.first().json.data || $input.first().json || [];\n\n// Преобразуем в формат для automation_flows\nconst flows = workflows.map(wf => {\n  // Ищем webhook ноду для получения URL\n  let webhookUrl = null;\n  if (wf.nodes) {\n    const webhookNode = wf.nodes.find(n => \n      n.type === 'n8n-nodes-base.webhook' || \n      n.type?.includes('webhook')\n    );\n    if (webhookNode?.parameters?.path) {\n      const host = process.env.N8N_HOST || 'https://n8n.zapoinov.com';\n      webhookUrl = `${host}/webhook/${webhookNode.parameters.path}`;\n    }\n  }\n  \n  return {\n    project_id: projectId,\n    flow_name: wf.name,\n    n8n_id: wf.id,\n    status: wf.active ? 'active' : 'inactive',\n    webhook_url: webhookUrl,\n    last_seen: new Date().toISOString()\n  };\n});\n\nreturn flows.map(f => ({ json: f }));"
+      },
+      "id": "transform-data",
+      "name": "Transform to Flows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "schema": "public",
+        "table": "automation_flows",
+        "columns": "project_id, flow_name, n8n_id, status, webhook_url, last_seen",
+        "conflictColumns": "project_id, n8n_id",
+        "options": {}
+      },
+      "id": "upsert-supabase",
+      "name": "Upsert to Supabase",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [910, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-credentials",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: true, synced: $input.all().length, timestamp: new Date().toISOString() } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "respond-success",
+      "name": "Respond Success",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1130, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { success: false, error: $json.message || 'Unknown error' } }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "respond-error",
+      "name": "Respond Error",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [1130, 500]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get Active Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Active Workflows": {
+      "main": [
+        [
+          {
+            "node": "Transform to Flows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Transform to Flows": {
+      "main": [
+        [
+          {
+            "node": "Upsert to Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert to Supabase": {
+      "main": [
+        [
+          {
+            "node": "Respond Success",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "markvision"
+    },
+    {
+      "name": "sync"
+    }
+  ],
+  "triggerCount": 1,
+  "meta": {
+    "instanceId": "markvision-sync"
+  }
+}

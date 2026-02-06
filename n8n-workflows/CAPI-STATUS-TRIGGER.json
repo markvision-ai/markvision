@@ -1,0 +1,172 @@
+{
+  "name": "CAPI-Status-Trigger",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "lead-status-changed",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Lead Status Changed",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [250, 300],
+      "webhookId": "lead-status-changed"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Supabase Database Webhook payload\n// Формат: { type: 'UPDATE', table: 'leads', record: {...}, old_record: {...} }\n\nconst payload = $input.first().json.body || $input.first().json;\n\nconst record = payload.record || payload;\nconst oldRecord = payload.old_record || {};\n\n// Проверяем что это leads и статус изменился\nif (payload.table && payload.table !== 'leads') {\n  return { json: { skip: true, reason: 'Not leads table' } };\n}\n\nconst newStatus = record.status;\nconst oldStatus = oldRecord.status;\n\n// Если статус не изменился - пропускаем\nif (newStatus === oldStatus) {\n  return { json: { skip: true, reason: 'Status not changed' } };\n}\n\n// Маппинг статусов на события CAPI\nconst statusToEvent = {\n  // Диагностика\n  'diagnostic_scheduled': 'Schedule',\n  'scheduled': 'Schedule',\n  'booked': 'Schedule',\n  'diagnostic': 'Schedule',\n  // Продажа\n  'sold': 'Purchase',\n  'sale': 'Purchase',\n  'won': 'Purchase',\n  'closed_won': 'Purchase',\n  'paid': 'Purchase',\n};\n\nconst eventName = statusToEvent[newStatus];\n\nif (!eventName) {\n  return { json: { skip: true, reason: `Status '${newStatus}' not mapped to CAPI event` } };\n}\n\n// Формируем данные для CAPI\nreturn {\n  json: {\n    skip: false,\n    project_id: record.project_id,\n    lead_id: record.id,\n    event_name: eventName,\n    event_time: Math.floor(Date.now() / 1000),\n    value: record.deal_amount || record.revenue || 0,\n    currency: 'RUB',\n    // Дополнительно для логов\n    old_status: oldStatus,\n    new_status: newStatus,\n  }\n};"
+      },
+      "id": "parse-status-change",
+      "name": "Parse Status Change",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [470, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "should-send",
+              "leftValue": "={{ $json.skip }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-should-send",
+      "name": "Should Send CAPI?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [690, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://n8n.zapoinov.com/webhook/capi-conversion",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ project_id: $json.project_id, lead_id: $json.lead_id, event_name: $json.event_name, event_time: $json.event_time, value: $json.value, currency: $json.currency }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "call-capi-workflow",
+      "name": "Call CAPI Workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [910, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const result = $input.first().json;\nreturn {\n  json: {\n    success: result.body?.success || false,\n    event_name: $('Parse Status Change').first().json.event_name,\n    lead_id: $('Parse Status Change').first().json.lead_id,\n    old_status: $('Parse Status Change').first().json.old_status,\n    new_status: $('Parse Status Change').first().json.new_status,\n    capi_response: result.body\n  }\n};"
+      },
+      "id": "format-response",
+      "name": "Format Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1130, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "return {\n  json: {\n    success: true,\n    skipped: true,\n    reason: $input.first().json.reason\n  }\n};"
+      },
+      "id": "skip-response",
+      "name": "Skip Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [910, 400]
+    }
+  ],
+  "connections": {
+    "Lead Status Changed": {
+      "main": [
+        [
+          {
+            "node": "Parse Status Change",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Status Change": {
+      "main": [
+        [
+          {
+            "node": "Should Send CAPI?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Should Send CAPI?": {
+      "main": [
+        [
+          {
+            "node": "Call CAPI Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Skip Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call CAPI Workflow": {
+      "main": [
+        [
+          {
+            "node": "Format Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "name": "markvision"
+    },
+    {
+      "name": "capi"
+    },
+    {
+      "name": "trigger"
+    }
+  ],
+  "triggerCount": 1,
+  "meta": {
+    "instanceId": "markvision-capi-trigger"
+  }
+}

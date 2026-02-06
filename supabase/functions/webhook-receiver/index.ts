@@ -83,7 +83,40 @@ const extractedFieldsSchema = z.object({
   visit_id: z.string().max(MAX_STRING_LENGTH).nullable(),
   client_id: z.string().max(MAX_STRING_LENGTH).nullable(),
   deal_amount: z.number().min(0).max(MAX_DEAL_AMOUNT),
+  // Facebook Attribution fields
+  fbclid: z.string().max(MAX_STRING_LENGTH).nullable(),
+  fb_ad_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  fb_adset_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  fb_campaign_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  fbc: z.string().max(MAX_STRING_LENGTH).nullable(),
+  fbp: z.string().max(MAX_STRING_LENGTH).nullable(),
+  post_id: z.string().max(MAX_STRING_LENGTH).nullable(),
+  // Lead source field (organic, paid, direct, referral)
+  source: z.enum(['organic', 'paid', 'direct', 'referral']).nullable(),
 });
+
+// Determine lead source based on available data
+function determineLeadSource(data: {
+  post_id: string | null;
+  fb_ad_id: string | null;
+  fb_campaign_id: string | null;
+  utm_source: string | null;
+}): 'organic' | 'paid' | 'direct' | 'referral' {
+  // If has Facebook Ad attribution - it's paid
+  if (data.fb_ad_id || data.fb_campaign_id) {
+    return 'paid';
+  }
+  // If has post_id without ad IDs - it's organic (from Instagram/Facebook post)
+  if (data.post_id) {
+    return 'organic';
+  }
+  // Check for referral sources
+  if (data.utm_source && ['partner', 'affiliate', 'referral'].includes(data.utm_source.toLowerCase())) {
+    return 'referral';
+  }
+  // Default to direct
+  return 'direct';
+}
 
 // Validate field mapping path for security
 function isValidPath(path: string): boolean {
@@ -426,6 +459,15 @@ Deno.serve(async (req) => {
       visit_id: sanitizeString(extractJsonPath(payload, fieldMapping.visit_id)),
       client_id: sanitizeString(extractJsonPath(payload, fieldMapping.client_id)),
       deal_amount: parseAndValidateDealAmount(extractJsonPath(payload, fieldMapping.deal_amount)),
+      // Facebook Attribution - извлекаем из маппинга или напрямую из payload
+      fbclid: sanitizeString(extractJsonPath(payload, fieldMapping.fbclid) || payload.fbclid),
+      fb_ad_id: sanitizeString(extractJsonPath(payload, fieldMapping.fb_ad_id) || payload.fb_ad_id || payload.ad_id),
+      fb_adset_id: sanitizeString(extractJsonPath(payload, fieldMapping.fb_adset_id) || payload.fb_adset_id || payload.adset_id),
+      fb_campaign_id: sanitizeString(extractJsonPath(payload, fieldMapping.fb_campaign_id) || payload.fb_campaign_id || payload.campaign_id),
+      fbc: sanitizeString(extractJsonPath(payload, fieldMapping.fbc) || payload.fbc || payload._fbc),
+      fbp: sanitizeString(extractJsonPath(payload, fieldMapping.fbp) || payload.fbp || payload._fbp),
+      post_id: sanitizeString(extractJsonPath(payload, fieldMapping.post_id) || payload.post_id || payload.reel_id),
+      source: null, // Will be determined below
     };
 
     // Validate extracted data against schema
@@ -485,6 +527,16 @@ Deno.serve(async (req) => {
       utm_term: extractedData.utm_term || visitUtm?.utm_term || null,
     };
 
+    // Determine lead source (organic, paid, direct, referral)
+    const leadSource = determineLeadSource({
+      post_id: extractedData.post_id,
+      fb_ad_id: extractedData.fb_ad_id,
+      fb_campaign_id: extractedData.fb_campaign_id,
+      utm_source: finalUtm.utm_source,
+    });
+
+    console.log('Lead source determined:', leadSource);
+
     // Create lead record
     const { data: lead, error: leadError } = await supabase
       .from('leads')
@@ -500,7 +552,17 @@ Deno.serve(async (req) => {
         deal_amount: extractedData.deal_amount,
         extra_data: payload,
         status: 'new',
-        ...finalUtm
+        ...finalUtm,
+        // Facebook Attribution
+        fbclid: extractedData.fbclid,
+        fb_ad_id: extractedData.fb_ad_id,
+        fb_adset_id: extractedData.fb_adset_id,
+        fb_campaign_id: extractedData.fb_campaign_id,
+        fbc: extractedData.fbc,
+        fbp: extractedData.fbp,
+        post_id: extractedData.post_id,
+        // Lead source for Content-Factory dashboard
+        source: leadSource,
       })
       .select()
       .single();

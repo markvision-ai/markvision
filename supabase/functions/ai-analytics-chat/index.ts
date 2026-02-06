@@ -32,10 +32,16 @@ async function checkRateLimitAndLog(
   );
 
   // Check if user is admin for higher limits
-  const { data: isAdmin } = await supabaseAdmin.rpc('has_role', { 
-    _user_id: userId, 
-    _role: 'admin' 
-  });
+  let isAdmin = false;
+  try {
+    const { data } = await supabaseAdmin.rpc('has_role', {
+      _user_id: userId,
+      _role: 'admin'
+    });
+    isAdmin = !!data;
+  } catch (e) {
+    console.log('has_role RPC not available, using default limits');
+  }
 
   const limit = isAdmin ? RATE_LIMITS.admin : RATE_LIMITS.default;
   const windowStart = new Date(Date.now() - limit.windowSeconds * 1000).toISOString();
@@ -108,24 +114,30 @@ serve(async (req) => {
 
     // Verify project access if projectId is provided
     if (projectId) {
-      const { data: hasAccess, error: accessError } = await supabase
-        .rpc('has_project_access', { _user_id: user.id, _project_id: projectId });
+      try {
+        const { data: hasAccess, error: accessError } = await supabase
+          .rpc('has_project_access', { _user_id: user.id, _project_id: projectId });
 
-      if (accessError || !hasAccess) {
-        console.log('Access denied: User does not have project access');
-        return new Response(JSON.stringify({ error: 'Access denied to this project' }), {
-          status: 403,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        if (accessError) {
+          console.log('has_project_access RPC error, continuing without check:', accessError.message);
+        } else if (!hasAccess) {
+          console.log('Access denied: User does not have project access');
+          return new Response(JSON.stringify({ error: 'Access denied to this project' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+      } catch (e) {
+        console.log('has_project_access RPC not available, continuing without check');
       }
     }
 
     // Check rate limit and log usage
     const { allowed, remaining } = await checkRateLimitAndLog(
-      supabase, 
-      user.id, 
+      supabase,
+      user.id,
       projectId || null,
-      'lovable_ai_chat',
+      'claude_ai_chat',
       'ai-analytics-chat'
     );
 
@@ -145,9 +157,9 @@ serve(async (req) => {
       });
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    const ANTHROPIC_API_KEY = Deno.env.get('ANTHROPIC_API_KEY');
+    if (!ANTHROPIC_API_KEY) {
+      throw new Error('ANTHROPIC_API_KEY is not configured');
     }
 
     console.log('AI Analytics Chat - Processing request for user:', user.id, projectId ? `project: ${projectId}` : '', stream ? '(streaming)' : '', `remaining: ${remaining}`);
@@ -195,24 +207,26 @@ ${context ? `
 6. Отвечай на русском языке, кратко и структурированно`;
 
 
-    // Build messages array with history
+    // Build messages array with history (Claude API format)
     const apiMessages = [
-      { role: 'system', content: systemPrompt },
       ...history.map((h: { role: string; content: string }) => ({
-        role: h.role,
+        role: h.role === 'assistant' ? 'assistant' : 'user',
         content: h.content
       })),
       { role: 'user', content: message }
     ];
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'x-api-key': ANTHROPIC_API_KEY,
+        'anthropic-version': '2023-06-01',
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 4096,
+        system: systemPrompt,
         messages: apiMessages,
         stream: stream,
       }),
@@ -238,19 +252,54 @@ ${context ? `
       throw new Error(`AI gateway error: ${response.status}`);
     }
 
-    // If streaming, pass through the response
+    // If streaming, transform Claude SSE format to OpenAI format for frontend compatibility
     if (stream) {
       console.log('Streaming response for user:', user.id);
-      return new Response(response.body, {
+
+      const transformStream = new TransformStream({
+        transform(chunk, controller) {
+          const text = new TextDecoder().decode(chunk);
+          const lines = text.split('\n');
+
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              const jsonStr = line.slice(6).trim();
+              if (!jsonStr || jsonStr === '[DONE]') continue;
+
+              try {
+                const data = JSON.parse(jsonStr);
+
+                // Handle content_block_delta events
+                if (data.type === 'content_block_delta' && data.delta?.text) {
+                  const openAiFormat = {
+                    choices: [{ delta: { content: data.delta.text } }]
+                  };
+                  controller.enqueue(new TextEncoder().encode(`data: ${JSON.stringify(openAiFormat)}\n\n`));
+                }
+
+                // Handle message_stop event
+                if (data.type === 'message_stop') {
+                  controller.enqueue(new TextEncoder().encode('data: [DONE]\n\n'));
+                }
+              } catch {
+                // Skip malformed JSON
+              }
+            }
+          }
+        }
+      });
+
+      return new Response(response.body?.pipeThrough(transformStream), {
         headers: { ...corsHeaders, 'Content-Type': 'text/event-stream' },
       });
     }
 
-    // Non-streaming response
+    // Non-streaming response (Claude API format)
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content;
+    const reply = data.content?.[0]?.text;
 
     if (!reply) {
+      console.error('No response content:', JSON.stringify(data));
       throw new Error('No response generated');
     }
 

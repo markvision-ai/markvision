@@ -27,16 +27,14 @@ import { toast } from 'sonner';
 import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 
 const N8N_BASE = 'https://n8n.zapoinov.com';
-const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow`;
+const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow-new`;
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = `${N8N_BASE}/webhook/sync-markvision-flows`;
 const SYNC_FETCH_TIMEOUT_MS = 8_000;
 
-/** В dev — /n8n/... (proxy), в prod — полный URL. */
+/** Возвращает URL как есть - n8n поддерживает CORS */
 function webhookFetchUrl(url: string): string {
-  if (!import.meta.env.DEV || !url.startsWith(N8N_BASE)) return url;
-  const path = url.slice(N8N_BASE.length) || '/';
-  return `/n8n${path.startsWith('/') ? path : '/' + path}`;
+  return url;
 }
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {

@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
 import { useLeads } from '@/hooks/useLeads';
+import { useMarketingStats } from '@/hooks/useMarketingStats';
 import { AdsSummaryCards } from './AdsSummaryCards';
 import { CampaignTable } from './CampaignTable';
 import { CampaignDrawer } from './CampaignDrawer';
@@ -12,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { RefreshCw, Plus, Loader2, Zap, CalendarIcon } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { format, subDays, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
 
@@ -31,55 +32,94 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   });
   const [platformTab, setPlatformTab] = useState<'all' | 'facebook' | 'google' | 'tiktok' | 'creative'>('all');
 
+  // Build today's spend map from campaigns for fallback
+  const todaySpendFromCampaigns = useMemo(() => {
+    const map: Record<string, number> = {};
+    campaigns.forEach(c => {
+      if (c.external_id) {
+        map[c.external_id] = c.spent_today;
+      }
+    });
+    return map;
+  }, [campaigns]);
+
+  // Load marketing stats for selected date range
+  const { aggregated: marketingStats, loading: statsLoading, refetch: refetchStats } = useMarketingStats({
+    projectId,
+    dateRange,
+    todaySpendFromCampaigns,
+  });
+
   // Filter campaigns by platform
   const filteredCampaigns = useMemo(() => {
     if (platformTab === 'all' || platformTab === 'creative') return campaigns;
     return campaigns.filter(c => c.platform === platformTab);
   }, [campaigns, platformTab]);
 
-  // Calculate leads per campaign based on utm_campaign matching
+  // Filter leads by date range
+  const filteredLeads = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return leads;
+
+    const from = startOfDay(dateRange.from);
+    const to = endOfDay(dateRange.to);
+
+    return leads.filter(lead => {
+      if (!lead.created_at) return false;
+      try {
+        const leadDate = parseISO(lead.created_at);
+        return isWithinInterval(leadDate, { start: from, end: to });
+      } catch {
+        return false;
+      }
+    });
+  }, [leads, dateRange]);
+
+  // Calculate leads per campaign based on utm_campaign matching (filtered by date)
   const leadsPerCampaign = useMemo(() => {
     const counts: Record<string, number> = {};
-    leads.forEach(lead => {
+    filteredLeads.forEach(lead => {
       if (lead.utm_campaign) {
         counts[lead.utm_campaign] = (counts[lead.utm_campaign] || 0) + 1;
       }
     });
     return counts;
-  }, [leads]);
+  }, [filteredLeads]);
 
-  // Calculate revenue from paid leads per campaign
+  // Calculate revenue from paid leads per campaign (filtered by date)
   const revenuePerCampaign = useMemo(() => {
     const revenue: Record<string, number> = {};
-    leads.forEach(lead => {
+    filteredLeads.forEach(lead => {
       if (lead.utm_campaign && lead.status === 'paid' && lead.deal_amount) {
         revenue[lead.utm_campaign] = (revenue[lead.utm_campaign] || 0) + (lead.deal_amount || 0);
       }
     });
     return revenue;
-  }, [leads]);
+  }, [filteredLeads]);
 
-  // Summary calculations
+  // Summary calculations using marketing stats
   const summaryMetrics = useMemo(() => {
-    const relevantCampaigns = platformTab === 'all' || platformTab === 'creative' 
-      ? campaigns 
+    // Use marketing stats for spend (aggregated from historical data)
+    const totalSpent = marketingStats.totalSpend;
+
+    // Calculate leads from filtered data
+    const relevantCampaigns = platformTab === 'all' || platformTab === 'creative'
+      ? campaigns
       : campaigns.filter(c => c.platform === platformTab);
-    
-    const totalSpent = relevantCampaigns.reduce((sum, c) => sum + c.spent_today, 0);
+
     const totalLeads = relevantCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
     const totalRevenue = relevantCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
-    
+
     return {
       totalSpent,
       totalLeads,
       avgCPA: totalLeads > 0 ? totalSpent / totalLeads : 0,
       overallROAS: totalSpent > 0 ? totalRevenue / totalSpent : 0,
     };
-  }, [campaigns, platformTab, leadsPerCampaign, revenuePerCampaign]);
+  }, [campaigns, platformTab, leadsPerCampaign, revenuePerCampaign, marketingStats]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([refetch(), refetchStats()]);
     setRefreshing(false);
   };
 
@@ -87,7 +127,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     setSelectedCampaign(campaign);
   };
 
-  if (loading) {
+  if (loading || statsLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -103,81 +143,91 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     });
   };
 
+  // Determine which quick date button is active
+  const getQuickDateActive = () => {
+    if (!dateRange?.from || !dateRange?.to) return null;
+    const today = new Date();
+    const todayStr = format(today, 'yyyy-MM-dd');
+    const fromStr = format(dateRange.from, 'yyyy-MM-dd');
+    const toStr = format(dateRange.to, 'yyyy-MM-dd');
+
+    if (fromStr === todayStr && toStr === todayStr) return 0;
+    if (fromStr === format(subDays(today, 1), 'yyyy-MM-dd') && toStr === todayStr) return 1;
+    if (fromStr === format(subDays(today, 7), 'yyyy-MM-dd') && toStr === todayStr) return 7;
+    if (fromStr === format(subDays(today, 30), 'yyyy-MM-dd') && toStr === todayStr) return 30;
+    return null;
+  };
+
+  const activeQuickDate = getQuickDateActive();
+
   return (
-    <div className="space-y-6 bg-background text-foreground">
-      {/* Header */}
-      <div className="flex flex-col gap-4">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-primary/10 dark:bg-primary/20 rounded-lg">
-            <Zap className="w-6 h-6 text-primary" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold text-foreground">Quantum Ads</h1>
-              <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs animate-pulse">
-                <Zap className="w-3 h-3 mr-1" />
-                AI Active
-              </Badge>
+    <div className="space-y-4 bg-background text-foreground">
+      {/* Premium Header */}
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 via-background to-violet-500/5 border border-border/40 p-4 sm:p-6">
+        {/* Background decoration */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+
+        <div className="relative flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-xl">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-xl sm:text-2xl font-bold text-foreground">Quantum Ads</h1>
+                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-[10px] sm:text-xs">
+                    <Zap className="w-3 h-3 mr-1" />
+                    AI
+                  </Badge>
+                </div>
+                <p className="text-xs sm:text-sm text-muted-foreground">
+                  Управление рекламными кампаниями
+                </p>
+              </div>
             </div>
-            <p className="text-sm text-muted-foreground">
-              Управление рекламными кампаниями
-            </p>
-          </div>
-        </div>
 
-        {/* Control Panel */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 sm:p-4 bg-muted/50 dark:bg-card/50 rounded-lg border border-border">
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(0)}
-              className="text-xs"
-            >
-              Сегодня
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(1)}
-              className="text-xs"
-            >
-              Вчера
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(7)}
-              className="text-xs"
-            >
-              7 дней
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handleQuickDate(30)}
-              className="text-xs"
-            >
-              30 дней
+            <Button onClick={handleRefresh} disabled={refreshing} variant="glass" size="sm">
+              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline ml-2">Обновить</span>
             </Button>
           </div>
 
-          <div className="flex items-center gap-2 flex-1">
+          {/* Date Controls */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {[
+                { days: 0, label: 'Сегодня' },
+                { days: 1, label: 'Вчера' },
+                { days: 7, label: '7 дней' },
+                { days: 30, label: '30 дней' },
+              ].map(({ days, label }) => (
+                <Button
+                  key={days}
+                  variant={activeQuickDate === days ? 'default' : 'glass'}
+                  size="sm"
+                  onClick={() => handleQuickDate(days)}
+                  className="text-xs h-8"
+                >
+                  {label}
+                </Button>
+              ))}
+            </div>
+
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" className="justify-start text-left font-normal text-sm">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                <Button variant="glass" className="justify-start text-left font-normal text-xs h-8">
+                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
                   {dateRange?.from ? (
                     dateRange.to ? (
                       <>
-                        {format(dateRange.from, 'dd MMM', { locale: ru })} -{' '}
-                        {format(dateRange.to, 'dd MMM yyyy', { locale: ru })}
+                        {format(dateRange.from, 'dd MMM', { locale: ru })} - {format(dateRange.to, 'dd MMM', { locale: ru })}
                       </>
                     ) : (
                       format(dateRange.from, 'dd MMM yyyy', { locale: ru })
                     )
                   ) : (
-                    <span>Выберите период</span>
+                    <span>Период</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -195,19 +245,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </PopoverContent>
             </Popover>
 
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handleRefresh} 
-              disabled={refreshing}
-            >
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-            </Button>
-
-            <Button className="ml-auto">
-              <Plus className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">Добавить кампанию</span>
-              <span className="sm:hidden">Добавить</span>
+            <Button variant="premium" size="sm" className="ml-auto h-8">
+              <Plus className="w-3.5 h-3.5 mr-1.5" />
+              <span className="hidden sm:inline">Добавить</span>
             </Button>
           </div>
         </div>
@@ -222,7 +262,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
       />
 
       {/* Campaign Funnel Chart */}
-      <CampaignFunnelChart campaigns={campaigns} leads={leads} />
+      <CampaignFunnelChart campaigns={campaigns} leads={filteredLeads} dateRange={dateRange} />
 
       {/* Platform Tabs */}
       <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">

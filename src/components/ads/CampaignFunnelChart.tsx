@@ -1,18 +1,19 @@
 import { useState, useMemo } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, LabelList, PieChart, Pie } from 'recharts';
-import { TrendingUp, Users, CalendarCheck, CreditCard } from 'lucide-react';
+import { TrendingUp, Users, CalendarCheck, CreditCard, DollarSign, Target, ChevronRight } from 'lucide-react';
 import { Campaign } from '@/hooks/useCampaigns';
 import { Lead } from '@/hooks/useLeads';
 import { Button } from '@/components/ui/button';
-import { startOfDay, subDays, isAfter, parseISO } from 'date-fns';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 import { motion, AnimatePresence } from 'framer-motion';
+import { DateRange } from 'react-day-picker';
 
 interface CampaignFunnelChartProps {
   campaigns: Campaign[];
   leads: Lead[];
+  dateRange?: DateRange;
 }
 
 interface FunnelStage {
@@ -23,7 +24,7 @@ interface FunnelStage {
   percentage?: number;
 }
 
-type PeriodFilter = 'all' | 'today' | 'yesterday' | '7days';
+// Removed internal PeriodFilter - now using dateRange from parent
 
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)} млн ₸`;
@@ -39,33 +40,11 @@ function getPlatformColor(platform: string) {
   }
 }
 
-export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartProps) => {
-  const [periodFilter, setPeriodFilter] = useState<PeriodFilter>('all');
+export const CampaignFunnelChart = ({ campaigns, leads, dateRange }: CampaignFunnelChartProps) => {
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
 
-  // Filter leads by period
-  const filteredLeads = useMemo(() => {
-    if (periodFilter === 'all') return leads;
-    
-    const now = new Date();
-    const today = startOfDay(now);
-    const yesterday = startOfDay(subDays(now, 1));
-    const sevenDaysAgo = startOfDay(subDays(now, 7));
-
-    return leads.filter(lead => {
-      const leadDate = parseISO(lead.created_at);
-      switch (periodFilter) {
-        case 'today':
-          return isAfter(leadDate, today);
-        case 'yesterday':
-          return isAfter(leadDate, yesterday) && !isAfter(leadDate, today);
-        case '7days':
-          return isAfter(leadDate, sevenDaysAgo);
-        default:
-          return true;
-      }
-    });
-  }, [leads, periodFilter]);
+  // Use leads directly - they're already filtered by parent component
+  const filteredLeads = leads;
 
   const funnelData = useMemo(() => {
     const campaignNames = campaigns.map(c => c.name);
@@ -251,40 +230,42 @@ export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartPro
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } }
   };
 
+  // Date range label
+  const dateRangeLabel = dateRange?.from && dateRange?.to
+    ? `${format(dateRange.from, 'dd MMM', { locale: ru })} - ${format(dateRange.to, 'dd MMM yyyy', { locale: ru })}`
+    : 'Все время';
+
   return (
     <>
-      <div className="space-y-4 sm:space-y-6">
-        {/* Period Filter */}
-        <div className="flex justify-end">
-          <Tabs value={periodFilter} onValueChange={(v) => setPeriodFilter(v as PeriodFilter)}>
-            <TabsList className="bg-muted/50 h-8">
-              <TabsTrigger value="all" className="text-xs px-2 sm:px-3">Все</TabsTrigger>
-              <TabsTrigger value="today" className="text-xs px-2 sm:px-3">Сегодня</TabsTrigger>
-              <TabsTrigger value="yesterday" className="text-xs px-2 sm:px-3">Вчера</TabsTrigger>
-              <TabsTrigger value="7days" className="text-xs px-2 sm:px-3">7 дней</TabsTrigger>
-            </TabsList>
-          </Tabs>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 rounded-lg bg-success/10">
+              <TrendingUp className="w-4 h-4 text-success" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Топ кампаний</h3>
+              <p className="text-[10px] text-muted-foreground">{dateRangeLabel}</p>
+            </div>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
-          <motion.div 
-            key={periodFilter}
+          <motion.div
             initial="hidden"
             animate="visible"
             exit="hidden"
             variants={containerVariants}
-            className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6"
+            className="grid grid-cols-1 lg:grid-cols-2 gap-4"
           >
             {/* Funnel Summary */}
             <motion.div variants={itemVariants}>
-              <Card>
-                <CardHeader className="pb-2 px-4 pt-4">
-                  <CardTitle className="text-sm sm:text-base flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-success" />
-                    Воронка продаж
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
+              <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4 hover:border-border/60 transition-all">
+                <div className="flex items-center gap-2 mb-3">
+                  <Target className="w-4 h-4 text-primary" />
+                  <h4 className="text-xs font-semibold text-foreground">Воронка продаж</h4>
+                </div>
                   <div className="space-y-3">
                     {funnelData.stages.map((stage, index) => (
                       <motion.div 
@@ -353,17 +334,16 @@ export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartPro
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             </motion.div>
 
             {/* Campaign Breakdown Bar Chart */}
             <motion.div variants={itemVariants}>
-              <Card>
-                <CardHeader className="pb-2 px-4 pt-4">
-                  <CardTitle className="text-sm sm:text-base">Лиды по кампаниям</CardTitle>
-                </CardHeader>
-                <CardContent className="px-4 pb-4">
+              <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4 hover:border-border/60 transition-all">
+                <div className="flex items-center gap-2 mb-3">
+                  <Users className="w-4 h-4 text-primary" />
+                  <h4 className="text-xs font-semibold text-foreground">Лиды по кампаниям</h4>
+                </div>
                   {campaignBreakdown.length > 0 ? (
                     <ResponsiveContainer width="100%" height={220}>
                       <BarChart 
@@ -425,8 +405,7 @@ export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartPro
                       <span>TikTok</span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
             </motion.div>
           </motion.div>
         </AnimatePresence>
@@ -434,17 +413,16 @@ export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartPro
         {/* Platform Comparison Chart */}
         <AnimatePresence mode="wait">
           <motion.div
-            key={`platform-${periodFilter}`}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.3 }}
           >
-            <Card>
-              <CardHeader className="pb-2 px-4 pt-4">
-                <CardTitle className="text-sm sm:text-base">Сравнение платформ</CardTitle>
-              </CardHeader>
-              <CardContent className="px-4 pb-4">
+            <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4 hover:border-border/60 transition-all">
+              <div className="flex items-center gap-2 mb-3">
+                <DollarSign className="w-4 h-4 text-success" />
+                <h4 className="text-xs font-semibold text-foreground">Сравнение платформ</h4>
+              </div>
                 {platformComparison.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Bar chart for conversion rates */}
@@ -519,8 +497,7 @@ export const CampaignFunnelChart = ({ campaigns, leads }: CampaignFunnelChartPro
                     ))}
                   </div>
                 )}
-              </CardContent>
-            </Card>
+            </div>
           </motion.div>
         </AnimatePresence>
       </div>
