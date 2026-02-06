@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAutomationRules, AutomationRule, AutomationLog } from '@/hooks/useAutomationRules';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface AutomationPanelProps {
@@ -61,18 +61,20 @@ const triggerTypeLabels: Record<string, string> = {
 };
 
 const statusLabels: Record<string, string> = {
-  new: 'Новая',
+  new: 'Новый лид',
   in_progress: 'В работе',
-  no_answer: 'Недозвон',
+  no_answer: 'Без ответа',
   appointment: 'Записан',
-  paid: 'Оплачено',
+  invoiced: 'Счет выставлен',
+  paid: 'Оплачен',
   cancelled: 'Отказ'
 };
 
 export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
   const { rules, logs, loading, toggleRule, fetchLogs } = useAutomationRules(projectId);
-  const [activeTab, setActiveTab] = useState('rules');
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [activeTab, setActiveTab] = useState('rules');
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   const handleLoadLogs = async () => {
     setLoadingLogs(true);
@@ -138,6 +140,9 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
         return;
       }
 
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
       // Отправляем запрос в n8n для активации шаблона
       const response = await fetch(projectData.n8n_webhook_url, {
         method: 'POST',
@@ -149,12 +154,19 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
           template_id: templateId,
           project_id: projectId,
         }),
+        signal: controller.signal
       });
+      
+      clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Ошибка активации шаблона');
 
       toast.success('Шаблон активирован!');
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError') {
+        toast.error('Время ожидания истекло');
+        return;
+      }
       console.error('Error activating template:', error);
       toast.error('Ошибка активации шаблона');
     }
@@ -403,7 +415,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                           </span>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(log.executed_at), 'dd.MM HH:mm', { locale: ru })}
+                          {format(new Date(log.executed_at), 'dd HH:mm', { locale: ru })}
                         </span>
                       </div>
                       

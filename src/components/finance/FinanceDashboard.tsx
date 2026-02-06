@@ -28,21 +28,19 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { 
-  DollarSign, 
   Plus, 
-  TrendingUp, 
-  TrendingDown,
-  ArrowUpRight,
-  ArrowDownRight,
-  Wallet,
-  PiggyBank,
-  Download,
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Wallet, 
+  Download, 
   RefreshCw,
   Calendar,
   Filter,
   Percent,
   Zap,
-  Loader2
+  Loader2,
+  TrendingUp,
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -55,30 +53,29 @@ import {
   CartesianGrid, 
   Tooltip, 
   ResponsiveContainer,
-  Legend,
-  Cell,
-  PieChart,
-  Pie
+  Legend
 } from 'recharts';
-import { format, subDays, subMonths, startOfMonth, endOfMonth, startOfYear, isWithinInterval, parseISO } from 'date-fns';
+import { format, subDays, parseISO } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
 import { AgencyAnalytics } from './AgencyAnalytics';
+import { FinancialDecomposition } from './FinancialDecomposition';
 
 interface Transaction {
   id: string;
   type: string;
   category: string;
   amount: number;
-  currency: string;
-  description: string;
-  transaction_date: string;
+  currency?: string | null;
+  description: string | null;
+  transaction_date: string | null;
   created_at: string;
-  lead_id?: string;
+  lead_id?: string | null;
+  project_id: string;
 }
 
-interface FinanceDashboardProps {
+export interface FinanceDashboardProps {
   projectId: string;
 }
 
@@ -182,10 +179,23 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .from('transactions')
         .select('*')
         .eq('project_id', projectId)
-        .order('transaction_date', { ascending: false });
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setTransactions(data || []);
+      
+      const formattedData: Transaction[] = (data || []).map((item: any) => ({
+        id: item.id,
+        type: item.type || 'expense',
+        category: item.category || 'other',
+        amount: item.amount || 0,
+        currency: item.currency || 'KZT',
+        description: item.description || '',
+        transaction_date: item.created_at, // Use created_at as fallback
+        created_at: item.created_at,
+        project_id: item.project_id
+      }));
+
+      setTransactions(formattedData);
     } catch (error) {
       if (import.meta.env.DEV) {
         console.error('Error fetching transactions:', error);
@@ -212,8 +222,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         category: newTransaction.category,
         amount: newTransaction.amount,
         description: newTransaction.description,
-        currency: 'KZT',
-        transaction_date: new Date().toISOString(),
+        // created_at will be set automatically
       }]);
 
       if (error) throw error;
@@ -257,7 +266,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     }
 
     return transactions.filter(t => {
-      const transactionDate = parseISO(t.transaction_date);
+      const dateStr = t.transaction_date || t.created_at;
+      const transactionDate = parseISO(dateStr);
       const dateMatch = !startDate || transactionDate >= startDate;
       const categoryMatch = categoryFilter === 'all' || t.category === categoryFilter;
       return dateMatch && categoryMatch;
@@ -281,7 +291,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
     
     filteredTransactions.forEach(t => {
-      const date = parseISO(t.transaction_date);
+      const dateStr = t.transaction_date || t.created_at;
+      if (!dateStr) return;
+      const date = parseISO(dateStr);
       const monthKey = format(date, 'yyyy-MM');
       const monthLabel = format(date, 'MMM', { locale: ru });
       
@@ -337,6 +349,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     return null;
   };
 
+  const [activeTab, setActiveTab] = useState('decomposition');
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -348,45 +362,53 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           </h2>
           <p className="text-muted-foreground">P&L дашборд и учёт финансов</p>
         </div>
-        <div className="flex gap-2 flex-wrap">
-          <Select value={datePreset} onValueChange={setDatePreset}>
-            <SelectTrigger className="w-[140px]">
-              <Calendar className="w-4 h-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {DATE_PRESETS.map(preset => (
-                <SelectItem key={preset.value} value={preset.value}>
-                  {preset.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button variant="outline" onClick={fetchTransactions}>
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Обновить
-          </Button>
-          <Button 
-            variant="outline" 
-            onClick={handleSyncAds} 
-            disabled={syncing}
-            className="border-violet-500/50 text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-950/20"
-          >
-            {syncing ? (
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <Zap className="w-4 h-4 mr-2" />
-            )}
-            Синхр. QuantumAds
-          </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Добавить расход
-          </Button>
-        </div>
+        
+        {/* Hide controls when Decomposition is active */}
+        {activeTab !== 'decomposition' && (
+          <div className="flex gap-2 flex-wrap">
+            <Select value={datePreset} onValueChange={setDatePreset}>
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="w-4 h-4 mr-2" />
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DATE_PRESETS.map(preset => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button variant="outline" onClick={fetchTransactions}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Обновить
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleSyncAds} 
+              disabled={syncing}
+              className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
+            >
+              {syncing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              Синхр. QuantumAds
+            </Button>
+            <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Добавить расход
+            </Button>
+          </div>
+        )}
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Hide on Decomposition tab as well? User said "section button", but maybe KPI cards are also noise? 
+          Let's stick to the buttons for now as per "section button". 
+          Actually, let's keep KPI cards unless requested.
+      */}
+      {activeTab !== 'decomposition' && (
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="border-l-4 border-l-green-500">
           <CardContent className="pt-6">
@@ -445,12 +467,14 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           </CardContent>
         </Card>
       </div>
+      )}
 
-      <Tabs defaultValue="dashboard">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex-wrap">
+          <TabsTrigger value="decomposition">Декомпозиция</TabsTrigger>
           <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
           {isSuperAdmin && (
-            <TabsTrigger value="agency">💰 Мои Проекты (Агентство)</TabsTrigger>
+            <TabsTrigger value="agency">Агентская аналитика</TabsTrigger>
           )}
           <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
           <TabsTrigger value="transactions">Транзакции</TabsTrigger>
@@ -461,6 +485,10 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             <AgencyAnalytics />
           </TabsContent>
         )}
+
+        <TabsContent value="decomposition" className="mt-4">
+          <FinancialDecomposition projectId={projectId} />
+        </TabsContent>
 
         <TabsContent value="dashboard" className="mt-4 space-y-6">
           {/* Bar Chart */}

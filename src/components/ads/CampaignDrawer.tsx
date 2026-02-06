@@ -154,7 +154,7 @@ export const CampaignDrawer = ({
                     >
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-xs text-muted-foreground">
-                          {format(new Date(log.timestamp), 'dd.MM HH:mm')}
+                          {format(new Date(log.timestamp), 'dd HH:mm')}
                         </span>
                       </div>
                       <p className="text-sm">{log.action}</p>

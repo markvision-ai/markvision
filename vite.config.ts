@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import compression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -24,6 +25,7 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    compression(),
     VitePWA({
       registerType: "autoUpdate",
       includeAssets: ["favicon.ico", "robots.txt", "pwa-icons/*.png"],
@@ -39,6 +41,7 @@ export default defineConfig(({ mode }) => ({
         start_url: "/",
         categories: ["business", "productivity", "medical"],
         icons: [
+          { src: "/logo-vector-blue.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
           { src: "/pwa-icons/icon-72x72.png", sizes: "72x72", type: "image/png", purpose: "maskable any" },
           { src: "/pwa-icons/icon-96x96.png", sizes: "96x96", type: "image/png", purpose: "maskable any" },
           { src: "/pwa-icons/icon-128x128.png", sizes: "128x128", type: "image/png", purpose: "maskable any" },
@@ -102,10 +105,11 @@ export default defineConfig(({ mode }) => ({
         manualChunks: {
           // Vendor chunks
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui-vendor': ['framer-motion'],
+          'ui-vendor': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-dropdown-menu'],
           'chart-vendor': ['recharts'],
           'date-vendor': ['date-fns'],
           'pdf-vendor': ['html2canvas', 'jspdf'],
+          'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
           // Large components
           'reports': ['./src/components/reports/ReportGenerator.tsx'],
           'crm': ['./src/components/crm/CRMPage.tsx'],

@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Search, Moon, Sun, Menu, Users, Image, Loader2, X } from 'lucide-react';
-import { useTheme } from '@/hooks/useTheme';
-import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { Search, Menu, Users, Image, Loader2, X } from 'lucide-react';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { ProjectSelector } from '@/components/dashboard/ProjectSelector';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -25,6 +24,7 @@ interface HeaderProps {
   subtitle?: string;
   dateRange?: DateRange;
   onDateRangeChange?: (range: DateRange) => void;
+  onPresetChange?: (preset: PresetKey | 'custom') => void;
   showDatePicker?: boolean;
   onMobileMenuClick?: () => void;
   // Project selector props
@@ -51,6 +51,7 @@ export const Header = ({
   dateRange, 
   onDateRangeChange,
   showDatePicker = false,
+  onPresetChange,
   onMobileMenuClick,
   projects = [],
   currentProjectId,
@@ -58,7 +59,6 @@ export const Header = ({
   onCreateProject,
   showProjectSelector = false,
 }: HeaderProps) => {
-  const { theme, toggleTheme } = useTheme();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
@@ -100,7 +100,8 @@ export const Header = ({
           <div className="hidden sm:block">
             <DateRangePicker 
               dateRange={dateRange} 
-              onDateRangeChange={onDateRangeChange} 
+              onDateRangeChange={onDateRangeChange}
+              onPresetChange={onPresetChange}
             />
           </div>
         )}
@@ -209,19 +210,6 @@ export const Header = ({
             )}
           </AnimatePresence>
         </div>
-
-        {/* Theme Toggle */}
-        <button
-          onClick={toggleTheme}
-          className="p-2 hover:bg-secondary rounded-lg transition-colors"
-          title={theme === 'dark' ? 'Светлая тема' : 'Тёмная тема'}
-        >
-          {theme === 'dark' ? (
-            <Sun className="w-4 h-4 md:w-5 md:h-5" />
-          ) : (
-            <Moon className="w-4 h-4 md:w-5 md:h-5" />
-          )}
-        </button>
 
         {/* Notifications */}
         <NotificationsDropdown />

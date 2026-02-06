@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useLeadMessages } from '@/hooks/useLeadMessages';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Send, Loader2, Trash2, MessageSquare, Paperclip, X, FileText, Image, Sparkles } from 'lucide-react';

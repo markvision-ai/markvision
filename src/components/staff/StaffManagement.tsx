@@ -38,7 +38,7 @@ import {
   Target,
   BarChart3
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface Staff {
@@ -457,7 +457,7 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${
                           index === 0 ? 'bg-yellow-500 text-yellow-950' :
-                          index === 1 ? 'bg-gray-400 text-gray-950' :
+                          index === 1 ? 'bg-slate-400 text-slate-950' :
                           index === 2 ? 'bg-orange-500 text-orange-950' :
                           'bg-muted text-muted-foreground'
                         }`}>

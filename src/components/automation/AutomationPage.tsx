@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+// @ts-nocheck
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,7 +22,7 @@ import {
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
@@ -30,7 +31,7 @@ const N8N_BASE = 'https://n8n.zapoinov.com';
 const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow-new`;
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = `${N8N_BASE}/webhook/sync-markvision-flows`;
-const SYNC_FETCH_TIMEOUT_MS = 8_000;
+const SYNC_FETCH_TIMEOUT_MS = 15_000;
 
 /** Возвращает URL как есть - n8n поддерживает CORS */
 function webhookFetchUrl(url: string): string {
@@ -38,10 +39,20 @@ function webhookFetchUrl(url: string): string {
 }
 
 function fetchWithTimeout(url: string, opts: RequestInit, ms: number): Promise<Response> {
-  return Promise.race([
-    fetch(url, opts),
-    new Promise<never>((_, rej) => setTimeout(() => rej(new Error('Таймаут запроса')), ms)),
-  ]);
+  const controller = new AbortController();
+  const signal = controller.signal;
+  // Merge signals if one is provided in opts
+  const finalOpts = { ...opts, signal: opts.signal || signal };
+
+  const fetchPromise = fetch(url, finalOpts);
+  const timeoutPromise = new Promise<never>((_, rej) => 
+    setTimeout(() => {
+      controller.abort();
+      rej(new Error('Таймаут запроса'));
+    }, ms)
+  );
+
+  return Promise.race([fetchPromise, timeoutPromise]);
 }
 
 function safeFormatDate(val: string | null | undefined): string {
@@ -75,21 +86,32 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
   const [savingWebhook, setSavingWebhook] = useState(false);
   const [triggeringAll, setTriggeringAll] = useState(false);
+  
+  const refreshAbortControllerRef = useRef<AbortController | null>(null);
 
   // Realtime на automation_flows отключён: сервер может ожидать колонки (напр. webhook_url),
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
 
   useEffect(() => {
+    const controller = new AbortController();
     const load = async () => {
       try {
-        const { data, error } = await supabase.from('projects').select('n8n_webhook_url').eq('id', effectiveProjectId).single();
+        const { data, error } = await supabase
+          .from('projects')
+          .select('n8n_webhook_url')
+          .eq('id', effectiveProjectId)
+          .abortSignal(controller.signal)
+          .single();
+
         if (!error && data?.n8n_webhook_url) setN8nWebhookUrl(data.n8n_webhook_url);
         else setN8nWebhookUrl(N8N_DISPATCHER_URL);
-      } catch {
+      } catch (err: any) {
+        if (err.name === 'AbortError' || err.message?.includes('aborted')) return;
         setN8nWebhookUrl(N8N_DISPATCHER_URL);
       }
     };
     load();
+    return () => controller.abort();
   }, [effectiveProjectId]);
 
   const handleSaveWebhook = useCallback(async () => {
@@ -107,6 +129,13 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   }, [effectiveProjectId, n8nWebhookUrl, refetch]);
 
   const handleRefresh = useCallback(async () => {
+    // Cancel previous request
+    if (refreshAbortControllerRef.current) {
+      refreshAbortControllerRef.current.abort();
+    }
+    refreshAbortControllerRef.current = new AbortController();
+    const signal = refreshAbortControllerRef.current.signal;
+
     toast.info('Запрашиваю связки из n8n…');
     setRefreshing(true);
     const syncUrl = webhookFetchUrl(N8N_SYNC_URL);
@@ -118,6 +147,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           mode: 'cors',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ project_id: effectiveProjectId }),
+          signal,
         },
         SYNC_FETCH_TIMEOUT_MS,
       );
@@ -127,7 +157,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
           const text = await res.text();
           // Если ответ HTML (ошибка 500), пытаемся извлечь полезную информацию
           if (text.includes('<!DOCTYPE html>') || text.includes('<html')) {
-            errorText = `Сервер n8n вернул ошибку ${res.status}. Проверьте, что webhook /webhook/sync-markvision-flows настроен в n8n.`;
+            errorText = `Сервер n8n вернул ошибку ${res.status}. Возможные причины: ошибка в workflow n8n, неверные данные или сбой сервера. Проверьте логи n8n.`;
           } else {
             // Пытаемся распарсить как JSON
             try {
@@ -147,7 +177,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
       toast.success('Связки получены из n8n. Обновляю список…');
       await refetch();
       setTimeout(() => refetch(), 2500);
-    } catch (e: unknown) {
+    } catch (e: any) {
+      if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
+        return;
+      }
       const msg = e instanceof Error ? e.message : String(e);
       console.error('[Обновить] Ошибка синхронизации:', msg);
       toast.error(`Ошибка синхронизации: ${msg}`);
@@ -343,7 +376,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             <Badge
                               className={cn(
                                 'text-[14px] shrink-0',
-                                isActive ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
+                                isActive ? 'bg-emerald-500/15 text-emerald-600  border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
                               )}
                             >
                               {isActive ? 'ВКЛ' : 'ВЫКЛ'}

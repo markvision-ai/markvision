@@ -1,30 +1,27 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Textarea } from '@/components/ui/textarea';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  FileText,
-  Mic,
-  User,
-  Scissors,
+  Upload,
+  BrainCircuit,
+  Rocket,
   Sparkles,
-  CheckCircle,
-  Play,
-  Pause,
-  Loader2,
-  Send,
   ChevronRight,
-  Trash2,
-  RotateCcw,
-  Wand2,
+  Loader2,
+  Video,
+  Image,
+  Type,
+  MessageCircle,
+  User,
+  Wand2
 } from 'lucide-react';
 import { ContentItem, ContentStatus } from '@/hooks/useContentFactory';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface WorkshopPipelineProps {
   content: ContentItem[];
@@ -42,79 +39,48 @@ interface Workshop {
   name: string;
   emoji: string;
   icon: React.ReactNode;
-  status: ContentStatus;
+  statuses: ContentStatus[];
   description: string;
   color: string;
+  bgGradient: string;
 }
 
 const workshops: Workshop[] = [
   { 
     id: 1, 
-    name: 'Сценарий', 
-    emoji: '📝', 
-    icon: <FileText className="w-5 h-5" />,
-    status: 'ideation',
-    description: 'Создание и редактирование сценария',
-    color: 'from-blue-500 to-cyan-500'
+    name: 'Загрузка', 
+    emoji: '📥', 
+    icon: <Upload className="w-5 h-5" />,
+    statuses: ['ideation', 'scripting'],
+    description: 'Идеи, сценарии и подготовка',
+    color: 'text-blue-400',
+    bgGradient: 'from-blue-500/20 to-cyan-500/20'
   },
   { 
     id: 2, 
-    name: 'Озвучка', 
-    emoji: '🔊', 
-    icon: <Mic className="w-5 h-5" />,
-    status: 'scripting',
-    description: 'Генерация голоса ElevenLabs',
-    color: 'from-violet-500 to-purple-500'
+    name: 'AI Анализ', 
+    emoji: '🤖', 
+    icon: <BrainCircuit className="w-5 h-5" />,
+    statuses: ['voice_ready', 'avatar_ready', 'editing_ready'],
+    description: 'Генерация, озвучка и монтаж',
+    color: 'text-violet-400',
+    bgGradient: 'from-violet-500/20 to-purple-500/20'
   },
   { 
     id: 3, 
-    name: 'Аватар', 
-    emoji: '👤', 
-    icon: <User className="w-5 h-5" />,
-    status: 'voice_ready',
-    description: 'Создание видео с HeyGen',
-    color: 'from-pink-500 to-rose-500'
-  },
-  { 
-    id: 4, 
-    name: 'Монтаж', 
-    emoji: '✂️', 
-    icon: <Scissors className="w-5 h-5" />,
-    status: 'avatar_ready',
-    description: 'Субтитры и эффекты Submagic',
-    color: 'from-orange-500 to-amber-500'
-  },
-  { 
-    id: 5, 
-    name: 'Виральность', 
-    emoji: '🚀', 
-    icon: <Sparkles className="w-5 h-5" />,
-    status: 'editing_ready',
-    description: 'Sora 2: виральный фон',
-    color: 'from-green-500 to-emerald-500'
-  },
-  { 
-    id: 6, 
     name: 'Готово', 
-    emoji: '✅', 
-    icon: <CheckCircle className="w-5 h-5" />,
-    status: 'ready_to_send',
-    description: 'Предпросмотр и публикация',
-    color: 'from-teal-500 to-cyan-500'
-  },
+    emoji: '✨', 
+    icon: <Rocket className="w-5 h-5" />,
+    statuses: ['ready_to_send', 'sent'],
+    description: 'Финальная проверка и отправка',
+    color: 'text-emerald-400',
+    bgGradient: 'from-emerald-500/20 to-teal-500/20'
+  }
 ];
 
 const getWorkshopForStatus = (status: ContentStatus): number => {
-  const mapping: Record<ContentStatus, number> = {
-    ideation: 1,
-    scripting: 2,
-    voice_ready: 3,
-    avatar_ready: 4,
-    editing_ready: 5,
-    ready_to_send: 6,
-    sent: 6,
-  };
-  return mapping[status] || 1;
+  const workshop = workshops.find(w => w.statuses.includes(status));
+  return workshop ? workshop.id : 1;
 };
 
 interface ContentCardWorkshopProps {
@@ -131,302 +97,110 @@ const ContentCardWorkshop = ({
   item, 
   workshop, 
   onUpdate, 
-  onDelete,
   onMoveNext,
   isProcessing,
   setProcessing 
 }: ContentCardWorkshopProps) => {
-  const [script, setScript] = useState(item.rewritten_script || item.original_script || '');
-  const [caption, setCaption] = useState(item.caption || '');
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  
+  const getFormatIcon = (format: string) => {
+    switch (format) {
+      case 'reels': return <Video className="w-3 h-3" />;
+      case 'carousel': return <Image className="w-3 h-3" />;
+      case 'static': return <Image className="w-3 h-3" />;
+      case 'avatar_video': return <User className="w-3 h-3" />;
+      case 'ai_viral': return <Wand2 className="w-3 h-3" />;
+      case 'threads_post': return <Type className="w-3 h-3" />;
+      case 'telegram_post': return <MessageCircle className="w-3 h-3" />;
+      default: return <Video className="w-3 h-3" />;
+    }
+  };
+
+  const getFormatLabel = (format: string) => {
+    switch (format) {
+      case 'reels': return 'Reels';
+      case 'carousel': return 'Carousel';
+      case 'static': return 'Post';
+      case 'avatar_video': return 'Avatar';
+      case 'ai_viral': return 'Viral';
+      case 'threads_post': return 'Threads';
+      case 'telegram_post': return 'Telegram';
+      default: return format;
+    }
+  };
 
   const generateHormoziScript = async () => {
     setProcessing(item.id);
-    // Simulate AI generation
+    // Simulate AI generation - in production this would call an Edge Function with Claude
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     const hormoziScript = `🎯 ХУК: ${item.title}
 
-Знаете, что отличает успешные клиники от тех, кто постоянно борется за выживание?
+🔥 ИСТОРИЯ/БОЛЬ:
+Многие владельцы клиник думают, что проблема в маркетинге, но на самом деле они теряют 40% пациентов на этапе звонка.
 
-📖 ИСТОРИЯ:
-Когда я начинал, у меня была та же проблема — пациенты приходили раз и исчезали. Я тратил тысячи на рекламу, но возврат инвестиций был минимальным.
-
-Потом я понял одну простую вещь: дело не в количестве пациентов, а в системе, которая превращает каждого посетителя в постоянного клиента.
+💡 РЕШЕНИЕ:
+Мы внедрили простую систему контроля администраторов и скрипты, которые подняли конверсию в запись с 15% до 35% за неделю.
 
 💰 ОФФЕР:
-Запишитесь на бесплатную диагностику, и мы покажем, как увеличить выручку на 500 000 ₸ в день, без увеличения рекламного бюджета.
+Запишитесь на бесплатный визит, и мы покажем, как увеличить выручку на 500 000 ₸ в день, без увеличения рекламного бюджета.
 
-Ссылка в шапке профиля. Количество мест ограничено.`;
+👇 ПРИЗЫВ:
+Пишите "ВИЗИТ" в комментариях или директ!`;
 
     await onUpdate(item.id, { rewritten_script: hormoziScript });
-    setScript(hormoziScript);
     setProcessing(null);
     toast.success('Сценарий сгенерирован по методу Хармози!');
-  };
-
-  const handleVoiceGeneration = async () => {
-    if (!script.trim()) {
-      toast.error('Сначала напишите сценарий');
-      return;
-    }
-    setProcessing(item.id);
-    toast.info('🔊 Отправлено в ElevenLabs (Голос Юрия)...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    // Simulate audio generation
-    const mockAudioUrl = 'https://example.com/audio.mp3';
-    await onUpdate(item.id, { 
-      audio_url: mockAudioUrl, 
-      rewritten_script: script,
-      status: 'voice_ready' 
-    });
-    setProcessing(null);
-    toast.success('Озвучка готова!');
-  };
-
-  const handleAvatarGeneration = async () => {
-    setProcessing(item.id);
-    toast.info('👤 Создаём видео-аватара в HeyGen...');
-    await new Promise(resolve => setTimeout(resolve, 4000));
-    
-    const mockVideoUrl = 'https://example.com/avatar.mp4';
-    await onUpdate(item.id, { 
-      raw_video_url: mockVideoUrl,
-      status: 'avatar_ready' 
-    });
-    setProcessing(null);
-    toast.success('Видео-аватар создан!');
-  };
-
-  const handleEditGeneration = async () => {
-    setProcessing(item.id);
-    toast.info('✂️ Накладываем субтитры и эффекты...');
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    
-    await onUpdate(item.id, { status: 'editing_ready' });
-    setProcessing(null);
-    toast.success('Монтаж завершён!');
-  };
-
-  const handleViralBackground = async () => {
-    setProcessing(item.id);
-    toast.info('🚀 Sora 2: Создаём виральный фон...');
-    await new Promise(resolve => setTimeout(resolve, 3500));
-    
-    const mockFinalUrl = 'https://example.com/final.mp4';
-    await onUpdate(item.id, { 
-      final_video_url: mockFinalUrl,
-      status: 'ready_to_send' 
-    });
-    setProcessing(null);
-    toast.success('Виральный фон создан!');
-  };
-
-  const handlePublish = async () => {
-    setProcessing(item.id);
-    toast.info('📤 Отправляем в Telegram...');
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    await onUpdate(item.id, { 
-      status: 'sent',
-      caption: caption 
-    });
-    setProcessing(null);
-    toast.success('Контент отправлен в Telegram!');
-  };
-
-  const renderWorkshopContent = () => {
-    switch (workshop.id) {
-      case 1: // Сценарий
-        return (
-          <div className="space-y-3">
-            <Textarea
-              value={script}
-              onChange={(e) => setScript(e.target.value)}
-              placeholder="Напишите сценарий или нажмите кнопку для генерации..."
-              rows={4}
-              className="text-sm"
-            />
-            <div className="flex gap-2">
-              <Button 
-                size="sm" 
-                onClick={generateHormoziScript}
-                disabled={isProcessing}
-                className="gap-2 flex-1 bg-gradient-to-r from-violet-600 to-purple-600"
-              >
-                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
-                Сгенерировать по Хармози
-              </Button>
-              <Button 
-                size="sm" 
-                variant="outline"
-                onClick={() => onUpdate(item.id, { rewritten_script: script })}
-              >
-                Сохранить
-              </Button>
-            </div>
-          </div>
-        );
-
-      case 2: // Озвучка
-        return (
-          <div className="space-y-3">
-            <div className="p-3 bg-secondary/50 rounded-lg text-sm">
-              <p className="text-muted-foreground line-clamp-3">{script || 'Нет сценария'}</p>
-            </div>
-            <Button 
-              size="sm" 
-              onClick={handleVoiceGeneration}
-              disabled={isProcessing || !script.trim()}
-              className="gap-2 w-full bg-gradient-to-r from-violet-500 to-purple-500"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Mic className="w-4 h-4" />}
-              🔊 Озвучить (Голос Юрия)
-            </Button>
-            {item.audio_url && (
-              <div className="flex items-center gap-2 p-2 bg-green-500/10 rounded-lg">
-                <Button 
-                  size="icon" 
-                  variant="ghost" 
-                  className="h-8 w-8"
-                  onClick={() => {
-                    if (audioRef.current) {
-                      if (isPlaying) {
-                        audioRef.current.pause();
-                      } else {
-                        audioRef.current.play();
-                      }
-                      setIsPlaying(!isPlaying);
-                    }
-                  }}
-                >
-                  {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </Button>
-                <audio ref={audioRef} src={item.audio_url} onEnded={() => setIsPlaying(false)} />
-                <span className="text-sm text-green-600">Аудио готово</span>
-              </div>
-            )}
-          </div>
-        );
-
-      case 3: // Аватар
-        return (
-          <div className="space-y-3">
-            <Button 
-              size="sm" 
-              onClick={handleAvatarGeneration}
-              disabled={isProcessing || !item.audio_url}
-              className="gap-2 w-full bg-gradient-to-r from-pink-500 to-rose-500"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <User className="w-4 h-4" />}
-              👤 Создать видео-аватара
-            </Button>
-            {item.raw_video_url && (
-              <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                <video src={item.raw_video_url} controls className="w-full h-full" />
-              </div>
-            )}
-            {isProcessing && (
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Рендеринг видео...
-              </div>
-            )}
-          </div>
-        );
-
-      case 4: // Монтаж
-        return (
-          <div className="space-y-3">
-            <Button 
-              size="sm" 
-              onClick={handleEditGeneration}
-              disabled={isProcessing || !item.raw_video_url}
-              className="gap-2 w-full bg-gradient-to-r from-orange-500 to-amber-500"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Scissors className="w-4 h-4" />}
-              ✂️ Наложить субтитры и эффекты
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Стиль Submagic: анимированные субтитры, emoji, звуковые эффекты
-            </p>
-          </div>
-        );
-
-      case 5: // Виральность
-        return (
-          <div className="space-y-3">
-            <Button 
-              size="sm" 
-              onClick={handleViralBackground}
-              disabled={isProcessing}
-              className="gap-2 w-full bg-gradient-to-r from-green-500 to-emerald-500"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
-              🚀 Sora 2: Создать виральный фон
-            </Button>
-            <p className="text-xs text-muted-foreground text-center">
-              Генерация 5-сек видео-перебивки для повышения вовлечённости
-            </p>
-          </div>
-        );
-
-      case 6: // Готово
-        return (
-          <div className="space-y-3">
-            {item.final_video_url && (
-              <div className="aspect-video bg-black rounded-lg overflow-hidden">
-                <video src={item.final_video_url} controls className="w-full h-full" />
-              </div>
-            )}
-            <Textarea
-              value={caption}
-              onChange={(e) => setCaption(e.target.value)}
-              placeholder="Текст для публикации..."
-              rows={2}
-              className="text-sm"
-            />
-            <Button 
-              size="sm" 
-              onClick={handlePublish}
-              disabled={isProcessing}
-              className="gap-2 w-full bg-gradient-to-r from-teal-500 to-cyan-500"
-            >
-              {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-              ✅ Одобрить и отправить в Telegram
-            </Button>
-          </div>
-        );
-
-      default:
-        return null;
-    }
   };
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.9 }}
-      transition={{ type: 'spring', stiffness: 300, damping: 25 }}
-      className="bg-card border rounded-xl p-3 min-w-[280px] max-w-[320px] shadow-lg"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="bg-card/40 backdrop-blur-md border border-border rounded-xl p-4 hover:border-violet-500/20 hover:shadow-[0_0_20px_-10px_rgba(124,58,237,0.2)] transition-all duration-300 group"
     >
-      <div className="flex items-center justify-between mb-2">
-        <h4 className="font-medium text-sm truncate flex-1">{item.title}</h4>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-6 w-6 text-destructive hover:text-destructive"
-          onClick={() => onDelete(item.id)}
-        >
-          <Trash2 className="w-3 h-3" />
-        </Button>
+      <div className="flex items-start justify-between gap-3 mb-3">
+        <Badge variant="outline" className="bg-muted/10 border-border text-muted-foreground gap-1.5 font-normal px-2 py-1">
+          {getFormatIcon(item.content_type)}
+          {getFormatLabel(item.content_type)}
+        </Badge>
+        <span className="text-[10px] text-muted-foreground font-mono">
+          {format(new Date(item.created_at), 'dd MMM', { locale: ru })}
+        </span>
       </div>
-      
-      {renderWorkshopContent()}
+
+      <h3 className="text-white font-medium text-base mb-4 leading-tight group-hover:text-violet-300 transition-colors">
+        {item.title}
+      </h3>
+
+      <div className="flex flex-wrap items-center gap-2">
+        <Button 
+          variant="ghost" 
+          size="sm"
+          onClick={generateHormoziScript}
+          disabled={!!isProcessing}
+          className="h-8 bg-muted/10 hover:bg-violet-500/20 hover:text-violet-300 text-muted-foreground border border-border hover:border-violet-500/30 transition-all text-xs gap-1.5"
+        >
+          {isProcessing ? (
+            <Loader2 className="w-3 h-3 animate-spin" />
+          ) : (
+            <Sparkles className="w-3 h-3" />
+          )}
+          AI Рерайт
+        </Button>
+
+        {workshop.id === 1 && (
+          <Button 
+             variant="ghost" 
+             size="sm"
+             onClick={() => onMoveNext(item)}
+             className="h-8 ml-auto bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/20 text-xs gap-1.5"
+          >
+            В работу <ChevronRight className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
     </motion.div>
   );
 };
@@ -439,91 +213,84 @@ export const WorkshopPipeline = ({
   triggerVoice,
   triggerAvatar,
   triggerEdit,
-  triggerPublish,
+  triggerPublish
 }: WorkshopPipelineProps) => {
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const getContentForWorkshop = (workshopId: number) => {
-    return content.filter(item => getWorkshopForStatus(item.status) === workshopId);
+  // Filter content by projectId if provided
+  const filteredContent = content.filter(c => !projectId || c.project_id === projectId);
+
+  const getWorkshopContent = (workshopId: number) => {
+    const workshop = workshops.find(w => w.id === workshopId);
+    if (!workshop) return [];
+    return filteredContent.filter(item => workshop.statuses.includes(item.status));
   };
 
   const handleMoveNext = async (item: ContentItem) => {
-    const currentWorkshop = getWorkshopForStatus(item.status);
-    if (currentWorkshop < 6) {
-      const nextStatus = workshops[currentWorkshop].status;
-      await onUpdate(item.id, { status: nextStatus });
+    // Simple logic to move to next stage (for demo purposes)
+    // Ideally this would be more complex based on current status
+    if (item.status === 'ideation') {
+      await onUpdate(item.id, { status: 'scripting' });
+    } else if (item.status === 'scripting') {
+      await onUpdate(item.id, { status: 'voice_ready' });
     }
   };
 
-  if (content.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-          <span className="text-4xl">🏭</span>
-        </div>
-        <h3 className="text-xl font-semibold mb-2">Производственная линия пуста</h3>
-        <p className="text-muted-foreground max-w-md">
-          Создайте первый контент или добавьте идею из мониторинга конкурентов
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <TooltipProvider>
-      <ScrollArea className="w-full">
-        <div className="flex gap-4 pb-4 min-w-max">
-          {workshops.map((workshop, index) => (
-            <div key={workshop.id} className="flex items-start">
-              <div className="flex flex-col min-w-[320px]">
-                {/* Workshop Header */}
-                <div className={cn(
-                  "flex items-center gap-3 p-3 rounded-t-xl bg-gradient-to-r text-white",
-                  workshop.color
-                )}>
-                  <span className="text-2xl">{workshop.emoji}</span>
-                  <div>
-                    <h3 className="font-semibold">Цех {workshop.id}: {workshop.name}</h3>
-                    <p className="text-xs text-white/80">{workshop.description}</p>
-                  </div>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 h-[calc(100vh-200px)]">
+      {workshops.map((workshop) => (
+        <div 
+          key={workshop.id} 
+          className="flex flex-col bg-black/20 backdrop-blur-sm rounded-2xl border border-white/5 overflow-hidden"
+        >
+          {/* Column Header */}
+          <div className={`p-4 border-b border-white/5 bg-gradient-to-b ${workshop.bgGradient}`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <div className={`p-2 rounded-lg bg-black/20 ${workshop.color}`}>
+                  {workshop.icon}
                 </div>
-
-                {/* Workshop Content */}
-                <div className="flex-1 bg-secondary/30 rounded-b-xl p-3 min-h-[300px] space-y-3">
-                  <AnimatePresence mode="popLayout">
-                    {getContentForWorkshop(workshop.id).map(item => (
-                      <ContentCardWorkshop
-                        key={item.id}
-                        item={item}
-                        workshop={workshop}
-                        onUpdate={onUpdate}
-                        onDelete={onDelete}
-                        onMoveNext={handleMoveNext}
-                        isProcessing={processingId === item.id}
-                        setProcessing={setProcessingId}
-                      />
-                    ))}
-                  </AnimatePresence>
-                  
-                  {getContentForWorkshop(workshop.id).length === 0 && (
-                    <div className="flex items-center justify-center h-32 text-muted-foreground text-sm">
-                      Нет контента
-                    </div>
-                  )}
-                </div>
+                <h3 className={`font-semibold ${workshop.color}`}>
+                  {workshop.name}
+                </h3>
               </div>
+              <Badge className="bg-black/20 text-white border-white/10">
+                {getWorkshopContent(workshop.id).length}
+              </Badge>
+            </div>
+            <p className="text-xs text-white/40 ml-1">
+              {workshop.description}
+            </p>
+          </div>
 
-              {/* Arrow between workshops */}
-              {index < workshops.length - 1 && (
-                <div className="flex items-center justify-center px-2 pt-20">
-                  <ChevronRight className="w-6 h-6 text-muted-foreground" />
+          {/* Content List */}
+          <ScrollArea className="flex-1 p-4">
+            <div className="space-y-3">
+              <AnimatePresence mode="popLayout">
+                {getWorkshopContent(workshop.id).map((item) => (
+                  <ContentCardWorkshop
+                    key={item.id}
+                    item={item}
+                    workshop={workshop}
+                    onUpdate={onUpdate}
+                    onDelete={onDelete}
+                    onMoveNext={handleMoveNext}
+                    isProcessing={processingId === item.id}
+                    setProcessing={setProcessingId}
+                  />
+                ))}
+              </AnimatePresence>
+              
+              {getWorkshopContent(workshop.id).length === 0 && (
+                <div className="flex flex-col items-center justify-center h-32 text-muted-foreground/50 border-2 border-dashed border-border rounded-xl">
+                  {workshop.icon}
+                  <p className="text-sm mt-2">Нет задач</p>
                 </div>
               )}
             </div>
-          ))}
+          </ScrollArea>
         </div>
-        <ScrollBar orientation="horizontal" />
-      </ScrollArea>
-    </TooltipProvider>
+      ))}
+    </div>
   );
 };

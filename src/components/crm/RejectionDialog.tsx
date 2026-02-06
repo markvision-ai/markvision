@@ -14,6 +14,7 @@ import { cn } from '@/lib/utils';
 
 const rejectionReasons = [
   { id: 'expensive', label: 'Дорого', icon: '💰' },
+  { id: 'quality', label: 'Качество', icon: '⭐' },
   { id: 'competitor', label: 'Ушел к конкуренту', icon: '🏃' },
   { id: 'no_answer', label: 'Нет ответа', icon: '📵' },
   { id: 'other', label: 'Другое', icon: '📝' },

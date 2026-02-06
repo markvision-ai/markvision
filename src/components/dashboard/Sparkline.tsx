@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, memo } from 'react';
 import { cn } from '@/lib/utils';
 
 interface SparklineProps {
@@ -9,7 +9,7 @@ interface SparklineProps {
   className?: string;
 }
 
-export const Sparkline = ({ 
+export const Sparkline = memo(({ 
   data, 
   width = 60, 
   height = 20,
@@ -51,4 +51,4 @@ export const Sparkline = ({
       />
     </svg>
   );
-};
+});

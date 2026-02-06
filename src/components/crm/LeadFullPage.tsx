@@ -3,7 +3,7 @@ import { Lead, useLeads } from '@/hooks/useLeads';
 import { useLeadTouchpoints } from '@/hooks/useLeadTouchpoints';
 import { useAuth } from '@/hooks/useAuth';
 import { logStatusChange } from '@/hooks/useLeadStatusHistory';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
@@ -23,7 +23,9 @@ import {
   Activity,
   RefreshCw,
   Gift,
-  Users
+  Users,
+  Copy,
+  AlertCircle
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,6 +48,7 @@ import { ReferralsList } from './ReferralsList';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createPortal } from 'react-dom';
 import {
   Tooltip,
   TooltipContent,
@@ -58,6 +61,7 @@ const statusLabels: Record<string, string> = {
   invoiced: 'Счет выставлен',
   paid: 'Оплачено',
   appointment: 'Записан',
+  visit_completed: 'Визит пройден',
   in_progress: 'В работе',
   no_answer: 'Недозвон',
   cancelled: 'Отказ',
@@ -68,6 +72,7 @@ const statusStyles: Record<string, { bg: string; text: string; gradient: string 
   invoiced: { bg: 'bg-indigo-500/20', text: 'text-indigo-500', gradient: 'from-indigo-500 to-violet-500' },
   paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-emerald-500 to-green-500' },
   appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
+  visit_completed: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-500', gradient: 'from-fuchsia-500 to-pink-500' },
   in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
   no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
   cancelled: { bg: 'bg-destructive/20', text: 'text-destructive', gradient: 'from-red-500 to-rose-500' },
@@ -97,18 +102,18 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   });
   const [saving, setSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [diagnosisLoading, setDiagnosisLoading] = useState(false);
+  const [visitLoading, setVisitLoading] = useState(false);
   const [viralLoopOpen, setViralLoopOpen] = useState(false);
   const [refreshReferrals, setRefreshReferrals] = useState(0);
 
-  // Check if diagnosis has already been done (status is appointment or paid)
-  const isDiagnosisDone = formData.status === 'appointment' || formData.status === 'paid';
-  const isDiagnosisDisabled = formData.status === 'cancelled';
+  // Check if visit has already been done (status is appointment or paid)
+  const isVisitDone = ['appointment', 'paid', 'visit_completed'].includes(formData.status || '');
+  const isVisitDisabled = formData.status === 'cancelled';
 
-  const handleDiagnosisClick = async () => {
-    if (isDiagnosisDisabled) return;
+  const handleVisitClick = async () => {
+    if (isVisitDisabled) return;
     
-    setDiagnosisLoading(true);
+    setVisitLoading(true);
     try {
       // If status is new or no_answer, change to in_progress first
       if (formData.status === 'new' || formData.status === 'no_answer') {
@@ -142,19 +147,20 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         setFormData(prev => ({ ...prev, status: 'in_progress' }));
         onUpdate?.();
         
-        toast.success('Статус обновлен, переход к диагностике...');
+        toast.success('Статус обновлен, переход к визиту...');
       } else {
-        toast.info('Переход к диагностике...');
+        toast.info('Переход к визиту...');
       }
       
       // Build URL and open in new tab AFTER successful status update
-      const diagnosticsUrl = `https://diagnostoka.vercel.app/?lead_id=${lead.id}`;
-      window.open(diagnosticsUrl, '_blank');
+      // Updated to new visits app URL
+      const visitUrl = `https://markvision-visits.vercel.app/?lead_id=${lead.id}`;
+      window.open(visitUrl, '_blank');
     } catch (error) {
-      console.error('Error updating status for diagnosis:', error);
+      console.error('Error updating status for visit:', error);
       toast.error('Ошибка обновления статуса');
     } finally {
-      setDiagnosisLoading(false);
+      setVisitLoading(false);
     }
   };
 
@@ -213,10 +219,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
   const currentStatusStyle = statusStyles[formData.status] || statusStyles.new;
 
-  return (
+  return createPortal(
     <AnimatePresence>
       <motion.div 
-        className="fixed inset-0 z-50 bg-background flex flex-col"
+        className="fixed inset-0 z-[100] bg-background flex flex-col"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -338,7 +344,8 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.entries(statusLabels).map(([key, label]) => (
+                          {Object.entries(statusLabels)
+                            .map(([key, label]) => (
                             <SelectItem key={key} value={key}>
                               <div className="flex items-center gap-2">
                                 <div className={cn('w-2 h-2 rounded-full bg-gradient-to-r', statusStyles[key]?.gradient)} />
@@ -363,34 +370,34 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
                       </div>
                     </div>
-                    {/* Diagnosis Button */}
+                    {/* Visit Button */}
                     <div className="pt-2">
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <Button
-                              onClick={handleDiagnosisClick}
-                              disabled={isDiagnosisDisabled || diagnosisLoading}
+                              onClick={handleVisitClick}
+                              disabled={isVisitDisabled || visitLoading}
                               className={cn(
                                 'w-full text-white transition-all',
-                                isDiagnosisDone 
+                                isVisitDone 
                                   ? 'bg-purple-500 hover:bg-purple-600' 
                                   : 'bg-blue-500 hover:bg-blue-600',
-                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
                               )}
                             >
-                              {diagnosisLoading ? (
+                              {visitLoading ? (
                                 <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              ) : isDiagnosisDone ? (
+                              ) : isVisitDone ? (
                                 <RefreshCw className="w-4 h-4 mr-2" />
                               ) : (
                                 <Activity className="w-4 h-4 mr-2" />
                               )}
-                              {isDiagnosisDone ? 'Повторить диагностику' : 'Провести диагностику'}
+                              {isVisitDone ? 'Повторить визит' : 'Провести визит'}
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent side="bottom" className="max-w-xs">
-                            <p>Данные диагностики автоматически сохранятся в историю этого клиента</p>
+                            <p>Данные визита автоматически сохранятся в историю этого клиента</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -401,13 +408,13 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           <TooltipTrigger asChild>
                             <Button
                               onClick={() => setViralLoopOpen(true)}
-                              disabled={isDiagnosisDisabled}
+                              disabled={isVisitDisabled}
                               className={cn(
                                 'w-full text-white transition-all shadow-lg',
                                 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500',
                                 'hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600',
                                 'hover:shadow-blue-500/50 hover:scale-[1.02]',
-                                isDiagnosisDisabled && 'opacity-50 cursor-not-allowed'
+                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
                               )}
                             >
                               <Gift className="w-4 h-4 mr-2" />
@@ -423,6 +430,47 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   </div>
                 </motion.section>
 
+                {/* Duplicates Section */}
+                {(lead.extra_data as any)?.duplicates && ((lead.extra_data as any).duplicates as any[]).length > 0 && (
+                  <motion.section
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="crm-card-glass rounded-xl p-5 border-l-4 border-l-orange-500"
+                  >
+                    <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                        <Copy className="w-4 h-4 text-white" />
+                      </div>
+                      Найдены дубликаты
+                    </h2>
+                    <div className="space-y-3">
+                      {((lead.extra_data as any).duplicates as any[]).map((dup, idx) => (
+                        <div key={idx} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20 flex items-start gap-3">
+                           <div className="mt-1">
+                             <AlertCircle className="w-4 h-4 text-orange-500" />
+                           </div>
+                           <div>
+                             <p className="text-sm font-medium">Попытка создания дубля</p>
+                             <p className="text-xs text-muted-foreground mt-1">
+                               {new Date(dup.attempted_at).toLocaleString('ru-RU')}
+                             </p>
+                             {dup.source && (
+                               <p className="text-xs text-muted-foreground mt-0.5">
+                                 Источник: {dup.source}
+                               </p>
+                             )}
+                              {dup.name && dup.name !== lead.name && (
+                               <p className="text-xs text-muted-foreground mt-0.5">
+                                 Имя: {dup.name}
+                               </p>
+                             )}
+                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.section>
+                )}
 
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
@@ -597,6 +645,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
           onSuccess={() => setRefreshReferrals(prev => prev + 1)}
         />
       </motion.div>
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 };

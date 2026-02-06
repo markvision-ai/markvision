@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
 // NOTE: Super admin status is now determined from the database user_roles table

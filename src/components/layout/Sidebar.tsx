@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import markvisionLogo from '@/assets/markvision-logo.png';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   LayoutDashboard, 
@@ -58,7 +59,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface SidebarProps {
@@ -103,11 +104,9 @@ const menuGroups = [
     icon: ShoppingCart,
     items: [
       { id: 'crm', label: 'CRM', icon: Kanban },
-      { id: 'calendar', label: 'Календарь', icon: CalendarDays },
-      { id: 'diagnostics', label: 'Диагностика', icon: ClipboardCheck },
+      { id: 'visits', label: 'Визиты', icon: ClipboardCheck },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: FlameKindling },
-      { id: 'gamification', label: 'Мотивация', icon: Trophy },
     ]
   },
   {
@@ -126,10 +125,6 @@ const menuGroups = [
     icon: Settings,
     items: [
       { id: 'settings', label: 'Настройки', icon: Settings },
-      { id: 'integrations', label: 'Подключения', icon: Plug },
-      { id: 'team', label: 'Сотрудники и доступ', icon: Users },
-      { id: 'staff', label: 'Персонал', icon: UserCog },
-      { id: 'knowledge', label: 'База знаний', icon: BookOpen },
       { id: 'audit', label: 'Аудит', icon: Shield, adminOnly: true },
       { id: 'health', label: 'Состояние системы', icon: Activity },
       { id: 'help', label: 'Помощь', icon: HelpCircle },
@@ -232,15 +227,14 @@ export const Sidebar = ({
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="p-4 md:p-6 border-b border-sidebar-muted">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg shadow-primary/30">
-            <Sparkles className="w-5 h-5 md:w-6 md:h-6 text-primary-foreground" />
+      <div className="p-2 border-b border-sidebar-muted">
+        <div className="flex items-center gap-2">
+          <div className="relative h-12 w-12 md:h-14 md:w-14 flex items-center justify-center overflow-hidden rounded-lg">
+            <img src={markvisionLogo} alt="MarkVision AI" className="h-full w-full object-contain scale-125" />
           </div>
-          <div>
-            <h1 className="font-bold text-base md:text-lg bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">MarkVision AI</h1>
-            <p className="text-xs text-sidebar-foreground/60">Умный маркетинг</p>
-          </div>
+          <span className="text-lg font-bold bg-gradient-to-r from-primary to-purple-500 bg-clip-text text-transparent truncate">
+            MarkVision AI
+          </span>
         </div>
       </div>
 
@@ -436,7 +430,7 @@ export const Sidebar = ({
   return (
     <>
       {/* Desktop Sidebar - Narrower and minimalist */}
-      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r-0">
+      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r border-white/5">
         <SidebarContent />
       </aside>
 

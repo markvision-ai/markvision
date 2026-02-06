@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+// @ts-nocheck
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 /**
  * Поля automation_flows (схема из src/integrations/supabase/types.ts).

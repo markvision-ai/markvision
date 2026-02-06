@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface Touchpoint {
   id: string;
@@ -50,7 +50,7 @@ export function useLeadTouchpoints(leadId: string | null, clientId: string | nul
     try {
       // Fetch touchpoints for this lead
       const { data: touchpointData, error: touchpointError } = await supabase
-        .from('touchpoints')
+        .from('lead_touchpoints')
         .select('*')
         .eq('project_id', projectId)
         .eq('deal_id', leadId)

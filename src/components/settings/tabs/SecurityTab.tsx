@@ -31,7 +31,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Json } from '@/integrations/supabase/types';
 
@@ -61,7 +61,7 @@ const actionIcons: Record<string, React.ReactNode> = {
   create: <Plus className="w-4 h-4 text-blue-500" />,
   update: <Pencil className="w-4 h-4 text-orange-500" />,
   delete: <Trash2 className="w-4 h-4 text-red-500" />,
-  view: <Eye className="w-4 h-4 text-gray-500" />,
+  view: <Eye className="w-4 h-4 text-muted-foreground" />,
   export: <Download className="w-4 h-4 text-purple-500" />,
   status_change: <Activity className="w-4 h-4 text-cyan-500" />,
   permission_change: <Settings className="w-4 h-4 text-indigo-500" />,

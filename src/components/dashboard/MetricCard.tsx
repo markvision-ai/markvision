@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { TrendIndicator } from './TrendIndicator';
@@ -39,7 +40,7 @@ const formatCompact = (value: string | number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-export const MetricCard = ({
+export const MetricCard = memo(({
   label,
   value,
   subValue,
@@ -113,4 +114,4 @@ export const MetricCard = ({
       </div>
     </motion.div>
   );
-};
+});

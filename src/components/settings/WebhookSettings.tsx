@@ -305,11 +305,11 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
       </Accordion>
 
       {/* Instructions */}
-      <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-        <h4 className="font-medium text-blue-900 dark:text-blue-100 mb-2">
+      <div className="bg-blue-50  border border-blue-200  rounded-xl p-4">
+        <h4 className="font-medium text-blue-900  mb-2">
           Как подключить вебхук
         </h4>
-        <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-2 list-decimal list-inside">
+        <ol className="text-sm text-blue-800  space-y-2 list-decimal list-inside">
           <li>Скопируйте Webhook URL выше</li>
           <li>Настройте отправку POST-запросов из вашей CRM/формы/коллтрекинга</li>
           <li>Убедитесь, что данные передаются в формате JSON</li>
@@ -322,11 +322,11 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
       <div className="bg-card border rounded-xl p-4">
         <h4 className="font-medium mb-3">Методы аутентификации</h4>
         <div className="space-y-3 text-sm">
-          <div className="p-3 bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg">
-            <div className="font-medium text-green-900 dark:text-green-100 mb-1">
+          <div className="p-3 bg-green-50  border border-green-200  rounded-lg">
+            <div className="font-medium text-green-900  mb-1">
               ✓ Рекомендуемый: HTTP-заголовок
             </div>
-            <code className="text-xs bg-green-100 dark:bg-green-900 px-2 py-1 rounded">
+            <code className="text-xs bg-green-100  px-2 py-1 rounded">
               X-Webhook-Token: [используйте токен из URL выше]
             </code>
           </div>
@@ -336,14 +336,14 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
               Authorization: Bearer [токен из URL]
             </code>
           </div>
-          <div className="p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-            <div className="font-medium text-yellow-900 dark:text-yellow-100 mb-1">
+          <div className="p-3 bg-yellow-50  border border-yellow-200  rounded-lg">
+            <div className="font-medium text-yellow-900  mb-1">
               ⚠ Устаревший: URL-параметр
             </div>
-            <p className="text-xs text-yellow-800 dark:text-yellow-200 mb-1">
+            <p className="text-xs text-yellow-800  mb-1">
               Токен в URL может попасть в логи. Используйте только если другие методы недоступны.
             </p>
-            <code className="text-xs bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">
+            <code className="text-xs bg-yellow-100  px-2 py-1 rounded">
               Используйте полный URL выше
             </code>
           </div>

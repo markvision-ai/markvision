@@ -1,18 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import AnalyticsPlatform from '@/components/AnalyticsPlatform';
-import LandingPage from '@/components/landing/LandingPage';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+
+const AnalyticsPlatform = lazy(() => import('@/components/AnalyticsPlatform'));
+const LandingPage = lazy(() => import('@/components/landing/LandingPage'));
 
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [checkingProjects, setCheckingProjects] = useState(true);
+  const [projectCheckError, setProjectCheckError] = useState<string | null>(null);
 
   // КРИТИЧНО: Проверка OAuth параметров ПЕРЕД любыми редиректами
   useEffect(() => {
@@ -25,7 +27,7 @@ const Index = () => {
       const hasError = searchParams.has('error');
       
       if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
-        console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
+        if (import.meta.env.DEV) console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
         navigate('/integrations', { replace: true });
         return true;
       }
@@ -40,6 +42,12 @@ const Index = () => {
   // Check if user has projects with completed onboarding
   useEffect(() => {
     const checkUserProjects = async () => {
+      // E2E Test Bypass
+      if (import.meta.env.DEV && localStorage.getItem('E2E_TEST_MODE') === 'true') {
+        setCheckingProjects(false);
+        return;
+      }
+
       if (!user) {
         setCheckingProjects(false);
         return;
@@ -67,6 +75,10 @@ const Index = () => {
         }
       } catch (error) {
         console.error('Error checking projects:', error);
+        // Only set error if it's a network error/fetch failure to allow retry
+        if (error instanceof TypeError && error.message === 'Failed to fetch') {
+           setProjectCheckError('Ошибка подключения к серверу. Проверьте интернет или отключите AdBlock.');
+        }
       } finally {
         setCheckingProjects(false);
       }
@@ -129,6 +141,21 @@ const Index = () => {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (projectCheckError) {
+    return (
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4 text-center">
+        <div className="text-destructive font-semibold">Ошибка загрузки</div>
+        <p className="text-muted-foreground max-w-md">{projectCheckError}</p>
+        <button 
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
+        >
+          Попробовать снова
+        </button>
       </div>
     );
   }

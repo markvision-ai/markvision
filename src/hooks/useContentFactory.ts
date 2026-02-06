@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-export type ContentType = 'avatar_video' | 'ai_video' | 'static_post' | 'carousel' | 'threads' | 'tg_text';
+export type ContentType = 'avatar_video' | 'ai_video' | 'static_post' | 'carousel' | 'threads' | 'tg_text' | 'dental_video';
 export type ContentStatus = 'ideation' | 'scripting' | 'voice_ready' | 'avatar_ready' | 'editing_ready' | 'ready_to_send' | 'sent';
 
 export interface ContentItem {
@@ -26,17 +26,69 @@ export interface ContentItem {
   revenue_attributed: number;
   created_at: string;
   updated_at: string;
+  // Assembly Line Fields
+  avatar_status: string | null;
+  heygen_url: string | null;
+  sora_status: string | null;
+  sora_url: string | null;
+  carousel_status: string | null;
+  design_url: string | null;
+  threads_status: string | null;
+  threads_text: string | null;
+  telegram_status: string | null;
+  telegram_text: string | null;
+  article_status: string | null;
+  seo_text: string | null;
+  _original_body?: any;
 }
 
 export interface Competitor {
   id: string;
   project_id: string;
-  account_handle: string;
+  handle: string;
   platform: string;
+  avatar_url?: string | null;
   last_scanned_at: string | null;
-  is_active: boolean;
+  top_content_links: any | null;
   created_at: string;
 }
+
+const mapDbToContentItem = (item: any): ContentItem => ({
+  id: item.id,
+  project_id: item.project_id || '',
+  content_type: (item.platform_type as ContentType) || 'avatar_video',
+  title: item.title || 'Без названия',
+  original_script: item.body_text,
+  rewritten_script: item.body_text,
+  caption: item.body_text,
+  source_url: item.source_url,
+  audio_url: item.voice_url,
+  raw_video_url: item.video_url,
+  final_video_url: item.video_url,
+  carousel_media: [],
+  status: (item.status as ContentStatus) || 'ideation',
+  feedback: null,
+  competitor_id: null,
+  views_count: 0,
+  followers_gained: 0,
+  revenue_attributed: 0,
+  created_at: item.created_at || new Date().toISOString(),
+  updated_at: item.updated_at || new Date().toISOString(),
+  // Assembly Line Fields - Defaults
+  avatar_status: item.body?.avatar_status || item.heygen_status || 'idle',
+  heygen_url: item.heygen_url || item.body?.heygen_url || null,
+  sora_status: item.body?.sora_status || item.sora_status || 'idle',
+  sora_url: item.sora_url || item.body?.sora_url || null,
+  carousel_status: item.body?.carousel_status || item.design_status || 'idle',
+  design_url: item.design_url || item.body?.design_url || null,
+  threads_status: item.body?.threads_status || item.threads_status || 'idle',
+  threads_text: item.threads_text || item.body?.threads_text || null,
+  telegram_status: item.body?.telegram_status || item.telegram_status || 'idle',
+  telegram_text: item.telegram_text || item.body?.telegram_text || null,
+  article_status: item.body?.article_status || item.seo_status || 'idle',
+  seo_text: item.seo_text || item.body?.seo_text || null,
+  _original_body: item.body || {}
+});
 
 export const useContentFactory = (projectId: string | null) => {
   const [content, setContent] = useState<ContentItem[]>([]);
@@ -58,12 +110,7 @@ export const useContentFactory = (projectId: string | null) => {
 
       if (error) throw error;
       
-      const typedData = (data || []).map(item => ({
-        ...item,
-        content_type: item.content_type as ContentType,
-        status: item.status as ContentStatus,
-        carousel_media: (item.carousel_media as string[]) || [],
-      }));
+      const typedData = (data || []).map(mapDbToContentItem);
       
       setContent(typedData);
     } catch (error) {
@@ -113,20 +160,10 @@ export const useContentFactory = (projectId: string | null) => {
         },
         (payload) => {
           if (payload.eventType === 'INSERT') {
-            const newItem = {
-              ...payload.new,
-              content_type: payload.new.content_type as ContentType,
-              status: payload.new.status as ContentStatus,
-              carousel_media: (payload.new.carousel_media as string[]) || [],
-            } as ContentItem;
+            const newItem = mapDbToContentItem(payload.new);
             setContent(prev => [newItem, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            const updatedItem = {
-              ...payload.new,
-              content_type: payload.new.content_type as ContentType,
-              status: payload.new.status as ContentStatus,
-              carousel_media: (payload.new.carousel_media as string[]) || [],
-            } as ContentItem;
+            const updatedItem = mapDbToContentItem(payload.new);
             setContent(prev => prev.map(item => item.id === updatedItem.id ? updatedItem : item));
           } else if (payload.eventType === 'DELETE') {
             setContent(prev => prev.filter(item => item.id !== payload.old.id));
@@ -140,80 +177,106 @@ export const useContentFactory = (projectId: string | null) => {
     };
   }, [projectId]);
 
-  const createContent = async (data: { title: string; content_type: ContentType; original_script?: string; source_url?: string }) => {
+  const ensureProjectMember = async (projectId: string, userId: string) => {
+    try {
+      const { data: member } = await supabase
+        .from('project_members')
+        .select('id')
+        .eq('project_id', projectId)
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (!member) {
+        // Fetch organization_id if needed
+        const { data: project } = await supabase
+          .from('projects')
+          .select('organization_id')
+          .eq('id', projectId)
+          .single();
+
+        const payload: any = { 
+          project_id: projectId, 
+          user_id: userId, 
+          role: 'owner' 
+        };
+        
+        if (project?.organization_id) {
+          payload.organization_id = project.organization_id;
+        }
+
+        const { error } = await supabase
+          .from('project_members')
+          .insert([payload]);
+          
+        if (error) console.error('Auto-join project failed:', error);
+      }
+    } catch (e) {
+      console.error('Error in ensureProjectMember:', e);
+    }
+  };
+
+  const createContent = async (data: any) => {
     if (!projectId) return null;
 
     try {
-      const { data: created, error } = await supabase
-        .from('content_factory')
+      // 0. Get current user for RLS
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        await ensureProjectMember(projectId, user.id);
+      }
+      
+      // 1. Create task for n8n (Queue)
+      const { error: taskError } = await (supabase as any)
+        .from('content_tasks')
         .insert([{ 
-          title: data.title,
-          content_type: data.content_type,
-          original_script: data.original_script || null,
-          source_url: data.source_url || null,
-          project_id: projectId 
-        }])
-        .select()
-        .single();
+          ...data,
+          project_id: projectId,
+          user_id: user?.id, // Add user_id for RLS if available
+          created_at: new Date().toISOString()
+        }]);
 
-      if (error) throw error;
-      toast.success('Контент создан');
-      return created;
+      if (taskError) throw taskError;
+      
+      toast.success('Задача на создание контента отправлена');
+      return true;
     } catch (error) {
       console.error('Error creating content:', error);
-      toast.error('Ошибка создания контента');
+      toast.error('Ошибка при создании контента');
       return null;
     }
   };
 
-  const updateContent = async (id: string, data: Partial<ContentItem>) => {
-    try {
-      const { error } = await supabase
-        .from('content_factory')
-        .update(data)
-        .eq('id', id);
-
-      if (error) throw error;
-      toast.success('Контент обновлён');
-      return true;
-    } catch (error) {
-      console.error('Error updating content:', error);
-      toast.error('Ошибка обновления');
-      return false;
-    }
-  };
-
-  const deleteContent = async (id: string) => {
-    try {
-      const { error } = await supabase
-        .from('content_factory')
-        .delete()
-        .eq('id', id);
-
-      if (error) throw error;
-      toast.success('Контент удалён');
-      return true;
-    } catch (error) {
-      console.error('Error deleting content:', error);
-      toast.error('Ошибка удаления');
-      return false;
-    }
-  };
-
-  const addCompetitor = async (accountHandle: string, platform: string) => {
+  const addCompetitor = async (platform: string, handle: string) => {
     if (!projectId) return null;
-
+    
     try {
-      const { data, error } = await supabase
-        .from('competitor_monitoring')
-        .insert([{ project_id: projectId, account_handle: accountHandle, platform }])
-        .select()
-        .single();
+      // Use Edge Function to bypass RLS and ensure project membership
+      const { data, error } = await supabase.functions.invoke('create-competitor', {
+        body: {
+          projectId,
+          platform,
+          handle
+        }
+      });
 
       if (error) throw error;
-      setCompetitors(prev => [data, ...prev]);
+      
+      // Map response to Competitor interface
+      const newItem: Competitor = {
+        id: data.id,
+        project_id: data.project_id,
+        handle: data.handle,
+        platform: data.platform,
+        avatar_url: data.avatar_url || null,
+        last_scanned_at: data.last_scanned_at,
+        top_content_links: data.top_content_links || null,
+        created_at: data.created_at
+      };
+      
+      setCompetitors(prev => [newItem, ...prev]);
       toast.success('Конкурент добавлен');
-      return data;
+      return newItem;
     } catch (error) {
       console.error('Error adding competitor:', error);
       toast.error('Ошибка добавления конкурента');
@@ -221,7 +284,7 @@ export const useContentFactory = (projectId: string | null) => {
     }
   };
 
-  const removeCompetitor = async (id: string) => {
+  const deleteCompetitor = async (id: string) => {
     try {
       const { error } = await supabase
         .from('competitor_monitoring')
@@ -229,53 +292,35 @@ export const useContentFactory = (projectId: string | null) => {
         .eq('id', id);
 
       if (error) throw error;
+      
       setCompetitors(prev => prev.filter(c => c.id !== id));
-      toast.success('Конкурент удалён');
-      return true;
+      toast.success('Конкурент удален');
     } catch (error) {
-      console.error('Error removing competitor:', error);
+      console.error('Error deleting competitor:', error);
       toast.error('Ошибка удаления');
-      return false;
     }
   };
 
-  // Webhook triggers for n8n
-  const triggerWebhook = async (action: string, payload: Record<string, unknown>) => {
-    // This will be called by n8n webhooks configured in settings
-    if (import.meta.env.DEV) console.log('Triggering webhook:', action, payload);
-    toast.info(`Отправлено в n8n: ${action}`);
-    // In production, this would POST to your n8n webhook URL
-    return true;
-  };
+  const updateCompetitor = async (id: string, updates: Partial<Competitor>) => {
+    try {
+      const { error } = await supabase
+        .from('competitor_monitoring')
+        .update({
+          top_content_links: updates.top_content_links,
+          last_scanned_at: updates.last_scanned_at
+        })
+        .eq('id', id);
 
-  const triggerVoice = async (contentId: string, script: string, voiceSettings?: Record<string, unknown>) => {
-    await updateContent(contentId, { status: 'scripting' });
-    return triggerWebhook('trigger_voice', { content_id: contentId, script, voice_settings: voiceSettings });
-  };
+      if (error) throw error;
 
-  const triggerAvatar = async (contentId: string, audioUrl: string, avatarId?: string) => {
-    await updateContent(contentId, { status: 'voice_ready' });
-    return triggerWebhook('trigger_avatar', { content_id: contentId, audio_url: audioUrl, avatar_id: avatarId });
-  };
-
-  const triggerAiVideo = async (contentId: string, script: string, style?: string) => {
-    await updateContent(contentId, { status: 'scripting' });
-    return triggerWebhook('trigger_ai_video', { content_id: contentId, script, style });
-  };
-
-  const triggerEdit = async (contentId: string, videoUrl: string, captionsStyle?: string) => {
-    await updateContent(contentId, { status: 'avatar_ready' });
-    return triggerWebhook('trigger_edit', { content_id: contentId, video_url: videoUrl, captions_style: captionsStyle });
-  };
-
-  const triggerPublish = async (contentId: string, finalVideoUrl: string, caption: string, platforms: string[]) => {
-    await updateContent(contentId, { status: 'ready_to_send' });
-    return triggerWebhook('trigger_publish', { 
-      content_id: contentId, 
-      final_video_url: finalVideoUrl, 
-      caption, 
-      platforms 
-    });
+      setCompetitors(prev => prev.map(c => 
+        c.id === id ? { ...c, ...updates } : c
+      ));
+      toast.success('Данные обновлены');
+    } catch (error) {
+      console.error('Error updating competitor:', error);
+      toast.error('Ошибка обновления');
+    }
   };
 
   return {
@@ -283,15 +328,9 @@ export const useContentFactory = (projectId: string | null) => {
     competitors,
     loading,
     createContent,
-    updateContent,
-    deleteContent,
     addCompetitor,
-    removeCompetitor,
-    refetch: fetchContent,
-    triggerVoice,
-    triggerAvatar,
-    triggerAiVideo,
-    triggerEdit,
-    triggerPublish,
+    deleteCompetitor,
+    updateCompetitor,
+    refresh: fetchContent
   };
 };

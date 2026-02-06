@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform } from "framer-motion";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useRef, useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,12 +11,10 @@ import { HoverEffect } from "@/components/ui/card-hover-effect";
 import { Footer } from "./Footer";
 import { AuroraText } from "@/components/ui/aurora-text";
 import { ArrowRight, Play, Menu, X, Building2, Mail, Lock, Gift, Eye, EyeOff, CheckCircle2, Loader2, Sparkles, Video, Bot, BarChart3, Wallet, UserCheck, FileText, MessageCircle, AlertTriangle, TrendingDown, Clock, Users, PhoneOff, DollarSign, Zap, Quote, Heart } from "lucide-react";
-import { supabase } from "@/lib/externalSupabase";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { z } from "zod";
-import { useABTestRotator } from "@/hooks/useABTestRotator";
 import founderWithMark from "@/assets/founder-with-mark.png";
-import markvisionLogo from "@/assets/markvision-logo-new.png";
 const modules = [{
   title: "Контент за вас",
   description: "200+ постов и видео в месяц. Мы сами придумываем, снимаем и публикуем. Вам не нужен SMM-специалист.",
@@ -90,7 +88,6 @@ const signupSchema = z.object({
 });
 export const LandingPage = () => {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
   const [videoWatched, setVideoWatched] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -98,10 +95,6 @@ export const LandingPage = () => {
   const heroRef = useRef<HTMLDivElement>(null);
   const signupRef = useRef<HTMLDivElement>(null);
   
-  // A/B Test Rotator - получаем projectId из URL или localStorage
-  const projectId = searchParams.get('project_id') || localStorage.getItem('activeProjectId');
-  const { activeVariant } = useABTestRotator(projectId);
-
   // Registration form state
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -320,15 +313,11 @@ export const LandingPage = () => {
           delay: 0.1,
           duration: 0.7
         }} className="sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-bold text-slate-900 tracking-tight leading-[1.1] mb-5 sm:mb-8 text-5xl">
-            {activeVariant?.title || (
-              <>
-                Хватит терять
-                <br />
-                <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
-                  пациентов
-                </AuroraText>
-              </>
-            )}
+            Хватит терять
+            <br />
+            <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
+              пациентов
+            </AuroraText>
           </motion.h1>
 
           {/* Subheadline - с поддержкой A/B тестов */}
@@ -343,14 +332,8 @@ export const LandingPage = () => {
           duration: 0.6
         }} className="max-w-3xl mx-auto mb-6 sm:mb-10 md:mb-12 space-y-3 sm:space-y-5 px-2 sm:px-6">
             <p className="text-sm sm:text-base md:text-lg lg:text-xl text-slate-500 leading-relaxed sm:leading-loose">
-              {activeVariant?.text || (
-                <>
-                  Мы берём на себя маркетинг, продажи и аналитику 
-                  Вы занимаетесь пациентами
-                  ​<br className="hidden sm:block" />
-                  ​
-                </>
-              )}
+              Мы берём на себя маркетинг, продажи и аналитику.{" "}
+              Вы занимаетесь пациентами.
             </p>
             <p className="text-xl sm:text-xl md:text-2xl font-semibold text-slate-800">
               Увеличьте выручку на

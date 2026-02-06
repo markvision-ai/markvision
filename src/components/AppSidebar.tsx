@@ -2,7 +2,7 @@
 import React, { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import markvisionLogo from "@/assets/markvision-logo-new.png";
+import { MarkVisionLogo } from "@/components/ui/MarkVisionLogo";
 import { cn } from "@/lib/utils";
 import {
   Sidebar,
@@ -20,7 +20,6 @@ import {
   IconInbox,
   IconChartBar,
   IconWallet,
-  IconSettings,
   IconUsersGroup,
   IconArrowLeft,
   IconActivity,
@@ -39,8 +38,12 @@ import {
   IconChevronDown,
   IconPlus,
   IconCheck,
+  IconSettings,
+  IconSun,
+  IconMoon,
 } from "@tabler/icons-react";
-import { supabase } from "@/lib/externalSupabase";
+import { useTheme } from "@/hooks/useTheme";
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
 import {
@@ -110,6 +113,7 @@ export const AppSidebar = ({
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
+  const { theme, toggleTheme } = useTheme();
   const isSuperAdmin = userId ? SUPER_ADMIN_UIDS.includes(userId) : false;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -201,6 +205,12 @@ export const AppSidebar = ({
         icon: <IconVideo className="h-5 w-5 flex-shrink-0" />,
         tab: "factory",
       },
+      {
+        label: "Публикации",
+        href: "/publications",
+        icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
+        tab: "publications",
+      },
     ],
     sales: [
       {
@@ -210,10 +220,10 @@ export const AppSidebar = ({
         tab: "crm",
       },
       {
-        label: "Диагностика",
-        href: "/diagnostics",
+        label: "Визиты",
+        href: "/visits",
         icon: <IconClipboardCheck className="h-5 w-5 flex-shrink-0" />,
-        tab: "diagnostics",
+        tab: "visits",
       },
       {
         label: "Входящие",
@@ -226,18 +236,6 @@ export const AppSidebar = ({
         href: "/scoring",
         icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
         tab: "scoring",
-      },
-      {
-        label: "Мотивация",
-        href: "/gamification",
-        icon: <IconTrophy className="h-5 w-5 flex-shrink-0" />,
-        tab: "gamification",
-      },
-      {
-        label: "Автоматизация",
-        href: "/automation",
-        icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
-        tab: "automation",
       },
     ],
     analytics: [
@@ -265,31 +263,11 @@ export const AppSidebar = ({
         icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
         tab: "rop",
       },
-    ],
-    infrastructure: [
       {
         label: "Настройки",
         href: "/settings",
         icon: <IconSettings className="h-5 w-5 flex-shrink-0" />,
         tab: "settings",
-      },
-      {
-        label: "Подключения",
-        href: "/integrations",
-        icon: <IconPlugConnected className="h-5 w-5 flex-shrink-0" />,
-        tab: "integrations",
-      },
-      {
-        label: "Сотрудники и доступ",
-        href: "/team",
-        icon: <IconUsersGroup className="h-5 w-5 flex-shrink-0" />,
-        tab: "team",
-      },
-      {
-        label: "Календарь",
-        href: "/calendar",
-        icon: <IconCalendar className="h-5 w-5 flex-shrink-0" />,
-        tab: "calendar",
       },
     ],
   };
@@ -297,8 +275,8 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-border">
-          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden">
+        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-white/5 h-screen sticky top-0">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
               {open ? <Logo hasErrors={systemHasErrors} /> : <LogoIcon hasErrors={systemHasErrors} />}
@@ -411,7 +389,7 @@ export const AppSidebar = ({
                   display: open ? "inline-block" : "none",
                   opacity: open ? 1 : 0,
                 }}
-                className="text-sm font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80"
+                className="text-sm font-medium text-sidebar-foreground/70 "
               >
                 {realtimeStatus === 'SUBSCRIBED' ? 'Подключено' : 
                  realtimeStatus === 'CONNECTING' ? 'Подключение...' : 'Офлайн'}
@@ -467,23 +445,23 @@ export const AppSidebar = ({
                   isActive={activeTab === link.tab}
                 />
               ))}
-
-              <SidebarLabel label="Инфраструктура" />
-              {links.infrastructure.map((link) => (
-                <SidebarLink
-                  key={link.tab}
-                  link={{
-                    ...link,
-                    onClick: () => handleNavigation(link.tab, link.href),
-                  }}
-                  isActive={activeTab === link.tab}
-                />
-              ))}
             </div>
           </div>
 
           {/* User Profile & Logout */}
           <div className="border-t border-border pt-4">
+            <SidebarLink
+              link={{
+                label: theme === 'dark' ? 'Светлая тема' : 'Тёмная тема',
+                href: "#",
+                icon: theme === 'dark' ? (
+                  <IconSun className="h-5 w-5 flex-shrink-0 text-yellow-500" />
+                ) : (
+                  <IconMoon className="h-5 w-5 flex-shrink-0 text-blue-400" />
+                ),
+                onClick: toggleTheme,
+              }}
+            />
             <SidebarLink
               link={{
                 label: userProfile?.name || "Пользователь",
@@ -567,11 +545,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <img 
-          src={markvisionLogo} 
-          alt="MarkVision AI" 
-          className="h-9 w-9 object-contain"
-        />
+        <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
@@ -586,7 +560,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
-        <span className="text-xs font-medium text-sidebar-foreground/70 dark:text-sidebar-foreground/80 leading-relaxed">
+        <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">
           Умный маркетинг
         </span>
       </div>
@@ -602,11 +576,7 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
     >
       <div className="relative">
-        <img 
-          src={markvisionLogo} 
-          alt="MarkVision AI" 
-          className="h-9 w-9 object-contain"
-        />
+        <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",

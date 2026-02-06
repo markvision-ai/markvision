@@ -28,7 +28,7 @@ import {
   ShoppingCart,
   Users
 } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, eachDayOfInterval, differenceInDays, addDays } from 'date-fns';
+import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, subDays, eachDayOfInterval, differenceInDays, addDays, isSameDay } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -44,8 +44,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ResponsiveContainer, LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { useAIReport } from '@/hooks/useAIReport';
-import { supabase } from '@/lib/externalSupabase';
+// AI Report disabled (hook removed)
+// import { useAIReport } from '@/hooks/useAIReport';
+import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { supabase } from '@/integrations/supabase/client';
 
 interface DailyDataPoint {
   date: string;
@@ -53,7 +55,7 @@ interface DailyDataPoint {
   impressions: number;
   clicks: number;
   leads: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -77,7 +79,7 @@ interface ReportData {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
@@ -86,17 +88,17 @@ interface ReportData {
     impressions: number;
     clicks: number;
     leads: number;
-    diagnostics: number;
+    visits: number;
     sales: number;
     revenue: number;
   };
   metrics: {
     customerCost: number;
-    diagnosticCost: number;
+    visitCost: number;
     leadCost: number;
     impressionToLeadConv: number;
-    leadToDiagnosticConv: number;
-    diagnosticToSaleConv: number;
+    leadToVisitConv: number;
+    visitToSaleConv: number;
     roas: number;
     romi?: number;
     profitability?: number;
@@ -136,9 +138,12 @@ const getPlanFactStatus = (fact: number, plan: number) => {
 
 type DateRange = { from: Date; to: Date };
 
-type PresetKey = 'week' | 'lastWeek' | 'month' | 'lastMonth' | 'custom';
+type PresetKey = 'today' | 'yesterday' | 'last7' | 'week' | 'lastWeek' | 'month' | 'lastMonth' | 'custom';
 
 const presets: { key: PresetKey; label: string }[] = [
+  { key: 'today', label: 'Сегодня' },
+  { key: 'yesterday', label: 'Вчера' },
+  { key: 'last7', label: 'Последние 7 дн.' },
   { key: 'week', label: 'Эта неделя' },
   { key: 'lastWeek', label: 'Прошлая неделя' },
   { key: 'month', label: 'Этот месяц' },
@@ -156,7 +161,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [isDatePickerOpen, setIsDatePickerOpen] = useState(false);
   const [activePreset, setActivePreset] = useState<PresetKey>('month');
   const reportRef = useRef<HTMLDivElement>(null);
-  const { isGenerating: isGeneratingAI, aiAnalysis, generateAIReport } = useAIReport();
+  // AI Report disabled
+  const isGeneratingAI = false;
+  const aiAnalysis = null;
+  const generateAIReport = async () => { toast.info('AI отчёты временно недоступны'); };
 
   // Templates state
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
@@ -176,7 +184,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     totals: typeof data.totals;
     dailyData: DailyDataPoint[];
     isLoading: boolean;
-  }>({ totals: { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }, dailyData: [], isLoading: false });
+  }>({ totals: { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 }, dailyData: [], isLoading: false });
 
   // Local date range state for reports
   const [reportDateRange, setReportDateRange] = useState<DateRange>(() => ({
@@ -189,7 +197,16 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     totals: typeof data.totals;
     dailyData: DailyDataPoint[];
     isLoading: boolean;
-  }>({ totals: data.totals, dailyData: [], isLoading: false });
+    planData?: {
+      spend: number;
+      impressions: number;
+      clicks: number;
+      leads: number;
+      visits: number;
+      sales: number;
+      revenue: number;
+    };
+  }>({ totals: data.totals, dailyData: [], isLoading: false, planData: data.planData });
 
   // Load templates
   useEffect(() => {
@@ -254,7 +271,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         impressions: day.impressions || 0,
         clicks: day.clicks || 0,
         leads: day.leads || 0,
-        diagnostics: day.diagnostics || 0,
+        visits: Number((day as any).visits) || 0,
         sales: day.sales || 0,
         revenue: Number(day.revenue) || 0,
       }));
@@ -265,11 +282,11 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           impressions: acc.impressions + day.impressions,
           clicks: acc.clicks + day.clicks,
           leads: acc.leads + day.leads,
-          diagnostics: acc.diagnostics + day.diagnostics,
+          visits: acc.visits + day.visits,
           sales: acc.sales + day.sales,
           revenue: acc.revenue + day.revenue,
         }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 }
       );
 
       setComparisonData({ totals, dailyData, isLoading: false });
@@ -291,6 +308,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
       const fromDate = format(reportDateRange.from, 'yyyy-MM-dd');
       const toDate = format(reportDateRange.to, 'yyyy-MM-dd');
 
+      // 1. Fetch Daily Data
       const { data: dailyDataResult, error } = await supabase
         .from('daily_data')
         .select('*')
@@ -311,7 +329,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         impressions: day.impressions || 0,
         clicks: day.clicks || 0,
         leads: day.leads || 0,
-        diagnostics: day.diagnostics || 0,
+        visits: (day as any).visits || 0,
         sales: day.sales || 0,
         revenue: Number(day.revenue) || 0,
       }));
@@ -322,14 +340,40 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           impressions: acc.impressions + day.impressions,
           clicks: acc.clicks + day.clicks,
           leads: acc.leads + day.leads,
-          diagnostics: acc.diagnostics + day.diagnostics,
+          visits: acc.visits + day.visits,
           sales: acc.sales + day.sales,
           revenue: acc.revenue + day.revenue,
         }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
+        { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 }
       );
 
-      setReportData({ totals, dailyData, isLoading: false });
+      // 2. Fetch Plan Data (Current Month based on start date)
+      const targetMonthDate = startOfMonth(reportDateRange.from);
+      const targetMonthStr = format(targetMonthDate, 'yyyy-MM-dd');
+
+      const { data: planResult } = await supabase
+        .from('plan_data')
+        .select('*')
+        .eq('project_id', data.projectId)
+        .eq('month', targetMonthStr)
+        .maybeSingle();
+
+      const fetchedPlan = planResult ? {
+        spend: Number(planResult.spend) || 0,
+        impressions: Number(planResult.impressions) || 0,
+        clicks: Number(planResult.clicks) || 0,
+        leads: Number(planResult.leads) || 0,
+        visits: Number(planResult.visits || 0),
+        sales: Number(planResult.sales) || 0,
+        revenue: Number(planResult.revenue) || 0,
+      } : { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 };
+
+      setReportData({ 
+        totals, 
+        dailyData, 
+        isLoading: false,
+        planData: fetchedPlan
+      });
     };
 
     fetchReportData();
@@ -365,11 +409,11 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     const t = reportData.totals;
     return {
       customerCost: t.sales > 0 ? Math.round(t.spend / t.sales) : null,
-      diagnosticCost: t.diagnostics > 0 ? Math.round(t.spend / t.diagnostics) : null,
+      visitCost: t.visits > 0 ? Math.round(t.spend / t.visits) : null,
       leadCost: t.leads > 0 ? Math.round(t.spend / t.leads) : null,
       impressionToLeadConv: t.impressions > 0 ? (t.leads / t.impressions) * 100 : null,
-      leadToDiagnosticConv: t.leads > 0 ? (t.diagnostics / t.leads) * 100 : null,
-      diagnosticToSaleConv: t.diagnostics > 0 ? (t.sales / t.diagnostics) * 100 : null,
+      leadToVisitConv: t.leads > 0 ? (t.visits / t.leads) * 100 : null,
+      visitToSaleConv: t.visits > 0 ? (t.sales / t.visits) * 100 : null,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [reportData.totals]);
@@ -378,48 +422,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     { label: 'Показы', value: reportData.totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: reportData.totals.clicks, color: 'hsl(200, 80%, 50%)' },
     { label: 'Лиды', value: reportData.totals.leads, color: 'hsl(262, 83%, 58%)' },
-    { label: 'Диагностики', value: reportData.totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Визиты', value: reportData.totals.visits, color: 'hsl(38, 92%, 50%)' },
     { label: 'Продажи', value: reportData.totals.sales, color: 'hsl(142, 76%, 36%)' },
   ], [reportData.totals]);
-
-  // Handle preset click
-  const handlePresetClick = (preset: PresetKey) => {
-    const now = new Date();
-    let newRange: DateRange;
-
-    switch (preset) {
-      case 'week':
-        newRange = { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
-        break;
-      case 'lastWeek':
-        const lastWeek = subWeeks(now, 1);
-        newRange = { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
-        break;
-      case 'month':
-        newRange = { from: startOfMonth(now), to: endOfMonth(now) };
-        break;
-      case 'lastMonth':
-        const lastMonth = subMonths(now, 1);
-        newRange = { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
-        break;
-      default:
-        return;
-    }
-
-    setReportDateRange(newRange);
-    setActivePreset(preset);
-  };
-
-  // Handle calendar selection
-  const handleCalendarSelect = (range: { from?: Date; to?: Date } | undefined) => {
-    if (range?.from) {
-      setReportDateRange({
-        from: range.from,
-        to: range.to || range.from,
-      });
-      setActivePreset('custom');
-    }
-  };
 
   // Handle comparison preset
   const handleComparisonPresetChange = (preset: PresetKey) => {
@@ -454,11 +459,11 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     const t = comparisonData.totals;
     return {
       customerCost: t.sales > 0 ? Math.round(t.spend / t.sales) : null,
-      diagnosticCost: t.diagnostics > 0 ? Math.round(t.spend / t.diagnostics) : null,
+      visitCost: t.visits > 0 ? Math.round(t.spend / t.visits) : null,
       leadCost: t.leads > 0 ? Math.round(t.spend / t.leads) : null,
       impressionToLeadConv: t.impressions > 0 ? (t.leads / t.impressions) * 100 : null,
-      leadToDiagnosticConv: t.leads > 0 ? (t.diagnostics / t.leads) * 100 : null,
-      diagnosticToSaleConv: t.diagnostics > 0 ? (t.sales / t.diagnostics) * 100 : null,
+      leadToVisitConv: t.leads > 0 ? (t.visits / t.leads) * 100 : null,
+      visitToSaleConv: t.visits > 0 ? (t.sales / t.visits) * 100 : null,
       roas: t.spend > 0 ? t.revenue / t.spend : 0,
     };
   }, [comparisonData.totals]);
@@ -484,7 +489,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         period_preset: activePreset,
         include_comparison: isComparisonEnabled,
         comparison_preset: comparisonPreset,
-        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'customerCost', 'diagnosticCost', 'leadCost', 'impressionToLeadConv', 'leadToDiagnosticConv', 'diagnosticToSaleConv'],
+        selected_metrics: ['spend', 'leads', 'sales', 'revenue', 'customerCost', 'visitCost', 'leadCost', 'impressionToLeadConv', 'leadToVisitConv', 'visitToSaleConv'],
       });
 
       if (error) throw error;
@@ -521,10 +526,37 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     }
   };
 
+  // Helper to get range from preset
+  const getPresetRange = (preset: PresetKey): DateRange => {
+    const now = new Date();
+    switch (preset) {
+      case 'today':
+        return { from: now, to: now };
+      case 'yesterday':
+        return { from: subDays(now, 1), to: subDays(now, 1) };
+      case 'last7':
+        return { from: subDays(now, 6), to: now };
+      case 'week':
+        return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfWeek(now, { weekStartsOn: 1 }) };
+      case 'lastWeek':
+        const lastWeek = subWeeks(now, 1);
+        return { from: startOfWeek(lastWeek, { weekStartsOn: 1 }), to: endOfWeek(lastWeek, { weekStartsOn: 1 }) };
+      case 'month':
+        return { from: startOfMonth(now), to: endOfMonth(now) };
+      case 'lastMonth':
+        const lastMonth = subMonths(now, 1);
+        return { from: startOfMonth(lastMonth), to: endOfMonth(lastMonth) };
+      default:
+        return { from: now, to: now };
+    }
+  };
+
   // Load template
   const handleLoadTemplate = (template: ReportTemplate) => {
     if (template.period_preset && template.period_preset !== 'custom') {
-      handlePresetClick(template.period_preset as PresetKey);
+      const range = getPresetRange(template.period_preset as PresetKey);
+      setReportDateRange(range);
+      setActivePreset(template.period_preset as PresetKey);
     }
     setIsComparisonEnabled(template.include_comparison);
     if (template.comparison_preset) {
@@ -572,7 +604,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   }, [data.projectId]);
 
   const defaultSummary = `За отчётный период получено ${formatNumber(reportData.totals.leads)} лидов${computedMetrics.leadCost !== null ? ` по цене ${formatCurrency(computedMetrics.leadCost)} за лид` : ''}.${computedMetrics.customerCost !== null ? ` Стоимость клиента — ${formatCurrency(computedMetrics.customerCost)}.` : ''}
-Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}. ROAS ${computedMetrics.roas.toFixed(1)}x.${computedMetrics.impressionToLeadConv !== null ? ` CR (Показы→Лид) составила ${formatCR(computedMetrics.impressionToLeadConv)}.` : ''}${computedMetrics.leadToDiagnosticConv !== null ? ` CR (Лид→Диагностика) — ${formatCR(computedMetrics.leadToDiagnosticConv)}.` : ''}${computedMetrics.diagnosticToSaleConv !== null ? ` CR (Диагностика→Продажа) — ${formatCR(computedMetrics.diagnosticToSaleConv)}.` : ''}`;
+Совершено ${reportData.totals.sales} продаж на общую сумму ${formatCurrency(reportData.totals.revenue)}. ROAS ${computedMetrics.roas.toFixed(1)}x.${computedMetrics.impressionToLeadConv !== null ? ` CR (Показы→Лид) составила ${formatCR(computedMetrics.impressionToLeadConv)}.` : ''}${computedMetrics.leadToVisitConv !== null ? ` CR (Лид→Визит) — ${formatCR(computedMetrics.leadToVisitConv)}.` : ''}${computedMetrics.visitToSaleConv !== null ? ` CR (Визит→Продажа) — ${formatCR(computedMetrics.visitToSaleConv)}.` : ''}`;
 
   const [summary, setSummary] = useState(defaultSummary);
 
@@ -684,14 +716,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   };
 
   // Calculate plan/fact for display
-  const planDataValues = data.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 };
+  const planDataValues = reportData.planData || { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 };
 
   const metrics = [
     { label: 'Расход', value: reportData.totals.spend, plan: planDataValues.spend, format: 'currency', inverse: true },
     { label: 'Показы', value: reportData.totals.impressions, plan: planDataValues.impressions, format: 'number' },
     { label: 'Клики', value: reportData.totals.clicks, plan: planDataValues.clicks, format: 'number' },
     { label: 'Лиды', value: reportData.totals.leads, plan: planDataValues.leads, format: 'number' },
-    { label: 'Диагностики', value: reportData.totals.diagnostics, plan: planDataValues.diagnostics, format: 'number' },
+    { label: 'Визиты', value: reportData.totals.visits, plan: planDataValues.visits, format: 'number' },
     { label: 'Продажи', value: reportData.totals.sales, plan: planDataValues.sales, format: 'number' },
     { label: 'Выручка', value: reportData.totals.revenue, plan: planDataValues.revenue, format: 'currency' },
   ];
@@ -799,44 +831,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
             {/* Main Period */}
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">Период:</span>
-              <Popover open={isDatePickerOpen} onOpenChange={setIsDatePickerOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "justify-start text-left font-normal min-w-[200px]",
-                      !reportDateRange && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {format(reportDateRange.from, 'd MMM', { locale: ru })} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <div className="p-3 border-b">
-                    <div className="flex flex-wrap gap-2">
-                      {presets.map((preset) => (
-                        <Button
-                          key={preset.key}
-                          variant={activePreset === preset.key ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => handlePresetClick(preset.key)}
-                        >
-                          {preset.label}
-                        </Button>
-                      ))}
-                    </div>
-                  </div>
-                  <CalendarComponent
-                    mode="range"
-                    selected={{ from: reportDateRange.from, to: reportDateRange.to }}
-                    onSelect={handleCalendarSelect}
-                    numberOfMonths={2}
-                    locale={ru}
-                    className={cn("p-3 pointer-events-auto")}
-                  />
-                </PopoverContent>
-              </Popover>
+              <DateRangePicker 
+                dateRange={reportDateRange}
+                onDateRangeChange={setReportDateRange}
+                onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+                align="start"
+              />
             </div>
 
             {/* Comparison Toggle */}
@@ -1034,9 +1034,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                             {metric.format === 'currency' ? formatCurrency(metric.value) : formatNumber(metric.value)}
                           </td>
                           <td className={`border border-border p-3 text-center font-semibold ${statusColor}`}>
-                            {metric.plan > 0 ? `${percent.toFixed(0)}%` : '—'}
-                            {status === 'success' && !metric.inverse && ' ✓'}
-                            {status === 'danger' && !metric.inverse && ' ↓'}
+                            <div className="flex flex-col items-center">
+                              <span>{metric.plan > 0 ? `${percent.toFixed(0)}%` : '—'}</span>
+                              {metric.plan > 0 && Math.abs(percent - 100) > 0 && (
+                                <span className="text-[10px] opacity-80">
+                                  {percent > 100 ? '+' : ''}{(percent - 100).toFixed(0)}%
+                                </span>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       );
@@ -1050,131 +1055,131 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 <h2 className="text-lg font-semibold mb-4 text-foreground">📈 Ключевые метрики</h2>
                 <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
                   {/* Стоимость клиента */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
                         Стоимость клиента
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                      {computedMetrics.customerCost !== null ? formatCurrency(computedMetrics.customerCost) : <span className="text-slate-400">—</span>}
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
+                      {computedMetrics.customerCost !== null ? formatCurrency(computedMetrics.customerCost) : <span className="text-muted-foreground">—</span>}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
+                    <div className="text-[10px] text-muted-foreground leading-tight">
                       {computedMetrics.customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
                     </div>
                   </div>
 
-                  {/* Стоимость диагностики */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  {/* Стоимость визита */}
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                        Стоимость диагностики
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
+                        Стоимость визита
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                      {computedMetrics.diagnosticCost !== null ? formatCurrency(computedMetrics.diagnosticCost) : <span className="text-slate-400">—</span>}
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
+                      {computedMetrics.visitCost !== null ? formatCurrency(computedMetrics.visitCost) : <span className="text-muted-foreground">—</span>}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
-                      {computedMetrics.diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
+                    <div className="text-[10px] text-muted-foreground leading-tight">
+                      {computedMetrics.visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* Стоимость лида */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
                         Стоимость лида
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <Users className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                      {computedMetrics.leadCost !== null ? formatCurrency(computedMetrics.leadCost) : <span className="text-slate-400">—</span>}
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
+                      {computedMetrics.leadCost !== null ? formatCurrency(computedMetrics.leadCost) : <span className="text-muted-foreground">—</span>}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
+                    <div className="text-[10px] text-muted-foreground leading-tight">
                       {computedMetrics.leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
                     </div>
                   </div>
 
                   {/* CR (Показы→Лид) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
                         CR (Показы→Лид)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <TrendingUp className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
                       {computedMetrics.impressionToLeadConv !== null ? (
                         <>
                           {formatCR(computedMetrics.impressionToLeadConv).replace('%', '')}
-                          <span className="text-slate-400">%</span>
+                          <span className="text-muted-foreground">%</span>
                         </>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
+                    <div className="text-[10px] text-muted-foreground leading-tight">
                       {computedMetrics.impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
                     </div>
                   </div>
 
-                  {/* CR (Лид→Диагностика) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  {/* CR (Лид→Визит) */}
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                        CR (Лид→Диагностика)
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
+                        CR (Лид→Визит)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <Target className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                      {computedMetrics.leadToDiagnosticConv !== null ? (
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
+                      {computedMetrics.leadToVisitConv !== null ? (
                         <>
-                          {formatCR(computedMetrics.leadToDiagnosticConv).replace('%', '')}
-                          <span className="text-slate-400">%</span>
+                          {formatCR(computedMetrics.leadToVisitConv).replace('%', '')}
+                          <span className="text-muted-foreground">%</span>
                         </>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
-                      {computedMetrics.leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
+                    <div className="text-[10px] text-muted-foreground leading-tight">
+                      {computedMetrics.leadToVisitConv !== null ? 'Визиты / лиды' : 'Нет данных'}
                     </div>
                   </div>
 
-                  {/* CR (Диагностика→Продажа) */}
-                  <div className="rounded-xl border border-slate-200/70 bg-white/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
+                  {/* CR (Визит→Продажа) */}
+                  <div className="rounded-xl border border-border/70 bg-card/70 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-                        CR (Диагностика→Продажа)
+                      <div className="text-xs font-medium text-muted-foreground leading-tight">
+                        CR (Визит→Продажа)
                       </div>
-                      <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
+                      <div className="h-6 w-6 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <ShoppingCart className="w-3 h-3" />
                       </div>
                     </div>
-                    <div className="text-xl font-semibold tracking-tight text-slate-900 mb-1">
-                      {computedMetrics.diagnosticToSaleConv !== null ? (
+                    <div className="text-xl font-semibold tracking-tight text-foreground mb-1">
+                      {computedMetrics.visitToSaleConv !== null ? (
                         <>
-                          {formatCR(computedMetrics.diagnosticToSaleConv).replace('%', '')}
-                          <span className="text-slate-400">%</span>
+                          {formatCR(computedMetrics.visitToSaleConv).replace('%', '')}
+                          <span className="text-muted-foreground">%</span>
                         </>
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-muted-foreground">—</span>
                       )}
                     </div>
-                    <div className="text-[10px] text-slate-500 leading-tight">
-                      {computedMetrics.diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
+                    <div className="text-[10px] text-muted-foreground leading-tight">
+                      {computedMetrics.visitToSaleConv !== null ? 'Продажи / визиты' : 'Нет данных'}
                     </div>
                   </div>
                 </div>
@@ -1524,7 +1529,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-medium text-amber-700 dark:text-amber-400">Требуется настройка Telegram бота</p>
+                <p className="font-medium text-amber-700 ">Требуется настройка Telegram бота</p>
                 <p className="text-sm text-muted-foreground mt-1">
                   Для работы автоматических отчётов необходимо настроить Telegram Bot Token в настройках проекта. 
                   Создайте бота через @BotFather и добавьте токен в секреты.

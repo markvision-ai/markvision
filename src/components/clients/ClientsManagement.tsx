@@ -43,7 +43,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -73,7 +73,9 @@ interface ClientsManagementProps {
 const STATUS_OPTIONS = [
   { value: 'new', label: 'Новый', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30' },
   { value: 'contacted', label: 'Связались', color: 'bg-purple-500/20 text-purple-500 border-purple-500/30' },
-  { value: 'diagnostic', label: 'На диагностике', color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' },
+  { value: 'in_progress', label: 'В работе', color: 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' },
+  { value: 'visit_completed', label: 'Визит пройден', color: 'bg-fuchsia-500/20 text-fuchsia-500 border-fuchsia-500/30' },
+  { value: 'appointment', label: 'Записан', color: 'bg-purple-500/20 text-purple-500 border-purple-500/30' },
   { value: 'qualified', label: 'Квалифицирован', color: 'bg-cyan-500/20 text-cyan-500 border-cyan-500/30' },
   { value: 'proposal', label: 'Предложение', color: 'bg-orange-500/20 text-orange-500 border-orange-500/30' },
   { value: 'purchased', label: 'Купил', color: 'bg-green-500/20 text-green-500 border-green-500/30' },
@@ -94,7 +96,7 @@ const getSourceInfo = (source: string): { label: string; color: string; icon: st
     return { label: 'Instagram', color: 'bg-pink-500/20 text-pink-500 border-pink-500/30', icon: '📷' };
   }
   if (s.includes('tiktok') || s.includes('tt')) {
-    return { label: 'TikTok', color: 'bg-slate-800/20 text-slate-300 border-slate-500/30', icon: '🎵' };
+    return { label: 'TikTok', color: 'bg-slate-800/20 text-foreground border-slate-500/30', icon: '🎵' };
   }
   if (s.includes('youtube') || s.includes('yt')) {
     return { label: 'YouTube', color: 'bg-red-600/20 text-red-600 border-red-600/30', icon: '▶️' };
@@ -337,7 +339,9 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     const statusLabels: Record<string, string> = {
       new: 'Новый',
       contacted: 'Связались',
-      diagnostic: 'На диагностике',
+      in_progress: 'В работе',
+      visit_completed: 'Визит пройден',
+      appointment: 'Записан',
       qualified: 'Квалифицирован',
       proposal: 'Предложение',
       purchased: 'Купил',

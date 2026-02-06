@@ -14,9 +14,10 @@ import Setup from "./pages/Setup";
 // Lazy load non-critical pages
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Install = lazy(() => import("./pages/Install"));
-const Blog = lazy(() => import("./pages/Blog"));
-const Partners = lazy(() => import("./pages/Partners"));
-const Careers = lazy(() => import("./pages/Careers"));
+// Archived pages (moved to _archived/)
+// const Blog = lazy(() => import("./pages/Blog"));
+// const Partners = lazy(() => import("./pages/Partners"));
+// const Careers = lazy(() => import("./pages/Careers"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
@@ -55,7 +56,7 @@ const OAuthHandler = () => {
       // Debug logs removed for production performance
 
       if (hasOAuthParams && window.location.pathname !== '/integrations') {
-        console.log('🚨 FORCING redirect to /integrations!');
+        if (import.meta.env.DEV) console.log('🚨 FORCING redirect to /integrations!');
         // Используем setTimeout для гарантии выполнения
         setTimeout(() => {
           navigate('/integrations', { replace: true });
@@ -108,10 +109,11 @@ const App = () => (
         <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
         <Route path="/install" element={<Suspense fallback={<PageLoader />}><Install /></Suspense>} />
         
-        {/* New pages */}
+        {/* Archived pages (moved to _archived/)
         <Route path="/blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
         <Route path="/partners" element={<Suspense fallback={<PageLoader />}><Partners /></Suspense>} />
         <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
+        */}
         <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
         <Route path="/terms" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
         <Route path="/compliance" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
@@ -122,7 +124,7 @@ const App = () => (
         <Route path="/realtime" element={<Index />} />
         <Route path="/table" element={<Index />} />
         <Route path="/crm" element={<Index />} />
-        <Route path="/diagnostics" element={<Index />} />
+        <Route path="/visits" element={<Index />} />
         <Route path="/analytics" element={<Index />} />
         <Route path="/e2e-analytics" element={<Index />} />
         <Route path="/finance" element={<Index />} />
@@ -131,6 +133,7 @@ const App = () => (
         <Route path="/quantum-ads" element={<Index />} />
         <Route path="/factory" element={<Index />} />
         <Route path="/content-factory" element={<Index />} />
+        <Route path="/publications" element={<Index />} />
         <Route path="/reports" element={<Index />} />
         <Route path="/team" element={<Index />} />
         <Route path="/integrations" element={<Index />} />
@@ -138,7 +141,7 @@ const App = () => (
         <Route path="/staff" element={<Index />} />
         <Route path="/inbox" element={<Index />} />
         <Route path="/scoring" element={<Index />} />
-        <Route path="/gamification" element={<Index />} />
+
         <Route path="/ab-testing" element={<Index />} />
         <Route path="/ab-tests" element={<Index />} />
         <Route path="/knowledge" element={<Index />} />

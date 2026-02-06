@@ -2,7 +2,7 @@ import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
 import { differenceInMinutes, differenceInHours } from 'date-fns';
-import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink } from 'lucide-react';
+import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -229,17 +229,17 @@ export const LeadCard = ({
         'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
         // Glassmorphism: backdrop-blur и тонкие границы
         'backdrop-blur-sm bg-card/50 border border-border',
-        // SLA Alert - Pulsing red border for leads waiting > 15 min
-        needsAttention && 'animate-pulse ring-2 ring-red-500 border-red-500',
+        // SLA Alert - Subtle red border for leads waiting > 15 min (removed animation)
+        needsAttention && 'border-red-400  shadow-sm',
         // VIP Shine + Gold Glow for MEGA leads
         isMegaTier && !needsAttention && 'vip-shine vip-glow',
         // Glow effect for high scoring leads (>= 80)
         hasHighScore && !needsAttention && 'shadow-lg shadow-red-500/30 ring-1 ring-red-500/20',
         // Golden background for MEGA leads (budget > 1M)
         isGoldenLead && !needsAttention
-          ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80 dark:from-amber-900/30 dark:via-yellow-900/20 dark:to-amber-800/30 border-2 border-amber-400/70 dark:border-amber-500/50' 
+          ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80    border-2 border-amber-400/70'
           : !needsAttention,
-        needsAttention && 'bg-red-50/80 dark:bg-red-950/30',
+        needsAttention && 'bg-red-50/40', 
         // Only apply hover transitions when not dragging
         !showDragging && 'transition-all duration-200 hover:shadow-lg hover:bg-card/70',
         !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-foreground/20',
@@ -252,18 +252,18 @@ export const LeadCard = ({
       )}
       onClick={handleCardClick}
     >
-      {/* SLA Alert Banner */}
+      {/* SLA Alert Badge - Subtle */}
       {needsAttention && (
-        <div className="absolute top-0 left-0 right-0 bg-red-500 text-white text-[10px] font-bold py-1 px-2 flex items-center justify-center gap-1">
-          <AlertTriangle className="w-3 h-3" />
-          ⚠️ Требует внимания! ({minutesWaiting} мин)
+        <div className="mb-3 flex items-center gap-2 px-2 py-1.5 rounded-md bg-red-100/50  border border-red-200  text-red-700  text-xs font-medium">
+          <Clock className="w-3.5 h-3.5 flex-shrink-0" />
+          <span>Ожидает {minutesWaiting} мин</span>
         </div>
       )}
 
       {/* NEW Badge - синее свечение для лидов < 1 часа */}
       {isNewLead && (
         <div className="absolute top-2 right-2 z-10">
-          <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30 shadow-lg shadow-blue-500/20 animate-pulse">
+          <Badge className="bg-blue-500/20 text-blue-600  border-blue-500/30 shadow-lg shadow-blue-500/20 animate-pulse">
             NEW
           </Badge>
         </div>
@@ -404,7 +404,7 @@ export const LeadCard = ({
           <Button
             variant="outline"
             size="sm"
-            className="w-full h-8 text-xs gap-1.5 border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100 dark:border-blue-800 dark:bg-blue-900/20 dark:text-blue-400"
+            className="w-full h-8 text-xs gap-1.5 border-blue-200 bg-blue-50/50 text-blue-700 hover:bg-blue-100   "
             onClick={(e) => {
               e.stopPropagation();
               window.open((lead.extra_data as any).payment_screenshot, '_blank');
@@ -499,7 +499,7 @@ export const LeadCard = ({
                 className={cn(
                   "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
                   lead.phone 
-                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 hover:border-green-500/30" 
+                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-600  hover:border-green-500/30" 
                     : "bg-muted/50 text-muted-foreground cursor-not-allowed"
                 )}
                 onClick={(e) => {
@@ -529,7 +529,7 @@ export const LeadCard = ({
                 className={cn(
                   "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
                   lead.phone 
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600 dark:text-blue-400 hover:border-blue-500/30" 
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600  hover:border-blue-500/30" 
                     : "bg-muted/50 text-muted-foreground cursor-not-allowed"
                 )}
                 onClick={(e) => handleQuickAction(e, 'call')}
@@ -551,7 +551,7 @@ export const LeadCard = ({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:border-emerald-500/30"
+                  className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600  hover:border-emerald-500/30"
                   onClick={(e) => {
                     e.stopPropagation();
                     window.open((lead.extra_data as any).payment_screenshot, '_blank');
@@ -573,7 +573,7 @@ export const LeadCard = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 hover:border-purple-500/30"
+                className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-purple-500/10 hover:bg-purple-500/20 text-purple-600  hover:border-purple-500/30"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick?.(); // Открыть полную страницу лида для анализа

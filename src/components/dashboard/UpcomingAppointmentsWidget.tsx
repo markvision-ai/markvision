@@ -14,7 +14,7 @@ import {
   Zap,
   Loader2
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO, startOfWeek, endOfWeek, addDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
@@ -129,7 +129,7 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
           <div className="flex items-center justify-between">
             <CardTitle className="text-base flex items-center gap-2">
               <Calendar className="w-4 h-4 text-primary" />
-              Диагностики на неделю
+              Визиты на неделю
             </CardTitle>
             <Button variant="ghost" size="sm" onClick={handleViewAll} className="text-xs">
               Смотреть всё

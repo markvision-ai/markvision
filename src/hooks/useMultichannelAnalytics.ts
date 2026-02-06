@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   AttributionModel, 
   calculateAttribution, 
@@ -164,11 +164,20 @@ export function useMultichannelAnalytics(projectId: string | null) {
   const demoData = useMemo(() => generateDemoData(), []);
   const demoJourneys = useMemo(() => generateDemoJourneys(), []);
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchData = useCallback(async () => {
     if (!projectId) {
       setLoading(false);
       return;
     }
+
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
+    const signal = abortControllerRef.current.signal;
 
     setLoading(true);
     try {
@@ -178,7 +187,8 @@ export function useMultichannelAnalytics(projectId: string | null) {
         .select('*')
         .eq('project_id', projectId)
         .order('visited_at', { ascending: false })
-        .limit(10000);
+        .limit(10000)
+        .abortSignal(signal);
 
       if (visitsError) throw visitsError;
 
@@ -187,7 +197,8 @@ export function useMultichannelAnalytics(projectId: string | null) {
         .from('touchpoints')
         .select('*')
         .eq('project_id', projectId)
-        .order('touched_at', { ascending: true });
+        .order('touched_at', { ascending: true })
+        .abortSignal(signal);
 
       if (tpError) throw tpError;
 
@@ -219,7 +230,10 @@ export function useMultichannelAnalytics(projectId: string | null) {
         touchedAt: tp.touched_at,
       })));
 
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
+        return;
+      }
       console.error('Error fetching multichannel data:', error);
     } finally {
       setLoading(false);
@@ -228,6 +242,9 @@ export function useMultichannelAnalytics(projectId: string | null) {
 
   useEffect(() => {
     fetchData();
+    return () => {
+      abortControllerRef.current?.abort();
+    };
   }, [fetchData]);
 
   // Calculate attribution for selected model

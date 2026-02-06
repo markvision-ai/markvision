@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
 import { 
-  Sparkles, 
   Building2, 
   User, 
   Mail, 
@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -238,8 +238,8 @@ export default function Signup() {
         <div className="bg-card rounded-3xl p-8 shadow-xl">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/80 mx-auto flex items-center justify-center mb-4 shadow-lg">
-              <Sparkles className="w-8 h-8 text-primary-foreground" />
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mx-auto flex items-center justify-center mb-4 shadow-lg">
+              <MarkVisionLogo className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-foreground">Создайте аккаунт</h1>
             <p className="text-muted-foreground mt-1">Начните 7-дневный бесплатный период</p>

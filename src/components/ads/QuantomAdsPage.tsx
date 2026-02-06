@@ -1,133 +1,290 @@
-import { useState, useMemo } from 'react';
-import { useCampaigns, Campaign } from '@/hooks/useCampaigns';
+import { useState, useMemo, useEffect } from 'react';
+import { useCampaigns } from '@/hooks/useCampaigns';
 import { useLeads } from '@/hooks/useLeads';
-import { useMarketingStats } from '@/hooks/useMarketingStats';
+import { useContentFactory } from '@/hooks/useContentFactory';
+import { useProjectData } from '@/hooks/useProjectData';
+import { useAdPerformance } from '@/hooks/useAdPerformance';
 import { AdsSummaryCards } from './AdsSummaryCards';
-import { CampaignTable } from './CampaignTable';
-import { CampaignDrawer } from './CampaignDrawer';
-import { CreativeCenterTab } from './CreativeCenterTab';
 import { CampaignFunnelChart } from './CampaignFunnelChart';
+import { AIStatusIndicator } from './AIStatusIndicator';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { RefreshCw, Plus, Loader2, Zap, CalendarIcon } from 'lucide-react';
-import { format, subDays, isWithinInterval, parseISO, startOfDay, endOfDay } from 'date-fns';
+import { AdsChatInterface } from './AdsChatInterface';
+import { ActiveAdsManager } from './ActiveAdsManager';
+import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
+import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
+import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { KZT_RATE } from '@/constants/ads';
 
 interface QuantomAdsPageProps {
   projectId: string | null;
 }
 
 export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
-  const { campaigns, loading, refetch, updateCampaign } = useCampaigns(projectId);
+  const { campaigns, loading, refetch } = useCampaigns(projectId);
   const { leads } = useLeads(projectId);
-  const [selectedCampaign, setSelectedCampaign] = useState<Campaign | null>(null);
+  const { content } = useContentFactory(projectId);
+  const { dailyData, refetch: refetchProjectData } = useProjectData(projectId);
   const [refreshing, setRefreshing] = useState(false);
+  const [autopilotEnabled, setAutopilotEnabled] = useState(false);
+  const [metaOnline, setMetaOnline] = useState<boolean | null>(null);
+  const [metaStatusMessage, setMetaStatusMessage] = useState<string | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
     from: new Date(),
     to: new Date(),
   });
-  const [platformTab, setPlatformTab] = useState<'all' | 'facebook' | 'google' | 'tiktok' | 'creative'>('all');
+  const [activePreset, setActivePreset] = useState<PresetKey | undefined>(undefined);
+  const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId);
 
-  // Build today's spend map from campaigns for fallback
-  const todaySpendFromCampaigns = useMemo(() => {
-    const map: Record<string, number> = {};
-    campaigns.forEach(c => {
-      if (c.external_id) {
-        map[c.external_id] = c.spent_today;
-      }
-    });
-    return map;
-  }, [campaigns]);
+  // Auto-refresh data every 60 seconds - DISABLED to prevent Rate Limits
+  useEffect(() => {
+    // Disabled auto-refresh as per user request to avoid Meta API 400 errors
+    return () => {};
+  }, []);
 
-  // Load marketing stats for selected date range
-  const { aggregated: marketingStats, loading: statsLoading, refetch: refetchStats } = useMarketingStats({
-    projectId,
-    dateRange,
-    todaySpendFromCampaigns,
-  });
-
-  // Filter campaigns by platform
-  const filteredCampaigns = useMemo(() => {
-    if (platformTab === 'all' || platformTab === 'creative') return campaigns;
-    return campaigns.filter(c => c.platform === platformTab);
-  }, [campaigns, platformTab]);
-
-  // Filter leads by date range
-  const filteredLeads = useMemo(() => {
-    if (!dateRange?.from || !dateRange?.to) return leads;
-
-    const from = startOfDay(dateRange.from);
-    const to = endOfDay(dateRange.to);
-
-    return leads.filter(lead => {
-      if (!lead.created_at) return false;
+  // Load Autopilot Status
+  useEffect(() => {
+    if (!projectId) return;
+    // Temporary disable due to missing table
+    /*
+    const fetchSettings = async () => {
       try {
-        const leadDate = parseISO(lead.created_at);
-        return isWithinInterval(leadDate, { start: from, end: to });
-      } catch {
-        return false;
+        const { data, error } = await (supabase as any)
+          .from('project_settings')
+          .select('autopilot_enabled')
+          .eq('project_id', projectId)
+          .single();
+        
+        if (data) {
+          setAutopilotEnabled(data.autopilot_enabled);
+        }
+      } catch (e) {
+        console.error('Failed to load project settings', e);
+      }
+    };
+    fetchSettings();
+    */
+  }, [projectId]);
+
+  useEffect(() => {
+    if (!projectId) {
+      setMetaOnline(null);
+      return;
+    }
+    // Healthcheck disabled to prevent background API calls
+    setMetaOnline(true); 
+    setMetaStatusMessage(null);
+  }, [projectId]);
+
+  const toggleAutopilot = async (enabled: boolean) => {
+    if (!projectId) return;
+    // Temporary disable due to missing table
+    toast.info('Функция ИИ-Автопилота временно недоступна (обновление системы)');
+    /*
+    setAutopilotEnabled(enabled);
+    try {
+      const { error } = await (supabase as any)
+        .from('project_settings')
+        .upsert({ project_id: projectId, autopilot_enabled: enabled }, { onConflict: 'project_id' });
+      
+      if (error) throw error;
+      toast.success(enabled ? 'ИИ-Автопилот включен' : 'ИИ-Автопилот выключен');
+    } catch (e) {
+      console.error('Failed to update autopilot', e);
+      toast.error('Ошибка сохранения настроек');
+      setAutopilotEnabled(!enabled);
+    }
+    */
+  };
+
+  // Derive campaigns from leads if they don't exist in the explicit campaigns list
+  const allCampaigns = useMemo(() => {
+    const existingNames = new Set(campaigns.map(c => c.name));
+    const derived: any[] = [];
+    
+    leads.forEach(lead => {
+      if (lead.utm_campaign && !existingNames.has(lead.utm_campaign)) {
+        existingNames.add(lead.utm_campaign);
+        derived.push({
+          id: `derived-${lead.utm_campaign}`,
+          project_id: projectId || '',
+          name: lead.utm_campaign,
+          platform: lead.utm_source?.includes('google') ? 'google' : lead.utm_source?.includes('tiktok') ? 'tiktok' : 'facebook',
+          status: true,
+          budget: 0,
+          spent_today: 0,
+          autopilot_enabled: false,
+          rules: {},
+          ai_log: [],
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        });
       }
     });
-  }, [leads, dateRange]);
+    
+    return [...campaigns, ...derived];
+  }, [campaigns, leads, projectId]);
 
-  // Calculate leads per campaign based on utm_campaign matching (filtered by date)
+  // Filter campaigns (Meta Only)
+  const metaCampaigns = useMemo(() => {
+    return allCampaigns.filter(c => c.platform === 'facebook' || c.platform === 'instagram' || !c.platform);
+  }, [allCampaigns]);
+
+  // Calculate leads per campaign based on utm_campaign matching
   const leadsPerCampaign = useMemo(() => {
     const counts: Record<string, number> = {};
-    filteredLeads.forEach(lead => {
+    leads.forEach(lead => {
       if (lead.utm_campaign) {
         counts[lead.utm_campaign] = (counts[lead.utm_campaign] || 0) + 1;
       }
     });
     return counts;
-  }, [filteredLeads]);
+  }, [leads]);
 
-  // Calculate revenue from paid leads per campaign (filtered by date)
+  // Calculate revenue from paid leads per campaign
   const revenuePerCampaign = useMemo(() => {
     const revenue: Record<string, number> = {};
-    filteredLeads.forEach(lead => {
+    leads.forEach(lead => {
       if (lead.utm_campaign && lead.status === 'paid' && lead.deal_amount) {
         revenue[lead.utm_campaign] = (revenue[lead.utm_campaign] || 0) + (lead.deal_amount || 0);
       }
     });
     return revenue;
-  }, [filteredLeads]);
+  }, [leads]);
 
-  // Summary calculations using marketing stats
+  // Summary calculations
   const summaryMetrics = useMemo(() => {
-    // Use marketing stats for spend (aggregated from historical data)
-    const totalSpent = marketingStats.totalSpend;
+    const todayStr = format(new Date(), 'yyyy-MM-dd');
+    const fromStr = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : undefined;
+    const toStr = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
 
-    // Calculate leads from filtered data
-    const relevantCampaigns = platformTab === 'all' || platformTab === 'creative'
-      ? campaigns
-      : campaigns.filter(c => c.platform === platformTab);
+    // Default to strict ranges
+    const fromDate = fromStr || '0000-01-01';
+    const toDate = toStr || '9999-12-31';
+    
+    // 1. Calculate History Stats from Daily Data (Official Source)
+    // Exclude Today from daily data aggregation to use real-time logs for today
+    const dailyDataList = Object.values(dailyData);
+    const historyStats = dailyDataList.filter(d => d.date >= fromDate && d.date <= toDate && d.date !== todayStr);
+    
+    const historySpent = historyStats.reduce((sum, d) => sum + (d.spend || 0), 0);
+    const historyLeads = historyStats.reduce((sum, d) => sum + (d.leads || 0), 0);
+    
+    // 2. Calculate Today Stats (Real-time from Active Ads Manager / Performance Logs)
+    let todaySpent = 0;
+    let todayLeads = 0;
+    
+    // Only calculate today's stats if the date range includes today
+    if (fromDate <= todayStr && toDate >= todayStr) {
+       // Fallback to Performance Logs (Real-time Meta)
+       const todayLogs = performanceLogs.filter(log => 
+         log.date_start === todayStr && 
+         (log.entity_type === 'CAMPAIGN' || log.entity_type === 'campaign')
+       );
 
-    const totalLeads = relevantCampaigns.reduce((sum, c) => sum + (leadsPerCampaign[c.name] || 0), 0);
-    const totalRevenue = relevantCampaigns.reduce((sum, c) => sum + (revenuePerCampaign[c.name] || 0), 0);
+       // Deduplicate by entity_id: take the record with MAX spend (assuming cumulative snapshots)
+       // This prevents double counting if multiple logs exist for the same campaign today
+       const uniqueTodayCampaigns = Object.values(
+         todayLogs.reduce((acc, log) => {
+           const currentSpend = Number(log.spend) || 0;
+           const existingSpend = acc[log.entity_id] ? (Number(acc[log.entity_id].spend) || 0) : -1;
+           
+           if (!acc[log.entity_id] || currentSpend > existingSpend) {
+             acc[log.entity_id] = log;
+           }
+           return acc;
+         }, {} as Record<string, typeof todayLogs[0]>)
+       );
+
+       // Convert USD spend to KZT if needed, assuming logs are in USD (Meta default)
+       // ActiveAdsManager uses KZT_RATE. We should do the same.
+       todaySpent = uniqueTodayCampaigns.reduce((sum, log) => sum + ((Number(log.spend) || 0) * KZT_RATE), 0);
+       todayLeads = uniqueTodayCampaigns.reduce((sum, log) => sum + (Number(log.leads) || 0), 0);
+    }
+
+    const totalSpent = historySpent + todaySpent;
+    
+    // Revenue from CRM (Attributed Only - for valid ROMI)
+    const crmLeadsInRange = leads.filter(lead => {
+      if (!lead.created_at) return false;
+      const d = format(new Date(lead.created_at), 'yyyy-MM-dd');
+      return d >= fromDate && d <= toDate;
+    });
+    
+    const attributedCrmLeads = crmLeadsInRange.filter(l => l.utm_campaign);
+    const rawMetaLeads = historyLeads + todayLeads;
+    
+    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads) to match Table/Funnel
+    const totalLeads = Math.max(rawMetaLeads, attributedCrmLeads.length);
+    
+    const totalRevenue = attributedCrmLeads
+      .filter(l => l.status === 'paid' && l.deal_amount)
+      .reduce((sum, l) => sum + (l.deal_amount || 0), 0);
 
     return {
       totalSpent,
       totalLeads,
-      avgCPA: totalLeads > 0 ? totalSpent / totalLeads : 0,
-      overallROAS: totalSpent > 0 ? totalRevenue / totalSpent : 0,
+      avgCpl: totalLeads > 0 ? totalSpent / totalLeads : 0,
+      romi: totalSpent > 0 ? ((totalRevenue - totalSpent) / totalSpent) * 100 : 0,
     };
-  }, [campaigns, platformTab, leadsPerCampaign, revenuePerCampaign, marketingStats]);
+  }, [performanceLogs, leads, dailyData, dateRange]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refetch(), refetchStats()]);
+    
+    // 1. Force Sync with Meta (Edge Function)
+    if (projectId) {
+      try {
+        const fromDate = dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : format(new Date(), 'yyyy-MM-dd');
+        const toDate = dateRange?.to ? format(dateRange.to, 'yyyy-MM-dd') : fromDate;
+
+        const { data: syncData, error: syncError } = await supabase.functions.invoke('ads-manager', {
+            body: { 
+                action: 'sync_metrics', 
+                payload: { 
+                    projectId,
+                    date_range: { since: fromDate, until: toDate }
+                } 
+            }
+        });
+
+        if (syncError) throw syncError;
+        if (syncData?.type === 'error') {
+             console.error('Meta Sync Error:', syncData.message);
+             if (syncData.message?.includes('(#80004)')) {
+                 toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
+             } else {
+                 toast.warning(`Ошибка синхронизации с Meta: ${syncData.message}`);
+             }
+        } else {
+            toast.success(`Данные Meta Ads обновлены (${fromDate} - ${toDate})`);
+        }
+      } catch (e: any) {
+        console.error('Sync failed', e);
+        // Don't block refresh if sync fails (e.g. rate limit)
+      }
+    }
+
+    // 2. Refresh local data (UI Update)
+    // Increment trigger to force ActiveAdsManager refresh
+    setRefreshTrigger(prev => prev + 1);
+    
+    await Promise.all([
+      refetch(),
+      refetchProjectData(),
+      refetchAds()
+    ]);
+    
     setRefreshing(false);
   };
 
-  const handleCampaignClick = (campaign: Campaign) => {
-    setSelectedCampaign(campaign);
-  };
-
-  if (loading || statsLoading) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
@@ -135,216 +292,138 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     );
   }
 
-  const handleQuickDate = (days: number) => {
-    const today = new Date();
-    setDateRange({
-      from: days === 0 ? today : subDays(today, days),
-      to: today,
-    });
-  };
-
-  // Determine which quick date button is active
-  const getQuickDateActive = () => {
-    if (!dateRange?.from || !dateRange?.to) return null;
-    const today = new Date();
-    const todayStr = format(today, 'yyyy-MM-dd');
-    const fromStr = format(dateRange.from, 'yyyy-MM-dd');
-    const toStr = format(dateRange.to, 'yyyy-MM-dd');
-
-    if (fromStr === todayStr && toStr === todayStr) return 0;
-    if (fromStr === format(subDays(today, 1), 'yyyy-MM-dd') && toStr === todayStr) return 1;
-    if (fromStr === format(subDays(today, 7), 'yyyy-MM-dd') && toStr === todayStr) return 7;
-    if (fromStr === format(subDays(today, 30), 'yyyy-MM-dd') && toStr === todayStr) return 30;
-    return null;
-  };
-
-  const activeQuickDate = getQuickDateActive();
-
   return (
-    <div className="space-y-4 bg-background text-foreground">
-      {/* Premium Header */}
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-primary/5 via-background to-violet-500/5 border border-border/40 p-4 sm:p-6">
-        {/* Background decoration */}
-        <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-primary/10 to-violet-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+    <div className="h-[calc(100vh-6rem)] bg-background text-foreground relative flex flex-col">
+      <Tabs defaultValue="dashboard" className="flex-1 flex flex-col overflow-hidden">
+        <div className="px-6 py-3 border-b border-border bg-background/95 backdrop-blur z-20 flex-none flex items-center justify-between">
+          <TabsList className="grid w-[320px] grid-cols-2">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard className="w-4 h-4" />
+              Командный центр
+            </TabsTrigger>
+            <TabsTrigger value="analyst" className="flex items-center gap-2">
+              <MessageSquareText className="w-4 h-4" />
+              AI Аналитик
+            </TabsTrigger>
+          </TabsList>
 
-        <div className="relative flex flex-col gap-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-gradient-to-br from-primary/20 to-violet-500/20 rounded-xl">
-                <Zap className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-xl sm:text-2xl font-bold text-foreground">Quantum Ads</h1>
-                  <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-[10px] sm:text-xs">
-                    <Zap className="w-3 h-3 mr-1" />
-                    AI
-                  </Badge>
+          {/* Minimal Status Indicators */}
+          <div className="flex items-center gap-4">
+             {autopilotEnabled && (
+                <div className="flex items-center gap-2 text-[10px] text-green-500 font-medium uppercase tracking-wider animate-pulse border border-green-500/20 bg-green-500/5 px-2 py-1 rounded-full">
+                  <Activity className="w-3 h-3" />
+                  Автопилот активен
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground">
-                  Управление рекламными кампаниями
-                </p>
-              </div>
-            </div>
-
-            <Button onClick={handleRefresh} disabled={refreshing} variant="glass" size="sm">
-              <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline ml-2">Обновить</span>
-            </Button>
-          </div>
-
-          {/* Date Controls */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {[
-                { days: 0, label: 'Сегодня' },
-                { days: 1, label: 'Вчера' },
-                { days: 7, label: '7 дней' },
-                { days: 30, label: '30 дней' },
-              ].map(({ days, label }) => (
-                <Button
-                  key={days}
-                  variant={activeQuickDate === days ? 'default' : 'glass'}
-                  size="sm"
-                  onClick={() => handleQuickDate(days)}
-                  className="text-xs h-8"
-                >
-                  {label}
-                </Button>
-              ))}
-            </div>
-
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="glass" className="justify-start text-left font-normal text-xs h-8">
-                  <CalendarIcon className="mr-1.5 h-3.5 w-3.5" />
-                  {dateRange?.from ? (
-                    dateRange.to ? (
-                      <>
-                        {format(dateRange.from, 'dd MMM', { locale: ru })} - {format(dateRange.to, 'dd MMM', { locale: ru })}
-                      </>
-                    ) : (
-                      format(dateRange.from, 'dd MMM yyyy', { locale: ru })
-                    )
-                  ) : (
-                    <span>Период</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 bg-background border-border" align="start">
-                <Calendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={dateRange?.from}
-                  selected={dateRange}
-                  onSelect={setDateRange}
-                  numberOfMonths={2}
-                  locale={ru}
-                  className="rounded-md bg-background"
-                />
-              </PopoverContent>
-            </Popover>
-
-            <Button variant="premium" size="sm" className="ml-auto h-8">
-              <Plus className="w-3.5 h-3.5 mr-1.5" />
-              <span className="hidden sm:inline">Добавить</span>
-            </Button>
+             )}
+             <div 
+               title={metaStatusMessage || (metaOnline ? 'Connected to Meta Graph API' : 'Connection Lost')}
+               className={`flex items-center gap-2 text-[10px] font-medium uppercase tracking-wider px-2 py-1 rounded-full border ${metaOnline === null ? 'text-muted-foreground border-border bg-muted/30' : metaOnline ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-red-500 border-red-500/20 bg-red-500/5'}`}
+             >
+               <div className={`w-3 h-3 rounded-full ${metaOnline ? 'bg-green-500' : metaOnline === false ? 'bg-red-500' : 'bg-muted'}`} />
+               Meta {metaOnline ? 'Online' : metaOnline === false ? 'Offline' : 'Checking'}
+             </div>
+             <AIStatusIndicator />
           </div>
         </div>
-      </div>
 
-      {/* Summary Cards */}
-      <AdsSummaryCards
-        totalSpent={summaryMetrics.totalSpent}
-        totalLeads={summaryMetrics.totalLeads}
-        avgCPA={summaryMetrics.avgCPA}
-        overallROAS={summaryMetrics.overallROAS}
-      />
+        <TabsContent value="dashboard" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col">
+          <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            {/* Header & Controls */}
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-blue-500/10 rounded-lg">
+                    <Zap className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div>
+                    <h1 className="text-2xl font-bold text-foreground">Обзор кампаний</h1>
+                    <p className="text-sm text-muted-foreground">
+                      Управление и статистика Meta Ads
+                    </p>
+                  </div>
+                </div>
 
-      {/* Campaign Funnel Chart */}
-      <CampaignFunnelChart campaigns={campaigns} leads={filteredLeads} dateRange={dateRange} />
+                {/* Autopilot Switch */}
+                <div className="flex items-center gap-3 bg-card/50 border border-border p-1.5 pr-3 rounded-full backdrop-blur-sm">
+                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${autopilotEnabled ? 'bg-green-500/20 text-green-500' : 'bg-muted text-muted-foreground'}`}>
+                     <Activity className="w-4 h-4" />
+                   </div>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">AI Autopilot</span>
+                     <div className="flex items-center gap-2">
+                       <Switch 
+                         checked={autopilotEnabled}
+                         onCheckedChange={toggleAutopilot}
+                         className="data-[state=checked]:bg-green-500 scale-75 origin-left"
+                       />
+                     </div>
+                   </div>
+                </div>
+              </div>
 
-      {/* Platform Tabs */}
-      <Tabs value={platformTab} onValueChange={(v) => setPlatformTab(v as any)} className="space-y-4">
-        <TabsList className="w-full justify-start bg-muted/50 dark:bg-muted/30 p-1 overflow-x-auto flex-nowrap border border-border">
-          <TabsTrigger value="all" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            Все платформы
-          </TabsTrigger>
-          <TabsTrigger value="facebook" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
-            <span className="hidden sm:inline">Facebook / Instagram</span>
-            <span className="sm:hidden">FB</span>
-          </TabsTrigger>
-          <TabsTrigger value="google" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
-            <span className="hidden sm:inline">Google Ads</span>
-            <span className="sm:hidden">Google</span>
-          </TabsTrigger>
-          <TabsTrigger value="tiktok" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <div className="w-4 h-4 bg-black dark:bg-white rounded text-[10px] text-white dark:text-black font-bold flex items-center justify-center">T</div>
-            <span className="hidden sm:inline">TikTok Ads</span>
-            <span className="sm:hidden">TikTok</span>
-          </TabsTrigger>
-          <TabsTrigger value="creative" className="gap-2 shrink-0 data-[state=active]:bg-background dark:data-[state=active]:bg-card">
-            <Zap className="w-4 h-4 text-success" />
-            <span className="hidden sm:inline">Центр Запуска и Тестирования</span>
-            <span className="sm:hidden">Креативы</span>
-          </TabsTrigger>
-        </TabsList>
+              {/* Date & Refresh Controls */}
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50  rounded-lg border border-border">
+                <div className="flex items-center gap-2 flex-1">
+                  <DateRangePicker 
+                    dateRange={{
+                      from: dateRange?.from ?? new Date(),
+                      to: dateRange?.to ?? new Date()
+                    }}
+                    onDateRangeChange={(range) => setDateRange(range)}
+                    onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+                    align="start"
+                  />
 
-        {/* All Platforms */}
-        <TabsContent value="all" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
+                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-10 w-10">
+                    <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Summary Cards */}
+            <AdsSummaryCards
+              totalSpent={summaryMetrics.totalSpent}
+              totalLeads={summaryMetrics.totalLeads}
+              avgCpl={summaryMetrics.avgCpl}
+              romi={summaryMetrics.romi}
+            />
+
+            <div className="grid gap-6">
+              <ActiveAdsManager 
+                projectId={projectId} 
+                dateRange={{
+                  from: dateRange?.from ?? new Date(),
+                  to: dateRange?.to ?? dateRange?.from ?? new Date()
+                }}
+                refreshTrigger={refreshTrigger}
+              />
+              
+              <CampaignFunnelChart 
+                projectId={projectId} 
+                dateRange={dateRange}
+                campaigns={metaCampaigns}
+                leads={leads}
+                adPerformance={performanceLogs}
+                dailyData={dailyData}
+              />
+            </div>
+          </div>
         </TabsContent>
 
-        {/* Facebook */}
-        <TabsContent value="facebook" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* Google */}
-        <TabsContent value="google" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* TikTok */}
-        <TabsContent value="tiktok" className="mt-4">
-          <CampaignTable
-            campaigns={filteredCampaigns}
-            leadsPerCampaign={leadsPerCampaign}
-            onCampaignClick={handleCampaignClick}
-            onUpdateCampaign={updateCampaign}
-          />
-        </TabsContent>
-
-        {/* Creative Center */}
-        <TabsContent value="creative" className="mt-4">
-          <CreativeCenterTab projectId={projectId} />
+        <TabsContent value="analyst" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col relative bg-background/95">
+           <AdsChatInterface 
+             projectId={projectId} 
+             contextData={{
+               campaigns: metaCampaigns,
+               leads: leads,
+               contentItems: content,
+               dailyData: dailyData,
+               summary: summaryMetrics
+             }}
+           />
         </TabsContent>
       </Tabs>
-
-      {/* Campaign Drawer */}
-      <CampaignDrawer
-        campaign={selectedCampaign}
-        open={!!selectedCampaign}
-        onClose={() => setSelectedCampaign(null)}
-        onUpdateCampaign={updateCampaign}
-      />
     </div>
   );
 };

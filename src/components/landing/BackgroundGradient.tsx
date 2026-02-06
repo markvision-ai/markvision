@@ -69,7 +69,7 @@ export const BackgroundGradient = ({
         )}
       />
 
-      <div className={cn("relative z-10 bg-white rounded-3xl", className)}>
+      <div className={cn("relative z-10 bg-black rounded-3xl", className)}>
         {children}
       </div>
     </div>

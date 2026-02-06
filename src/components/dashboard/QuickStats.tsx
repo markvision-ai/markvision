@@ -31,7 +31,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="font-semibold text-xs sm:text-sm text-foreground">Сравнение с прошлой неделей</h3>
-          <p className="text-xs font-medium text-foreground/70 dark:text-foreground/80 mt-0.5 leading-relaxed">Динамика ключевых показателей</p>
+          <p className="text-xs font-medium text-foreground/70  mt-0.5 leading-relaxed">Динамика ключевых показателей</p>
         </div>
       </div>
       
@@ -60,7 +60,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
               />
               
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-foreground/80 dark:text-foreground/90 truncate leading-relaxed">{stat.label}</p>
+                <p className="text-xs font-semibold text-foreground/80  truncate leading-relaxed">{stat.label}</p>
                 
                 <p className="text-base sm:text-lg font-bold text-foreground tracking-tight">
                   {formatValue(stat.current, stat.format)}

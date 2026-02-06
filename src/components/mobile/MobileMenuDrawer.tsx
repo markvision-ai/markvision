@@ -2,6 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sh
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
+import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
 import { 
   LayoutDashboard, 
   CalendarDays, 
@@ -26,9 +27,8 @@ import {
   LogOut,
   ChevronRight,
   Sparkles,
-  Sun,
-  Moon
 } from 'lucide-react';
+import { IconSun, IconMoon } from '@tabler/icons-react';
 import { useTheme } from '@/hooks/useTheme';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -64,11 +64,9 @@ const menuSections = [
     title: 'Продажи',
     items: [
       { id: 'crm', label: 'CRM', icon: Users },
-      { id: 'diagnostics', label: 'Диагностика', icon: HeartPulse },
+      { id: 'visits', label: 'Визиты', icon: HeartPulse },
       { id: 'inbox', label: 'Входящие', icon: Inbox },
       { id: 'scoring', label: 'Рейтинг заявок', icon: Target },
-      { id: 'gamification', label: 'Мотивация', icon: Trophy },
-      { id: 'automation', label: 'Автоматизация', icon: Zap },
     ]
   },
   {
@@ -84,10 +82,6 @@ const menuSections = [
     title: 'Настройки',
     items: [
       { id: 'settings', label: 'Настройки', icon: Settings },
-      { id: 'integrations', label: 'Подключения', icon: Plug },
-      { id: 'team', label: 'Сотрудники', icon: UsersRound },
-      { id: 'calendar', label: 'Календарь', icon: Calendar },
-      { id: 'knowledge', label: 'База знаний', icon: BookOpen },
     ]
   }
 ];
@@ -124,8 +118,8 @@ export const MobileMenuDrawer = ({
         {/* Header with Logo */}
         <SheetHeader className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+            <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm">
+              <MarkVisionLogo className="w-7 h-7" />
             </div>
             <div>
               <SheetTitle className="text-left text-base">MarkVision AI</SheetTitle>
@@ -189,18 +183,18 @@ export const MobileMenuDrawer = ({
             >
               {theme === 'dark' ? (
                 <>
-                  <Sun className="w-4 h-4" />
+                  <IconSun className="w-4 h-4 text-yellow-500" />
                   <span className="text-xs">Светлая</span>
                 </>
               ) : (
                 <>
-                  <Moon className="w-4 h-4" />
+                  <IconMoon className="w-4 h-4 text-blue-400" />
                   <span className="text-xs">Тёмная</span>
                 </>
               )}
             </Button>
           </div>
-          
+
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-purple-600 flex items-center justify-center text-white font-medium flex-shrink-0">

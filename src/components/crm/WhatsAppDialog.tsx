@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { MessageCircle, Send, Loader2, CheckCircle, AlertTriangle } from 'lucide-react';
 import { sendWhatsAppMessage } from '@/components/integrations/GreenAPISettings';
 import { toast } from 'sonner';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WhatsAppDialogProps {
   leadName: string;

@@ -8,7 +8,7 @@ interface BeamProps {
 
 export const AnimatedBeam = ({ className }: BeamProps) => {
   return (
-    <div className={cn("relative w-full h-[400px] rounded-3xl overflow-hidden bg-gradient-to-br from-slate-50 to-slate-100", className)}>
+    <div className={cn("relative w-full h-[400px] rounded-3xl overflow-hidden bg-black border border-white/10", className)}>
       {/* Central Hub */}
       <motion.div 
         className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-2xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-2xl flex items-center justify-center z-10"
@@ -89,10 +89,10 @@ const SourceNode = ({ icon, label, position, delay }: SourceNodeProps) => (
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay }}
   >
-    <div className="w-12 h-12 rounded-xl bg-white shadow-lg flex items-center justify-center text-2xl">
+    <div className="w-12 h-12 rounded-xl bg-black border border-white/10 shadow-lg flex items-center justify-center text-2xl">
       {icon}
     </div>
-    <span className="text-xs font-medium text-slate-600">{label}</span>
+    <span className="text-xs font-medium text-zinc-400">{label}</span>
   </motion.div>
 );
 
@@ -111,10 +111,10 @@ const OutputNode = ({ icon, label, position, delay }: OutputNodeProps) => (
     animate={{ opacity: 1, x: 0 }}
     transition={{ delay }}
   >
-    <div className="w-12 h-12 rounded-xl bg-white shadow-lg flex items-center justify-center text-2xl">
+    <div className="w-12 h-12 rounded-xl bg-black border border-white/10 shadow-lg flex items-center justify-center text-2xl">
       {icon}
     </div>
-    <span className="text-xs font-medium text-slate-600">{label}</span>
+    <span className="text-xs font-medium text-zinc-400">{label}</span>
   </motion.div>
 );
 

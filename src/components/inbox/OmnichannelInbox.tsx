@@ -25,7 +25,7 @@ import {
   Users,
   Sparkles
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -97,7 +97,7 @@ const channelIcons: Record<string, React.ReactNode> = {
 const channelColors: Record<string, string> = {
   whatsapp: 'bg-green-500',
   instagram: 'bg-pink-500',
-  tiktok: 'bg-black dark:bg-white',
+  tiktok: 'bg-black text-white',
   chat: 'bg-blue-500',
 };
 
@@ -603,7 +603,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                   "text-xs border-0",
                   selectedThread.channel === 'whatsapp' && 'bg-green-500/20 text-green-600',
                   selectedThread.channel === 'instagram' && 'bg-pink-500/20 text-pink-600',
-                  selectedThread.channel === 'tiktok' && 'bg-black/20 text-black dark:text-white'
+                  selectedThread.channel === 'tiktok' && 'bg-black/20 text-black'
                 )}>
                   {selectedThread.channel}
                 </Badge>

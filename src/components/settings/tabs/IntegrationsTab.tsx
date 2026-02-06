@@ -15,7 +15,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MetaSyncButton } from '@/components/integrations/MetaSyncButton';
 import { GreenAPISettings } from '@/components/integrations/GreenAPISettings';
@@ -72,7 +72,7 @@ const integrations: Integration[] = [
     name: 'Google Ads', 
     description: 'Контекстная реклама',
     icon: <GoogleIcon />,
-    color: 'bg-white border'
+    color: 'bg-black border border-white/10'
   },
 ];
 
@@ -88,13 +88,13 @@ export const IntegrationsTab = ({ projectId }: IntegrationsTabProps) => {
   const fetchStatuses = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('integrations')
         .select('type, status')
         .eq('project_id', projectId);
       
-      if (data) {
-        const map = data.reduce((acc: Record<string, string>, curr) => ({ 
+      if (data && !error) {
+        const map = data.reduce((acc: Record<string, string>, curr: any) => ({ 
           ...acc, 
           [curr.type]: curr.status 
         }), {});

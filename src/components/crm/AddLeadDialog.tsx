@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { UserPlus, Loader2, Sparkles, UserCheck, Users } from 'lucide-react';
-import { supabase } from '@/lib/supabase-simplified';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -15,6 +15,7 @@ import { Switch } from '@/components/ui/switch';
 interface AddLeadDialogProps {
   projectId: string;
   onLeadAdded: () => void;
+  onDuplicateFound?: (lead: any) => void;
 }
 
 const sourceOptions = [
@@ -70,7 +71,7 @@ const validatePhone = (phone: string): boolean => {
   return digits.length === 11 && digits.startsWith('7');
 };
 
-export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
+export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddLeadDialogProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [phoneError, setPhoneError] = useState<string | null>(null);
@@ -108,7 +109,53 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
         }]);
       if (error) {
         console.error('SUPABASE ERROR:', error);
-        alert('Ошибка Supabase: ' + error.message);
+        if (error.code === '23505') {
+          // toast.error('Лид с таким номером телефона уже существует');
+          
+          if (onDuplicateFound) {
+            const { data: existingLead } = await (supabase as any)
+              .from('leads')
+              .select('*')
+              .eq('phone', values.phone)
+              .single();
+              
+            if (existingLead) {
+              toast.info('Лид с таким номером уже существует. Переход к карточке...', {
+                description: 'Мы открыли существующий лид для добавления информации.'
+              });
+              
+              // Optional: Update extra_data to log the duplicate attempt
+              const currentExtra = existingLead.extra_data || {};
+              const duplicates = Array.isArray(currentExtra.duplicates) ? currentExtra.duplicates : [];
+              
+              await (supabase as any)
+                .from('leads')
+                .update({
+                  extra_data: {
+                    ...currentExtra,
+                    duplicates: [
+                      ...duplicates,
+                      {
+                        attempted_at: new Date().toISOString(),
+                        source: values.source,
+                        name: values.name
+                      }
+                    ]
+                  }
+                })
+                .eq('id', existingLead.id);
+
+              onDuplicateFound(existingLead);
+              setOpen(false);
+              setFormData({ name: '', phone: '', source: 'manual' });
+              return;
+            }
+          } else {
+             toast.error('Лид с таким номером телефона уже существует');
+          }
+        } else {
+          toast.error('Ошибка создания лида: ' + error.message);
+        }
       } else {
         console.log('LEAD CREATED:', data);
         toast.success('Лид успешно создан!');
@@ -139,18 +186,18 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
           <span className="sm:hidden">Добавить</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md crm-card-glass border-primary/20">
+      <DialogContent className="sm:max-w-md bg-background border border-border/10 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 400 }}
-              className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center"
+              className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20"
             >
-              <Sparkles className="w-5 h-5 text-primary-foreground" />
+              <Sparkles className="w-5 h-5 text-primary" />
             </motion.div>
-            <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent font-bold">
+            <span className="text-foreground font-bold tracking-wide">
               Новый лид
             </span>
           </DialogTitle>
@@ -172,7 +219,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
             transition={{ delay: 0.1 }}
             className="space-y-2"
           >
-            <Label htmlFor="name" className="text-sm font-semibold text-foreground/80">
+            <Label htmlFor="name" className="text-sm font-semibold text-muted-foreground">
               Имя клиента
             </Label>
             <Input
@@ -180,7 +227,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Введите имя..."
-              className="h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20"
+              className="h-12 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </motion.div>
 
@@ -190,7 +237,7 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
             transition={{ delay: 0.15 }}
             className="space-y-2"
           >
-            <Label htmlFor="phone" className="text-sm font-semibold text-foreground/80">
+            <Label htmlFor="phone" className="text-sm font-semibold text-muted-foreground">
               Телефон
             </Label>
             <div className="space-y-1">
@@ -198,14 +245,14 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
                 id="phone"
                 value={formData.phone}
                 onChange={(e) => handlePhoneChange(e.target.value)}
-                placeholder="+7 (999) 123-45-67"
+                placeholder="+7 (999) 000-00-00"
                 className={cn(
-                  "h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20",
-                  phoneError && "border-destructive focus:border-destructive focus:ring-destructive/20"
+                  "h-12 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all",
+                  phoneError ? "border-destructive/50 focus:border-destructive focus:ring-destructive/20" : ""
                 )}
               />
               {phoneError && (
-                <p className="text-xs text-destructive">{phoneError}</p>
+                <p className="text-xs text-destructive pl-1">{phoneError}</p>
               )}
             </div>
           </motion.div>
@@ -216,20 +263,24 @@ export function AddLeadDialog({ projectId, onLeadAdded }: AddLeadDialogProps) {
             transition={{ delay: 0.2 }}
             className="space-y-2"
           >
-            <Label htmlFor="source" className="text-sm font-semibold text-foreground/80">
+            <Label htmlFor="source" className="text-sm font-semibold text-muted-foreground">
               Источник
             </Label>
             <Select
               value={formData.source}
               onValueChange={(value) => setFormData(prev => ({ ...prev, source: value }))}
             >
-              <SelectTrigger className="h-11 rounded-xl border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/20">
+              <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-border/50 text-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
                 <SelectValue placeholder="Выберите источник" />
               </SelectTrigger>
-              <SelectContent className="crm-card-glass border-border/50">
-                {sourceOptions.map((source) => (
-                  <SelectItem key={source.id} value={source.id}>
-                    {source.label}
+              <SelectContent className="bg-popover border-border text-popover-foreground">
+                {sourceOptions.map((option) => (
+                  <SelectItem 
+                    key={option.id} 
+                    value={option.id}
+                    className="focus:bg-accent focus:text-accent-foreground cursor-pointer"
+                  >
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>

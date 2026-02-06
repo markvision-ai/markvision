@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -27,13 +28,14 @@ import {
   Zap,
   Brain,
   MessageCircle,
-  ArrowUpRight
+  ArrowUpRight,
+  Terminal
 } from 'lucide-react';
 import { useAIRop, AIRopTask, AIRopAudit } from '@/hooks/useAIRop';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AIRopPageProps {
   projectId: string | null;
@@ -85,6 +87,7 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
   const configs: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactNode }> = {
     pending: { label: 'Ожидание', variant: 'secondary', icon: <Clock className="w-3 h-3" /> },
     processing: { label: 'Анализ...', variant: 'default', icon: <Loader2 className="w-3 h-3 animate-spin" /> },
+    in_progress: { label: 'Анализ...', variant: 'default', icon: <Loader2 className="w-3 h-3 animate-spin" /> },
     completed: { label: 'Завершено', variant: 'outline', icon: <CheckCircle2 className="w-3 h-3" /> },
     error: { label: 'Ошибка', variant: 'destructive', icon: <AlertCircle className="w-3 h-3" /> }
   };
@@ -104,21 +107,21 @@ const TaskCard = ({ task }: { task: AIRopTask }) => (
     <CardContent className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-foreground mb-2">{task.task_text}</p>
-          {task.status === 'processing' && (
+          <p className="text-sm text-foreground mb-2">{task.prompt}</p>
+          {task.status === 'in_progress' && (
             <div className="flex items-center gap-2 text-muted-foreground text-sm">
               <Loader2 className="w-4 h-4 animate-spin" />
               <span>ИИ анализирует систему...</span>
             </div>
           )}
-          {task.result && (
+          {task.response && (
             <div className="mt-3 p-3 bg-muted/30 rounded-lg">
-              <p className="text-sm text-foreground/90">{task.result}</p>
+              <p className="text-sm text-foreground/90">{task.response}</p>
             </div>
           )}
-          {task.error_message && (
+          {task.status === 'error' && (
             <div className="mt-3 p-3 bg-destructive/10 rounded-lg border border-destructive/20">
-              <p className="text-sm text-destructive">{task.error_message}</p>
+              <p className="text-sm text-destructive">Произошла ошибка при выполнении задачи</p>
             </div>
           )}
         </div>
@@ -295,7 +298,7 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
                 <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
                   <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
                     idx === 0 ? 'bg-yellow-500 text-yellow-950' :
-                    idx === 1 ? 'bg-gray-400 text-gray-950' :
+                    idx === 1 ? 'bg-slate-400 text-slate-950' :
                     idx === 2 ? 'bg-orange-500 text-orange-950' :
                     'bg-muted text-muted-foreground'
                   }`}>
@@ -320,30 +323,9 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
 };
 
 // Компонент рекомендаций по увеличению дохода
-const RevenueRecommendationsCard = () => {
-  const recommendations = [
-    {
-      icon: <Target className="w-5 h-5" />,
-      title: 'Увеличить бюджет на Google Ads',
-      description: 'При увеличении бюджета на 20% прогнозируется +35 лидов/месяц с текущим CPL',
-      impact: '+₸420,000 выручки',
-      color: 'text-blue-500'
-    },
-    {
-      icon: <Zap className="w-5 h-5" />,
-      title: 'Оптимизировать воронку записи',
-      description: 'Конверсия из диагностики в оплату ниже среднего. Рекомендуется доработать скрипт',
-      impact: '+15% конверсии',
-      color: 'text-yellow-500'
-    },
-    {
-      icon: <DollarSign className="w-5 h-5" />,
-      title: 'Добавить upsell на консультации',
-      description: 'Средний чек можно увеличить за счёт дополнительных услуг',
-      impact: '+₸8,000 к AOV',
-      color: 'text-green-500'
-    }
-  ];
+const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
+  const latestAudit = audits && audits.length > 0 ? audits[0] : null;
+  const growthPoints = latestAudit?.growth_points || [];
 
   return (
     <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
@@ -355,39 +337,66 @@ const RevenueRecommendationsCard = () => {
         <CardDescription>ИИ-анализ возможностей роста</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {recommendations.map((rec, idx) => (
-          <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
-            <div className={`shrink-0 ${rec.color}`}>{rec.icon}</div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-2">
-                <p className="text-sm font-medium">{rec.title}</p>
-                <Badge variant="secondary" className="shrink-0 text-xs">
-                  {rec.impact}
-                </Badge>
+        {growthPoints.length > 0 ? (
+          growthPoints.map((point, idx) => (
+            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
+              <div className="shrink-0 text-primary">
+                <Target className="w-5 h-5" />
               </div>
-              <p className="text-xs text-muted-foreground mt-1">{rec.description}</p>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium">{point}</p>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>Нет активных рекомендаций.</p>
+            <p className="text-xs mt-1">Запустите аудит для получения точек роста.</p>
           </div>
-        ))}
+        )}
       </CardContent>
     </Card>
   );
 };
 
+// Компонент терминального вывода
+const TerminalResponse = ({ text, isTyping }: { text: string; isTyping?: boolean }) => (
+  <div className="mt-4 rounded-lg bg-black p-4 font-mono text-sm text-green-400 border border-green-900 shadow-inner overflow-hidden">
+    <div className="flex items-center gap-2 border-b border-green-900/50 pb-2 mb-2">
+       <Terminal className="w-3 h-3" />
+       <span className="text-xs opacity-50">MARK_VISION_AI_CORE_V2.5</span>
+    </div>
+    <div className="whitespace-pre-wrap leading-relaxed">
+      {text || <span className="text-green-400/30">Ожидание ответа от ядра...</span>}
+      {isTyping && <span className="animate-pulse ml-1">_</span>}
+    </div>
+  </div>
+);
+
 // Компонент для добавления возражений в Марка
-const ObjectionsTrainerCard = () => {
+const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreateTask: (task: string) => Promise<any>, isSubmitting: boolean, tasks: AIRopTask[] }) => {
   const [objection, setObjection] = useState('');
   const [response, setResponse] = useState('');
-  const [saving, setSaving] = useState(false);
+  const [currentTaskId, setCurrentTaskId] = useState<string | null>(null);
+  const [localTask, setLocalTask] = useState<AIRopTask | null>(null);
+
+  // Use task from real-time list if available (for updates), otherwise fallback to local initial state
+  const activeTask = currentTaskId ? (tasks.find(t => t.id === currentTaskId) || localTask) : null;
 
   const handleSave = async () => {
-    if (!objection.trim() || !response.trim()) return;
-    setSaving(true);
-    // Симуляция сохранения
-    await new Promise(r => setTimeout(r, 1000));
-    setSaving(false);
-    setObjection('');
-    setResponse('');
+    if (!objection.trim()) return;
+    
+    // Формируем промпт согласно инструкции
+    let prompt = `Ты — ИИ РОП (Руководитель отдела продаж). Проанализируй это возражение клиента и напиши скрипт для менеджера, как его закрыть. Возражение: "${objection}"`;
+    if (response.trim()) {
+      prompt += `\n\nКонтекст (вариант менеджера): ${response}`;
+    }
+
+    const task = await onCreateTask(prompt);
+    if (task) {
+      setCurrentTaskId(task.id);
+      setLocalTask(task);
+    }
   };
 
   return (
@@ -397,7 +406,7 @@ const ObjectionsTrainerCard = () => {
           <MessageCircle className="w-5 h-5 text-primary" />
           <CardTitle className="text-lg">Обучение ИИ-Марка возражениям</CardTitle>
         </div>
-        <CardDescription>Добавьте возражение и ответ для обучения бота</CardDescription>
+        <CardDescription>Введите возражение, чтобы получить разбор от ИИ-РОПа</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -410,9 +419,9 @@ const ObjectionsTrainerCard = () => {
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm font-medium">Правильный ответ</label>
+          <label className="text-sm font-medium">Ваш вариант ответа (необязательно)</label>
           <Textarea
-            placeholder="Как Марк должен отвечать на это возражение..."
+            placeholder="Ваш вариант ответа для проверки..."
             value={response}
             onChange={(e) => setResponse(e.target.value)}
             className="min-h-[80px]"
@@ -420,12 +429,21 @@ const ObjectionsTrainerCard = () => {
         </div>
         <Button 
           onClick={handleSave} 
-          disabled={saving || !objection.trim() || !response.trim()}
+          disabled={isSubmitting || !objection.trim()}
           className="w-full gap-2"
         >
-          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
-          Добавить в базу знаний Марка
+          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+          Получить разбор от ИИ
         </Button>
+
+        {activeTask && (
+          <div className="animate-in fade-in slide-in-from-top-4 duration-500">
+            <TerminalResponse 
+              text={activeTask.response || ''} 
+              isTyping={['pending', 'in_progress', 'processing'].includes(activeTask.status)} 
+            />
+          </div>
+        )}
       </CardContent>
     </Card>
   );
@@ -596,12 +614,12 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
         {/* Recommendations Tab */}
         <TabsContent value="recommendations" className="mt-6">
-          <RevenueRecommendationsCard />
+          <RevenueRecommendationsCard audits={audits} />
         </TabsContent>
 
         {/* Training Tab */}
         <TabsContent value="training" className="mt-6">
-          <ObjectionsTrainerCard />
+          <ObjectionsTrainerCard onCreateTask={createTask} isSubmitting={submitting} tasks={tasks} />
         </TabsContent>
       </Tabs>
     </div>

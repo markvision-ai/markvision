@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format, startOfDay, endOfDay, subDays } from 'date-fns';
 

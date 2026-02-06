@@ -8,7 +8,7 @@ interface DailyData {
   spend: number;
   impressions: number;
   leads: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
   clicks?: number;
@@ -28,7 +28,7 @@ const formatCurrency = (value: number): string => {
 const metricLabels: Record<string, string> = {
   spend: 'Расходы',
   leads: 'Лиды',
-  diagnostics: 'Диагностики',
+  visits: 'Визиты',
   sales: 'Продажи',
   revenue: 'Выручка',
 };
@@ -70,20 +70,20 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
         displayDate: format(day, 'd MMM', { locale: ru }),
         spend: dayData?.spend || 0,
         leads: dayData?.leads || 0,
-        diagnostics: dayData?.diagnostics || 0,
+        visits: dayData?.visits || 0,
         sales: dayData?.sales || 0,
         revenue: dayData?.revenue || 0,
       };
-    }).filter(d => d.spend > 0 || d.leads > 0 || d.diagnostics > 0 || d.sales > 0 || d.revenue > 0);
+    }).filter(d => d.spend > 0 || d.leads > 0 || d.visits > 0 || d.sales > 0 || d.revenue > 0);
   }, [data, daysInMonth]);
 
   const totals = useMemo(() => {
     const spend = chartData.reduce((sum, d) => sum + d.spend, 0);
     const leads = chartData.reduce((sum, d) => sum + d.leads, 0);
-    const diagnostics = chartData.reduce((sum, d) => sum + d.diagnostics, 0);
+    const visits = chartData.reduce((sum, d) => sum + d.visits, 0);
     const sales = chartData.reduce((sum, d) => sum + d.sales, 0);
     const revenue = chartData.reduce((sum, d) => sum + d.revenue, 0);
-    return { spend, leads, diagnostics, sales, revenue };
+    return { spend, leads, visits, sales, revenue };
   }, [chartData]);
 
   if (chartData.length === 0) {
@@ -103,7 +103,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex-shrink-0">
           <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Динамика показателей</h3>
-          <p className="text-xs text-muted-foreground/70">Расходы • Лиды • Диагностики • Продажи • Выручка</p>
+          <p className="text-xs text-muted-foreground/70">Расходы • Лиды • Визиты • Продажи • Выручка</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <div className="min-w-0">
@@ -127,10 +127,10 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />
-              <span className="text-[10px] text-muted-foreground/70 font-medium">Диагностики</span>
+              <span className="text-[10px] text-muted-foreground/70 font-medium">Визиты</span>
             </div>
             <p className="text-sm font-semibold text-foreground truncate">
-              {new Intl.NumberFormat('ru-RU').format(totals.diagnostics)}
+              {new Intl.NumberFormat('ru-RU').format(totals.visits)}
             </p>
           </div>
           <div className="min-w-0">
@@ -167,7 +167,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                 <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity={0.4} />
                 <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity={0} />
               </linearGradient>
-              <linearGradient id="diagnosticsGradient" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="visitsGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="rgb(234, 179, 8)" stopOpacity={0.4} />
                 <stop offset="100%" stopColor="rgb(234, 179, 8)" stopOpacity={0} />
               </linearGradient>
@@ -214,10 +214,10 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             />
             <Area 
               type="monotone" 
-              dataKey="diagnostics" 
+              dataKey="visits" 
               stroke="rgb(234, 179, 8)" 
               strokeWidth={2}
-              fill="url(#diagnosticsGradient)"
+              fill="url(#visitsGradient)"
             />
             <Area 
               type="monotone" 

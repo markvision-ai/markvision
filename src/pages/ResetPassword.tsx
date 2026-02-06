@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BarChart3, Eye, EyeOff, Lock, Loader2, CheckCircle } from 'lucide-react';
+import { MarkVisionLogo } from '@/components/ui/MarkVisionLogo';
+import { Eye, EyeOff, Lock, Loader2, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export default function ResetPassword() {
@@ -89,11 +90,11 @@ export default function ResetPassword() {
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary mx-auto flex items-center justify-center mb-4">
-            <BarChart3 className="w-10 h-10 text-primary-foreground" />
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-4">
+            <MarkVisionLogo className="w-10 h-10" />
           </div>
-          <h1 className="text-2xl font-bold">AdMetrics</h1>
-          <p className="text-muted-foreground mt-1">Аналитика рекламы</p>
+          <h1 className="text-2xl font-bold">MarkVision AI</h1>
+          <p className="text-muted-foreground mt-1">Восстановление доступа</p>
         </div>
 
         {/* Form Card */}

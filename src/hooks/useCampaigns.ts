@@ -1,12 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface Campaign {
   id: string;
   project_id: string;
-  platform: 'facebook' | 'tiktok' | 'google';
-  external_id: string | null;
+  platform: 'facebook' | 'tiktok' | 'google' | 'instagram';
+  external_id?: string | null;
   name: string;
   status: boolean;
   budget: number;
@@ -26,26 +26,16 @@ export interface Campaign {
   updated_at: string;
 }
 
-// Select only needed fields for performance
-const CAMPAIGN_FIELDS = `
-  id,
-  project_id,
-  platform,
-  external_id,
-  name,
-  status,
-  budget,
-  spent_today,
-  autopilot_enabled,
-  rules,
-  ai_log,
-  created_at,
-  updated_at
-`;
+// Select all fields to avoid errors if specific columns are missing in DB
+const CAMPAIGN_FIELDS = '*';
 
 export function useCampaigns(projectId: string | null) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
+  const abortControllerRef = useCallback((controller: AbortController | null) => {
+    if (controller) controller.abort();
+  }, []);
+  const controllerRef = useState<{ current: AbortController | null }>({ current: null })[0];
 
   const fetchCampaigns = useCallback(async () => {
     if (!projectId) {
@@ -54,6 +44,13 @@ export function useCampaigns(projectId: string | null) {
       return;
     }
 
+    // Cancel previous request
+    if (controllerRef.current) {
+      controllerRef.current.abort();
+    }
+    controllerRef.current = new AbortController();
+    const signal = controllerRef.current.signal;
+
     setLoading(true);
     try {
       const { data, error } = await supabase
@@ -61,26 +58,48 @@ export function useCampaigns(projectId: string | null) {
         .select(CAMPAIGN_FIELDS)
         .eq('project_id', projectId)
         .order('created_at', { ascending: false })
-        .limit(100);
+        .limit(100)
+        .abortSignal(signal);
 
       if (error) throw error;
       
-      setCampaigns((data || []).map(c => ({
-        ...c,
-        platform: c.platform as 'facebook' | 'tiktok' | 'google',
+      const typedData = (data || []) as any[];
+      setCampaigns(typedData.map(c => ({
+        id: c.id,
+        project_id: c.project_id,
+        name: c.name,
+        created_at: c.created_at,
+        updated_at: c.updated_at,
+        // Safe defaults for potentially missing columns
+        platform: (c.platform || 'facebook') as 'facebook' | 'tiktok' | 'google' | 'instagram',
+        status: c.status ?? true,
+        budget: c.budget || 0,
+        spent_today: c.spent_today || 0,
+        autopilot_enabled: c.autopilot_enabled || false,
         rules: (c.rules || {}) as Campaign['rules'],
         ai_log: (c.ai_log || []) as Campaign['ai_log'],
+        external_id: c.external_id || null
       })));
-    } catch (error) {
+    } catch (error: any) {
+      if (error.name === 'AbortError' || error.message?.includes('AbortError')) {
+        return;
+      }
       console.error('Error fetching campaigns:', error);
       // Silently fail - table may not exist in external DB
     } finally {
-      setLoading(false);
+      if (!signal.aborted) {
+        setLoading(false);
+      }
     }
   }, [projectId]);
 
   useEffect(() => {
     fetchCampaigns();
+    return () => {
+      if (controllerRef.current) {
+        controllerRef.current.abort();
+      }
+    };
   }, [fetchCampaigns]);
 
   // Realtime subscription
@@ -101,7 +120,7 @@ export function useCampaigns(projectId: string | null) {
           if (payload.eventType === 'INSERT') {
             const newCampaign = {
               ...payload.new,
-              platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+              platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
               rules: (payload.new.rules || {}) as Campaign['rules'],
               ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
             } as Campaign;
@@ -112,7 +131,7 @@ export function useCampaigns(projectId: string | null) {
                 ? {
                     ...c,
                     ...payload.new,
-                    platform: payload.new.platform as 'facebook' | 'tiktok' | 'google',
+                    platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
                     rules: (payload.new.rules || {}) as Campaign['rules'],
                     ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
                   } as Campaign
@@ -162,15 +181,16 @@ export function useCampaigns(projectId: string | null) {
 
       if (error) throw error;
       
+      const typedData = data as any;
       setCampaigns(prev => [{
-        ...data,
-        platform: data.platform as 'facebook' | 'tiktok' | 'google',
-        rules: (data.rules || {}) as Campaign['rules'],
-        ai_log: (data.ai_log || []) as Campaign['ai_log'],
-      }, ...prev]);
+        ...typedData,
+        platform: (typedData.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
+        rules: (typedData.rules || {}) as Campaign['rules'],
+        ai_log: (typedData.ai_log || []) as Campaign['ai_log'],
+      } as Campaign, ...prev]);
       
       toast.success('Кампания создана');
-      return data;
+      return typedData;
     } catch (error) {
       console.error('Error creating campaign:', error);
       toast.error('Ошибка создания кампании');

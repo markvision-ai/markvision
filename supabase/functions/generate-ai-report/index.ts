@@ -138,7 +138,7 @@ serve(async (req) => {
 - Показы: ${totals.impressions.toLocaleString('ru-RU')}
 - Клики: ${totals.clicks.toLocaleString('ru-RU')}
 - Лиды: ${totals.leads.toLocaleString('ru-RU')}
-- Диагностики: ${totals.diagnostics.toLocaleString('ru-RU')}
+- Визиты: ${(totals.visits || 0).toLocaleString('ru-RU')}
 - Продажи: ${totals.sales.toLocaleString('ru-RU')}
 - Выручка: ${totals.revenue.toLocaleString('ru-RU')} ₸
 

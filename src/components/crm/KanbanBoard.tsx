@@ -13,12 +13,11 @@ import {
 import { Lead } from '@/hooks/useLeads';
 import { KanbanColumn } from './KanbanColumn';
 import { LeadCard } from './LeadCard';
-import { LeadFullPage } from './LeadFullPage';
 import { PaymentDialog } from './PaymentDialog';
 import { AppointmentDialog } from './AppointmentDialog';
 import { RejectionDialog } from './RejectionDialog';
 import { KanbanColumnSkeleton } from './KanbanColumnSkeleton';
-import { supabase } from '@/lib/supabase-simplified';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { logStatusChange } from '@/hooks/useLeadStatusHistory';
 import { sendStatusChangeWebhook } from '@/lib/webhooks';
@@ -34,23 +33,47 @@ export interface KanbanStatus {
 
 export const KANBAN_STATUSES: KanbanStatus[] = [
   { id: 'new', label: 'Новый лид' },
-  { id: 'invoiced', label: 'Счет выставлен' },
-  { id: 'paid', label: 'Оплачено', color: 'success' },
-  { id: 'appointment', label: 'Записан' },
-  // Optional/Legacy statuses
+  { id: 'no_answer', label: 'Без ответа' },
   { id: 'in_progress', label: 'В работе' },
-  { id: 'no_answer', label: 'Недозвон' },
+  { id: 'invoiced', label: 'Счет выставлен' },
+  { id: 'appointment', label: 'Записан' },
+  { id: 'paid', label: 'Оплачен', color: 'success' },
   { id: 'cancelled', label: 'Отказ', color: 'destructive' },
 ];
 
 const statusLabels: Record<string, string> = {
   new: 'Новый лид',
-  invoiced: 'Счет выставлен',
-  paid: 'Оплачено',
-  appointment: 'Записан',
+  no_answer: 'Без ответа',
   in_progress: 'В работе',
-  no_answer: 'Недозвон',
+  invoiced: 'Счет выставлен',
+  appointment: 'Записан',
+  paid: 'Оплачен',
   cancelled: 'Отказ',
+};
+
+const validateTransition = (currentStatusLabel: string, nextStatusId: string): boolean => {
+  // Find index of current status in KANBAN_STATUSES
+  const currentStatusId = Object.keys(statusLabels).find(key => statusLabels[key] === currentStatusLabel) || 'new';
+  const currentIndex = KANBAN_STATUSES.findIndex(s => s.id === currentStatusId);
+  const nextIndex = KANBAN_STATUSES.findIndex(s => s.id === nextStatusId);
+
+  // If status not found, block
+  if (currentIndex === -1 || nextIndex === -1) return false;
+
+  // Rule 1: Allow moving to "Rejected" (cancelled) from anywhere
+  if (nextStatusId === 'cancelled') return true;
+
+  // Rule 2: Allow staying in same column
+  if (currentIndex === nextIndex) return true;
+
+  // Rule 3: Allow moving back (regression)
+  if (nextIndex < currentIndex) return true;
+
+  // Rule 4: Allow moving forward ONLY by 1 step
+  if (nextIndex === currentIndex + 1) return true;
+
+  // Strict: Cannot skip stages forward
+  return false;
 };
 
 interface KanbanBoardProps {
@@ -62,6 +85,7 @@ interface KanbanBoardProps {
   selectedLeads?: Set<string>;
   onSelectLead?: (leadId: string, selected: boolean) => void;
   onSelectAllInColumn?: (statusId: string, selected: boolean) => void;
+  onLeadClick?: (lead: Lead) => void;
 }
 
 export const KanbanBoard = ({ 
@@ -72,12 +96,12 @@ export const KanbanBoard = ({
   selectionMode = false,
   selectedLeads = new Set(),
   onSelectLead,
-  onSelectAllInColumn
+  onSelectAllInColumn,
+  onLeadClick
 }: KanbanBoardProps) => {
   const { user } = useAuth();
   const [activeId, setActiveId] = useState<string | null>(null);
   const [overId, setOverId] = useState<string | null>(null);
-  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [paymentLead, setPaymentLead] = useState<Lead | null>(null);
   const [appointmentLead, setAppointmentLead] = useState<Lead | null>(null);
   const [rejectionLead, setRejectionLead] = useState<Lead | null>(null);
@@ -146,7 +170,14 @@ export const KanbanBoard = ({
 
     if (!lead || lead.status === newStatusLabel) return;
 
-    const oldStatus = lead.status || 'new';
+    const oldStatus = lead.status || 'Новый лид'; // Default label if missing
+
+    // Validate Transition
+    if (!validateTransition(oldStatus, newStatusId)) {
+      toast.error(`Нельзя перепрыгивать этапы воронки. Переход запрещен.`);
+      return;
+    }
+
     setPendingStatusChange({ leadId, oldStatus });
 
     // Handle special status transitions with modals
@@ -250,7 +281,7 @@ export const KanbanBoard = ({
       const { error } = await supabase
         .from('leads')
         .update({ 
-          status: 'Оплачено', 
+          status: 'Оплачен', 
           deal_amount: amount,
           updated_at: new Date().toISOString() 
         })
@@ -378,7 +409,7 @@ export const KanbanBoard = ({
               <KanbanColumn
                 status={status}
                 leads={leadsByStatus[status.id] || []}
-                onLeadClick={setSelectedLead}
+                onLeadClick={onLeadClick}
                 isDropTarget={overId === status.id}
                 selectionMode={selectionMode}
                 selectedLeads={selectedLeads}
@@ -394,10 +425,6 @@ export const KanbanBoard = ({
         <div className="fixed inset-0 bg-background/50 flex items-center justify-center z-50">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
-      )}
-
-      {selectedLead && (
-        <LeadFullPage lead={selectedLead} projectId={effectiveProjectId} onClose={() => setSelectedLead(null)} onUpdate={onRefetch} />
       )}
 
       {paymentLead && (

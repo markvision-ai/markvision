@@ -10,16 +10,19 @@ import {
   Wallet,
   TrendingUp,
   Loader2,
-  BarChart3
+  BarChart3,
+  Activity
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
-import { useSystemHealth } from '@/hooks/useSystemHealth';
+// System health check disabled (hook removed)
+// import { useSystemHealth } from '@/hooks/useSystemHealth';
+import { useTheme } from '@/hooks/useTheme';
 
 import { AppSidebar } from './AppSidebar';
 import { DraggableDashboard } from './dashboard/DraggableDashboard';
 import { Header } from './layout/Header';
-import { MetricCard } from './dashboard/MetricCard';
+import { PresetKey } from '@/components/dashboard/DateRangePicker';
 import { PlanFactCard } from './dashboard/PlanFactCard';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
@@ -27,13 +30,10 @@ import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { FunnelWidget } from './dashboard/FunnelWidget';
 import { AIAssistant } from './analytics/AIAssistant';
-import { WelcomeHero } from './dashboard/WelcomeHero';
-import { QuickActions } from './dashboard/QuickActions';
-import { ComputedMetricCard } from './dashboard/ComputedMetricCard';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
-import { useProjectData } from '@/hooks/useProjectData';
+import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
@@ -56,17 +56,18 @@ const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPa
 const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
 const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
 const ContentFactoryPage = lazy(() => import('./factory/ContentFactoryPage').then(m => ({ default: m.ContentFactoryPage })));
+const PublicationsPage = lazy(() => import('./content/PublicationsPage').then(m => ({ default: m.PublicationsPage })));
 const StaffManagement = lazy(() => import('./staff/StaffManagement').then(m => ({ default: m.StaffManagement })));
 const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => ({ default: m.KnowledgeBase })));
 const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
 const OmnichannelInbox = lazy(() => import('./inbox/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
 const LeadScoring = lazy(() => import('./scoring/LeadScoring').then(m => ({ default: m.LeadScoring })));
-const GamificationHub = lazy(() => import('./gamification/GamificationHub').then(m => ({ default: m.GamificationHub })));
+
 const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ default: m.ABOptimizer })));
 const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
 const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').then(m => ({ default: m.RealtimeDashboard })));
 const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ default: m.CalendarPage })));
-const DiagnosticsPage = lazy(() => import('./diagnostics/DiagnosticsPage').then(m => ({ default: m.DiagnosticsPage })));
+const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default: m.VisitsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 
@@ -77,27 +78,7 @@ const ModuleLoader = () => (
   </div>
 );
 
-interface DailyData {
-  date: string;
-  spend: number;
-  impressions: number;
-  clicks?: number;
-  leads: number;
-  followers: number;
-  diagnostics: number;
-  sales: number;
-  revenue: number;
-}
-
-interface PlanData {
-  spend: number;
-  impressions: number;
-  clicks: number;
-  leads: number;
-  diagnostics: number;
-  sales: number;
-  revenue: number;
-}
+// Removed duplicate interfaces
 
 interface DateRange {
   from: Date;
@@ -130,6 +111,7 @@ const formatNumber = (value: number): string => {
 };
 
 export const AnalyticsPlatform = () => {
+  const { theme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   
@@ -176,8 +158,8 @@ export const AnalyticsPlatform = () => {
   }, [location.pathname]);
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
-  const { dailyData, planData, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
-  const { hasErrors: systemHasErrors } = useSystemHealth(currentProjectId);
+  const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
+  const systemHasErrors = false; // System health check disabled
   
   // CRITICAL: Super admin UUID - bypass all loading states
   const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
@@ -195,6 +177,7 @@ export const AnalyticsPlatform = () => {
     await refetchProjects();
   }, [refetch, refetchProjects]);
 
+  const [activePreset, setActivePreset] = useState<PresetKey | 'custom'>('month');
   const [dateRange, setDateRange] = useState<DateRange>(() => ({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -208,23 +191,77 @@ export const AnalyticsPlatform = () => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
     const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
 
-    // Подписчики: берем последнее значение из выбранного диапазона
-    const followersSum = rangeData.length > 0 ? (rangeData[rangeData.length - 1].followers || 0) : 0;
+    // Get the latest available total followers count if exists
+    // 1. First check in the selected range
+    let latestFollowersTotal = rangeData
+      .slice()
+      .reverse()
+      .find(d => (d.followers_total || 0) > 0)?.followers_total;
+
+    // 2. If not found in range, look in the entire history up to the end of range
+    if (!latestFollowersTotal && rangeDays.length > 0) {
+      const lastRangeDate = rangeDays[rangeDays.length - 1];
+      const allDates = Object.keys(dailyData).sort();
+      const candidateDates = allDates.filter(d => d <= lastRangeDate);
+      
+      // Try to find explicit total first
+      for (let i = candidateDates.length - 1; i >= 0; i--) {
+        const d = dailyData[candidateDates[i]];
+        if ((d.followers_total || 0) > 0) {
+          latestFollowersTotal = d.followers_total;
+          break;
+        }
+      }
+
+      // 3. If still not found, calculate total by summing all 'followers' deltas up to lastRangeDate
+      // This handles cases where we only have deltas but no explicit totals
+      /* 
+       * DISABLED: Summing deltas is incorrect for "Total Followers" unless we have the full history from day 0.
+       * If we are missing the baseline (initial followers), this sum will only show the growth (e.g. 19), 
+       * which is confusing when labeled as "Total".
+       * Better to show 0 or wait for the backend to sync the real total.
+       *
+      if (!latestFollowersTotal) {
+        const calculatedTotal = candidateDates.reduce((sum, date) => {
+          return sum + (dailyData[date].followers || 0);
+        }, 0);
+        
+        if (calculatedTotal > 0) {
+          latestFollowersTotal = calculatedTotal;
+        }
+      }
+      */
+    }
+
+    const aggregated = rangeData.reduce(
+      (acc, day) => ({
+        spend: acc.spend + (day.spend || 0),
+        impressions: acc.impressions + (day.impressions || 0),
+        clicks: acc.clicks + (day.clicks || 0),
+        leads: acc.leads + (day.leads || 0),
+        followers: acc.followers + (day.followers || 0),
+        visits: acc.visits + (day.visits || 0),
+        sales: acc.sales + (day.sales || 0),
+        revenue: acc.revenue + (day.revenue || 0),
+      }),
+      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
+    );
+
+    // DEBUG: Log for followers issue
+    console.log('FOLLOWERS DEBUG:', {
+      range: daysInRange.length,
+      hasTotal: !!latestFollowersTotal,
+      latestTotal: latestFollowersTotal,
+      sumDeltas: aggregated.followers,
+      recordsWithTotal: rangeData.filter(d => (d.followers_total || 0) > 0).length
+    });
 
     return {
-      ...rangeData.reduce(
-        (acc, day) => ({
-          spend: acc.spend + (day.spend || 0),
-          impressions: acc.impressions + (day.impressions || 0),
-          clicks: acc.clicks + (day.clicks || 0),
-          leads: acc.leads + (day.leads || 0),
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
-          sales: acc.sales + (day.sales || 0),
-          revenue: acc.revenue + (day.revenue || 0),
-        }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, diagnostics: 0, sales: 0, revenue: 0 }
-      ),
-      followers: followersSum,
+      ...aggregated,
+      // FIX: If we have an explicit total, use it. Otherwise, fallback to sum of deltas (New Followers).
+      // The label logic below handles the distinction: "Подписчики" (Total) vs "Новые подписчики" (New/Delta).
+      followers: latestFollowersTotal || aggregated.followers,
+      isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, daysInRange]);
 
@@ -243,34 +280,56 @@ export const AnalyticsPlatform = () => {
     const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
     const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
 
-      const prevFollowers = prevData.length > 0 ? (prevData[prevData.length - 1].followers || 0) : 0;
+    // 1. First check in the selected range
+    let latestFollowersTotal = prevData
+      .slice()
+      .reverse()
+      .find(d => (d.followers_total || 0) > 0)?.followers_total;
+
+    // 2. If not found in range, look in the entire history up to the end of range
+    if (!latestFollowersTotal && prevDaysFormatted.length > 0) {
+      const lastRangeDate = prevDaysFormatted[prevDaysFormatted.length - 1];
+      const allDates = Object.keys(dailyData).sort();
+      const candidateDates = allDates.filter(d => d <= lastRangeDate);
+      
+      for (let i = candidateDates.length - 1; i >= 0; i--) {
+        const d = dailyData[candidateDates[i]];
+        if ((d.followers_total || 0) > 0) {
+          latestFollowersTotal = d.followers_total;
+          break;
+        }
+      }
+    }
+
+    const aggregated = prevData.reduce(
+      (acc, day) => ({
+        spend: acc.spend + (day.spend || 0),
+        impressions: acc.impressions + (day.impressions || 0),
+        clicks: acc.clicks + (day.clicks || 0),
+        leads: acc.leads + (day.leads || 0),
+        followers: acc.followers + (day.followers || 0),
+        visits: acc.visits + (day.visits || 0),
+        sales: acc.sales + (day.sales || 0),
+        revenue: acc.revenue + (day.revenue || 0),
+      }),
+      { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
+    );
 
     return {
-      ...prevData.reduce(
-        (acc, day) => ({
-          spend: acc.spend + (day.spend || 0),
-          impressions: acc.impressions + (day.impressions || 0),
-          clicks: acc.clicks + (day.clicks || 0),
-          leads: acc.leads + (day.leads || 0),
-          // followers calculated separately
-          followers: 0, 
-          diagnostics: acc.diagnostics + (day.diagnostics || 0),
-          sales: acc.sales + (day.sales || 0),
-          revenue: acc.revenue + (day.revenue || 0),
-        }),
-        { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, diagnostics: 0, sales: 0, revenue: 0 }
-      ),
-      followers: prevFollowers
+      ...aggregated,
+      // FIX: Consistent fallback
+      followers: latestFollowersTotal || aggregated.followers,
+      isTotalFollowers: !!latestFollowersTotal
     };
   }, [dailyData, dateRange]);
 
   // Computed metrics (возвращаем null при делении на 0)
   const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
+  const visitCost = totals.visits > 0 ? Math.round(totals.spend / totals.visits) : null; // Стоимость визита
   const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
-  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
+  const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null; // CR (Лид→Визит)
+  const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null; // CR (Визит→Продажа)
   
   // ROMI, Рентабельность, ROAS
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
@@ -279,19 +338,19 @@ export const AnalyticsPlatform = () => {
 
   const prevConversionRate = previousWeekTotals.leads > 0 ? (previousWeekTotals.sales / previousWeekTotals.leads) * 100 : 0;
 
-  const handleDataChange = (date: string, field: keyof DailyData, value: number) => {
+  const handleDataChange = useCallback((date: string, field: keyof DailyData, value: number) => {
     updateDailyData(date, field, value);
-  };
+  }, [updateDailyData]);
 
-  const handlePlanChange = (field: keyof PlanData, value: number) => {
-    updatePlanData(field, value);
-  };
+  const handlePlanChange = useCallback((field: keyof PlanData, value: number, month?: string) => {
+    updatePlanData(field, value, month);
+  }, [updatePlanData]);
 
   const funnelSteps = [
     { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
     { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-    { label: 'Диагностики', value: totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
     { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
   ];
 
@@ -302,7 +361,7 @@ export const AnalyticsPlatform = () => {
     { label: 'Клики', current: totals.clicks, previous: previousWeekTotals.clicks, format: 'number' as const },
     { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
     { label: 'Подписчики', current: totals.followers, previous: previousWeekTotals.followers, format: 'number' as const },
-    { label: 'Диагностики', current: totals.diagnostics, previous: previousWeekTotals.diagnostics, format: 'number' as const },
+    { label: 'Визиты', current: totals.visits, previous: previousWeekTotals.visits, format: 'number' as const },
     { label: 'Продажи', current: totals.sales, previous: previousWeekTotals.sales, format: 'number' as const },
     { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
   ];
@@ -314,6 +373,7 @@ export const AnalyticsPlatform = () => {
       case 'quantom-ads': return '🚀 Управление рекламой';
       case 'crm': return '🤝 CRM';
       case 'factory': return '🎬 Центр контента';
+      case 'publications': return '🚀 Публикации';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
       case 'reports': return '📄 Отчёты';
       case 'team': return '👥 Сотрудники и доступ';
@@ -324,13 +384,12 @@ export const AnalyticsPlatform = () => {
       case 'inbox': return '📬 Входящие';
       case 'finance': return '💰 Финансы и прибыль';
       case 'scoring': return '🔥 Рейтинг заявок';
-      case 'gamification': return '🏆 Мотивация';
       case 'ab-testing': return '🧪 A/B Оптимизатор';
       case 'knowledge': return '📚 База знаний';
       case 'health': return '🩺 Состояние системы';
       case 'realtime': return '⚡ Живая лента';
       case 'onboarding': return '🧭 Онбординг';
-      case 'diagnostics': return '📋 Диагностика';
+      case 'visits': return '📋 Визиты';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
       default: return 'Раздел в разработке';
@@ -354,25 +413,6 @@ export const AnalyticsPlatform = () => {
         <DraggableDashboard>
           {(registerWidget) => {
             // Register all widgets - the DraggableDashboard will render them in sorted order
-
-            // Welcome Hero - персонализированное приветствие с ключевыми KPI
-            registerWidget('welcome-hero', (
-              <WelcomeHero
-                userName={profile?.name}
-                keyMetrics={{
-                  revenue: totals.revenue,
-                  leads: totals.leads,
-                  romi: romi
-                }}
-                systemStatus={systemHasErrors ? 'error' : 'healthy'}
-              />
-            ));
-
-            // Quick Actions - быстрый доступ к модулям
-            registerWidget('quick-actions', (
-              <QuickActions onTabChange={handleTabChange} />
-            ));
-
             registerWidget('metrics', (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 stagger-children animate">
                 <PlanFactCard
@@ -400,7 +440,7 @@ export const AnalyticsPlatform = () => {
                   format="number"
                 />
                 <PlanFactCard
-                  label="Подписчики"
+                  label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
                   value={totals.followers}
                   plan={planData.followers}
                   fact={totals.followers}
@@ -408,10 +448,10 @@ export const AnalyticsPlatform = () => {
                   format="number"
                 />
                 <PlanFactCard
-                  label="Диагностики"
-                  value={totals.diagnostics}
-                  plan={planData.diagnostics}
-                  fact={totals.diagnostics}
+                  label="Визиты"
+                  value={totals.visits}
+                  plan={planData.visits}
+                  fact={totals.visits}
                   icon={<Target className="w-4 h-4 md:w-5 md:h-5" />}
                   format="number"
                 />
@@ -436,48 +476,127 @@ export const AnalyticsPlatform = () => {
 
             registerWidget('computed', (
               <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                <ComputedMetricCard
-                  label="Стоимость клиента"
-                  value={customerCost}
-                  icon={<ShoppingCart className="w-3 h-3" />}
-                  format="currency"
-                  subtitle="Расходы / продажи"
-                />
-                <ComputedMetricCard
-                  label="Стоимость диагностики"
-                  value={diagnosticCost}
-                  icon={<Target className="w-3 h-3" />}
-                  format="currency"
-                  subtitle="Расходы / диагностики"
-                />
-                <ComputedMetricCard
-                  label="Стоимость лида"
-                  value={leadCost}
-                  icon={<Users className="w-3 h-3" />}
-                  format="currency"
-                  subtitle="Расходы / лиды"
-                />
-                <ComputedMetricCard
-                  label="ROMI"
-                  value={romi}
-                  icon={<TrendingUp className="w-3 h-3" />}
-                  format="percent"
-                  subtitle="(Выручка - Расходы) / Расходы"
-                />
-                <ComputedMetricCard
-                  label="Рентабельность"
-                  value={profitability}
-                  icon={<BarChart3 className="w-3 h-3" />}
-                  format="percent"
-                  subtitle="(Выручка - Расходы) / Выручка"
-                />
-                <ComputedMetricCard
-                  label="ROAS"
-                  value={roas}
-                  icon={<DollarSign className="w-3 h-3" />}
-                  format="multiplier"
-                  subtitle="Выручка / Расходы"
-                />
+                {/* Стоимость клиента */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      Стоимость клиента
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <ShoppingCart className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {customerCost !== null ? formatCurrency(customerCost) : <span className="text-muted-foreground/50">—</span>}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {customerCost !== null ? 'Расход / Продажи' : 'Нет данных'}
+                  </div>
+                </div>
+
+                {/* Стоимость визита */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      Стоимость визита
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <Activity className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground/50">—</span>}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {visitCost !== null ? 'Расход / Визиты' : 'Нет данных'}
+                  </div>
+                </div>
+
+                {/* Стоимость лида (CPL) */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      Стоимость лида (CPL)
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <Users className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {leadCost !== null ? formatCurrency(leadCost) : <span className="text-muted-foreground/50">—</span>}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {leadCost !== null ? 'Расход / Лиды' : 'Нет данных'}
+                  </div>
+                </div>
+
+                {/* ROMI */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      ROMI
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <TrendingUp className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {romi !== null ? (
+                      <>
+                        {formatCR(romi).replace('%', '')}
+                        <span className="text-muted-foreground/70 text-base ml-0.5">%</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {romi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
+                  </div>
+                </div>
+
+                {/* Рентабельность */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      Рентабельность
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <BarChart3 className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {profitability !== null ? (
+                      <>
+                        {formatCR(profitability).replace('%', '')}
+                        <span className="text-muted-foreground/70 text-base ml-0.5">%</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground/50">—</span>
+                    )}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {profitability !== null ? '(Выручка - Расходы) / Выручка' : 'Нет данных'}
+                  </div>
+                </div>
+
+                {/* ROAS */}
+                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
+                  <div className="flex items-center justify-between gap-2 mb-1.5">
+                    <div className="text-xs font-medium text-muted-foreground leading-tight">
+                      ROAS
+                    </div>
+                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
+                      <DollarSign className="w-3 h-3" />
+                    </div>
+                  </div>
+                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
+                    {roas !== null ? formatROAS(roas) : <span className="text-muted-foreground/50">—</span>}
+                  </div>
+                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
+                    {roas !== null ? 'Выручка / Расходы' : 'Нет данных'}
+                  </div>
+                </div>
               </div>
             ));
 
@@ -506,20 +625,20 @@ export const AnalyticsPlatform = () => {
               ));
 
               registerWidget('ai-assistant', (
-                <AIAssistant
+                <AIAssistant 
+                  hideDashboard={true} 
                   context={{
                     spend: totals.spend,
                     impressions: totals.impressions,
                     clicks: totals.clicks,
                     leads: totals.leads,
-                    diagnostics: totals.diagnostics,
+                    visits: totals.visits,
                     sales: totals.sales,
                     revenue: totals.revenue,
-                    cpl: leadCost ?? undefined,
-                    cac: customerCost ?? undefined,
-                    romi: romi ?? undefined,
-                    projectId: currentProjectId,
-                  }}
+                    cpl: leadCost || 0,
+                    romi: romi || 0,
+                    projectId: currentProjectId
+                  }} 
                 />
               ));
             }
@@ -531,11 +650,12 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'table' && currentProjectId && (
         <DataTable 
-          dailyData={dailyData}
-          onDataChange={handleDataChange}
-          planData={planData}
-          onPlanChange={handlePlanChange}
-        />
+                dailyData={dailyData} 
+                onDataChange={handleDataChange}
+                planData={planData}
+                plansMap={plansMap}
+                onPlanChange={handlePlanChange}
+              />
       )}
 
       {activeTab === 'quantom-ads' && currentProjectId && (
@@ -547,6 +667,12 @@ export const AnalyticsPlatform = () => {
       {activeTab === 'factory' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />
+        </Suspense>
+      )}
+
+      {activeTab === 'publications' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <PublicationsPage />
         </Suspense>
       )}
 
@@ -572,11 +698,11 @@ export const AnalyticsPlatform = () => {
             planData,
             metrics: {
               customerCost: customerCost ?? 0,
-              diagnosticCost: diagnosticCost ?? 0,
+              visitCost: visitCost ?? 0,
               leadCost: leadCost ?? 0,
               impressionToLeadConv: impressionToLeadConv ?? 0,
-              leadToDiagnosticConv: leadToDiagnosticConv ?? 0,
-              diagnosticToSaleConv: diagnosticToSaleConv ?? 0,
+              leadToVisitConv: leadToVisitConv ?? 0,
+              visitToSaleConv: visitToSaleConv ?? 0,
               romi: romi ?? 0,
               profitability: profitability ?? 0,
               roas: roas ?? 0,
@@ -585,7 +711,7 @@ export const AnalyticsPlatform = () => {
               { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
               { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
               { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-              { label: 'Диагностики', value: totals.diagnostics, color: 'hsl(38, 92%, 50%)' },
+              { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
               { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
             ]
           }} />
@@ -640,11 +766,7 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'gamification' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <GamificationHub projectId={currentProjectId} />
-        </Suspense>
-      )}
+
 
       {activeTab === 'ab-testing' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
@@ -670,9 +792,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'diagnostics' && currentProjectId && (
+      {activeTab === 'visits' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <DiagnosticsPage projectId={currentProjectId} />
+          <VisitsPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -703,7 +825,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'gamification', 'ab-testing', 'knowledge', 'health', 'realtime', 'diagnostics', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
@@ -718,7 +840,7 @@ export const AnalyticsPlatform = () => {
   return (
     <DotPatternBackground>
       <SidebarProvider>
-        <div className="min-h-screen flex w-full relative">
+        <div className="h-screen overflow-hidden flex w-full relative bg-background">
 
         {/* Premium Animated Sidebar - Fixed left, sticky */}
         <AppSidebar 
@@ -756,6 +878,7 @@ export const AnalyticsPlatform = () => {
               subtitle={currentProject?.name}
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
+              onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
               showDatePicker={activeTab === 'dashboard'}
               onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
               projects={projectsList}

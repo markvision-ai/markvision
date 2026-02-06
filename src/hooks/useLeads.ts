@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase-simplified';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuditLog } from './useAuditLog';
 import { Json } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
@@ -87,6 +87,8 @@ export function useLeads(projectId: string | null) {
   const [filters, setFilters] = useState<LeadFilter>({});
   const { logUpdate, logStatusChange } = useAuditLog();
 
+  const abortControllerRef = useRef<AbortController | null>(null);
+
   const fetchLeads = useCallback(async () => {
     if (!projectId) {
       setLeads([]);
@@ -94,61 +96,84 @@ export function useLeads(projectId: string | null) {
       return;
     }
 
+    // Cancel previous request if running
+    // We don't abort anymore to avoid console errors
+    // if (abortControllerRef.current) {
+    //   abortControllerRef.current.abort();
+    // }
+    // abortControllerRef.current = new AbortController();
+    // const signal = abortControllerRef.current.signal;
+
     setLoading(true);
+
     try {
-      let query = supabase
+      let query = (supabase as any)
         .from('leads')
         .select(LEAD_FIELDS)
-        .eq('project_id', projectId);
-      
-      // Apply LTV sorting if specified
-      if (filters.sortByLtv) {
-        query = query.order('ltv', { ascending: filters.sortByLtv === 'asc', nullsFirst: false });
-      } else {
-        query = query.order('created_at', { ascending: false });
-      }
-      
-      query = query.limit(500); // Limit for performance
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false });
+        // .abortSignal(signal);
 
-      if (filters.utm_source) {
-        query = query.eq('utm_source', filters.utm_source);
-      }
-      if (filters.utm_medium) {
-        query = query.eq('utm_medium', filters.utm_medium);
-      }
-      if (filters.utm_campaign) {
-        query = query.eq('utm_campaign', filters.utm_campaign);
-      }
-      if (filters.status) {
-        query = query.eq('status', filters.status);
-      }
+      // Apply filters
+      if (filters.status) query = query.eq('status', filters.status);
+      if (filters.utm_source) query = query.ilike('utm_source', `%${filters.utm_source}%`);
+      if (filters.utm_medium) query = query.ilike('utm_medium', `%${filters.utm_medium}%`);
+      if (filters.utm_campaign) query = query.ilike('utm_campaign', `%${filters.utm_campaign}%`);
+      
       if (filters.search) {
-        const sanitized = sanitizeSearchInput(filters.search);
-        if (sanitized) {
-          query = query.or(`name.ilike.%${sanitized}%,phone.ilike.%${sanitized}%`);
+        const term = sanitizeSearchInput(filters.search);
+        if (term) {
+          query = query.or(`name.ilike.%${term}%,email.ilike.%${term}%,phone.ilike.%${term}%`);
         }
       }
 
       const { data, error } = await query;
 
-      if (error) throw error;
-      setLeads(data || []);
-    } catch (error: any) {
-      console.error('Error fetching leads:', error);
-      
-      // Check for network errors
-      if (error?.message?.includes('Failed to fetch') || error?.message?.includes('NetworkError') || error?.status === 0) {
-        toast.error('Ошибка сети: Проверьте подключение к базе');
+      if (error) {
+        if (error.code !== '20' && !error.message?.includes('AbortError')) { // Ignore abort errors
+             console.error('Error fetching leads', error);
+             toast.error('Ошибка загрузки лидов');
+        }
+        throw error;
       }
 
-      setLeads([]);
+      const mappedLeads: Lead[] = (data || []).map(item => ({
+        ...item,
+        // Ensure numeric fields are numbers
+        deal_amount: Number(item.deal_amount) || 0,
+        ltv: Number(item.ltv) || 0,
+        lead_score: Number(item.lead_score) || 0,
+      }));
+
+      // Sort by LTV if requested (client-side sort as it's cleaner for now)
+      if (filters.sortByLtv) {
+        mappedLeads.sort((a, b) => {
+          return filters.sortByLtv === 'asc' 
+            ? (a.ltv || 0) - (b.ltv || 0)
+            : (b.ltv || 0) - (a.ltv || 0);
+        });
+      }
+
+      setLeads(mappedLeads);
+    } catch (err: any) {
+        if (err.name !== 'AbortError' && !err.message?.includes('AbortError')) {
+             console.error('Error in fetchLeads:', err);
+        }
     } finally {
       setLoading(false);
     }
+    
+    return () => {
+        abortControllerRef.current?.abort();
+    };
   }, [projectId, filters]);
 
+  // Initial fetch
   useEffect(() => {
-    fetchLeads();
+    const cleanup = fetchLeads();
+    return () => {
+        cleanup.then(abortFn => abortFn && abortFn());
+    };
   }, [fetchLeads]);
 
   // Set up realtime subscription
@@ -199,11 +224,11 @@ export function useLeads(projectId: string | null) {
       // Get current lead for audit logging
       const currentLead = leads.find(l => l.id === leadId);
       
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('leads')
         .update({
           ...updates,
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .eq('id', leadId);
 

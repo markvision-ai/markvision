@@ -7,7 +7,6 @@ import {
   BarChart3
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -43,7 +42,7 @@ const sourceTypeColors: Record<string, string> = {
   video: 'bg-red-500',
   affiliate: 'bg-emerald-500',
   sms: 'bg-indigo-500',
-  other: 'bg-gray-500',
+  other: 'bg-slate-600',
 };
 
 const formatCurrency = (value: number): string => {
@@ -199,7 +198,7 @@ export const CustomerJourneyChart = ({ journeys }: CustomerJourneyChartProps) =>
                   <div key={index} className="flex items-center">
                     <div 
                       className={`px-3 py-1.5 rounded-lg text-sm font-medium text-white ${
-                        sourceTypeColors[tp.source] || 'bg-gray-500'
+                        sourceTypeColors[tp.source] || 'bg-slate-600'
                       }`}
                     >
                       {tp.channel}

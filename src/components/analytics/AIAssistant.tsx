@@ -1,20 +1,65 @@
-import { useState, useRef, useEffect } from 'react';
-import { Send, User, Trash2, Church, Loader2, Square, MessageSquare, TrendingUp, Lightbulb, Target } from 'lucide-react';
+import { useState, useRef, useEffect, forwardRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { 
+  Send, 
+  User, 
+  Trash2, 
+  Sparkles, 
+  TrendingUp, 
+  Target, 
+  Lightbulb, 
+  MessageSquare, 
+  BarChart3, 
+  ArrowUpRight, 
+  ArrowDownRight,
+  Maximize2,
+  RefreshCcw,
+  Bot,
+  Settings2,
+  Calendar as CalendarIcon,
+  Filter,
+  ChevronDown,
+  ChevronUp,
+  Terminal,
+  Cpu,
+  Activity,
+  Copy,
+  Check
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip as RechartsTooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 
 interface AIAssistantProps {
+  hideDashboard?: boolean;
   context?: {
     spend?: number;
     impressions?: number;
     clicks?: number;
     leads?: number;
-    diagnostics?: number;
+    visits?: number;
     sales?: number;
     revenue?: number;
     cpl?: number;
@@ -26,15 +71,393 @@ interface AIAssistantProps {
 }
 
 const suggestedQuestions = [
-  { text: 'Проанализируй мою воронку', icon: TrendingUp },
-  { text: 'Как улучшить конверсию?', icon: Target },
-  { text: 'Какие метрики требуют внимания?', icon: Lightbulb },
-  { text: 'Дай совет по бюджету', icon: MessageSquare },
+  { text: 'Проанализируй воронку продаж', icon: TrendingUp },
+  { text: 'Как снизить стоимость лида?', icon: Target },
+  { text: 'Прогноз на следующую неделю', icon: Lightbulb },
+  { text: 'Оптимизация бюджета', icon: BarChart3 },
 ];
 
-export const AIAssistant = ({ context }: AIAssistantProps) => {
+const useMarkStatus = () => {
+  const [isOnline, setIsOnline] = useState(false);
+
+  useEffect(() => {
+    const checkStatus = (lastSeenStr: string | null) => {
+      if (!lastSeenStr) {
+        setIsOnline(false);
+        return;
+      }
+      const lastSeen = new Date(lastSeenStr);
+      const now = new Date();
+      const diffSeconds = (now.getTime() - lastSeen.getTime()) / 1000;
+      setIsOnline(diffSeconds < 60);
+    };
+
+    const fetchStatus = async () => {
+      const { data } = await supabase
+        .from('system_status')
+        .select('last_seen')
+        .eq('id', 'mark-ai-worker')
+        .single();
+
+      if (data) {
+        checkStatus(data.last_seen);
+      }
+    };
+
+    fetchStatus();
+
+    // Subscribe to updates
+    const channel = supabase.channel('system_health_ai_worker')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'system_health',
+          filter: "service_name=eq.ai_worker"
+        },
+        (payload: any) => {
+          if (payload.new && payload.new.last_check_at) {
+            checkStatus(payload.new.last_check_at);
+          }
+        }
+      )
+      .subscribe();
+
+    // Periodic check to detect offline if no updates come in
+    const interval = setInterval(fetchStatus, 30000);
+
+    return () => {
+      supabase.removeChannel(channel);
+      clearInterval(interval);
+    };
+  }, []);
+
+  return isOnline;
+};
+
+export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps) => {
+  const isMarkOnline = useMarkStatus();
+  const [activeTab, setActiveTab] = useState(hideDashboard ? 'chat' : 'dashboard');
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [dateRange, setDateRange] = useState('7d');
+  const [visibleMetrics, setVisibleMetrics] = useState({
+    spend: true,
+    revenue: true,
+    romi: true,
+    cpl: true
+  });
+
+  // Force chat tab if hideDashboard is true
+  useEffect(() => {
+    if (hideDashboard) {
+      setActiveTab('chat');
+    }
+  }, [hideDashboard]);
+
+  // Default context if missing
+  const safeContext = {
+    ...context,
+    projectId: context?.projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa'
+  };
+
+  const data = {
+    spend: context?.spend || 0,
+    revenue: context?.revenue || 0,
+    impressions: context?.impressions || 0,
+    clicks: context?.clicks || 0,
+    leads: context?.leads || 0,
+    sales: context?.sales || 0,
+    romi: context?.romi || 0,
+    cpl: context?.cpl || 0,
+  };
+
+  const funnelData = [
+    { name: 'Показы', value: data.impressions, fill: '#60a5fa' }, // blue-400
+    { name: 'Клики', value: data.clicks, fill: '#818cf8' },      // indigo-400
+    { name: 'Лиды', value: data.leads, fill: '#a78bfa' },        // violet-400
+    { name: 'Продажи', value: data.sales, fill: '#c084fc' },     // purple-400
+  ];
+
+  const formatCurrency = (val: number) => 
+    new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(val);
+
+  return (
+    <div className={cn(
+      "transition-all duration-300 ease-in-out",
+      isExpanded ? "fixed inset-4 z-50 bg-background/95 backdrop-blur-xl rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
+    )}>
+      <div className="flex flex-col gap-6">
+        {/* Header Section */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-xl font-bold tracking-tight">AI Центр Аналитики</h2>
+                <Badge variant="outline" className={cn(
+                  "ml-2 transition-colors h-5 text-[10px] px-1.5",
+                  isMarkOnline ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                )}>
+                  Статус Марка: {isMarkOnline ? 'Online' : 'Offline'}
+                </Badge>
+              </div>
+              <p className="text-sm text-muted-foreground">Интеллектуальный анализ ваших показателей</p>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            {!hideDashboard && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-9 gap-2 hidden sm:flex">
+                    <Filter className="w-4 h-4" />
+                    <span className="hidden lg:inline">Фильтры</span>
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-80" align="end">
+                  <div className="grid gap-4">
+                    <div className="space-y-2">
+                      <h4 className="font-medium leading-none">Настройки отображения</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Настройте период и видимость метрик.
+                      </p>
+                    </div>
+                    <div className="grid gap-2">
+                      <div className="grid grid-cols-3 items-center gap-4">
+                        <Label htmlFor="date-range">Период</Label>
+                        <Select value={dateRange} onValueChange={setDateRange}>
+                          <SelectTrigger id="date-range" className="col-span-2 h-8">
+                            <SelectValue placeholder="Выберите период" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="24h">24 часа</SelectItem>
+                            <SelectItem value="7d">7 дней</SelectItem>
+                            <SelectItem value="30d">30 дней</SelectItem>
+                            <SelectItem value="90d">3 месяца</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2 mt-2">
+                        <Label>Метрики</Label>
+                        <div className="grid gap-2">
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-spend" className="text-sm font-normal">Расход</Label>
+                            <Switch 
+                              id="show-spend" 
+                              checked={visibleMetrics.spend}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, spend: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-revenue" className="text-sm font-normal">Выручка</Label>
+                            <Switch 
+                              id="show-revenue" 
+                              checked={visibleMetrics.revenue}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, revenue: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-romi" className="text-sm font-normal">ROMI</Label>
+                            <Switch 
+                              id="show-romi" 
+                              checked={visibleMetrics.romi}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, romi: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-cpl" className="text-sm font-normal">CPL</Label>
+                            <Switch 
+                              id="show-cpl" 
+                              checked={visibleMetrics.cpl}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, cpl: c }))}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            )}
+
+            {!hideDashboard && (
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="hidden sm:block">
+                <TabsList className="grid w-[200px] grid-cols-2">
+                  <TabsTrigger value="dashboard">Дашборд</TabsTrigger>
+                  <TabsTrigger value="chat">Чат</TabsTrigger>
+                </TabsList>
+              </Tabs>
+            )}
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="ml-2"
+            >
+              {isExpanded ? <ArrowDownRight className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[500px]">
+          
+          {/* LEFT COLUMN: Visualizations & Metrics */}
+          {!hideDashboard && (
+            <div className={cn(
+              "lg:col-span-2 space-y-6 flex flex-col",
+              activeTab === 'chat' && "hidden lg:flex" // Hide on mobile if chat tab active
+            )}>
+              
+              {/* KPI Cards */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {visibleMetrics.spend && (
+                  <MetricCard 
+                    title="Расход" 
+                    value={formatCurrency(data.spend)} 
+                    trend="+12%" 
+                    trendUp={false}
+                    icon={Target}
+                    color="text-red-500"
+                  />
+                )}
+                {visibleMetrics.revenue && (
+                  <MetricCard 
+                    title="Выручка" 
+                    value={formatCurrency(data.revenue)} 
+                    trend="+24%" 
+                    trendUp={true}
+                    icon={TrendingUp}
+                    color="text-green-500"
+                  />
+                )}
+                {visibleMetrics.romi && (
+                  <MetricCard 
+                    title="ROMI" 
+                    value={`${data.romi}%`} 
+                    trend="+5%" 
+                    trendUp={true}
+                    icon={BarChart3}
+                    color="text-blue-500"
+                  />
+                )}
+                {visibleMetrics.cpl && (
+                  <MetricCard 
+                    title="CPL" 
+                    value={formatCurrency(data.cpl)} 
+                    trend="-8%" 
+                    trendUp={true}
+                    icon={User}
+                    color="text-indigo-500"
+                  />
+                )}
+              </div>
+
+              {/* Main Chart */}
+              <Card className="flex-1 border-border/50 bg-card/50 backdrop-blur-sm shadow-sm">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <BarChart3 className="w-4 h-4 text-primary" />
+                    Воронка конверсии
+                  </CardTitle>
+                  <CardDescription>
+                    Визуализация прохождения пользователей по этапам
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="h-[300px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
+                      <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" opacity={0.5} />
+                      <XAxis type="number" hide />
+                      <YAxis 
+                        dataKey="name" 
+                        type="category" 
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} 
+                        width={60}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <RechartsTooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'hsl(var(--card))', 
+                          borderColor: 'hsl(var(--border))', 
+                          borderRadius: '8px',
+                          color: 'hsl(var(--foreground))'
+                        }}
+                        cursor={{ fill: 'hsl(var(--muted))', opacity: 0.2 }}
+                      />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={32}>
+                        {funnelData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </CardContent>
+              </Card>
+
+              {/* Insights Block */}
+              <Card className="border-border/50 bg-gradient-to-r from-indigo-500/5 to-purple-500/5">
+                <CardContent className="p-4 flex items-start gap-4">
+                  <div className="p-2 bg-primary/10 rounded-full mt-1">
+                    <Lightbulb className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-sm mb-1">AI-Инсайт дня</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Ваша конверсия из клика в лид выросла на 15% за последние 3 дня. 
+                      Рекомендуем увеличить бюджет на кампании с CTR выше 2%.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {/* RIGHT COLUMN: Chat Interface */}
+          <div className={cn(
+            "h-full min-h-[500px]",
+            hideDashboard ? "lg:col-span-3" : "lg:col-span-1",
+            activeTab === 'dashboard' && !hideDashboard && "hidden lg:block"
+          )}>
+            <ChatInterface context={safeContext} suggestedQuestions={suggestedQuestions} />
+          </div>
+
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// --- Subcomponents ---
+
+const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
+  <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+    <CardContent className="p-4">
+      <div className="flex justify-between items-start mb-2">
+        <div className={cn("p-1.5 rounded-lg bg-background border", color)}>
+          <Icon className="w-4 h-4" />
+        </div>
+        <Badge variant={trendUp ? "default" : "destructive"} className="text-[10px] px-1.5 h-5">
+          {trend}
+        </Badge>
+      </div>
+      <div className="space-y-1">
+        <p className="text-xs text-muted-foreground">{title}</p>
+        <p className="text-xl font-bold tracking-tight">{value}</p>
+      </div>
+    </CardContent>
+  </Card>
+);
+
+const ChatInterface = ({ context, suggestedQuestions }: any) => {
   const [input, setInput] = useState('');
-  const { messages, isLoading, sendMessage, clearChat, stopGeneration } = useAIChat();
+  const { messages, isLoading, sendMessage, clearChat } = useAIChat();
+  const isOnline = useMarkStatus();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,7 +472,6 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
-    
     const message = input.trim();
     setInput('');
     await sendMessage(message, context);
@@ -63,195 +485,340 @@ export const AIAssistant = ({ context }: AIAssistantProps) => {
     }
   };
 
-  const handleSuggestion = (question: string) => {
-    sendMessage(question, context);
-  };
-
-  const hasContext = context && (context.spend || context.revenue || context.leads);
-
   return (
-    <div className="group flex flex-col h-[320px] sm:h-[380px] bg-card/50 backdrop-blur-sm border border-border/40 hover:border-border/60 rounded-xl transition-all duration-200 overflow-hidden">
-      {/* Header - Compact style */}
-      <div className="relative z-10 flex-shrink-0 px-3 py-2 border-b border-border/40">
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
-              <Church className="w-3 h-3 text-amber-500" />
+    <Card className="h-full flex flex-col border-border/50 bg-card shadow-lg">
+      <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <Bot className="w-4 h-4 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-sm font-medium">AI Ассистент</CardTitle>
+            <div className="flex items-center gap-1.5">
+              <span className={cn("relative flex h-2 w-2")}>
+                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", isOnline ? "bg-green-400" : "bg-red-400")}></span>
+                <span className={cn("relative inline-flex rounded-full h-2 w-2", isOnline ? "bg-green-500" : "bg-red-500")}></span>
+              </span>
+              <CardDescription className="text-xs">{isOnline ? 'Online' : 'Offline'}</CardDescription>
             </div>
-            <div className="min-w-0">
-              <h3 className="text-xs font-semibold text-foreground truncate">
-                Святой AI аналитик
-              </h3>
-              {hasContext && (
-                <p className="text-[9px] text-muted-foreground/70 hidden sm:block">
-                  Анализирую метрики
+          </div>
+        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={clearChat} className="h-8 w-8 text-muted-foreground">
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Очистить чат</TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      </CardHeader>
+      
+      <CardContent className="flex-1 p-0 overflow-hidden relative">
+        <ScrollArea ref={scrollRef} className="h-full p-4">
+          {messages.length === 0 ? (
+            <div className="h-full flex flex-col items-center justify-center text-center p-4 space-y-6">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+                <Sparkles className="w-8 h-8 text-primary" />
+              </div>
+              <div className="space-y-2">
+                <h3 className="font-semibold">Чем могу помочь?</h3>
+                <p className="text-sm text-muted-foreground max-w-[200px] mx-auto">
+                  Я проанализировал ваши данные. Спросите меня о метриках или советах по оптимизации.
                 </p>
+              </div>
+              <div className="grid grid-cols-1 gap-2 w-full">
+                {suggestedQuestions.map((q: any, i: number) => (
+                  <Button
+                    key={i}
+                    variant="outline"
+                    className="justify-start h-auto py-3 px-4 text-left text-xs whitespace-normal"
+                    onClick={() => sendMessage(q.text, context)}
+                  >
+                    <q.icon className="w-3 h-3 mr-2 shrink-0 text-primary" />
+                    {q.text}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-4 pb-4">
+              <AnimatePresence mode="popLayout">
+                {messages.map((msg, index) => (
+                  <MessageBubble key={index} message={msg} />
+                ))}
+              </AnimatePresence>
+              {isLoading && (
+                <div className="flex items-center gap-3 p-4 bg-primary/5 rounded-xl border border-primary/10 animate-pulse">
+                  <div className="relative">
+                    <div className="w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
+                      <Cpu className="w-4 h-4 text-primary animate-spin-slow" />
+                    </div>
+                    <div className="absolute inset-0 bg-primary/30 rounded-full blur-md animate-pulse" />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm font-medium text-primary">Марк анализирует данные...</span>
+                    <span className="text-xs text-muted-foreground">Подключаюсь к Claude Code Bridge</span>
+                  </div>
+                </div>
               )}
             </div>
-          </div>
-          {messages.length > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={clearChat}
-              className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 h-7 w-7 p-0 flex-shrink-0 rounded-lg transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
           )}
-        </div>
-      </div>
+        </ScrollArea>
+      </CardContent>
 
-      {/* Messages Area */}
-      <ScrollArea ref={scrollRef} className="relative z-10 flex-1 px-3 py-2">
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="mb-4"
-            >
-              <div className="w-10 h-10 rounded-lg bg-amber-500/10 flex items-center justify-center mx-auto mb-2">
-                <Church className="w-5 h-5 text-amber-500" />
-              </div>
-              <h4 className="text-xs font-semibold text-foreground mb-1">
-                AI-аналитика
-              </h4>
-              <p className="text-[10px] text-muted-foreground/70 max-w-md">
-                Задайте вопрос о метриках
-              </p>
-            </motion.div>
-
-            {/* Suggested Questions - Compact buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 w-full max-w-lg">
-              {suggestedQuestions.map((q, index) => {
-                const Icon = q.icon;
-                return (
-                  <motion.button
-                    key={index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    onClick={() => handleSuggestion(q.text)}
-                    disabled={isLoading}
-                    className="group/btn bg-card/50 hover:bg-card border border-border/40 hover:border-border rounded-lg p-2 text-left transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Icon className="w-3 h-3 text-primary flex-shrink-0" />
-                      <span className="text-[10px] text-foreground/80 group-hover/btn:text-foreground transition-colors">
-                        {q.text}
-                      </span>
-                    </div>
-                  </motion.button>
-                );
-              })}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence>
-              {messages.map((msg, index) => (
-                <MessageBubble key={index} message={msg} />
-              ))}
-            </AnimatePresence>
-          </div>
-        )}
-      </ScrollArea>
-
-      {/* Input Area - Compact style */}
-      <div className="relative z-10 flex-shrink-0 px-3 py-2 border-t border-border/40">
-        <div className="flex gap-1.5">
+      <CardFooter className="p-3 border-t bg-muted/20">
+        <div className="relative w-full flex items-center gap-2">
           <Input
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Задайте вопрос..."
+            placeholder="Введите ваш вопрос..."
+            className="pr-10 bg-background"
             disabled={isLoading}
-            className="flex-1 text-[11px] h-7 bg-background/50 border-border/40"
           />
-          {isLoading ? (
-            <Button
-              onClick={stopGeneration}
-              size="icon"
-              variant="destructive"
-              className="flex-shrink-0 h-7 w-7"
-            >
-              <Square className="w-3 h-3" />
-            </Button>
-          ) : (
-            <Button
-              onClick={handleSend}
-              disabled={!input.trim()}
-              size="icon"
-              className="flex-shrink-0 h-7 w-7 disabled:opacity-50"
-            >
-              <Send className="w-3 h-3" />
-            </Button>
-          )}
+          <Button 
+            onClick={handleSend} 
+            disabled={!input.trim() || isLoading}
+            size="icon" 
+            className="absolute right-1 top-1 h-8 w-8 rounded-md"
+          >
+            <Send className="w-4 h-4" />
+          </Button>
         </div>
+      </CardFooter>
+    </Card>
+  );
+};
+
+const LogViewer = ({ logs }: { logs: string[] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  
+  if (!logs || logs.length === 0) return null;
+
+  return (
+    <div className="w-full mb-2">
+      <div 
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors w-fit"
+      >
+        <Terminal className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
+          System Logs ({logs.length})
+        </span>
+        {isOpen ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
       </div>
+      
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="overflow-hidden mt-2"
+          >
+            <div className="bg-[#1e1e1e] text-green-400 p-3 text-[10px] font-mono leading-relaxed rounded-lg shadow-inner max-h-[200px] overflow-y-auto border border-white/10">
+              {logs.map((log, i) => (
+                <div key={i} className="flex gap-2 border-b border-white/5 last:border-0 py-1">
+                  <span className="opacity-40 select-none text-gray-500">
+                    {String(i + 1).padStart(2, '0')}
+                  </span>
+                  <span className="break-all">{log}</span>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
 
-const MessageBubble = ({ message }: { message: ChatMessage }) => {
-  const isUser = message.role === 'user';
+const StatsCard = ({ data }: { data: any }) => {
+  const metrics = [
+    { label: 'Расход', value: data.spend, format: 'currency' },
+    { label: 'Лиды', value: data.leads, format: 'number' },
+    { label: 'CTR', value: data.ctr, format: 'percent' },
+    { label: 'Цена лида', value: data.cpl, format: 'currency' },
+    { label: 'ROMI', value: data.romi, format: 'percent' },
+    { label: 'Выручка', value: data.revenue, format: 'currency' }
+  ].filter(m => m.value !== undefined && m.value !== null);
+
+  if (metrics.length === 0) return null;
+
+  const formatValue = (val: number, type: string) => {
+    if (type === 'currency') return new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(val);
+    if (type === 'percent') return `${val}%`;
+    return val;
+  };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      className={cn('flex gap-2.5', isUser && 'flex-row-reverse')}
-    >
-      {/* Avatar */}
-      <div
-        className={cn(
-          'w-5 h-5 rounded-lg flex items-center justify-center flex-shrink-0',
-          isUser 
-            ? 'bg-primary/10' 
-            : 'bg-amber-500/10'
-        )}
-      >
-        {isUser ? (
-          <User className="w-2.5 h-2.5 text-primary" />
-        ) : (
-          <Church className="w-2.5 h-2.5 text-amber-500" />
-        )}
-      </div>
+    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
+      {metrics.map((m, i) => (
+        <div key={i} className="relative overflow-hidden group bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.1)] transition-all duration-300">
+           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
+           <span className="text-lg font-bold text-foreground drop-shadow-sm relative z-10">{formatValue(m.value, m.format)}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
 
-      {/* Bubble - compact style */}
-      <div
-        className={cn(
-          'rounded-lg px-2.5 py-1.5 max-w-[85%] text-[11px]',
-          isUser
-            ? 'bg-primary text-primary-foreground'
-            : 'bg-card border border-border/40 text-foreground'
-        )}
-      >
-        {isUser ? (
-          <p className="whitespace-pre-wrap">{message.content}</p>
-        ) : (
-          <div className="prose prose-xs dark:prose-invert max-w-none prose-p:my-0.5 prose-ul:my-0.5 prose-li:my-0.5 prose-headings:my-1">
-            <ReactMarkdown
-              components={{
-                p: ({ children }) => <p className="mb-1 last:mb-0 text-foreground/90">{children}</p>,
-                ul: ({ children }) => <ul className="list-disc pl-3 mb-1">{children}</ul>,
-                ol: ({ children }) => <ol className="list-decimal pl-3 mb-1">{children}</ol>,
-                li: ({ children }) => <li className="mb-0.5">{children}</li>,
-                strong: ({ children }) => <strong className="font-semibold text-foreground">{children}</strong>,
-                code: ({ children }) => <code className="bg-muted px-1 py-0.5 rounded text-[10px] text-primary">{children}</code>,
-              }}
-            >
-              {message.content || ''}
-            </ReactMarkdown>
-            {message.isStreaming && (
-              <span className="inline-block w-1.5 h-3 bg-amber-500/50 animate-pulse ml-0.5 rounded-sm" />
-            )}
-          </div>
-        )}
+const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => {
+  const [displayedText, setDisplayedText] = useState(isStreaming ? '' : text);
+  
+  useEffect(() => {
+    if (!isStreaming) {
+      setDisplayedText(text);
+      return;
+    }
+
+    if (displayedText === text) return;
+
+    if (text.length < displayedText.length) {
+       setDisplayedText(text);
+       return;
+    }
+
+    const timeout = setTimeout(() => {
+       setDisplayedText(text.slice(0, displayedText.length + 1));
+    }, speed);
+
+    return () => clearTimeout(timeout);
+  }, [text, displayedText, isStreaming, speed]);
+
+  return displayedText;
+};
+
+const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ message }, ref) => {
+  const isUser = message.role === 'user';
+  const [copied, setCopied] = useState(false);
+  
+  // Try parsing JSON content
+  let jsonContent = null;
+  let textContent = message.content;
+
+  try {
+    if (!isUser && message.content) {
+      // Check if pure JSON
+      if (message.content.trim().startsWith('{')) {
+         jsonContent = JSON.parse(message.content);
+         textContent = ""; // Hide raw JSON if successfully parsed
+      } 
+      // Check for JSON block
+      else if (message.content.includes('```json')) {
+         const match = message.content.match(/```json\n([\s\S]*?)\n```/);
+         if (match) {
+           jsonContent = JSON.parse(match[1]);
+           // Remove the JSON block from text content to avoid duplicate display
+           textContent = message.content.replace(match[0], '');
+         }
+      }
+    }
+  } catch (e) {
+    // ignore parse errors
+  }
+
+  // Apply typewriter effect to text content
+  const displayedText = useStreamTypewriter(textContent || '', !!message.isStreaming);
+
+  const handleCopy = () => {
+    const textToCopy = [
+      jsonContent ? `Метрики:\n${JSON.stringify(jsonContent, null, 2)}` : '',
+      textContent
+    ].filter(Boolean).join('\n\n');
+    
+    navigator.clipboard.writeText(textToCopy);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <motion.div
+      ref={ref}
+      initial={{ opacity: 0, y: 10, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.9 }}
+      className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}
+    >
+      {!isUser && message.logs && message.logs.length > 0 && (
+         <div className="pl-11 w-full max-w-[90%]">
+            <LogViewer logs={message.logs} />
+         </div>
+      )}
+
+      <div className={cn("flex gap-3 max-w-[90%]", isUser ? "flex-row-reverse" : "flex-row")}>
+        <div className={cn(
+          "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow-sm h-fit",
+          isUser ? "bg-background" : "bg-primary/10 border-primary/20"
+        )}>
+          {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary" />}
+        </div>
+        
+        <div className="flex flex-col gap-2 w-full">
+          {(isUser || textContent || jsonContent) && (
+            <div className={cn(
+              "rounded-2xl px-4 py-3 text-sm shadow-sm",
+              isUser 
+                ? "bg-primary text-primary-foreground rounded-tr-sm" 
+                : "bg-card border rounded-tl-sm"
+            )}>
+              {isUser ? (
+                <p className="whitespace-pre-wrap">{message.content}</p>
+              ) : (
+                <div className="prose prose-sm dark:prose-invert max-w-none">
+                  {jsonContent && (
+                    <div className="mb-4">
+                      <div className="flex items-center gap-2 mb-2 text-muted-foreground">
+                         <Activity className="w-4 h-4" />
+                         <span className="text-xs font-medium">Результаты анализа:</span>
+                      </div>
+                      <StatsCard data={jsonContent} />
+                    </div>
+                  )}
+                  
+                  {textContent && (
+                    <ReactMarkdown
+                      components={{
+                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-foreground mt-4 mb-2" {...props} />,
+                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-foreground mt-3 mb-2" {...props} />,
+                        ul: ({node, ...props}) => <ul className="list-none space-y-1 my-2 pl-0" {...props} />,
+                        li: ({node, ...props}) => (
+                          <li className="flex items-start gap-2 relative pl-4" {...props}>
+                            <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
+                            <span className="text-muted-foreground">{props.children}</span>
+                          </li>
+                        ),
+                        p: ({node, ...props}) => <p className="leading-relaxed mb-2 text-muted-foreground" {...props} />,
+                        strong: ({node, ...props}) => <strong className="font-semibold text-foreground" {...props} />,
+                      }}
+                    >
+                      {displayedText}
+                    </ReactMarkdown>
+                  )}
+                  
+                  <div className="mt-4 pt-2 border-t border-border/50 flex justify-end">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={handleCopy}
+                      className="text-[10px] text-muted-foreground hover:text-foreground gap-1.5 h-6 px-2"
+                    >
+                      {copied ? <Check className="w-3 h-3 text-green-500" /> : <Copy className="w-3 h-3" />}
+                      {copied ? 'Скопировано' : 'Скопировать отчет'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </motion.div>
   );
-};
+});
+
+MessageBubble.displayName = 'MessageBubble';

@@ -1,52 +1,59 @@
-import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // ЖЕСТКОЕ ПОДКЛЮЧЕНИЕ ВНЕШНЕЙ БАЗЫ (PYSCCZCU)
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Debug log as requested by user
-console.log('DEBUG: VITE_SUPABASE_URL:', SUPABASE_URL ? 'Defined' : 'Undefined', SUPABASE_URL);
+console.log('Supabase initialized with URL:', !!SUPABASE_URL);
 
 // Твой основной Project ID
 export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
-// Singleton pattern to prevent multiple GoTrueClient instances
-let supabaseInstance: SupabaseClient<Database> | null = null;
-
-function getSupabaseClient() {
-  if (!supabaseInstance) {
-    supabaseInstance = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        storage: window.localStorage,
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-      global: {
-        fetch: (url, options) => {
-          // Add connection log if not already logged
-          if (!window['__supabase_logged']) {
-            console.log('Connecting to Supabase at:', SUPABASE_URL);
-            window['__supabase_logged'] = true;
-          }
-          return fetch(url, {
-            ...options,
-            cache: 'no-store',
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: {
+    storage: window.localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+  },
+  global: {
+    fetch: (url, options) => {
+      // Add connection log if not already logged
+      if (!window['__supabase_logged'] && import.meta.env.DEV) {
+         console.log('Connecting to Supabase at:', SUPABASE_URL);
+         window['__supabase_logged'] = true;
+      }
+      return fetch(url, {
+        ...options,
+        // Removed explicit cache: 'no-store' to let browser/Supabase handle caching logic
+        // and avoid potential conflicts with browser extensions or service workers
+      }).catch(err => {
+        // Silently ignore AbortError to prevent console noise
+        if (err.name === 'AbortError' || err.message === 'The user aborted a request.') {
+          return new Response(JSON.stringify({ message: 'AbortError: Request aborted' }), { 
+            status: 499, 
+            statusText: 'Request Aborted',
+            headers: { 'Content-Type': 'application/json' }
           });
         }
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 10,
+        // Log other errors
+        if (err instanceof TypeError && err.message === 'Failed to fetch') {
+           console.warn('Supabase connection failed. This might be due to an AdBlocker or Network issue.');
+           // Don't log full error trace for common network failures
+        } else {
+           console.error('Supabase fetch error:', err);
         }
-      }
-    });
+        throw err;
+      });
+    }
+  },
+  realtime: {
+    params: {
+      eventsPerSecond: 10,
+    }
   }
-  return supabaseInstance;
-}
-
-export const supabase = getSupabaseClient();
+});
 
 // Управление Realtime подключением
 let reconnectAttempts = 0;
@@ -56,11 +63,11 @@ const channel = supabase.channel('leads-all');
 channel.subscribe((status) => {
   if (status === 'SUBSCRIBED') {
     reconnectAttempts = 0;
-    console.log('✅ Realtime: Connected to External Supabase');
+    if (import.meta.env.DEV) console.log('✅ Realtime: Connected to External Supabase');
   }
   if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
     reconnectAttempts++;
-    if (reconnectAttempts <= MAX_RECONNECT_LOG) {
+    if (reconnectAttempts <= MAX_RECONNECT_LOG && import.meta.env.DEV) {
       console.log(`⚠️ Realtime: Connection lost. Reconnecting to MarkVision DB... (attempt ${reconnectAttempts})`);
     }
     setTimeout(() => {
@@ -70,4 +77,4 @@ channel.subscribe((status) => {
 });
 
 // Лог для проверки в консоли браузера
-console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');
+// console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');

@@ -252,8 +252,8 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 mx-auto flex items-center justify-center mb-4">
                 <Building2 className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Как называется ваша клиника?</h2>
-              <p className="text-slate-500 mt-2">Это название будет отображаться в системе</p>
+              <h2 className="text-2xl font-bold text-foreground">Как называется ваша клиника?</h2>
+              <p className="text-muted-foreground mt-2">Это название будет отображаться в системе</p>
             </div>
             
             <div className="max-w-md mx-auto">
@@ -261,7 +261,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                 value={clinicName}
                 onChange={(e) => setClinicName(e.target.value)}
                 placeholder="Клиника «Здоровье»"
-                className="h-14 text-lg rounded-2xl text-center"
+                className="h-14 text-lg rounded-2xl text-center bg-background border-border"
               />
             </div>
           </motion.div>
@@ -279,21 +279,21 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-500 to-pink-600 mx-auto flex items-center justify-center mb-4">
                 <Megaphone className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Подключите рекламные площадки</h2>
-              <p className="text-slate-500 mt-2">Мы автоматически синхронизируем расходы и лиды</p>
+              <h2 className="text-2xl font-bold text-foreground">Подключите рекламные площадки</h2>
+              <p className="text-muted-foreground mt-2">Мы автоматически синхронизируем расходы и лиды</p>
             </div>
             
             <div className="max-w-lg mx-auto space-y-4">
               {/* Facebook */}
-              <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
+              <div className="bg-card/50 rounded-2xl p-4 border border-border">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-2xl">
                       📘
                     </div>
                     <div>
-                      <h3 className="font-semibold text-slate-900">Facebook & Instagram</h3>
-                      <p className="text-sm text-slate-500">Meta Business Suite</p>
+                      <h3 className="font-semibold text-foreground">Facebook & Instagram</h3>
+                      <p className="text-sm text-muted-foreground">Meta Business Suite</p>
                     </div>
                   </div>
                   <Button
@@ -314,14 +314,14 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               </div>
               
               {/* Google */}
-              <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
+              <div className="bg-card/50 rounded-2xl p-4 border border-border">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 via-green-500 to-yellow-500 flex items-center justify-center text-white text-2xl">
                     🔍
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">Google Ads</h3>
-                    <p className="text-sm text-slate-500">Введите API токен</p>
+                    <h3 className="font-semibold text-foreground">Google Ads</h3>
+                    <p className="text-sm text-muted-foreground">Введите API токен</p>
                   </div>
                 </div>
                 <Input
@@ -331,19 +331,19 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     google: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl"
+                  className="rounded-xl bg-background border-border"
                 />
               </div>
               
               {/* TikTok */}
-              <div className="bg-slate-50 rounded-2xl p-4 border-2 border-slate-100">
+              <div className="bg-card/50 rounded-2xl p-4 border border-border">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white text-2xl">
                     🎵
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">TikTok Ads</h3>
-                    <p className="text-sm text-slate-500">Введите API токен</p>
+                    <h3 className="font-semibold text-foreground">TikTok Ads</h3>
+                    <p className="text-sm text-muted-foreground">Введите API токен</p>
                   </div>
                 </div>
                 <Input
@@ -353,7 +353,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     tiktok: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl"
+                  className="rounded-xl bg-background border-border"
                 />
               </div>
             </div>
@@ -372,25 +372,25 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 mx-auto flex items-center justify-center mb-4">
                 <MessageCircle className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Настройте WhatsApp</h2>
-              <p className="text-slate-500 mt-2">Ваш ИИ-бот Марк будет общаться здесь</p>
+              <h2 className="text-2xl font-bold text-foreground">Настройте WhatsApp</h2>
+              <p className="text-muted-foreground mt-2">Ваш ИИ-бот Марк будет общаться здесь</p>
             </div>
             
             <div className="max-w-md mx-auto space-y-4">
-              <div className="bg-green-50 rounded-2xl p-6 border-2 border-green-100">
+              <div className="bg-card/50 rounded-2xl p-6 border border-border">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white text-2xl">
                     💬
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">GreenAPI</h3>
-                    <p className="text-sm text-slate-500">Подключение WhatsApp Business</p>
+                    <h3 className="font-semibold text-foreground">GreenAPI</h3>
+                    <p className="text-sm text-muted-foreground">Подключение WhatsApp Business</p>
                   </div>
                 </div>
                 
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1 block">Instance ID</label>
+                    <label className="text-sm font-medium text-muted-foreground mb-1 block">Instance ID</label>
                     <Input
                       value={whatsappConfig.instanceId}
                       onChange={(e) => setWhatsappConfig({
@@ -398,11 +398,11 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                         instanceId: e.target.value
                       })}
                       placeholder="1101234567"
-                      className="rounded-xl"
+                      className="rounded-xl bg-background border-border"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-slate-700 mb-1 block">Token</label>
+                    <label className="text-sm font-medium text-muted-foreground mb-1 block">Token</label>
                     <Input
                       value={whatsappConfig.token}
                       onChange={(e) => setWhatsappConfig({
@@ -411,14 +411,14 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                       })}
                       placeholder="abc123def456..."
                       type="password"
-                      className="rounded-xl"
+                      className="rounded-xl bg-background border-border"
                     />
                   </div>
                 </div>
               </div>
               
-              <p className="text-center text-sm text-slate-500">
-                Получите данные на <a href="https://green-api.com" target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline">green-api.com</a>
+              <p className="text-center text-sm text-muted-foreground">
+                Получите данные на <a href="https://green-api.com" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:underline">green-api.com</a>
               </p>
             </div>
           </motion.div>
@@ -436,8 +436,8 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-violet-500 to-purple-600 mx-auto flex items-center justify-center mb-4">
                 <Users className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Добавьте вашу команду</h2>
-              <p className="text-slate-500 mt-2">Менеджеры, которые будут работать с лидами</p>
+              <h2 className="text-2xl font-bold text-foreground">Добавьте вашу команду</h2>
+              <p className="text-muted-foreground mt-2">Менеджеры, которые будут работать с лидами</p>
             </div>
             
             <div className="max-w-md mx-auto space-y-3">
@@ -447,12 +447,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     value={member.name}
                     onChange={(e) => updateStaffMember(index, 'name', e.target.value)}
                     placeholder="Имя менеджера"
-                    className="rounded-xl flex-1"
+                    className="rounded-xl flex-1 bg-background border-border"
                   />
                   <select
                     value={member.position}
                     onChange={(e) => updateStaffMember(index, 'position', e.target.value)}
-                    className="h-10 px-3 rounded-xl border bg-white text-slate-900"
+                    className="h-10 px-3 rounded-xl border border-border bg-background text-foreground"
                   >
                     <option value="Менеджер">Менеджер</option>
                     <option value="Администратор">Администратор</option>
@@ -464,9 +464,9 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     size="icon"
                     onClick={() => removeStaffMember(index)}
                     disabled={staffMembers.length === 1}
-                    className="shrink-0"
+                    className="shrink-0 text-muted-foreground hover:text-foreground"
                   >
-                    <Trash2 className="w-4 h-4 text-slate-400" />
+                    <Trash2 className="w-4 h-4" />
                   </Button>
                 </div>
               ))}
@@ -474,7 +474,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <Button
                 variant="outline"
                 onClick={addStaffMember}
-                className="w-full rounded-xl border-dashed"
+                className="w-full rounded-xl border-dashed border-border text-muted-foreground hover:text-foreground"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Добавить менеджера
@@ -495,8 +495,8 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-cyan-500 to-blue-600 mx-auto flex items-center justify-center mb-4">
                 <Brain className="w-10 h-10 text-white" />
               </div>
-              <h2 className="text-2xl font-bold text-slate-900">Обучите вашего ИИ-ассистента</h2>
-              <p className="text-slate-500 mt-2">Расскажите о вашем продукте, ценах и скриптах</p>
+              <h2 className="text-2xl font-bold text-foreground">Обучите вашего ИИ-ассистента</h2>
+              <p className="text-muted-foreground mt-2">Расскажите о вашем продукте, ценах и скриптах</p>
             </div>
             
             <div className="max-w-2xl mx-auto">
@@ -515,11 +515,11 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 📝 Скрипт продаж:
 1. Поприветствовать клиента
 2. Уточнить проблему
-3. Предложить бесплатную диагностику
+3. Предложить бесплатный визит
 4. Записать на удобное время`}
-                className="min-h-[300px] rounded-2xl text-base"
+                className="min-h-[300px] rounded-2xl text-base bg-background border-border"
               />
-              <p className="text-sm text-slate-500 mt-2 text-center">
+              <p className="text-sm text-muted-foreground mt-2 text-center">
                 Чем больше информации вы предоставите, тем умнее будет ваш ИИ
               </p>
             </div>
@@ -532,22 +532,22 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-3xl bg-white rounded-3xl shadow-2xl overflow-hidden"
+        className="w-full max-w-3xl bg-card rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-border/10"
       >
         {/* Header */}
-        <div className="p-6 border-b bg-gradient-to-r from-slate-50 to-slate-100">
+        <div className="p-6 border-b border-border bg-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                 <Sparkles className="w-5 h-5 text-white" />
               </div>
-              <span className="font-bold text-slate-900">MarkVision AI</span>
+              <span className="font-bold text-foreground">MarkVision AI</span>
             </div>
-            <span className="text-sm text-slate-500">
+            <span className="text-sm text-muted-foreground">
               Шаг {currentStep} из {STEPS.length}
             </span>
           </div>
@@ -564,11 +564,11 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                 <div
                   key={step.id}
                   className={`flex flex-col items-center gap-1 ${
-                    isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-slate-300'
+                    isActive ? 'text-blue-400' : isCompleted ? 'text-green-400' : 'text-muted-foreground/40'
                   }`}
                 >
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    isActive ? 'bg-blue-100' : isCompleted ? 'bg-green-100' : 'bg-slate-100'
+                    isActive ? 'bg-blue-500/20' : isCompleted ? 'bg-green-500/20' : 'bg-muted'
                   }`}>
                     {isCompleted ? (
                       <CheckCircle2 className="w-4 h-4" />
@@ -591,7 +591,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
         </div>
         
         {/* Footer */}
-        <div className="p-6 border-t bg-slate-50 flex justify-between">
+        <div className="p-6 border-t bg-muted/10 flex justify-between">
           <Button
             variant="ghost"
             onClick={handleBack}

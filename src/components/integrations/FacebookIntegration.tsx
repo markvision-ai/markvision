@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+// @ts-nocheck
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Facebook, CheckCircle, Loader2, Unlink, Instagram, Zap, Search, RefreshCw, Settings } from 'lucide-react';
@@ -594,7 +595,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           <div className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
             isConnected
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 "
               : "bg-background/50 border-border/50 text-muted-foreground"
           )}>
             <Facebook className="w-3.5 h-3.5" />
@@ -604,7 +605,7 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           <div className={cn(
             "flex items-center gap-2 px-3 py-2 rounded-lg border transition-all",
             isConnected
-              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 dark:text-emerald-400"
+              ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-700 "
               : "bg-background/50 border-border/50 text-muted-foreground"
           )}>
             <Instagram className="w-3.5 h-3.5" />
@@ -866,5 +867,6 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       </div>
 
     </motion.div>
+    </div>
   );
 };

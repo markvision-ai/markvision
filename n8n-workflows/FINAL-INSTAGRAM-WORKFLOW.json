@@ -162,6 +162,52 @@
     },
     {
       "parameters": {
+        "method": "POST",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/daily_data",
+        "authentication": "none",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB5c2NjemN1ZXJzZGp2cG1raWVjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Authorization",
+              "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjY1ODI4NSwiZXhwIjoyMDgyMjM0Mjg1fQ.oLXVUjT7oB163L4rsS9XMHwe43THPPKyJLU-LgnnIuE"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "jsonBody",
+              "value": "={{ JSON.stringify({\n  project_id: $('🧮 Агрегировать данные').first().json.project_id,\n  date: $('🧮 Агрегировать данные').first().json.period_end,\n  followers_total: $('🧮 Агрегировать данные').first().json.followers,\n  revenue: $('🧮 Агрегировать данные').first().json.revenue,\n  sales: $('🧮 Агрегировать данные').first().json.sales,\n  diagnostics: $('🧮 Агрегировать данные').first().json.diagnostics\n}) }}"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000,
+          "alwaysOutputData": true
+        }
+      },
+      "id": "save-daily-data",
+      "name": "💾 Сохранить в daily_data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1780, 500]
+    },
+    {
+      "parameters": {
         "jsCode": "const saveResult = $('💾 Сохранить статистику').first().json;\nconst data = $('🧮 Агрегировать данные').first().json;\n\nconst success = saveResult.statusCode >= 200 && saveResult.statusCode < 300;\n\nconsole.log(`\\n=== РЕЗУЛЬТАТ СОХРАНЕНИЯ ===`);\nconsole.log(`📊 Статус: ${success ? '✅ УСПЕХ' : '❌ ОШИБКА'}`);\nconsole.log(`📅 Период: ${data.period_start} - ${data.period_end}`);\nconsole.log(`📈 Метрики сохранены в content_production_stats`);\n\nif (success) {\n  console.log(`\\n🎉 Автоматическая агрегация Instagram данных завершена!`);\n} else {\n  console.log(`\\n❌ Ошибка сохранения: ${JSON.stringify(saveResult, null, 2)}`);\n}\n\nreturn { json: { success: success, ...data } };"
       },
       "id": "final-log",
@@ -209,17 +255,6 @@
       "main": [
         [
           {
-            "node": "🔍 Обработать посты",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "🔍 Обработать посты": {
-      "main": [
-        [
-          {
             "node": "👥 Получить подписчиков",
             "type": "main",
             "index": 0
@@ -228,6 +263,17 @@
       ]
     },
     "👥 Получить подписчиков": {
+      "main": [
+        [
+          {
+            "node": "🔍 Обработать посты",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Обработать посты": {
       "main": [
         [
           {
@@ -242,14 +288,25 @@
       "main": [
         [
           {
-            "node": "💾 Сохранить статистику",
+            "node": "save-stats",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "💾 Сохранить статистику": {
+    "save-stats": {
+      "main": [
+        [
+          {
+            "node": "save-daily-data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "save-daily-data": {
       "main": [
         [
           {

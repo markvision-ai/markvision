@@ -22,12 +22,12 @@ export const ModuleCard = ({ number, title, description, icon, delay = 0 }: Modu
           <span className="text-4xl">{icon}</span>
           <div className="flex-1">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-bold text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                 {number}
               </span>
-              <h3 className="font-bold text-slate-900">{title}</h3>
+              <h3 className="font-bold text-foreground">{title}</h3>
             </div>
-            <p className="text-sm text-slate-600 leading-relaxed">{description}</p>
+            <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
           </div>
         </div>
       </BackgroundGradient>

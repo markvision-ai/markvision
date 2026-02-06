@@ -1,7 +1,18 @@
-import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, addMonths, subMonths } from 'date-fns';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { 
+  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
+  subMonths, addMonths
+} from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Download, Target, Loader2, ShoppingCart, Users, TrendingUp } from 'lucide-react';
+import { 
+  Download, Target, Loader2, 
+  ShoppingCart, Users, TrendingUp,
+  ChevronLeft, ChevronRight
+} from 'lucide-react';
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { SummaryCard } from './SummaryCard';
 
 interface DailyData {
   date: string;
@@ -10,7 +21,7 @@ interface DailyData {
   clicks: number;
   leads: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -21,7 +32,7 @@ interface PlanData {
   clicks: number;
   leads: number;
   followers: number;
-  diagnostics: number;
+  visits: number;
   sales: number;
   revenue: number;
 }
@@ -58,7 +69,8 @@ interface DataTableProps {
   dailyData: Record<string, DailyData>;
   onDataChange: (date: string, field: keyof DailyData, value: number) => void;
   planData?: PlanData;
-  onPlanChange?: (field: keyof PlanData, value: number) => void;
+  plansMap?: Record<string, PlanData>;
+  onPlanChange?: (field: keyof PlanData, value: number, month?: string) => void;
 }
 
 // Editable cell component that only saves on blur
@@ -125,72 +137,99 @@ const EditableCell = ({
   );
 };
 
-export const DataTable = ({
+
+
+
+
+export const DataTable = React.memo(({
   dailyData,
   onDataChange,
   planData,
+  plansMap,
   onPlanChange
 }: DataTableProps) => {
-  const [currentMonth, setCurrentMonth] = useState(new Date());
-  const monthStart = startOfMonth(currentMonth);
-  const monthEnd = endOfMonth(currentMonth);
-  const daysInMonth = eachDayOfInterval({
-    start: monthStart,
-    end: monthEnd
+  const [dateRange, setDateRange] = useState<DateRange | undefined>({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date()),
   });
 
-  const totals = useMemo(() => {
-    const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
-    const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
-    
-    // Debug logging for subscribers sum
-    console.log('DataTable debug:', {
-      monthDaysCount: monthDays.length,
-      monthDataCount: monthData.length,
-      followersValues: monthData.map(d => d.followers),
-      followersSum: monthData.reduce((sum, day) => sum + (day.followers || 0), 0)
-    });
 
-    // Для подписчиков берем последнее известное значение (так как это накопительная метрика)
-    // Если это "Новые подписчики", то надо суммировать. Но обычно поле followers хранит общее кол-во.
-    // Проверим: если сумма больше 1000 и кол-во дней > 1, вероятно это Total.
-    // Но для надежности берем последнее непустое значение.
-    const lastFollowersValue = [...monthData].reverse().find(d => (d.followers || 0) > 0)?.followers || 0;
+
+  const daysInRange = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return [];
+    try {
+      return eachDayOfInterval({
+        start: dateRange.from,
+        end: dateRange.to
+      });
+    } catch (e) {
+      return [];
+    }
+  }, [dateRange]);
+
+
+  const handlePrevMonth = () => {
+    if (!dateRange?.from) return;
+    const prevMonth = subMonths(dateRange.from, 1);
+    setDateRange({ from: startOfMonth(prevMonth), to: endOfMonth(prevMonth) });
+  };
+
+  const handleNextMonth = () => {
+    if (!dateRange?.from) return;
+    const nextMonth = addMonths(dateRange.from, 1);
+    setDateRange({ from: startOfMonth(nextMonth), to: endOfMonth(nextMonth) });
+  };
+
+
+  const totals = useMemo(() => {
+    const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
+    const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
     
     return {
-      spend: monthData.reduce((sum, day) => sum + (day.spend || 0), 0),
-      impressions: monthData.reduce((sum, day) => sum + (day.impressions || 0), 0),
-      clicks: monthData.reduce((sum, day) => sum + (day.clicks || 0), 0),
-      leads: monthData.reduce((sum, day) => sum + (day.leads || 0), 0),
-      followers: lastFollowersValue, // Исправлено: берем последнее значение вместо суммы
-      diagnostics: monthData.reduce((sum, day) => sum + (day.diagnostics || 0), 0),
-      sales: monthData.reduce((sum, day) => sum + (day.sales || 0), 0),
-      revenue: monthData.reduce((sum, day) => sum + (day.revenue || 0), 0)
+      spend: rangeData.reduce((sum, day) => sum + (day.spend || 0), 0),
+      impressions: rangeData.reduce((sum, day) => sum + (day.impressions || 0), 0),
+      clicks: rangeData.reduce((sum, day) => sum + (day.clicks || 0), 0),
+      leads: rangeData.reduce((sum, day) => sum + (day.leads || 0), 0),
+      followers: rangeData.reduce((sum, day) => sum + (day.followers || 0), 0),
+      visits: rangeData.reduce((sum, day) => sum + (day.visits || 0), 0),
+      sales: rangeData.reduce((sum, day) => sum + (day.sales || 0), 0),
+      revenue: rangeData.reduce((sum, day) => sum + (day.revenue || 0), 0)
     };
-  }, [dailyData, daysInMonth]);
+  }, [dailyData, daysInRange]);
 
-  // Calculated metrics (возвращаем null при делении на 0)
-  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null; // Стоимость клиента
-  const diagnosticCost = totals.diagnostics > 0 ? Math.round(totals.spend / totals.diagnostics) : null; // Стоимость диагностики
-  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null; // Стоимость лида (CPL)
-  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
-  const leadToDiagnosticConv = totals.leads > 0 ? (totals.diagnostics / totals.leads) * 100 : null; // CR (Лид→Диагностика)
-  const diagnosticToSaleConv = totals.diagnostics > 0 ? (totals.sales / totals.diagnostics) * 100 : null; // CR (Диагностика→Продажа)
-  const ctr = totals.impressions > 0 ? Math.round(totals.clicks / totals.impressions * 100) : 0; // Округлено до целого
-  const cpm = totals.impressions > 0 ? Math.round(totals.spend / totals.impressions * 1000) : 0;
+  // Определяем, какой план показывать
+  // Логика: Если выбранный диапазон начинается в определенном месяце, показываем план этого месяца.
+  const effectivePlanData = useMemo(() => {
+    if (!dateRange?.from) return planData;
+
+    if (plansMap) {
+      const monthKey = format(startOfMonth(dateRange.from), 'yyyy-MM-dd');
+      return plansMap[monthKey] || null;
+    }
+    
+    return planData;
+  }, [plansMap, dateRange, planData]);
+
+  // Calculated metrics
+  const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null;
+  const visitCost = totals.visits > 0 ? Math.round(totals.spend / totals.visits) : null;
+  const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null;
+  const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null;
+  const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null;
+  const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null;
   
-  // Calculate average revenue for heatmap
+  // Average revenue for heatmap
   const averageRevenue = useMemo(() => {
-    const monthDays = daysInMonth.map(d => format(d, 'yyyy-MM-dd'));
-    const monthData = monthDays.map(date => dailyData[date]).filter(Boolean);
-    if (monthData.length === 0) return 0;
-    const totalRevenue = monthData.reduce((sum, day) => sum + (day.revenue || 0), 0);
-    return totalRevenue / monthData.length;
-  }, [dailyData, daysInMonth]);
+    const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
+    const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
+    if (rangeData.length === 0) return 0;
+    const totalRevenue = rangeData.reduce((sum, day) => sum + (day.revenue || 0), 0);
+    return totalRevenue / rangeData.length;
+  }, [dailyData, daysInRange]);
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Диагностики', 'Продажи', 'Выручка'];
-    const rows = daysInMonth.map(day => {
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Визиты', 'Продажи', 'Выручка'];
+    const rows = daysInRange.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
       const dayClicks = data?.clicks || 0;
@@ -210,7 +249,7 @@ export const DataTable = ({
         dayLeads, 
         dayFollowers, 
         dayCpl, 
-        data?.diagnostics || 0, 
+        data?.visits || 0, 
         data?.sales || 0, 
         data?.revenue || 0,
       ].join(',');
@@ -222,7 +261,7 @@ export const DataTable = ({
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `analytics_${format(currentMonth, 'yyyy-MM')}.csv`;
+    link.download = `analytics_${dateRange?.from ? format(dateRange.from, 'yyyy-MM-dd') : 'export'}.csv`;
     link.click();
   };
 
@@ -230,192 +269,146 @@ export const DataTable = ({
     <div className="space-y-3 md:space-y-4">
       {/* Calculated Metrics Bar */}
       <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-        {/* Стоимость клиента */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              Стоимость клиента
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <ShoppingCart className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {customerCost !== null ? formatCurrency(customerCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* Стоимость диагностики */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              Стоимость диагностики
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <Target className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {diagnosticCost !== null ? formatCurrency(diagnosticCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {diagnosticCost !== null ? 'Расходы / диагностики' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* Стоимость лида */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              Стоимость лида
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <Users className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {leadCost !== null ? formatCurrency(leadCost) : <span className="text-slate-400">—</span>}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Показы→Лид) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              CR (Показы→Лид)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <TrendingUp className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {impressionToLeadConv !== null ? (
+        <SummaryCard
+          title="Стоимость клиента"
+          icon={ShoppingCart}
+          value={customerCost !== null ? formatCurrency(customerCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="Стоимость визита"
+          icon={Target}
+          value={visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="Стоимость лида"
+          icon={Users}
+          value={leadCost !== null ? formatCurrency(leadCost) : <span className="text-muted-foreground">—</span>}
+          subtitle={leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="CR (Показы→Лид)"
+          icon={TrendingUp}
+          value={impressionToLeadConv !== null ? (
+            <>
+              {formatCR(impressionToLeadConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
+        />
+        <SummaryCard
+            title="CR (Лид→Визит)"
+            icon={Target}
+            value={leadToVisitConv !== null ? (
               <>
-                {formatCR(impressionToLeadConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
+                {formatCR(leadToVisitConv).replace('%', '')}
+                <span className="text-muted-foreground">%</span>
               </>
             ) : (
-              <span className="text-slate-400">—</span>
+              <span className="text-muted-foreground">—</span>
             )}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Лид→Диагностика) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              CR (Лид→Диагностика)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <Target className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {leadToDiagnosticConv !== null ? (
+            subtitle={leadToVisitConv !== null ? 'Визиты / лиды' : 'Нет данных'}
+          />
+          <SummaryCard
+            title="CR (Визит→Продажа)"
+            icon={ShoppingCart}
+            value={visitToSaleConv !== null ? (
               <>
-                {formatCR(leadToDiagnosticConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
+                {formatCR(visitToSaleConv).replace('%', '')}
+                <span className="text-muted-foreground">%</span>
               </>
             ) : (
-              <span className="text-slate-400">—</span>
+              <span className="text-muted-foreground">—</span>
             )}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {leadToDiagnosticConv !== null ? 'Диагностики / лиды' : 'Нет данных'}
-          </div>
-        </div>
-
-        {/* CR (Диагностика→Продажа) */}
-        <div className="rounded-xl border border-slate-200/70 dark:border-slate-800 bg-white/70 dark:bg-slate-900/60 backdrop-blur p-3 shadow-sm hover:shadow-md transition">
-          <div className="flex items-center justify-between gap-2 mb-1.5">
-            <div className="text-xs font-medium text-slate-700 dark:text-slate-400 leading-tight">
-              CR (Диагностика→Продажа)
-            </div>
-            <div className="h-6 w-6 rounded-lg bg-slate-900/5 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-400 flex-shrink-0">
-              <ShoppingCart className="w-3 h-3" />
-            </div>
-          </div>
-          <div className="text-xl font-semibold tracking-tight text-slate-900 dark:text-slate-100 mb-1">
-            {diagnosticToSaleConv !== null ? (
-              <>
-                {formatCR(diagnosticToSaleConv).replace('%', '')}
-                <span className="text-slate-400">%</span>
-              </>
-            ) : (
-              <span className="text-slate-400">—</span>
-            )}
-          </div>
-          <div className="text-[10px] text-slate-500 leading-tight">
-            {diagnosticToSaleConv !== null ? 'Продажи / диагностики' : 'Нет данных'}
-          </div>
-        </div>
+            subtitle={visitToSaleConv !== null ? 'Продажи / визиты' : 'Нет данных'}
+          />
       </div>
 
       <div className="bg-card border rounded-xl">
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 md:p-4 border-b gap-2">
-          <div className="flex items-center gap-1 md:gap-2">
-            <button onClick={() => setCurrentMonth(prev => subMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
-            <h2 className="text-sm md:text-lg font-semibold capitalize min-w-[120px] md:min-w-[180px] text-center">
-              {format(currentMonth, 'LLLL yyyy', { locale: ru })}
-            </h2>
-            <button onClick={() => setCurrentMonth(prev => addMonths(prev, 1))} className="p-1.5 md:p-2 hover:bg-secondary rounded-lg transition-colors">
-              <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-            </button>
+        {/* Header with Date Range Selection */}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
+          
+          {/* Controls Container */}
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handlePrevMonth}
+              className="h-8 w-8"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            
+            <div className="text-sm font-medium capitalize min-w-[120px] text-center">
+              {dateRange?.from ? format(dateRange.from, 'LLLL yyyy', { locale: ru }) : ''}
+            </div>
+            
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={handleNextMonth}
+              className="h-8 w-8"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
           </div>
           
-          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm">
+          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
             <Download className="w-3 h-3 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Экспорт CSV</span>
           </button>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto data-table scrollbar-thin -mx-px">
-          <table className="w-full text-xs md:text-sm">
-            <thead className="sticky top-0 z-10">
-              <tr className="border-b bg-secondary/50 backdrop-blur-sm">
-                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 sticky left-0 bg-secondary/50 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-20">Дата</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[80px] md:min-w-[100px]">Диагностики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90 dark:text-foreground/95 min-w-[90px] md:min-w-[120px]">Выручка</th>
+        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
+          <table className="w-full text-xs md:text-sm border-collapse">
+            <thead className="sticky top-0 z-50 shadow-md bg-background">
+              <tr className="border-b bg-secondary/95 backdrop-blur-sm">
+                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90  sticky left-0 bg-secondary/95 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Визиты</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
               {/* Plan Row - editable at top */}
-              {planData && (
-                <tr className="bg-primary/10 font-semibold border-b border-primary/20">
-                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-10 flex items-center gap-1 md:gap-2">
+              {effectivePlanData && (
+                <tr className="bg-primary/10 font-semibold border-b border-primary/20 backdrop-blur-sm">
+                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-30 flex items-center gap-1 md:gap-2 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
-                    <span>ПЛАН</span>
+                    <div className="flex flex-col">
+                      <span>ПЛАН</span>
+                      {dateRange?.from && (
+                        <span className="text-[10px] text-primary/70 font-normal">
+                          {format(dateRange.from, 'LLLL', { locale: ru })}
+                        </span>
+                      )}
+                    </div>
                   </td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => (
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => (
                     <td key={field} className="p-1 md:p-2">
                       {onPlanChange ? (
                         <EditableCell
-                          value={planData[field]}
-                          onSave={(val) => onPlanChange(field, val)}
+                          value={effectivePlanData[field]}
+                          onSave={(val) => {
+                             // Pass the specific month key for the update
+                             const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
+                             onPlanChange(field, val, monthKey);
+                          }}
                           className="w-full text-right bg-primary/5 border border-primary/20 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm font-semibold"
                         />
                       ) : (
                         <span className="block text-right px-1.5 md:px-3 py-1.5 md:py-2">
-                          {field === 'spend' || field === 'revenue' ? formatCurrency(planData[field]) : formatNumber(planData[field])}
+                          {field === 'spend' || field === 'revenue' ? formatCurrency(effectivePlanData[field]) : formatNumber(effectivePlanData[field])}
                         </span>
                       )}
                     </td>
@@ -424,35 +417,35 @@ export const DataTable = ({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-secondary font-semibold">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-10">ФАКТ</td>
-                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
+              <tr className="bg-secondary/95 backdrop-blur-sm font-semibold border-b border-border/50">
+                <td className="p-2 md:p-4 sticky left-0 bg-secondary/95 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.followers)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.visits)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right text-emerald-600">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
-              {planData && (
-                <tr className="bg-muted/50 border-b border-border">
-                  <td className="p-2 md:p-4 sticky left-0 bg-muted/50 backdrop-blur-sm z-10 text-foreground/80 dark:text-foreground/90 text-sm md:text-base font-semibold">% выполн.</td>
-                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
+              {effectivePlanData && (
+                <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+                  <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80  text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
+                  {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
-                    const plan = planData[field];
+                    const plan = effectivePlanData[field];
                     
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     // Heatmap colors: >= 100% - bright green, 80-99% - yellow, < 80% - soft red
                     let colorClass = '';
                     if (field === 'spend') {
                       // For spend, <= 100% is good
-                      colorClass = percent <= 100 ? 'text-emerald-600 dark:text-emerald-400' : percent <= 120 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500/80 dark:text-red-400/80';
+                      colorClass = percent <= 100 ? 'text-emerald-600' : percent <= 120 ? 'text-yellow-600' : 'text-red-500/80'
                     } else {
                       // For other metrics, >= 100% is good
-                      colorClass = percent >= 100 ? 'text-emerald-600 dark:text-emerald-400' : percent >= 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-500/80 dark:text-red-400/80';
+                      colorClass = percent >= 100 ? 'text-emerald-600' : percent >= 80 ? 'text-yellow-600' : 'text-red-500/80'
                     }
                     return (
                       <td key={field} className={`p-2 md:p-4 text-right font-medium ${colorClass}`}>
@@ -462,9 +455,8 @@ export const DataTable = ({
                   })}
                 </tr>
               )}
-
               {/* Daily data rows */}
-              {daysInMonth.map(day => {
+              {daysInRange.map(day => {
                 const dateKey = format(day, 'yyyy-MM-dd');
                 const weekDay = getWeekDay(day);
                 const isWeekend = weekDay >= 5;
@@ -476,52 +468,115 @@ export const DataTable = ({
                 return (
                   <tr 
                     key={dateKey} 
-                    className={`border-b hover:bg-foreground/[0.05] transition-colors ${isWeekend ? 'bg-secondary/20' : ''} ${isToday ? 'ring-1 ring-primary/30' : ''}`}
+                    className={cn(
+                      "border-b border-border/40 hover:bg-muted/30 transition-colors",
+                      isToday && "bg-primary/5",
+                      isWeekend && "bg-muted/10"
+                    )}
                   >
-                    <td className={`p-2 md:p-3 sticky left-0 backdrop-blur-sm z-10 ${isWeekend ? 'bg-secondary/20' : 'bg-card'} ${isToday ? 'ring-1 ring-primary/30' : ''}`}>
-                      <div className="flex items-center gap-1 md:gap-2">
-                        <span className={`text-xs md:text-sm px-1.5 md:px-2 py-0.5 md:py-1 rounded font-semibold ${isWeekend ? 'bg-muted text-foreground/70 dark:text-foreground/80' : 'bg-primary/10 text-primary'}`}>
+                    <td className={cn(
+                      "p-2 md:p-3 sticky left-0 z-20 backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
+                      isToday ? "bg-primary/5" : isWeekend ? "bg-muted/10" : "bg-card"
+                    )}>
+                      <div className="flex flex-col">
+                        <span className={cn(
+                          "font-medium",
+                          isToday && "text-primary"
+                        )}>
+                          {format(day, 'dd')}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground uppercase">
                           {WEEKDAYS[weekDay]}
                         </span>
-                        <span className={`font-semibold text-sm md:text-base ${isToday ? 'text-primary' : 'text-foreground'}`}>{format(day, 'd')}</span>
-                        {isToday && <span className="text-xs md:text-sm text-primary font-medium hidden sm:inline">(сегодня)</span>}
                       </div>
                     </td>
-                    {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'diagnostics', 'sales', 'revenue'] as const).map(field => {
-                      const isRevenueCell = field === 'revenue';
-                      return (
-                        <td 
-                          key={field} 
-                          className={`p-1 md:p-2 ${isRevenueCell && isRevenueAboveAverage ? 'bg-blue-500/10 dark:bg-blue-500/10' : ''}`}
-                        >
-                          <EditableCell
-                            value={dayData?.[field] as number | undefined}
-                            onSave={(val) => onDataChange(dateKey, field, val)}
-                            className="w-full text-right bg-transparent border border-transparent hover:border-border focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm"
-                          />
-                      </td>
-                    );
-                  })}
+                    <td className="p-2 md:p-3 text-right text-foreground">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.spend}
+                          onSave={(val) => onDataChange(dateKey, 'spend', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                        />
+                      ) : formatCurrency(dayData?.spend || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.impressions}
+                          onSave={(val) => onDataChange(dateKey, 'impressions', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                        />
+                      ) : formatNumber(dayData?.impressions || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.clicks}
+                          onSave={(val) => onDataChange(dateKey, 'clicks', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                        />
+                      ) : formatNumber(dayData?.clicks || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground font-medium">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.leads}
+                          onSave={(val) => onDataChange(dateKey, 'leads', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
+                        />
+                      ) : formatNumber(dayData?.leads || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.followers}
+                          onSave={(val) => onDataChange(dateKey, 'followers', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                        />
+                      ) : formatNumber(dayData?.followers || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.visits}
+                          onSave={(val) => onDataChange(dateKey, 'visits', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                        />
+                      ) : formatNumber(dayData?.visits || 0)}
+                    </td>
+                    <td className="p-2 md:p-3 text-right text-foreground font-medium">
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.sales}
+                          onSave={(val) => onDataChange(dateKey, 'sales', val)}
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
+                        />
+                      ) : formatNumber(dayData?.sales || 0)}
+                    </td>
+                    <td className={cn(
+                      "p-2 md:p-3 text-right font-semibold",
+                      isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
+                    )}>
+                      {onDataChange ? (
+                        <EditableCell
+                          value={dayData?.revenue}
+                          onSave={(val) => onDataChange(dateKey, 'revenue', val)}
+                          className={cn(
+                            "w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-semibold",
+                            isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
+                          )}
+                        />
+                      ) : formatCurrency(dayData?.revenue || 0)}
+                    </td>
                   </tr>
                 );
               })}
             </tbody>
-            <tfoot className="sticky bottom-0 z-20 bg-secondary shadow-[0_-1px_0_0_rgba(0,0,0,0.1)]">
-              <tr className="font-bold text-foreground">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary backdrop-blur-sm z-20 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ИТОГО</td>
-                <td className="p-2 md:p-4 text-right">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.diagnostics)}</td>
-                <td className="p-2 md:p-4 text-right">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-success">{formatCurrency(totals.revenue)}</td>
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>
     </div>
   );
-};
+});
+
+DataTable.displayName = "DataTable";

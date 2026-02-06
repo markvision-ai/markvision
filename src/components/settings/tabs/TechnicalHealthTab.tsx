@@ -13,14 +13,29 @@ import {
   Globe,
   MessageSquare,
   BarChart3,
-  Zap
+  Zap,
+  ShieldCheck,
+  User,
+  Bot
 } from 'lucide-react';
-import { supabase } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ru } from 'date-fns/locale';
 
 interface TechnicalHealthTabProps {
   projectId: string;
+}
+
+interface AuditLog {
+  id: string;
+  created_at: string;
+  action: string;
+  initiator: 'system' | 'user' | 'ai';
+  initiator_name: string;
+  details?: string;
+  result_status: 'success' | 'warning' | 'error';
 }
 
 interface SystemHealth {
@@ -63,6 +78,7 @@ const defaultServices = [
 export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
   const [services, setServices] = useState<SystemHealth[]>([]);
   const [alerts, setAlerts] = useState<SystemAlert[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -98,6 +114,19 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
       if (alertsData) {
         setAlerts(alertsData as unknown as SystemAlert[]);
       }
+
+      // Fetch audit logs
+      const { data: logsData } = await supabase
+        .from('ai_audit_logs' as any)
+        .select('id, created_at, action, initiator, initiator_name, details, result_status')
+        .eq('project_id', projectId)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (logsData) {
+        setAuditLogs(logsData as unknown as AuditLog[]);
+      }
+
     } catch (error) {
       console.error('Error fetching health data:', error);
     } finally {
@@ -119,6 +148,11 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'system_alerts' },
+        () => fetchData()
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'ai_audit_logs' },
         () => fetchData()
       )
       .subscribe();
@@ -349,6 +383,72 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* AI & System Audit Logs */}
+      <div>
+        <div className="flex items-center gap-2 mb-4">
+          <ShieldCheck className="h-5 w-5 text-primary" />
+          <h3 className="text-lg font-semibold">Журнал аудита AI и Системы</h3>
+        </div>
+        
+        <Card>
+          <CardContent className="p-0">
+            {auditLogs.length === 0 ? (
+              <div className="py-8 text-center text-muted-foreground">
+                <p>Журнал пуст</p>
+              </div>
+            ) : (
+              <div className="divide-y">
+                {auditLogs.map((log) => (
+                  <div key={log.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
+                    <div className={cn(
+                      "p-2 rounded-full shrink-0",
+                      log.initiator === 'ai' ? "bg-purple-500/10 text-purple-600" :
+                      log.initiator === 'system' ? "bg-blue-500/10 text-blue-600" :
+                      "bg-amber-500/10 text-amber-600"
+                    )}>
+                      {log.initiator === 'ai' ? <Bot className="h-4 w-4" /> :
+                       log.initiator === 'system' ? <Activity className="h-4 w-4" /> :
+                       <User className="h-4 w-4" />}
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-sm font-medium text-foreground">
+                          {log.initiator_name}
+                        </span>
+                        <span className="text-xs text-muted-foreground whitespace-nowrap">
+                          {format(new Date(log.created_at), 'd MMM HH:mm', { locale: ru })}
+                        </span>
+                      </div>
+                      
+                      <p className="text-sm text-foreground/90">
+                        {log.action}
+                        {log.result_status === 'success' && ' — успешно'}
+                        {log.result_status === 'error' && ' — ошибка'}
+                        {log.result_status === 'warning' && ' — внимание'}
+                      </p>
+                      
+                      {log.details && (
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
+                          {log.details}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className={cn(
+                      "w-2 h-2 rounded-full mt-2 shrink-0",
+                      log.result_status === 'success' ? "bg-green-500" :
+                      log.result_status === 'warning' ? "bg-yellow-500" :
+                      "bg-red-500"
+                    )} />
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Uptime Stats */}

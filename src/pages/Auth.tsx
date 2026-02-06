@@ -1,12 +1,12 @@
+import markvisionLogo from '@/assets/markvision-logo.png';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { supabase, checkConnection } from '@/lib/externalSupabase';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
-import markvisionLogo from '@/assets/markvision-logo-new.png';
 type AuthMode = 'login' | 'signup' | 'forgot-password';
 
 // Standalone audit log function for auth events (can't use hook before user exists)
@@ -368,7 +368,7 @@ export default function Auth() {
       y: 0
     }} transition={{
       duration: 0.5
-    }} className="w-full max-w-md relative z-10">
+    }} className="w-full max-w-lg relative z-10">
         {/* Logo Section */}
         <motion.div initial={{
         scale: 0.8,
@@ -380,14 +380,10 @@ export default function Auth() {
         delay: 0.1,
         duration: 0.5
       }} className="text-center mb-8">
-          <div className="relative inline-block mb-4">
-            <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto relative">
-              <img alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-2xl" src="/lovable-uploads/a2049d53-bda8-4d81-8685-0f32626b6feb.png" />
-              {/* Glow effect */}
-              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 to-purple-500/30 blur-2xl rounded-full -z-10 scale-150" />
-            </div>
+          <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto relative flex items-center justify-center overflow-hidden rounded-xl">
+            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-2xl scale-125" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold">
+          <h1 className="text-2xl sm:text-3xl font-bold -mt-2">
             <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent">
               MarkVision AI
             </span>
@@ -425,13 +421,13 @@ export default function Auth() {
 
             {/* Mode Switcher */}
             {mode !== 'forgot-password' && (
-              <div className="flex gap-2 mb-6 p-1 bg-muted/50 dark:bg-muted/30 rounded-xl">
+              <div className="flex gap-2 mb-6 p-1 bg-muted/50  rounded-xl">
                 <button
                   type="button"
                   onClick={() => setMode('login')}
                   className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                     mode === 'login'
-                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      ? 'bg-background  text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
@@ -442,7 +438,7 @@ export default function Auth() {
                   onClick={() => setMode('signup')}
                   className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
                     mode === 'signup'
-                      ? 'bg-background dark:bg-card text-foreground shadow-sm'
+                      ? 'bg-background  text-foreground shadow-sm'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
