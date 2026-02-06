@@ -7,6 +7,7 @@ import compression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  base: mode === "production" ? "/markvision/" : "/",
   server: {
     host: "::",
     port: 8080,
@@ -37,8 +38,8 @@ export default defineConfig(({ mode }) => ({
         background_color: "#0f1117",
         display: "standalone",
         orientation: "portrait",
-        scope: "/",
-        start_url: "/",
+        scope: mode === "production" ? "/markvision/" : "/",
+        start_url: mode === "production" ? "/markvision/" : "/",
         categories: ["business", "productivity", "medical"],
         icons: [
           { src: "/logo-vector-blue.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },

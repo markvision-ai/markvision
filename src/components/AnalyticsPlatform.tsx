@@ -10,8 +10,6 @@ import {
   Wallet,
   TrendingUp,
   Loader2,
-  BarChart3,
-  Activity
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,15 +22,17 @@ import { DraggableDashboard } from './dashboard/DraggableDashboard';
 import { Header } from './layout/Header';
 import { PresetKey } from '@/components/dashboard/DateRangePicker';
 import { PlanFactCard } from './dashboard/PlanFactCard';
+import { MetricCard } from './dashboard/MetricCard';
 import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
 import { FunnelWidget } from './dashboard/FunnelWidget';
-import { AIAssistant } from './analytics/AIAssistant';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
+import { ComputedMetricsWidget } from './dashboard/ComputedMetricsWidget';
+import { WelcomeHero } from './dashboard/WelcomeHero';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
@@ -413,191 +413,99 @@ export const AnalyticsPlatform = () => {
         <DraggableDashboard>
           {(registerWidget) => {
             // Register all widgets - the DraggableDashboard will render them in sorted order
+            const todayKey = format(new Date(), 'yyyy-MM-dd');
+            const todayData = dailyData[todayKey];
+
+            registerWidget('greeting', (
+              <WelcomeHero
+                userName={profile?.name || null}
+                keyMetrics={{
+                  revenue: todayData?.revenue || 0,
+                  leads: todayData?.leads || 0,
+                  romi
+                }}
+                systemStatus={systemHasErrors ? 'warning' : 'healthy'}
+              />
+            ));
+
             registerWidget('metrics', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 md:gap-4 stagger-children animate">
-                <PlanFactCard
-                  label="Расходы"
-                  value={totals.spend}
-                  plan={planData.spend}
-                  fact={totals.spend}
-                  icon={<DollarSign className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="currency"
-                />
-                <PlanFactCard
-                  label="Показы"
-                  value={totals.impressions}
-                  plan={planData.impressions}
-                  fact={totals.impressions}
-                  icon={<Eye className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Лиды"
-                  value={totals.leads}
-                  plan={planData.leads}
-                  fact={totals.leads}
-                  icon={<Users className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
-                  value={totals.followers}
-                  plan={planData.followers}
-                  fact={totals.followers}
-                  icon={<Users className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Визиты"
-                  value={totals.visits}
-                  plan={planData.visits}
-                  fact={totals.visits}
-                  icon={<Target className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Продажи"
-                  value={totals.sales}
-                  plan={planData.sales}
-                  fact={totals.sales}
-                  icon={<ShoppingCart className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Выручка"
-                  value={totals.revenue}
-                  plan={planData.revenue}
-                  fact={totals.revenue}
-                  icon={<Wallet className="w-4 h-4 md:w-5 md:h-5" />}
-                  format="currency"
-                />
+              <div className="space-y-3 md:space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+                  <MetricCard
+                    label="Выручка"
+                    value={totals.revenue}
+                    previousValue={previousWeekTotals.revenue}
+                    sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
+                    icon={<Wallet className="w-5 h-5" />}
+                  />
+                  <MetricCard
+                    label="Расходы"
+                    value={totals.spend}
+                    previousValue={previousWeekTotals.spend}
+                    sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
+                    icon={<DollarSign className="w-5 h-5" />}
+                  />
+                </div>
+                {/* Остальные метрики */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                  <PlanFactCard
+                    label="Показы"
+                    value={totals.impressions}
+                    plan={planData.impressions}
+                    fact={totals.impressions}
+                    icon={<Eye className="w-4 h-4" />}
+                    iconColor="text-blue-500"
+                    format="number"
+                  />
+                  <PlanFactCard
+                    label="Лиды"
+                    value={totals.leads}
+                    plan={planData.leads}
+                    fact={totals.leads}
+                    icon={<Users className="w-4 h-4" />}
+                    iconColor="text-violet-500"
+                    format="number"
+                  />
+                  <PlanFactCard
+                    label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
+                    value={totals.followers}
+                    plan={planData.followers}
+                    fact={totals.followers}
+                    icon={<Users className="w-4 h-4" />}
+                    iconColor="text-pink-500"
+                    format="number"
+                  />
+                  <PlanFactCard
+                    label="Визиты"
+                    value={totals.visits}
+                    plan={planData.visits}
+                    fact={totals.visits}
+                    icon={<Target className="w-4 h-4" />}
+                    iconColor="text-amber-500"
+                    format="number"
+                  />
+                  <PlanFactCard
+                    label="Продажи"
+                    value={totals.sales}
+                    plan={planData.sales}
+                    fact={totals.sales}
+                    icon={<ShoppingCart className="w-4 h-4" />}
+                    iconColor="text-emerald-500"
+                    format="number"
+                  />
+                </div>
               </div>
             ));
 
             registerWidget('computed', (
-              <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
-                {/* Стоимость клиента */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      Стоимость клиента
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <ShoppingCart className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {customerCost !== null ? formatCurrency(customerCost) : <span className="text-muted-foreground/50">—</span>}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {customerCost !== null ? 'Расход / Продажи' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Стоимость визита */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      Стоимость визита
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <Activity className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground/50">—</span>}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {visitCost !== null ? 'Расход / Визиты' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Стоимость лида (CPL) */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      Стоимость лида (CPL)
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <Users className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {leadCost !== null ? formatCurrency(leadCost) : <span className="text-muted-foreground/50">—</span>}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {leadCost !== null ? 'Расход / Лиды' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* ROMI */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      ROMI
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <TrendingUp className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {romi !== null ? (
-                      <>
-                        {formatCR(romi).replace('%', '')}
-                        <span className="text-muted-foreground/70 text-base ml-0.5">%</span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground/50">—</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {romi !== null ? '(Выручка - Расходы) / Расходы' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* Рентабельность */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      Рентабельность
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <BarChart3 className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {profitability !== null ? (
-                      <>
-                        {formatCR(profitability).replace('%', '')}
-                        <span className="text-muted-foreground/70 text-base ml-0.5">%</span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground/50">—</span>
-                    )}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {profitability !== null ? '(Выручка - Расходы) / Выручка' : 'Нет данных'}
-                  </div>
-                </div>
-
-                {/* ROAS */}
-                <div className="rounded-xl border border-border bg-card/90 backdrop-blur p-3 shadow-sm hover:shadow-md transition hover:bg-card">
-                  <div className="flex items-center justify-between gap-2 mb-1.5">
-                    <div className="text-xs font-medium text-muted-foreground leading-tight">
-                      ROAS
-                    </div>
-                    <div className="h-6 w-6 rounded-lg bg-primary/10 flex items-center justify-center text-primary flex-shrink-0">
-                      <DollarSign className="w-3 h-3" />
-                    </div>
-                  </div>
-                  <div className="text-xl font-bold tracking-tight text-foreground mb-1">
-                    {roas !== null ? formatROAS(roas) : <span className="text-muted-foreground/50">—</span>}
-                  </div>
-                  <div className="text-[10px] text-muted-foreground/80 leading-tight">
-                    {roas !== null ? 'Выручка / Расходы' : 'Нет данных'}
-                  </div>
-                </div>
-              </div>
+              <ComputedMetricsWidget
+                customerCost={customerCost}
+                visitCost={visitCost}
+                leadCost={leadCost}
+                romi={romi}
+                profitability={profitability}
+                roas={roas}
+              />
             ));
 
             // LTV Widget
@@ -624,29 +532,13 @@ export const AnalyticsPlatform = () => {
                 <UpcomingAppointmentsWidget projectId={currentProjectId} />
               ));
 
-              registerWidget('ai-assistant', (
-                <AIAssistant 
-                  hideDashboard={true} 
-                  context={{
-                    spend: totals.spend,
-                    impressions: totals.impressions,
-                    clicks: totals.clicks,
-                    leads: totals.leads,
-                    visits: totals.visits,
-                    sales: totals.sales,
-                    revenue: totals.revenue,
-                    cpl: leadCost || 0,
-                    romi: romi || 0,
-                    projectId: currentProjectId
-                  }} 
-                />
-              ));
             }
 
             return null; // DraggableDashboard handles rendering
           }}
         </DraggableDashboard>
       )}
+
 
       {activeTab === 'table' && currentProjectId && (
         <DataTable 
