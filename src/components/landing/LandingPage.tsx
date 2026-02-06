@@ -451,7 +451,7 @@ export const LandingPage = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {painPoints.map((point, index) => (
               <motion.div key={point.title} initial={{
               opacity: 0,
@@ -616,7 +616,6 @@ export const LandingPage = () => {
               </div>
             </div>
           </div>
-        </div>
       </section>
 
       {/* BLOCK 4: What's included — "6 модулей, работающих 24/7" */}
@@ -677,9 +676,12 @@ export const LandingPage = () => {
                   {/* Glow border on hover */}
                   <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-400/0 via-cyan-400/0 to-indigo-400/0 group-hover:from-blue-400/40 group-hover:via-cyan-400/40 group-hover:to-indigo-400/40 rounded-2xl sm:rounded-[24px] blur-sm opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
-                  <div className="relative h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[24px] bg-white border border-slate-200/80 shadow-md group-hover:shadow-xl group-hover:shadow-blue-100/50 group-hover:border-blue-200/80 transition-all duration-500">
+                  <div
+                    className="relative h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[24px] bg-white border border-slate-200/80 shadow-md group-hover:shadow-xl group-hover:shadow-blue-100/50 group-hover:border-blue-200/80 transition-all duration-500 focus:outline-none focus:shadow-[inset_0_0_12px_rgba(59,130,246,.25)] focus:border-blue-300/70"
+                    tabIndex={0}
+                  >
                     {/* Module number */}
-                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-xs font-mono text-slate-300 group-hover:text-blue-400/60 transition-colors">
+                    <div className="absolute top-4 right-4 sm:top-5 sm:right-5 text-xs font-['JetBrains_Mono',monospace] tracking-wider text-slate-300 group-hover:text-blue-400/60 transition-colors">
                       0{index + 1}
                     </div>
 
