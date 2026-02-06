@@ -19,7 +19,7 @@ import {
 import { motion } from 'framer-motion';
 
 export const CreationCenter = () => {
-  const { activeScriptId, scripts, productionLines, startProduction, approveAllToPosting } = useFactoryStore();
+  const { activeScriptId, scripts, productionLines, startProduction, approveAllToPosting, startAllProductions } = useFactoryStore();
   const activeScript = scripts.find(s => s.id === activeScriptId);
 
   if (!activeScript) {
@@ -61,14 +61,24 @@ export const CreationCenter = () => {
             {activeScript.title}
           </h2>
         </div>
-        <Button 
-          onClick={approveAllToPosting}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20 dark:shadow-indigo-900/20 transition-all hover:scale-105 active:scale-95"
-          size="lg"
-        >
-          <Send className="w-4 h-4 mr-2" />
-          Утвердить всё в публикацию
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button 
+            onClick={startAllProductions}
+            className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.35)]"
+            size="lg"
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Запустить всё производство
+          </Button>
+          <Button 
+            onClick={approveAllToPosting}
+            className="bg-emerald-500 hover:bg-emerald-600 text-white shadow-lg shadow-emerald-500/25 transition-all hover:scale-105 active:scale-95"
+            size="lg"
+          >
+            <Send className="w-4 h-4 mr-2" />
+            Утвердить всё в публикацию
+          </Button>
+        </div>
       </div>
 
       {/* Main Content Area */}
