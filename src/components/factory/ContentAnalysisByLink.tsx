@@ -113,37 +113,37 @@ ${result.summary}
   };
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-slate-50/50">
+    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-background">
        {/* Header with animated gradient text */}
        <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full text-center items-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-100 text-blue-600 text-xs font-medium uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-medium uppercase tracking-wider mb-2">
           <Sparkles className="w-3 h-3" />
           AI Content Analyst
         </div>
-        <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Анализ <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Контента</span>
+        <h2 className="text-4xl font-extrabолd tracking-tight text-foreground sm:text-5xl">
+          Анализ <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-emerald-400 to-lime-400">Контента</span>
         </h2>
-        <p className="text-lg text-slate-500 max-w-2xl">
+        <p className="text-lg text-muted-foreground max-w-2xl">
           Прикрепите ссылку на Reels или аккаунт и получите детальный разбор: хуки, триггеры, сценарий и причины виральности.
         </p>
       </div>
 
       {/* Input Section */}
       <div className="w-full max-w-2xl mx-auto space-y-4">
-        <div className="flex gap-2 p-2 bg-white rounded-xl shadow-sm border border-slate-200 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all">
-          <div className="pl-3 flex items-center pointer-events-none text-slate-400">
+        <div className="flex gap-2 p-2 bg-black/40 rounded-xl shadow-sm border border-white/10 backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
+          <div className="pl-3 flex items-center pointer-events-none text-white/40">
             <LinkIcon className="w-5 h-5" />
           </div>
           <Input 
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             placeholder="Вставьте ссылку на Reels, TikTok или пост..." 
-            className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-lg h-12"
+            className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-lg h-12 text-foreground placeholder:text-muted-foreground"
           />
           <Button 
             onClick={handleAnalyze} 
             disabled={isAnalyzing || !url.trim()}
-            className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-all shadow-md shadow-blue-200"
+            className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all shadow-md shadow-emerald-500/25"
           >
             {isAnalyzing ? (
               <>
@@ -158,7 +158,7 @@ ${result.summary}
             )}
           </Button>
         </div>
-        <p className="text-sm text-center text-slate-400">
+        <p className="text-sm text-center text-white/50">
           Поддерживается: Instagram Reels, TikTok, YouTube Shorts
         </p>
       </div>
@@ -170,30 +170,30 @@ ${result.summary}
             
             {/* Left Column: Core Analysis */}
             <div className="space-y-6">
-              <Card className="border-l-4 border-l-blue-500 shadow-md">
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-blue-700">
+                  <CardTitle className="flex items-center text-lg text-foreground">
                     <Target className="w-5 h-5 mr-2" />
                     Тема и Хук
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Тема</h4>
-                    <p className="text-slate-900 font-medium">{result.topic}</p>
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Тема</h4>
+                    <p className="text-foreground font-medium">{result.topic}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Хук (Зацепка)</h4>
-                    <div className="p-3 bg-blue-50 rounded-lg text-blue-800 text-sm mt-1">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Хук (Зацепка)</h4>
+                    <div className="p-3 bg-white/5 rounded-lg text-foreground text-sm mt-1 border border-white/10">
                       {result.hook}
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border-l-4 border-l-purple-500 shadow-md">
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-purple-700">
+                  <CardTitle className="flex items-center text-lg text-foreground">
                     <TrendingUp className="w-5 h-5 mr-2" />
                     Почему это залетело?
                   </CardTitle>
@@ -201,8 +201,8 @@ ${result.summary}
                 <CardContent>
                   <ul className="space-y-2">
                     {result.virality_factors.map((factor, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-slate-700">
-                        <CheckCircle className="w-4 h-4 text-purple-500 mt-0.5 shrink-0" />
+                      <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
+                        <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                         {factor}
                       </li>
                     ))}
@@ -213,9 +213,9 @@ ${result.summary}
 
             {/* Right Column: Structure & Action */}
             <div className="space-y-6">
-              <Card className="border-l-4 border-l-indigo-500 shadow-md h-full flex flex-col">
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl h-full flex flex-col">
                 <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-indigo-700">
+                  <CardTitle className="flex items-center text-lg text-foreground">
                     <PlayCircle className="w-5 h-5 mr-2" />
                     Структура Сценария
                   </CardTitle>
@@ -223,18 +223,18 @@ ${result.summary}
                 <CardContent className="flex-1 space-y-4">
                   <div className="space-y-3">
                     {result.script_structure.map((step, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-slate-50 rounded-lg border border-slate-100">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 text-xs font-bold shrink-0">
+                      <div key={idx} className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
+                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold shrink-0">
                           {idx + 1}
                         </span>
-                        <p className="text-sm text-slate-700">{step}</p>
+                        <p className="text-sm text-foreground">{step}</p>
                       </div>
                     ))}
                   </div>
                   
                   <div className="mt-4 pt-4 border-t border-slate-100">
-                    <h4 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Call to Action (CTA)</h4>
-                    <div className="flex items-center gap-2 text-indigo-600 font-medium bg-indigo-50 px-3 py-2 rounded-lg">
+                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Call to Action (CTA)</h4>
+                    <div className="flex items-center gap-2 text-emerald-400 font-medium bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/30">
                       <MessageCircle className="w-4 h-4" />
                       {result.cta}
                     </div>
@@ -245,7 +245,7 @@ ${result.summary}
                   <Button 
                     onClick={handleCreateScenario} 
                     disabled={isCreating}
-                    className="w-full h-14 text-lg bg-slate-900 hover:bg-slate-800 shadow-lg shadow-slate-200/50 group"
+                    className="w-full h-14 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/25 group"
                   >
                     {isCreating ? (
                       <>
@@ -259,7 +259,7 @@ ${result.summary}
                       </>
                     )}
                   </Button>
-                  <p className="text-xs text-center text-slate-400 mt-3">
+                  <p className="text-xs text-center text-white/50 mt-3">
                     Отправит структуру во входящий поток для генерации контента
                   </p>
                 </div>

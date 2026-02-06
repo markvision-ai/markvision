@@ -93,6 +93,8 @@ export const CreationCenter = () => {
             color="text-blue-600 dark:text-blue-400"
             bg="bg-blue-50 dark:bg-blue-900/10"
             border="border-blue-100 dark:border-blue-900/20"
+            progress={productionLines.avatar_video.progress ?? 0}
+            durationMs={productionLines.avatar_video.durationMs ?? 3000}
           />
           <ProductionCard 
             type="viral_video" 
@@ -103,6 +105,8 @@ export const CreationCenter = () => {
             color="text-purple-600 dark:text-purple-400"
             bg="bg-purple-50 dark:bg-purple-900/10"
             border="border-purple-100 dark:border-purple-900/20"
+            progress={productionLines.viral_video.progress ?? 0}
+            durationMs={productionLines.viral_video.durationMs ?? 5000}
           />
           <ProductionCard 
             type="carousel" 
@@ -113,6 +117,8 @@ export const CreationCenter = () => {
             color="text-pink-600 dark:text-pink-400"
             bg="bg-pink-50 dark:bg-pink-900/10"
             border="border-pink-100 dark:border-pink-900/20"
+            progress={productionLines.carousel.progress ?? 0}
+            durationMs={productionLines.carousel.durationMs ?? 4000}
           />
           <ProductionCard 
             type="threads" 
@@ -123,6 +129,8 @@ export const CreationCenter = () => {
             color="text-foreground"
             bg="bg-gray-50 dark:bg-gray-800/30"
             border="border-gray-200 dark:border-gray-700"
+            progress={productionLines.threads.progress ?? 0}
+            durationMs={productionLines.threads.durationMs ?? 2500}
           />
           <ProductionCard 
             type="seo_blog" 
@@ -133,6 +141,8 @@ export const CreationCenter = () => {
             color="text-green-600 dark:text-green-400"
             bg="bg-green-50 dark:bg-green-900/10"
             border="border-green-100 dark:border-green-900/20"
+            progress={productionLines.seo_blog.progress ?? 0}
+            durationMs={productionLines.seo_blog.durationMs ?? 3000}
           />
           <ProductionCard 
             type="tg_post" 
@@ -143,6 +153,8 @@ export const CreationCenter = () => {
             color="text-sky-500 dark:text-sky-400"
             bg="bg-sky-50 dark:bg-sky-900/10"
             border="border-sky-100 dark:border-sky-900/20"
+            progress={productionLines.tg_post.progress ?? 0}
+            durationMs={productionLines.tg_post.durationMs ?? 2000}
           />
         </div>
       </ScrollArea>
@@ -159,9 +171,11 @@ interface ProductionCardProps {
   color: string;
   bg?: string;
   border?: string;
+  progress: number;
+  durationMs: number;
 }
 
-const ProductionCard = ({ type, title, icon, status, onGenerate, color, bg, border }: ProductionCardProps) => {
+const ProductionCard = ({ type, title, icon, status, onGenerate, color, bg, border, progress, durationMs }: ProductionCardProps) => {
   return (
     <Card className="overflow-hidden border-border bg-card shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group">
       <div className={`p-5 border-b flex items-center justify-between ${bg || 'bg-muted/30'} ${border || 'border-border'}`}>
@@ -188,19 +202,20 @@ const ProductionCard = ({ type, title, icon, status, onGenerate, color, bg, bord
         {status === 'generating' && (
           <div className="text-center space-y-4 w-full">
             <div className="relative">
-              <div className="absolute inset-0 bg-primary/20 blur-xl rounded-full animate-pulse" />
-              <RefreshCw className="w-10 h-10 animate-spin text-primary relative z-10 mx-auto" />
+              <div className="absolute inset-0 bg-emerald-500/15 blur-xl rounded-full animate-pulse" />
+              <RefreshCw className="w-10 h-10 animate-spin text-emerald-400 relative z-10 mx-auto" />
             </div>
             <div className="space-y-2">
-              <p className="text-sm font-medium text-foreground animate-pulse">Генерация контента...</p>
-              <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                <motion.div 
-                  className="h-full bg-primary"
-                  initial={{ width: "0%" }}
-                  animate={{ width: "100%" }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+              <p className="text-sm font-medium text-foreground">Генерация контента…</p>
+              <div className="h-2 w-full bg-muted rounded-full overflow-hidden border border-border">
+                <div 
+                  className="h-full bg-emerald-500 transition-[width] duration-200"
+                  style={{ width: `${progress}%` }}
                 />
               </div>
+              <p className="text-xs text-muted-foreground">
+                {Math.min(99, progress)}% • ETA ~{Math.ceil(durationMs / 1000)}s
+              </p>
             </div>
           </div>
         )}

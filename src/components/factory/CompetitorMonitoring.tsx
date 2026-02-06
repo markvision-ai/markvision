@@ -125,18 +125,18 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
   const activeConfig = platformConfig[currentPlatform];
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-slate-50/50">
+    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-background">
       
       {/* Header with animated gradient text */}
       <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full text-center items-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-purple-600 text-xs font-medium uppercase tracking-wider mb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-medium uppercase tracking-wider mb-2">
           <Sparkles className="w-3 h-3" />
           AI Intelligence
         </div>
-        <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
-          Мониторинг <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600">Конкурентов</span>
+        <h2 className="text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          Мониторинг <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-emerald-400 to-lime-400">Конкурентов</span>
         </h2>
-        <p className="text-lg text-slate-500 max-w-2xl">
+        <p className="text-lg text-muted-foreground max-w-2xl">
           Добавьте ссылки на профили Instagram или TikTok. Наш AI автоматически соберет лучший контент для генерации новых идей.
         </p>
       </div>
@@ -145,18 +145,13 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
       <div className="max-w-2xl mx-auto w-full relative z-10">
         <div className="relative group">
           {/* Glow effect */}
-          <div className={cn(
-            "absolute -inset-1 rounded-2xl bg-gradient-to-r opacity-20 group-hover:opacity-40 blur transition duration-500",
-            activeConfig.gradient
-          )} />
+          <div className="absolute -inset-1 rounded-2xl bg-emerald-500/10 opacity-20 group-hover:opacity-40 blur transition duration-500" />
           
-          <div className="relative flex items-center bg-white rounded-xl shadow-xl border border-slate-100 p-2 pl-4 h-16 transition-all duration-300 ring-1 ring-slate-900/5 focus-within:ring-2 focus-within:ring-purple-500/50">
+          <div className="relative flex items-center bg-black/40 rounded-xl shadow-xl border border-white/10 p-2 pl-4 h-16 transition-all duration-300 focus-within:ring-2 focus-within:ring-emerald-500/30 backdrop-blur-xl">
             
             {/* Platform Icon Indicator */}
             <div className={cn(
-              "flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-300 mr-3",
-              activeConfig.bg,
-              activeConfig.color
+              "flex items-center justify-center w-10 h-10 rounded-lg transition-colors duration-300 mr-3 bg-white/5 border border-white/10 text-foreground"
             )}>
               {activeConfig.icon}
             </div>
@@ -165,19 +160,14 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
               placeholder="Вставьте ссылку или @username..."
               value={newHandle}
               onChange={(e) => setNewHandle(e.target.value)}
-              className="flex-1 border-none shadow-none focus-visible:ring-0 bg-transparent text-lg h-full placeholder:text-slate-400"
+              className="flex-1 border-none shadow-none focus-visible:ring-0 bg-transparent text-lg h-full text-foreground placeholder:text-muted-foreground"
               onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
             />
 
             <Button 
               onClick={handleAdd} 
               disabled={isAdding}
-              className={cn(
-                "h-12 px-6 rounded-lg text-white font-medium shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ml-2",
-                currentPlatform === 'instagram' 
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 shadow-purple-500/25" 
-                  : "bg-black hover:bg-slate-800 shadow-slate-500/25"
-              )}
+              className="h-12 px-6 rounded-lg text-white font-medium shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 ml-2 bg-emerald-600 hover:bg-emerald-700 shadow-emerald-500/25"
             >
               {isAdding ? <Loader2 className="w-5 h-5 animate-spin" /> : (
                 <div className="flex items-center gap-2">
@@ -190,7 +180,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
         </div>
         
         {/* Helper text */}
-        <div className="mt-3 flex items-center justify-center gap-6 text-xs text-slate-400">
+        <div className="mt-3 flex items-center justify-center gap-6 text-xs text-white/50">
           <span className="flex items-center gap-1.5 transition-colors hover:text-pink-500">
             <Instagram className="w-3 h-3" />
             Поддерживается Instagram
@@ -219,24 +209,24 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
                 transition={{ delay: index * 0.05 }}
-                className="group relative bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col"
+                className="group relative bg-black/40 rounded-2xl border border-white/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col backdrop-blur-xl"
               >
                 <div className="p-6 pb-4 flex-1">
                   <div className="flex items-start justify-between mb-5">
                     <div className="flex items-center gap-4">
-                      <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm", config.bg, config.color, config.border)}>
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center border shadow-sm bg-white/5 border-white/10 text-foreground">
                         {config.icon}
                       </div>
                       <div>
-                        <h3 className="font-bold text-slate-900 text-lg tracking-tight">@{comp.handle}</h3>
-                        <p className="text-xs text-slate-500 flex items-center gap-1.5 mt-0.5">
+                        <h3 className="font-bold text-foreground text-lg tracking-tight">@{comp.handle}</h3>
+                        <p className="text-xs text-white/50 flex items-center gap-1.5 mt-0.5">
                           <Globe className="w-3 h-3" />
                           {config.label}
                         </p>
                       </div>
                     </div>
                     {hasAnalysis && (
-                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wider border border-emerald-100">
+                      <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-[10px] font-bold uppercase tracking-wider border border-emerald-500/30">
                         <Sparkles className="w-3 h-3" />
                         Анализ готов
                       </span>
@@ -245,27 +235,27 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
 
                   {hasAnalysis && (
                      <div className="space-y-3 mb-4">
-                        <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                          <Target className="w-3.5 h-3.5 text-purple-500" />
+                        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                          <Target className="w-3.5 h-3.5 text-emerald-400" />
                           Ниша: {analysis.niche}
                         </div>
-                        <div className="flex items-center gap-2 text-xs font-medium text-slate-600">
-                          <Users className="w-3.5 h-3.5 text-blue-500" />
+                        <div className="flex items-center gap-2 text-xs font-medium text-foreground">
+                          <Users className="w-3.5 h-3.5 text-emerald-400" />
                           ЦА: {analysis.target_audience?.slice(0, 30)}...
                         </div>
                      </div>
                   )}
 
                   <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
-                    <div className="flex items-center gap-2 text-xs text-slate-400 font-medium">
-                      <Zap className="w-3 h-3 text-amber-500" />
+                    <div className="flex items-center gap-2 text-xs text-white/50 font-medium">
+                      <Zap className="w-3 h-3 text-emerald-400" />
                       <span>{comp.last_scanned_at ? `Обновлено: ${new Date(comp.last_scanned_at).toLocaleDateString()}` : 'Не сканировалось'}</span>
                     </div>
                   </div>
                 </div>
 
                 {/* Actions Footer */}
-                <div className="bg-slate-50/50 p-4 border-t border-slate-100 flex items-center gap-2">
+                <div className="bg-white/5 p-4 border-t border-white/10 flex items-center gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -275,12 +265,12 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                   >
                     {isAnalyzing ? (
                       <>
-                        <Loader2 className="w-4 h-4 animate-spin text-purple-600" />
+                        <Loader2 className="w-4 h-4 animate-spin text-emerald-400" />
                         Анализируем...
                       </>
                     ) : (
                       <>
-                        <Play className="w-4 h-4 text-purple-600" />
+                        <Play className="w-4 h-4 text-emerald-400" />
                         {hasAnalysis ? 'Обновить' : 'Анализировать'}
                       </>
                     )}
@@ -289,63 +279,63 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                   {hasAnalysis && (
                     <Dialog>
                       <DialogTrigger asChild>
-                        <Button variant="default" size="sm" className="bg-slate-900 text-white hover:bg-slate-800">
+                        <Button variant="default" size="sm" className="bg-emerald-600 text-white hover:bg-emerald-700">
                           <FileText className="w-4 h-4 mr-2" />
                           Отчет
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+                      <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col bg-black/40 border border-white/10 backdrop-blur-xl">
                         <DialogHeader>
-                          <DialogTitle className="flex items-center gap-2 text-xl">
-                            <Sparkles className="w-5 h-5 text-purple-600" />
+                          <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
+                            <Sparkles className="w-5 h-5 text-emerald-400" />
                             Анализ конкурента @{comp.handle}
                           </DialogTitle>
                         </DialogHeader>
                         <ScrollArea className="flex-1 pr-4 -mr-4">
                           <div className="space-y-6 py-4">
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                                  <Target className="w-4 h-4 text-purple-500" />
+                              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                                  <Target className="w-4 h-4 text-emerald-400" />
                                   Ниша
                                 </h4>
-                                <p className="text-sm text-slate-600">{analysis.niche}</p>
+                                <p className="text-sm text-foreground/80">{analysis.niche}</p>
                               </div>
-                              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-2">
-                                  <Users className="w-4 h-4 text-blue-500" />
+                              <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                                  <Users className="w-4 h-4 text-emerald-400" />
                                   Целевая аудитория
                                 </h4>
-                                <p className="text-sm text-slate-600">{analysis.target_audience}</p>
+                                <p className="text-sm text-foreground/80">{analysis.target_audience}</p>
                               </div>
                             </div>
 
                             {analysis.strategy_summary && (
-                              <div className="bg-purple-50/50 p-4 rounded-xl border border-purple-100">
-                                <h4 className="text-sm font-semibold text-purple-900 mb-2">Стратегия</h4>
-                                <p className="text-sm text-purple-700 leading-relaxed">{analysis.strategy_summary}</p>
+                              <div className="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/30">
+                                <h4 className="text-sm font-semibold text-emerald-400 mb-2">Стратегия</h4>
+                                <p className="text-sm text-foreground/80 leading-relaxed">{analysis.strategy_summary}</p>
                               </div>
                             )}
 
                             <div>
-                              <h4 className="text-md font-bold text-slate-900 mb-4 flex items-center gap-2">
-                                <Zap className="w-5 h-5 text-amber-500" />
+                              <h4 className="text-md font-bold text-foreground mb-4 flex items-center gap-2">
+                                <Zap className="w-5 h-5 text-emerald-400" />
                                 Вирусные идеи (5)
                               </h4>
                               <div className="space-y-3">
                                 {analysis.ideas?.map((idea: any, i: number) => (
-                                  <div key={i} className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm hover:border-purple-200 hover:shadow-md transition-all">
+                                  <div key={i} className="bg-white/5 p-4 rounded-xl border border-white/10 shadow-sm hover:border-emerald-500/30 hover:shadow-md transition-all">
                                     <div className="flex items-start justify-between gap-4">
                                       <div className="flex-1">
-                                        <h5 className="font-bold text-slate-900 mb-1">{idea.title}</h5>
-                                        <p className="text-sm text-slate-600 mb-3">{idea.concept}</p>
+                                        <h5 className="font-bold text-foreground mb-1">{idea.title}</h5>
+                                        <p className="text-sm text-foreground/80 mb-3">{idea.concept}</p>
                                         <div className="flex items-center gap-2">
-                                          <Badge variant="secondary" className="bg-amber-50 text-amber-700 hover:bg-amber-100 border-amber-200">
+                                          <Badge variant="secondary" className="bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border-emerald-500/30">
                                             Why Viral: {idea.why_viral}
                                           </Badge>
                                         </div>
                                       </div>
-                                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 text-slate-500 font-bold text-xs">
+                                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-white/10 text-foreground/70 font-bold text-xs">
                                         #{i + 1}
                                       </div>
                                     </div>
@@ -363,7 +353,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                     variant="ghost" 
                     size="icon"
                     onClick={() => deleteCompetitor(comp.id)}
-                    className="text-slate-300 hover:text-red-500 hover:bg-red-50"
+                    className="text-white/60 hover:text-red-500 hover:bg-red-500/10"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -374,12 +364,12 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
         </AnimatePresence>
 
         {competitors.length === 0 && !loading && (
-          <div className="col-span-full flex flex-col items-center justify-center py-20 text-slate-400 border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
-            <div className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center mb-6">
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-white/50 border-2 border-dashed border-white/10 rounded-3xl bg-white/5">
+            <div className="w-20 h-20 rounded-full bg-white/10 flex items-center justify-center mb-6">
               <Search className="w-8 h-8 opacity-20" />
             </div>
-            <p className="font-bold text-lg text-slate-600">Список отслеживания пуст</p>
-            <p className="text-sm opacity-60 mt-1 max-w-sm text-center">Добавьте первого конкурента, чтобы начать сбор идей и аналитику</p>
+            <p className="font-bold text-lg text-foreground">Список отслеживания пуст</p>
+            <p className="text-sm opacity-60 mt-1 max-w-sm text-center text-foreground/80">Добавьте первого конкурента, чтобы начать сбор идей и аналитику</p>
           </div>
         )}
       </div>

@@ -23,6 +23,9 @@ export type ProductionItem = {
   type: ContentType;
   status: 'idle' | 'generating' | 'ready' | 'error';
   content?: any; // Preview data
+  progress?: number;
+  startedAt?: number;
+  durationMs?: number;
 };
 
 export type PostingStatus = 'pending' | 'sending' | 'published' | 'error';
@@ -70,12 +73,12 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
   scripts: [],
   activeScriptId: null,
   productionLines: {
-    avatar_video: { type: 'avatar_video', status: 'idle' },
-    viral_video: { type: 'viral_video', status: 'idle' },
-    carousel: { type: 'carousel', status: 'idle' },
-    threads: { type: 'threads', status: 'idle' },
-    seo_blog: { type: 'seo_blog', status: 'idle' },
-    tg_post: { type: 'tg_post', status: 'idle' },
+    avatar_video: { type: 'avatar_video', status: 'idle', progress: 0 },
+    viral_video: { type: 'viral_video', status: 'idle', progress: 0 },
+    carousel: { type: 'carousel', status: 'idle', progress: 0 },
+    threads: { type: 'threads', status: 'idle', progress: 0 },
+    seo_blog: { type: 'seo_blog', status: 'idle', progress: 0 },
+    tg_post: { type: 'tg_post', status: 'idle', progress: 0 },
   },
   postingQueue: [],
 
@@ -111,32 +114,62 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
     activeScriptId: id,
     // Reset production lines when switching script
     productionLines: {
-      avatar_video: { type: 'avatar_video', status: 'idle' },
-      viral_video: { type: 'viral_video', status: 'idle' },
-      carousel: { type: 'carousel', status: 'idle' },
-      threads: { type: 'threads', status: 'idle' },
-      seo_blog: { type: 'seo_blog', status: 'idle' },
-      tg_post: { type: 'tg_post', status: 'idle' },
+      avatar_video: { type: 'avatar_video', status: 'idle', progress: 0 },
+      viral_video: { type: 'viral_video', status: 'idle', progress: 0 },
+      carousel: { type: 'carousel', status: 'idle', progress: 0 },
+      threads: { type: 'threads', status: 'idle', progress: 0 },
+      seo_blog: { type: 'seo_blog', status: 'idle', progress: 0 },
+      tg_post: { type: 'tg_post', status: 'idle', progress: 0 },
     }
   })),
 
   startProduction: (type) => {
+    const durationMs = 3000;
+    const startedAt = Date.now();
     set((state) => ({
       productionLines: {
         ...state.productionLines,
-        [type]: { ...state.productionLines[type], status: 'generating' },
+        [type]: { 
+          ...state.productionLines[type], 
+          status: 'generating',
+          startedAt,
+          durationMs,
+          progress: 0
+        },
       },
     }));
 
-    // Simulate Generation
+    const stepMs = 200;
+    const steps = Math.ceil(durationMs / stepMs);
+    for (let i = 1; i <= steps; i++) {
+      setTimeout(() => {
+        set((state) => {
+          const line = state.productionLines[type];
+          if (!line || line.status !== 'generating') return state;
+          const elapsed = Date.now() - (line.startedAt || startedAt);
+          const pct = Math.min(99, Math.floor((elapsed / (line.durationMs || durationMs)) * 100));
+          return {
+            productionLines: {
+              ...state.productionLines,
+              [type]: { ...line, progress: pct },
+            },
+          };
+        });
+      }, i * stepMs);
+    }
+
     setTimeout(() => {
       set((state) => ({
         productionLines: {
           ...state.productionLines,
-          [type]: { ...state.productionLines[type], status: 'ready' },
+          [type]: { 
+            ...state.productionLines[type], 
+            status: 'ready',
+            progress: 100 
+          },
         },
       }));
-    }, 3000);
+    }, durationMs);
   },
 
   startAllProductions: () => {
@@ -146,7 +179,9 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
     set((state) => {
       const newLines = { ...state.productionLines };
       types.forEach(type => {
-        newLines[type] = { ...newLines[type], status: 'generating' };
+        const startedAt = Date.now();
+        // default durations, will override below
+        newLines[type] = { ...newLines[type], status: 'generating', startedAt, durationMs: 3000, progress: 0 };
       });
       return { productionLines: newLines };
     });
@@ -162,14 +197,33 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
     };
 
     types.forEach(type => {
+      const durationMs = delays[type];
+      const stepMs = 200;
+      const steps = Math.ceil(durationMs / stepMs);
+      for (let i = 1; i <= steps; i++) {
+        setTimeout(() => {
+          set((state) => {
+            const line = state.productionLines[type];
+            if (!line || line.status !== 'generating') return state;
+            const elapsed = Date.now() - (line.startedAt || Date.now());
+            const pct = Math.min(99, Math.floor((elapsed / (durationMs)) * 100));
+            return {
+              productionLines: {
+                ...state.productionLines,
+                [type]: { ...line, durationMs, progress: pct },
+              },
+            };
+          });
+        }, i * stepMs);
+      }
       setTimeout(() => {
         set((state) => ({
           productionLines: {
             ...state.productionLines,
-            [type]: { ...state.productionLines[type], status: 'ready' },
+            [type]: { ...state.productionLines[type], status: 'ready', durationMs, progress: 100 },
           },
         }));
-      }, delays[type]);
+      }, durationMs);
     });
   },
 
