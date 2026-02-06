@@ -67,7 +67,7 @@ interface Transaction {
   type: string;
   category: string;
   amount: number;
-  currency: string | null;
+  currency?: string | null;
   description: string | null;
   transaction_date: string | null;
   created_at: string;
@@ -222,7 +222,6 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         category: newTransaction.category,
         amount: newTransaction.amount,
         description: newTransaction.description,
-        currency: 'KZT',
         // created_at will be set automatically
       }]);
 
@@ -581,7 +580,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
 
         {/* Platform Spend Tab - New Pie Chart */}
         <TabsContent value="platforms" className="mt-4 space-y-6">
-          <PlatformSpendChart projectId={projectId} datePreset={datePreset} />
+          <PlatformSpendChart projectId={projectId} />
         </TabsContent>
 
         <TabsContent value="transactions" className="mt-4">

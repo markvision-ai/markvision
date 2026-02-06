@@ -12,6 +12,9 @@ export interface FinancialPlan {
   cpl_best: number;
   cpl_avg: number;
   cpl_worst: number;
+  rationale_best?: string;
+  rationale_avg?: string;
+  rationale_worst?: string;
 }
 
 export interface FinancialFact {

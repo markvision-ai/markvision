@@ -1,21 +1,19 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip
+import { 
+  PieChart, 
+  Pie, 
+  Cell, 
+  ResponsiveContainer, 
+  Legend, 
+  Tooltip 
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { format, subDays, subMonths, subYears } from 'date-fns';
 
 interface PlatformSpendChartProps {
   projectId: string;
-  datePreset?: string;  // 'today' | 'week' | 'month' | 'quarter' | 'year' | 'all'
 }
 
 interface DailyDataWithPlatforms {
@@ -37,32 +35,9 @@ const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
 };
 
-export const PlatformSpendChart = ({ projectId, datePreset = 'month' }: PlatformSpendChartProps) => {
+export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   const [data, setData] = useState<DailyDataWithPlatforms[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Calculate date range based on preset
-  const dateRange = useMemo(() => {
-    const today = new Date();
-    const todayStr = format(today, 'yyyy-MM-dd');
-
-    switch (datePreset) {
-      case 'today':
-        return { from: todayStr, to: todayStr };
-      case 'week':
-        return { from: format(subDays(today, 7), 'yyyy-MM-dd'), to: todayStr };
-      case 'month':
-        return { from: format(subDays(today, 30), 'yyyy-MM-dd'), to: todayStr };
-      case 'quarter':
-        return { from: format(subDays(today, 90), 'yyyy-MM-dd'), to: todayStr };
-      case 'year':
-        return { from: format(subYears(today, 1), 'yyyy-MM-dd'), to: todayStr };
-      case 'all':
-        return { from: '2020-01-01', to: todayStr };
-      default:
-        return { from: format(subDays(today, 30), 'yyyy-MM-dd'), to: todayStr };
-    }
-  }, [datePreset]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,9 +46,8 @@ export const PlatformSpendChart = ({ projectId, datePreset = 'month' }: Platform
           .from('daily_data')
           .select('date, spend, spend_fb, spend_google, spend_tiktok')
           .eq('project_id', projectId)
-          .gte('date', dateRange.from)
-          .lte('date', dateRange.to)
-          .order('date', { ascending: false });
+          .order('date', { ascending: false })
+          .limit(90);
 
         if (error) throw error;
         setData(dailyData || []);
@@ -85,7 +59,7 @@ export const PlatformSpendChart = ({ projectId, datePreset = 'month' }: Platform
     };
 
     fetchData();
-  }, [projectId, dateRange]);
+  }, [projectId]);
 
   const platformTotals = useMemo(() => {
     const totals = data.reduce(

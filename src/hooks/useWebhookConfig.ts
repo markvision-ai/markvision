@@ -149,7 +149,7 @@ export function useWebhookConfig(projectId: string | null) {
   // Fetch webhook URL using secure RPC function
   const fetchWebhookUrl = async (configId: string) => {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://pyscczcuersdjvpmkiec.supabase.co';
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://grzqykegqgglekcxdtsu.supabase.co';
       const { data, error } = await supabase.rpc('get_webhook_url', { 
         config_id: configId,
         base_url: supabaseUrl

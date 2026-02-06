@@ -163,11 +163,12 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
     });
 
     // Only count leads that have a UTM campaign (Attributed to Ads)
+    // This avoids showing Organic leads in the Ads Funnel (e.g. 373 vs 51)
     const attributedLeads = leadsInRange.filter(l => l.utm_campaign);
-
-    // CONSISTENCY: Используем Meta Leads для соответствия с Active Ads Manager
-    // CRM leads (attributedLeads) используются только для глубокой воронки (записи, продажи)
-    const totalLeads = totalLeadsMeta;
+    
+    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads)
+    // This ensures the Funnel matches the Table and Overview counts (e.g. 133 vs 55)
+    const totalLeads = Math.max(totalLeadsMeta, attributedLeads.length);
     
     const appointmentLeads = attributedLeads.filter(l => 
         l.status === 'appointment' || l.status === 'paid' || l.status === 'in_progress' || l.status === 'visit_completed'
@@ -313,9 +314,14 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           return false;
       };
 
-      // CONSISTENCY: Используем только Meta Leads для соответствия с Active Ads Manager
+      // Calculate leads from CRM (Attributed) to match Summary logic
+      // We prioritize CRM data because it's the "source of truth" for the user (377 vs 55)
+      const crmLeadsCount = filteredLeads.filter(isMatch).length;
+      
+      // Use CRM leads if available, otherwise fallback to Meta logs
+      // This ensures "Top Campaigns" and "Efficiency" match the "Summary" block
       const metaLeads = logs.reduce((sum, log) => sum + (log.leads || 0), 0);
-      const adLeads = metaLeads;
+      const adLeads = Math.max(metaLeads, crmLeadsCount);
 
       const spendKZT = logs.reduce((sum, log) => sum + ((log.spend || 0) * KZT_RATE), 0);
 

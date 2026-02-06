@@ -85,7 +85,7 @@ export const useAIChat = () => {
       
       console.log('Sending to bridge:', payload);
 
-      // 4. Insert into ai_bridge_tasks (используем отдельную базу для AI Bridge)
+      // 4. Insert into ai_bridge_tasks
       const { data: task, error } = await supabase
         .from('ai_bridge_tasks')
         .insert(payload)
@@ -109,7 +109,7 @@ export const useAIChat = () => {
           }
           return m;
         }));
-      }, 60000);  // 1 минута для предупреждения
+      }, 30000);
 
       timeoutRef.current = setTimeout(() => {
         setIsLoading(false);
@@ -125,9 +125,9 @@ export const useAIChat = () => {
           supabase.removeChannel(activeChannelRef.current);
           activeChannelRef.current = null;
         }
-      }, 180000);  // 3 минуты для сложных запросов
+      }, 60000);
 
-      // 5. Subscribe to changes (используем AI Bridge базу)
+      // 5. Subscribe to changes
       const channel = supabase.channel(`ai_bridge_${task.id}`)
         .on(
           'postgres_changes',

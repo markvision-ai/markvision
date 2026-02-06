@@ -38,13 +38,19 @@ export const ConnectionStatus = () => {
             error.message.includes('Failed to fetch')
         )) {
             setIsSupabaseReachable(false);
-            console.error('Supabase connectivity check failed:', error);
+            // Only warn in dev, don't error
+            if (import.meta.env.DEV) {
+               console.warn('Supabase connectivity check failed (network):', error.message);
+            }
         } else {
             setIsSupabaseReachable(true);
         }
       } catch (err) {
         // This catches fetch errors (ERR_ABORTED often throws here)
-        console.error('Supabase connectivity exception:', err);
+        // Suppress console error for polling checks to avoid noise
+        if (import.meta.env.DEV && (err as Error).message !== 'Failed to fetch') {
+           console.warn('Supabase connectivity check failed:', err);
+        }
         setIsSupabaseReachable(false);
       }
     };

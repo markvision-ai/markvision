@@ -40,8 +40,10 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
         // Log other errors
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
            console.warn('Supabase connection failed. This might be due to an AdBlocker or Network issue.');
+           // Don't log full error trace for common network failures
+        } else {
+           console.error('Supabase fetch error:', err);
         }
-        console.error('Supabase fetch error:', err);
         throw err;
       });
     }

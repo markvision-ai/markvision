@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Save, ChevronLeft, ChevronRight, LayoutDashboard } from 'lucide-react';
+import { Loader2, Save, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useFinancialMonthData } from '@/hooks/useFinancialMonthData';
 import { format, subMonths, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChannelFinancialModel, ChannelData } from './ChannelFinancialModel';
-import { DecompositionNotifications } from './DecompositionNotifications';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FinancialDecompositionProps {
@@ -23,6 +22,9 @@ const DEFAULT_DATA: ChannelData = {
   cplWorst: 3500,
   calcMode: 'goal',
   budgetInput: 1000000,
+  rationaleBest: '',
+  rationaleAvg: '',
+  rationaleWorst: '',
 };
 
 export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProps) => {
@@ -31,7 +33,7 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
   const [saveLoading, setSaveLoading] = useState(false);
 
   // Fetch Global Data
-  const { loading: dataLoading, plan, planIndicators, fact, savePlan } = useFinancialMonthData(projectId, selectedMonth);
+  const { loading: dataLoading, plan, fact, savePlan } = useFinancialMonthData(projectId, selectedMonth);
 
   // Model Data State
   const [modelData, setModelData] = useState<ChannelData>(DEFAULT_DATA);
@@ -48,15 +50,14 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
         cplBest: plan.cpl_best || prev.cplBest,
         cplAvg: plan.cpl_avg || prev.cplAvg,
         cplWorst: plan.cpl_worst || prev.cplWorst,
-        // calcMode and budgetInput are not saved in DB plan currently, 
-        // so we keep them from local state or defaults. 
-        // We could persist them in localStorage if needed.
+        rationaleBest: plan.rationale_best || prev.rationaleBest || '',
+        rationaleAvg: plan.rationale_avg || prev.rationaleAvg || '',
+        rationaleWorst: plan.rationale_worst || prev.rationaleWorst || '',
       }));
     }
   }, [plan]);
 
   // Persist local UI state (calcMode, budgetInput) to localStorage
-  // so user doesn't lose "Budget Mode" context on refresh
   useEffect(() => {
     const monthStr = format(selectedMonth, 'yyyy-MM');
     const storageKey = `financial_model_ui_${projectId}_${monthStr}`;
@@ -67,7 +68,10 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
         setModelData(prev => ({
           ...prev,
           calcMode: parsed.calcMode || 'goal',
-          budgetInput: parsed.budgetInput || prev.budgetInput
+          budgetInput: parsed.budgetInput || prev.budgetInput,
+          rationaleBest: parsed.rationaleBest || prev.rationaleBest || '',
+          rationaleAvg: parsed.rationaleAvg || prev.rationaleAvg || '',
+          rationaleWorst: parsed.rationaleWorst || prev.rationaleWorst || ''
         }));
       } catch (e) {
         console.error(e);
@@ -80,9 +84,12 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
     const storageKey = `financial_model_ui_${projectId}_${monthStr}`;
     localStorage.setItem(storageKey, JSON.stringify({
       calcMode: modelData.calcMode,
-      budgetInput: modelData.budgetInput
+      budgetInput: modelData.budgetInput,
+      rationaleBest: modelData.rationaleBest,
+      rationaleAvg: modelData.rationaleAvg,
+      rationaleWorst: modelData.rationaleWorst
     }));
-  }, [modelData.calcMode, modelData.budgetInput, projectId, selectedMonth]);
+  }, [modelData.calcMode, modelData.budgetInput, modelData.rationaleBest, modelData.rationaleAvg, modelData.rationaleWorst, projectId, selectedMonth]);
 
 
   const handleSaveAndAnalyze = async () => {
@@ -97,6 +104,9 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
         cpl_best: modelData.cplBest,
         cpl_avg: modelData.cplAvg,
         cpl_worst: modelData.cplWorst,
+        rationale_best: modelData.rationaleBest,
+        rationale_avg: modelData.rationaleAvg,
+        rationale_worst: modelData.rationaleWorst,
       };
 
       const success = await savePlan(newPlan);
@@ -162,13 +172,11 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       </div>
 
       <div className="space-y-6 animate-in fade-in-50 duration-300">
-        <DecompositionNotifications channelName="финансовая модель" />
         <ChannelFinancialModel 
           channelName="Финансовая модель"
           data={modelData}
           onChange={setModelData}
           isSummary={false}
-          planIndicators={planIndicators}
           fact={fact}
         />
       </div>

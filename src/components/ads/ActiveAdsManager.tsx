@@ -69,7 +69,6 @@ interface MetaInsight {
 
 interface AdInsightRecord {
     entity_id: string;
-    entity_type: 'campaign' | 'adset' | 'ad';
     name?: string;
     spend: number;
     leads: number;
@@ -221,19 +220,16 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         }
     });
 
-    // 2. Derive from Ad Insights (Logs) — ONLY campaigns, not adsets/ads
+    // 2. Derive from Ad Insights (Logs)
     Object.values(adInsights).forEach(insight => {
-        // Skip if not a campaign (prevent adset/ad from appearing as top-level)
-        if (insight.entity_type !== 'campaign') return;
-
         const campaignId = insight.entity_id;
-
+        
         // Skip if already in hierarchy
         if (existingIds.has(campaignId)) return;
-
+        
         // Skip if already processed via leads
         if (processedUtms.has(campaignId)) return;
-
+        
         // Check loose match by Name
         if (insight.name) {
              const normName = normalize(insight.name);
@@ -263,14 +259,12 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       const until = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : since;
       
       try {
-          // Fetch ALL entity types to build full hierarchy metrics
           const { data, error } = await (supabase as any)
               .from('ad_performance_logs')
               .select('*')
               .eq('project_id', pid)
               .gte('date_start', since)
-              .lte('date_start', until)
-              .in('entity_type', ['campaign', 'adset', 'ad']);
+              .lte('date_start', until);
 
           if (error) throw error;
 
@@ -293,7 +287,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               if (!insightsMap[item.entity_id]) {
                   insightsMap[item.entity_id] = {
                       entity_id: item.entity_id,
-                      entity_type: item.entity_type || 'campaign',
                       name: item.entity_name,
                       spend: 0,
                       leads: 0,
@@ -302,10 +295,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   };
               }
               const record = insightsMap[item.entity_id];
-              record.spend += Number(item.spend) || 0;
-              record.leads += Number(item.leads) || 0;
-              record.clicks += Number(item.clicks) || 0;
-              record.impressions += Number(item.impressions) || 0;
+              record.spend += Number(item.spend);
+              record.leads += Number(item.leads);
+              record.clicks += Number(item.clicks);
+              record.impressions += Number(item.impressions);
           });
           setAdInsights(insightsMap);
 
@@ -325,12 +318,66 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
   useEffect(() => {
     if (pid && dateRangeKey && dateRange?.from) {
-      // Мгновенная загрузка из Supabase — без auto-sync с Meta API
-      // Данные уже синхронизируются автоматически через worker
+      // Check circuit breaker
+      if (Date.now() < rateLimitUntil) {
+          console.warn('Meta API requests paused due to Rate Limit.');
+          return;
+      }
+      
+      // 1. Load Local Data Immediately (History + cached Today)
       fetchHierarchy(false);
       fetchAdInsights();
+
+      // 2. Smart Sync Logic
+      // We sync if we haven't synced this specific range recently to ensure data consistency
+      const todayStr = format(new Date(), 'yyyy-MM-dd');
+      const fromStr = format(dateRange.from, 'yyyy-MM-dd');
+      const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
+
+      // Use a unique key for this specific date range
+      const lastSyncKey = `ads_sync_${pid}_${fromStr}_${toStr}`;
+      const lastSyncTime = sessionStorage.getItem(lastSyncKey);
+      const now = Date.now();
+
+      // Check if we should sync:
+      // 1. Not synced recently (5 mins cooldown)
+      // 2. Rate limit not active
+      if (!lastSyncTime || (now - parseInt(lastSyncTime)) > 300000) {
+          console.log(`Auto-syncing range: ${fromStr} to ${toStr}`);
+          sessionStorage.setItem(lastSyncKey, now.toString()); // Mark as syncing immediately
+
+          toast.info('Синхронизация данных с Meta Ads...');
+
+          supabase.functions.invoke('ads-manager', {
+              body: { 
+                  action: 'sync_metrics', 
+                  payload: { 
+                      projectId: pid,
+                      date_range: { since: fromStr, until: toStr } 
+                  } 
+              }
+          }).then(({ data, error }) => {
+              if (data?.error?.includes('#80004')) {
+                   console.warn('Rate Limit hit during auto-sync');
+                   setRateLimitUntil(Date.now() + 60000 * 5); // 5 min pause
+                   sessionStorage.removeItem(lastSyncKey); // Retry later if failed
+                   toast.warning('Meta API: Лимит запросов. Пауза 5 мин.');
+              } else if (!error && !data?.error) {
+                   console.log('Range synced successfully, refreshing insights...');
+                   toast.success('Данные Meta Ads обновлены');
+                   fetchAdInsights(); // Refresh to show new data
+                   fetchHierarchy(true); // Refresh hierarchy too in case of new campaigns
+              } else {
+                   console.error('Sync error response:', data);
+                   sessionStorage.removeItem(lastSyncKey); // Retry if other error
+              }
+          }).catch(err => {
+              console.error('Auto-sync failed', err);
+              sessionStorage.removeItem(lastSyncKey);
+          });
+      }
     }
-  }, [projectId, dateRangeKey]);
+  }, [projectId, dateRangeKey, rateLimitUntil]);
 
   useEffect(() => {
     if (pid && refreshTrigger > 0) {

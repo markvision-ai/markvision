@@ -1,13 +1,11 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
-import { UnitEconomics } from './UnitEconomics';
-import { SmartGoals } from './SmartGoals';
-import { GoalDashboard } from './GoalDashboard';
 import { FinancialFact, PlanIndicators } from '@/hooks/useFinancialMonthData';
 
 export interface ChannelData {
@@ -20,6 +18,9 @@ export interface ChannelData {
   cplWorst: number;
   calcMode: 'goal' | 'budget';
   budgetInput: number;
+  rationaleBest?: string;
+  rationaleAvg?: string;
+  rationaleWorst?: string;
 }
 
 interface ChannelFinancialModelProps {
@@ -28,22 +29,14 @@ interface ChannelFinancialModelProps {
   data: ChannelData;
   onChange?: (data: ChannelData) => void;
   isSummary?: boolean;
-  planIndicators?: PlanIndicators; // For GoalDashboard
-  fact?: FinancialFact; // For GoalDashboard
+  planIndicators?: PlanIndicators;
+  fact?: FinancialFact;
 }
 
 export const ChannelFinancialModel = ({ 
-  channelName, 
-  channelId = 'default',
   data, 
   onChange, 
-  isSummary = false,
-  planIndicators,
-  fact
 }: ChannelFinancialModelProps) => {
-  
-  const getInputId = (field: string) => `input-${channelId}-${field}`;
-
   const handleChange = (field: keyof ChannelData, value: any) => {
     if (onChange) {
       onChange({ ...data, [field]: value });
@@ -60,13 +53,19 @@ export const ChannelFinancialModel = ({
     const safeBudget = Number(data.budgetInput) || 0;
 
     let sales = 0, visits = 0, leads = 0, budget = 0, revenue = 0;
+    
     if (data.calcMode === 'goal') {
-      sales = Math.ceil(safeRevenueGoal / (safeAvgCheck || 1));
-      visits = Math.ceil(sales / ((safeCrVisitToSale || 1) / 100));
-      leads = Math.ceil(visits / ((safeCrLeadToVisit || 1) / 100));
+      // Reverse calculation: Revenue -> Sales -> Visits -> Leads -> Budget
+      sales = safeAvgCheck > 0 ? Math.ceil(safeRevenueGoal / safeAvgCheck) : 0;
+      // Sales = Visits * (CR Visit->Sale / 100) => Visits = Sales / (CR / 100)
+      visits = safeCrVisitToSale > 0 ? Math.ceil(sales / (safeCrVisitToSale / 100)) : 0;
+      // Visits = Leads * (CR Lead->Visit / 100) => Leads = Visits / (CR / 100)
+      leads = safeCrLeadToVisit > 0 ? Math.ceil(visits / (safeCrLeadToVisit / 100)) : 0;
+      
       budget = leads * safeCpl;
-      revenue = sales * safeAvgCheck;
+      revenue = sales * safeAvgCheck; // Should match goal approx
     } else {
+      // Forward calculation: Budget -> Leads -> Visits -> Sales -> Revenue
       budget = safeBudget;
       leads = safeCpl > 0 ? Math.floor(budget / safeCpl) : 0;
       visits = Math.floor(leads * ((safeCrLeadToVisit || 0) / 100));
@@ -74,21 +73,11 @@ export const ChannelFinancialModel = ({
       revenue = sales * safeAvgCheck;
     }
     
-    const cpv = visits > 0 ? Math.round(budget / visits) : 0;
-    const cac = sales > 0 ? Math.round(budget / sales) : 0;
-    const romi = budget > 0 ? Math.round(((revenue - budget) / budget) * 100) : 0;
-
     return {
       name, budget, leads, cpl: safeCpl, visits, sales, avgCheck: safeAvgCheck,
-      crLeadToVisit: safeCrLeadToVisit, cpv, crVisitToSale: safeCrVisitToSale, cac, revenue, romi
+      revenue
     };
   };
-
-  const scenarios = [
-    calculateRow('Лучший сценарий', data.cplBest),
-    calculateRow('Средний сценарий', data.cplAvg),
-    calculateRow('Худший сценарий', data.cplWorst),
-  ];
 
   const formatCurrency = (val: number) => {
     return new Intl.NumberFormat('ru-RU', {
@@ -98,176 +87,168 @@ export const ChannelFinancialModel = ({
     }).format(val);
   };
 
-  return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      {/* Settings Panel */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-3 grid grid-cols-1 md:grid-cols-5 gap-3 p-4 bg-muted/30 rounded-xl border border-border/50">
-           <div className="space-y-1.5">
-            <Label htmlFor={getInputId('revenueGoal')} className="text-[10px] uppercase text-muted-foreground font-bold">Цель (Выручка)</Label>
+  const renderScenarioRow = (
+    scenarioName: string, 
+    cpl: number, 
+    onChangeCpl: (val: number) => void, 
+    rationale: string | undefined,
+    onChangeRationale: (val: string) => void,
+    colorClass: string
+  ) => {
+    const row = calculateRow(scenarioName, cpl);
+    const visitCost = row.visits > 0 ? row.budget / row.visits : 0;
+    const cac = row.sales > 0 ? row.budget / row.sales : 0;
+    const romi = row.budget > 0 ? ((row.revenue - row.budget) / row.budget) * 100 : 0;
+
+    return (
+      <>
+        <TableRow className={cn("hover:bg-muted/30 border-b border-slate-300", colorClass)}>
+          <TableCell className="font-semibold whitespace-nowrap text-sm text-foreground align-top pt-3 border-r border-slate-300 px-3">{scenarioName}</TableCell>
+          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
+             <Input 
+               type="number" 
+               value={data.calcMode === 'goal' ? Math.round(row.budget) : data.budgetInput} 
+               onChange={(e) => handleChange('budgetInput', Number(e.target.value))}
+               disabled={data.calcMode === 'goal'}
+               className={cn(
+                 "h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0",
+                 data.calcMode === 'goal' 
+                   ? "text-slate-600 cursor-not-allowed" 
+                   : "text-foreground hover:bg-black/5"
+               )}
+             />
+          </TableCell>
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.leads}</TableCell>
+          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
             <Input 
-              id={getInputId('revenueGoal')}
-              type="number" 
-              value={data.revenueGoal} 
-              onChange={(e) => handleChange('revenueGoal', Number(e.target.value))} 
-              className="bg-background font-mono text-sm h-9" 
-              disabled={isSummary}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={getInputId('avgCheck')} className="text-[10px] uppercase text-muted-foreground font-bold">Ср. чек</Label>
+               type="number" 
+               value={cpl} 
+               onChange={(e) => onChangeCpl(Number(e.target.value))}
+               className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
+             />
+          </TableCell>
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.visits}</TableCell>
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.sales}</TableCell>
+          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
             <Input 
-              id={getInputId('avgCheck')}
-              type="number" 
-              value={data.avgCheck} 
-              onChange={(e) => handleChange('avgCheck', Number(e.target.value))} 
-              className="bg-background font-mono text-sm h-9" 
-              disabled={isSummary}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={getInputId('crLeadToVisit')} className="text-[10px] uppercase text-muted-foreground font-bold">CR Лид &rarr; Визит (%)</Label>
-            <Input 
-              id={getInputId('crLeadToVisit')}
-              type="number" 
-              value={data.crLeadToVisit} 
-              onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value))} 
-              className="bg-background font-mono text-sm h-9" 
-              disabled={isSummary}
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor={getInputId('crVisitToSale')} className="text-[10px] uppercase text-muted-foreground font-bold">CR Визит &rarr; Продажа (%)</Label>
-            <Input 
-              id={getInputId('crVisitToSale')}
-              type="number" 
-              value={data.crVisitToSale} 
-              onChange={(e) => handleChange('crVisitToSale', Number(e.target.value))} 
-              className="bg-background font-mono text-sm h-9" 
-              disabled={isSummary}
-            />
-          </div>
-          <div className="space-y-1.5">
-             <Label className="text-[10px] uppercase text-muted-foreground font-bold">Режим</Label>
-             <div className="flex gap-1 h-9 bg-background rounded-md border p-1">
-               <button 
-                 onClick={() => !isSummary && handleChange('calcMode', 'goal')} 
-                 className={cn("flex-1 text-xs rounded font-medium transition-colors", data.calcMode === 'goal' ? "bg-primary text-primary-foreground" : "hover:bg-muted", isSummary && "cursor-default opacity-50")}
-               >
-                 От цели
-               </button>
-               <button 
-                 onClick={() => !isSummary && handleChange('calcMode', 'budget')} 
-                 className={cn("flex-1 text-xs rounded font-medium transition-colors", data.calcMode === 'budget' ? "bg-primary text-primary-foreground" : "hover:bg-muted", isSummary && "cursor-default opacity-50")}
-               >
-                 От бюджета
-               </button>
-             </div>
-          </div>
-          {data.calcMode === 'budget' && (
-            <div className="md:col-span-5 pt-2">
-               <Label htmlFor={getInputId('budgetInput')} className="text-[10px] uppercase text-muted-foreground font-bold">Бюджет</Label>
+               type="number" 
+               value={data.avgCheck} 
+               onChange={(e) => handleChange('avgCheck', Number(e.target.value))}
+               className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
+             />
+          </TableCell>
+          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
+            <div className="flex items-center justify-end gap-1">
                <Input 
-                 id={getInputId('budgetInput')}
                  type="number" 
-                 value={data.budgetInput} 
-                 onChange={(e) => handleChange('budgetInput', Number(e.target.value))} 
-                 className="bg-background font-mono text-sm h-9 max-w-[200px]" 
-                 disabled={isSummary}
+                 value={data.crLeadToVisit} 
+                 onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value))}
+                 className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
                />
+               <span className="text-xs font-medium text-muted-foreground pt-2">%</span>
             </div>
-          )}
+          </TableCell>
+          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(visitCost)}</TableCell>
+          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
+            <div className="flex items-center justify-end gap-1">
+               <Input 
+                 type="number" 
+                 value={data.crVisitToSale} 
+                 onChange={(e) => handleChange('crVisitToSale', Number(e.target.value))}
+                 className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
+               />
+               <span className="text-xs font-medium text-muted-foreground pt-2">%</span>
+            </div>
+          </TableCell>
+          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(cac)}</TableCell>
+          <TableCell className="text-right font-mono text-sm font-bold text-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(row.revenue)}</TableCell>
+          <TableCell className={cn("text-right font-bold text-sm align-top pt-3 px-3", romi > 0 ? "text-emerald-600" : "text-red-600")}>
+            {Math.round(romi)}%
+          </TableCell>
+        </TableRow>
+        <TableRow className={cn("hover:bg-muted/30 border-b border-slate-300", colorClass)}>
+          <TableCell colSpan={13} className="p-0 px-2 pb-2 pt-0 border-r border-l border-slate-300">
+             <Textarea 
+               placeholder={`Обоснование сценария "${scenarioName}"...`}
+               value={rationale || ''}
+               onChange={(e) => onChangeRationale(e.target.value)}
+               className="min-h-[30px] h-[30px] resize-y text-xs bg-transparent border-none focus-visible:ring-0 placeholder:text-muted-foreground/50 w-full"
+             />
+          </TableCell>
+        </TableRow>
+      </>
+    );
+  };
+
+  return (
+    <div className="space-y-4 animate-in fade-in duration-500">
+      
+      {/* Control Panel */}
+      <div className="flex flex-col sm:flex-row gap-4 items-end bg-muted/20 p-3 rounded-lg border border-border/50">
+        <div className="grid gap-1.5">
+           <Label className="text-xs font-medium text-muted-foreground">Режим расчета</Label>
+           <div className="flex items-center gap-1 bg-background border rounded-md p-0.5">
+              <Button 
+                 variant={data.calcMode === 'goal' ? 'secondary' : 'ghost'} 
+                 size="sm" 
+                 onClick={() => handleChange('calcMode', 'goal')}
+                 className="text-xs h-7 px-3 shadow-none"
+              >
+                 От Цели (Выручка)
+              </Button>
+              <Button 
+                 variant={data.calcMode === 'budget' ? 'secondary' : 'ghost'} 
+                 size="sm" 
+                 onClick={() => handleChange('calcMode', 'budget')}
+                 className="text-xs h-7 px-3 shadow-none"
+              >
+                 От Бюджета
+              </Button>
+           </div>
         </div>
 
-        {/* Dashboards */}
-        <div className="lg:col-span-2">
-           {planIndicators && fact ? (
-             <GoalDashboard plan={planIndicators} fact={fact} />
-           ) : (
-             <Card className="h-full flex items-center justify-center p-6 text-muted-foreground text-sm border-dashed">
-               Дашборд доступен только в общем режиме
-             </Card>
-           )}
-        </div>
-        <div className="lg:col-span-1">
-           <UnitEconomics avgCheck={Number(data.avgCheck) || 0} cac={scenarios[1].cac} />
-        </div>
+        {data.calcMode === 'goal' && (
+          <div className="grid gap-1.5 animate-in fade-in slide-in-from-left-2 duration-300">
+            <Label className="text-xs font-medium text-muted-foreground">Целевая выручка (KZT)</Label>
+            <Input 
+               type="number" 
+               value={data.revenueGoal} 
+               onChange={(e) => handleChange('revenueGoal', Number(e.target.value))}
+               className="h-8 w-[180px] font-mono"
+            />
+          </div>
+        )}
       </div>
 
-      {/* Financial Model Table */}
-      <Card className="border-border/50 shadow-sm overflow-hidden">
-        <CardHeader className="py-3 px-4 bg-muted/30">
-          <CardTitle className="text-base font-medium">Финансовая модель ({channelName})</CardTitle>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent bg-muted/50 border-b border-border h-9">
-                  <TableHead className="w-[140px] font-bold text-foreground px-4 py-2 text-xs uppercase tracking-wider">Сценарий</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-xs uppercase tracking-wider">Бюджет</TableHead>
-                  <TableHead className="text-center bg-blue-500/10 text-blue-600 font-semibold border-x border-blue-100/20 px-2 py-2 text-xs uppercase tracking-wider">Лиды</TableHead>
-                  <TableHead className="text-center w-[80px] px-2 py-2 text-xs uppercase tracking-wider">CPL</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-xs uppercase tracking-wider">Визиты</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-xs uppercase tracking-wider">Продажи</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-xs uppercase tracking-wider">Ср. чек</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-[10px] uppercase tracking-wider leading-tight">CR Л&rarr;В</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-[10px] uppercase tracking-wider leading-tight">CPV</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-[10px] uppercase tracking-wider leading-tight">CR В&rarr;П</TableHead>
-                  <TableHead className="text-center px-2 py-2 text-xs uppercase tracking-wider">CAC</TableHead>
-                  <TableHead className="text-center font-bold px-2 py-2 text-xs uppercase tracking-wider">Выручка</TableHead>
-                  <TableHead className="text-center font-bold px-2 py-2 text-xs uppercase tracking-wider">ROMI</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {scenarios.map((row, index) => (
-                  <TableRow key={row.name} className={cn(
-                    "hover:bg-muted/30 transition-colors h-10",
-                    index === 0 ? "bg-emerald-500/5" : 
-                    index === 1 ? "bg-yellow-500/5" : "bg-red-500/5"
-                  )}>
-                    <TableCell className="font-medium whitespace-nowrap text-sm px-4 py-2">{row.name}</TableCell>
-                    <TableCell className="text-center font-mono text-sm px-2 py-2">{formatCurrency(row.budget)}</TableCell>
-                    <TableCell className="text-center font-bold bg-blue-500/5 border-x border-blue-100/20 px-2 py-2 text-sm">{row.leads}</TableCell>
-                    <TableCell className="text-center p-1">
-                      <Input 
-                        type="number"
-                        className="h-7 w-16 mx-auto text-center font-mono text-sm px-1 bg-background/50"
-                        value={index === 0 ? data.cplBest : index === 1 ? data.cplAvg : data.cplWorst}
-                        onChange={(e) => {
-                          const val = Number(e.target.value);
-                          if (index === 0) handleChange('cplBest', val);
-                          else if (index === 1) handleChange('cplAvg', val);
-                          else handleChange('cplWorst', val);
-                        }}
-                        disabled={isSummary}
-                      />
-                    </TableCell>
-                    <TableCell className="text-center px-2 py-2 text-sm">{row.visits}</TableCell>
-                    <TableCell className="text-center font-bold px-2 py-2 text-sm">{row.sales}</TableCell>
-                    <TableCell className="text-center font-mono text-sm px-2 py-2">{formatCurrency(row.avgCheck)}</TableCell>
-                    <TableCell className="text-center text-sm text-muted-foreground px-2 py-2">{row.crLeadToVisit}%</TableCell>
-                    <TableCell className="text-center font-mono text-sm px-2 py-2">{formatCurrency(row.cpv)}</TableCell>
-                    <TableCell className="text-center text-sm text-muted-foreground px-2 py-2">{row.crVisitToSale}%</TableCell>
-                    <TableCell className="text-center font-mono text-sm px-2 py-2">{formatCurrency(row.cac)}</TableCell>
-                    <TableCell className="text-center font-bold text-foreground px-2 py-2 text-sm">{formatCurrency(row.revenue)}</TableCell>
-                    <TableCell className={cn("text-center font-bold px-2 py-2 text-sm", 
-                      row.romi > 0 ? "text-emerald-600" : "text-red-600"
-                    )}>
-                      {row.romi}%
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+      {/* Scenario Calculation Table */}
+      <Card className="border-none shadow-none overflow-hidden rounded-none">
+        <CardContent className="p-0 overflow-x-auto">
+          <Table className="w-full border-collapse border border-slate-300">
+            <TableHeader>
+               <TableRow className="bg-slate-100 border-b border-slate-300 text-[10px] uppercase tracking-wider">
+                  <TableHead className="w-[140px] font-bold px-3 py-2 border-r border-slate-300 text-left text-slate-700 bg-slate-100">Сценарий</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[120px] text-slate-700 bg-slate-100">Бюджет</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Лиды</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[100px] text-slate-700 bg-slate-100">CPL</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Диагн.</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Продажи</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[110px] text-slate-700 bg-slate-100">Ср. чек</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CR (L-V)</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">Cost (D)</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CR (V-S)</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CAC</TableHead>
+                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[110px] text-slate-700 bg-slate-100">Выручка</TableHead>
+                  <TableHead className="text-right px-3 py-2 w-[80px] text-slate-700 bg-slate-100">ROMI</TableHead>
+               </TableRow>
+            </TableHeader>
+            <TableBody>
+               {renderScenarioRow('Лучший', data.cplBest, (v) => handleChange('cplBest', v), data.rationaleBest, (v) => handleChange('rationaleBest', v), "bg-emerald-50/30")}
+               {renderScenarioRow('Средний', data.cplAvg, (v) => handleChange('cplAvg', v), data.rationaleAvg, (v) => handleChange('rationaleAvg', v), "bg-yellow-50/30")}
+               {renderScenarioRow('Худший', data.cplWorst, (v) => handleChange('cplWorst', v), data.rationaleWorst, (v) => handleChange('rationaleWorst', v), "bg-red-50/30")}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
-
-      {/* SMART Goals */}
-      <div className="grid grid-cols-1">
-         <SmartGoals channel={channelName === 'Сводная' ? 'summary' : channelName.toLowerCase()} />
-      </div>
     </div>
   );
 };

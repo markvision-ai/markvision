@@ -262,9 +262,10 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
             if (newTransaction.type === 'income') {
               toast.success(`Новая выручка: +${new Intl.NumberFormat('ru-RU').format(Math.round(newTransaction.amount))} ₸`);
               setMetrics(prev => [
-                prev[0],
-                { ...prev[1], previousValue: prev[1].value, value: Math.round(prev[1].value + newTransaction.amount) },
-                ...prev.slice(2)
+                prev[0],  // Лиды
+                prev[1],  // Подписчики
+                { ...prev[2], previousValue: prev[2].value, value: Math.round(prev[2].value + newTransaction.amount) },  // Выручка
+                ...prev.slice(3)
               ]);
             }
           }
@@ -273,6 +274,9 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       .subscribe((status) => {
         if (status === 'SUBSCRIBED') {
           setIsConnected(true);
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          setIsConnected(false);
+          console.error('❌ Realtime connection error:', status);
         }
       });
 
@@ -305,6 +309,33 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
   const getTransactionColor = (type: string) => {
     return type === 'income' ? 'text-green-500' : 'text-red-500';
+  };
+
+  const getStatusLabel = (status: string | null): string => {
+    const labels: Record<string, string> = {
+      'new': 'Новый',
+      'in_progress': 'В работе',
+      'appointment': 'Записан',
+      'paid': 'Оплачен',
+      'cancelled': 'Отменён'
+    };
+    return labels[status || ''] || 'Новый';
+  };
+
+  const getCategoryLabel = (category: string): string => {
+    const labels: Record<string, string> = {
+      'marketing': 'Маркетинг',
+      'salary': 'Зарплата',
+      'rent': 'Аренда',
+      'software': 'Софт',
+      'taxes': 'Налоги',
+      'equipment': 'Оборудование',
+      'sales': 'Продажа',
+      'services': 'Услуги',
+      'refund': 'Возврат',
+      'other': 'Прочее'
+    };
+    return labels[category] || category;
   };
 
   if (!projectId) {
@@ -402,7 +433,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       </div>
 
       {/* Realtime Metrics Cards with animated counters */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {metrics.map((metric, index) => {
           const change = metric.value - metric.previousValue;
           const isPositive = change >= 0;
@@ -463,7 +494,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           <CardContent>
             <AnimatePresence mode="popLayout">
               {recentLeads.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Нет лидов</p>
+                <div className="text-center py-8">
+                  <Users className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Пока нет лидов за сегодня</p>
+                  <p className="text-xs text-muted-foreground mt-1">Новые заявки появятся здесь автоматически</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {recentLeads.map((lead) => (
@@ -480,7 +515,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                         <div>
                           <p className="font-medium">{lead.name || 'Без имени'}</p>
                           <p className="text-xs text-muted-foreground">
-                            {new Date(lead.created_at).toLocaleTimeString('ru-RU')}
+                            {getStatusLabel(lead.status)} • {new Date(lead.created_at).toLocaleTimeString('ru-RU')}
                           </p>
                         </div>
                       </div>
@@ -509,7 +544,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           <CardContent>
             <AnimatePresence mode="popLayout">
               {recentTransactions.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Ожидание первых оплат...</p>
+                <div className="text-center py-8">
+                  <DollarSign className="h-12 w-12 text-muted-foreground/30 mx-auto mb-2" />
+                  <p className="text-sm text-muted-foreground">Нет транзакций за сегодня</p>
+                  <p className="text-xs text-muted-foreground mt-1">Оплаты и расходы появятся здесь</p>
+                </div>
               ) : (
                 <div className="space-y-3">
                   {recentTransactions.map((tx) => (
@@ -522,7 +561,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
                     >
                       <div>
-                        <p className="font-medium">{tx.category}</p>
+                        <p className="font-medium">{getCategoryLabel(tx.category)}</p>
                         <p className="text-xs text-muted-foreground">
                           {tx.created_at ? new Date(tx.created_at).toLocaleTimeString('ru-RU') : '-'}
                         </p>

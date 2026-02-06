@@ -22,9 +22,9 @@ import {
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-  FlaskConical, 
-  Plus, 
+import {
+  FlaskConical,
+  Plus,
   Play,
   Pause,
   CheckCircle2,
@@ -37,8 +37,18 @@ import {
   Users,
   Target,
   Trophy,
-  Swords
+  Swords,
+  Globe,
+  Video,
+  Type,
+  Image,
+  AlertTriangle,
+  Percent,
+  ArrowUpRight,
+  Scale
 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { BackgroundGradient } from '@/components/ui/background-gradient';
@@ -49,6 +59,7 @@ interface ABTest {
   name: string;
   description: string;
   status: string;
+  test_category: 'page' | 'creative' | 'copy' | 'audience';
   variant_a_name: string;
   variant_b_name: string;
   variant_a_visitors: number;
@@ -65,6 +76,26 @@ interface ABTest {
   variant_a_text: string | null;
   variant_b_title: string | null;
   variant_b_text: string | null;
+  // Facebook Ads интеграция
+  facebook_account_id: string | null;
+  facebook_campaign_id: string | null;
+  facebook_ad_ids: string[] | null;
+  facebook_adset_ids: string[] | null;
+  // Метрики Facebook Ads
+  variant_a_spend: number;
+  variant_b_spend: number;
+  variant_a_leads: number;
+  variant_b_leads: number;
+  variant_a_impressions: number;
+  variant_b_impressions: number;
+  variant_a_cpl: number | null;
+  variant_b_cpl: number | null;
+  variant_a_ctr: number | null;
+  variant_b_ctr: number | null;
+  // Статистика
+  confidence_level: number;
+  min_sample_size: number;
+  auto_winner_threshold: number;
 }
 
 interface TestStats {
@@ -96,6 +127,95 @@ const AVAILABLE_PAGES = [
   { value: '/partners', label: 'Партнеры' },
 ];
 
+// Типы A/B тестов
+const TEST_CATEGORIES = [
+  { value: 'page', label: 'Страница', icon: Globe, description: 'Тестирование элементов страницы' },
+  { value: 'creative', label: 'Креатив', icon: Video, description: 'Сравнение объявлений Facebook Ads' },
+  { value: 'copy', label: 'Текст', icon: Type, description: 'Тестирование текстов объявлений' },
+  { value: 'audience', label: 'Аудитория', icon: Users, description: 'Сравнение таргетингов' },
+] as const;
+
+// Функция расчёта статистической значимости (Z-test)
+function calculateConfidence(
+  conversionsA: number,
+  visitsA: number,
+  conversionsB: number,
+  visitsB: number
+): number {
+  if (visitsA < 10 || visitsB < 10) return 0;
+
+  const rateA = conversionsA / visitsA;
+  const rateB = conversionsB / visitsB;
+  const pooledRate = (conversionsA + conversionsB) / (visitsA + visitsB);
+
+  if (pooledRate === 0 || pooledRate === 1) return 0;
+
+  const se = Math.sqrt(pooledRate * (1 - pooledRate) * (1 / visitsA + 1 / visitsB));
+  if (se === 0) return 0;
+
+  const z = Math.abs(rateA - rateB) / se;
+
+  // Преобразование Z-score в confidence (упрощённое)
+  // z=1.96 -> 95%, z=2.58 -> 99%
+  const confidence = Math.min(99.9, (1 - 2 * (1 - normalCDF(z))) * 100);
+  return Math.max(0, confidence);
+}
+
+// Функция нормального распределения (упрощённая)
+function normalCDF(z: number): number {
+  const a1 = 0.254829592;
+  const a2 = -0.284496736;
+  const a3 = 1.421413741;
+  const a4 = -1.453152027;
+  const a5 = 1.061405429;
+  const p = 0.3275911;
+
+  const sign = z < 0 ? -1 : 1;
+  z = Math.abs(z) / Math.sqrt(2);
+
+  const t = 1.0 / (1.0 + p * z);
+  const y = 1.0 - (((((a5 * t + a4) * t) + a3) * t + a2) * t + a1) * t * Math.exp(-z * z);
+
+  return 0.5 * (1.0 + sign * y);
+}
+
+// Определение победителя на основе метрик
+function determineWinner(test: ABTest): { winner: 'a' | 'b' | null; reason: string } {
+  const { confidence_level, auto_winner_threshold } = test;
+
+  if (confidence_level < auto_winner_threshold) {
+    return { winner: null, reason: `Confidence ${confidence_level.toFixed(1)}% < ${auto_winner_threshold}%` };
+  }
+
+  // Для креативов - сравниваем CPL
+  if (test.test_category === 'creative' || test.test_category === 'audience') {
+    const cplA = test.variant_a_cpl ?? Infinity;
+    const cplB = test.variant_b_cpl ?? Infinity;
+
+    if (cplA < cplB) {
+      const improvement = ((cplB - cplA) / cplB * 100).toFixed(1);
+      return { winner: 'a', reason: `CPL на ${improvement}% ниже` };
+    } else if (cplB < cplA) {
+      const improvement = ((cplA - cplB) / cplA * 100).toFixed(1);
+      return { winner: 'b', reason: `CPL на ${improvement}% ниже` };
+    }
+  }
+
+  // Для страниц и текстов - сравниваем конверсию
+  const crA = test.variant_a_visitors > 0 ? test.variant_a_conversions / test.variant_a_visitors : 0;
+  const crB = test.variant_b_visitors > 0 ? test.variant_b_conversions / test.variant_b_visitors : 0;
+
+  if (crA > crB) {
+    const improvement = ((crA - crB) / crB * 100).toFixed(1);
+    return { winner: 'a', reason: `CR на ${improvement}% выше` };
+  } else if (crB > crA) {
+    const improvement = ((crB - crA) / crA * 100).toFixed(1);
+    return { winner: 'b', reason: `CR на ${improvement}% выше` };
+  }
+
+  return { winner: null, reason: 'Результаты равны' };
+}
+
 export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const [tests, setTests] = useState<ABTest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -105,6 +225,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const [newTest, setNewTest] = useState({
     name: '',
     description: '',
+    test_category: 'page' as 'page' | 'creative' | 'copy' | 'audience',
     page_path: '',
     variant_a_name: 'Control',
     variant_b_name: 'Variant B',
@@ -112,7 +233,25 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
     variant_a_text: '',
     variant_b_title: '',
     variant_b_text: '',
+    // Facebook Ads
+    facebook_account_id: '',
+    facebook_campaign_id: '',
+    facebook_ad_a_id: '',
+    facebook_ad_b_id: '',
+    facebook_adset_a_id: '',
+    facebook_adset_b_id: '',
+    // Настройки автоматизации
+    min_sample_size: 1000,
+    auto_winner_threshold: 95,
   });
+
+  // Диалог подтверждения действий
+  const [actionDialog, setActionDialog] = useState<{
+    open: boolean;
+    testId: string;
+    action: 'apply_winner' | 'scale' | 'pause_loser';
+    winner: 'a' | 'b';
+  } | null>(null);
 
   useEffect(() => {
     fetchTests();
@@ -204,36 +343,144 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   };
 
   const handleAddTest = async () => {
-    if (!newTest.name || !newTest.page_path || !newTest.variant_a_title || !newTest.variant_b_title) {
-      toast.error('Заполните все обязательные поля');
+    // Валидация в зависимости от типа теста
+    if (!newTest.name) {
+      toast.error('Укажите название теста');
       return;
     }
 
+    if (newTest.test_category === 'page') {
+      if (!newTest.page_path || !newTest.variant_a_title || !newTest.variant_b_title) {
+        toast.error('Заполните все обязательные поля для теста страницы');
+        return;
+      }
+    }
+
+    if (newTest.test_category === 'creative') {
+      if (!newTest.facebook_ad_a_id || !newTest.facebook_ad_b_id) {
+        toast.error('Выберите два объявления для сравнения');
+        return;
+      }
+    }
+
+    if (newTest.test_category === 'audience') {
+      if (!newTest.facebook_adset_a_id || !newTest.facebook_adset_b_id) {
+        toast.error('Выберите два adset для сравнения');
+        return;
+      }
+    }
+
     try {
-      const { error } = await supabase.from('ab_tests').insert([{
+      // Подготовка данных для сохранения
+      const testData: any = {
         project_id: projectId,
-        ...newTest,
-      }]);
+        name: newTest.name,
+        description: newTest.description,
+        test_category: newTest.test_category,
+        variant_a_name: newTest.variant_a_name,
+        variant_b_name: newTest.variant_b_name,
+        min_sample_size: newTest.min_sample_size,
+        auto_winner_threshold: newTest.auto_winner_threshold,
+        status: 'draft',
+      };
+
+      // Добавляем поля в зависимости от типа теста
+      if (newTest.test_category === 'page' || newTest.test_category === 'copy') {
+        testData.page_path = newTest.page_path;
+        testData.variant_a_title = newTest.variant_a_title;
+        testData.variant_a_text = newTest.variant_a_text;
+        testData.variant_b_title = newTest.variant_b_title;
+        testData.variant_b_text = newTest.variant_b_text;
+      }
+
+      if (newTest.test_category === 'creative' || newTest.test_category === 'audience') {
+        testData.facebook_account_id = newTest.facebook_account_id;
+        testData.facebook_campaign_id = newTest.facebook_campaign_id;
+      }
+
+      if (newTest.test_category === 'creative') {
+        testData.facebook_ad_ids = [newTest.facebook_ad_a_id, newTest.facebook_ad_b_id];
+      }
+
+      if (newTest.test_category === 'audience') {
+        testData.facebook_adset_ids = [newTest.facebook_adset_a_id, newTest.facebook_adset_b_id];
+      }
+
+      const { error } = await supabase.from('ab_tests').insert([testData]);
 
       if (error) throw error;
-      
+
       toast.success('A/B тест создан');
       setIsAddDialogOpen(false);
-      setNewTest({
-        name: '',
-        description: '',
-        page_path: '',
-        variant_a_name: 'Control',
-        variant_b_name: 'Variant B',
-        variant_a_title: '',
-        variant_a_text: '',
-        variant_b_title: '',
-        variant_b_text: '',
-      });
+      resetNewTestForm();
       fetchTests();
     } catch (error) {
       console.error('Error adding test:', error);
       toast.error('Ошибка при создании теста');
+    }
+  };
+
+  // Сброс формы создания теста
+  const resetNewTestForm = () => {
+    setNewTest({
+      name: '',
+      description: '',
+      test_category: 'page',
+      page_path: '',
+      variant_a_name: 'Control',
+      variant_b_name: 'Variant B',
+      variant_a_title: '',
+      variant_a_text: '',
+      variant_b_title: '',
+      variant_b_text: '',
+      facebook_account_id: '',
+      facebook_campaign_id: '',
+      facebook_ad_a_id: '',
+      facebook_ad_b_id: '',
+      facebook_adset_a_id: '',
+      facebook_adset_b_id: '',
+      min_sample_size: 1000,
+      auto_winner_threshold: 95,
+    });
+  };
+
+  // Применение победителя теста
+  const handleApplyWinner = async (testId: string, winner: 'a' | 'b') => {
+    setActionDialog({
+      open: true,
+      testId,
+      action: 'apply_winner',
+      winner,
+    });
+  };
+
+  // Подтверждение действия
+  const confirmAction = async () => {
+    if (!actionDialog) return;
+
+    const { testId, action, winner } = actionDialog;
+
+    try {
+      if (action === 'apply_winner') {
+        // Обновляем статус теста
+        const { error } = await supabase
+          .from('ab_tests')
+          .update({
+            status: 'completed',
+            winner,
+            ended_at: new Date().toISOString(),
+          })
+          .eq('id', testId);
+
+        if (error) throw error;
+        toast.success(`Победитель применён: Variant ${winner.toUpperCase()}`);
+      }
+
+      setActionDialog(null);
+      fetchTests();
+    } catch (error) {
+      console.error('Error applying action:', error);
+      toast.error('Ошибка при выполнении действия');
     }
   };
 
@@ -658,6 +905,73 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
                     </div>
                   </div>
 
+                  {/* Confidence Level & AI Рекомендации */}
+                  {test.status === 'running' && (
+                    <div className="mt-4 space-y-3">
+                      {/* Confidence Progress */}
+                      <div className="p-3 rounded-lg bg-muted/30 border">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Percent className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-medium">Статистическая значимость</span>
+                          </div>
+                          <span className={cn(
+                            "text-lg font-bold",
+                            (test.confidence_level || 0) >= 95 ? "text-green-500" :
+                            (test.confidence_level || 0) >= 80 ? "text-yellow-500" :
+                            "text-muted-foreground"
+                          )}>
+                            {(test.confidence_level || 0).toFixed(1)}%
+                          </span>
+                        </div>
+                        <Progress
+                          value={test.confidence_level || 0}
+                          className={cn(
+                            "h-2",
+                            (test.confidence_level || 0) >= 95 ? "[&>div]:bg-green-500" :
+                            (test.confidence_level || 0) >= 80 ? "[&>div]:bg-yellow-500" :
+                            ""
+                          )}
+                        />
+                        <p className="text-xs text-muted-foreground mt-2">
+                          {(test.confidence_level || 0) >= (test.auto_winner_threshold || 95)
+                            ? "Достаточно данных для определения победителя"
+                            : `Нужно ${((test.auto_winner_threshold || 95) - (test.confidence_level || 0)).toFixed(0)}% для авто-завершения`
+                          }
+                        </p>
+                      </div>
+
+                      {/* Победитель определён */}
+                      {(test.confidence_level || 0) >= (test.auto_winner_threshold || 95) && (() => {
+                        const result = determineWinner(test);
+                        if (result.winner) {
+                          return (
+                            <Alert className="border-green-500/50 bg-green-500/5">
+                              <Trophy className="w-4 h-4 text-green-500" />
+                              <AlertTitle className="text-green-600">Победитель определён!</AlertTitle>
+                              <AlertDescription>
+                                <strong>{result.winner === 'a' ? test.variant_a_name : test.variant_b_name}</strong> показывает лучшие результаты.
+                                {result.reason && <span className="block mt-1 text-muted-foreground">{result.reason}</span>}
+                              </AlertDescription>
+                              <div className="mt-3 flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleApplyWinner(test.id, result.winner!)}
+                                  className="bg-green-600 hover:bg-green-700"
+                                >
+                                  <CheckCircle2 className="w-4 h-4 mr-1" />
+                                  Применить победителя
+                                </Button>
+                              </div>
+                            </Alert>
+                          );
+                        }
+                        return null;
+                      })()}
+                    </div>
+                  )}
+
+                  {/* AI Рекомендация (если есть) */}
                   {test.ai_recommendation && (
                     <div className="mt-4 p-3 rounded-lg bg-primary/5 border border-primary/20">
                       <div className="flex items-center gap-2">
@@ -665,6 +979,30 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
                         <span className="text-sm font-medium">AI рекомендация:</span>
                       </div>
                       <p className="text-sm text-muted-foreground mt-1">{test.ai_recommendation}</p>
+                    </div>
+                  )}
+
+                  {/* Тип теста badge */}
+                  {test.test_category && test.test_category !== 'page' && (
+                    <div className="mt-3 flex items-center gap-2">
+                      {test.test_category === 'creative' && (
+                        <Badge variant="outline" className="text-xs">
+                          <Video className="w-3 h-3 mr-1" />
+                          Креатив
+                        </Badge>
+                      )}
+                      {test.test_category === 'audience' && (
+                        <Badge variant="outline" className="text-xs">
+                          <Users className="w-3 h-3 mr-1" />
+                          Аудитория
+                        </Badge>
+                      )}
+                      {test.test_category === 'copy' && (
+                        <Badge variant="outline" className="text-xs">
+                          <Type className="w-3 h-3 mr-1" />
+                          Текст
+                        </Badge>
+                      )}
                     </div>
                   )}
                 </CardContent>
@@ -676,108 +1014,354 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
 
       {/* Add Test Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Создать A/B тест</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <FlaskConical className="w-5 h-5 text-primary" />
+              Создать A/B тест
+            </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label>Название теста *</Label>
-              <Input
-                value={newTest.name}
-                onChange={(e) => setNewTest({ ...newTest, name: e.target.value })}
-                placeholder="Тест заголовка лендинга"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Описание</Label>
-              <Input
-                value={newTest.description}
-                onChange={(e) => setNewTest({ ...newTest, description: e.target.value })}
-                placeholder="Сравниваем два варианта заголовка..."
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Страница для теста *</Label>
-              <Select
-                value={newTest.page_path}
-                onValueChange={(value) => setNewTest({ ...newTest, page_path: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Выберите страницу" />
-                </SelectTrigger>
-                <SelectContent>
-                  {AVAILABLE_PAGES.map((page) => (
-                    <SelectItem key={page.value} value={page.value}>
-                      {page.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+
+          <div className="space-y-6 py-4">
+            {/* Основные поля */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Вариант A (Control) *</Label>
+                <Label>Название теста *</Label>
                 <Input
-                  value={newTest.variant_a_name}
-                  onChange={(e) => setNewTest({ ...newTest, variant_a_name: e.target.value })}
-                  placeholder="Control"
+                  value={newTest.name}
+                  onChange={(e) => setNewTest({ ...newTest, name: e.target.value })}
+                  placeholder="Тест креативов январь"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Вариант B *</Label>
+                <Label>Описание</Label>
                 <Input
-                  value={newTest.variant_b_name}
-                  onChange={(e) => setNewTest({ ...newTest, variant_b_name: e.target.value })}
-                  placeholder="Variant B"
+                  value={newTest.description}
+                  onChange={(e) => setNewTest({ ...newTest, description: e.target.value })}
+                  placeholder="Сравниваем два варианта..."
                 />
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Заголовок варианта A *</Label>
-                <Input
-                  value={newTest.variant_a_title}
-                  onChange={(e) => setNewTest({ ...newTest, variant_a_title: e.target.value })}
-                  placeholder="Текущий заголовок"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Заголовок варианта B *</Label>
-                <Input
-                  value={newTest.variant_b_title}
-                  onChange={(e) => setNewTest({ ...newTest, variant_b_title: e.target.value })}
-                  placeholder="Новый заголовок"
-                />
+
+            {/* Выбор типа теста */}
+            <div className="space-y-3">
+              <Label>Тип теста</Label>
+              <div className="grid grid-cols-4 gap-3">
+                {TEST_CATEGORIES.map((cat) => {
+                  const Icon = cat.icon;
+                  const isSelected = newTest.test_category === cat.value;
+                  return (
+                    <button
+                      key={cat.value}
+                      onClick={() => setNewTest({ ...newTest, test_category: cat.value as any })}
+                      className={cn(
+                        "p-4 rounded-lg border-2 transition-all text-left",
+                        isSelected
+                          ? "border-primary bg-primary/5"
+                          : "border-border hover:border-primary/50"
+                      )}
+                    >
+                      <Icon className={cn("w-6 h-6 mb-2", isSelected ? "text-primary" : "text-muted-foreground")} />
+                      <div className="font-medium text-sm">{cat.label}</div>
+                      <div className="text-xs text-muted-foreground mt-1">{cat.description}</div>
+                    </button>
+                  );
+                })}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Текст варианта A</Label>
-                <Textarea
-                  value={newTest.variant_a_text}
-                  onChange={(e) => setNewTest({ ...newTest, variant_a_text: e.target.value })}
-                  placeholder="Текущий текст"
-                  rows={3}
-                />
+
+            {/* Форма для типа "Страница" */}
+            {newTest.test_category === 'page' && (
+              <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Globe className="w-4 h-4" />
+                  Настройки теста страницы
+                </div>
+                <div className="space-y-2">
+                  <Label>Страница для теста *</Label>
+                  <Select
+                    value={newTest.page_path}
+                    onValueChange={(value) => setNewTest({ ...newTest, page_path: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Выберите страницу" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AVAILABLE_PAGES.map((page) => (
+                        <SelectItem key={page.value} value={page.value}>
+                          {page.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Заголовок A (Control) *</Label>
+                    <Input
+                      value={newTest.variant_a_title}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_title: e.target.value })}
+                      placeholder="Текущий заголовок"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Заголовок B (Variant) *</Label>
+                    <Input
+                      value={newTest.variant_b_title}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_title: e.target.value })}
+                      placeholder="Новый заголовок"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Текст A</Label>
+                    <Textarea
+                      value={newTest.variant_a_text}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_text: e.target.value })}
+                      placeholder="Текущий текст"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Текст B</Label>
+                    <Textarea
+                      value={newTest.variant_b_text}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_text: e.target.value })}
+                      placeholder="Новый текст"
+                      rows={3}
+                    />
+                  </div>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Текст варианта B</Label>
-                <Textarea
-                  value={newTest.variant_b_text}
-                  onChange={(e) => setNewTest({ ...newTest, variant_b_text: e.target.value })}
-                  placeholder="Новый текст"
-                  rows={3}
-                />
+            )}
+
+            {/* Форма для типа "Креатив" */}
+            {newTest.test_category === 'creative' && (
+              <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Video className="w-4 h-4" />
+                  Настройки теста креативов
+                </div>
+                <Alert>
+                  <Sparkles className="w-4 h-4" />
+                  <AlertTitle>Тестирование креативов Facebook Ads</AlertTitle>
+                  <AlertDescription>
+                    Выберите два объявления для сравнения. Система автоматически соберёт метрики
+                    и определит победителя по CPL.
+                  </AlertDescription>
+                </Alert>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>ID объявления A (Control) *</Label>
+                    <Input
+                      value={newTest.facebook_ad_a_id}
+                      onChange={(e) => setNewTest({ ...newTest, facebook_ad_a_id: e.target.value })}
+                      placeholder="123456789012345"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ID объявления B (Variant) *</Label>
+                    <Input
+                      value={newTest.facebook_ad_b_id}
+                      onChange={(e) => setNewTest({ ...newTest, facebook_ad_b_id: e.target.value })}
+                      placeholder="123456789012346"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Название A</Label>
+                    <Input
+                      value={newTest.variant_a_name}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_name: e.target.value })}
+                      placeholder="Видео кухня"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Название B</Label>
+                    <Input
+                      value={newTest.variant_b_name}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_name: e.target.value })}
+                      placeholder="Видео ванная"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Форма для типа "Текст" */}
+            {newTest.test_category === 'copy' && (
+              <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Type className="w-4 h-4" />
+                  Настройки теста текстов
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Оффер A (Control) *</Label>
+                    <Textarea
+                      value={newTest.variant_a_title}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_title: e.target.value })}
+                      placeholder="Текущий оффер"
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Оффер B (Variant) *</Label>
+                    <Textarea
+                      value={newTest.variant_b_title}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_title: e.target.value })}
+                      placeholder="Новый оффер"
+                      rows={3}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Текст объявления A</Label>
+                    <Textarea
+                      value={newTest.variant_a_text}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_text: e.target.value })}
+                      placeholder="Текущий текст объявления"
+                      rows={4}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Текст объявления B</Label>
+                    <Textarea
+                      value={newTest.variant_b_text}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_text: e.target.value })}
+                      placeholder="Новый текст объявления"
+                      rows={4}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Форма для типа "Аудитория" */}
+            {newTest.test_category === 'audience' && (
+              <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <Users className="w-4 h-4" />
+                  Настройки теста аудиторий
+                </div>
+                <Alert>
+                  <Target className="w-4 h-4" />
+                  <AlertTitle>Тестирование аудиторий</AlertTitle>
+                  <AlertDescription>
+                    Выберите два adset с разным таргетингом для сравнения эффективности.
+                  </AlertDescription>
+                </Alert>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>ID AdSet A (Control) *</Label>
+                    <Input
+                      value={newTest.facebook_adset_a_id}
+                      onChange={(e) => setNewTest({ ...newTest, facebook_adset_a_id: e.target.value })}
+                      placeholder="123456789012345"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>ID AdSet B (Variant) *</Label>
+                    <Input
+                      value={newTest.facebook_adset_b_id}
+                      onChange={(e) => setNewTest({ ...newTest, facebook_adset_b_id: e.target.value })}
+                      placeholder="123456789012346"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Название A</Label>
+                    <Input
+                      value={newTest.variant_a_name}
+                      onChange={(e) => setNewTest({ ...newTest, variant_a_name: e.target.value })}
+                      placeholder="Lookalike 3%"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Название B</Label>
+                    <Input
+                      value={newTest.variant_b_name}
+                      onChange={(e) => setNewTest({ ...newTest, variant_b_name: e.target.value })}
+                      placeholder="Interest targeting"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Настройки автоматизации */}
+            <div className="space-y-4 p-4 rounded-lg border bg-muted/30">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Scale className="w-4 h-4" />
+                Настройки автоматизации
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Мин. выборка (impressions)</Label>
+                  <Input
+                    type="number"
+                    value={newTest.min_sample_size}
+                    onChange={(e) => setNewTest({ ...newTest, min_sample_size: parseInt(e.target.value) || 1000 })}
+                    min={100}
+                    max={100000}
+                  />
+                  <p className="text-xs text-muted-foreground">Минимум показов для статистики</p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Порог confidence (%)</Label>
+                  <Input
+                    type="number"
+                    value={newTest.auto_winner_threshold}
+                    onChange={(e) => setNewTest({ ...newTest, auto_winner_threshold: parseInt(e.target.value) || 95 })}
+                    min={80}
+                    max={99}
+                  />
+                  <p className="text-xs text-muted-foreground">Уровень для авто-определения победителя</p>
+                </div>
               </div>
             </div>
           </div>
+
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+            <Button variant="outline" onClick={() => { setIsAddDialogOpen(false); resetNewTestForm(); }}>
               Отмена
             </Button>
-            <Button onClick={handleAddTest} disabled={!newTest.name || !newTest.page_path || !newTest.variant_a_title || !newTest.variant_b_title}>
-              Создать
+            <Button onClick={handleAddTest}>
+              <Plus className="w-4 h-4 mr-2" />
+              Создать тест
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Диалог подтверждения действия */}
+      <Dialog open={actionDialog?.open || false} onOpenChange={() => setActionDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500" />
+              Подтверждение действия
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {actionDialog?.action === 'apply_winner' && (
+              <p>
+                Вы уверены, что хотите применить <strong>Variant {actionDialog.winner.toUpperCase()}</strong> как победителя?
+                Проигравший вариант будет отмечен, и тест завершится.
+              </p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setActionDialog(null)}>
+              Отмена
+            </Button>
+            <Button onClick={confirmAction}>
+              <CheckCircle2 className="w-4 h-4 mr-2" />
+              Подтвердить
             </Button>
           </DialogFooter>
         </DialogContent>

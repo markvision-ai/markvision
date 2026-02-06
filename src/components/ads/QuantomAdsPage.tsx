@@ -219,9 +219,9 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     
     const attributedCrmLeads = crmLeadsInRange.filter(l => l.utm_campaign);
     const rawMetaLeads = historyLeads + todayLeads;
-
-    // CONSISTENCY: Используем только Meta Leads для соответствия с Active Ads Manager
-    const totalLeads = rawMetaLeads;
+    
+    // CONSISTENCY RULE: Use MAX(Meta Leads, CRM Attributed Leads) to match Table/Funnel
+    const totalLeads = Math.max(rawMetaLeads, attributedCrmLeads.length);
     
     const totalRevenue = attributedCrmLeads
       .filter(l => l.status === 'paid' && l.deal_amount)
@@ -362,80 +362,19 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </div>
 
               {/* Date & Refresh Controls */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50 rounded-lg border border-border">
-                <div className="flex items-center gap-2 flex-wrap flex-1">
-                  {/* Quick Date Buttons */}
-                  <div className="flex items-center gap-1">
-                    <Button
-                      variant={activePreset === 'today' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        setDateRange({ from: today, to: today });
-                        setActivePreset('today');
-                      }}
-                      className="h-8 px-3 text-xs"
-                    >
-                      Сегодня
-                    </Button>
-                    <Button
-                      variant={activePreset === 'yesterday' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        const yesterday = new Date();
-                        yesterday.setDate(yesterday.getDate() - 1);
-                        setDateRange({ from: yesterday, to: yesterday });
-                        setActivePreset('yesterday');
-                      }}
-                      className="h-8 px-3 text-xs"
-                    >
-                      Вчера
-                    </Button>
-                    <Button
-                      variant={activePreset === 'last7' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        const weekAgo = new Date();
-                        weekAgo.setDate(today.getDate() - 6);
-                        setDateRange({ from: weekAgo, to: today });
-                        setActivePreset('last7');
-                      }}
-                      className="h-8 px-3 text-xs"
-                    >
-                      7 дней
-                    </Button>
-                    <Button
-                      variant={activePreset === 'month' ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => {
-                        const today = new Date();
-                        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-                        setDateRange({ from: firstDay, to: today });
-                        setActivePreset('month');
-                      }}
-                      className="h-8 px-3 text-xs"
-                    >
-                      Месяц
-                    </Button>
-                  </div>
-
-                  <div className="h-6 w-px bg-border hidden sm:block" />
-
-                  <DateRangePicker
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3 bg-muted/50  rounded-lg border border-border">
+                <div className="flex items-center gap-2 flex-1">
+                  <DateRangePicker 
                     dateRange={{
                       from: dateRange?.from ?? new Date(),
                       to: dateRange?.to ?? new Date()
                     }}
-                    onDateRangeChange={(range) => {
-                      setDateRange(range);
-                      setActivePreset(undefined); // Сброс активного preset при ручном выборе
-                    }}
+                    onDateRangeChange={(range) => setDateRange(range)}
                     onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
                     align="start"
                   />
 
-                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-8 w-8" title="Синхронизация с Meta API">
+                  <Button variant="outline" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-10 w-10">
                     <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
                   </Button>
                 </div>

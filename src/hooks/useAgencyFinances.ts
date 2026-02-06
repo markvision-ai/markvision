@@ -13,6 +13,8 @@ export interface AgencyFinance {
   team_members: string;
   team_salaries: number;
   software_costs: number;
+  other_expenses: number;
+  payment_date?: string;
   yuri_net_profit?: number;
 }
 
@@ -57,6 +59,8 @@ export const useAgencyFinances = () => {
           team_members: existingFinance?.team_members || '',
           team_salaries: existingFinance?.team_salaries || existingFinance?.total_expenses || 0,
           software_costs: existingFinance?.software_costs || 0,
+          other_expenses: existingFinance?.other_expenses || 0,
+          payment_date: existingFinance?.payment_date,
           yuri_net_profit: existingFinance?.yuri_net_profit,
         };
       });
@@ -121,6 +125,8 @@ export const useAgencyFinances = () => {
         team_members: field === 'team_members' ? value : financeData.team_members,
         team_salaries: field === 'team_salaries' ? value : financeData.team_salaries,
         software_costs: field === 'software_costs' ? value : financeData.software_costs,
+        other_expenses: field === 'other_expenses' ? value : financeData.other_expenses,
+        payment_date: field === 'payment_date' ? value : financeData.payment_date,
       };
 
       const { data, error } = await supabase
@@ -156,12 +162,12 @@ export const useAgencyFinances = () => {
   // Calculate totals
   const totals = {
     totalRevenue: finances.reduce((sum, f) => sum + f.package_revenue, 0),
-    totalExpenses: finances.reduce((sum, f) => sum + (f.team_salaries + f.software_costs), 0),
+    totalExpenses: finances.reduce((sum, f) => sum + (f.team_salaries + f.software_costs + (f.other_expenses || 0)), 0),
     yuriNetProfit: finances.reduce((sum, f) => sum + (f.yuri_net_profit || 0), 0),
     projectsCount: finances.length,
     profitableProjects: finances.filter(f => (f.yuri_net_profit || 0) > 0).length,
     myProfitTotal: finances.reduce((sum, f) => sum + (f.package_revenue - f.team_salaries), 0),
-    netProfitTotal: finances.reduce((sum, f) => sum + (f.package_revenue - f.team_salaries - f.software_costs), 0),
+    netProfitTotal: finances.reduce((sum, f) => sum + (f.package_revenue - f.team_salaries - f.software_costs - (f.other_expenses || 0)), 0),
   };
 
   const addProject = useCallback(async (name: string) => {
