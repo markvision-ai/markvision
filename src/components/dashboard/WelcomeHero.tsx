@@ -99,7 +99,7 @@ export const WelcomeHero = ({
               transition={{ delay: 0.1 }}
               className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight"
             >
-              {greeting}, <span className="gradient-text-primary">{displayName}</span>!
+              MarkVision Online. Капитан Запойнов, система готова к анализу прибыли.
             </motion.h1>
             <motion.p
               initial={{ opacity: 0 }}

@@ -44,6 +44,7 @@ interface FactoryState {
   activeScriptId: string | null;
   productionLines: Record<ContentType, ProductionItem>;
   postingQueue: PostingItem[];
+  webhookUrl?: string | null;
 
   // Actions
   setIdeas: (ideas: Idea[]) => void;
@@ -55,6 +56,7 @@ interface FactoryState {
   updateProductionItem: (type: ContentType, updates: Partial<ProductionItem>) => void;
   approveAllToPosting: () => void;
   updatePostingStatus: (id: string, status: PostingStatus) => void;
+  setWebhookUrl: (url: string | null) => void;
 }
 
 export const useFactoryStore = create<FactoryState>((set, get) => ({
@@ -81,8 +83,10 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
     tg_post: { type: 'tg_post', status: 'idle', progress: 0 },
   },
   postingQueue: [],
+  webhookUrl: null,
 
   setIdeas: (ideas) => set({ ideas }),
+  setWebhookUrl: (url) => set({ webhookUrl: url }),
 
   moveIdeaToWorkshop: (idea) => {
     const newScript: Script = {
@@ -248,9 +252,16 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
       postingQueue: [...state.postingQueue, ...newPostingItems],
     }));
 
-    // Simulate Posting
-    // TODO: Replace with n8n webhook call
-    // Example: await fetch('https://n8n.markvision.ai/webhook/posting', { method: 'POST', body: JSON.stringify(newPostingItems) });
+    const url = get().webhookUrl;
+    if (url) {
+      try {
+        fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ items: newPostingItems })
+        }).catch(() => {});
+      } catch (e) { void e; }
+    }
     
     newPostingItems.forEach((item, index) => {
       setTimeout(() => {

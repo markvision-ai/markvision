@@ -1,6 +1,11 @@
 // @ts-nocheck
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { ChartContainer, ChartLegend, ChartLegendContent, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Bar, BarChart, CartesianGrid, Pie, PieChart, XAxis, YAxis } from 'recharts';
+import { DndContext, closestCenter, DragEndEvent } from '@dnd-kit/core';
+import { SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -103,6 +108,13 @@ interface LeadScoringProps {
   projectId: string;
 }
 
+type ScoreStats = {
+  hot: number;
+  warm: number;
+  cold: number;
+  avg: number;
+};
+
 const operators = [
   { value: 'equals', label: 'Равно' },
   { value: 'contains', label: 'Содержит' },
@@ -124,6 +136,7 @@ const fields = [
 
 export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const [rules, setRules] = useState<ScoringRule[]>([]);
+  const [orderedRules, setOrderedRules] = useState<ScoringRule[]>([]);
   const [insights, setInsights] = useState<ScoringInsight[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -135,10 +148,16 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     value: '',
     score_delta: 10,
   });
+  const [scoreStats, setScoreStats] = useState<ScoreStats>({ hot: 0, warm: 0, cold: 0, avg: 0 });
+  const [segmentLeads, setSegmentLeads] = useState<any[]>([]);
+  const [selectedSource, setSelectedSource] = useState<string | null>(null);
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
 
   useEffect(() => {
     fetchRules();
     fetchInsights();
+    fetchScoreStats();
+    fetchSegmentLeads();
   }, [projectId]);
 
   const fetchRules = async () => {
@@ -151,7 +170,9 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       if (error) throw error;
       const rows: any[] = (data as any[]) || [];
-      setRules(rows.map(mapRuleFromDb) || []);
+      const mapped = rows.map(mapRuleFromDb) || [];
+      setRules(mapped);
+      setOrderedRules(prev => prev.length ? prev : mapped);
     } catch (error) {
       console.error('Error fetching rules:', error);
       toast.error('Ошибка загрузки правил');
@@ -176,6 +197,80 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     } catch (error) {
       console.error('Error fetching insights:', error);
     }
+  };
+
+  const fetchScoreStats = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('lead_score')
+        .eq('project_id', projectId);
+      if (error) throw error;
+      const scores = (data as any[]).map(d => Number(d.lead_score || 0));
+      const hot = scores.filter(s => s >= 80).length;
+      const warm = scores.filter(s => s >= 50 && s < 80).length;
+      const cold = scores.filter(s => s < 50).length;
+      const avg = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
+      setScoreStats({ hot, warm, cold, avg });
+    } catch (e) {
+      console.error('Error fetching score stats:', e);
+    }
+  };
+
+  const fetchSegmentLeads = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, lead_score, utm_source, status')
+        .eq('project_id', projectId);
+      if (error) throw error;
+      setSegmentLeads((data as any[]) || []);
+    } catch (e) {
+      console.error('Error fetching segmented leads:', e);
+    }
+  };
+
+  const filteredSegments = segmentLeads.filter(l => {
+    if (selectedSource && selectedSource !== 'all' && (l.utm_source || '').toLowerCase() !== selectedSource) return false;
+    if (selectedStatus && selectedStatus !== 'all' && l.status !== selectedStatus) return false;
+    return true;
+  });
+
+  const distributionData = [
+    { name: 'Горячие', value: filteredSegments.filter(s => (s.lead_score || 0) >= 80).length, fill: 'hsl(0 84% 60%)' },
+    { name: 'Тёплые', value: filteredSegments.filter(s => (s.lead_score || 0) >= 50 && (s.lead_score || 0) < 80).length, fill: 'hsl(40 90% 60%)' },
+    { name: 'Холодные', value: filteredSegments.filter(s => (s.lead_score || 0) < 50).length, fill: 'hsl(220 90% 60%)' },
+  ];
+
+  // DnD priorization
+  const SortableItem = ({ rule }: { rule: ScoringRule }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.id });
+    const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition };
+    return (
+      <div ref={setNodeRef} style={style} className="flex items-center justify-between p-3 rounded-xl bg-muted/10 border border-border/40">
+        <div className="flex items-center gap-3">
+          <div {...listeners} {...attributes} className="w-6 h-6 rounded-md bg-muted flex items-center justify-center cursor-grab">
+            <span className="text-xs text-muted-foreground">⋮⋮</span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{rule.name}</p>
+            <p className="ui-subtle">Вес: {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}</p>
+          </div>
+        </div>
+        <Badge variant="outline" className="text-xs">{fields.find(f => f.value === rule.field)?.label || rule.field}</Badge>
+      </div>
+    );
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const currentIndex = orderedRules.findIndex(r => r.id === active.id);
+    const overIndex = orderedRules.findIndex(r => r.id === over.id);
+    const next = [...orderedRules];
+    const [moved] = next.splice(currentIndex, 1);
+    next.splice(overIndex, 0, moved);
+    setOrderedRules(next);
   };
 
   const handleAddRule = async () => {
@@ -248,8 +343,9 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   const recalculateScores = async () => {
     setIsRecalculating(true);
     try {
-      // Получаем все активные правила
-      const activeRules = rules.filter(r => r.is_active);
+      // Получаем все активные правила с учётом приоритета
+      const base = orderedRules.length ? orderedRules : rules;
+      const activeRules = base.filter(r => r.is_active);
       
       if (activeRules.length === 0) {
         toast.info('Нет активных правил для пересчета');
@@ -331,6 +427,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       }
 
       toast.success(`Баллы пересчитаны для ${updates.length} лидов`);
+      await fetchScoreStats();
     } catch (error) {
       console.error('Error recalculating scores:', error);
       toast.error('Ошибка при пересчете баллов');
@@ -408,156 +505,195 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         </div>
       </div>
 
+      {/* KPI Dashboard */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="metric-card-premium">
+          <CardContent className="pt-4">
+            <div className="metric-value">{scoreStats.avg}</div>
+            <div className="metric-label">Средний скоринг</div>
+            <div className="metric-subtext">по всем лидам</div>
+          </CardContent>
+        </Card>
+        <Card className="metric-card-premium">
+          <CardContent className="pt-4">
+            <div className="metric-value">{scoreStats.hot}</div>
+            <div className="metric-label">Горячие</div>
+            <div className="metric-subtext">score ≥ 80</div>
+          </CardContent>
+        </Card>
+        <Card className="metric-card-premium">
+          <CardContent className="pt-4">
+            <div className="metric-value">{scoreStats.warm}</div>
+            <div className="metric-label">Тёплые</div>
+            <div className="metric-subtext">50–79</div>
+          </CardContent>
+        </Card>
+        <Card className="metric-card-premium">
+          <CardContent className="pt-4">
+            <div className="metric-value">{scoreStats.cold}</div>
+            <div className="metric-label">Холодные</div>
+            <div className="metric-subtext">0–49</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Distribution & Filters */}
+      <Card className="ui-section">
+        <CardHeader>
+          <CardTitle className="ui-section-header">Распределение скоринга и фильтры</CardTitle>
+          <CardDescription className="ui-subtle">Фильтруйте по источнику/статусу</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col md:flex-row gap-6">
+            <div className="w-full md:w-2/3">
+              <ChartContainer
+                config={{
+                  hot: { label: 'Горячие', color: 'hsl(0 84% 60%)' },
+                  warm: { label: 'Тёплые', color: 'hsl(40 90% 60%)' },
+                  cold: { label: 'Холодные', color: 'hsl(220 90% 60%)' },
+                }}
+                className="h-64"
+              >
+                <PieChart>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Pie
+                    data={distributionData}
+                    dataKey="value"
+                    nameKey="name"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={4}
+                  />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </PieChart>
+              </ChartContainer>
+            </div>
+            <div className="w-full md:w-1/3 space-y-3">
+              <div>
+                <Label className="ui-field-label">Источник</Label>
+                <Select value={selectedSource || 'all'} onValueChange={(v) => setSelectedSource(v || 'all')}>
+                  <SelectTrigger className="mt-1.5 ui-input">
+                    <SelectValue placeholder="Все" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Все</SelectItem>
+                    {['yandex','google','vk','facebook','instagram','telegram','whatsapp','manual','website','referral'].map(s => (
+                      <SelectItem key={s} value={s}>{s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="ui-field-label">Статус</Label>
+                <Select value={selectedStatus || 'all'} onValueChange={(v) => setSelectedStatus(v || 'all')}>
+                  <SelectTrigger className="mt-1.5 ui-input">
+                    <SelectValue placeholder="Все" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {['all', 'new','in_progress','no_answer','appointment','invoiced','paid','cancelled','visit_completed'].map(s => (
+                      <SelectItem key={s} value={s}>{s === 'all' ? 'Все' : s}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Score Legend */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="shadow-md shadow-red-500/10">
+        <Card className="ui-section">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-red-500/10">
                 <Flame className="w-6 h-6 text-red-500" />
               </div>
               <div>
-                <p className="font-medium text-[14px]">Горячие лиды</p>
-                <p className="text-sm text-muted-foreground">Score 80-100</p>
+                <p className="font-medium text-sm">Горячие лиды</p>
+                <p className="ui-subtle">Score 80-100</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-md shadow-yellow-500/10">
+        <Card className="ui-section">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-yellow-500/10">
                 <ThermometerSun className="w-6 h-6 text-yellow-500" />
               </div>
               <div>
-                <p className="font-medium text-[14px]">Теплые лиды</p>
-                <p className="text-sm text-muted-foreground">Score 50-79</p>
+                <p className="font-medium text-sm">Теплые лиды</p>
+                <p className="ui-subtle">Score 50-79</p>
               </div>
             </div>
           </CardContent>
         </Card>
-        <Card className="shadow-md shadow-blue-500/10">
+        <Card className="ui-section">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-lg bg-blue-500/10">
                 <Snowflake className="w-6 h-6 text-blue-500" />
               </div>
               <div>
-                <p className="font-medium text-[14px]">Холодные лиды</p>
-                <p className="text-sm text-muted-foreground">Score 0-49</p>
+                <p className="font-medium text-sm">Холодные лиды</p>
+                <p className="ui-subtle">Score 0-49</p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* AI Insights */}
-      <BackgroundGradient className="rounded-2xl">
-        <Card className="border-0 bg-background/50 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-[16px]">
-              <Sparkles className="w-5 h-5 text-primary" />
-              AI Insights
-              <Badge className="bg-primary/10 text-primary border-primary/20">Beta</Badge>
-            </CardTitle>
-            <CardDescription className="text-[14px]">
-              ИИ анализирует поведение лидов и предлагает оптимизации
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {insights.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground text-[14px]">
-                Нет новых AI инсайтов
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {insights.map((insight) => (
-                  <motion.div
-                    key={insight.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="flex items-center gap-3 p-4 rounded-lg bg-background/70 border border-primary/10"
-                  >
-                    <div className="flex-shrink-0">
-                      {(insight.confidence_score ?? 0.5) >= 0.7 ? (
-                        <TrendingUp className="w-5 h-5 text-green-500" />
-                      ) : (
-                        <Zap className="w-5 h-5 text-yellow-500" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[14px]">{insight.title}</p>
-                      {insight.description && (
-                        <p className="text-xs text-muted-foreground mt-1 text-[14px]">{insight.description}</p>
-                      )}
-                      {insight.suggested_score_delta && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Рекомендуется: {insight.suggested_score_delta > 0 ? '+' : ''}{insight.suggested_score_delta} баллов
-                        </p>
-                      )}
-                    </div>
-                    <Button 
-                      size="sm" 
-                      variant="outline"
-                      onClick={() => handleApplyInsight(insight)}
-                      className="text-[14px] flex-shrink-0"
-                    >
-                      Применить
-                    </Button>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </BackgroundGradient>
+      {/* Упрощение: AI Insights убран */}
+
+      {/* Упрощение: убрана визуализация весов */}
 
       {/* Rules Table */}
-      <Card>
+      <Card className="ui-section">
         <CardHeader>
-          <CardTitle className="text-[16px]">Правила скоринга</CardTitle>
-          <CardDescription className="text-[14px]">Настройте правила для автоматической оценки лидов</CardDescription>
+          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Правила скоринга</CardTitle>
+          <CardDescription className="ui-subtle">Настройте правила для автоматической оценки лидов</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="text-[14px]">Правило</TableHead>
-                <TableHead className="text-[14px]">Поле</TableHead>
-                <TableHead className="text-[14px]">Условие</TableHead>
-                <TableHead className="text-[14px]">Баллы</TableHead>
-                <TableHead className="text-[14px]">Статус</TableHead>
-                <TableHead className="text-[14px]"></TableHead>
+                <TableHead className="text-sm">Правило</TableHead>
+                <TableHead className="text-sm">Поле</TableHead>
+                <TableHead className="text-sm">Условие</TableHead>
+                <TableHead className="text-sm">Баллы</TableHead>
+                <TableHead className="text-sm">Статус</TableHead>
+                <TableHead className="text-sm"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-[14px]">
+                  <TableCell colSpan={6} className="text-center py-8 text-sm">
                     Загрузка...
                   </TableCell>
                 </TableRow>
               ) : rules.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-[14px]">
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-sm">
                     Правила не настроены
                   </TableCell>
                 </TableRow>
               ) : (
                 rules.map((rule) => (
                   <TableRow key={rule.id}>
-                    <TableCell className="font-medium text-[14px]">{rule.name}</TableCell>
+                    <TableCell className="font-medium text-sm">{rule.name}</TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="text-[14px]">
+                      <Badge variant="outline" className="text-sm">
                         {fields.find(f => f.value === rule.field)?.label || rule.field}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-[14px]">
+                    <TableCell className="text-sm">
                       {operators.find(o => o.value === rule.operator)?.label} {rule.value && `"${rule.value}"`}
                     </TableCell>
                     <TableCell>
                       <Badge className={cn(
-                        "text-[14px]",
+                        "text-sm",
                         rule.score_delta > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
                       )}>
                         {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}
@@ -591,6 +727,10 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Упрощение: убрана приоритизация (Drag-n-Drop) */}
+
+      {/* Упрощение: убран экспорт CSV */}
 
       {/* Add Rule Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>

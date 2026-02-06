@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
@@ -47,6 +47,12 @@ interface E2EAnalyticsProps {
     revenue: number;
   };
   projectId?: string | null;
+}
+interface MetaMetrics {
+  spend: number;
+  impressions: number;
+  clicks: number;
+  leads?: number;
 }
 
 interface Lead {
@@ -143,6 +149,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date()
   });
+  const [metaLoading, setMetaLoading] = useState(false);
+  const [metaError, setMetaError] = useState<string | null>(null);
+  const [metaMetrics, setMetaMetrics] = useState<MetaMetrics | null>(null);
 
   // Fetch leads data
   const fetchLeads = useCallback(async () => {
@@ -348,6 +357,103 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     }));
   }, [sourceStats]);
 
+  const [projectCfg, setProjectCfg] = useState<{ ad_account_id?: string; cost_rate?: number } | null>(null);
+  const [paymentsSummary, setPaymentsSummary] = useState<{ count: number; revenue: number } | null>(null);
+  useEffect(() => {
+    const loadProject = async () => {
+      if (!pid) return;
+      const { data } = await supabase.from('projects').select('ad_account_id, cost_rate').eq('id', pid).single();
+      setProjectCfg(data as any);
+    };
+    const loadPayments = async () => {
+      if (!pid) return;
+      const { data } = await supabase.from('payments').select('amount').eq('project_id', pid);
+      const amounts = (data as any[] || []).map(d => Number(d.amount || 0));
+      setPaymentsSummary({ count: amounts.length, revenue: amounts.reduce((a,b)=>a+b,0) });
+    };
+    loadProject();
+    loadPayments();
+  }, [pid]);
+
+  const visitsCount = useMemo(() => {
+    return filteredLeads.filter(l => (l.status || '').toLowerCase().includes('запис') || (l.status || '').toLowerCase().includes('visit') ).length;
+  }, [filteredLeads]);
+
+  const aov = useMemo(() => {
+    return paymentsSummary?.count ? (paymentsSummary.revenue || 0) / (paymentsSummary.count || 1) : 0;
+  }, [paymentsSummary]);
+
+  const totalSpend = useMemo(() => {
+    return Number(metaMetrics?.spend || 0);
+  }, [metaMetrics]);
+
+  const salesCount = paymentsSummary?.count || 0;
+  const revenueSum = paymentsSummary?.revenue || 0;
+  const cogs = (projectCfg?.cost_rate ? projectCfg.cost_rate : 0) * revenueSum;
+  const profit = Math.max(0, revenueSum - totalSpend - cogs);
+  const leadsCount = filteredLeads.length;
+  const impressions = metaMetrics?.impressions || 0;
+  const clicks = metaMetrics?.clicks || 0;
+  const cpl = leadsCount ? totalSpend / leadsCount : 0;
+  const cac = salesCount ? totalSpend / salesCount : 0;
+  const roi = totalSpend ? (revenueSum - totalSpend) / totalSpend : 0;
+
+  useEffect(() => {
+    const saveLog = async () => {
+      if (!pid) return;
+      const day = new Date().toISOString().slice(0,10);
+      await supabase.from('ad_performance_logs').insert({
+        project_id: pid,
+        date: day,
+        source: 'meta',
+        spend: totalSpend,
+        impressions,
+        clicks,
+        leads: leadsCount,
+        visits: visitsCount,
+        sales: salesCount,
+        revenue: revenueSum,
+        profit
+      } as any);
+    };
+    saveLog();
+  }, [pid, totalSpend, impressions, clicks, leadsCount, visitsCount, salesCount, revenueSum, profit]);
+
+  const syncMeta = useCallback(async () => {
+    try {
+      setMetaLoading(true);
+      setMetaError(null);
+      const sessionRes: any = await supabase.auth.getSession();
+      const token = sessionRes?.data?.session?.provider_token;
+      const accountId = projectCfg?.ad_account_id || (sessionRes?.data?.session?.user?.user_metadata?.ad_account_id) || null;
+      if (!token || !accountId) {
+        setMetaError('Meta не подключена или отсутствует ad_account_id');
+        setMetaLoading(false);
+        return;
+      }
+      const url = `https://graph.facebook.com/v18.0/act_${accountId}/insights?fields=spend,impressions,clicks,actions&date_preset=today&time_increment=1&access_token=${encodeURIComponent(token)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        setMetaError('Ошибка запроса к Meta Graph API');
+        setMetaLoading(false);
+        return;
+      }
+      const json = await res.json();
+      const row = json?.data?.[0] || {};
+      const spend = Number(row.spent || row.spend || 0);
+      const impressions = Number(row.impressions || 0);
+      const clicks = Number(row.clicks || 0);
+      const actions = Array.isArray(row.actions) ? row.actions : [];
+      const leadsAction = actions.find((a: any) => (a.action_type || '').includes('lead'));
+      const leadsVal = Number(leadsAction?.value || 0);
+      setMetaMetrics({ spend, impressions, clicks, leads: leadsVal });
+    } catch (e: any) {
+      setMetaError('Не удалось синхронизировать Meta');
+    } finally {
+      setMetaLoading(false);
+    }
+  }, [pid]);
+
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       
@@ -364,7 +470,38 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       </div>
 
       {/* Main KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-white/60">Meta Ads (Beta)</CardTitle>
+            <Globe className="w-4 h-4 text-blue-400" />
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={syncMeta} disabled={metaLoading}>
+                {metaLoading ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                Синхронизировать
+              </Button>
+              {metaError && <Badge variant="destructive">{metaError}</Badge>}
+            </div>
+            {metaMetrics && (
+              <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
+                <div className="p-2 bg-white/5 rounded">
+                  <div className="text-white/60">Расход</div>
+                  <div className="font-bold text-white">{formatCurrencyShort(metaMetrics.spend)}</div>
+                </div>
+                <div className="p-2 bg-white/5 rounded">
+                  <div className="text-white/60">Показы</div>
+                  <div className="font-bold text-white">{formatNumber(metaMetrics.impressions)}</div>
+                </div>
+                <div className="p-2 bg-white/5 rounded">
+                  <div className="text-white/60">Клики</div>
+                  <div className="font-bold text-white">{formatNumber(metaMetrics.clicks)}</div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
         <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Расходы (РК)</CardTitle>
@@ -389,7 +526,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Визиты (Диагностики)</CardTitle>
+            <CardTitle className="text-sm font-medium text-white/60">Диагностика</CardTitle>
             <Target className="w-4 h-4 text-purple-400" />
           </CardHeader>
           <CardContent>
@@ -407,6 +544,71 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           <CardContent>
             <div className="text-2xl font-bold text-white">{formatCurrencyShort(filteredTotals.revenue)}</div>
             <p className="text-xs text-white/40 mt-1">ROI: {filteredTotals.spend > 0 ? (((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100).toFixed(0) : 0}%</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <Card className="premium-card p-6">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white/80 text-sm">MarkVision Online</CardTitle>
+            <CardDescription className="text-white/60 text-sm">Капитан Запойнов, система готова к анализу прибыли.</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <AIAssistant context={{ projectId: pid, romi: roi, cac, cpl, revenue: revenueSum, spend: totalSpend, impressions, clicks, leads: leadsCount, sales: salesCount }} />
+          </CardContent>
+        </Card>
+        <Card className="premium-card p-6 col-span-2">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-white/80 text-sm">Impression → Profit</CardTitle>
+            <CardDescription className="text-white/60 text-xs">Путь клиента от показа до прибыли</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-3">
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatNumber(impressions)}</div>
+                <div className="kpi-label">Показы</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatNumber(clicks)}</div>
+                <div className="kpi-label">Клики</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatNumber(leadsCount)}</div>
+                <div className="kpi-label">Лиды</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatNumber(visitsCount)}</div>
+                <div className="kpi-label">Визиты</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatNumber(salesCount)}</div>
+                <div className="kpi-label">Продажи</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatCurrencyShort(profit)}</div>
+                <div className="kpi-label">Чистая прибыль</div>
+              </div>
+            </div>
+            <div className="ui-divider" />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatCurrencyShort(cpl)}</div>
+                <div className="kpi-label">CPL</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatCurrencyShort(cac)}</div>
+                <div className="kpi-label">CAC</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{(roi*100).toFixed(0)}%</div>
+                <div className="kpi-label">ROI</div>
+              </div>
+              <div className="welcome-hero-kpi">
+                <div className="kpi-value">{formatCurrencyShort(aov)}</div>
+                <div className="kpi-label">AOV</div>
+              </div>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -441,7 +643,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                     <tr>
                       <th className="px-4 py-3 rounded-l-lg">Страница (URL)</th>
                       <th className="px-4 py-3 text-right">Лиды</th>
-                      <th className="px-4 py-3 text-right">Визиты</th>
+                      <th className="px-4 py-3 text-right">Диагностика</th>
                       <th className="px-4 py-3 text-right">Продажи</th>
                       <th className="px-4 py-3 text-right rounded-r-lg">Выручка</th>
                     </tr>
@@ -489,7 +691,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-right">
-                        <div className="text-sm text-white/60">Визиты</div>
+                        <div className="text-sm text-white/60">Диагностика</div>
                         <div className="font-mono text-purple-400">{source.visits}</div>
                       </div>
                       <div className="text-right">

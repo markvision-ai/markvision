@@ -422,7 +422,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     { label: 'Показы', value: reportData.totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: reportData.totals.clicks, color: 'hsl(200, 80%, 50%)' },
     { label: 'Лиды', value: reportData.totals.leads, color: 'hsl(262, 83%, 58%)' },
-    { label: 'Визиты', value: reportData.totals.visits, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Диагностика', value: reportData.totals.visits, color: 'hsl(38, 92%, 50%)' },
     { label: 'Продажи', value: reportData.totals.sales, color: 'hsl(142, 76%, 36%)' },
   ], [reportData.totals]);
 
@@ -723,7 +723,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     { label: 'Показы', value: reportData.totals.impressions, plan: planDataValues.impressions, format: 'number' },
     { label: 'Клики', value: reportData.totals.clicks, plan: planDataValues.clicks, format: 'number' },
     { label: 'Лиды', value: reportData.totals.leads, plan: planDataValues.leads, format: 'number' },
-    { label: 'Визиты', value: reportData.totals.visits, plan: planDataValues.visits, format: 'number' },
+    { label: 'Диагностика', value: reportData.totals.visits, plan: planDataValues.visits, format: 'number' },
     { label: 'Продажи', value: reportData.totals.sales, plan: planDataValues.sales, format: 'number' },
     { label: 'Выручка', value: reportData.totals.revenue, plan: planDataValues.revenue, format: 'currency' },
   ];
@@ -1154,7 +1154,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                       )}
                     </div>
                     <div className="text-[10px] text-muted-foreground leading-tight">
-                      {computedMetrics.leadToVisitConv !== null ? 'Визиты / лиды' : 'Нет данных'}
+                      {computedMetrics.leadToVisitConv !== null ? 'Диагностика / лиды' : 'Нет данных'}
                     </div>
                   </div>
 

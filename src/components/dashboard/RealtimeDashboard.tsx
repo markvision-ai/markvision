@@ -66,7 +66,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     { label: 'Новые подписчики', value: 0, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
     { label: 'Выручка сегодня', value: 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
     { label: 'Продажи', value: 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-    { label: 'Визиты', value: 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
+    { label: 'Диагностика', value: 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
     { label: 'Активность', value: 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
   ]);
   
@@ -97,7 +97,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       { label: 'Новые подписчики', value: followersToday, previousValue: 0, format: 'number', icon: <UserPlus className="h-5 w-5" />, color: 'text-pink-500' },
       { label: 'Выручка сегодня', value: todayData?.revenue || 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-green-500' },
       { label: 'Продажи', value: todayData?.sales || 0, previousValue: 0, format: 'number', icon: <ShoppingCart className="h-5 w-5" />, color: 'text-purple-500' },
-      { label: 'Визиты', value: todayData?.visits || 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
+      { label: 'Диагностика', value: todayData?.visits || 0, previousValue: 0, format: 'number', icon: <Stethoscope className="h-5 w-5" />, color: 'text-indigo-500' },
       { label: 'Активность', value: todayData?.clicks || 0, previousValue: 0, format: 'number', icon: <Activity className="h-5 w-5" />, color: 'text-orange-500' },
     ]);
   }, [projectDailyData]);

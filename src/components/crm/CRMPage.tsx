@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useLeads, Lead } from '@/hooks/useLeads';
-import { KanbanBoard, KANBAN_STATUSES } from './KanbanBoard';
+import { KanbanBoard } from './KanbanBoard';
 import { LeadFullPage } from './LeadFullPage';
 import { CRMFunnel } from './CRMFunnel';
 import { BulkActionsBar } from './BulkActionsBar';
@@ -24,11 +24,9 @@ import {
   Calendar,
   Users,
   Bot,
-  ArrowUpDown,
-  TrendingDown
+  ArrowUpDown
 } from 'lucide-react';
-import { format, subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
-import { ru } from 'date-fns/locale';
+import { subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { motion, AnimatePresence, PanInfo } from 'framer-motion';
 import { PullToRefresh } from '@/components/mobile/PullToRefresh';
@@ -191,7 +189,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
     setIsRefreshing(false);
   };
 
-  const handleSwipe = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+  const handleSwipe = (_evt: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const swipeThreshold = 50;
     const currentIndex = tabs.indexOf(activeTab);
     
@@ -341,38 +339,24 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
     <div className="space-y-6">
       {/* Ultra Premium Header */}
       <motion.div 
-        className="relative"
-        initial={{ opacity: 0, y: -20 }}
+        className="ui-page-header rounded-xl"
+        initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
       >
-        <div className="absolute -inset-4 bg-gradient-to-r from-primary/20 via-accent/10 to-primary/20 blur-3xl opacity-30 -z-10" />
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <motion.div 
-              className="relative"
-              whileHover={{ scale: 1.05, rotate: 5 }}
-              transition={{ type: 'spring', stiffness: 400 }}
-            >
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-accent to-primary flex items-center justify-center shadow-2xl">
-                <Zap className="w-7 h-7 text-primary-foreground" />
-              </div>
-              <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-success animate-pulse" />
-            </motion.div>
-            <div>
-              <h2 className="text-3xl md:text-4xl font-black tracking-tight">
-                <span className="bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-                  CRM
-                </span>
-              </h2>
-              <p className="text-muted-foreground text-sm hidden sm:block font-medium">
-                {filteredLeads.length} из {leads.length} лидов
-              </p>
-            </div>
+        <div className="flex items-center gap-3">
+          <div className="ui-section-icon">
+            <Zap className="w-5 h-5" />
           </div>
-          
-          <div className="flex items-center gap-2 w-full sm:w-auto">
+          <div>
+            <h2 className="text-2xl md:text-3xl font-bold">CRM</h2>
+            <p className="text-muted-foreground text-xs sm:text-sm font-medium">
+              {filteredLeads.length} из {leads.length} лидов
+            </p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2 w-full sm:w-auto">
             {projectId && (
               <AddLeadDialog 
                 projectId={projectId} 
@@ -385,10 +369,10 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               size="sm"
               onClick={toggleSelectionMode}
               className={cn(
-                "flex-shrink-0 transition-all h-12 rounded-xl",
+                "flex-shrink-0 transition-all h-10 rounded-xl",
                 selectionMode 
-                  ? "bg-gradient-to-r from-primary to-accent text-primary-foreground shadow-lg"
-                  : "crm-card-glass border-primary/20 hover:border-primary/50"
+                  ? "bg-primary text-primary-foreground shadow-md"
+                  : "crm-card-glass border-border/50 hover:border-primary/50"
               )}
             >
               <CheckSquare className="w-4 h-4" />
@@ -401,12 +385,11 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               size="sm"
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="flex-shrink-0 h-12 rounded-xl crm-card-glass border-primary/20 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10 transition-all"
+            className="flex-shrink-0 h-10 rounded-xl crm-card-glass border-border/50 hover:border-primary/50 transition-all"
             >
               <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span className="ml-2 hidden sm:inline">Обновить</span>
             </Button>
-          </div>
         </div>
       </motion.div>
 
@@ -741,6 +724,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                         selectionMode={selectionMode}
                         selectedLeads={selectedLeads}
                         onSelectLead={handleSelectLead}
+                        
                       />
                     ) : activeTab === 'clients' ? (
                       <ClientsManagement projectId={projectId} />
@@ -769,6 +753,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   selectedLeads={selectedLeads}
                   onSelectLead={handleSelectLead}
                   onLeadClick={handleLeadClick}
+                  
                 />
               ) : activeTab === 'clients' ? (
                 <ClientsManagement projectId={projectId} />

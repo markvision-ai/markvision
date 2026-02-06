@@ -28,7 +28,7 @@ const formatCurrency = (value: number): string => {
 const metricLabels: Record<string, string> = {
   spend: 'Расходы',
   leads: 'Лиды',
-  visits: 'Визиты',
+  visits: 'Диагностика',
   sales: 'Продажи',
   revenue: 'Выручка',
 };
@@ -103,7 +103,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex-shrink-0">
           <h3 className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Динамика показателей</h3>
-          <p className="text-xs text-muted-foreground/70">Расходы • Лиды • Визиты • Продажи • Выручка</p>
+          <p className="text-xs text-muted-foreground/70">Расходы • Лиды • Диагностика • Продажи • Выручка</p>
         </div>
         <div className="flex gap-3 flex-wrap">
           <div className="min-w-0">
@@ -127,7 +127,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
           <div className="min-w-0">
             <div className="flex items-center gap-1.5 mb-0.5">
               <div className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0" />
-              <span className="text-[10px] text-muted-foreground/70 font-medium">Визиты</span>
+              <span className="text-[10px] text-muted-foreground/70 font-medium">Диагностика</span>
             </div>
             <p className="text-sm font-semibold text-foreground truncate">
               {new Intl.NumberFormat('ru-RU').format(totals.visits)}

@@ -228,7 +228,7 @@ export const DataTable = React.memo(({
   }, [dailyData, daysInRange]);
 
   const exportToCSV = () => {
-    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Визиты', 'Продажи', 'Выручка'];
+    const headers = ['Дата', 'День', 'Расходы', 'Показы', 'Клики', 'CTR%', 'Лиды', 'Подписчики', 'Стоимость лида', 'Диагностика', 'Продажи', 'Выручка'];
     const rows = daysInRange.map(day => {
       const dateKey = format(day, 'yyyy-MM-dd');
       const data = dailyData[dateKey];
@@ -301,7 +301,7 @@ export const DataTable = React.memo(({
           subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
         />
         <SummaryCard
-            title="CR (Лид→Визит)"
+            title="CR (Лид→Диагностика)"
             icon={Target}
             value={leadToVisitConv !== null ? (
               <>
@@ -311,10 +311,10 @@ export const DataTable = React.memo(({
             ) : (
               <span className="text-muted-foreground">—</span>
             )}
-            subtitle={leadToVisitConv !== null ? 'Визиты / лиды' : 'Нет данных'}
+            subtitle={leadToVisitConv !== null ? 'Диагностика / лиды' : 'Нет данных'}
           />
           <SummaryCard
-            title="CR (Визит→Продажа)"
+            title="CR (Диагностика→Продажа)"
             icon={ShoppingCart}
             value={visitToSaleConv !== null ? (
               <>
@@ -324,7 +324,7 @@ export const DataTable = React.memo(({
             ) : (
               <span className="text-muted-foreground">—</span>
             )}
-            subtitle={visitToSaleConv !== null ? 'Продажи / визиты' : 'Нет данных'}
+            subtitle={visitToSaleConv !== null ? 'Продажи / диагностика' : 'Нет данных'}
           />
       </div>
 
@@ -374,7 +374,7 @@ export const DataTable = React.memo(({
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Клики</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Лиды</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Визиты</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Диагностика</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[80px]">Продажи</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>

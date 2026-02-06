@@ -102,11 +102,12 @@ html {
   }
 
   body {
-    @apply bg-background text-foreground antialiased transition-colors duration-300;
-    font-family: 'Inter', sans-serif;
+    background-color: #05070A;
+    color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    font-family: 'Inter', sans-serif;
   }
 
   /* Improved typography for better readability */
@@ -174,6 +175,43 @@ html {
    ============================================ */
 
 @layer components {
+  /* Design System: unified section/container */
+  .ui-container {
+    @apply max-w-[1280px] mx-auto px-4 md:px-6;
+  }
+  .ui-page-header {
+    @apply flex items-center justify-between px-4 md:px-6 py-4 border-b bg-card/60 backdrop-blur-sm border-border/60;
+  }
+  .ui-section {
+    @apply rounded-2xl bg-card/40 backdrop-blur-xl border p-5 md:p-6 transition-all duration-300;
+    border-width: 0.5px;
+    border-color: hsl(var(--primary) / 0.35);
+  }
+  .ui-section:hover {
+    @apply border-primary/50;
+    box-shadow: 0 12px 36px hsl(var(--primary) / 0.12);
+  }
+  .ui-section-header {
+    @apply mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground;
+  }
+  .ui-section-icon {
+    @apply w-8 h-8 rounded-lg flex items-center justify-center bg-primary/20 text-primary;
+    border-width: 0.5px;
+    border-color: hsl(var(--primary) / 0.35);
+  }
+  .ui-divider {
+    @apply my-4 border-t border-border/40;
+  }
+  .ui-subtle {
+    @apply text-xs text-muted-foreground;
+  }
+  .ui-field-label {
+    @apply text-xs font-medium text-muted-foreground;
+  }
+  .ui-input {
+    @apply bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/15 rounded-xl;
+  }
+
   .glass-card {
     background: rgba(15, 23, 42, 0.6);
     backdrop-filter: blur(20px);
@@ -184,7 +222,9 @@ html {
   .premium-card {
     @apply relative overflow-hidden rounded-xl;
     @apply bg-card text-card-foreground;
-    @apply border border-border;
+    @apply border;
+    border-width: 0.5px;
+    border-color: hsl(var(--primary) / 0.25);
     @apply shadow-sm;
     @apply transition-all duration-300;
   }
@@ -199,7 +239,8 @@ html {
   }
 
   .metric-card-premium .metric-value {
-    @apply text-2xl sm:text-3xl md:text-4xl font-bold text-foreground tracking-tight;
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight;
+    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
   }
 
   .metric-card-premium .metric-label {

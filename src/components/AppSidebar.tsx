@@ -216,7 +216,7 @@ export const AppSidebar = ({
         tab: "crm",
       },
       {
-        label: "Визиты",
+        label: "Диагностика",
         href: "/visits",
         icon: <IconClipboardCheck className="h-5 w-5 flex-shrink-0" />,
         tab: "visits",

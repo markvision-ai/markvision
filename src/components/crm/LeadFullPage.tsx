@@ -228,7 +228,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         exit={{ opacity: 0 }}
       >
         {/* Premium Header */}
-        <header className="flex items-center justify-between px-4 md:px-6 py-4 border-b crm-card-glass shrink-0">
+        <header className="ui-page-header shrink-0">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-primary/10">
               <ArrowLeft className="w-5 h-5" />
@@ -279,33 +279,33 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
           {/* Left: Lead Details */}
           <div className="w-1/2 border-r border-border/50 overflow-hidden flex flex-col bg-gradient-to-b from-background to-muted/20">
             <ScrollArea className="flex-1 p-6">
-              <div className="space-y-6 max-w-lg">
+              <div className="space-y-6 max-w-xl">
                 {/* Contact Info Section */}
                 <motion.section
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <User className="w-4 h-4 text-primary-foreground" />
                     </div>
                     Контактные данные
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="name" className="text-xs font-medium text-muted-foreground">Имя</Label>
+                      <Label htmlFor="name" className="ui-field-label">Имя</Label>
                       <Input
                         id="name"
                         value={formData.name}
                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                         placeholder="Имя клиента"
-                        className="mt-1.5 bg-background/50 border-border/50 focus:border-primary"
+                        className="mt-1.5 ui-input"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="phone" className="text-xs font-medium text-muted-foreground">Телефон</Label>
+                      <Label htmlFor="phone" className="ui-field-label">Телефон</Label>
                       <div className="relative mt-1.5">
                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
                         <Input
@@ -313,7 +313,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           value={formData.phone}
                           onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                           placeholder="+7 (___) ___-__-__"
-                          className="pl-10 bg-background/50 border-border/50 focus:border-primary"
+                          className="pl-10 ui-input"
                         />
                       </div>
                     </div>
@@ -325,22 +325,22 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.2 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-success to-emerald-500 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <DollarSign className="w-4 h-4 text-success-foreground" />
                     </div>
                     Статус и сделка
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <Label htmlFor="status" className="text-xs font-medium text-muted-foreground">Статус</Label>
+                      <Label htmlFor="status" className="ui-field-label">Статус</Label>
                       <Select
                         value={formData.status}
                         onValueChange={(value) => setFormData({ ...formData, status: value })}
                       >
-                        <SelectTrigger className="mt-1.5 bg-background/50 border-border/50">
+                        <SelectTrigger className="mt-1.5 ui-input">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -357,7 +357,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                       </Select>
                     </div>
                     <div>
-                      <Label htmlFor="amount" className="text-xs font-medium text-muted-foreground">Сумма сделки</Label>
+                      <Label htmlFor="amount" className="ui-field-label">Сумма сделки</Label>
                       <div className="relative mt-1.5">
                         <Input
                           id="amount"
@@ -365,7 +365,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           value={formData.deal_amount}
                           onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
                           placeholder="0"
-                          className="pr-10 bg-background/50 border-border/50 focus:border-primary"
+                          className="pr-10 ui-input"
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
                       </div>
@@ -436,10 +436,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.25 }}
-                    className="crm-card-glass rounded-xl p-5 border-l-4 border-l-orange-500"
+                    className="ui-section border-l-4 border-l-orange-500"
                   >
-                    <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center">
+                    <h2 className="ui-section-header">
+                      <div className="ui-section-icon">
                         <Copy className="w-4 h-4 text-white" />
                       </div>
                       Найдены дубликаты
@@ -476,10 +476,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.3 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <Tag className="w-4 h-4 text-white" />
                     </div>
                     UTM-метки
@@ -492,8 +492,8 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                       { key: 'utm_content', label: 'Content', value: lead.utm_content },
                       { key: 'utm_term', label: 'Term', value: lead.utm_term },
                     ].filter(item => item.value).map(item => (
-                      <div key={item.key} className="p-3 bg-gradient-to-br from-muted/50 to-muted/30 rounded-lg border border-border/30">
-                        <p className="text-[10px] text-muted-foreground uppercase tracking-wide">{item.label}</p>
+                      <div key={item.key} className="p-3 bg-muted/10 rounded-lg border border-border/30">
+                        <p className="ui-subtle uppercase tracking-wide">{item.label}</p>
                         <p className="text-sm font-semibold truncate">{item.value}</p>
                       </div>
                     ))}
@@ -510,10 +510,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <Target className="w-4 h-4 text-white" />
                     </div>
                     История касаний
@@ -565,10 +565,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.5 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <ListTodo className="w-4 h-4 text-white" />
                     </div>
                     Задачи
@@ -582,10 +582,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.55 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <Users className="w-4 h-4 text-white" />
                     </div>
                     Приглашенные друзья
@@ -598,10 +598,10 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.6 }}
-                  className="crm-card-glass rounded-xl p-5"
+                  className="ui-section"
                 >
-                  <h2 className="font-bold mb-4 flex items-center gap-2 text-sm uppercase tracking-wide text-muted-foreground">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-slate-500 to-slate-600 flex items-center justify-center">
+                  <h2 className="ui-section-header">
+                    <div className="ui-section-icon">
                       <History className="w-4 h-4 text-white" />
                     </div>
                     История изменений

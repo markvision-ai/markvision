@@ -204,7 +204,7 @@ export const AttributionTable = ({
                 onClick={() => handleSort('visits')}
               >
                 <div className="flex items-center justify-end gap-2">
-                  Визиты <SortIcon field="visits" />
+                  Диагностика <SortIcon field="visits" />
                 </div>
               </TableHead>
               <TableHead 

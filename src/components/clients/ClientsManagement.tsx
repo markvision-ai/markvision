@@ -185,7 +185,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setLeads(data || []);
+      setLeads((data as unknown as Lead[]) || []);
     } catch (error) {
       console.error('Error fetching leads:', error);
       toast.error('Ошибка загрузки клиентов');
@@ -748,18 +748,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
         </div>
       </div>
 
-      {/* Stats - Glassmorphism */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-        {STATUS_OPTIONS.map(status => {
-          const count = leads.filter(l => l.status === status.value).length;
-          return (
-            <div key={status.value} className="backdrop-blur-sm bg-card/50 border border-border rounded-lg p-4 text-center hover:bg-card/70 transition-all">
-              <p className="text-2xl font-bold">{count}</p>
-              <Badge className={`${status.color} mt-1`}>{status.label}</Badge>
-            </div>
-          );
-        })}
-      </div>
+      {/* Removed: нижний блок статистики статусов */}
 
       {/* Detail Dialog - Glassmorphism */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>

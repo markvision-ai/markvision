@@ -1,4 +1,4 @@
-import React from 'react';
+ 
 import { useFactoryStore } from './store';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, CheckCircle2 } from 'lucide-react';
@@ -6,12 +6,35 @@ import { IdeasHeader } from './IdeasHeader';
 import { ScriptWorkshop } from './ScriptWorkshop';
 import { CreationCenter } from './CreationCenter';
 import { PostingDashboard } from './PostingDashboard';
+import { OperationsPanel } from './OperationsPanel';
+import { ProcessMap } from './ProcessMap';
+import { ExportReportButton } from './ExportReportButton';
+import { toast } from 'sonner';
+import { useEffect, useRef } from 'react';
+import { LeadTimePanel } from './LeadTimePanel';
+import { AlertsPanel } from './AlertsPanel';
+import { LeadTimeTrends } from './LeadTimeTrends';
 
 export const ContentFactoryV4 = () => {
   const { productionLines } = useFactoryStore();
   const entries = Object.entries(productionLines);
   const generating = entries.filter(([, v]) => v.status === 'generating').map(([k]) => k);
   const ready = entries.filter(([, v]) => v.status === 'ready').map(([k]) => k);
+  const prevRef = useRef<Record<string, string>>({});
+
+  useEffect(() => {
+    const currentStatuses: Record<string, string> = {};
+    entries.forEach(([k, v]) => currentStatuses[k] = v.status);
+    Object.keys(currentStatuses).forEach((k) => {
+      const prev = prevRef.current[k];
+      const cur = currentStatuses[k];
+      if (prev && prev !== cur) {
+        if (cur === 'ready') toast.success(`Линия "${k}" завершена и готова к публикации`);
+        if (cur === 'error') toast.error(`Ошибка на линии "${k}"`);
+      }
+    });
+    prevRef.current = currentStatuses;
+  }, [entries]);
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] bg-background overflow-hidden rounded-xl border border-border shadow-2xl dark:shadow-black/20 m-4">
@@ -48,7 +71,23 @@ export const ContentFactoryV4 = () => {
               ))}
             </div>
           )}
+          <div className="ml-auto">
+            <ExportReportButton />
+          </div>
         </div>
+      </div>
+
+      {/* Realtime Operations + Process Map */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 p-4">
+        <OperationsPanel />
+        <ProcessMap />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 px-4">
+        <LeadTimePanel />
+        <AlertsPanel />
+      </div>
+      <div className="px-4 pb-4">
+        <LeadTimeTrends />
       </div>
 
       {/* Main Workspace: 3 Columns */}

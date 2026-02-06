@@ -1,13 +1,14 @@
-import React, { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useContentFactory } from '@/hooks/useContentFactory';
-import { toast } from 'sonner';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Eye, Sparkles, Rocket } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
 import { ContentFactoryV4 } from './v4/ContentFactoryV4';
+import { useWebhookConfig } from '@/hooks/useWebhookConfig';
+import { useFactoryStore } from './v4/store';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -18,10 +19,17 @@ const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryPageProps) => {
   const projectId = propProjectId || TARGET_PROJECT_ID;
   const { createContent } = useContentFactory(projectId);
+  const { getWebhookUrl } = useWebhookConfig(projectId);
+  const { setWebhookUrl } = useFactoryStore();
   
   // State
   const [activeTab, setActiveTab] = useState('v4');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  
+  useEffect(() => {
+    const url = getWebhookUrl();
+    if (url) setWebhookUrl(url);
+  }, [projectId]);
   
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col bg-background overflow-hidden font-sans">

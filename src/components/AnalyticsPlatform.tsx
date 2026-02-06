@@ -352,7 +352,7 @@ export const AnalyticsPlatform = () => {
     { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
     { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-    { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
+    { label: 'Диагностика', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
     { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
   ];
 
@@ -363,7 +363,7 @@ export const AnalyticsPlatform = () => {
     { label: 'Клики', current: totals.clicks, previous: previousWeekTotals.clicks, format: 'number' as const },
     { label: 'Лиды', current: totals.leads, previous: previousWeekTotals.leads, format: 'number' as const },
     { label: 'Подписчики', current: totals.followers, previous: previousWeekTotals.followers, format: 'number' as const },
-    { label: 'Визиты', current: totals.visits, previous: previousWeekTotals.visits, format: 'number' as const },
+    { label: 'Диагностика', current: totals.visits, previous: previousWeekTotals.visits, format: 'number' as const },
     { label: 'Продажи', current: totals.sales, previous: previousWeekTotals.sales, format: 'number' as const },
     { label: 'Выручка', current: totals.revenue, previous: previousWeekTotals.revenue, format: 'currency' as const },
   ];
@@ -391,7 +391,7 @@ export const AnalyticsPlatform = () => {
       case 'health': return '🩺 Состояние системы';
       case 'realtime': return '⚡ Живая лента';
       case 'onboarding': return '🧭 Онбординг';
-      case 'visits': return '📋 Визиты';
+      case 'visits': return '📋 Диагностика';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
       default: return 'Раздел в разработке';
@@ -625,7 +625,7 @@ export const AnalyticsPlatform = () => {
               { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
               { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
               { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-              { label: 'Визиты', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
+              { label: 'Диагностика', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
               { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
             ]
           }} />
@@ -674,9 +674,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'scoring' && currentProjectId && (
+      {activeTab === 'scoring' && (
         <Suspense fallback={<ModuleLoader />}>
-          <LeadScoring projectId={currentProjectId} />
+          <LeadScoring projectId={currentProjectId || FALLBACK_PROJECT_ID} />
         </Suspense>
       )}
 
