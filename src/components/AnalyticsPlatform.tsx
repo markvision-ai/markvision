@@ -635,6 +635,8 @@ export const AnalyticsPlatform = () => {
                     visits: totals.visits,
                     sales: totals.sales,
                     revenue: totals.revenue,
+                    cpl: leadCost || 0,
+                    romi: romi || 0,
                     projectId: currentProjectId
                   }} 
                 />

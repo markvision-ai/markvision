@@ -1,0 +1,449 @@
+{
+  "name": "A/B Test Automation - Metrics & Winner Detection",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "schedule-ab-tests",
+      "name": "⏰ Каждый час",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/ab_tests",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "eq.running"
+            },
+            {
+              "name": "test_category",
+              "value": "in.(creative,audience)"
+            },
+            {
+              "name": "select",
+              "value": "*"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-active-tests",
+      "name": "📋 Активные A/B тесты",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [460, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-api-key",
+          "name": "Supabase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "check-has-tests",
+              "leftValue": "={{ $json.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-has-tests",
+      "name": "🔀 Есть тесты?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Подготовка данных для запроса метрик\nconst test = $input.item.json;\n\nlet objectIds = [];\nlet level = 'ad';\n\nif (test.test_category === 'creative' && test.facebook_ad_ids) {\n  objectIds = test.facebook_ad_ids;\n  level = 'ad';\n} else if (test.test_category === 'audience' && test.facebook_adset_ids) {\n  objectIds = test.facebook_adset_ids;\n  level = 'adset';\n}\n\nreturn {\n  test_id: test.id,\n  test_name: test.name,\n  test_category: test.test_category,\n  object_a_id: objectIds[0] || null,\n  object_b_id: objectIds[1] || null,\n  level: level,\n  auto_winner_threshold: test.auto_winner_threshold || 95,\n  min_sample_size: test.min_sample_size || 1000\n};"
+      },
+      "id": "prepare-test-data",
+      "name": "📊 Подготовка данных",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/{{ $json.object_a_id }}/insights",
+        "authentication": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "spend,impressions,clicks,actions,cost_per_action_type"
+            },
+            {
+              "name": "date_preset",
+              "value": "last_7d"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-metrics-variant-a",
+      "name": "📈 Метрики Variant A",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 100],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "facebook-oauth",
+          "name": "Facebook Ads OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://graph.facebook.com/v21.0/{{ $('📊 Подготовка данных').item.json.object_b_id }}/insights",
+        "authentication": "oAuth2Api",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "spend,impressions,clicks,actions,cost_per_action_type"
+            },
+            {
+              "name": "date_preset",
+              "value": "last_7d"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-metrics-variant-b",
+      "name": "📈 Метрики Variant B",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1120, 300],
+      "credentials": {
+        "oAuth2Api": {
+          "id": "facebook-oauth",
+          "name": "Facebook Ads OAuth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "jsCode": "// Объединяем метрики A и B и рассчитываем confidence\nconst testData = $('📊 Подготовка данных').first().json;\nconst metricsA = $('📈 Метрики Variant A').first().json;\nconst metricsB = $('📈 Метрики Variant B').first().json;\n\n// Парсим метрики\nfunction parseMetrics(data) {\n  const insights = data?.data?.[0] || {};\n  const spend = parseFloat(insights.spend || 0);\n  const impressions = parseInt(insights.impressions || 0);\n  const clicks = parseInt(insights.clicks || 0);\n  \n  // Находим лиды в actions\n  let leads = 0;\n  if (insights.actions) {\n    const leadAction = insights.actions.find(a => \n      a.action_type === 'lead' || \n      a.action_type === 'onsite_conversion.lead_grouped' ||\n      a.action_type === 'offsite_conversion.fb_pixel_lead'\n    );\n    leads = parseInt(leadAction?.value || 0);\n  }\n  \n  const cpl = leads > 0 ? spend / leads : null;\n  const ctr = impressions > 0 ? (clicks / impressions) * 100 : 0;\n  \n  return { spend, impressions, clicks, leads, cpl, ctr };\n}\n\nconst variantA = parseMetrics(metricsA);\nconst variantB = parseMetrics(metricsB);\n\n// Расчёт статистической значимости (Z-test)\nfunction calculateConfidence(leadsA, impressionsA, leadsB, impressionsB) {\n  if (impressionsA < 100 || impressionsB < 100) return 0;\n  \n  const rateA = leadsA / impressionsA;\n  const rateB = leadsB / impressionsB;\n  const pooledRate = (leadsA + leadsB) / (impressionsA + impressionsB);\n  \n  if (pooledRate === 0 || pooledRate === 1) return 0;\n  \n  const se = Math.sqrt(pooledRate * (1 - pooledRate) * (1/impressionsA + 1/impressionsB));\n  if (se === 0) return 0;\n  \n  const z = Math.abs(rateA - rateB) / se;\n  \n  // Упрощённое преобразование Z в confidence\n  // z=1.96 -> 95%, z=2.58 -> 99%\n  const confidence = Math.min(99.9, z * 38.5); // Аппроксимация\n  return Math.max(0, Math.round(confidence * 10) / 10);\n}\n\nconst confidence = calculateConfidence(\n  variantA.leads, variantA.impressions,\n  variantB.leads, variantB.impressions\n);\n\n// Определяем победителя\nlet winner = null;\nlet winnerReason = '';\nlet aiRecommendation = '';\n\nconst threshold = testData.auto_winner_threshold || 95;\nconst minSample = testData.min_sample_size || 1000;\nconst totalImpressions = variantA.impressions + variantB.impressions;\n\nif (totalImpressions < minSample) {\n  aiRecommendation = `Недостаточно данных. Собрано ${totalImpressions} из ${minSample} показов.`;\n} else if (confidence >= threshold) {\n  // Сравниваем по CPL\n  if (variantA.cpl && variantB.cpl) {\n    if (variantA.cpl < variantB.cpl) {\n      winner = 'a';\n      const improvement = ((variantB.cpl - variantA.cpl) / variantB.cpl * 100).toFixed(1);\n      winnerReason = `CPL на ${improvement}% ниже`;\n      aiRecommendation = `Variant A побеждает с confidence ${confidence}%. CPL: $${variantA.cpl.toFixed(2)} vs $${variantB.cpl.toFixed(2)}. Рекомендуем масштабировать A и остановить B.`;\n    } else {\n      winner = 'b';\n      const improvement = ((variantA.cpl - variantB.cpl) / variantA.cpl * 100).toFixed(1);\n      winnerReason = `CPL на ${improvement}% ниже`;\n      aiRecommendation = `Variant B побеждает с confidence ${confidence}%. CPL: $${variantB.cpl.toFixed(2)} vs $${variantA.cpl.toFixed(2)}. Рекомендуем масштабировать B и остановить A.`;\n    }\n  } else if (variantA.leads > 0 || variantB.leads > 0) {\n    // Если нет CPL, сравниваем по количеству лидов\n    if (variantA.leads > variantB.leads) {\n      winner = 'a';\n      winnerReason = `Больше лидов: ${variantA.leads} vs ${variantB.leads}`;\n    } else {\n      winner = 'b';\n      winnerReason = `Больше лидов: ${variantB.leads} vs ${variantA.leads}`;\n    }\n  }\n} else {\n  const neededConfidence = threshold - confidence;\n  aiRecommendation = `Confidence ${confidence}% < ${threshold}%. Нужно ещё ~${neededConfidence.toFixed(0)}% для определения победителя. A: CPL $${variantA.cpl?.toFixed(2) || 'N/A'}, B: CPL $${variantB.cpl?.toFixed(2) || 'N/A'}`;\n}\n\nreturn {\n  test_id: testData.test_id,\n  test_name: testData.test_name,\n  \n  // Метрики A\n  variant_a_spend: variantA.spend,\n  variant_a_impressions: variantA.impressions,\n  variant_a_clicks: variantA.clicks,\n  variant_a_leads: variantA.leads,\n  variant_a_cpl: variantA.cpl,\n  variant_a_ctr: variantA.ctr,\n  \n  // Метрики B\n  variant_b_spend: variantB.spend,\n  variant_b_impressions: variantB.impressions,\n  variant_b_clicks: variantB.clicks,\n  variant_b_leads: variantB.leads,\n  variant_b_cpl: variantB.cpl,\n  variant_b_ctr: variantB.ctr,\n  \n  // Результаты анализа\n  confidence_level: confidence,\n  winner: winner,\n  winner_reason: winnerReason,\n  ai_recommendation: aiRecommendation,\n  ai_updated_at: new Date().toISOString()\n};"
+      },
+      "id": "calculate-confidence",
+      "name": "🧮 Расчёт Confidence",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1340, 200]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/ab_tests",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "eq.{{ $json.test_id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"variant_a_spend\": {{ $json.variant_a_spend }},\n  \"variant_a_impressions\": {{ $json.variant_a_impressions }},\n  \"variant_a_leads\": {{ $json.variant_a_leads }},\n  \"variant_a_cpl\": {{ $json.variant_a_cpl || 'null' }},\n  \"variant_a_ctr\": {{ $json.variant_a_ctr }},\n  \"variant_b_spend\": {{ $json.variant_b_spend }},\n  \"variant_b_impressions\": {{ $json.variant_b_impressions }},\n  \"variant_b_leads\": {{ $json.variant_b_leads }},\n  \"variant_b_cpl\": {{ $json.variant_b_cpl || 'null' }},\n  \"variant_b_ctr\": {{ $json.variant_b_ctr }},\n  \"confidence_level\": {{ $json.confidence_level }},\n  \"ai_recommendation\": \"{{ $json.ai_recommendation }}\",\n  \"ai_updated_at\": \"{{ $json.ai_updated_at }}\"\n}",
+        "options": {}
+      },
+      "id": "update-test-metrics",
+      "name": "💾 Обновить метрики",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1560, 200],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-api-key",
+          "name": "Supabase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "has-winner",
+              "leftValue": "={{ $('🧮 Расчёт Confidence').item.json.winner }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-winner-found",
+      "name": "🏆 Есть победитель?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [1780, 200]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "https://pyscczcuersdjvpmkiec.supabase.co/rest/v1/ab_tests",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "id",
+              "value": "eq.{{ $('🧮 Расчёт Confidence').item.json.test_id }}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"winner\": \"{{ $('🧮 Расчёт Confidence').item.json.winner }}\",\n  \"winner_reason\": \"{{ $('🧮 Расчёт Confidence').item.json.winner_reason }}\"\n}",
+        "options": {}
+      },
+      "id": "set-winner",
+      "name": "🏆 Записать победителя",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2000, 100],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-api-key",
+          "name": "Supabase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "schema": "public",
+        "table": "automation_flows",
+        "updateKey": "name",
+        "updateKeyValue": "A/B Test Automation",
+        "dataMode": "manual",
+        "manualConfigData": {
+          "columns": [
+            {
+              "column": "status",
+              "value": "active"
+            },
+            {
+              "column": "last_run",
+              "value": "={{ $now }}"
+            },
+            {
+              "column": "logs",
+              "value": "Обработано тестов: {{ $('📋 Активные A/B тесты').first().json.length || 0 }}"
+            }
+          ]
+        }
+      },
+      "id": "update-flow-status",
+      "name": "💾 Статус workflow",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [2220, 300],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "supabase-api-key",
+          "name": "Supabase API Key"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "no-tests",
+      "name": "⏭️ Нет тестов",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [900, 400]
+    }
+  ],
+  "connections": {
+    "⏰ Каждый час": {
+      "main": [
+        [
+          {
+            "node": "📋 Активные A/B тесты",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📋 Активные A/B тесты": {
+      "main": [
+        [
+          {
+            "node": "🔀 Есть тесты?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔀 Есть тесты?": {
+      "main": [
+        [
+          {
+            "node": "📊 Подготовка данных",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "⏭️ Нет тестов",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Подготовка данных": {
+      "main": [
+        [
+          {
+            "node": "📈 Метрики Variant A",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📈 Метрики Variant B",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📈 Метрики Variant A": {
+      "main": [
+        [
+          {
+            "node": "🧮 Расчёт Confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📈 Метрики Variant B": {
+      "main": [
+        [
+          {
+            "node": "🧮 Расчёт Confidence",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧮 Расчёт Confidence": {
+      "main": [
+        [
+          {
+            "node": "💾 Обновить метрики",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "💾 Обновить метрики": {
+      "main": [
+        [
+          {
+            "node": "🏆 Есть победитель?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🏆 Есть победитель?": {
+      "main": [
+        [
+          {
+            "node": "🏆 Записать победителя",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "💾 Статус workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🏆 Записать победителя": {
+      "main": [
+        [
+          {
+            "node": "💾 Статус workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "instanceId": "ab-test-automation-workflow"
+  }
+}
