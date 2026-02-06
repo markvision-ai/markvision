@@ -39,10 +39,7 @@ import {
   IconPlus,
   IconCheck,
   IconSettings,
-  IconSun,
-  IconMoon,
 } from "@tabler/icons-react";
-import { useTheme } from "@/hooks/useTheme";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { Trash2 } from "lucide-react";
@@ -113,7 +110,6 @@ export const AppSidebar = ({
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
-  const { theme, toggleTheme } = useTheme();
   const isSuperAdmin = userId ? SUPER_ADMIN_UIDS.includes(userId) : false;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -452,22 +448,10 @@ export const AppSidebar = ({
           <div className="border-t border-border pt-4">
             <SidebarLink
               link={{
-                label: theme === 'dark' ? 'Светлая тема' : 'Тёмная тема',
-                href: "#",
-                icon: theme === 'dark' ? (
-                  <IconSun className="h-5 w-5 flex-shrink-0 text-yellow-500" />
-                ) : (
-                  <IconMoon className="h-5 w-5 flex-shrink-0 text-blue-400" />
-                ),
-                onClick: toggleTheme,
-              }}
-            />
-            <SidebarLink
-              link={{
-                label: userProfile?.name || "Пользователь",
+                label: userProfile?.name || "Профиль",
                 href: "#",
                 icon: (
-                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white text-sm font-medium">
                     {userProfile?.name?.charAt(0).toUpperCase() || 
                      userProfile?.email?.charAt(0).toUpperCase() || "U"}
                   </div>
@@ -557,7 +541,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent font-bold text-base">
+        <span className="bg-gradient-to-r from-primary via-blue-400 to-sky-400 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
         <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">

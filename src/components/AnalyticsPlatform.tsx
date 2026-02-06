@@ -33,6 +33,8 @@ import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidg
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
 import { ComputedMetricsWidget } from './dashboard/ComputedMetricsWidget';
 import { WelcomeHero } from './dashboard/WelcomeHero';
+import { QuickActions } from './dashboard/QuickActions';
+import { AIAssistant } from './analytics/AIAssistant';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
@@ -409,6 +411,15 @@ export const AnalyticsPlatform = () => {
 
   const mainContent = (
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
+      <div className="mb-6">
+        <h2 className="text-xl md:text-2xl font-bold tracking-tight">
+          {(() => {
+            const hour = new Date().getHours();
+            const phrase = hour >= 5 && hour < 12 ? 'Доброе утро' : hour >= 12 && hour < 18 ? 'Добрый день' : 'Добрый вечер';
+            return `MarkVision Online: ${phrase}`;
+          })()}
+        </h2>
+      </div>
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
           {(registerWidget) => {
@@ -454,7 +465,6 @@ export const AnalyticsPlatform = () => {
                     plan={planData.impressions}
                     fact={totals.impressions}
                     icon={<Eye className="w-4 h-4" />}
-                    iconColor="text-blue-500"
                     format="number"
                   />
                   <PlanFactCard
@@ -463,7 +473,6 @@ export const AnalyticsPlatform = () => {
                     plan={planData.leads}
                     fact={totals.leads}
                     icon={<Users className="w-4 h-4" />}
-                    iconColor="text-violet-500"
                     format="number"
                   />
                   <PlanFactCard
@@ -472,7 +481,6 @@ export const AnalyticsPlatform = () => {
                     plan={planData.followers}
                     fact={totals.followers}
                     icon={<Users className="w-4 h-4" />}
-                    iconColor="text-pink-500"
                     format="number"
                   />
                   <PlanFactCard
@@ -481,7 +489,6 @@ export const AnalyticsPlatform = () => {
                     plan={planData.visits}
                     fact={totals.visits}
                     icon={<Target className="w-4 h-4" />}
-                    iconColor="text-amber-500"
                     format="number"
                   />
                   <PlanFactCard
@@ -490,7 +497,6 @@ export const AnalyticsPlatform = () => {
                     plan={planData.sales}
                     fact={totals.sales}
                     icon={<ShoppingCart className="w-4 h-4" />}
-                    iconColor="text-emerald-500"
                     format="number"
                   />
                 </div>
@@ -533,6 +539,22 @@ export const AnalyticsPlatform = () => {
               ));
 
             }
+
+            registerWidget('ai-assistant', (
+              <div className="mt-4">
+                <AIAssistant context={{
+                  spend: totals.spend,
+                  impressions: totals.impressions,
+                  clicks: totals.clicks,
+                  leads: totals.leads,
+                  visits: totals.visits,
+                  sales: totals.sales,
+                  revenue: totals.revenue,
+                  romi: romi || 0,
+                  projectId: currentProjectId || FALLBACK_PROJECT_ID
+                }} />
+              </div>
+            ));
 
             return null; // DraggableDashboard handles rendering
           }}

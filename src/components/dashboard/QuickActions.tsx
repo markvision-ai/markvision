@@ -39,10 +39,10 @@ const defaultActions: QuickAction[] = [
     color: 'text-purple-500 bg-purple-500/10 group-hover:bg-purple-500/20'
   },
   {
-    label: 'Контент',
+    label: 'Контент-Завод',
     icon: Video,
     tab: 'factory',
-    description: 'Креативы',
+    description: 'Создание контента',
     color: 'text-pink-500 bg-pink-500/10 group-hover:bg-pink-500/20'
   },
   {
@@ -50,6 +50,13 @@ const defaultActions: QuickAction[] = [
     icon: BarChart3,
     tab: 'e2e-analytics',
     description: 'Сквозная',
+    color: 'text-cyan-500 bg-cyan-500/10 group-hover:bg-cyan-500/20'
+  },
+  {
+    label: 'Декомпозиция',
+    icon: BarChart3,
+    tab: 'finance',
+    description: 'Финансовый анализ',
     color: 'text-cyan-500 bg-cyan-500/10 group-hover:bg-cyan-500/20'
   },
   {

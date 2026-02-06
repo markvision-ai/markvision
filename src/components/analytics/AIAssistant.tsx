@@ -486,7 +486,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
   };
 
   return (
-    <Card className="h-full flex flex-col border-border/50 bg-card shadow-lg">
+    <Card className="ai-chat-card h-full flex flex-col border-border/50 bg-card shadow-lg">
       <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

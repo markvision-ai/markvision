@@ -85,7 +85,9 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
           </TooltipProvider>
         </div>
 
-        {children}
+        <div className="glass-card">
+          {children}
+        </div>
       </motion.div>
     );
   }
@@ -128,7 +130,7 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   const hiddenCount = widgets.filter(w => !w.visible).length;
 
   return (
-    <div className="space-y-4 md:space-y-6 md:pr-12">
+    <div className="space-y-6 md:pr-12">
       {/* Dashboard Info Header */}
       {hiddenCount > 0 && (
         <div className="flex items-center gap-2">
@@ -143,7 +145,7 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
       </span>
 
       {/* Widgets Container - render in sorted order */}
-      <div className="space-y-4 md:space-y-6">
+      <div className="space-y-6">
         <AnimatePresence mode="popLayout">
           {sortedVisibleWidgets.map((widget) => {
             const widgetContent = widgetContents.find(wc => wc.id === widget.id);

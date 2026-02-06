@@ -544,7 +544,17 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       
       {/* AI Assistant Section */}
       <div className="mt-8">
-        <AIAssistant />
+        <AIAssistant context={{
+          spend: filteredTotals.spend,
+          impressions: filteredTotals.impressions,
+          clicks: filteredTotals.clicks,
+          leads: filteredTotals.leads,
+          visits: filteredTotals.visits,
+          sales: filteredTotals.sales,
+          revenue: filteredTotals.revenue,
+          romi: filteredTotals.spend > 0 ? (((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100) : 0,
+          projectId: pid
+        }} />
       </div>
 
     </div>

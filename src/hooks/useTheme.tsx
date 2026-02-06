@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'dark' | 'light';
+type Theme = 'dark';
 
 interface ThemeContextType {
   theme: Theme;
@@ -15,20 +15,14 @@ const ThemeContext = createContext<ThemeContextType>({
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const savedTheme = localStorage.getItem('ui-theme') as Theme;
-      return savedTheme || 'light';
-    }
-    return 'light';
-  });
+  const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
     const root = document.documentElement;
     root.classList.remove('light', 'dark');
     root.classList.add(theme);
     root.style.colorScheme = theme;
-    localStorage.setItem('ui-theme', theme);
+    localStorage.setItem('ui-theme', 'dark');
 
     // Update meta theme-color
     let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -37,13 +31,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       meta.name = 'theme-color';
       document.head.appendChild(meta);
     }
-    // #030303 for dark (Deep Dark), #ffffff or appropriate for light
-    meta.content = theme === 'dark' ? '#030303' : '#ffffff';
+    meta.content = '#05070A';
     
   }, [theme]);
 
   const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+    // No-op: light theme disabled
+    setTheme('dark');
   };
 
   return (
