@@ -3,10 +3,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { cn } from '@/lib/utils';
 import { FinancialFact, PlanIndicators } from '@/hooks/useFinancialMonthData';
+import { Target, Wallet, CreditCard, Sparkles } from 'lucide-react';
 
 export interface ChannelData {
   revenueGoal: number;
@@ -93,86 +94,79 @@ export const ChannelFinancialModel = ({
     onChangeCpl: (val: number) => void, 
     rationale: string | undefined,
     onChangeRationale: (val: string) => void,
-    colorClass: string
+    rowType: 'best' | 'avg' | 'worst'
   ) => {
     const row = calculateRow(scenarioName, cpl);
     const visitCost = row.visits > 0 ? row.budget / row.visits : 0;
     const cac = row.sales > 0 ? row.budget / row.sales : 0;
     const romi = row.budget > 0 ? ((row.revenue - row.budget) / row.budget) * 100 : 0;
 
+    const rowColors = {
+      best: "bg-emerald-500/5 hover:bg-emerald-500/10 border-l-2 border-l-emerald-500",
+      avg: "bg-blue-500/5 hover:bg-blue-500/10 border-l-2 border-l-blue-500",
+      worst: "bg-red-500/5 hover:bg-red-500/10 border-l-2 border-l-red-500"
+    };
+
     return (
       <>
-        <TableRow className={cn("hover:bg-muted/30 border-b border-slate-300", colorClass)}>
-          <TableCell className="font-semibold whitespace-nowrap text-sm text-foreground align-top pt-3 border-r border-slate-300 px-3">{scenarioName}</TableCell>
-          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
-             <Input 
-               type="number" 
-               value={data.calcMode === 'goal' ? Math.round(row.budget) : data.budgetInput} 
-               onChange={(e) => handleChange('budgetInput', Number(e.target.value))}
-               disabled={data.calcMode === 'goal'}
-               className={cn(
-                 "h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0",
-                 data.calcMode === 'goal' 
-                   ? "text-slate-600 cursor-not-allowed" 
-                   : "text-foreground hover:bg-black/5"
-               )}
-             />
+        <TableRow className={cn("border-b border-white/5 transition-colors", rowColors[rowType])}>
+          <TableCell className="font-semibold whitespace-nowrap text-sm text-foreground/90 align-top pt-4 px-4">{scenarioName}</TableCell>
+          <TableCell className="text-right p-2 align-top">
+             <div className="px-2 py-1.5 rounded-md bg-white/5 border border-white/10 font-mono text-xs text-muted-foreground">
+               {formatCurrency(row.budget)}
+             </div>
           </TableCell>
-          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.leads}</TableCell>
-          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
-            <Input 
-               type="number" 
-               value={cpl} 
-               onChange={(e) => onChangeCpl(Number(e.target.value))}
-               className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
-             />
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground/80 align-top pt-4 px-3">{row.leads}</TableCell>
+          <TableCell className="text-right p-2 align-top">
+            <div className="relative group">
+              <Input 
+                 type="number" 
+                 value={cpl} 
+                 onChange={(e) => onChangeCpl(Number(e.target.value))}
+                 className="h-8 text-right font-medium text-sm w-full bg-white/5 border-white/10 focus:border-primary/50 focus:bg-white/10 transition-all"
+               />
+               <span className="absolute right-8 top-2 text-[10px] text-muted-foreground/50 opacity-0 group-hover:opacity-100 transition-opacity">CPL</span>
+            </div>
           </TableCell>
-          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.visits}</TableCell>
-          <TableCell className="text-right font-mono text-sm font-medium text-foreground align-top pt-3 border-r border-slate-300 px-3">{row.sales}</TableCell>
-          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
-            <Input 
-               type="number" 
-               value={data.avgCheck} 
-               onChange={(e) => handleChange('avgCheck', Number(e.target.value))}
-               className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
-             />
-          </TableCell>
-          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground/80 align-top pt-4 px-3">{row.visits}</TableCell>
+          <TableCell className="text-right font-mono text-sm font-medium text-foreground/80 align-top pt-4 px-3">{row.sales}</TableCell>
+          
+          <TableCell className="text-right p-2 align-top">
             <div className="flex items-center justify-end gap-1">
                <Input 
                  type="number" 
                  value={data.crLeadToVisit} 
                  onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value))}
-                 className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
+                 className="h-8 text-right font-medium text-sm w-full bg-transparent border-transparent hover:bg-white/5 focus:bg-white/10 transition-all p-0 shadow-none"
                />
-               <span className="text-xs font-medium text-muted-foreground pt-2">%</span>
+               <span className="text-xs font-medium text-muted-foreground pt-1">%</span>
             </div>
           </TableCell>
-          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(visitCost)}</TableCell>
-          <TableCell className="text-right p-1.5 align-top border-r border-slate-300">
+          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-4 px-3">{formatCurrency(visitCost)}</TableCell>
+          <TableCell className="text-right p-2 align-top">
             <div className="flex items-center justify-end gap-1">
                <Input 
                  type="number" 
                  value={data.crVisitToSale} 
                  onChange={(e) => handleChange('crVisitToSale', Number(e.target.value))}
-                 className="h-8 text-right font-medium text-sm w-full border-none shadow-none focus-visible:ring-0 bg-transparent p-0 hover:bg-black/5"
+                 className="h-8 text-right font-medium text-sm w-full bg-transparent border-transparent hover:bg-white/5 focus:bg-white/10 transition-all p-0 shadow-none"
                />
-               <span className="text-xs font-medium text-muted-foreground pt-2">%</span>
+               <span className="text-xs font-medium text-muted-foreground pt-1">%</span>
             </div>
           </TableCell>
-          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(cac)}</TableCell>
-          <TableCell className="text-right font-mono text-sm font-bold text-foreground align-top pt-3 border-r border-slate-300 px-3">{formatCurrency(row.revenue)}</TableCell>
-          <TableCell className={cn("text-right font-bold text-sm align-top pt-3 px-3", romi > 0 ? "text-emerald-600" : "text-red-600")}>
+          <TableCell className="text-right font-mono text-xs text-muted-foreground align-top pt-4 px-3">{formatCurrency(cac)}</TableCell>
+          <TableCell className="text-right font-mono text-sm font-bold text-foreground align-top pt-4 px-3">{formatCurrency(row.revenue)}</TableCell>
+          <TableCell className={cn("text-right font-bold text-sm align-top pt-4 px-3", romi > 0 ? "text-emerald-500" : "text-red-500")}>
             {Math.round(romi)}%
           </TableCell>
         </TableRow>
-        <TableRow className={cn("hover:bg-muted/30 border-b border-slate-300", colorClass)}>
-          <TableCell colSpan={13} className="p-0 px-2 pb-2 pt-0 border-r border-l border-slate-300">
+        <TableRow className={cn("border-b border-white/5", rowColors[rowType])}>
+          <TableCell colSpan={13} className="p-0 px-4 pb-3 pt-0">
              <Textarea 
                placeholder={`Обоснование сценария "${scenarioName}"...`}
                value={rationale || ''}
                onChange={(e) => onChangeRationale(e.target.value)}
-               className="min-h-[30px] h-[30px] resize-y text-xs bg-transparent border-none focus-visible:ring-0 placeholder:text-muted-foreground/50 w-full"
+               className="min-h-[30px] h-[30px] resize-y text-xs bg-black/10 border-none focus-visible:ring-0 placeholder:text-muted-foreground/40 w-full rounded-md"
              />
           </TableCell>
         </TableRow>
@@ -181,74 +175,117 @@ export const ChannelFinancialModel = ({
   };
 
   return (
-    <div className="space-y-4 animate-in fade-in duration-500">
+    <div className="space-y-6 animate-in fade-in duration-700">
       
-      {/* Control Panel */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end bg-muted/20 p-3 rounded-lg border border-border/50">
-        <div className="grid gap-1.5">
-           <Label className="text-xs font-medium text-muted-foreground">Режим расчета</Label>
-           <div className="flex items-center gap-1 bg-background border rounded-md p-0.5">
-              <Button 
-                 variant={data.calcMode === 'goal' ? 'secondary' : 'ghost'} 
-                 size="sm" 
-                 onClick={() => handleChange('calcMode', 'goal')}
-                 className="text-xs h-7 px-3 shadow-none"
-              >
-                 От Цели (Выручка)
-              </Button>
-              <Button 
-                 variant={data.calcMode === 'budget' ? 'secondary' : 'ghost'} 
-                 size="sm" 
-                 onClick={() => handleChange('calcMode', 'budget')}
-                 className="text-xs h-7 px-3 shadow-none"
-              >
-                 От Бюджета
-              </Button>
-           </div>
-        </div>
-
-        {data.calcMode === 'goal' && (
-          <div className="grid gap-1.5 animate-in fade-in slide-in-from-left-2 duration-300">
-            <Label className="text-xs font-medium text-muted-foreground">Целевая выручка (KZT)</Label>
-            <Input 
-               type="number" 
-               value={data.revenueGoal} 
-               onChange={(e) => handleChange('revenueGoal', Number(e.target.value))}
-               className="h-8 w-[180px] font-mono"
-            />
+      {/* Premium Glassmorphism Input Form */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl p-6 shadow-2xl">
+        {/* Glow Effects */}
+        <div className="absolute -top-24 -right-24 h-64 w-64 rounded-full bg-violet-500/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-24 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl pointer-events-none" />
+        
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/20">
+              <Sparkles className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white tracking-tight">Декомпозиция 3.0</h3>
+              <p className="text-xs text-muted-foreground">Финансовое моделирование сценариев</p>
+            </div>
           </div>
-        )}
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Goal Input */}
+            <div className="space-y-2 group">
+              <Label className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Target className="w-3 h-3" /> Целевая выручка
+              </Label>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  value={data.revenueGoal} 
+                  onChange={(e) => {
+                    handleChange('revenueGoal', Number(e.target.value));
+                    handleChange('calcMode', 'goal');
+                  }}
+                  className={cn(
+                    "h-12 text-lg font-bold bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all pl-4",
+                    data.calcMode === 'goal' ? "border-primary/50 shadow-[0_0_15px_rgba(124,58,237,0.1)]" : "opacity-70"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">₸</div>
+              </div>
+            </div>
+
+            {/* Average Check Input */}
+            <div className="space-y-2 group">
+              <Label className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <CreditCard className="w-3 h-3" /> Средний чек
+              </Label>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  value={data.avgCheck} 
+                  onChange={(e) => handleChange('avgCheck', Number(e.target.value))}
+                  className="h-12 text-lg font-bold bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all pl-4"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">₸</div>
+              </div>
+            </div>
+
+            {/* Budget Input */}
+            <div className="space-y-2 group">
+              <Label className="text-xs font-medium text-muted-foreground group-hover:text-primary transition-colors flex items-center gap-2">
+                <Wallet className="w-3 h-3" /> Рекламный бюджет
+              </Label>
+              <div className="relative">
+                <Input 
+                  type="number" 
+                  value={data.budgetInput} 
+                  onChange={(e) => {
+                    handleChange('budgetInput', Number(e.target.value));
+                    handleChange('calcMode', 'budget');
+                  }}
+                  className={cn(
+                    "h-12 text-lg font-bold bg-white/5 border-white/10 focus:border-primary/50 focus:ring-primary/20 transition-all pl-4",
+                    data.calcMode === 'budget' ? "border-primary/50 shadow-[0_0_15px_rgba(124,58,237,0.1)]" : "opacity-70"
+                  )}
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground pointer-events-none">₸</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Scenario Calculation Table */}
-      <Card className="border-none shadow-none overflow-hidden rounded-none">
+      {/* Premium Glassmorphism Table */}
+      <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-black/40 backdrop-blur-xl shadow-2xl">
         <CardContent className="p-0 overflow-x-auto">
-          <Table className="w-full border-collapse border border-slate-300">
+          <Table className="w-full">
             <TableHeader>
-               <TableRow className="bg-slate-100 border-b border-slate-300 text-[10px] uppercase tracking-wider">
-                  <TableHead className="w-[140px] font-bold px-3 py-2 border-r border-slate-300 text-left text-slate-700 bg-slate-100">Сценарий</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[120px] text-slate-700 bg-slate-100">Бюджет</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Лиды</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[100px] text-slate-700 bg-slate-100">CPL</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Диагн.</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[80px] text-slate-700 bg-slate-100">Продажи</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[110px] text-slate-700 bg-slate-100">Ср. чек</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CR (L-V)</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">Cost (D)</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CR (V-S)</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[90px] text-slate-700 bg-slate-100">CAC</TableHead>
-                  <TableHead className="text-right px-3 py-2 border-r border-slate-300 w-[110px] text-slate-700 bg-slate-100">Выручка</TableHead>
-                  <TableHead className="text-right px-3 py-2 w-[80px] text-slate-700 bg-slate-100">ROMI</TableHead>
+               <TableRow className="border-b border-white/10 bg-white/5">
+                  <TableHead className="w-[140px] font-bold px-4 py-3 text-white">Сценарий</TableHead>
+                  <TableHead className="text-right px-2 py-3 text-muted-foreground">Бюджет</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">Лиды</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-white font-semibold">CPL (Ввод)</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">Диагн.</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">Продажи</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">CR (L-V)</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">Cost (D)</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">CR (V-S)</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">CAC</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-white font-bold">Выручка</TableHead>
+                  <TableHead className="text-right px-3 py-3 text-muted-foreground">ROMI</TableHead>
                </TableRow>
             </TableHeader>
             <TableBody>
-               {renderScenarioRow('Лучший', data.cplBest, (v) => handleChange('cplBest', v), data.rationaleBest, (v) => handleChange('rationaleBest', v), "bg-emerald-50/30")}
-               {renderScenarioRow('Средний', data.cplAvg, (v) => handleChange('cplAvg', v), data.rationaleAvg, (v) => handleChange('rationaleAvg', v), "bg-yellow-50/30")}
-               {renderScenarioRow('Худший', data.cplWorst, (v) => handleChange('cplWorst', v), data.rationaleWorst, (v) => handleChange('rationaleWorst', v), "bg-red-50/30")}
+               {renderScenarioRow('Лучший', data.cplBest, (v) => handleChange('cplBest', v), data.rationaleBest, (v) => handleChange('rationaleBest', v), 'best')}
+               {renderScenarioRow('Средний', data.cplAvg, (v) => handleChange('cplAvg', v), data.rationaleAvg, (v) => handleChange('rationaleAvg', v), 'avg')}
+               {renderScenarioRow('Худший', data.cplWorst, (v) => handleChange('cplWorst', v), data.rationaleWorst, (v) => handleChange('rationaleWorst', v), 'worst')}
             </TableBody>
           </Table>
         </CardContent>
-      </Card>
+      </div>
     </div>
   );
 };
