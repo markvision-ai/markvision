@@ -140,9 +140,7 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
         </div>
       )}
       
-      <span className="text-xs text-muted-foreground hidden md:block">
-        💡 Наведите на виджет для управления порядком (стрелки справа)
-      </span>
+      
 
       {/* Widgets Container - render in sorted order */}
       <div className="space-y-6">

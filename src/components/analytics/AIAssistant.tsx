@@ -89,18 +89,31 @@ const useMarkStatus = () => {
       const lastSeen = new Date(lastSeenStr);
       const now = new Date();
       const diffSeconds = (now.getTime() - lastSeen.getTime()) / 1000;
-      setIsOnline(diffSeconds < 60);
+      setIsOnline(diffSeconds < 300);
     };
 
     const fetchStatus = async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('system_status')
         .select('last_seen')
         .eq('id', 'mark-ai-worker')
         .single();
 
-      if (data) {
+      if (data && !error) {
         checkStatus(data.last_seen);
+        return;
+      }
+      
+      const bridge = await supabase
+        .from('ai_bridge_tasks')
+        .select('updated_at,status')
+        .order('updated_at', { ascending: false })
+        .limit(1);
+      if (bridge.data && bridge.data.length > 0) {
+        const ts = new Date(bridge.data[0].updated_at as any);
+        const recent = (Date.now() - ts.getTime()) < 5 * 60 * 1000;
+        const ok = ['running', 'completed', 'pending'].includes((bridge.data[0] as any).status);
+        setIsOnline(recent && ok);
       }
     };
 
@@ -117,8 +130,8 @@ const useMarkStatus = () => {
           filter: "service_name=eq.ai_worker"
         },
         (payload: any) => {
-          if (payload.new && payload.new.last_check_at) {
-            checkStatus(payload.new.last_check_at);
+          if (payload.new && (payload.new as any).last_check_at) {
+            checkStatus((payload.new as any).last_check_at);
           }
         }
       )
@@ -173,10 +186,10 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
   };
 
   const funnelData = [
-    { name: 'Показы', value: data.impressions, fill: '#60a5fa' }, // blue-400
-    { name: 'Клики', value: data.clicks, fill: '#818cf8' },      // indigo-400
-    { name: 'Лиды', value: data.leads, fill: '#a78bfa' },        // violet-400
-    { name: 'Продажи', value: data.sales, fill: '#c084fc' },     // purple-400
+    { name: 'Показы', value: data.impressions, fill: '#34d399' },
+    { name: 'Клики', value: data.clicks, fill: '#10b981' },
+    { name: 'Лиды', value: data.leads, fill: '#22c55e' },
+    { name: 'Продажи', value: data.sales, fill: '#84cc16' },
   ];
 
   const formatCurrency = (val: number) => 
@@ -191,7 +204,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
         {/* Header Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl shadow-lg shadow-indigo-500/20">
+            <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-lime-500 rounded-xl shadow-lg shadow-emerald-500/20">
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <div>
@@ -401,7 +414,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </Card>
 
               {/* Insights Block */}
-              <Card className="border-border/50 bg-gradient-to-r from-indigo-500/5 to-purple-500/5">
+              <Card className="border-border/50 bg-gradient-to-r from-emerald-500/5 to-lime-500/5">
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-full mt-1">
                     <Lightbulb className="w-5 h-5 text-primary" />

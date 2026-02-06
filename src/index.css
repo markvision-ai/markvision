@@ -32,7 +32,7 @@ html {
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 184 100% 50%;
+    --primary: 142 85% 48%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 197 93% 59%;
@@ -69,7 +69,7 @@ html {
     --popover: 0 0% 3%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 184 100% 50%;
+    --primary: 142 85% 48%;
     --primary-foreground: 0 0% 0%;
 
     --secondary: 197 93% 59%;
@@ -161,7 +161,7 @@ html {
   right: 10%;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, hsl(210 90% 55% / 0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, hsl(142 85% 52% / 0.06) 0%, transparent 70%);
   border-radius: 50%;
   filter: blur(80px);
   pointer-events: none;
@@ -324,7 +324,7 @@ html {
 
   /* Gradient text */
   .gradient-text-primary {
-    @apply bg-gradient-to-r from-primary via-blue-400 to-sky-400 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary via-emerald-400 to-lime-400 bg-clip-text text-transparent;
   }
 }
 
@@ -336,7 +336,7 @@ html {
   background: linear-gradient(135deg,
     hsl(var(--primary) / 0.08) 0%,
     transparent 40%,
-    hsl(210 90% 55% / 0.04) 100%
+    hsl(142 85% 52% / 0.04) 100%
   );
 }
 

@@ -451,7 +451,7 @@ export const AppSidebar = ({
                 label: userProfile?.name || "Профиль",
                 href: "#",
                 icon: (
-                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-sky-500 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-lime-500 flex items-center justify-center text-white text-sm font-medium">
                     {userProfile?.name?.charAt(0).toUpperCase() || 
                      userProfile?.email?.charAt(0).toUpperCase() || "U"}
                   </div>
@@ -541,7 +541,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="bg-gradient-to-r from-primary via-blue-400 to-sky-400 bg-clip-text text-transparent font-bold text-base">
+        <span className="bg-gradient-to-r from-primary via-emerald-400 to-lime-400 bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
         <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">

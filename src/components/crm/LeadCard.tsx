@@ -256,7 +256,18 @@ export const LeadCard = ({
       {needsAttention && (
         <div className="mb-3 flex items-center gap-2 px-2 py-1.5 rounded-md bg-red-100/50  border border-red-200  text-red-700  text-xs font-medium">
           <Clock className="w-3.5 h-3.5 flex-shrink-0" />
-          <span>Ожидает {minutesWaiting} мин</span>
+          <span>
+            {(() => {
+              const days = Math.floor(minutesWaiting / 1440);
+              const hours = Math.floor((minutesWaiting % 1440) / 60);
+              const minutes = minutesWaiting % 60;
+              const parts = [];
+              if (days > 0) parts.push(`${days} д`);
+              if (hours > 0) parts.push(`${hours} ч`);
+              if (minutes > 0 && days === 0) parts.push(`${minutes} мин`);
+              return `Ожидает ${parts.join(' ')}`.trim();
+            })()}
+          </span>
         </div>
       )}
 
