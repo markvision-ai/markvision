@@ -15,6 +15,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { z } from "zod";
 import founderWithMark from "@/assets/founder-with-mark.png";
+import markvisionLogo from "@/assets/markvision-logo.png";
 const modules = [{
   title: "Контент за вас",
   description: "200+ постов и видео в месяц. Мы сами придумываем, снимаем и публикуем. Вам не нужен SMM-специалист.",
@@ -225,7 +226,7 @@ export const LandingPage = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-2xl border-b border-white/10 safe-area-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
-          <img alt="MarkVision AI" className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" src="/lovable-uploads/3263a132-db41-45fb-80ef-e0dddeb8aebc.png" />
+          <img alt="MarkVision AI" className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" src={markvisionLogo} />
           <span className="font-semibold text-xs sm:text-lg text-white tracking-tight">
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
           </span>
