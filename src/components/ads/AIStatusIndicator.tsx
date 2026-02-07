@@ -94,7 +94,7 @@ export const AIStatusIndicator = () => {
           .subscribe();
       }
     } catch (e) {
-      // ignore realtime in tests
+      void e;
     }
 
     return () => {
@@ -102,7 +102,9 @@ export const AIStatusIndicator = () => {
         if (channel && typeof (supabase as any).removeChannel === 'function') {
           (supabase as any).removeChannel(channel);
         }
-      } catch {}
+      } catch (e) {
+        void e;
+      }
     };
   }, [user]);
 

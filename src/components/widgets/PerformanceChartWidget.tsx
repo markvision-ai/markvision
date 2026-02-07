@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine, Legend } from 'recharts';
 import { GlassCard } from '@/components/ui/GlassCard';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download } from 'lucide-react';
 import { groupByPeriod, downsampleLTTB, Period, SeriesPoint } from '@/lib/chartUtils';
 
@@ -19,8 +19,6 @@ export interface ChartPoint {
 export interface PerformanceChartWidgetProps {
   data: ChartPoint[];
   title?: string;
-  conversionRates?: { [currency: string]: number };
-  defaultCurrency?: 'KZT' | 'USD' | 'EUR';
 }
 
 const CustomTooltip = ({ active, payload, label }: any) => {
@@ -40,29 +38,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
-export const PerformanceChartWidget = ({ data, title = 'Динамика показателей', conversionRates, defaultCurrency = 'KZT' }: PerformanceChartWidgetProps) => {
+export const PerformanceChartWidget = ({ data, title = 'Динамика показателей' }: PerformanceChartWidgetProps) => {
   const [period, setPeriod] = useState<Period>('day');
-  const [currency, setCurrency] = useState<'KZT' | 'USD' | 'EUR'>(defaultCurrency);
   const [visible, setVisible] = useState<Record<string, boolean>>({
     spend: true, leads: true, visits: true, sales: true, revenue: true,
   });
   const chartRef = useRef<HTMLDivElement>(null);
 
-  const convert = (v: number) => {
-    if (!conversionRates || currency === 'KZT') return v;
-    const rate = conversionRates[currency] || 1;
-    return v / rate;
-  };
-
   const formattedData: SeriesPoint[] = useMemo(() => {
     const agg = groupByPeriod(data as SeriesPoint[], period);
     const ds = downsampleLTTB(agg, 1500, 'revenue');
-    return ds.map(d => ({
-      ...d,
-      spend: convert(d.spend),
-      revenue: convert(d.revenue),
-    }));
-  }, [data, period, currency]);
+    return ds;
+  }, [data, period]);
 
   const totals = useMemo(() => {
     const spend = data.reduce((sum, d) => sum + d.spend, 0);
@@ -70,16 +57,15 @@ export const PerformanceChartWidget = ({ data, title = 'Динамика пок�
     const visits = data.reduce((sum, d) => sum + d.visits, 0);
     const sales = data.reduce((sum, d) => sum + d.sales, 0);
     const revenue = data.reduce((sum, d) => sum + d.revenue, 0);
-    return { spend: convert(spend), leads, visits, sales, revenue: convert(revenue) };
-  }, [data, currency]);
+    return { spend, leads, visits, sales, revenue };
+  }, [data]);
 
   const avgRevenue = useMemo(() => {
     if (formattedData.length === 0) return 0;
     return formattedData.reduce((s, d) => s + d.revenue, 0) / formattedData.length;
   }, [formattedData]);
 
-  const currencySymbol = currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '₸';
-  const formatCurrency = (v: number) => new Intl.NumberFormat('ru-RU').format(Math.round(v)) + ` ${currencySymbol}`;
+  const formatCurrency = (v: number) => new Intl.NumberFormat('ru-RU').format(Math.round(v)) + ' ₸';
 
   const exportSVG = () => {
     const svg = chartRef.current?.querySelector('svg');
@@ -187,7 +173,7 @@ export const PerformanceChartWidget = ({ data, title = 'Динамика пок�
           <div className="flex-1" />
           <div className="flex items-center gap-2">
             <Select value={period} onValueChange={(v: Period) => setPeriod(v)}>
-              <SelectTrigger className="w-36">
+              <SelectTrigger className="w-32">
                 <SelectValue placeholder="Период" />
               </SelectTrigger>
               <SelectContent>
@@ -196,16 +182,6 @@ export const PerformanceChartWidget = ({ data, title = 'Динамика пок�
                 <SelectItem value="month">Месяц</SelectItem>
                 <SelectItem value="quarter">Квартал</SelectItem>
                 <SelectItem value="year">Год</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={currency} onValueChange={(v: any) => setCurrency(v)}>
-              <SelectTrigger className="w-28">
-                <SelectValue placeholder="Валюта" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="KZT">KZT</SelectItem>
-                <SelectItem value="USD">USD</SelectItem>
-                <SelectItem value="EUR">EUR</SelectItem>
               </SelectContent>
             </Select>
             <Button variant="ghost" size="sm" onClick={exportSVG}>
