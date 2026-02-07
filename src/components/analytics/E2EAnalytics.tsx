@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { 
-  Zap, 
-  TrendingUp, 
+import {
+  Zap,
+  TrendingUp,
   TrendingDown,
-  FileBarChart, 
-  Globe, 
+  FileBarChart,
+  Globe,
   BarChart3,
   Target,
   MousePointer,
@@ -27,7 +27,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { 
+import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
   PieChart, Pie, Cell, BarChart, Bar
 } from 'recharts';
@@ -136,7 +136,7 @@ const getSourceCategory = (utm_source: string | null): string => {
 };
 
 // Visit statuses
-const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']; 
+const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased'];
 const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
@@ -190,13 +190,13 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      
+
       // Map database 'visit_results' (legacy diagnostics) field to 'visits'
       const mappedData = (data || []).map((item: any) => ({
         ...item,
         visits: item.visits || item.visit_results || item.diagnostics || 0,
       }));
-      
+
       setDailyData(mappedData as DailyData[]);
     } catch (error) {
       if (import.meta.env.DEV) {
@@ -273,7 +273,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       const visitCount = filteredLeads.filter(l => VISIT_STATUSES.includes(l.status || '')).length;
       const salesCount = filteredLeads.filter(l => SALE_STATUSES.includes(l.status || '')).length;
       const revenueSum = filteredLeads.filter(l => l.status === 'purchased').reduce((sum, l) => sum + (l.deal_amount || 0), 0);
-      
+
       return {
         ...totals,
         leads: leadsCount || totals.leads,
@@ -288,10 +288,10 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
   // ==================== TAB 1: Sales ROI (by site_url) ====================
   const siteStats = useMemo(() => {
-    const sites: Record<string, { 
-      leads: number; 
-      visits: number; 
-      sales: number; 
+    const sites: Record<string, {
+      leads: number;
+      visits: number;
+      sales: number;
       revenue: number;
     }> = {};
 
@@ -369,14 +369,14 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       if (!pid) return;
       const { data } = await supabase.from('payments').select('amount').eq('project_id', pid);
       const amounts = (data as any[] || []).map(d => Number(d.amount || 0));
-      setPaymentsSummary({ count: amounts.length, revenue: amounts.reduce((a,b)=>a+b,0) });
+      setPaymentsSummary({ count: amounts.length, revenue: amounts.reduce((a, b) => a + b, 0) });
     };
     loadProject();
     loadPayments();
   }, [pid]);
 
   const visitsCount = useMemo(() => {
-    return filteredLeads.filter(l => (l.status || '').toLowerCase().includes('запис') || (l.status || '').toLowerCase().includes('visit') ).length;
+    return filteredLeads.filter(l => (l.status || '').toLowerCase().includes('запис') || (l.status || '').toLowerCase().includes('visit')).length;
   }, [filteredLeads]);
 
   const aov = useMemo(() => {
@@ -401,7 +401,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
   useEffect(() => {
     const saveLog = async () => {
       if (!pid) return;
-      const day = new Date().toISOString().slice(0,10);
+      const day = new Date().toISOString().slice(0, 10);
       await supabase.from('ad_performance_logs').insert({
         project_id: pid,
         date: day,
@@ -456,10 +456,10 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
-      
+
       {/* Date Picker & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <DateRangePicker 
+        <DateRangePicker
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
         />
@@ -512,7 +512,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             <p className="text-xs text-muted-foreground mt-1">Бюджет рекламных кампаний</p>
           </CardContent>
         </Card>
-        
+
         <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Лиды</CardTitle>
@@ -552,7 +552,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         <Card className="premium-card p-6">
           <CardHeader className="pb-2">
             <CardTitle className="text-white/80 text-sm">MarkVision Online</CardTitle>
-            <CardDescription className="text-white/60 text-sm">Капитан Запойнов, система готова к анализу прибыли.</CardDescription>
+            <CardDescription className="text-white/60 text-sm">Система готова к анализу прибыли.</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <AIAssistant context={{ projectId: pid, romi: roi, cac, cpl, revenue: revenueSum, spend: totalSpend, impressions, clicks, leads: leadsCount, sales: salesCount }} />
@@ -601,7 +601,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                 <div className="kpi-label">CAC</div>
               </div>
               <div className="welcome-hero-kpi">
-                <div className="kpi-value">{(roi*100).toFixed(0)}%</div>
+                <div className="kpi-value">{(roi * 100).toFixed(0)}%</div>
                 <div className="kpi-label">ROI</div>
               </div>
               <div className="welcome-hero-kpi">
@@ -732,7 +732,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                       <Cell key={`cell-${index}`} fill={entry.color} stroke="rgba(0,0,0,0.5)" />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{ backgroundColor: '#000', borderColor: '#333', color: '#fff' }}
                     itemStyle={{ color: '#fff' }}
                   />
@@ -743,7 +743,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* AI Assistant Section */}
       <div className="mt-8">
         <AIAssistant context={{
