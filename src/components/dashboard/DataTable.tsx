@@ -366,17 +366,17 @@ export const DataTable = React.memo(({
         {/* Table */}
         <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
           <table className="w-full text-xs md:text-sm border-collapse">
-            <thead className="sticky top-0 z-50 bg-[#161B22]/80 backdrop-blur-md">
-              <tr className="border-b border-[#1F2937]">
-                <th className="text-left p-2 md:p-3 font-semibold text-slate-400 sticky left-0 bg-[#161B22]/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[80px] md:min-w-[100px]">Диагностика</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[90px] md:min-w-[120px]">Выручка</th>
+            <thead className="sticky top-0 z-50 bg-card/80 backdrop-blur-md">
+              <tr className="border-b border-border">
+                <th className="text-left p-2 md:p-3 font-semibold text-muted-foreground sticky left-0 bg-card/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[80px] md:min-w-[100px]">Диагностика</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
@@ -417,8 +417,8 @@ export const DataTable = React.memo(({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-[#161B22]/60 backdrop-blur-sm font-semibold border-b border-[#1F2937]">
-                <td className="p-2 md:p-4 sticky left-0 bg-[#161B22]/60 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
+              <tr className="bg-card/60 backdrop-blur-sm font-semibold border-b border-border">
+                <td className="p-2 md:p-4 sticky left-0 bg-card/60 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatCurrency(totals.spend)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.clicks)}</td>

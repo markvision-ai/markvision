@@ -31,7 +31,7 @@ import { FunnelWidget } from './dashboard/FunnelWidget';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
-import { ComputedMetricsWidget } from './dashboard/ComputedMetricsWidget';
+import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
 import { WelcomeHero } from './dashboard/WelcomeHero';
 import { QuickActions } from './dashboard/QuickActions';
 import { AIAssistant } from './analytics/AIAssistant';

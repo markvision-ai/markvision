@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate, useNavigate } from "react-route
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
 import { VercelHealthStatus } from "@/components/ui/VercelHealthStatus";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -99,11 +100,12 @@ import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ConnectionStatus />
-    <VercelHealthStatus />
-    <BrowserRouter>
-      <OAuthHandler />
-      <Routes>
+    <TooltipProvider>
+      <ConnectionStatus />
+      <VercelHealthStatus />
+      <BrowserRouter>
+        <OAuthHandler />
+        <Routes>
         <Route path="/" element={<Index />} />
         <Route path="/auth" element={<Auth />} />
         <Route path="/signup" element={<Signup />} />
@@ -155,9 +157,10 @@ const App = () => (
         <Route path="/rop" element={<Index />} />
         
         {/* Catch-all: неизвестные пути → главная */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </BrowserRouter>
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
     <Toaster position="top-right" richColors closeButton />
   </QueryClientProvider>
 );
