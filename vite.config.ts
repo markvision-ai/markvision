@@ -6,8 +6,11 @@ import { VitePWA } from "vite-plugin-pwa";
 import compression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
-export default defineConfig(({ mode }) => ({
-  base: mode === "production" ? "/markvision/" : "/",
+export default defineConfig(({ mode }) => {
+  const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
+  const basePath = isVercel ? "/" : mode === "production" ? "/markvision/" : "/";
+  return {
+  base: basePath,
   server: {
     host: "::",
     port: 8080,
@@ -38,8 +41,8 @@ export default defineConfig(({ mode }) => ({
         background_color: "#0f1117",
         display: "standalone",
         orientation: "portrait",
-        scope: mode === "production" ? "/markvision/" : "/",
-        start_url: mode === "production" ? "/markvision/" : "/",
+        scope: basePath,
+        start_url: basePath,
         categories: ["business", "productivity", "medical"],
         icons: [
           { src: "/logo-vector-blue.svg", sizes: "512x512", type: "image/svg+xml", purpose: "any maskable" },
@@ -121,4 +124,5 @@ export default defineConfig(({ mode }) => ({
     // Optimize assets
     assetsInlineLimit: 4096, // Inline assets < 4KB
   },
-}));
+};
+});
