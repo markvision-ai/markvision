@@ -443,69 +443,118 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Column 1: Funnel Pyramid */}
-        <Card className="h-full overflow-hidden">
-            <CardHeader className="pb-2">
-                <CardTitle className="text-base">Воронка продаж</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-1">
-                {funnelData.stages.map((stage, index) => {
-                    // Calculate visual width: 100% -> 60%
-                    const widthPercent = 100 - (index * 10);
-                    const nextStage = funnelData.stages[index + 1];
-                    const conversionToNext = nextStage && stage.value > 0 
-                       ? ((nextStage.value / stage.value) * 100).toFixed(1) + '%' 
-                       : null;
-
-                    return (
-                        <div key={stage.name} className="relative flex flex-col items-center group">
-                            <div 
-                                className={cn(
-                                    "relative flex items-center justify-between px-4 py-2.5 rounded-lg transition-all hover:brightness-95 cursor-default",
-                                    stage.color
-                                )}
-                                style={{ width: `${widthPercent}%` }}
-                            >
-                                <div className="flex items-center gap-2">
-                                    <stage.icon className="w-4 h-4 opacity-70" />
-                                    <span className="text-sm font-medium">{stage.name}</span>
-                                </div>
-                                <span className="text-sm font-bold">
-                                    {stage.name === 'Показы' || stage.name === 'Клики' 
-                                        ? new Intl.NumberFormat('ru-RU').format(stage.value)
-                                        : stage.value}
-                                </span>
-                            </div>
-                            
-                            {/* Connector / Conversion Label */}
-                            {conversionToNext && (
-                                <div className="h-4 flex items-center justify-center">
-                                    <div className="text-[10px] text-muted-foreground bg-background/80 px-1.5 rounded-full border border-border/50 shadow-sm z-10 -my-1">
-                                        ↓ {conversionToNext}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    );
-                })}
-                
-                <div className="mt-4 pt-4 border-t grid grid-cols-2 gap-2">
-                    <div className="text-center p-2 bg-muted/20 rounded-lg">
-                        <div className="text-xs text-muted-foreground">Выручка</div>
-                        <div className="text-sm font-bold text-emerald-500">{formatCurrency(funnelData.totalRevenue)}</div>
-                    </div>
-                    <div className="text-center p-2 bg-muted/20 rounded-lg">
-                        <div className="text-xs text-muted-foreground">ROMI</div>
-                        <div className="text-sm font-bold text-blue-500">
-                             {/* Placeholder for ROMI if we had spend */}
-                             {(campaignBreakdown.reduce((sum, c) => sum + c.spend, 0) > 0) 
-                                ? Math.round(((funnelData.totalRevenue - campaignBreakdown.reduce((sum, c) => sum + c.spend, 0)) / campaignBreakdown.reduce((sum, c) => sum + c.spend, 0)) * 100) + '%'
-                                : '0%'}
-                        </div>
-                    </div>
+        {/* Column 1: High‑Tech Scanner Funnel */}
+        <div className="h-full overflow-hidden rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 p-4 relative">
+          <div className="flex items-center justify-between mb-3">
+            <div className="text-sm font-semibold tracking-wide">Воронка конверсии</div>
+            {(() => {
+              const impressions = funnelData.stages[0]?.value || 0;
+              const sales = funnelData.stages[funnelData.stages.length - 1]?.value || 0;
+              const overallCR = impressions > 0 ? (sales / impressions) * 100 : 0;
+              return (
+                <div className="px-2 py-1 rounded-lg border border-cyan-400/30 bg-cyan-500/10 text-[11px] font-semibold text-cyan-300">
+                  CR общий {overallCR.toFixed(2)}%
                 </div>
-            </CardContent>
-        </Card>
+              );
+            })()}
+          </div>
+          {(() => {
+            const max = Math.max(...funnelData.stages.map(s => s.value || 1), 1);
+            const height = 56;
+            return (
+              <div className="relative">
+                <svg className="absolute inset-0 pointer-events-none" width="100%" height={funnelData.stages.length * (height + 16)}>
+                  {funnelData.stages.slice(0, -1).map((s, i) => {
+                    const y1 = i * (height + 16) + height;
+                    const y2 = (i + 1) * (height + 16);
+                    return (
+                      <line
+                        key={`laser-${i}`}
+                        x1="50%"
+                        y1={y1}
+                        x2="50%"
+                        y2={y2}
+                        stroke="url(#laserGrad)"
+                        strokeWidth="2"
+                        strokeDasharray="6 6"
+                      >
+                        <animate attributeName="stroke-dashoffset" values="0;12" dur="1.2s" repeatCount="indefinite" />
+                      </line>
+                    );
+                  })}
+                  <defs>
+                    <linearGradient id="laserGrad" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor="#00D1FF" />
+                      <stop offset="50%" stopColor="#3B82F6" />
+                      <stop offset="100%" stopColor="#8B5CF6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="space-y-4">
+                  {funnelData.stages.map((stage, index) => {
+                    const widthPercent = Math.max(15, Math.round((stage.value / max) * 100));
+                    const nextStage = funnelData.stages[index + 1];
+                    const conv = nextStage && stage.value > 0 ? (nextStage.value / stage.value) * 100 : null;
+                    const convLabel = conv !== null ? `${conv.toFixed(2)}%` : null;
+                    const isCTR = stage.name === 'Клики';
+                    const ok = conv !== null ? (isCTR ? conv >= 1 : conv >= 10) : false;
+                    return (
+                      <div key={stage.name} className="relative">
+                        <div
+                          className="mx-auto transition-all cursor-pointer"
+                          style={{
+                            width: `${widthPercent}%`,
+                            height,
+                            clipPath: 'polygon(6% 0%, 94% 0%, 100% 100%, 0% 100%)',
+                            background: 'linear-gradient(90deg,#00D1FF, #3B82F6, #8B5CF6)',
+                            boxShadow: 'inset 0 0 40px rgba(59,130,246,.35), 0 0 24px rgba(0,209,255,.35)',
+                            opacity: 0.25,
+                          }}
+                        >
+                          <div className="w-full h-full flex items-center justify-between px-5"
+                               style={{ filter: 'drop-shadow(0 0 6px rgba(0,209,255,.45))' }}>
+                            <div className="flex items-center gap-2 text-white">
+                              <stage.icon className="w-4 h-4 opacity-80" />
+                              <span className="text-sm font-medium">{stage.name}</span>
+                            </div>
+                            <div className="text-lg font-semibold text-white font-mono"
+                                 style={{ fontFamily: 'JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace' }}>
+                              {new Intl.NumberFormat('ru-RU').format(stage.value)}
+                            </div>
+                          </div>
+                        </div>
+                        {convLabel && (
+                          <div className="flex items-center justify-center mt-1">
+                            <div className={cn(
+                              "px-2 py-0.5 rounded-full text-[11px] font-semibold border",
+                              ok ? "border-cyan-400/40 bg-cyan-500/10 text-cyan-300" : "border-rose-400/40 bg-rose-500/10 text-rose-300"
+                            )}>
+                              {convLabel}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="text-center p-2 rounded-lg border border-white/10 bg-white/5">
+              <div className="text-xs text-muted-foreground">Выручка</div>
+              <div className="text-sm font-bold text-cyan-300">{formatCurrency(funnelData.totalRevenue)}</div>
+            </div>
+            <div className="text-center p-2 rounded-lg border border-white/10 bg-white/5">
+              <div className="text-xs text-muted-foreground">ROMI</div>
+              <div className="text-sm font-bold text-indigo-300">
+                {(campaignBreakdown.reduce((sum, c) => sum + c.spend, 0) > 0)
+                  ? Math.round(((funnelData.totalRevenue - campaignBreakdown.reduce((sum, c) => sum + c.spend, 0)) / campaignBreakdown.reduce((sum, c) => sum + c.spend, 0)) * 100) + '%'
+                  : '0%'}
+              </div>
+            </div>
+          </div>
+        </div>
 
         {/* Column 2: Channel Efficiency */}
         <Card className="h-full">
