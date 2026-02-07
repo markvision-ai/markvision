@@ -57,6 +57,7 @@ interface FactoryState {
   approveAllToPosting: () => void;
   updatePostingStatus: (id: string, status: PostingStatus) => void;
   setWebhookUrl: (url: string | null) => void;
+  applyWebhookUpdate: (update: { id?: string; channel?: string; status: PostingStatus }) => void;
 }
 
 export const useFactoryStore = create<FactoryState>((set, get) => ({
@@ -278,5 +279,17 @@ export const useFactoryStore = create<FactoryState>((set, get) => ({
       postingQueue: state.postingQueue.map((item) =>
         item.id === id ? { ...item, status } : item
       ),
+    })),
+  
+  applyWebhookUpdate: (update) =>
+    set((state) => ({
+      postingQueue: state.postingQueue.map((item) => {
+        const matchById = update?.id && item.id === update.id;
+        const matchByChannel = !update?.id && update?.channel && item.channel === update.channel;
+        if (matchById || matchByChannel) {
+          return { ...item, status: update.status };
+        }
+        return item;
+      }),
     })),
 }));

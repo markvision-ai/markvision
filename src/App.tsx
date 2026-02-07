@@ -20,6 +20,7 @@ const Install = lazy(() => import("./pages/Install"));
 // const Careers = lazy(() => import("./pages/Careers"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
+const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -145,7 +146,8 @@ const App = () => (
         <Route path="/ab-testing" element={<Index />} />
         <Route path="/ab-tests" element={<Index />} />
         <Route path="/knowledge" element={<Index />} />
-        <Route path="/health" element={<Index />} />
+        <Route path="/health" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
+        <Route path="/health-check" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
         <Route path="/calendar" element={<Index />} />
         <Route path="/automation" element={<Index />} />
         <Route path="/rop" element={<Index />} />

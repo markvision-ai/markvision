@@ -1,6 +1,6 @@
  
-import { useFactoryStore } from './store';
 import { Badge } from '@/components/ui/badge';
+import { useFactoryStore } from './store';
 import { RefreshCw, CheckCircle2 } from 'lucide-react';
 import { IdeasHeader } from './IdeasHeader';
 import { ScriptWorkshop } from './ScriptWorkshop';
@@ -11,13 +11,14 @@ import { ProcessMap } from './ProcessMap';
 import { ExportReportButton } from './ExportReportButton';
 import { toast } from 'sonner';
 import { useEffect, useRef } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { LeadTimePanel } from './LeadTimePanel';
 import { AlertsPanel } from './AlertsPanel';
 import { LeadTimeTrends } from './LeadTimeTrends';
 
 export const ContentFactoryV4 = () => {
-  const { productionLines } = useFactoryStore();
-  const entries = Object.entries(productionLines);
+  const { productionLines, applyWebhookUpdate } = useFactoryStore();
+  const entries = Object.entries(productionLines) as Array<[string, { status: string }]>;
   const generating = entries.filter(([, v]) => v.status === 'generating').map(([k]) => k);
   const ready = entries.filter(([, v]) => v.status === 'ready').map(([k]) => k);
   const prevRef = useRef<Record<string, string>>({});
@@ -35,6 +36,26 @@ export const ContentFactoryV4 = () => {
     });
     prevRef.current = currentStatuses;
   }, [entries]);
+  
+  useEffect(() => {
+    const channel = supabase
+      .channel('content-posting-webhooks')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'webhook_logs' }, (payload: any) => {
+        const raw = (payload?.new?.payload || payload?.new?.data || null);
+        let data: any = null;
+        try { data = typeof raw === 'string' ? JSON.parse(raw) : raw; } catch { data = null; }
+        if (!data) return;
+        if (data.type === 'content_posting_update' && Array.isArray(data.items)) {
+          data.items.forEach((u: any) => {
+            if (u && (u.id || u.channel) && u.status) {
+              applyWebhookUpdate({ id: u.id, channel: u.channel, status: u.status });
+            }
+          });
+        }
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, []);
 
   return (
     <div className="flex flex-col h-[calc(100vh-6rem)] bg-background overflow-hidden rounded-xl border border-border shadow-2xl dark:shadow-black/20 m-4">
