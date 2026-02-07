@@ -448,8 +448,28 @@ export const DataTable = React.memo(({
                       colorClass = percent >= 100 ? 'text-emerald-600' : percent >= 80 ? 'text-yellow-600' : 'text-red-500/80'
                     }
                     return (
-                      <td key={field} className={`p-2 md:p-4 text-right font-medium ${colorClass}`}>
-                        {percent.toFixed(0)}%
+                      <td key={field} className="p-2 md:p-4">
+                        <div className={`text-right font-medium ${colorClass}`}>{percent.toFixed(0)}%</div>
+                        <div className="mt-1 h-1.5 w-full bg-background/60 rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all"
+                            style={{
+                              width: `${Math.min(percent, 100)}%`,
+                              background: field === 'spend'
+                                ? (percent <= 100
+                                  ? 'linear-gradient(90deg,#10b981,#34d399)'
+                                  : percent <= 120
+                                    ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                                    : 'linear-gradient(90deg,#ef4444,#f87171)')
+                                : (percent >= 100
+                                  ? 'linear-gradient(90deg,#10b981,#34d399)'
+                                  : percent >= 80
+                                    ? 'linear-gradient(90deg,#f59e0b,#fbbf24)'
+                                    : 'linear-gradient(90deg,#ef4444,#f87171)'),
+                              boxShadow: '0 0 12px rgba(16,185,129,0.25)',
+                            }}
+                          />
+                        </div>
                       </td>
                     );
                   })}
