@@ -158,7 +158,7 @@ export const AnalyticsPlatform = () => {
     if (newTab !== activeTab) {
       setActiveTab(newTab);
     }
-  }, [location.pathname]);
+  }, [location.pathname, activeTab]);
   
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
   const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
