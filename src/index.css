@@ -60,7 +60,7 @@ html {
 
   /* Force Deep Dark Mode */
   .dark {
-    --background: 220 33% 3%;
+    --background: 220 33% 4%; /* overridden by body bg hex below */
     --foreground: 0 0% 100%;
 
     --card: 0 0% 3%;
@@ -69,7 +69,7 @@ html {
     --popover: 0 0% 3%;
     --popover-foreground: 0 0% 100%;
 
-    --primary: 142 85% 48%;
+    --primary: 192 100% 50%; /* Cyber Cyan #00D1FF */
     --primary-foreground: 0 0% 0%;
 
     --secondary: 197 93% 59%;
@@ -102,7 +102,7 @@ html {
   }
 
   body {
-    background-color: #05070A;
+    background-color: #0B0E14; /* Deep Charcoal */
     color: hsl(var(--foreground));
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -180,16 +180,16 @@ html {
     @apply max-w-[1280px] mx-auto px-4 md:px-6;
   }
   .ui-page-header {
-    @apply flex items-center justify-between px-4 md:px-6 py-4 border-b bg-card/60 backdrop-blur-sm border-border/60;
+    @apply flex items-center justify-between px-4 md:px-6 py-4 border-b bg-[#161B22]/70 backdrop-blur-md border-[#1F2937];
   }
   .ui-section {
-    @apply rounded-2xl bg-card/40 backdrop-blur-xl border p-5 md:p-6 transition-all duration-300;
+    @apply rounded-2xl bg-[#111827] border p-5 md:p-6 transition-all duration-300;
     border-width: 0.5px;
-    border-color: hsl(var(--primary) / 0.35);
+    border-color: #1F2937;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
   }
   .ui-section:hover {
-    @apply border-primary/50;
-    box-shadow: 0 12px 36px hsl(var(--primary) / 0.12);
+    @apply border-[#1F2937];
   }
   .ui-section-header {
     @apply mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground;
@@ -221,16 +221,16 @@ html {
   /* Premium Glassmorphism Card */
   .premium-card {
     @apply relative overflow-hidden rounded-xl;
-    @apply bg-card text-card-foreground;
+    @apply bg-[#111827] text-card-foreground;
     @apply border;
     border-width: 0.5px;
-    border-color: hsl(var(--primary) / 0.25);
-    @apply shadow-sm;
+    border-color: #1F2937;
     @apply transition-all duration-300;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
   }
 
   .premium-card:hover {
-    @apply shadow-md border-primary/20;
+    @apply border-[#1F2937];
   }
 
   /* Metric card with large typography */

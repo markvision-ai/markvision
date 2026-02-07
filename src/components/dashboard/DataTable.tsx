@@ -357,7 +357,7 @@ export const DataTable = React.memo(({
             </Button>
           </div>
           
-          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
+          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg border border-[#00D1FF] text-[#00D1FF] bg-transparent hover:bg-[#00D1FF]/10 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
             <Download className="w-3 h-3 md:w-4 md:h-4" />
             <span className="hidden sm:inline">Экспорт CSV</span>
           </button>
@@ -366,17 +366,17 @@ export const DataTable = React.memo(({
         {/* Table */}
         <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
           <table className="w-full text-xs md:text-sm border-collapse">
-            <thead className="sticky top-0 z-50 shadow-md bg-background">
-              <tr className="border-b bg-secondary/95 backdrop-blur-sm">
-                <th className="text-left p-2 md:p-3 font-semibold text-foreground/90  sticky left-0 bg-secondary/95 backdrop-blur-sm min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[80px] md:min-w-[100px]">Диагностика</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-foreground/90  min-w-[90px] md:min-w-[120px]">Выручка</th>
+            <thead className="sticky top-0 z-50 bg-[#161B22]/80 backdrop-blur-md">
+              <tr className="border-b border-[#1F2937]">
+                <th className="text-left p-2 md:p-3 font-semibold text-slate-400 sticky left-0 bg-[#161B22]/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[80px] md:min-w-[100px]">Диагностика</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-2 md:p-3 font-semibold text-slate-400 min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
@@ -417,16 +417,16 @@ export const DataTable = React.memo(({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-secondary/95 backdrop-blur-sm font-semibold border-b border-border/50">
-                <td className="p-2 md:p-4 sticky left-0 bg-secondary/95 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.visits)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-emerald-600">{formatCurrency(totals.revenue)}</td>
+              <tr className="bg-[#161B22]/60 backdrop-blur-sm font-semibold border-b border-[#1F2937]">
+                <td className="p-2 md:p-4 sticky left-0 bg-[#161B22]/60 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.followers)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.visits)}</td>
+                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right text-emerald-500 font-mono">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
