@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface PlanFactCardProps {
   label: string;
@@ -61,22 +62,21 @@ export const PlanFactCard = ({
   const showProgress = plan !== undefined && plan > 0 && fact !== undefined;
   const displayValue = formatValue(value, format);
 
+  const stripe =
+    label.toLowerCase().includes('показ') ? 'blue' :
+    label.toLowerCase().includes('лид') ? 'cyan' :
+    label.toLowerCase().includes('визит') || label.toLowerCase().includes('диагност') ? 'emerald' :
+    label.toLowerCase().includes('продаж') ? 'gold' :
+    'cyan';
+
   return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={cn(
-        "group relative overflow-hidden rounded-xl p-4",
-        // Apple-style: subtle, clean
-        "bg-card/90 backdrop-blur-sm",
-        "border border-border",
-        "hover:border-border/80 hover:bg-card",
-        isOverPerforming && "border-amber-400/40",
-        "transition-all duration-200",
-        className
-      )}
+      className={cn("group relative overflow-hidden rounded-xl", className)}
     >
+      <GlassCard stripe={stripe} className="p-4">
       <div className="space-y-2.5">
         {/* Header: Icon, Label, Badge */}
         <div className="flex items-center justify-between">
@@ -122,7 +122,7 @@ export const PlanFactCard = ({
 
         {/* Progress Bar - thin, elegant */}
         {showProgress && (
-          <div className="w-full bg-muted/30 rounded-full h-1 overflow-hidden">
+          <div className="w-full bg-muted-foreground/20 rounded-full h-1 overflow-hidden">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${Math.min(percentage, 100)}%` }}
@@ -139,6 +139,7 @@ export const PlanFactCard = ({
           </div>
         )}
       </div>
+      </GlassCard>
     </motion.div>
   );
 };

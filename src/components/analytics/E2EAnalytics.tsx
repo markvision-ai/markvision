@@ -471,7 +471,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* Main KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+        <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Meta Ads (Beta)</CardTitle>
             <Globe className="w-4 h-4 text-blue-400" />
@@ -502,48 +502,48 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             )}
           </CardContent>
         </Card>
-        <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+        <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Расходы (РК)</CardTitle>
             <DollarSign className="w-4 h-4 text-emerald-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{formatCurrencyShort(filteredTotals.spend)}</div>
-            <p className="text-xs text-white/40 mt-1">Бюджет рекламных кампаний</p>
+            <div className="text-2xl font-bold text-foreground">{formatCurrencyShort(filteredTotals.spend)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Бюджет рекламных кампаний</p>
           </CardContent>
         </Card>
         
-        <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+        <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Лиды</CardTitle>
             <Users className="w-4 h-4 text-blue-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{formatNumber(filteredTotals.leads)}</div>
-            <p className="text-xs text-white/40 mt-1">CPL: {filteredTotals.leads > 0 ? formatCurrency(filteredTotals.spend / filteredTotals.leads) : '0 ₸'}</p>
+            <div className="text-2xl font-bold text-foreground">{formatNumber(filteredTotals.leads)}</div>
+            <p className="text-xs text-muted-foreground mt-1">CPL: {filteredTotals.leads > 0 ? formatCurrency(filteredTotals.spend / filteredTotals.leads) : '0 ₸'}</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+        <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Диагностика</CardTitle>
             <Target className="w-4 h-4 text-purple-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{filteredTotals.visits}</div>
-            <p className="text-xs text-white/40 mt-1">Conv: {filteredTotals.leads > 0 ? ((filteredTotals.visits / filteredTotals.leads) * 100).toFixed(1) : 0}%</p>
+            <div className="text-2xl font-bold text-foreground">{filteredTotals.visits}</div>
+            <p className="text-xs text-muted-foreground mt-1">Conv: {filteredTotals.leads > 0 ? ((filteredTotals.visits / filteredTotals.leads) * 100).toFixed(1) : 0}%</p>
           </CardContent>
         </Card>
 
-        <Card className="bg-black/40 border-white/5 backdrop-blur-xl relative overflow-hidden">
+        <Card className="bg-card border border-border relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent pointer-events-none" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-white/60">Выручка</CardTitle>
             <ShoppingCart className="w-4 h-4 text-emerald-400" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">{formatCurrencyShort(filteredTotals.revenue)}</div>
-            <p className="text-xs text-white/40 mt-1">ROI: {filteredTotals.spend > 0 ? (((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100).toFixed(0) : 0}%</p>
+            <div className="text-2xl font-bold text-foreground">{formatCurrencyShort(filteredTotals.revenue)}</div>
+            <p className="text-xs text-muted-foreground mt-1">ROI: {filteredTotals.spend > 0 ? (((filteredTotals.revenue - filteredTotals.spend) / filteredTotals.spend) * 100).toFixed(0) : 0}%</p>
           </CardContent>
         </Card>
       </div>
@@ -615,16 +615,16 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* Analytics Tabs */}
       <Tabs defaultValue="sales-roi" className="w-full" onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="bg-black/40 border border-white/5 p-1">
-          <TabsTrigger value="sales-roi" className="data-[state=active]:bg-white/10">
+        <TabsList className="bg-card border border-border p-1">
+          <TabsTrigger value="sales-roi" className="data-[state=active]:bg-muted">
             <TrendingUp className="w-4 h-4 mr-2" />
             ROI и Продажи
           </TabsTrigger>
-          <TabsTrigger value="split-tests" className="data-[state=active]:bg-white/10">
+          <TabsTrigger value="split-tests" className="data-[state=active]:bg-muted">
             <SplitSquareVertical className="w-4 h-4 mr-2" />
             Сплит-тесты (Источники)
           </TabsTrigger>
-          <TabsTrigger value="sources" className="data-[state=active]:bg-white/10">
+          <TabsTrigger value="sources" className="data-[state=active]:bg-muted">
             <PieChartIcon className="w-4 h-4 mr-2" />
             Распределение
           </TabsTrigger>
@@ -632,14 +632,14 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         {/* Tab Content: ROI Table */}
         <TabsContent value="sales-roi" className="mt-4">
-          <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+          <Card className="bg-card border border-border">
             <CardHeader>
-              <CardTitle className="text-lg text-white">Эффективность посадочных страниц (Site URL)</CardTitle>
+              <CardTitle className="text-lg text-foreground">Эффективность посадочных страниц (Site URL)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm text-left">
-                  <thead className="text-xs text-white/40 uppercase bg-white/5">
+                  <thead className="text-xs text-muted-foreground uppercase bg-accent">
                     <tr>
                       <th className="px-4 py-3 rounded-l-lg">Страница (URL)</th>
                       <th className="px-4 py-3 text-right">Лиды</th>
@@ -650,17 +650,17 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                   </thead>
                   <tbody>
                     {siteStats.map((site, i) => (
-                      <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
-                        <td className="px-4 py-3 font-medium text-white truncate max-w-[200px]">{site.name}</td>
-                        <td className="px-4 py-3 text-right text-white/80">{site.leads}</td>
+                      <tr key={i} className="border-b border-border hover:bg-accent transition-colors">
+                        <td className="px-4 py-3 font-medium text-foreground truncate max-w-[200px]">{site.name}</td>
+                        <td className="px-4 py-3 text-right text-foreground">{site.leads}</td>
                         <td className="px-4 py-3 text-right text-purple-400">{site.visits}</td>
                         <td className="px-4 py-3 text-right text-emerald-400">{site.sales}</td>
-                        <td className="px-4 py-3 text-right text-white font-bold">{formatCurrencyShort(site.revenue)}</td>
+                        <td className="px-4 py-3 text-right text-foreground font-bold">{formatCurrencyShort(site.revenue)}</td>
                       </tr>
                     ))}
                     {siteStats.length === 0 && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-8 text-center text-white/40">Нет данных за выбранный период</td>
+                        <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">Нет данных за выбранный период</td>
                       </tr>
                     )}
                   </tbody>
@@ -672,35 +672,35 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         {/* Tab Content: Split Tests */}
         <TabsContent value="split-tests" className="mt-4">
-          <Card className="bg-black/40 border-white/5 backdrop-blur-xl">
+          <Card className="bg-card border border-border">
             <CardHeader>
-              <CardTitle className="text-lg text-white">Анализ источников трафика</CardTitle>
+              <CardTitle className="text-lg text-foreground">Анализ источников трафика</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 gap-4">
                 {sourceStats.map((source, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/5">
+                  <div key={i} className="flex items-center justify-between p-4 bg-card rounded-lg border border-border">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-black/40 border border-white/10 text-xl">
+                      <div className="w-10 h-10 rounded-full flex items-center justify-center bg-muted border border-border text-xl">
                         {source.icon}
                       </div>
                       <div>
-                        <div className="font-medium text-white">{source.name}</div>
-                        <div className="text-xs text-white/40">Лидов: {source.leads}</div>
+                        <div className="font-medium text-foreground">{source.name}</div>
+                        <div className="text-xs text-muted-foreground">Лидов: {source.leads}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-6">
                       <div className="text-right">
-                        <div className="text-sm text-white/60">Диагностика</div>
+                        <div className="text-sm text-muted-foreground">Диагностика</div>
                         <div className="font-mono text-purple-400">{source.visits}</div>
                       </div>
                       <div className="text-right">
-                        <div className="text-sm text-white/60">Продажи</div>
+                        <div className="text-sm text-muted-foreground">Продажи</div>
                         <div className="font-mono text-emerald-400">{source.sales}</div>
                       </div>
                       <div className="text-right min-w-[80px]">
-                        <div className="text-sm text-white/60">Выручка</div>
-                        <div className="font-bold text-white">{formatCurrencyShort(source.revenue)}</div>
+                        <div className="text-sm text-muted-foreground">Выручка</div>
+                        <div className="font-bold text-foreground">{formatCurrencyShort(source.revenue)}</div>
                       </div>
                     </div>
                   </div>
@@ -712,9 +712,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         {/* Tab Content: Sources Pie */}
         <TabsContent value="sources" className="mt-4">
-          <Card className="bg-black/40 border-white/5 backdrop-blur-xl h-[400px]">
+          <Card className="bg-card border border-border h-[400px]">
             <CardHeader>
-              <CardTitle className="text-lg text-white">Распределение лидов</CardTitle>
+              <CardTitle className="text-lg text-foreground">Распределение лидов</CardTitle>
             </CardHeader>
             <CardContent className="h-[320px]">
               <ResponsiveContainer width="100%" height="100%">

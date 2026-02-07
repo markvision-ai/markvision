@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils';
 import { TrendingUp, Percent, BadgeRussianRuble } from 'lucide-react';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface Props {
   customerCost: number | null;
@@ -46,9 +47,16 @@ export const ComputedMetricsWidget = ({
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {items.map(({ label, value, icon: Icon }) => (
-        <div
+        <GlassCard
           key={label}
-          className="group bg-card/50 backdrop-blur-sm border border-border/40 hover:border-border/60 hover:bg-card/60 rounded-xl p-4 transition-all duration-200"
+          stripe={
+            label === 'Маржинальность'
+              ? 'cyan'
+              : label === 'ROMI' || label === 'ROAS'
+              ? 'blue'
+              : 'emerald'
+          }
+          className="group rounded-xl p-4 transition-all duration-200"
           aria-label={label}
           tabIndex={0}
         >
@@ -65,7 +73,7 @@ export const ComputedMetricsWidget = ({
               </p>
             </div>
           </div>
-        </div>
+        </GlassCard>
       ))}
     </div>
   );

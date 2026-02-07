@@ -3,17 +3,18 @@ import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { GlassCard } from '@/components/ui/GlassCard';
 
-interface FunnelStep {
+export interface FunnelStep {
   label: string;
   value: number;
   color: string;
 }
 
-interface FunnelWidgetProps {
+export interface FunnelStandaloneProps {
   steps: FunnelStep[];
+  onStageClick?: (stageIndex: number, stage: FunnelStep) => void;
 }
 
-export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
+export const FunnelStandalone = ({ steps, onStageClick }: FunnelStandaloneProps) => {
   const conversions = useMemo(() => {
     return steps.slice(0, -1).map((step, index) => {
       const nextStep = steps[index + 1];
@@ -31,9 +32,7 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
   }, [steps]);
 
   const overallConversionRate = useMemo(() => {
-    return steps[0]?.value > 0 
-      ? ((steps[steps.length - 1]?.value / steps[0]?.value) * 100)
-      : 0;
+    return steps[0]?.value > 0 ? ((steps[steps.length - 1]?.value / steps[0]?.value) * 100) : 0;
   }, [steps]);
 
   const maxValue = steps[0]?.value || 1;
@@ -49,38 +48,35 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-        {/* Stages with larger type */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-          {steps.map((s, i) => {
-            const stageRate = i > 0 && steps[i - 1].value > 0 ? (s.value / steps[i - 1].value) * 100 : null;
-            return (
-              <GlassCard key={i} className="p-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs md:text-sm font-medium text-foreground">{s.label}</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-semibold ${stageRate !== null && stageRate >= 10 ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
-                    {stageRate !== null ? `${stageRate.toFixed(1)}%` : '—'}
-                  </span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-2 bg-muted-foreground/15 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min((s.value / maxValue) * 100, 100)}%` }}
-                      transition={{ duration: 0.8, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ background: `linear-gradient(90deg, ${s.color}, rgba(255,255,255,0.2))` }}
+        <div className="p-2">
+          <div className="w-full" role="img" aria-label="Пирамида конверсии">
+            <svg width="100%" height={steps.length * 52} viewBox={`0 0 100 ${steps.length * 10}`} preserveAspectRatio="none">
+              {steps.map((s, i) => {
+                const topWidth = Math.max(10, ((steps[i].value / maxValue) * 90));
+                const bottomWidth = i === 0 ? topWidth : Math.max(10, ((steps[i - 1].value / maxValue) * 90));
+                const y = i * 10;
+                const xTop = (100 - topWidth) / 2;
+                const xBottom = (100 - bottomWidth) / 2;
+                const color = s.color;
+                return (
+                  <g key={i} onClick={() => onStageClick?.(i, s)} style={{ cursor: 'pointer' }}>
+                    <polygon
+                      points={`${xTop},${y} ${xTop + topWidth},${y} ${xBottom + bottomWidth},${y + 10} ${xBottom},${y + 10}`}
+                      fill={color}
+                      opacity={0.25}
+                      stroke={color}
+                      strokeWidth={0.6}
                     />
-                  </div>
-                  <div className="text-lg md:text-xl font-semibold text-foreground font-mono">
-                    {formatNumber(s.value)}
-                  </div>
-                </div>
-              </GlassCard>
-            );
-          })}
+                    <text x={xTop + 2} y={y + 6} fontSize="3" fill="currentColor">
+                      {s.label}: {formatNumber(s.value)}
+                    </text>
+                  </g>
+                );
+              })}
+            </svg>
+          </div>
         </div>
 
-        {/* Conversion pairs with clearer layout */}
         <div className="space-y-2.5">
           <h4 className="text-xs font-semibold text-muted-foreground">Переходы</h4>
           {conversions.map((c, idx) => {
@@ -102,4 +98,4 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
       </div>
     </GlassCard>
   );
-};
+}

@@ -9,15 +9,12 @@ export interface DashboardWidget {
 
 // Эталонный порядок виджетов - полный список
 const DEFAULT_WIDGETS: DashboardWidget[] = [
-  { id: 'welcome-hero', title: 'Приветствие и KPI', order: 0, visible: true },
-  { id: 'metrics', title: 'Выручка и Метрики', order: 1, visible: true },
-  { id: 'computed', title: 'Расчётные показатели', order: 2, visible: true },
-  { id: 'ltv-widget', title: 'Средний LTV клиента', order: 3, visible: true },
-  { id: 'quick-stats', title: 'Сравнение с прошлой неделей', order: 4, visible: true },
-  { id: 'revenue-chart', title: 'Динамика (Расходы vs Выручка)', order: 5, visible: true },
-  { id: 'conversions', title: 'Воронка продаж', order: 6, visible: true },
-  { id: 'appointments', title: 'Записи на неделю', order: 7, visible: true },
-  { id: 'ai-assistant', title: 'ИИ-Аналитик', order: 8, visible: true },
+  { id: 'kpi-top', title: 'Основные KPI', order: 0, visible: true },
+  { id: 'plan-fact', title: 'План/Факт показатели', order: 1, visible: true },
+  { id: 'charts-row', title: 'Воронка и Динамика', order: 2, visible: true },
+  { id: 'cost-row', title: 'Стоимость лида и диагностики', order: 3, visible: true },
+  { id: 'appointments', title: 'Записи на неделю', order: 4, visible: true },
+  // AI ассистент переведён в плавающий чат, отдельного виджета нет
 ];
 
 // Ключ для localStorage - v6 (QuickActions удалён)

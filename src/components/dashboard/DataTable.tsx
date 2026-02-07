@@ -328,7 +328,7 @@ export const DataTable = React.memo(({
           />
       </div>
 
-      <div className="bg-card border rounded-xl">
+      <div className="glass-card border rounded-xl stripe-blue">
         {/* Header with Date Range Selection */}
         <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
           
@@ -357,16 +357,16 @@ export const DataTable = React.memo(({
             </Button>
           </div>
           
-          <button onClick={exportToCSV} className="flex items-center gap-1 md:gap-2 px-2 md:px-4 py-1.5 md:py-2 rounded-lg border border-[#00D1FF] text-[#00D1FF] bg-transparent hover:bg-[#00D1FF]/10 transition-colors text-xs md:text-sm whitespace-nowrap self-end lg:self-auto">
-            <Download className="w-3 h-3 md:w-4 md:h-4" />
+          <Button onClick={exportToCSV} variant="glow" size="sm" className="gap-2 self-end lg:self-auto">
+            <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Экспорт CSV</span>
-          </button>
+          </Button>
         </div>
 
         {/* Table */}
         <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
           <table className="w-full text-xs md:text-sm border-collapse">
-            <thead className="sticky top-0 z-50 bg-card/80 backdrop-blur-md">
+            <thead className="sticky top-0 z-50 glass-card">
               <tr className="border-b border-border">
                 <th className="text-left p-2 md:p-3 font-semibold text-muted-foreground sticky left-0 bg-card/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>

@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { TrendIndicator } from './TrendIndicator';
 import { Sparkline } from './Sparkline';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 interface MetricCardProps {
   label: string;
@@ -59,15 +60,20 @@ export const MetricCard = memo(({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
-      className={cn(
-        "group relative overflow-hidden rounded-xl p-4",
-        "bg-card/50 backdrop-blur-sm",
-        "border border-border/40",
-        "hover:border-border/60 hover:bg-card/60",
-        "transition-all duration-200",
-        className
-      )}
+      className={cn("group relative overflow-hidden rounded-xl", className)}
     >
+      <GlassCard
+        stripe={
+          variant === 'primary'
+            ? 'blue'
+            : variant === 'success'
+            ? 'emerald'
+            : variant === 'warning'
+            ? 'gold'
+            : 'cyan'
+        }
+        className="p-4"
+      >
       <div className="space-y-2.5">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -112,6 +118,7 @@ export const MetricCard = memo(({
           )}
         </div>
       </div>
+      </GlassCard>
     </motion.div>
   );
 });

@@ -109,7 +109,17 @@ export function useWebhookConfig(projectId: string | null) {
           .eq('project_id', projectId)
           .maybeSingle();
         
-        if (fallbackError) throw fallbackError;
+        if (fallbackError) {
+          const msg = String(fallbackError.message || fallbackError);
+          // Graceful handling when table/view is absent on this project
+          if (msg.includes('Could not find the table') || msg.includes('PGRST205')) {
+            setConfig(null);
+            setWebhookUrl(null);
+            setLoading(false);
+            return;
+          }
+          throw fallbackError;
+        }
         
         if (fallbackData) {
           setConfig({

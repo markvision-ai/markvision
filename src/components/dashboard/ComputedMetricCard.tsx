@@ -64,9 +64,9 @@ export const ComputedMetricCard = ({
       transition={{ duration: 0.3 }}
       className={cn(
         "group relative overflow-hidden rounded-xl p-3",
-        "bg-card/50 backdrop-blur-sm",
+        "bg-card",
         "border border-border/40",
-        "hover:border-primary/30 hover:bg-card/60",
+        "hover:border-primary/30 hover:bg-card",
         "hover:shadow-lg hover:shadow-primary/5",
         "transition-all duration-200",
         className

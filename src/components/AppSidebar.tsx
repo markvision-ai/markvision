@@ -69,6 +69,8 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "@/hooks/useTheme";
+import { IconSun, IconMoon } from "@tabler/icons-react";
 
 interface Project {
   id: string;
@@ -118,6 +120,7 @@ export const AppSidebar = ({
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [newProjectName, setNewProjectName] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const currentProject = projects.find(p => p.id === currentProjectId);
 
@@ -271,7 +274,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-sidebar border-r border-white/5 h-screen sticky top-0">
+        <SidebarBody className="justify-between gap-4 bg-background/10 backdrop-blur-xl border-r border-white/10 h-screen sticky top-0">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
@@ -458,6 +461,26 @@ export const AppSidebar = ({
                 ),
               }}
             />
+            <div className="px-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="w-full h-9 gap-2 rounded-xl"
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <IconSun className="w-4 h-4 text-yellow-500" />
+                    <span className="text-xs">Светлая тема</span>
+                  </>
+                ) : (
+                  <>
+                    <IconMoon className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs">Тёмная тема</span>
+                  </>
+                )}
+              </Button>
+            </div>
             <SidebarLink
               link={{
                 label: "Выйти",

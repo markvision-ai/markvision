@@ -22,34 +22,34 @@ html {
 
 @layer base {
   :root {
-    /* Light Mode - DEFAULT */
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Stealth Light */
+    --background: 210 20% 98%;
+    --foreground: 222 20% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 222 20% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 222 20% 12%;
 
-    --primary: 142 85% 48%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 192 100% 50%; /* Cyber Cyan #00D1FF */
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 197 93% 59%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 0 0% 100%;
+    --secondary-foreground: 222 20% 20%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 100%;
+    --muted-foreground: 215 15% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 0 0% 100%;
+    --accent-foreground: 222 20% 20%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 80% 54%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 215 20% 88%;
+    --input: 215 20% 88%;
+    --ring: 192 100% 50%;
 
     --radius: 0.5rem;
 
@@ -213,11 +213,50 @@ html {
   }
 
   .glass-card {
-    background: rgba(15, 23, 42, 0.6);
-    backdrop-filter: blur(20px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 16px;
   }
+  .light .glass-card {
+    background: hsl(var(--card));
+    backdrop-filter: none;
+    border: 1px solid hsl(var(--border));
+  }
+  .dark .glass-card {
+    background: rgba(255,255,255,0.05);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .dark .glass-card:hover {
+    background: rgba(255,255,255,0.1);
+  }
+  .dark body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: radial-gradient(800px 400px at 10% 20%, rgba(2,6,23,0.6), transparent 60%), radial-gradient(600px 300px at 80% 70%, rgba(15,23,42,0.6), transparent 60%), linear-gradient(120deg, #020617, #0f172a 60%, #1e1b4b);
+    animation: nebula 30s ease-in-out infinite alternate;
+  }
+  @keyframes nebula {
+    0% { filter: hue-rotate(0deg) saturate(1); }
+    100% { filter: hue-rotate(20deg) saturate(1.1); }
+  }
+  .stripe {
+    position: relative;
+  }
+  .stripe::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+  }
+  .stripe-blue::before { background: linear-gradient(90deg,#1d4ed8,#3b82f6); }
+  .stripe-cyan::before { background: linear-gradient(90deg,#0891b2,#06b6d4); }
+  .stripe-emerald::before { background: linear-gradient(90deg,#059669,#10b981); }
+  .stripe-gold::before { background: linear-gradient(90deg,#ca8a04,#f59e0b); }
   /* Premium Glassmorphism Card */
   .premium-card {
     @apply relative overflow-hidden rounded-xl;

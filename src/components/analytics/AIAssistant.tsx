@@ -93,6 +93,10 @@ const useMarkStatus = () => {
     };
 
     const fetchStatus = async () => {
+      const channels = supabase.getChannels();
+      if (channels.some(ch => ch.state === 'joined')) {
+        setIsOnline(true);
+      }
       const { data, error } = await supabase
         .from('system_status')
         .select('last_seen')
@@ -371,7 +375,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </div>
 
               {/* Main Chart */}
-              <Card className="flex-1 border-border/50 bg-card/50 backdrop-blur-sm shadow-sm">
+              <Card className="flex-1 border-border/50 bg-card shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <BarChart3 className="w-4 h-4 text-primary" />
@@ -449,7 +453,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 // --- Subcomponents ---
 
 const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <Card className="border-border/50 bg-card/50 backdrop-blur-sm shadow-sm hover:shadow-md transition-shadow">
+  <Card className="border-border/50 bg-card shadow-sm hover:shadow-md transition-shadow">
     <CardContent className="p-4">
       <div className="flex justify-between items-start mb-2">
         <div className={cn("p-1.5 rounded-lg bg-background border", color)}>
@@ -499,7 +503,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
   };
 
   return (
-    <Card className="ai-chat-card h-full flex flex-col border-border/50 bg-card shadow-lg">
+    <Card className="ai-chat-card h-full flex flex-col glass-card border-border/50 shadow-lg">
       <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">

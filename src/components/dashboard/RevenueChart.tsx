@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
@@ -85,10 +85,14 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
     const revenue = chartData.reduce((sum, d) => sum + d.revenue, 0);
     return { spend, leads, visits, sales, revenue };
   }, [chartData]);
+  const avgRevenue = useMemo(() => {
+    if (chartData.length === 0) return 0;
+    return chartData.reduce((s, d) => s + d.revenue, 0) / chartData.length;
+  }, [chartData]);
 
   if (chartData.length === 0) {
     return (
-      <div className="bg-card/50 backdrop-blur-sm border border-border/40 rounded-xl p-4">
+      <div className="glass-card border border-border/40 rounded-xl p-4 stripe-emerald">
         <h3 className="text-sm font-medium text-foreground mb-3">Динамика показателей</h3>
         <div className="h-[200px] flex items-center justify-center text-xs text-muted-foreground/70">
           Нет данных
@@ -98,7 +102,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="group bg-card/50 backdrop-blur-sm border border-border/40 hover:border-border/60 hover:bg-card/60 rounded-xl p-4 transition-all duration-200">
+    <div className="group glass-card border border-border/40 rounded-xl p-4 transition-all duration-200 stripe-emerald">
       {/* Header with totals */}
       <div className="flex flex-col gap-3 mb-4">
         <div className="flex-shrink-0">
@@ -198,12 +202,15 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               width={50}
             />
             <Tooltip content={<CustomTooltip />} />
+            <ReferenceLine y={avgRevenue} stroke="rgb(34, 197, 94)" strokeDasharray="4 4" />
             <Area 
               type="monotone" 
               dataKey="spend" 
               stroke="rgb(239, 68, 68)" 
               strokeWidth={2}
               fill="url(#spendGradient)"
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3 }}
             />
             <Area 
               type="monotone" 
@@ -211,6 +218,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               stroke="rgb(59, 130, 246)" 
               strokeWidth={2}
               fill="url(#leadsGradient)"
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3 }}
             />
             <Area 
               type="monotone" 
@@ -218,6 +227,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               stroke="rgb(234, 179, 8)" 
               strokeWidth={2}
               fill="url(#visitsGradient)"
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3 }}
             />
             <Area 
               type="monotone" 
@@ -225,6 +236,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               stroke="rgb(168, 85, 247)" 
               strokeWidth={2}
               fill="url(#salesGradient)"
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3 }}
             />
             <Area 
               type="monotone" 
@@ -232,6 +245,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               stroke="rgb(34, 197, 94)" 
               strokeWidth={2.5}
               fill="url(#revenueGradient)"
+              dot={{ r: 2, strokeWidth: 0 }}
+              activeDot={{ r: 3 }}
             />
           </AreaChart>
         </ResponsiveContainer>

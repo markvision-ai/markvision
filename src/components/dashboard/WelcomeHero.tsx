@@ -90,28 +90,7 @@ export const WelcomeHero = ({
       <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-500/5 to-transparent rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10">
-        {/* Header: Greeting + Status */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 md:mb-8">
-          <div>
-            <motion.h1
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-2xl md:text-3xl lg:text-4xl font-bold text-foreground tracking-tight"
-            >
-              MarkVision Online. Капитан Запойнов, система готова к анализу прибыли.
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-sm md:text-base text-muted-foreground mt-1"
-            >
-              Вот как идут дела в вашем бизнесе
-            </motion.p>
-          </div>
-
-          {/* System Status */}
+        {/* System Status */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -126,7 +105,7 @@ export const WelcomeHero = ({
               {status.label}
             </span>
           </motion.div>
-        </div>
+        <div className="mb-4" />
 
         {/* Key Metrics */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

@@ -27,14 +27,15 @@ import { QuickStats } from './dashboard/QuickStats';
 import { DataTable } from './dashboard/DataTable';
 import { RevenueChart } from './dashboard/RevenueChart';
 import { ConversionStats } from './dashboard/ConversionStats';
-import { FunnelWidget } from './dashboard/FunnelWidget';
+import { FunnelStandalone } from './widgets/FunnelStandalone';
+import { PerformanceChartWidget } from './widgets/PerformanceChartWidget';
+import { AIAssistant } from '@/components/analytics/AIAssistant';
+import { FloatingChat } from '@/components/analytics/FloatingChat';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
-import { AverageLtvWidget } from './dashboard/AverageLtvWidget';
 import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
 import { WelcomeHero } from './dashboard/WelcomeHero';
 import { QuickActions } from './dashboard/QuickActions';
-import { AIAssistant } from './analytics/AIAssistant';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
@@ -348,6 +349,16 @@ export const AnalyticsPlatform = () => {
     updatePlanData(field, value, month);
   }, [updatePlanData]);
 
+  // Formatting helpers (global rounding policy)
+  const formatInt = (n: number) => new Intl.NumberFormat('ru-RU').format(Math.round(n));
+  const formatPercent1 = (n: number) => `${(isFinite(n) ? n : 0).toFixed(1)}`;
+  const calcDelta = (cur: number, prev: number) => {
+    if (!prev || prev === 0) return 0;
+    return ((cur - prev) / prev) * 100;
+  };
+  const profit = totals.revenue - totals.spend;
+  const romiPercent = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : 0;
+
   const funnelSteps = [
     { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
     { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
@@ -411,15 +422,7 @@ export const AnalyticsPlatform = () => {
 
   const mainContent = (
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
-      <div className="mb-6">
-        <h2 className="text-xl md:text-2xl font-bold tracking-tight">
-          {(() => {
-            const hour = new Date().getHours();
-            const phrase = hour >= 5 && hour < 12 ? 'Доброе утро' : hour >= 12 && hour < 18 ? 'Добрый день' : 'Добрый вечер';
-            return `MarkVision Online: ${phrase}`;
-          })()}
-        </h2>
-      </div>
+      <div className="mb-2" />
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
           {(registerWidget) => {
@@ -427,111 +430,154 @@ export const AnalyticsPlatform = () => {
             const todayKey = format(new Date(), 'yyyy-MM-dd');
             const todayData = dailyData[todayKey];
 
-            registerWidget('greeting', (
-              <WelcomeHero
-                userName={profile?.name || null}
-                keyMetrics={{
-                  revenue: todayData?.revenue || 0,
-                  leads: todayData?.leads || 0,
-                  romi
-                }}
-                systemStatus={systemHasErrors ? 'warning' : 'healthy'}
-              />
-            ));
-
-            registerWidget('metrics', (
-              <div className="space-y-3 md:space-y-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
-                  <MetricCard
-                    label="Выручка"
-                    value={totals.revenue}
-                    previousValue={previousWeekTotals.revenue}
-                    sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
-                    icon={<Wallet className="w-5 h-5" />}
-                  />
-                  <MetricCard
-                    label="Расходы"
-                    value={totals.spend}
-                    previousValue={previousWeekTotals.spend}
-                    sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
-                    icon={<DollarSign className="w-5 h-5" />}
-                  />
-                </div>
-                {/* Остальные метрики */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                  <PlanFactCard
-                    label="Показы"
-                    value={totals.impressions}
-                    plan={planData.impressions}
-                    fact={totals.impressions}
-                    icon={<Eye className="w-4 h-4" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Лиды"
-                    value={totals.leads}
-                    plan={planData.leads}
-                    fact={totals.leads}
-                    icon={<Users className="w-4 h-4" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
-                    value={totals.followers}
-                    plan={planData.followers}
-                    fact={totals.followers}
-                    icon={<Users className="w-4 h-4" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Визиты"
-                    value={totals.visits}
-                    plan={planData.visits}
-                    fact={totals.visits}
-                    icon={<Target className="w-4 h-4" />}
-                    format="number"
-                  />
-                  <PlanFactCard
-                    label="Продажи"
-                    value={totals.sales}
-                    plan={planData.sales}
-                    fact={totals.sales}
-                    icon={<ShoppingCart className="w-4 h-4" />}
-                    format="number"
-                  />
-                </div>
+            // Page title
+            registerWidget('page-title', (
+              <div className="glass-card border rounded-xl p-4">
+                <h2 className="text-sm md:text-base font-semibold">Центр Аналитики</h2>
               </div>
             ));
 
-            registerWidget('computed', (
-              <ComputedMetricsWidget
-                customerCost={customerCost}
-                visitCost={visitCost}
-                leadCost={leadCost}
-                romi={romi}
-                profitability={profitability}
-                roas={roas}
-              />
+            // Top Row (Main KPIs): Revenue, Spend, Net Profit, ROMI
+            registerWidget('kpi-top', (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <MetricCard
+                  label="Выручка"
+                  value={formatInt(totals.revenue)}
+                  previousValue={previousWeekTotals.revenue}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(totals.revenue, previousWeekTotals.revenue) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.revenue, previousWeekTotals.revenue))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Расходы"
+                  value={formatInt(totals.spend)}
+                  previousValue={previousWeekTotals.spend}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${calcDelta(totals.spend, previousWeekTotals.spend) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.spend, previousWeekTotals.spend))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Маржа маркетинга"
+                  value={formatInt(profit)}
+                  previousValue={previousWeekTotals.revenue - previousWeekTotals.spend}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    return (dd?.revenue || 0) - (dd?.spend || 0);
+                  })}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="ROMI"
+                  value={`${formatPercent1(romiPercent)}%`}
+                  previousValue={prevConversionRate}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    const spend = dd?.spend || 0;
+                    const revenue = dd?.revenue || 0;
+                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
+                  })}
+                  icon={<TrendingUp className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${romiPercent - prevConversionRate >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevConversionRate)}% к прошлой неделе`}
+                />
+              </div>
             ));
 
-            // LTV Widget
-            if (currentProjectId) {
-              registerWidget('ltv-widget', (
-                <AverageLtvWidget projectId={currentProjectId} />
-              ));
-            }
-
-            registerWidget('quick-stats', (
-              <QuickStats stats={comparisonStats} />
+            registerWidget('plan-fact', (
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
+                <PlanFactCard
+                  label="Показы"
+                  value={totals.impressions}
+                  plan={planData.impressions}
+                  fact={totals.impressions}
+                  icon={<Eye className="w-4 h-4" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Лиды"
+                  value={totals.leads}
+                  plan={planData.leads}
+                  fact={totals.leads}
+                  icon={<Users className="w-4 h-4" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
+                  value={totals.followers}
+                  plan={planData.followers}
+                  fact={totals.followers}
+                  icon={<Users className="w-4 h-4" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Визиты"
+                  value={totals.visits}
+                  plan={planData.visits}
+                  fact={totals.visits}
+                  icon={<Target className="w-4 h-4" />}
+                  format="number"
+                />
+                <PlanFactCard
+                  label="Продажи"
+                  value={totals.sales}
+                  plan={planData.sales}
+                  fact={totals.sales}
+                  icon={<ShoppingCart className="w-4 h-4" />}
+                  format="number"
+                />
+              </div>
             ));
 
-            registerWidget('revenue-chart', (
-              <RevenueChart data={dailyData} daysInMonth={daysInRange} />
+            // removed computed metrics widget to declutter top-level UI
+
+            // removed LTV widget per dashboard simplification
+
+            // removed quick stats widget to avoid duplicate comparison noise
+
+            // Second Row: Connected Funnel analysis
+            registerWidget('charts-row', (
+              <div className="grid grid-cols-1 gap-3 md:gap-4">
+                <FunnelStandalone steps={funnelSteps} />
+                <PerformanceChartWidget data={daysInRange.map(d => {
+                  const dateKey = format(d, 'yyyy-MM-dd');
+                  const dd = dailyData[dateKey] as any || {};
+                  return {
+                    date: dateKey,
+                    displayDate: format(d, 'd MMM'),
+                    spend: dd.spend || 0,
+                    leads: dd.leads || 0,
+                    visits: dd.visits || 0,
+                    sales: dd.sales || 0,
+                    revenue: dd.revenue || 0,
+                  };
+                })} />
+              </div>
             ));
 
-            registerWidget('conversions', (
-              <FunnelWidget steps={funnelSteps} />
+            // Third Row: CPL & CPV elevated
+            registerWidget('cost-row', (
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
+                <MetricCard
+                  label="Стоимость лида (CPL)"
+                  value={leadCost !== null ? formatInt(leadCost) + ' ₸' : '—'}
+                  icon={<Users className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}`}
+                />
+                <MetricCard
+                  label="Стоимость визита"
+                  value={visitCost !== null ? formatInt(visitCost) + ' ₸' : '—'}
+                  icon={<Target className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}`}
+                />
+              </div>
             ));
+
 
             if (currentProjectId) {
               registerWidget('appointments', (
@@ -540,27 +586,26 @@ export const AnalyticsPlatform = () => {
 
             }
 
-            registerWidget('ai-assistant', (
-              <div className="mt-4">
-                <AIAssistant context={{
-                  spend: totals.spend,
-                  impressions: totals.impressions,
-                  clicks: totals.clicks,
-                  leads: totals.leads,
-                  visits: totals.visits,
-                  sales: totals.sales,
-                  revenue: totals.revenue,
-                  romi: romi || 0,
-                  projectId: currentProjectId || FALLBACK_PROJECT_ID
-                }} />
-              </div>
-            ));
+            // removed inline assistant widget; replaced by floating chat button
 
             return null; // DraggableDashboard handles rendering
           }}
         </DraggableDashboard>
       )}
 
+      {activeTab === 'dashboard' && (
+        <FloatingChat context={{
+          spend: totals.spend,
+          impressions: totals.impressions,
+          clicks: totals.clicks,
+          leads: totals.leads,
+          visits: totals.visits,
+          sales: totals.sales,
+          revenue: totals.revenue,
+          romi: romiPercent,
+          projectId: currentProjectId || FALLBACK_PROJECT_ID
+        }} />
+      )}
 
       {activeTab === 'table' && currentProjectId && (
         <DataTable 

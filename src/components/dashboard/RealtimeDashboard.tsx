@@ -508,7 +508,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-card border border-border/40 rounded-lg"
                     >
                       <div className="flex items-center gap-3">
                         <div className={`w-2 h-2 rounded-full ${getStatusColor(lead.status)}`} />
@@ -558,7 +558,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
                       exit={{ opacity: 0, x: 20 }}
-                      className="flex items-center justify-between p-3 bg-muted/50 rounded-lg"
+                      className="flex items-center justify-between p-3 bg-card border border-border/40 rounded-lg"
                     >
                       <div>
                         <p className="font-medium">{getCategoryLabel(tx.category)}</p>
