@@ -2,6 +2,11 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/registerSW.js", "destination": "/registerSW.js" },
+    { "source": "/sw.js", "destination": "/sw.js" },
+    { "source": "/workbox-:hash.js", "destination": "/workbox-:hash.js" },
+    { "source": "/manifest.webmanifest", "destination": "/manifest.webmanifest" },
+    { "source": "/assets/:file*", "destination": "/assets/:file*" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
