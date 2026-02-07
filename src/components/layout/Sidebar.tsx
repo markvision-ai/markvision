@@ -2,10 +2,10 @@ import { useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import markvisionLogo from '@/assets/markvision-logo.png';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  LayoutDashboard, 
-  CalendarDays, 
-  Settings, 
+import {
+  LayoutDashboard,
+  CalendarDays,
+  Settings,
   Users,
   FileSpreadsheet,
   HelpCircle,
@@ -132,9 +132,9 @@ const menuGroups = [
   },
 ];
 
-export const Sidebar = ({ 
-  activeTab, 
-  onTabChange, 
+export const Sidebar = ({
+  activeTab,
+  onTabChange,
   currentProject = 'default',
   projects = [],
   onProjectChange,
@@ -151,25 +151,25 @@ export const Sidebar = ({
   const [isDeleting, setIsDeleting] = useState(false);
   const [openGroups, setOpenGroups] = useState<string[]>(() => {
     // Open the group that contains the active tab by default
-    const activeGroup = menuGroups.find(group => 
+    const activeGroup = menuGroups.find(group =>
       group.items.some(item => item.id === activeTab)
     );
     return activeGroup ? [activeGroup.id] : ['dashboard-group'];
   });
   const { isAdmin, user } = useAuth();
-  
+
   // CRITICAL: Get current project name - never show "Неактивен" for super admin
   const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
   const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
-  
+
   const currentProjectData = projects.find(p => p.id === currentProject);
-  const displayProjectName = currentProjectData?.name || 
-    (isSuperAdmin ? 'MARKVISION ГЛОБАЛ' : 
-    (projects.length > 0 ? projects[0].name : 'Выберите проект'));
+  const displayProjectName = currentProjectData?.name ||
+    (isSuperAdmin ? 'MARKVISION ГЛОБАЛ' :
+      (projects.length > 0 ? projects[0].name : 'Выберите проект'));
 
   const toggleGroup = (groupId: string) => {
-    setOpenGroups(prev => 
-      prev.includes(groupId) 
+    setOpenGroups(prev =>
+      prev.includes(groupId)
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
     );
@@ -198,11 +198,11 @@ export const Sidebar = ({
 
   const handleDeleteProject = async () => {
     if (!projectToDelete || !onDeleteProject) return;
-    
+
     setIsDeleting(true);
     const success = await onDeleteProject(projectToDelete.id);
     setIsDeleting(false);
-    
+
     if (success) {
       setProjectToDelete(null);
       setIsDeleteDialogOpen(false);
@@ -277,11 +277,10 @@ export const Sidebar = ({
                 projects.map((project) => (
                   <div
                     key={project.id}
-                    className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${
-                      currentProject === project.id 
-                        ? 'bg-primary text-primary-foreground' 
+                    className={`flex items-center gap-2 px-3 py-2.5 text-sm transition-colors ${currentProject === project.id
+                        ? 'bg-primary text-primary-foreground'
                         : 'hover:bg-sidebar-foreground/10'
-                    }`}
+                      }`}
                   >
                     <button
                       onClick={() => {
@@ -296,12 +295,11 @@ export const Sidebar = ({
                     {canDeleteProject(project) && (
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <button 
-                            className={`p-1 rounded hover:bg-sidebar-foreground/20 transition-colors ${
-                              currentProject === project.id 
-                                ? 'text-primary-foreground/70 hover:text-primary-foreground' 
+                          <button
+                            className={`p-1 rounded hover:bg-sidebar-foreground/20 transition-colors ${currentProject === project.id
+                                ? 'text-primary-foreground/70 hover:text-primary-foreground'
                                 : 'text-sidebar-foreground/50 hover:text-sidebar-foreground'
-                            }`}
+                              }`}
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="w-4 h-4" />
@@ -362,11 +360,10 @@ export const Sidebar = ({
             >
               <CollapsibleTrigger asChild>
                 <button
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                    hasActiveItem && !isOpen
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${hasActiveItem && !isOpen
                       ? 'bg-primary/10 text-primary'
                       : 'text-sidebar-foreground/70 hover:bg-sidebar-muted hover:text-sidebar-foreground'
-                  }`}
+                    }`}
                 >
                   <GroupIcon className="w-5 h-5" />
                   <span className="flex-1 text-left text-xs font-semibold tracking-wider uppercase">
@@ -380,14 +377,13 @@ export const Sidebar = ({
                   const Icon = item.icon;
                   const isActive = activeTab === item.id;
                   return (
-                <button
+                    <button
                       key={item.id}
                       onClick={() => handleTabChange(item.id)}
-                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
-                        isActive 
-                          ? 'sidebar-item-active text-primary font-medium' 
+                      className={`relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${isActive
+                          ? 'sidebar-item-active text-primary font-medium'
                           : 'text-sidebar-foreground/60 hover:bg-sidebar-muted hover:text-sidebar-foreground'
-                      }`}
+                        }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? 'text-primary' : ''}`} />
                       <span>{item.label}</span>
@@ -430,7 +426,7 @@ export const Sidebar = ({
   return (
     <>
       {/* Desktop Sidebar - Narrower and minimalist */}
-      <aside className="hidden md:flex w-56 bg-sidebar text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r border-white/5">
+      <aside className="hidden md:flex w-56 bg-sidebar/60 backdrop-blur-xl text-sidebar-foreground flex-col h-screen fixed left-0 top-0 z-40 border-r border-white/10">
         <SidebarContent />
       </aside>
 
@@ -447,7 +443,7 @@ export const Sidebar = ({
           <DialogHeader>
             <DialogTitle>Удалить проект</DialogTitle>
             <DialogDescription>
-              Вы уверены, что хотите удалить проект <strong>"{projectToDelete?.name}"</strong>? 
+              Вы уверены, что хотите удалить проект <strong>"{projectToDelete?.name}"</strong>?
               Это действие нельзя отменить. Все данные проекта будут удалены.
             </DialogDescription>
           </DialogHeader>
