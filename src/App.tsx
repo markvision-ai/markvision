@@ -16,10 +16,10 @@ import Setup from "./pages/Setup";
 // Lazy load non-critical pages
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Install = lazy(() => import("./pages/Install"));
-// Archived pages (moved to _archived/)
-// const Blog = lazy(() => import("./pages/Blog"));
-// const Partners = lazy(() => import("./pages/Partners"));
-// const Careers = lazy(() => import("./pages/Careers"));
+const Blog = lazy(() => import("./pages/Blog"));
+const Partners = lazy(() => import("./pages/Partners"));
+const Careers = lazy(() => import("./pages/Careers"));
+const Knowledge = lazy(() => import("./pages/Knowledge"));
 const LegalPage = lazy(() => import("./pages/LegalPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
@@ -50,7 +50,7 @@ const OAuthHandler = () => {
     const handleOAuthRedirect = () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const searchParams = new URLSearchParams(window.location.search);
-      
+
       const hasAccessToken = hashParams.has('access_token') || searchParams.has('access_token');
       const hasCode = searchParams.has('code');
       const hasError = searchParams.has('error');
@@ -80,7 +80,7 @@ const OAuthHandler = () => {
       if (event === 'SIGNED_IN') {
         const currentUrl = window.location.href;
         const hasOAuthHash = currentUrl.includes('#access_token') || currentUrl.includes('code=');
-        
+
         if (hasOAuthHash && window.location.pathname !== '/integrations') {
           if (import.meta.env.DEV) console.log('✅ SIGNED_IN with OAuth params, redirecting to /integrations');
           navigate('/integrations', { replace: true });
@@ -106,57 +106,58 @@ const App = () => (
       <BrowserRouter>
         <OAuthHandler />
         <Routes>
-        <Route path="/" element={<Index />} />
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/setup" element={<Setup />} />
-        <Route path="/onboarding" element={<Setup />} />
-        <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
-        <Route path="/install" element={<Suspense fallback={<PageLoader />}><Install /></Suspense>} />
-        
-        {/* Archived pages (moved to _archived/)
-        <Route path="/blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
-        <Route path="/partners" element={<Suspense fallback={<PageLoader />}><Partners /></Suspense>} />
-        <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
-        */}
-        <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
-        <Route path="/terms" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
-        <Route path="/compliance" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
-        <Route path="/training" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
-        
-        {/* Все эти пути ведут в Index, где переключается вкладка по URL */}
-        <Route path="/dashboard" element={<Index />} />
-        <Route path="/realtime" element={<Index />} />
-        <Route path="/table" element={<Index />} />
-        <Route path="/crm" element={<Index />} />
-        <Route path="/visits" element={<Index />} />
-        <Route path="/analytics" element={<Index />} />
-        <Route path="/e2e-analytics" element={<Index />} />
-        <Route path="/finance" element={<Index />} />
-        <Route path="/settings" element={<Index />} />
-        <Route path="/quantom-ads" element={<Index />} />
-        <Route path="/quantum-ads" element={<Index />} />
-        <Route path="/factory" element={<Index />} />
-        <Route path="/content-factory" element={<Index />} />
-        <Route path="/publications" element={<Index />} />
-        <Route path="/reports" element={<Index />} />
-        <Route path="/team" element={<Index />} />
-        <Route path="/integrations" element={<Index />} />
-        <Route path="/audit" element={<Index />} />
-        <Route path="/staff" element={<Index />} />
-        <Route path="/inbox" element={<Index />} />
-        <Route path="/scoring" element={<Index />} />
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/setup" element={<Setup />} />
+          <Route path="/onboarding" element={<Setup />} />
+          <Route path="/reset-password" element={<Suspense fallback={<PageLoader />}><ResetPassword /></Suspense>} />
+          <Route path="/install" element={<Suspense fallback={<PageLoader />}><Install /></Suspense>} />
 
-        <Route path="/ab-testing" element={<Index />} />
-        <Route path="/ab-tests" element={<Index />} />
-        <Route path="/knowledge" element={<Index />} />
-        <Route path="/health" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
-        <Route path="/health-check" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
-        <Route path="/calendar" element={<Index />} />
-        <Route path="/automation" element={<Index />} />
-        <Route path="/rop" element={<Index />} />
-        
-        {/* Catch-all: неизвестные пути → главная */}
+          {/* Content Pages */}
+          <Route path="/blog" element={<Suspense fallback={<PageLoader />}><Blog /></Suspense>} />
+          <Route path="/partners" element={<Suspense fallback={<PageLoader />}><Partners /></Suspense>} />
+          <Route path="/careers" element={<Suspense fallback={<PageLoader />}><Careers /></Suspense>} />
+          <Route path="/knowledge" element={<Suspense fallback={<PageLoader />}><Knowledge /></Suspense>} />
+
+          {/* Legal Pages */}
+          <Route path="/privacy" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+          <Route path="/terms" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+          <Route path="/compliance" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+          <Route path="/training" element={<Suspense fallback={<PageLoader />}><LegalPage /></Suspense>} />
+
+          {/* Все эти пути ведут в Index, где переключается вкладка по URL */}
+          <Route path="/dashboard" element={<Index />} />
+          <Route path="/realtime" element={<Index />} />
+          <Route path="/table" element={<Index />} />
+          <Route path="/crm" element={<Index />} />
+          <Route path="/visits" element={<Index />} />
+          <Route path="/analytics" element={<Index />} />
+          <Route path="/e2e-analytics" element={<Index />} />
+          <Route path="/finance" element={<Index />} />
+          <Route path="/settings" element={<Index />} />
+          <Route path="/quantom-ads" element={<Index />} />
+          <Route path="/quantum-ads" element={<Index />} />
+          <Route path="/factory" element={<Index />} />
+          <Route path="/content-factory" element={<Index />} />
+          <Route path="/publications" element={<Index />} />
+          <Route path="/reports" element={<Index />} />
+          <Route path="/team" element={<Index />} />
+          <Route path="/integrations" element={<Index />} />
+          <Route path="/audit" element={<Index />} />
+          <Route path="/staff" element={<Index />} />
+          <Route path="/inbox" element={<Index />} />
+          <Route path="/scoring" element={<Index />} />
+
+          <Route path="/ab-testing" element={<Index />} />
+          <Route path="/ab-tests" element={<Index />} />
+          <Route path="/health" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
+          <Route path="/health-check" element={<Suspense fallback={<PageLoader />}><HealthCheck /></Suspense>} />
+          <Route path="/calendar" element={<Index />} />
+          <Route path="/automation" element={<Index />} />
+          <Route path="/rop" element={<Index />} />
+
+          {/* Catch-all: неизвестные пути → главная */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

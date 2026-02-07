@@ -62,14 +62,30 @@ export default function Auth() {
       setCheckingConnection(true);
       const MAX_RETRIES = 3;
       let lastError: string | null = null;
+
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          const { error } = await supabase.from('projects').select('count').limit(1);
+          // Проверяем доступность Supabase.
+          // Если получаем ошибку прав доступа (PGRST301) или 401/403 - значит сервер ответил, все ок.
+          // Если ошибка сети (Failed to fetch) - значит проблема.
+          const { error } = await supabase.from('projects').select('count', { count: 'exact', head: true });
+
           if (!error) {
             setConnectionError(null);
             setCheckingConnection(false);
             return;
           }
+
+          // Анализируем ошибку
+          const msg = error.message.toLowerCase();
+          // Признаки того, что сервер живой, просто нет прав (это нормально для страницы входа)
+          if (error.code === 'PGRST301' || error.code === '401' || error.code === '403' ||
+            msg.includes('policy') || msg.includes('permission') || msg.includes('authorized')) {
+            setConnectionError(null);
+            setCheckingConnection(false);
+            return;
+          }
+
           lastError = error.message;
         } catch (e: any) {
           lastError = e.message || 'Ошибка подключения к базе данных';
@@ -80,6 +96,7 @@ export default function Auth() {
         }
       }
 
+      // Если мы здесь, значит все попытки провалились с реальной ошибкой (сеть и т.д.)
       setConnectionError(lastError);
       setCheckingConnection(false);
     };
@@ -287,11 +304,11 @@ export default function Auth() {
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           >
             <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
-                 style={{
-                   background: 'rgba(255, 255, 255, 0.05)',
-                   backdropFilter: 'blur(12px)',
-                   border: '1px solid rgba(255, 255, 255, 0.1)'
-                 }}>
+              style={{
+                background: 'rgba(255, 255, 255, 0.05)',
+                backdropFilter: 'blur(12px)',
+                border: '1px solid rgba(255, 255, 255, 0.1)'
+              }}>
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
           </motion.div>
@@ -329,7 +346,7 @@ export default function Auth() {
             <li>База данных недоступна</li>
           </ul>
           <div className="rounded-lg p-3 font-mono text-xs break-all text-white/70"
-               style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
+            style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             {connectionError}
           </div>
           <Button
@@ -345,7 +362,7 @@ export default function Auth() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden"
-         style={{ background: 'hsl(230 30% 3%)' }}>
+      style={{ background: 'hsl(230 30% 3%)' }}>
 
       {/* Interstellar Nebula Background */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -468,11 +485,10 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setMode('login')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    mode === 'login'
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${mode === 'login'
                       ? 'text-white'
                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                  }`}
+                    }`}
                   style={mode === 'login' ? {
                     background: 'hsl(192 100% 50% / 0.15)',
                     border: '1px solid hsl(192 100% 50% / 0.3)',
@@ -484,11 +500,10 @@ export default function Auth() {
                 <button
                   type="button"
                   onClick={() => setMode('signup')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
-                    mode === 'signup'
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${mode === 'signup'
                       ? 'text-white'
                       : 'text-white/50 hover:text-white/80 hover:bg-white/5'
-                  }`}
+                    }`}
                   style={mode === 'signup' ? {
                     background: 'hsl(192 100% 50% / 0.15)',
                     border: '1px solid hsl(192 100% 50% / 0.3)',

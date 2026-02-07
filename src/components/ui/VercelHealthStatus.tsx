@@ -32,10 +32,13 @@ export const VercelHealthStatus = () => {
       <Tooltip>
         <TooltipTrigger asChild>
           <a href="/health-check" aria-label="Open health check">
-            <Badge className={`gap-1 ${ok ? 'bg-emerald-600 text-white' : 'bg-amber-600 text-white'}`}>
-              {ok ? <CheckCircle2 className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-              {ok ? 'Vercel OK' : 'Vercel Check'}
-            </Badge>
+            <div className={`mt-4 px-3 py-1.5 rounded-full flex items-center gap-2 transition-all duration-300 ${ok
+                ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/40 hover:shadow-[0_0_15px_rgba(16,185,129,0.3)]'
+                : 'bg-amber-500/10 border border-amber-500/20 text-amber-400 hover:bg-amber-500/20 hover:border-amber-500/40'
+              } backdrop-blur-md`}>
+              <div className={`w-2 h-2 rounded-full ${ok ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'}`} />
+              <span className="text-xs font-medium tracking-wide">{ok ? 'SYSTEM ONLINE' : 'CHECKING...'}</span>
+            </div>
           </a>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">

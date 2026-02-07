@@ -56,9 +56,9 @@ const LegalPage = () => {
   const page = pageContent[location.pathname] || pageContent["/privacy"];
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-card">
+    <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-card/90 backdrop-blur-xl border-b border-border">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
@@ -85,15 +85,15 @@ const LegalPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-muted rounded-full mb-6">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full mb-6 border border-white/10">
               {page.icon}
-              <span className="text-sm font-medium text-foreground/80">Юридическая информация</span>
+              <span className="text-sm font-medium text-white/80">Юридическая информация</span>
             </div>
-            
-            <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-8">
+
+            <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8">
               {page.title}
             </h1>
-            
+
             <div className="prose prose-slate max-w-none">
               {page.content.map((paragraph, index) => (
                 <motion.p
@@ -101,7 +101,7 @@ const LegalPage = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * index, duration: 0.4 }}
-                  className="text-muted-foreground text-lg leading-relaxed mb-4"
+                  className="text-gray-200 text-lg leading-relaxed mb-4"
                 >
                   {paragraph}
                 </motion.p>
@@ -112,12 +112,12 @@ const LegalPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.4 }}
-              className="mt-12 p-6 bg-muted rounded-2xl"
+              className="mt-12 p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
             >
-              <p className="text-sm text-muted-foreground">
-                Последнее обновление: Январь 2026
+              <p className="text-sm text-gray-300">
+                Последнее обновление: Февраль 2025
               </p>
-              <p className="text-sm text-muted-foreground mt-2">
+              <p className="text-sm text-gray-300 mt-2">
                 По вопросам обращайтесь: markvision@mail.ru
               </p>
             </motion.div>
