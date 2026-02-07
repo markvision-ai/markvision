@@ -1,0 +1,35 @@
+name: Vercel Health Check
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check HEALTHCHECK_URL is set
+        run: |
+          if [ -z "${{ secrets.HEALTHCHECK_URL }}" ]; then
+            echo "HEALTHCHECK_URL secret is not set. Please add it in repo settings (e.g., https://your-app.vercel.app/api/health)"
+            exit 1
+          fi
+      - name: Curl health endpoint
+        run: |
+          set -e
+          echo "Fetching ${{ secrets.HEALTHCHECK_URL }}"
+          STATUS=$(curl -s -o /tmp/resp.json -w "%{http_code}" "${{ secrets.HEALTHCHECK_URL }}")
+          cat /tmp/resp.json
+          if [ "$STATUS" != "200" ]; then
+            echo "Health endpoint returned status $STATUS"
+            exit 1
+          fi
+          URL_OK=$(cat /tmp/resp.json | jq -r '.env.VITE_SUPABASE_URL')
+          KEY_OK=$(cat /tmp/resp.json | jq -r '.env.VITE_SUPABASE_ANON_KEY')
+          if [ "$URL_OK" != "true" ] || [ "$KEY_OK" != "true" ]; then
+            echo "Supabase env missing on server: URL_OK=$URL_OK KEY_OK=$KEY_OK"
+            exit 1
+          fi
+          echo "Health OK"
