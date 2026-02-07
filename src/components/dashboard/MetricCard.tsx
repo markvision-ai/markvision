@@ -96,7 +96,7 @@ export const MetricCard = memo(({
         {/* Main Content */}
         <div className="flex items-end justify-between gap-3">
           <div className="space-y-0.5 flex-1 min-w-0">
-            <p className="text-2xl font-semibold text-foreground tracking-tight leading-none">
+            <p className="text-2xl font-semibold text-foreground tracking-tight leading-none font-mono">
               {formattedValue}
             </p>
             {subValue && (

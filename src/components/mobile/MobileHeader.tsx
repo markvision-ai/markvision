@@ -41,7 +41,8 @@ export const MobileHeader = ({
 
   return (
     <header className={cn(
-      "sticky top-0 z-50 bg-background/95 backdrop-blur-lg border-b border-border md:hidden",
+      "sticky top-0 z-50 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] md:hidden",
+      "shadow-[0_1px_0_rgba(255,255,255,0.02)]",
       "safe-area-top",
       className
     )}>

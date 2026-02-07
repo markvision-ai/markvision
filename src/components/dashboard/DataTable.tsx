@@ -38,11 +38,11 @@ interface PlanData {
 }
 
 const formatCurrency = (value: number): string => {
-  return new Intl.NumberFormat('ru-RU').format(value) + ' ₸';
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
 };
 
 const formatNumber = (value: number): string => {
-  return new Intl.NumberFormat('ru-RU').format(value);
+  return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
 const formatPercent = (value: number): string => {
@@ -52,10 +52,7 @@ const formatPercent = (value: number): string => {
 // Умное форматирование для CR (проценты)
 const formatCR = (value: number | null): string => {
   if (value === null || isNaN(value) || !isFinite(value)) return '—';
-  if (value < 1) {
-    return value.toFixed(2) + '%';
-  }
-  return value.toFixed(1) + '%';
+  return Math.round(value) + '%';
 };
 
 const WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];

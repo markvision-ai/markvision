@@ -85,7 +85,7 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
           </TooltipProvider>
         </div>
 
-        <div className="glass-card">
+        <div className="interstellar-card">
           {children}
         </div>
       </motion.div>

@@ -2,14 +2,28 @@ import { cn } from "@/lib/utils";
 import React from "react";
 
 type Stripe = "none" | "blue" | "cyan" | "emerald" | "gold";
+type Variant = "default" | "interstellar" | "interstellar-elevated";
 
 interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   stripe?: Stripe;
+  variant?: Variant;
   className?: string;
   children: React.ReactNode;
 }
 
-export const GlassCard: React.FC<GlassCardProps> = ({ stripe = "none", className, children, ...rest }) => {
+const variantStyles: Record<Variant, string> = {
+  default: "interstellar-card",
+  interstellar: "interstellar-card",
+  "interstellar-elevated": "interstellar-card-elevated",
+};
+
+export const GlassCard: React.FC<GlassCardProps> = ({
+  stripe = "none",
+  variant = "default",
+  className,
+  children,
+  ...rest
+}) => {
   const stripeClass =
     stripe === "blue"
       ? "stripe stripe-blue"
@@ -22,8 +36,16 @@ export const GlassCard: React.FC<GlassCardProps> = ({ stripe = "none", className
       : "";
 
   return (
-    <div {...rest} className={cn("glass-card border border-border rounded-xl p-4", stripeClass, className)}>
+    <div
+      {...rest}
+      className={cn(
+        "rounded-xl p-4",
+        variantStyles[variant],
+        stripeClass,
+        className
+      )}
+    >
       {children}
     </div>
   );
-}
+};

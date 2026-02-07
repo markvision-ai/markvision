@@ -9,7 +9,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 border-0 shadow-[0_0_16px_hsl(var(--primary)/0.35)] hover:shadow-[0_0_28px_hsl(var(--primary)/0.55)] premium-button-shimmer",
+        default: "interstellar-button",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-card/60 text-foreground border border-primary/30 hover:border-primary/50 hover:bg-card/70 shadow-[0_0_12px_hsl(var(--primary)/0.25)]",
@@ -18,6 +18,10 @@ const buttonVariants = cva(
         premium: "bg-gradient-to-r from-primary via-emerald-500 to-lime-500 text-white shadow-[0_0_18px_hsl(var(--primary)/0.45)] hover:shadow-[0_0_28px_hsl(var(--primary)/0.65)] hover:scale-[1.02] border-0 transition-all duration-300",
         glow: "bg-primary text-primary-foreground shadow-[0_0_20px_hsl(var(--primary)/0.4)] hover:shadow-[0_0_30px_hsl(var(--primary)/0.6)] transition-shadow duration-300",
         glass: "bg-card/50 backdrop-blur-sm border border-border/40 text-foreground hover:bg-card/70 hover:border-primary/30",
+        // Interstellar Glass variants
+        interstellar: "relative overflow-hidden bg-gradient-to-r from-primary to-cyan-400 text-black font-semibold border-0 shadow-[0_4px_16px_hsl(192_100%_50%/0.3),inset_0_1px_0_rgba(255,255,255,0.2)] hover:shadow-[0_8px_24px_hsl(192_100%_50%/0.4),0_0_40px_hsl(192_100%_50%/0.2)] hover:-translate-y-0.5 transition-all duration-300 premium-button-shimmer",
+        "interstellar-ghost": "bg-transparent text-white/80 border border-white/15 hover:bg-white/5 hover:border-primary/40 hover:text-white hover:shadow-[0_0_20px_hsl(192_100%_50%/0.1)] transition-all duration-300",
+        "interstellar-secondary": "bg-white/5 backdrop-blur-sm text-white border border-white/10 hover:bg-white/10 hover:border-primary/30 shadow-[0_4px_12px_rgba(0,0,0,0.2)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.3),0_0_20px_hsl(192_100%_50%/0.1)] transition-all duration-300",
       },
       size: {
         default: "h-10 px-4 py-2",

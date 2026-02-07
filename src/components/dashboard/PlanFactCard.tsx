@@ -23,7 +23,7 @@ const formatValue = (value: number, format: 'number' | 'currency' | 'percent'): 
     return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
   }
   if (format === 'percent') {
-    return value.toFixed(1) + '%';
+    return Math.round(value) + '%';
   }
   if (value >= 1000000) {
     return (value / 1000000).toFixed(1).replace('.0', '') + ' млн';
@@ -39,7 +39,7 @@ const formatPlanValue = (value: number, format: 'number' | 'currency' | 'percent
     return new Intl.NumberFormat('ru-RU').format(Math.round(value));
   }
   if (format === 'percent') {
-    return value.toFixed(1) + '%';
+    return Math.round(value) + '%';
   }
   if (value >= 1000000) {
     return (value / 1000000).toFixed(1).replace('.0', '') + ' млн';

@@ -17,12 +17,12 @@ const navItems = [
 
 export const MobileBottomNav = ({ activeTab, onTabChange, onMoreClick }: MobileBottomNavProps) => {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-xl border-t border-border md:hidden safe-area-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-white/[0.02] backdrop-blur-2xl border-t border-white/[0.06] md:hidden safe-area-bottom shadow-[0_-1px_0_rgba(255,255,255,0.02)]">
       <div className="flex items-center justify-around h-16 max-w-lg mx-auto px-2">
         {navItems.map((item) => {
           const isActive = activeTab === item.id || (item.isMore && !['dashboard', 'crm', 'e2e-analytics', 'finance'].includes(activeTab));
           const Icon = item.icon;
-          
+
           return (
             <button
               key={item.id}
@@ -40,8 +40,8 @@ export const MobileBottomNav = ({ activeTab, onTabChange, onMoreClick }: MobileB
               )}
             >
               <div className={cn(
-                'p-2 rounded-xl transition-all',
-                isActive && 'bg-primary/15'
+                'p-2 rounded-xl transition-all duration-300',
+                isActive && 'bg-primary/15 shadow-[0_0_20px_hsl(192_100%_50%/0.2)]'
               )}>
                 <Icon className={cn(
                   'w-5 h-5 transition-transform',

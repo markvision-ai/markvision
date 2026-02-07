@@ -32,10 +32,10 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   }, [projectId]);
   
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col bg-background overflow-hidden font-sans">
+    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
       
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 bg-black/40 backdrop-blur-xl">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 interstellar-glass">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
           <TabsList className="bg-white/5 border border-white/10">
             <TabsTrigger value="v4" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">

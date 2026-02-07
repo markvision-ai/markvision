@@ -36,28 +36,27 @@ export default function Auth() {
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [checkingConnection, setCheckingConnection] = useState(true);
 
-  // Обработка OAuth ошибок из URL
+  // OAuth error handling from URL
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const error = urlParams.get('error');
     const errorDescription = urlParams.get('error_description');
-    
+
     if (error) {
-      const errorMessage = errorDescription 
-        ? decodeURIComponent(errorDescription) 
+      const errorMessage = errorDescription
+        ? decodeURIComponent(errorDescription)
         : 'Ошибка авторизации через Facebook';
-      
+
       toast.error(errorMessage, {
         duration: 5000,
         description: error === 'server_error' ? 'Попробуйте еще раз или обратитесь в поддержку' : undefined
       });
-      
-      // Очищаем URL от параметров ошибки
+
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
 
-  // Проверка подключения к базе при загрузке с RETRY логикой (3 попытки)
+  // Connection check with retry logic
   useEffect(() => {
     const verifyConnection = async () => {
       setCheckingConnection(true);
@@ -65,9 +64,7 @@ export default function Auth() {
       let lastError: string | null = null;
       for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
         try {
-          const {
-            error
-          } = await supabase.from('projects').select('count').limit(1);
+          const { error } = await supabase.from('projects').select('count').limit(1);
           if (!error) {
             setConnectionError(null);
             setCheckingConnection(false);
@@ -78,40 +75,36 @@ export default function Auth() {
           lastError = e.message || 'Ошибка подключения к базе данных';
         }
 
-        // Ждём перед следующей попыткой (кроме последней)
         if (attempt < MAX_RETRIES) {
           await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
         }
       }
 
-      // Все попытки исчерпаны
       setConnectionError(lastError);
       setCheckingConnection(false);
     };
     verifyConnection();
   }, []);
+
   useEffect(() => {
     const checkUserProjects = async (userId: string) => {
       try {
-        // КРИТИЧНО: Проверка OAuth параметров перед редиректом
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const searchParams = new URLSearchParams(window.location.search);
         const hasOAuthParams = hashParams.has('access_token') || searchParams.has('code') || searchParams.has('error');
-        
+
         if (hasOAuthParams) {
-          console.log('🚨 OAuth params detected in Auth.tsx, redirecting to /integrations');
+          console.log('OAuth params detected in Auth.tsx, redirecting to /integrations');
           navigate('/integrations');
           return;
         }
 
-        // Check if user has any projects
         const { data: accessData } = await supabase
           .from('project_access')
           .select('project_id')
           .eq('user_id', userId)
           .limit(1);
 
-        // Check if user is admin/super_admin
         const { data: roleData } = await supabase
           .from('user_roles')
           .select('role')
@@ -120,7 +113,6 @@ export default function Auth() {
 
         const isAdmin = roleData?.role === 'admin' || roleData?.role === 'super_admin';
 
-        // Redirect to setup if no projects and not admin
         if (!isAdmin && (!accessData || accessData.length === 0)) {
           navigate('/setup');
         } else {
@@ -132,28 +124,21 @@ export default function Auth() {
       }
     };
 
-    const {
-      data: {
-        subscription
-      }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user) {
         await checkUserProjects(session.user.id);
       }
     });
-    
-    supabase.auth.getSession().then(async ({
-      data: {
-        session
-      }
-    }) => {
+
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         await checkUserProjects(session.user.id);
       }
     });
-    
+
     return () => subscription.unsubscribe();
   }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
@@ -171,9 +156,7 @@ export default function Auth() {
     setLoading(true);
     try {
       if (mode === 'forgot-password') {
-        const {
-          error
-        } = await supabase.auth.resetPasswordForEmail(email, {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`
         });
         if (error) {
@@ -183,15 +166,11 @@ export default function Auth() {
         toast.success('Письмо для сброса пароля отправлено на вашу почту!');
         setMode('login');
       } else if (mode === 'login') {
-        const {
-          data,
-          error
-        } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password
         });
         if (error) {
-          // Показываем точный текст ошибки пользователю
           if (error.message.includes('Invalid login credentials')) {
             toast.error('Неверный email или пароль');
           } else if (error.message.includes('Email not confirmed')) {
@@ -206,22 +185,13 @@ export default function Auth() {
           return;
         }
 
-        // Log successful login
-        const {
-          data: {
-            session
-          }
-        } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession();
         if (session?.user) {
           logAuthEvent(session.user.id, session.user.email || email, 'login');
         }
         toast.success('Добро пожаловать!');
       } else {
-        // Sign up the user
-        const {
-          data: signUpData,
-          error: signUpError
-        } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -242,27 +212,19 @@ export default function Auth() {
           return;
         }
 
-        // Check if user was created and session exists (auto-confirm enabled)
         if (signUpData.session) {
-          // Auto-login worked, session is active
           logAuthEvent(signUpData.user!.id, signUpData.user!.email || email, 'create');
           toast.success('Регистрация успешна! Добро пожаловать!');
           navigate('/');
           return;
         }
 
-        // If no session but user exists, try to sign in immediately
-        // (this works when email confirmation is disabled in Supabase)
         if (signUpData.user && !signUpData.session) {
-          const {
-            data: signInData,
-            error: signInError
-          } = await supabase.auth.signInWithPassword({
+          const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password
           });
           if (signInError) {
-            // If sign-in fails, it means email confirmation is required
             toast.info('Проверьте почту для подтверждения регистрации');
             return;
           }
@@ -281,6 +243,7 @@ export default function Auth() {
       setLoading(false);
     }
   };
+
   const getTitle = () => {
     switch (mode) {
       case 'login':
@@ -291,6 +254,7 @@ export default function Auth() {
         return 'Восстановление';
     }
   };
+
   const getButtonText = () => {
     switch (mode) {
       case 'login':
@@ -302,227 +266,358 @@ export default function Auth() {
     }
   };
 
-  // Показываем ошибку подключения или загрузку
+  // Loading state - Interstellar theme
   if (checkingConnection) {
-    return <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div initial={{
-        opacity: 0,
-        scale: 0.9
-      }} animate={{
-        opacity: 1,
-        scale: 1
-      }} className="text-center">
-          <div className="relative mx-auto mb-6">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'hsl(230 30% 3%)' }}>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-center"
+        >
+          <motion.div
+            className="relative mx-auto mb-6"
+            animate={{
+              boxShadow: [
+                "0 0 30px hsl(192 100% 50% / 0.2)",
+                "0 0 50px hsl(192 100% 50% / 0.4)",
+                "0 0 30px hsl(192 100% 50% / 0.2)"
+              ]
+            }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center"
+                 style={{
+                   background: 'rgba(255, 255, 255, 0.05)',
+                   backdropFilter: 'blur(12px)',
+                   border: '1px solid rgba(255, 255, 255, 0.1)'
+                 }}>
               <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-            <div className="absolute -inset-2 bg-gradient-to-r from-primary/20 to-purple-500/20 rounded-3xl blur-xl opacity-50 animate-pulse" />
-          </div>
-          <p className="text-muted-foreground">Подключение к базе данных...</p>
+          </motion.div>
+          <p className="text-white/60">Подключение к базе данных...</p>
         </motion.div>
-      </div>;
+      </div>
+    );
   }
+
+  // Connection error - Interstellar theme
   if (connectionError) {
-    return <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} className="w-full max-w-md bg-destructive/10 border border-destructive/30 rounded-3xl p-6">
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4" style={{ background: 'hsl(230 30% 3%)' }}>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-md rounded-3xl p-6"
+          style={{
+            background: 'rgba(255, 255, 255, 0.03)',
+            backdropFilter: 'blur(24px)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            boxShadow: '0 0 40px rgba(239, 68, 68, 0.1)'
+          }}
+        >
           <div className="flex items-center gap-3 mb-4">
-            <AlertTriangle className="w-8 h-8 text-destructive" />
-            <h2 className="text-xl font-semibold text-destructive">Ошибка подключения</h2>
+            <AlertTriangle className="w-8 h-8 text-red-400" />
+            <h2 className="text-xl font-semibold text-red-400">Ошибка подключения</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-4">
+          <p className="text-sm text-white/60 mb-4">
             Не удалось подключиться к базе данных. Возможные причины:
           </p>
-          <ul className="text-sm text-muted-foreground list-disc list-inside mb-4 space-y-1">
+          <ul className="text-sm text-white/50 list-disc list-inside mb-4 space-y-1">
             <li>Неверный VITE_SUPABASE_URL</li>
             <li>Неверный VITE_SUPABASE_ANON_KEY</li>
             <li>База данных недоступна</li>
           </ul>
-          <div className="bg-muted rounded-lg p-3 font-mono text-xs break-all">
+          <div className="rounded-lg p-3 font-mono text-xs break-all text-white/70"
+               style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.1)' }}>
             {connectionError}
           </div>
-          <Button onClick={() => window.location.reload()} className="w-full mt-4" variant="outline">
+          <Button
+            onClick={() => window.location.reload()}
+            className="w-full mt-4 interstellar-button-ghost"
+          >
             Попробовать снова
           </Button>
         </motion.div>
-      </div>;
+      </div>
+    );
   }
-  return <div className="min-h-screen bg-background flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-gradient-to-r from-primary/5 to-purple-500/5 rounded-full blur-3xl" />
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-4 safe-area-top safe-area-bottom relative overflow-hidden"
+         style={{ background: 'hsl(230 30% 3%)' }}>
+
+      {/* Interstellar Nebula Background */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Animated nebula clouds */}
+        <motion.div
+          className="absolute top-1/4 -left-32 w-[600px] h-[500px] rounded-full"
+          style={{ background: 'hsl(192 100% 50% / 0.08)', filter: 'blur(100px)' }}
+          animate={{
+            x: [0, 50, 0],
+            y: [0, 30, 0],
+            scale: [1, 1.1, 1]
+          }}
+          transition={{ duration: 30, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute bottom-1/4 -right-32 w-[500px] h-[400px] rounded-full"
+          style={{ background: 'hsl(270 60% 50% / 0.06)', filter: 'blur(80px)' }}
+          animate={{
+            x: [0, -40, 0],
+            y: [0, -20, 0],
+            scale: [1, 1.05, 1]
+          }}
+          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+        />
+        <div
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] rounded-full"
+          style={{ background: 'hsl(220 80% 50% / 0.04)', filter: 'blur(120px)' }}
+        />
       </div>
 
-      <motion.div initial={{
-      opacity: 0,
-      y: 20
-    }} animate={{
-      opacity: 1,
-      y: 0
-    }} transition={{
-      duration: 0.5
-    }} className="w-full max-w-lg relative z-10">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="w-full max-w-lg relative z-10"
+      >
         {/* Logo Section */}
-        <motion.div initial={{
-        scale: 0.8,
-        opacity: 0
-      }} animate={{
-        scale: 1,
-        opacity: 1
-      }} transition={{
-        delay: 0.1,
-        duration: 0.5
-      }} className="text-center mb-8">
-          <div className="w-24 h-24 sm:w-32 sm:h-32 mx-auto relative flex items-center justify-center overflow-hidden rounded-xl">
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-2xl scale-125" />
-          </div>
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.1, duration: 0.5 }}
+          className="text-center mb-8"
+        >
+          <motion.div
+            className="w-24 h-24 sm:w-32 sm:h-32 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl"
+            style={{
+              background: 'rgba(255, 255, 255, 0.05)',
+              backdropFilter: 'blur(24px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)'
+            }}
+            animate={{
+              boxShadow: [
+                "0 0 30px hsl(192 100% 50% / 0.2)",
+                "0 0 50px hsl(192 100% 50% / 0.35)",
+                "0 0 30px hsl(192 100% 50% / 0.2)"
+              ]
+            }}
+            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+          >
+            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-md scale-125" />
+          </motion.div>
+
           <h1 className="text-2xl sm:text-3xl font-bold -mt-2">
-            <span className="bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <span
+              className="bg-gradient-to-r from-primary via-cyan-300 to-primary bg-clip-text text-transparent"
+              style={{ textShadow: '0 0 30px hsl(192 100% 50% / 0.5)' }}
+            >
               MarkVision AI
             </span>
           </h1>
-          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+          <p className="text-white/50 mt-2 text-sm sm:text-base">
             Умный маркетинг для медицинских клиник
           </p>
         </motion.div>
 
         {/* Form Card */}
-        <motion.div initial={{
-        opacity: 0,
-        y: 20
-      }} animate={{
-        opacity: 1,
-        y: 0
-      }} transition={{
-        delay: 0.2,
-        duration: 0.5
-      }} className="relative">
-          {/* Card Glow */}
-          <div className="absolute -inset-[1px] bg-gradient-to-r from-primary/50 via-purple-500/50 to-primary/50 rounded-3xl blur-sm opacity-50" />
-          
-          <div className="relative bg-card/95 backdrop-blur-xl border border-border/50 rounded-3xl p-6 sm:p-8 shadow-2xl shadow-primary/5">
-            {mode === 'forgot-password' && <motion.button initial={{
-            opacity: 0,
-            x: -10
-          }} animate={{
-            opacity: 1,
-            x: 0
-          }} type="button" onClick={() => setMode('login')} className="flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground mb-4 transition-colors">
+        <motion.div
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ delay: 0.2, duration: 0.5 }}
+          className="relative group"
+        >
+          {/* Hover glow effect */}
+          <div
+            className="absolute -inset-[1px] rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+            style={{
+              background: 'linear-gradient(135deg, hsl(192 100% 50% / 0.2), transparent 50%, hsl(270 60% 50% / 0.1))',
+              filter: 'blur(2px)'
+            }}
+          />
+
+          <div
+            className="relative rounded-3xl p-6 sm:p-8"
+            style={{
+              background: 'rgba(255, 255, 255, 0.04)',
+              backdropFilter: 'blur(24px) saturate(1.3)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 16px 48px rgba(0, 0, 0, 0.4)'
+            }}
+          >
+            {mode === 'forgot-password' && (
+              <motion.button
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                type="button"
+                onClick={() => setMode('login')}
+                className="flex items-center gap-1 text-sm text-white/50 hover:text-white mb-4 transition-colors"
+              >
                 <ArrowLeft className="w-4 h-4" />
                 Назад к входу
-              </motion.button>}
+              </motion.button>
+            )}
 
             {/* Mode Switcher */}
             {mode !== 'forgot-password' && (
-              <div className="flex gap-2 mb-6 p-1 bg-muted/50  rounded-xl">
+              <div
+                className="flex gap-2 mb-6 p-1 rounded-xl"
+                style={{ background: 'rgba(255, 255, 255, 0.05)', border: '1px solid rgba(255, 255, 255, 0.08)' }}
+              >
                 <button
                   type="button"
                   onClick={() => setMode('login')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
                     mode === 'login'
-                      ? 'bg-background  text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-white'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                   }`}
+                  style={mode === 'login' ? {
+                    background: 'hsl(192 100% 50% / 0.15)',
+                    border: '1px solid hsl(192 100% 50% / 0.3)',
+                    boxShadow: '0 0 20px hsl(192 100% 50% / 0.15)'
+                  } : {}}
                 >
                   Вход
                 </button>
                 <button
                   type="button"
                   onClick={() => setMode('signup')}
-                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${
                     mode === 'signup'
-                      ? 'bg-background  text-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
+                      ? 'text-white'
+                      : 'text-white/50 hover:text-white/80 hover:bg-white/5'
                   }`}
+                  style={mode === 'signup' ? {
+                    background: 'hsl(192 100% 50% / 0.15)',
+                    border: '1px solid hsl(192 100% 50% / 0.3)',
+                    boxShadow: '0 0 20px hsl(192 100% 50% / 0.15)'
+                  } : {}}
                 >
                   Регистрация
                 </button>
               </div>
             )}
 
-            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-2">
+            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-2 text-white">
               {getTitle()}
             </h2>
-            
-            <p className="text-sm text-muted-foreground text-center mb-6">
+
+            <p className="text-sm text-white/50 text-center mb-6">
               {mode === 'login' && 'Войдите в свой аккаунт для продолжения'}
               {mode === 'signup' && 'Создайте аккаунт для начала работы'}
               {mode === 'forgot-password' && 'Введите email для получения ссылки восстановления'}
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
-              {mode === 'signup' && <motion.div initial={{
-              opacity: 0,
-              height: 0
-            }} animate={{
-              opacity: 1,
-              height: 'auto'
-            }} exit={{
-              opacity: 0,
-              height: 0
-            }} className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/80">Имя</label>
+              {mode === 'signup' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-2"
+                >
+                  <label className="text-sm font-medium text-white/70">Имя</label>
                   <div className="relative group">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input type="text" placeholder="Ваше имя" value={name} onChange={e => setName(e.target.value)} className="pl-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors z-10" />
+                    <Input
+                      type="text"
+                      placeholder="Ваше имя"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="pl-11 h-12 rounded-xl interstellar-input"
+                    />
                   </div>
-                </motion.div>}
+                </motion.div>
+              )}
 
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground/80">Email</label>
+                <label className="text-sm font-medium text-white/70">Email</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                  <Input type="email" placeholder="email@example.com" value={email} onChange={e => setEmail(e.target.value)} className="pl-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors z-10" />
+                  <Input
+                    type="email"
+                    placeholder="email@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="pl-11 h-12 rounded-xl interstellar-input"
+                  />
                 </div>
               </div>
 
-              {mode !== 'forgot-password' && <motion.div initial={{
-              opacity: 0
-            }} animate={{
-              opacity: 1
-            }} className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/80">Пароль</label>
+              {mode !== 'forgot-password' && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
+                  <label className="text-sm font-medium text-white/70">Пароль</label>
                   <div className="relative group">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                    <Input type={showPassword ? 'text' : 'password'} placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} className="pl-11 pr-11 h-12 bg-secondary/50 border-border/50 rounded-xl focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all" />
-                    <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors z-10" />
+                    <Input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="pl-11 pr-11 h-12 rounded-xl interstellar-input"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60 transition-colors z-10"
+                    >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
-                </motion.div>}
+                </motion.div>
+              )}
 
-              {mode === 'login' && <div className="text-right">
-                  <button type="button" onClick={() => setMode('forgot-password')} className="text-sm text-primary hover:text-primary/80 transition-colors">
+              {mode === 'login' && (
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => setMode('forgot-password')}
+                    className="text-sm text-primary/80 hover:text-primary transition-colors"
+                  >
                     Забыли пароль?
                   </button>
-                </div>}
+                </div>
+              )}
 
-              <Button type="submit" className="w-full h-12 bg-gradient-to-r from-primary to-purple-500 hover:from-primary/90 hover:to-purple-500/90 text-white font-medium rounded-xl shadow-lg shadow-primary/25 transition-all duration-300 hover:shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5" disabled={loading}>
-                {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
-                {getButtonText()}
+              <Button
+                type="submit"
+                className="w-full h-12 rounded-xl text-base font-semibold relative overflow-hidden
+                           bg-gradient-to-r from-primary to-cyan-400 text-black
+                           hover:-translate-y-0.5 transition-all duration-300 border-0"
+                style={{
+                  boxShadow: '0 4px 20px hsl(192 100% 50% / 0.35), inset 0 1px 0 rgba(255,255,255,0.2)'
+                }}
+                disabled={loading}
+              >
+                {/* Shimmer effect */}
+                <span
+                  className="absolute inset-0 animate-[interstellar-shimmer_3s_ease-in-out_infinite]"
+                  style={{
+                    background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)',
+                    transform: 'translateX(-100%)'
+                  }}
+                />
+                <span className="relative flex items-center justify-center">
+                  {loading ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Sparkles className="w-4 h-4 mr-2" />}
+                  {getButtonText()}
+                </span>
               </Button>
             </form>
-
           </div>
         </motion.div>
 
         {/* Footer */}
-        <motion.p initial={{
-        opacity: 0
-      }} animate={{
-        opacity: 1
-      }} transition={{
-        delay: 0.4
-      }} className="text-center text-xs text-muted-foreground mt-6">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="text-center text-xs text-white/30 mt-6"
+        >
           © 2025 MarkVision AI. Все права защищены.
         </motion.p>
       </motion.div>
-    </div>;
+    </div>
+  );
 }

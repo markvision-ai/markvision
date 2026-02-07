@@ -58,15 +58,15 @@ html {
     --sidebar-muted: 240 4.8% 95.9%;
   }
 
-  /* Force Deep Dark Mode */
+  /* Force Deep Dark Mode - INTERSTELLAR GLASS THEME */
   .dark {
-    --background: 220 33% 4%; /* overridden by body bg hex below */
+    --background: 230 30% 3%; /* Deep space void */
     --foreground: 0 0% 100%;
 
-    --card: 0 0% 3%;
+    --card: 230 25% 5%;
     --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 3%;
+    --popover: 230 25% 5%;
     --popover-foreground: 0 0% 100%;
 
     --primary: 192 100% 50%; /* Cyber Cyan #00D1FF */
@@ -75,24 +75,40 @@ html {
     --secondary: 197 93% 59%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 10%;
+    --muted: 230 20% 12%;
     --muted-foreground: 0 0% 60%;
 
-    --accent: 0 0% 15%;
+    --accent: 230 20% 15%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 15%;
-    --input: 0 0% 15%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 12%;
+    --input: 0 0% 12%;
+    --ring: 192 100% 50%;
 
     --radius: 0.5rem;
 
-    --sidebar: 0 0% 0%;
+    --sidebar: 230 30% 2%;
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-muted: 0 0% 10%;
+    --sidebar-muted: 230 20% 10%;
+
+    /* ============================================
+       INTERSTELLAR GLASS VARIABLES
+       ============================================ */
+    --space-void: 230 30% 3%;
+    --space-nebula: 240 25% 8%;
+    --space-dust: 220 20% 12%;
+
+    --glass-bg: 0 0% 100% / 0.03;
+    --glass-elevated: 0 0% 100% / 0.05;
+    --glass-border: 0 0% 100% / 0.08;
+    --glass-border-hover: 0 0% 100% / 0.15;
+
+    --glow-cyan: 192 100% 50%;
+    --glow-purple: 270 60% 50%;
+    --glow-blue: 220 80% 60%;
   }
 }
 
@@ -228,17 +244,97 @@ html {
   .dark .glass-card:hover {
     background: rgba(255,255,255,0.1);
   }
+  /* ============================================
+     INTERSTELLAR NEBULA BACKGROUND
+     ============================================ */
   .dark body::before {
     content: "";
     position: fixed;
     inset: 0;
-    z-index: -1;
-    background: radial-gradient(800px 400px at 10% 20%, rgba(2,6,23,0.6), transparent 60%), radial-gradient(600px 300px at 80% 70%, rgba(15,23,42,0.6), transparent 60%), linear-gradient(120deg, #020617, #0f172a 60%, #1e1b4b);
-    animation: nebula 30s ease-in-out infinite alternate;
+    z-index: -2;
+    background:
+      /* Cyan nebula cloud */
+      radial-gradient(
+        ellipse 800px 600px at 15% 25%,
+        hsl(192 100% 50% / 0.08) 0%,
+        transparent 50%
+      ),
+      /* Purple nebula cloud */
+      radial-gradient(
+        ellipse 600px 500px at 85% 75%,
+        hsl(270 60% 50% / 0.06) 0%,
+        transparent 50%
+      ),
+      /* Blue nebula cloud */
+      radial-gradient(
+        ellipse 900px 700px at 50% 50%,
+        hsl(220 80% 50% / 0.04) 0%,
+        transparent 60%
+      ),
+      /* Base gradient */
+      linear-gradient(
+        135deg,
+        hsl(230 30% 3%) 0%,
+        hsl(240 25% 6%) 30%,
+        hsl(230 30% 4%) 70%,
+        hsl(240 20% 5%) 100%
+      );
+    animation: nebula-drift 60s ease-in-out infinite alternate;
   }
-  @keyframes nebula {
-    0% { filter: hue-rotate(0deg) saturate(1); }
-    100% { filter: hue-rotate(20deg) saturate(1.1); }
+
+  /* Star field */
+  .dark body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, white 50%, transparent 50%),
+      radial-gradient(1px 1px at 20% 50%, rgba(255,255,255,0.8) 50%, transparent 50%),
+      radial-gradient(1px 1px at 30% 10%, rgba(255,255,255,0.6) 50%, transparent 50%),
+      radial-gradient(1.5px 1.5px at 40% 60%, white 50%, transparent 50%),
+      radial-gradient(1px 1px at 50% 30%, rgba(255,255,255,0.7) 50%, transparent 50%),
+      radial-gradient(1px 1px at 60% 80%, rgba(255,255,255,0.5) 50%, transparent 50%),
+      radial-gradient(1.5px 1.5px at 70% 40%, white 50%, transparent 50%),
+      radial-gradient(1px 1px at 80% 70%, rgba(255,255,255,0.6) 50%, transparent 50%),
+      radial-gradient(1px 1px at 90% 15%, rgba(255,255,255,0.8) 50%, transparent 50%),
+      radial-gradient(1px 1px at 5% 85%, rgba(255,255,255,0.4) 50%, transparent 50%),
+      radial-gradient(1px 1px at 15% 65%, rgba(255,255,255,0.5) 50%, transparent 50%),
+      radial-gradient(1.5px 1.5px at 25% 35%, white 50%, transparent 50%),
+      radial-gradient(1px 1px at 35% 95%, rgba(255,255,255,0.6) 50%, transparent 50%),
+      radial-gradient(1px 1px at 45% 5%, rgba(255,255,255,0.7) 50%, transparent 50%),
+      radial-gradient(1px 1px at 55% 55%, rgba(255,255,255,0.3) 50%, transparent 50%),
+      radial-gradient(1.5px 1.5px at 65% 25%, white 50%, transparent 50%),
+      radial-gradient(1px 1px at 75% 90%, rgba(255,255,255,0.5) 50%, transparent 50%),
+      radial-gradient(1px 1px at 85% 45%, rgba(255,255,255,0.4) 50%, transparent 50%),
+      radial-gradient(1px 1px at 95% 75%, rgba(255,255,255,0.6) 50%, transparent 50%);
+    background-size: 200% 200%;
+    animation: stars-twinkle 120s linear infinite;
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  @keyframes nebula-drift {
+    0% {
+      filter: hue-rotate(0deg) saturate(1);
+      transform: scale(1);
+    }
+    50% {
+      filter: hue-rotate(10deg) saturate(1.1);
+      transform: scale(1.02);
+    }
+    100% {
+      filter: hue-rotate(-5deg) saturate(1.05);
+      transform: scale(1);
+    }
+  }
+
+  @keyframes stars-twinkle {
+    0% { background-position: 0% 0%; opacity: 0.4; }
+    25% { opacity: 0.6; }
+    50% { background-position: 100% 100%; opacity: 0.4; }
+    75% { opacity: 0.5; }
+    100% { background-position: 0% 0%; opacity: 0.4; }
   }
   .stripe {
     position: relative;
@@ -257,6 +353,214 @@ html {
   .stripe-cyan::before { background: linear-gradient(90deg,#0891b2,#06b6d4); }
   .stripe-emerald::before { background: linear-gradient(90deg,#059669,#10b981); }
   .stripe-gold::before { background: linear-gradient(90deg,#ca8a04,#f59e0b); }
+
+  /* ============================================
+     INTERSTELLAR GLASS COMPONENTS
+     ============================================ */
+
+  /* Base interstellar glass */
+  .interstellar-glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 4px 24px rgba(0, 0, 0, 0.3);
+  }
+
+  .interstellar-glass:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.12);
+  }
+
+  /* Interstellar card with glow */
+  .interstellar-card {
+    @apply relative rounded-2xl p-6 transition-all duration-500;
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(24px) saturate(1.3);
+    -webkit-backdrop-filter: blur(24px) saturate(1.3);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.05),
+      0 8px 32px rgba(0, 0, 0, 0.4);
+  }
+
+  .interstellar-card:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: hsl(192 100% 50% / 0.3);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 12px 40px rgba(0, 0, 0, 0.5),
+      0 0 30px hsl(192 100% 50% / 0.15),
+      0 0 60px hsl(192 100% 50% / 0.05);
+    transform: translateY(-2px);
+  }
+
+  /* Interstellar card elevated */
+  .interstellar-card-elevated {
+    @apply relative rounded-2xl p-6 transition-all duration-500;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(32px) saturate(1.4);
+    -webkit-backdrop-filter: blur(32px) saturate(1.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.08),
+      0 16px 48px rgba(0, 0, 0, 0.5),
+      0 0 40px hsl(192 100% 50% / 0.1);
+  }
+
+  /* Interstellar input */
+  .interstellar-input {
+    @apply w-full rounded-xl px-4 py-3 transition-all duration-300;
+    background: rgba(255, 255, 255, 0.03) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    color: white !important;
+  }
+
+  .interstellar-input::placeholder {
+    color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  .interstellar-input:focus {
+    outline: none;
+    background: rgba(255, 255, 255, 0.05) !important;
+    border-color: hsl(192 100% 50% / 0.5) !important;
+    box-shadow:
+      0 0 0 3px hsl(192 100% 50% / 0.15),
+      0 0 20px hsl(192 100% 50% / 0.1);
+  }
+
+  /* Interstellar button - primary */
+  .interstellar-button {
+    @apply relative rounded-xl px-6 py-3 font-medium transition-all duration-300 overflow-hidden;
+    background: linear-gradient(135deg, hsl(192 100% 45%) 0%, hsl(200 100% 40%) 100%);
+    color: white;
+    border: none;
+    box-shadow:
+      0 4px 16px hsl(192 100% 50% / 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  }
+
+  .interstellar-button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 24px hsl(192 100% 50% / 0.4),
+      0 0 40px hsl(192 100% 50% / 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+
+  .interstellar-button:active {
+    transform: translateY(0);
+  }
+
+  /* Shimmer effect on interstellar button */
+  .interstellar-button::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transform: translateX(-100%);
+    animation: interstellar-shimmer 3s ease-in-out infinite;
+  }
+
+  @keyframes interstellar-shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  /* Interstellar button - ghost */
+  .interstellar-button-ghost {
+    @apply rounded-xl px-6 py-3 font-medium transition-all duration-300;
+    background: transparent;
+    color: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  .interstellar-button-ghost:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: hsl(192 100% 50% / 0.4);
+    color: white;
+    box-shadow: 0 0 20px hsl(192 100% 50% / 0.1);
+  }
+
+  /* Interstellar glow effects */
+  .interstellar-glow {
+    position: relative;
+  }
+
+  .interstellar-glow::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      135deg,
+      hsl(192 100% 50% / 0.3),
+      transparent 50%,
+      hsl(270 60% 50% / 0.2)
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+
+  .interstellar-glow:hover::before {
+    opacity: 1;
+  }
+
+  /* Pulsing glow for active elements */
+  .interstellar-pulse {
+    animation: interstellar-pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes interstellar-pulse {
+    0%, 100% {
+      box-shadow:
+        0 0 20px hsl(192 100% 50% / 0.2),
+        0 0 40px hsl(192 100% 50% / 0.1);
+    }
+    50% {
+      box-shadow:
+        0 0 30px hsl(192 100% 50% / 0.35),
+        0 0 60px hsl(192 100% 50% / 0.15),
+        0 0 90px hsl(192 100% 50% / 0.05);
+    }
+  }
+
+  /* Text glow */
+  .interstellar-text-glow {
+    text-shadow:
+      0 0 10px hsl(192 100% 50% / 0.5),
+      0 0 20px hsl(192 100% 50% / 0.3),
+      0 0 30px hsl(192 100% 50% / 0.2);
+  }
+
+  /* Gradient text for headings */
+  .interstellar-gradient-text {
+    background: linear-gradient(
+      135deg,
+      hsl(192 100% 60%) 0%,
+      hsl(200 100% 70%) 50%,
+      hsl(180 100% 65%) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
   /* Premium Glassmorphism Card */
   .premium-card {
     @apply relative overflow-hidden rounded-xl;
@@ -422,14 +726,16 @@ html {
 
 .welcome-hero-kpi {
   @apply relative overflow-hidden rounded-2xl p-4 md:p-5;
-  @apply bg-card/60 backdrop-blur-sm;
-  @apply border border-border/40;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   @apply transition-all duration-300;
 }
 
 .welcome-hero-kpi:hover {
-  @apply border-primary/30 bg-card/70;
-  box-shadow: 0 8px 32px hsl(var(--primary) / 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: hsl(192 100% 50% / 0.3);
+  box-shadow: 0 8px 32px hsl(var(--primary) / 0.1), 0 0 20px hsl(192 100% 50% / 0.1);
   transform: translateY(-2px);
 }
 
@@ -448,16 +754,20 @@ html {
 
 .quick-action-card {
   @apply relative overflow-hidden rounded-xl p-4;
-  @apply bg-card/50 backdrop-blur-sm;
-  @apply border border-border/40;
-  @apply transition-all duration-200;
   @apply flex flex-col items-center justify-center gap-2;
   @apply cursor-pointer;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05), 0 8px 32px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
 }
 
 .quick-action-card:hover {
-  @apply border-primary/30 bg-card/60;
-  box-shadow: 0 4px 20px hsl(var(--primary) / 0.15);
+  background: rgba(255, 255, 255, 0.05);
+  border-color: hsl(192 100% 50% / 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px hsl(192 100% 50% / 0.15);
   transform: translateY(-2px);
 }
 

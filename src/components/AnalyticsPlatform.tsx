@@ -351,7 +351,7 @@ export const AnalyticsPlatform = () => {
 
   // Formatting helpers (global rounding policy)
   const formatInt = (n: number) => new Intl.NumberFormat('ru-RU').format(Math.round(n));
-  const formatPercent1 = (n: number) => `${(isFinite(n) ? n : 0).toFixed(1)}`;
+  const formatPercent1 = (n: number) => `${Math.round(isFinite(n) ? n : 0)}`;
   const calcDelta = (cur: number, prev: number) => {
     if (!prev || prev === 0) return 0;
     return ((cur - prev) / prev) * 100;
@@ -430,11 +430,23 @@ export const AnalyticsPlatform = () => {
             const todayKey = format(new Date(), 'yyyy-MM-dd');
             const todayData = dailyData[todayKey];
 
-            // Page title
-            registerWidget('page-title', (
-              <div className="glass-card border rounded-xl p-4">
-                <h2 className="text-sm md:text-base font-semibold">Центр Аналитики</h2>
-              </div>
+            // Welcome Hero
+            const captainName = profile?.full_name?.split(' ').pop() || profile?.full_name || 'Запойнов';
+            registerWidget('welcome-hero', (
+              <WelcomeHero
+                userName={`Капитан ${captainName}`}
+                keyMetrics={{
+                  revenue: totals.revenue,
+                  leads: totals.leads,
+                  romi: romiPercent,
+                }}
+                systemStatus={systemHasErrors ? 'error' : 'healthy'}
+              />
+            ));
+
+            // Quick Actions
+            registerWidget('quick-actions', (
+              <QuickActions onTabChange={handleTabChange} />
             ));
 
             // Top Row (Main KPIs): Revenue, Spend, Net Profit, ROMI
@@ -829,8 +841,8 @@ export const AnalyticsPlatform = () => {
             onProjectChange={setCurrentProjectId}
           />
           
-          {/* Desktop Header with backdrop blur */}
-          <header className="hidden md:block sticky top-0 z-30 bg-background/80 backdrop-blur-xl border-b border-border/50">
+          {/* Desktop Header with interstellar glass */}
+          <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
             <Header
               onTabChange={handleTabChange} 
               title={getTabTitle()} 

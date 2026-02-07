@@ -9,16 +9,18 @@ export interface DashboardWidget {
 
 // Эталонный порядок виджетов - полный список
 const DEFAULT_WIDGETS: DashboardWidget[] = [
-  { id: 'kpi-top', title: 'Основные KPI', order: 0, visible: true },
-  { id: 'plan-fact', title: 'План/Факт показатели', order: 1, visible: true },
-  { id: 'charts-row', title: 'Воронка и Динамика', order: 2, visible: true },
-  { id: 'cost-row', title: 'Стоимость лида и диагностики', order: 3, visible: true },
-  { id: 'appointments', title: 'Записи на неделю', order: 4, visible: true },
+  { id: 'welcome-hero', title: 'Приветствие', order: 0, visible: true },
+  { id: 'quick-actions', title: 'Быстрый доступ', order: 1, visible: true },
+  { id: 'kpi-top', title: 'Основные KPI', order: 2, visible: true },
+  { id: 'plan-fact', title: 'План/Факт показатели', order: 3, visible: true },
+  { id: 'charts-row', title: 'Воронка и Динамика', order: 4, visible: true },
+  { id: 'cost-row', title: 'Стоимость лида и диагностики', order: 5, visible: true },
+  { id: 'appointments', title: 'Записи на неделю', order: 6, visible: true },
   // AI ассистент переведён в плавающий чат, отдельного виджета нет
 ];
 
-// Ключ для localStorage - v6 (QuickActions удалён)
-const STORAGE_KEY = 'dashboard_order_v6';
+// Ключ для localStorage - v7 (WelcomeHero + QuickActions)
+const STORAGE_KEY = 'dashboard_order_v7';
 
 export const useDashboardWidgets = () => {
   const [widgets, setWidgets] = useState<DashboardWidget[]>(() => {

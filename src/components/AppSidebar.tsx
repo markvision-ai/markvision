@@ -274,7 +274,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-background/10 backdrop-blur-xl border-r border-white/10 h-screen sticky top-0">
+        <SidebarBody className="justify-between gap-4 bg-white/[0.02] backdrop-blur-2xl border-r border-white/[0.06] h-screen sticky top-0 shadow-[inset_-1px_0_0_rgba(255,255,255,0.03)]">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
@@ -292,7 +292,7 @@ export const AppSidebar = ({
               {projects.length > 0 ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-lg bg-sidebar-muted hover:bg-sidebar-muted/80 border border-border/30 transition-colors text-left">
+                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-primary/30 transition-all duration-300 text-left backdrop-blur-sm">
                       <div className="flex items-center gap-2 min-w-0">
                         <div className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0" />
                         <span className="text-sm text-sidebar-foreground truncate">
@@ -302,7 +302,7 @@ export const AppSidebar = ({
                       <IconChevronDown className="w-4 h-4 text-sidebar-foreground/60 flex-shrink-0" />
                     </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-64 bg-card border-border">
+                  <DropdownMenuContent align="start" className="w-64 bg-white/[0.03] backdrop-blur-2xl border-white/[0.1] shadow-[0_16px_48px_rgba(0,0,0,0.5)]">
                     {projects.map((project) => (
                       <DropdownMenuItem
                         key={project.id}
@@ -496,20 +496,20 @@ export const AppSidebar = ({
 
       {/* Create Project Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-card border-border">
+        <DialogContent className="bg-white/[0.03] backdrop-blur-2xl border-white/[0.1] shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_hsl(192_100%_50%/0.1)]">
           <DialogHeader>
-            <DialogTitle>Создать новый проект</DialogTitle>
+            <DialogTitle className="text-white">Создать новый проект</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
               placeholder="Название проекта (медицинская клиника)"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              className="bg-secondary border-border"
+              className="interstellar-input"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-white/10 hover:bg-white/5">
               Отмена
             </Button>
             <Button onClick={handleCreateProject} disabled={isCreating || !newProjectName.trim()}>
@@ -521,16 +521,16 @@ export const AppSidebar = ({
 
       {/* Delete Project Dialog */}
       <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-        <AlertDialogContent className="bg-card border-border">
+        <AlertDialogContent className="bg-white/[0.03] backdrop-blur-2xl border-white/[0.1] shadow-[0_16px_48px_rgba(0,0,0,0.5),0_0_40px_rgba(239,68,68,0.1)]">
           <AlertDialogHeader>
-            <AlertDialogTitle>Удалить проект?</AlertDialogTitle>
-            <AlertDialogDescription>
+            <AlertDialogTitle className="text-white">Удалить проект?</AlertDialogTitle>
+            <AlertDialogDescription className="text-white/60">
               Проект "{projectToDelete?.name}" будет удалён безвозвратно. Все данные будут потеряны.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Отмена</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteProject} className="bg-red-600 hover:bg-red-700">
+            <AlertDialogCancel className="border-white/10 hover:bg-white/5">Отмена</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteProject} className="bg-red-600 hover:bg-red-700 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
               Удалить
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -564,7 +564,7 @@ const Logo = ({ hasErrors }: LogoProps) => {
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="bg-gradient-to-r from-primary via-emerald-400 to-lime-400 bg-clip-text text-transparent font-bold text-base">
+        <span className="bg-gradient-to-r from-primary via-cyan-300 to-primary bg-clip-text text-transparent font-bold text-base">
           MarkVision AI
         </span>
         <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">

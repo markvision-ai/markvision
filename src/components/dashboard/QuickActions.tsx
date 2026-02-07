@@ -53,13 +53,6 @@ const defaultActions: QuickAction[] = [
     color: 'text-cyan-500 bg-cyan-500/10 group-hover:bg-cyan-500/20'
   },
   {
-    label: 'Декомпозиция',
-    icon: BarChart3,
-    tab: 'finance',
-    description: 'Финансовый анализ',
-    color: 'text-cyan-500 bg-cyan-500/10 group-hover:bg-cyan-500/20'
-  },
-  {
     label: 'Финансы',
     icon: Wallet,
     tab: 'finance',
@@ -113,7 +106,7 @@ export const QuickActions = ({ onTabChange, className }: QuickActionsProps) => {
               key={action.tab}
               variants={itemVariants}
               onClick={() => onTabChange(action.tab)}
-              className="quick-action-card group"
+              className="quick-action-card group interstellar-glow"
             >
               <div className={cn(
                 "action-icon transition-all duration-200",

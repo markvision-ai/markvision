@@ -284,7 +284,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const profit = totalIncome - totalExpense;
-  const margin = totalIncome > 0 ? ((profit / totalIncome) * 100).toFixed(1) : '0';
+  const margin = totalIncome > 0 ? Math.round((profit / totalIncome) * 100) : 0;
 
   // Prepare monthly chart data
   const chartData = useMemo(() => {
