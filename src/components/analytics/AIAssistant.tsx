@@ -1,16 +1,16 @@
 import { useState, useRef, useEffect, forwardRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { 
-  Send, 
-  User, 
-  Trash2, 
-  Sparkles, 
-  TrendingUp, 
-  Target, 
-  Lightbulb, 
-  MessageSquare, 
-  BarChart3, 
-  ArrowUpRight, 
+import {
+  Send,
+  User,
+  Trash2,
+  Sparkles,
+  TrendingUp,
+  Target,
+  Lightbulb,
+  MessageSquare,
+  BarChart3,
+  ArrowUpRight,
   ArrowDownRight,
   Maximize2,
   RefreshCcw,
@@ -41,13 +41,13 @@ import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip as RechartsTooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
   ResponsiveContainer,
   Cell
 } from 'recharts';
@@ -107,7 +107,7 @@ const useMarkStatus = () => {
         checkStatus(data.last_seen);
         return;
       }
-      
+
       const bridge = await supabase
         .from('ai_bridge_tasks')
         .select('updated_at,status')
@@ -127,9 +127,9 @@ const useMarkStatus = () => {
     const channel = supabase.channel('system_health_ai_worker')
       .on(
         'postgres_changes',
-        { 
-          event: '*', 
-          schema: 'public', 
+        {
+          event: '*',
+          schema: 'public',
           table: 'system_health',
           filter: "service_name=eq.ai_worker"
         },
@@ -196,7 +196,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
     { name: 'Продажи', value: data.sales, fill: '#84cc16' },
   ];
 
-  const formatCurrency = (val: number) => 
+  const formatCurrency = (val: number) =>
     new Intl.NumberFormat('ru-RU', { style: 'currency', currency: 'KZT', maximumFractionDigits: 0 }).format(val);
 
   return (
@@ -224,7 +224,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               <p className="text-sm text-muted-foreground">Интеллектуальный анализ ваших показателей</p>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-2">
             {!hideDashboard && (
               <Popover>
@@ -262,32 +262,32 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                         <div className="grid gap-2">
                           <div className="flex items-center justify-between">
                             <Label htmlFor="show-spend" className="text-sm font-normal">Расход</Label>
-                            <Switch 
-                              id="show-spend" 
+                            <Switch
+                              id="show-spend"
                               checked={visibleMetrics.spend}
                               onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, spend: c }))}
                             />
                           </div>
                           <div className="flex items-center justify-between">
                             <Label htmlFor="show-revenue" className="text-sm font-normal">Выручка</Label>
-                            <Switch 
-                              id="show-revenue" 
+                            <Switch
+                              id="show-revenue"
                               checked={visibleMetrics.revenue}
                               onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, revenue: c }))}
                             />
                           </div>
                           <div className="flex items-center justify-between">
                             <Label htmlFor="show-romi" className="text-sm font-normal">ROMI</Label>
-                            <Switch 
-                              id="show-romi" 
+                            <Switch
+                              id="show-romi"
                               checked={visibleMetrics.romi}
                               onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, romi: c }))}
                             />
                           </div>
                           <div className="flex items-center justify-between">
                             <Label htmlFor="show-cpl" className="text-sm font-normal">CPL</Label>
-                            <Switch 
-                              id="show-cpl" 
+                            <Switch
+                              id="show-cpl"
                               checked={visibleMetrics.cpl}
                               onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, cpl: c }))}
                             />
@@ -308,10 +308,10 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                 </TabsList>
               </Tabs>
             )}
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
+
+            <Button
+              variant="outline"
+              size="icon"
               onClick={() => setIsExpanded(!isExpanded)}
               className="ml-2"
             >
@@ -322,51 +322,51 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 
         {/* Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full min-h-[500px]">
-          
+
           {/* LEFT COLUMN: Visualizations & Metrics */}
           {!hideDashboard && (
             <div className={cn(
               "lg:col-span-2 space-y-6 flex flex-col",
               activeTab === 'chat' && "hidden lg:flex" // Hide on mobile if chat tab active
             )}>
-              
+
               {/* KPI Cards */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {visibleMetrics.spend && (
-                  <MetricCard 
-                    title="Расход" 
-                    value={formatCurrency(data.spend)} 
-                    trend="+12%" 
+                  <MetricCard
+                    title="Расход"
+                    value={formatCurrency(data.spend)}
+                    trend="+12%"
                     trendUp={false}
                     icon={Target}
                     color="text-red-500"
                   />
                 )}
                 {visibleMetrics.revenue && (
-                  <MetricCard 
-                    title="Выручка" 
-                    value={formatCurrency(data.revenue)} 
-                    trend="+24%" 
+                  <MetricCard
+                    title="Выручка"
+                    value={formatCurrency(data.revenue)}
+                    trend="+24%"
                     trendUp={true}
                     icon={TrendingUp}
                     color="text-green-500"
                   />
                 )}
                 {visibleMetrics.romi && (
-                  <MetricCard 
-                    title="ROMI" 
-                    value={`${data.romi}%`} 
-                    trend="+5%" 
+                  <MetricCard
+                    title="ROMI"
+                    value={`${data.romi}%`}
+                    trend="+5%"
                     trendUp={true}
                     icon={BarChart3}
                     color="text-blue-500"
                   />
                 )}
                 {visibleMetrics.cpl && (
-                  <MetricCard 
-                    title="CPL" 
-                    value={formatCurrency(data.cpl)} 
-                    trend="-8%" 
+                  <MetricCard
+                    title="CPL"
+                    value={formatCurrency(data.cpl)}
+                    trend="-8%"
                     trendUp={true}
                     icon={User}
                     color="text-indigo-500"
@@ -390,18 +390,18 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                     <BarChart data={funnelData} layout="vertical" margin={{ top: 5, right: 30, left: 40, bottom: 5 }}>
                       <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="hsl(var(--border))" opacity={0.5} />
                       <XAxis type="number" hide />
-                      <YAxis 
-                        dataKey="name" 
-                        type="category" 
-                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }} 
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        tick={{ fill: 'hsl(var(--foreground))', fontSize: 12 }}
                         width={60}
                         axisLine={false}
                         tickLine={false}
                       />
-                      <RechartsTooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'hsl(var(--card))', 
-                          borderColor: 'hsl(var(--border))', 
+                      <RechartsTooltip
+                        contentStyle={{
+                          backgroundColor: 'hsl(var(--card))',
+                          borderColor: 'hsl(var(--border))',
                           borderRadius: '8px',
                           color: 'hsl(var(--foreground))'
                         }}
@@ -426,7 +426,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                   <div>
                     <h4 className="font-semibold text-sm mb-1">AI-Инсайт дня</h4>
                     <p className="text-sm text-muted-foreground">
-                      Ваша конверсия из клика в лид выросла на 15% за последние 3 дня. 
+                      Ваша конверсия из клика в лид выросла на 15% за последние 3 дня.
                       Рекомендуем увеличить бюджет на кампании с CTR выше 2%.
                     </p>
                   </div>
@@ -531,7 +531,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      
+
       <CardContent className="flex-1 p-0 overflow-hidden relative">
         <ScrollArea ref={scrollRef} className="h-full p-4">
           {messages.length === 0 ? (
@@ -596,10 +596,10 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
             className="pr-10 bg-background"
             disabled={isLoading}
           />
-          <Button 
-            onClick={handleSend} 
+          <Button
+            onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            size="icon" 
+            size="icon"
             className="absolute right-1 top-1 h-8 w-8 rounded-md"
           >
             <Send className="w-4 h-4" />
@@ -612,12 +612,12 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
 
 const LogViewer = ({ logs }: { logs: string[] }) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   if (!logs || logs.length === 0) return null;
 
   return (
     <div className="w-full mb-2">
-      <div 
+      <div
         onClick={() => setIsOpen(!isOpen)}
         className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors w-fit"
       >
@@ -627,7 +627,7 @@ const LogViewer = ({ logs }: { logs: string[] }) => {
         </span>
         {isOpen ? <ChevronUp className="w-3 h-3 text-muted-foreground" /> : <ChevronDown className="w-3 h-3 text-muted-foreground" />}
       </div>
-      
+
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -674,10 +674,10 @@ const StatsCard = ({ data }: { data: any }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
       {metrics.map((m, i) => (
-        <div key={i} className="relative overflow-hidden group bg-white/5 backdrop-blur-md border border-white/10 rounded-xl p-3 flex flex-col items-center text-center shadow-[0_4px_20px_-4px_rgba(0,0,0,0.1)] hover:shadow-[0_4px_20px_-4px_rgba(255,255,255,0.1)] transition-all duration-300">
-           <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
-           <span className="text-lg font-bold text-foreground drop-shadow-sm relative z-10">{formatValue(m.value, m.format)}</span>
+        <div key={i} className="relative overflow-hidden group bg-card/50 backdrop-blur-md border border-border/50 rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+          <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
+          <span className="text-lg font-bold text-foreground drop-shadow-sm relative z-10">{formatValue(m.value, m.format)}</span>
         </div>
       ))}
     </div>
@@ -686,7 +686,7 @@ const StatsCard = ({ data }: { data: any }) => {
 
 const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => {
   const [displayedText, setDisplayedText] = useState(isStreaming ? '' : text);
-  
+
   useEffect(() => {
     if (!isStreaming) {
       setDisplayedText(text);
@@ -696,12 +696,12 @@ const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => 
     if (displayedText === text) return;
 
     if (text.length < displayedText.length) {
-       setDisplayedText(text);
-       return;
+      setDisplayedText(text);
+      return;
     }
 
     const timeout = setTimeout(() => {
-       setDisplayedText(text.slice(0, displayedText.length + 1));
+      setDisplayedText(text.slice(0, displayedText.length + 1));
     }, speed);
 
     return () => clearTimeout(timeout);
@@ -713,7 +713,7 @@ const useStreamTypewriter = (text: string, isStreaming: boolean, speed = 10) => 
 const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ message }, ref) => {
   const isUser = message.role === 'user';
   const [copied, setCopied] = useState(false);
-  
+
   // Try parsing JSON content
   let jsonContent = null;
   let textContent = message.content;
@@ -722,17 +722,17 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
     if (!isUser && message.content) {
       // Check if pure JSON
       if (message.content.trim().startsWith('{')) {
-         jsonContent = JSON.parse(message.content);
-         textContent = ""; // Hide raw JSON if successfully parsed
-      } 
+        jsonContent = JSON.parse(message.content);
+        textContent = ""; // Hide raw JSON if successfully parsed
+      }
       // Check for JSON block
       else if (message.content.includes('```json')) {
-         const match = message.content.match(/```json\n([\s\S]*?)\n```/);
-         if (match) {
-           jsonContent = JSON.parse(match[1]);
-           // Remove the JSON block from text content to avoid duplicate display
-           textContent = message.content.replace(match[0], '');
-         }
+        const match = message.content.match(/```json\n([\s\S]*?)\n```/);
+        if (match) {
+          jsonContent = JSON.parse(match[1]);
+          // Remove the JSON block from text content to avoid duplicate display
+          textContent = message.content.replace(match[0], '');
+        }
       }
     }
   } catch (e) {
@@ -747,7 +747,7 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
       jsonContent ? `Метрики:\n${JSON.stringify(jsonContent, null, 2)}` : '',
       textContent
     ].filter(Boolean).join('\n\n');
-    
+
     navigator.clipboard.writeText(textToCopy);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -762,9 +762,9 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
       className={cn("flex flex-col gap-2", isUser ? "items-end" : "items-start")}
     >
       {!isUser && message.logs && message.logs.length > 0 && (
-         <div className="pl-11 w-full max-w-[90%]">
-            <LogViewer logs={message.logs} />
-         </div>
+        <div className="pl-11 w-full max-w-[90%]">
+          <LogViewer logs={message.logs} />
+        </div>
       )}
 
       <div className={cn("flex gap-3 max-w-[90%]", isUser ? "flex-row-reverse" : "flex-row")}>
@@ -774,13 +774,13 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
         )}>
           {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary" />}
         </div>
-        
+
         <div className="flex flex-col gap-2 w-full">
           {(isUser || textContent || jsonContent) && (
             <div className={cn(
               "rounded-2xl px-4 py-3 text-sm shadow-sm",
-              isUser 
-                ? "bg-primary text-primary-foreground rounded-tr-sm" 
+              isUser
+                ? "bg-primary text-primary-foreground rounded-tr-sm"
                 : "bg-card border rounded-tl-sm"
             )}>
               {isUser ? (
@@ -790,37 +790,37 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
                   {jsonContent && (
                     <div className="mb-4">
                       <div className="flex items-center gap-2 mb-2 text-muted-foreground">
-                         <Activity className="w-4 h-4" />
-                         <span className="text-xs font-medium">Результаты анализа:</span>
+                        <Activity className="w-4 h-4" />
+                        <span className="text-xs font-medium">Результаты анализа:</span>
                       </div>
                       <StatsCard data={jsonContent} />
                     </div>
                   )}
-                  
+
                   {textContent && (
                     <ReactMarkdown
                       components={{
-                        h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-foreground mt-4 mb-2" {...props} />,
-                        h2: ({node, ...props}) => <h2 className="text-xl font-bold text-foreground mt-3 mb-2" {...props} />,
-                        ul: ({node, ...props}) => <ul className="list-none space-y-1 my-2 pl-0" {...props} />,
-                        li: ({node, ...props}) => (
+                        h1: ({ node, ...props }) => <h1 className="text-2xl font-bold text-foreground mt-4 mb-2" {...props} />,
+                        h2: ({ node, ...props }) => <h2 className="text-xl font-bold text-foreground mt-3 mb-2" {...props} />,
+                        ul: ({ node, ...props }) => <ul className="list-none space-y-1 my-2 pl-0" {...props} />,
+                        li: ({ node, ...props }) => (
                           <li className="flex items-start gap-2 relative pl-4" {...props}>
                             <span className="absolute left-0 top-1.5 w-1.5 h-1.5 rounded-full bg-primary" />
                             <span className="text-muted-foreground">{props.children}</span>
                           </li>
                         ),
-                        p: ({node, ...props}) => <p className="leading-relaxed mb-2 text-muted-foreground" {...props} />,
-                        strong: ({node, ...props}) => <strong className="font-semibold text-foreground" {...props} />,
+                        p: ({ node, ...props }) => <p className="leading-relaxed mb-2 text-muted-foreground" {...props} />,
+                        strong: ({ node, ...props }) => <strong className="font-semibold text-foreground" {...props} />,
                       }}
                     >
                       {displayedText}
                     </ReactMarkdown>
                   )}
-                  
+
                   <div className="mt-4 pt-2 border-t border-border/50 flex justify-end">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={handleCopy}
                       className="text-[10px] text-muted-foreground hover:text-foreground gap-1.5 h-6 px-2"
                     >

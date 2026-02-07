@@ -45,10 +45,10 @@ interface SearchResult {
   action: () => void;
 }
 
-export const Header = ({ 
-  title, 
-  subtitle, 
-  dateRange, 
+export const Header = ({
+  title,
+  subtitle,
+  dateRange,
   onDateRangeChange,
   showDatePicker = false,
   onPresetChange,
@@ -65,7 +65,7 @@ export const Header = ({
   const [isSearching, setIsSearching] = useState(false);
 
   return (
-    <header className="h-14 md:h-16 border-b bg-card/80 backdrop-blur-sm flex items-center justify-between px-3 md:px-6 sticky top-0 z-10">
+    <header className="h-16 md:h-20 border-b border-border/10 bg-card/60 dark:bg-slate-900/40 backdrop-blur-lg flex items-center justify-between px-3 md:px-8 sticky top-0 z-50 transition-all duration-300">
       <div className="flex items-center gap-3">
         {/* Mobile Menu Button */}
         <button
@@ -75,7 +75,7 @@ export const Header = ({
         >
           <Menu className="w-5 h-5" />
         </button>
-        
+
         <div className="min-w-0">
           <h1 className="text-base md:text-xl font-semibold truncate">{title}</h1>
           {subtitle && <p className="text-xs md:text-sm text-muted-foreground truncate hidden sm:block">{subtitle}</p>}
@@ -98,8 +98,8 @@ export const Header = ({
         {/* Date Range Picker */}
         {showDatePicker && dateRange && onDateRangeChange && (
           <div className="hidden sm:block">
-            <DateRangePicker 
-              dateRange={dateRange} 
+            <DateRangePicker
+              dateRange={dateRange}
               onDateRangeChange={onDateRangeChange}
               onPresetChange={onPresetChange}
             />

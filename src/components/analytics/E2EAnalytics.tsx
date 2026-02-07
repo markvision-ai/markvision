@@ -473,8 +473,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Meta Ads (Beta)</CardTitle>
-            <Globe className="w-4 h-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Meta Ads (Beta)</CardTitle>
+            <Globe className="w-4 h-4 text-blue-500 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-3">
@@ -486,17 +486,17 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             </div>
             {metaMetrics && (
               <div className="mt-3 grid grid-cols-3 gap-2 text-xs">
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="text-white/60">Расход</div>
-                  <div className="font-bold text-white">{formatCurrencyShort(metaMetrics.spend)}</div>
+                <div className="p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Расход</div>
+                  <div className="font-bold text-foreground">{formatCurrencyShort(metaMetrics.spend)}</div>
                 </div>
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="text-white/60">Показы</div>
-                  <div className="font-bold text-white">{formatNumber(metaMetrics.impressions)}</div>
+                <div className="p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Показы</div>
+                  <div className="font-bold text-foreground">{formatNumber(metaMetrics.impressions)}</div>
                 </div>
-                <div className="p-2 bg-white/5 rounded">
-                  <div className="text-white/60">Клики</div>
-                  <div className="font-bold text-white">{formatNumber(metaMetrics.clicks)}</div>
+                <div className="p-2 bg-muted/50 rounded">
+                  <div className="text-muted-foreground">Клики</div>
+                  <div className="font-bold text-foreground">{formatNumber(metaMetrics.clicks)}</div>
                 </div>
               </div>
             )}
@@ -504,8 +504,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         </Card>
         <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Расходы (РК)</CardTitle>
-            <DollarSign className="w-4 h-4 text-emerald-400" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Расходы (РК)</CardTitle>
+            <DollarSign className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{formatCurrencyShort(filteredTotals.spend)}</div>
@@ -515,8 +515,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Лиды</CardTitle>
-            <Users className="w-4 h-4 text-blue-400" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Лиды</CardTitle>
+            <Users className="w-4 h-4 text-blue-500 dark:text-blue-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{formatNumber(filteredTotals.leads)}</div>
@@ -526,8 +526,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
         <Card className="bg-card border border-border">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Диагностика</CardTitle>
-            <Target className="w-4 h-4 text-purple-400" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Диагностика</CardTitle>
+            <Target className="w-4 h-4 text-purple-500 dark:text-purple-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{filteredTotals.visits}</div>
@@ -538,8 +538,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         <Card className="bg-card border border-border relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-transparent pointer-events-none" />
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-white/60">Выручка</CardTitle>
-            <ShoppingCart className="w-4 h-4 text-emerald-400" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Выручка</CardTitle>
+            <ShoppingCart className="w-4 h-4 text-emerald-500 dark:text-emerald-400" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-foreground">{formatCurrencyShort(filteredTotals.revenue)}</div>
@@ -551,8 +551,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <Card className="premium-card p-6">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white/80 text-sm">MarkVision Online</CardTitle>
-            <CardDescription className="text-white/60 text-sm">Система готова к анализу прибыли.</CardDescription>
+            <CardTitle className="text-foreground/90 text-sm">MarkVision Online</CardTitle>
+            <CardDescription className="text-muted-foreground text-sm">Система готова к анализу прибыли.</CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             <AIAssistant context={{ projectId: pid, romi: roi, cac, cpl, revenue: revenueSum, spend: totalSpend, impressions, clicks, leads: leadsCount, sales: salesCount }} />
@@ -560,8 +560,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
         </Card>
         <Card className="premium-card p-6 col-span-2">
           <CardHeader className="pb-2">
-            <CardTitle className="text-white/80 text-sm">Impression → Profit</CardTitle>
-            <CardDescription className="text-white/60 text-xs">Путь клиента от показа до прибыли</CardDescription>
+            <CardTitle className="text-foreground/90 text-sm">Impression → Profit</CardTitle>
+            <CardDescription className="text-muted-foreground text-xs">Путь клиента от показа до прибыли</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 md:grid-cols-6 gap-3">

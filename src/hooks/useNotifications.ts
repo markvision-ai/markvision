@@ -57,7 +57,7 @@ export const useNotifications = (projectId?: string) => {
       const today = new Date();
       const weekAgo = new Date(today);
       weekAgo.setDate(weekAgo.getDate() - 7);
-      
+
       const twoWeeksAgo = new Date(today);
       twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
@@ -65,14 +65,14 @@ export const useNotifications = (projectId?: string) => {
       const { data: projects, error: projectsError } = await supabase
         .from('projects')
         .select('id, name');
-        // .abortSignal(signal);
+      // .abortSignal(signal);
 
       if (projectsError) throw projectsError;
 
       if (!projects || projects.length === 0) {
         // if (!signal.aborted) {
-          setNotifications([]);
-          setLoading(false);
+        setNotifications([]);
+        setLoading(false);
         // }
         return;
       }
@@ -96,15 +96,15 @@ export const useNotifications = (projectId?: string) => {
           .select('*')
           .gte('date', weekAgoStr)
           .lte('date', todayStr),
-          // .abortSignal(signal),
-        
+        // .abortSignal(signal),
+
         // 2. Previous Week Data
         supabase
           .from('daily_data')
           .select('*')
           .gte('date', twoWeeksAgoStr)
           .lt('date', weekAgoStr),
-          // .abortSignal(signal),
+        // .abortSignal(signal),
 
         // 3. New Leads Today (Count only)
         supabase
@@ -112,7 +112,7 @@ export const useNotifications = (projectId?: string) => {
           .select('id', { count: 'exact' })
           .gte('created_at', todayStr)
           .limit(1),
-          // .abortSignal(signal),
+        // .abortSignal(signal),
 
         // 4. Webhook Errors (Count only)
         supabase
@@ -121,24 +121,24 @@ export const useNotifications = (projectId?: string) => {
           .eq('status', 'error')
           .gte('received_at', weekAgoIso)
           .limit(1),
-          // .abortSignal(signal),
+        // .abortSignal(signal),
 
         // 5. Recent Data Gaps
         supabase
           .from('daily_data')
           .select('project_id')
           .in('date', Array.from({ length: 3 }, (_, i) => {
-             const d = new Date(today);
-             d.setDate(d.getDate() - i - 1);
-             return d.toISOString().split('T')[0];
-           }))
-          // .abortSignal(signal)
+            const d = new Date(today);
+            d.setDate(d.getDate() - i - 1);
+            return d.toISOString().split('T')[0];
+          }))
+        // .abortSignal(signal)
       ]);
 
       // Process Results
       const currentWeekData = currentWeekResult.status === 'fulfilled' ? currentWeekResult.value.data : [];
       const prevWeekData = prevWeekResult.status === 'fulfilled' ? prevWeekResult.value.data : [];
-      
+
       // ... Processing Logic ...
 
       // Aggregate by project
@@ -305,7 +305,7 @@ export const useNotifications = (projectId?: string) => {
 
         for (const project of projects) {
           if (projectId && project.id !== projectId) continue;
-          
+
           if (!projectIdsWithData.has(project.id)) {
             const existingGapNotification = newNotifications.find(n => n.id === `data-gap-${project.id}`);
             if (!existingGapNotification) {
@@ -347,8 +347,8 @@ export const useNotifications = (projectId?: string) => {
       // Check for abort/network errors or empty messages to prevent console noise
       if (
         !error ||
-        error.name === 'AbortError' || 
-        error.message?.includes('AbortError') || 
+        error.name === 'AbortError' ||
+        error.message?.includes('AbortError') ||
         error.message?.includes('aborted') ||
         error.message?.includes('Failed to fetch') ||
         error.message?.includes('NetworkError') ||
@@ -383,16 +383,16 @@ export const useNotifications = (projectId?: string) => {
       const { data, error } = await client
         .from('system_notifications')
         .select('*')
-        .eq('user_id', user.id)
         .order('created_at', { ascending: false })
         .limit(50);
 
       // Update is_read status if needed
-      await client
-        .from('system_notifications')
-        .update({ is_read: true }) 
-        .eq('user_id', user.id)
-        .eq('is_read', false);
+      if (data && data.length > 0) {
+        await client
+          .from('system_notifications')
+          .update({ is_read: true })
+          .eq('is_read', false);
+      }
 
       // Handle errors gracefully - if table doesn't exist, empty, or access denied, use empty array (not error)
       if (error) {
@@ -400,7 +400,7 @@ export const useNotifications = (projectId?: string) => {
         generateNotifications().then(() => {
           setNotifications(prev => {
             const merged = [...systemNotifications, ...prev];
-            const unique = merged.filter((n, index, self) => 
+            const unique = merged.filter((n, index, self) =>
               index === self.findIndex(t => t.id === n.id)
             );
             return unique;
@@ -427,7 +427,7 @@ export const useNotifications = (projectId?: string) => {
         setNotifications(prev => {
           const merged = [...systemNotifications, ...prev];
           // Remove duplicates by id
-          const unique = merged.filter((n, index, self) => 
+          const unique = merged.filter((n, index, self) =>
             index === self.findIndex(t => t.id === n.id)
           );
           return unique;
@@ -445,7 +445,7 @@ export const useNotifications = (projectId?: string) => {
 
   useEffect(() => {
     fetchSystemNotifications();
-    
+
     // Subscribe to realtime changes
     if (user) {
       const channel = supabase
@@ -456,7 +456,6 @@ export const useNotifications = (projectId?: string) => {
             event: '*',
             schema: 'public',
             table: 'system_notifications',
-            filter: `user_id=eq.${user.id}`
           },
           () => {
             fetchSystemNotifications();
@@ -488,7 +487,7 @@ export const useNotifications = (projectId?: string) => {
     }
 
     // Update local state
-    setNotifications(prev => 
+    setNotifications(prev =>
       prev.map(n => n.id === notificationId ? { ...n, read: true } : n)
     );
   }, []);
@@ -503,7 +502,6 @@ export const useNotifications = (projectId?: string) => {
       await client
         .from('system_notifications')
         .update({ is_read: true })
-        .eq('user_id', user.id)
         .eq('is_read', false);
     } catch (error) {
       console.error('Error marking all notifications as read:', error);

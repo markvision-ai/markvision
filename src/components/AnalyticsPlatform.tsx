@@ -841,8 +841,8 @@ export const AnalyticsPlatform = () => {
               onProjectChange={setCurrentProjectId}
             />
 
-            {/* Desktop Header with interstellar glass */}
-            <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
+            {/* Desktop Header Container - Inner Header handles the glass look */}
+            <header className="hidden md:block sticky top-0 z-40 bg-transparent">
               <Header
                 onTabChange={handleTabChange}
                 title={getTabTitle()}
