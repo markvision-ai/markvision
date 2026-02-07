@@ -22,24 +22,33 @@ html {
 
 @layer base {
   :root {
-    /* Light Mode - DEFAULT */
-    --background: 0 0% 100%;
+    /* ============================================
+       LIGHT MODE - GLASS CLEAN STYLE (Apple/Stripe-like)
+       ============================================ */
+    --background: 210 40% 98%;
+    /* Slate 50 - Soft White */
     --foreground: 222.2 84% 4.9%;
+    /* Slate 950 - Deep Navy */
 
-    --card: 0 0% 100%;
+    /* Glass Cards - Light Mode */
+    --card: 0 0% 100% / 0.7;
+    /* White with transparency */
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
+    --popover: 0 0% 100% / 0.8;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 142 85% 48%;
+    --primary: 222.2 47.4% 11.2%;
+    /* Deep Navy as Primary in Light Mode for contrast */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 197 93% 59%;
+    --secondary: 210 40% 96.1%;
+    /* Slate 100 */
     --secondary-foreground: 222.2 47.4% 11.2%;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
+    /* Slate 500 */
 
     --accent: 210 40% 96.1%;
     --accent-foreground: 222.2 47.4% 11.2%;
@@ -47,13 +56,20 @@ html {
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
+    /* Light Glass Borders */
+    --border: 214.3 31.8% 91.4% / 0.8;
+    /* Subtle borders */
     --input: 214.3 31.8% 91.4%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 0.5rem;
+    /* Light Glass Effects */
+    --glass-border: 0 0% 0% / 0.05;
+    --glass-highlight: 255 255% 255% / 0.5;
 
-    --sidebar: 0 0% 98%;
+    --radius: 0.75rem;
+    /* Rounded corners for modern feel */
+
+    --sidebar: 0 0% 100% / 0.8;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-muted: 240 4.8% 95.9%;
   }
@@ -70,7 +86,6 @@ html {
     --card-foreground: 210 40% 98%;
 
     --popover: 222.2 47% 6% / 0.9;
-    /* Почти непрозрачный для читаемости */
     --popover-foreground: 210 40% 98%;
 
     --primary: 142 70% 50%;
@@ -78,16 +93,12 @@ html {
     --primary-foreground: 144 100% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
-    /* Slate 800 */
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 17% / 0.5;
-    /* Slate 800 */
     --muted-foreground: 215 20% 70%;
-    /* Slate 400 */
 
     --accent: 217.2 32.6% 17.5%;
-    /* Slate 800 */
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -96,13 +107,14 @@ html {
     --border: 217 33% 20% / 0.3;
     /* Очень прозрачные границы */
     --input: 217 33% 15% / 0.5;
+
     /* Cyberpunk Glows */
     --glass-border: 255 255% 255% / 0.08;
     --glass-highlight: 255 255% 255% / 0.05;
-    --ring: 212.7 26.8% 83.9%;
-    /* Slate 300 */
 
-    --radius: 0.5rem;
+    --ring: 212.7 26.8% 83.9%;
+
+    --radius: 0.75rem;
 
     /* Sidebar - Match Background for seamless look */
     --sidebar: 222.2 84% 4.9%;
@@ -117,12 +129,26 @@ html {
   }
 
   body {
-    /* Global Gradient from Landing Page */
-    @apply bg-gradient-to-b from-slate-950 via-slate-900 to-black text-foreground antialiased transition-colors duration-300 min-h-screen selection:bg-primary/30 selection:text-primary-foreground;
+    /* Adaptive Gradient: Light uses soft texture, Dark uses deep space gradient */
+    @apply bg-background text-foreground antialiased transition-colors duration-500 min-h-screen selection:bg-primary/30 selection:text-primary-foreground;
     font-family: 'Inter', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+  }
+
+  /* Light Mode Background Gradient */
+  :root body {
+    background-image: radial-gradient(at 0% 0%, hsla(210, 40%, 96%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 0%, hsla(220, 40%, 96%, 1) 0, transparent 50%),
+      radial-gradient(at 100% 100%, hsla(200, 40%, 96%, 1) 0, transparent 50%);
+    background-attachment: fixed;
+  }
+
+  /* Dark Mode Background Gradient */
+  .dark body {
+    background-image: linear-gradient(to bottom, hsl(222.2 84% 4.9%), hsl(222.2 84% 2%));
+    background-attachment: fixed;
   }
 
   /* Improved typography for better readability */
