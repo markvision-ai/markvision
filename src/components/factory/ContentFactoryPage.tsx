@@ -7,6 +7,7 @@ import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
 import { ContentFactoryWizard } from './wizard/ContentFactoryWizard';
+import { CompetitorsPage } from '../competitors/CompetitorsPage';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -62,7 +63,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
 
         {/* Competitors Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'competitors' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
-          <CompetitorMonitoring projectId={projectId} />
+          <CompetitorsPage projectId={projectId} />
         </div>
 
         {/* Analysis Tab Content */}

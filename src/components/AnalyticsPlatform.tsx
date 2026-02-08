@@ -66,6 +66,7 @@ const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => (
 const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
 const OmnichannelInbox = lazy(() => import('./inbox/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
 const LeadScoring = lazy(() => import('./scoring/LeadScoring').then(m => ({ default: m.LeadScoring })));
+const CompetitorsPage = lazy(() => import('./competitors/CompetitorsPage').then(m => ({ default: m.CompetitorsPage })));
 
 const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ default: m.ABOptimizer })));
 const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
@@ -127,6 +128,7 @@ export const AnalyticsPlatform = () => {
     const urlToTab: Record<string, string> = {
       'quantum-ads': 'quantom-ads',
       'content-factory': 'factory',
+      'competitors': 'factory',
       'ab-tests': 'ab-testing',
       'analytics': 'e2e-analytics',
     };
@@ -406,6 +408,7 @@ export const AnalyticsPlatform = () => {
       case 'visits': return '📋 Диагностика';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
+      case 'competitors': return '🎯 Мониторинг конкурентов';
       default: return 'Раздел в разработке';
     }
   };
@@ -758,7 +761,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop', 'competitors'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
