@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
-import { Loader2, Save, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Loader2, Save, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { useFinancialMonthData } from '@/hooks/useFinancialMonthData';
 import { format, subMonths, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { ChannelFinancialModel, ChannelData } from './ChannelFinancialModel';
 import { supabase } from '@/integrations/supabase/client';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface FinancialDecompositionProps {
   projectId: string;
@@ -28,17 +29,11 @@ const DEFAULT_DATA: ChannelData = {
 };
 
 export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProps) => {
-  // Date Selection
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const [saveLoading, setSaveLoading] = useState(false);
-
-  // Fetch Global Data
   const { loading: dataLoading, plan, fact, savePlan } = useFinancialMonthData(projectId, selectedMonth);
-
-  // Model Data State
   const [modelData, setModelData] = useState<ChannelData>(DEFAULT_DATA);
 
-  // Load Plan from DB when available
   useEffect(() => {
     if (plan) {
       setModelData(prev => ({
@@ -57,7 +52,6 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
     }
   }, [plan]);
 
-  // Persist local UI state (calcMode, budgetInput) to localStorage
   useEffect(() => {
     const monthStr = format(selectedMonth, 'yyyy-MM');
     const storageKey = `financial_model_ui_${projectId}_${monthStr}`;
@@ -89,13 +83,12 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       rationaleAvg: modelData.rationaleAvg,
       rationaleWorst: modelData.rationaleWorst
     }));
-  }, [modelData.calcMode, modelData.budgetInput, modelData.rationaleBest, modelData.rationaleAvg, modelData.rationaleWorst, projectId, selectedMonth]);
+  }, [modelData, projectId, selectedMonth]);
 
 
   const handleSaveAndAnalyze = async () => {
     setSaveLoading(true);
     try {
-      // Save Plan to DB
       const newPlan = {
         revenue_goal: modelData.revenueGoal,
         avg_check: modelData.avgCheck,
@@ -112,7 +105,6 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
       const success = await savePlan(newPlan);
       if (!success) throw new Error('Failed to save plan');
 
-      // Trigger AI Analysis
       const prompt = `Проанализируй финансовую декомпозицию за ${format(selectedMonth, 'LLLL yyyy', { locale: ru })}. 
       Цель: ${modelData.revenueGoal}, Бюджет: ${modelData.budgetInput}, CPL: ${modelData.cplAvg}.`;
 
@@ -123,7 +115,7 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
           prompt: prompt,
           status: 'pending'
         });
-        
+
       if (aiError) console.error('AI Task Error:', aiError);
 
       toast.success('Данные сохранены и отправлены на анализ');
@@ -136,43 +128,61 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
   };
 
   const handleMonthChange = (direction: 'prev' | 'next') => {
-    setSelectedMonth(current => 
+    setSelectedMonth(current =>
       direction === 'prev' ? subMonths(current, 1) : addMonths(current, 1)
     );
   };
 
   if (dataLoading) {
-    return <div className="flex items-center justify-center h-64"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6 w-full overflow-x-hidden pb-8 relative">
-      {/* Month Selection */}
-      <div className="flex items-center justify-between bg-card p-2 rounded-lg border shadow-sm">
-        <div className="flex items-center gap-2">
-           <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')}>
-             <ChevronLeft className="h-4 w-4" />
-           </Button>
-           <span className="text-sm font-medium min-w-[120px] text-center capitalize">
-             {format(selectedMonth, 'LLLL yyyy', { locale: ru })}
-           </span>
-           <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')}>
-             <ChevronRight className="h-4 w-4" />
-           </Button>
+      {/* Month Selection Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 interstellar-glass border border-white/5 p-2 rounded-2xl shadow-lg">
+        <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1">
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="hover:bg-white/10 rounded-lg w-8 h-8">
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={selectedMonth.toISOString()}
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="text-sm font-bold min-w-[140px] text-center capitalize text-foreground"
+            >
+              {format(selectedMonth, 'LLLL yyyy', { locale: ru })}
+            </motion.span>
+          </AnimatePresence>
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')} className="hover:bg-white/10 rounded-lg w-8 h-8">
+            <ChevronRight className="h-4 w-4" />
+          </Button>
         </div>
-        
-        <Button 
-          onClick={handleSaveAndAnalyze} 
-          disabled={saveLoading}
-          className="gap-2"
-        >
-          {saveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
-          Сохранить и Анализировать
-        </Button>
+
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="sm" className="hidden sm:flex" disabled>
+            <Share2 className="w-4 h-4 mr-2" />
+            Поделиться
+          </Button>
+          <Button
+            onClick={handleSaveAndAnalyze}
+            disabled={saveLoading}
+            className="gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 text-white border-0 rounded-xl"
+          >
+            {saveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+            Сохранить модель
+          </Button>
+        </div>
       </div>
 
-      <div className="space-y-6 animate-in fade-in-50 duration-300">
-        <ChannelFinancialModel 
+      <div className="space-y-6">
+        <ChannelFinancialModel
           channelName="Финансовая модель"
           data={modelData}
           onChange={setModelData}
