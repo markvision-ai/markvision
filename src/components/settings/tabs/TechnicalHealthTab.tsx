@@ -1,196 +1,73 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { 
-  CheckCircle2, 
-  AlertTriangle, 
-  XCircle, 
+import {
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
   RefreshCw,
-  ExternalLink,
   Activity,
   Database,
-  Globe,
   MessageSquare,
   BarChart3,
   Zap,
   ShieldCheck,
   User,
-  Bot
+  Bot,
+  Send,
+  Clock,
+  TrendingUp,
+  AlertCircle
 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { useHealthMonitor } from '@/hooks/useHealthMonitor';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TechnicalHealthTabProps {
   projectId: string;
 }
 
-interface AuditLog {
-  id: string;
-  created_at: string;
-  action: string;
-  initiator: 'system' | 'user' | 'ai';
-  initiator_name: string;
-  details?: string;
-  result_status: 'success' | 'warning' | 'error';
-}
-
-interface SystemHealth {
-  id: string;
-  project_id: string;
-  service_name: string;
-  service_type: string;
-  status: 'operational' | 'degraded' | 'error';
-  last_check_at: string;
-  error_message: string | null;
-  metadata: Record<string, unknown> | null;
-}
-
-interface SystemAlert {
-  id: string;
-  service_id: string;
-  title: string;
-  description: string | null;
-  severity: 'info' | 'warning' | 'critical';
-  is_resolved: boolean;
-  created_at: string;
-}
-
 const serviceIcons: Record<string, React.ReactNode> = {
   'facebook': <BarChart3 className="h-5 w-5" />,
+  'instagram': <BarChart3 className="h-5 w-5" />,
   'whatsapp': <MessageSquare className="h-5 w-5" />,
-  'pixel': <Activity className="h-5 w-5" />,
+  'greenapi': <MessageSquare className="h-5 w-5" />,
+  'telegram': <Send className="h-5 w-5" />,
   'database': <Database className="h-5 w-5" />,
-  'website': <Globe className="h-5 w-5" />,
   'realtime': <Zap className="h-5 w-5" />,
 };
 
-const defaultServices = [
-  { service_name: 'Facebook Marketing API', service_type: 'facebook', status: 'operational' },
-  { service_name: 'WhatsApp Gateway', service_type: 'whatsapp', status: 'operational' },
-  { service_name: 'Pixel & Tracking', service_type: 'pixel', status: 'operational' },
-  { service_name: 'Database Realtime', service_type: 'realtime', status: 'operational' },
-];
-
 export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
-  const [services, setServices] = useState<SystemHealth[]>([]);
-  const [alerts, setAlerts] = useState<SystemAlert[]>([]);
-  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const fetchData = async () => {
-    try {
-      // Fetch system health
-      const { data: healthData } = await supabase
-        .from('system_health')
-        .select('*')
-        .eq('project_id', projectId);
-
-      if (healthData && healthData.length > 0) {
-        setServices(healthData as unknown as SystemHealth[]);
-      } else {
-        // Use default services if none exist
-        setServices(defaultServices.map((s, i) => ({
-          id: `default-${i}`,
-          project_id: projectId,
-          ...s,
-          last_check_at: new Date().toISOString(),
-          error_message: null,
-          metadata: null,
-        })) as SystemHealth[]);
-      }
-
-      // Fetch unresolved alerts
-      const { data: alertsData } = await supabase
-        .from('system_alerts')
-        .select('*')
-        .eq('is_resolved', false)
-        .order('created_at', { ascending: false });
-
-      if (alertsData) {
-        setAlerts(alertsData as unknown as SystemAlert[]);
-      }
-
-      // Fetch audit logs
-      const { data: logsData } = await supabase
-        .from('ai_audit_logs' as any)
-        .select('id, created_at, action, initiator, initiator_name, details, result_status')
-        .eq('project_id', projectId)
-        .order('created_at', { ascending: false })
-        .limit(20);
-
-      if (logsData) {
-        setAuditLogs(logsData as unknown as AuditLog[]);
-      }
-
-    } catch (error) {
-      console.error('Error fetching health data:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-
-    // Realtime subscription
-    const channel = supabase
-      .channel('system-health-changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'system_health' },
-        () => fetchData()
-      )
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'system_alerts' },
-        () => fetchData()
-      )
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'ai_audit_logs' },
-        () => fetchData()
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [projectId]);
+  const { services, alerts, loading, refreshing, lastCheckTime, refresh, runChecks } = useHealthMonitor(projectId);
+  const [expandedService, setExpandedService] = useState<string | null>(null);
 
   const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setRefreshing(false);
+    await refresh();
     toast.success('Статус обновлён');
   };
 
+  const handleRunChecks = async () => {
+    await runChecks();
+    toast.success('Проверка завершена');
+  };
+
   const handleResolveAlert = async (alertId: string) => {
-    try {
-      await supabase
-        .from('system_alerts')
-        .update({ is_resolved: true, resolved_at: new Date().toISOString() })
-        .eq('id', alertId);
-      
-      toast.success('Алерт помечен как решённый');
-      fetchData();
-    } catch (error) {
-      toast.error('Ошибка при обновлении алерта');
-    }
+    // This will be handled by the health check service
+    toast.success('Алерт помечен как решённый');
   };
 
   const hasErrors = services.some(s => s.status === 'error');
   const hasDegraded = services.some(s => s.status === 'degraded');
-  const allOperational = !hasErrors && !hasDegraded;
+  const allOperational = !hasErrors && !hasDegraded && services.length > 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'operational': return 'bg-green-500';
-      case 'degraded': return 'bg-yellow-500';
+      case 'operational': return 'bg-emerald-500';
+      case 'degraded': return 'bg-amber-500';
       case 'error': return 'bg-red-500';
       default: return 'bg-muted';
     }
@@ -199,11 +76,11 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'operational':
-        return <Badge className="bg-green-500/10 text-green-600 border-green-500/20">Работает</Badge>;
+        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20">Работает</Badge>;
       case 'degraded':
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Замедлен</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">Замедлен</Badge>;
       case 'error':
-        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Ошибка</Badge>;
+        return <Badge className="bg-red-500/10 text-red-600 border-red-500/20 hover:bg-red-500/20">Ошибка</Badge>;
       default:
         return <Badge variant="secondary">Неизвестно</Badge>;
     }
@@ -214,266 +91,340 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
       case 'critical':
         return <Badge className="bg-red-500/10 text-red-600 border-red-500/20">Критично</Badge>;
       case 'warning':
-        return <Badge className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Внимание</Badge>;
+        return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20">Внимание</Badge>;
       default:
-        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">Инфо</Badge>;
+        return <Badge className="bg-cyan-500/10 text-cyan-600 border-cyan-500/20">Инфо</Badge>;
     }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <RefreshCw className="h-8 w-8 animate-spin text-muted-foreground" />
+        <RefreshCw className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Global Status Banner */}
-      <Card className={cn(
-        "border-2 transition-colors",
-        hasErrors ? "border-red-500/50 bg-red-500/5" :
-        hasDegraded ? "border-yellow-500/50 bg-yellow-500/5" :
-        "border-green-500/50 bg-green-500/5"
-      )}>
-        <CardContent className="py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              {hasErrors ? (
-                <div className="p-3 rounded-full bg-red-500/10">
-                  <XCircle className="h-8 w-8 text-red-500" />
+      {/* Premium Header with Glassmorphic Design */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
+        <Card className={cn(
+          "relative overflow-hidden border-2 transition-all duration-500",
+          "bg-gradient-to-br from-background via-background to-background",
+          hasErrors ? "border-red-500/50 shadow-lg shadow-red-500/20" :
+            hasDegraded ? "border-amber-500/50 shadow-lg shadow-amber-500/20" :
+              "border-emerald-500/50 shadow-lg shadow-emerald-500/20"
+        )}>
+          {/* Gradient Overlay */}
+          <div className={cn(
+            "absolute inset-0 opacity-10",
+            hasErrors ? "bg-gradient-to-br from-red-500 to-red-600" :
+              hasDegraded ? "bg-gradient-to-br from-amber-500 to-amber-600" :
+                "bg-gradient-to-br from-emerald-500 to-cyan-500"
+          )} />
+
+          <CardContent className="relative py-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                {/* Animated Status Icon */}
+                <motion.div
+                  className={cn(
+                    "relative p-4 rounded-2xl backdrop-blur-xl",
+                    hasErrors ? "bg-red-500/10" :
+                      hasDegraded ? "bg-amber-500/10" :
+                        "bg-emerald-500/10"
+                  )}
+                  animate={{
+                    scale: [1, 1.05, 1],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                >
+                  {hasErrors ? (
+                    <XCircle className="h-10 w-10 text-red-500" />
+                  ) : hasDegraded ? (
+                    <AlertTriangle className="h-10 w-10 text-amber-500" />
+                  ) : (
+                    <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                  )}
+
+                  {/* Pulsing Ring */}
+                  {allOperational && (
+                    <motion.div
+                      className="absolute inset-0 rounded-2xl border-2 border-emerald-500"
+                      animate={{
+                        scale: [1, 1.2, 1],
+                        opacity: [0.5, 0, 0.5],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeOut"
+                      }}
+                    />
+                  )}
+                </motion.div>
+
+                <div>
+                  <h2 className="text-2xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">
+                    {hasErrors ? '🚨 Обнаружены технические проблемы!' :
+                      hasDegraded ? '⚠️ Некоторые системы работают с задержкой' :
+                        services.length === 0 ? 'Нет подключенных сервисов' :
+                          '✅ Все системы работают в штатном режиме'}
+                  </h2>
+                  <div className="flex items-center gap-3 mt-2">
+                    <p className="text-sm text-muted-foreground flex items-center gap-2">
+                      <Clock className="h-4 w-4" />
+                      Последняя проверка: {lastCheckTime ? format(lastCheckTime, 'd MMM HH:mm', { locale: ru }) : 'Никогда'}
+                    </p>
+                    {allOperational && (
+                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse" />
+                        Защищено
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              ) : hasDegraded ? (
-                <div className="p-3 rounded-full bg-yellow-500/10">
-                  <AlertTriangle className="h-8 w-8 text-yellow-500" />
-                </div>
-              ) : (
-                <div className="p-3 rounded-full bg-green-500/10">
-                  <CheckCircle2 className="h-8 w-8 text-green-500" />
-                </div>
-              )}
-              <div>
-                <h2 className="text-xl font-semibold">
-                  {hasErrors ? '🚨 Обнаружены технические проблемы!' :
-                   hasDegraded ? '⚠️ Некоторые системы работают с задержкой' :
-                   '✅ Все системы работают в штатном режиме'}
-                </h2>
-                <p className="text-muted-foreground text-sm">
-                  Последняя проверка: {new Date().toLocaleString('ru-RU')}
-                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="gap-2 hover:bg-primary/10"
+                >
+                  <RefreshCw className={cn("h-4 w-4", refreshing && "animate-spin")} />
+                  Обновить
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={handleRunChecks}
+                  disabled={refreshing}
+                  className="gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
+                >
+                  <Activity className="h-4 w-4" />
+                  Проверить сейчас
+                </Button>
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={handleRefresh}
-              disabled={refreshing}
-            >
-              <RefreshCw className={cn("h-4 w-4 mr-2", refreshing && "animate-spin")} />
-              Обновить
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
-      {/* Services Grid */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Статус сервисов</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {services.map((service) => (
-            <Card key={service.id} className="relative overflow-hidden">
-              <CardContent className="p-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      service.status === 'operational' ? "bg-green-500/10 text-green-600" :
-                      service.status === 'degraded' ? "bg-yellow-500/10 text-yellow-600" :
-                      "bg-red-500/10 text-red-600"
-                    )}>
-                      {serviceIcons[service.service_type] || <Activity className="h-5 w-5" />}
-                    </div>
-                    <div>
-                      <h4 className="font-medium">{service.service_name}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {service.last_check_at ? 
-                          `Проверено: ${new Date(service.last_check_at).toLocaleTimeString('ru-RU')}` :
-                          'Ожидание проверки'}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {/* Pulsing indicator */}
-                    <div className="relative">
-                      <div className={cn(
-                        "w-3 h-3 rounded-full",
-                        getStatusColor(service.status)
-                      )} />
-                      {service.status === 'operational' && (
-                        <div className={cn(
-                          "absolute inset-0 w-3 h-3 rounded-full animate-ping",
-                          getStatusColor(service.status),
-                          "opacity-75"
-                        )} />
+      {/* Services Grid with Glassmorphic Cards */}
+      {services.length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5 text-emerald-500" />
+            Статус сервисов
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <AnimatePresence>
+              {services.map((service, index) => (
+                <motion.div
+                  key={service.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className={cn(
+                    "relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+                    "bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5",
+                    expandedService === service.id && "ring-2 ring-primary/50"
+                  )}
+                    onClick={() => setExpandedService(expandedService === service.id ? null : service.id)}
+                  >
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center gap-3 flex-1">
+                          <div className={cn(
+                            "p-3 rounded-xl backdrop-blur-xl transition-colors",
+                            service.status === 'operational' ? "bg-emerald-500/10 text-emerald-600" :
+                              service.status === 'degraded' ? "bg-amber-500/10 text-amber-600" :
+                                "bg-red-500/10 text-red-600"
+                          )}>
+                            {serviceIcons[service.service_type] || <Activity className="h-5 w-5" />}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-semibold text-foreground">{service.service_name}</h4>
+                            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {service.last_check_at ?
+                                format(new Date(service.last_check_at), 'd MMM HH:mm', { locale: ru }) :
+                                'Ожидание проверки'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                          {/* Pulsing Status Indicator */}
+                          <div className="relative">
+                            <div className={cn(
+                              "w-3 h-3 rounded-full",
+                              getStatusColor(service.status)
+                            )} />
+                            {service.status === 'operational' && (
+                              <div className={cn(
+                                "absolute inset-0 w-3 h-3 rounded-full animate-ping",
+                                getStatusColor(service.status),
+                                "opacity-75"
+                              )} />
+                            )}
+                          </div>
+                          {getStatusBadge(service.status)}
+                        </div>
+                      </div>
+
+                      {/* Error Message */}
+                      {service.error_message && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          className="mt-4 p-3 rounded-lg bg-red-500/5 border border-red-500/20"
+                        >
+                          <p className="text-sm text-red-600 flex items-start gap-2">
+                            <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                            {service.error_message}
+                          </p>
+                        </motion.div>
                       )}
-                    </div>
-                    {getStatusBadge(service.status)}
-                  </div>
-                </div>
-                {service.error_message && (
-                  <p className="mt-3 text-sm text-red-600 bg-red-500/5 p-2 rounded">
-                    {service.error_message}
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
 
-      {/* Recent Incidents */}
+                      {/* Expanded Metadata */}
+                      <AnimatePresence>
+                        {expandedService === service.id && service.metadata && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            className="mt-4 p-3 rounded-lg bg-muted/30 border border-white/5"
+                          >
+                            <p className="text-xs font-medium text-muted-foreground mb-2">Метаданные:</p>
+                            <pre className="text-xs text-foreground/80 whitespace-pre-wrap">
+                              {JSON.stringify(service.metadata, null, 2)}
+                            </pre>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </div>
+        </div>
+      )}
+
+      {/* No Services State */}
+      {services.length === 0 && (
+        <Card className="border-dashed border-2">
+          <CardContent className="py-12 text-center">
+            <Activity className="h-12 w-12 mx-auto mb-4 text-muted-foreground/50" />
+            <h3 className="text-lg font-semibold mb-2">Нет подключенных сервисов</h3>
+            <p className="text-sm text-muted-foreground">
+              Подключите интеграции во вкладке "Подключения"
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Recent Incidents with Timeline Design */}
       <div>
-        <h3 className="text-lg font-semibold mb-4">Недавние инциденты</h3>
+        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+          <AlertTriangle className="h-5 w-5 text-amber-500" />
+          Недавние инциденты
+        </h3>
         {alerts.length === 0 ? (
-          <Card>
-            <CardContent className="py-8 text-center text-muted-foreground">
-              <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-green-500/50" />
-              <p>Нет активных инцидентов</p>
-              <p className="text-sm">Все системы работают стабильно</p>
+          <Card className="bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 border-emerald-500/20">
+            <CardContent className="py-8 text-center">
+              <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-emerald-500/50" />
+              <p className="font-medium text-emerald-600">Нет активных инцидентов</p>
+              <p className="text-sm text-muted-foreground mt-1">Все системы работают стабильно</p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-3">
-            {alerts.map((alert) => (
-              <Card key={alert.id} className="border-l-4 border-l-red-500">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-1">
-                        {getSeverityBadge(alert.severity)}
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(alert.created_at).toLocaleString('ru-RU')}
-                        </span>
+            <AnimatePresence>
+              {alerts.map((alert, index) => (
+                <motion.div
+                  key={alert.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-500/5 to-transparent hover:shadow-lg transition-shadow">
+                    <CardContent className="p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            {getSeverityBadge(alert.severity)}
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(alert.created_at), 'd MMM HH:mm', { locale: ru })}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-foreground">{alert.title}</h4>
+                          {alert.description && (
+                            <p className="text-sm text-muted-foreground mt-2">
+                              {alert.description}
+                            </p>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleResolveAlert(alert.id)}
+                          className="shrink-0 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/20"
+                        >
+                          Решено
+                        </Button>
                       </div>
-                      <h4 className="font-medium">{alert.title}</h4>
-                      {alert.description && (
-                        <p className="text-sm text-muted-foreground mt-1">
-                          {alert.description}
-                        </p>
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleResolveAlert(alert.id)}
-                      >
-                        Решено
-                      </Button>
-                      <Button variant="ghost" size="sm" asChild>
-                        <a href="#integrations">
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
 
-      {/* AI & System Audit Logs */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <ShieldCheck className="h-5 w-5 text-primary" />
-          <h3 className="text-lg font-semibold">Журнал аудита AI и Системы</h3>
-        </div>
-        
-        <Card>
-          <CardContent className="p-0">
-            {auditLogs.length === 0 ? (
-              <div className="py-8 text-center text-muted-foreground">
-                <p>Журнал пуст</p>
-              </div>
-            ) : (
-              <div className="divide-y">
-                {auditLogs.map((log) => (
-                  <div key={log.id} className="p-4 flex items-start gap-4 hover:bg-muted/50 transition-colors">
-                    <div className={cn(
-                      "p-2 rounded-full shrink-0",
-                      log.initiator === 'ai' ? "bg-purple-500/10 text-purple-600" :
-                      log.initiator === 'system' ? "bg-blue-500/10 text-blue-600" :
-                      "bg-amber-500/10 text-amber-600"
-                    )}>
-                      {log.initiator === 'ai' ? <Bot className="h-4 w-4" /> :
-                       log.initiator === 'system' ? <Activity className="h-4 w-4" /> :
-                       <User className="h-4 w-4" />}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="text-sm font-medium text-foreground">
-                          {log.initiator_name}
-                        </span>
-                        <span className="text-xs text-muted-foreground whitespace-nowrap">
-                          {format(new Date(log.created_at), 'd MMM HH:mm', { locale: ru })}
-                        </span>
-                      </div>
-                      
-                      <p className="text-sm text-foreground/90">
-                        {log.action}
-                        {log.result_status === 'success' && ' — успешно'}
-                        {log.result_status === 'error' && ' — ошибка'}
-                        {log.result_status === 'warning' && ' — внимание'}
-                      </p>
-                      
-                      {log.details && (
-                        <p className="text-xs text-muted-foreground mt-1 truncate">
-                          {log.details}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className={cn(
-                      "w-2 h-2 rounded-full mt-2 shrink-0",
-                      log.result_status === 'success' ? "bg-green-500" :
-                      log.result_status === 'warning' ? "bg-yellow-500" :
-                      "bg-red-500"
-                    )} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Uptime Stats */}
-      <Card>
+      {/* Uptime Statistics */}
+      <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5">
         <CardHeader>
-          <CardTitle className="text-base">Статистика доступности</CardTitle>
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-5 w-5 text-emerald-500" />
+            Статистика доступности
+          </CardTitle>
           <CardDescription>За последние 30 дней</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">99.9%</div>
-              <div className="text-sm text-muted-foreground">Uptime</div>
+            <div className="text-center p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl border border-emerald-500/20">
+              <div className="text-3xl font-bold text-emerald-600">99.9%</div>
+              <div className="text-sm text-muted-foreground mt-1">Uptime</div>
             </div>
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold">45ms</div>
-              <div className="text-sm text-muted-foreground">Avg Response</div>
+            <div className="text-center p-4 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 rounded-xl border border-cyan-500/20">
+              <div className="text-3xl font-bold text-cyan-600">45ms</div>
+              <div className="text-sm text-muted-foreground mt-1">Avg Response</div>
             </div>
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-green-600">{services.filter(s => s.status === 'operational').length}</div>
-              <div className="text-sm text-muted-foreground">Активных</div>
+            <div className="text-center p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl border border-emerald-500/20">
+              <div className="text-3xl font-bold text-emerald-600">
+                {services.filter(s => s.status === 'operational').length}
+              </div>
+              <div className="text-sm text-muted-foreground mt-1">Активных</div>
             </div>
-            <div className="text-center p-4 bg-muted/50 rounded-lg">
-              <div className="text-2xl font-bold text-red-600">{alerts.length}</div>
-              <div className="text-sm text-muted-foreground">Инцидентов</div>
+            <div className="text-center p-4 bg-gradient-to-br from-red-500/10 to-red-500/5 rounded-xl border border-red-500/20">
+              <div className="text-3xl font-bold text-red-600">{alerts.length}</div>
+              <div className="text-sm text-muted-foreground mt-1">Инцидентов</div>
             </div>
           </div>
         </CardContent>

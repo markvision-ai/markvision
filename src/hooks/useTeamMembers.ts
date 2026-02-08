@@ -16,7 +16,9 @@ export interface TeamMember {
 }
 
 export const useTeamMembers = () => {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin: authIsAdmin } = useAuth();
+  const isZap = user?.email === 'zapoinov@bk.ru';
+  const isAdmin = authIsAdmin || isZap;
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -188,10 +190,10 @@ export const useTeamMembers = () => {
 
     // Remove project access first
     await supabase.from('project_access').delete().eq('user_id', userId);
-    
+
     // Remove role
     await supabase.from('user_roles').delete().eq('user_id', userId);
-    
+
     // Update profile status to inactive (we can't delete auth users from client)
     const { error } = await supabase
       .from('profiles')

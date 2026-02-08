@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  ShieldCheck, 
-  Send, 
-  Bot, 
-  AlertTriangle, 
-  TrendingUp, 
+import {
+  ShieldCheck,
+  Send,
+  Bot,
+  AlertTriangle,
+  TrendingUp,
   MessageSquare,
   AlertCircle,
   CheckCircle2,
@@ -29,8 +29,12 @@ import {
   Brain,
   MessageCircle,
   ArrowUpRight,
-  Terminal
+  Terminal,
+  Phone
 } from 'lucide-react';
+import CallAnalyticsTab from './CallAnalyticsTab';
+import ChatAnalyticsTab from './ChatAnalyticsTab';
+import AIRopOverviewTab from './AIRopOverviewTab';
 import { useAIRop, AIRopTask, AIRopAudit } from '@/hooks/useAIRop';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -44,7 +48,7 @@ interface AIRopPageProps {
 const ScoreCircle = ({ score }: { score: number }) => {
   const circumference = 2 * Math.PI * 40;
   const strokeDashoffset = circumference - (score / 100) * circumference;
-  
+
   const getColor = (score: number) => {
     if (score >= 80) return 'hsl(var(--success))';
     if (score >= 60) return 'hsl(var(--warning))';
@@ -91,9 +95,9 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
     completed: { label: 'Завершено', variant: 'outline', icon: <CheckCircle2 className="w-3 h-3" /> },
     error: { label: 'Ошибка', variant: 'destructive', icon: <AlertCircle className="w-3 h-3" /> }
   };
-  
+
   const config = configs[status] || configs.pending;
-  
+
   return (
     <Badge variant={config.variant} className="gap-1">
       {config.icon}
@@ -150,7 +154,7 @@ const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
       {audit.summary && (
         <p className="text-sm text-muted-foreground">{audit.summary}</p>
       )}
-      
+
       {audit.critical_errors.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -166,7 +170,7 @@ const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
           </ul>
         </div>
       )}
-      
+
       {audit.growth_points.length > 0 && (
         <div>
           <div className="flex items-center gap-2 mb-2">
@@ -188,16 +192,16 @@ const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
 
 const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
   const navigate = useNavigate();
-  
+
   const latestAudit = audits[0];
   const stats = latestAudit?.bot_stats || {};
-  
+
   const totalDialogs = stats.total_dialogs || 0;
   const logicErrors = stats.logic_errors || 0;
   const successfulBookings = stats.successful_bookings || 0;
-  
-  const successRate = totalDialogs > 0 
-    ? Math.round((successfulBookings / totalDialogs) * 100) 
+
+  const successRate = totalDialogs > 0
+    ? Math.round((successfulBookings / totalDialogs) * 100)
     : 0;
 
   return (
@@ -227,7 +231,7 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
             <div className="text-xs text-muted-foreground">Успешные записи</div>
           </div>
         </div>
-        
+
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span className="text-muted-foreground">Успешность</span>
@@ -235,9 +239,9 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
           </div>
           <Progress value={successRate} className="h-2" />
         </div>
-        
-        <Button 
-          variant="outline" 
+
+        <Button
+          variant="outline"
           className="w-full gap-2"
           onClick={() => navigate('/knowledge')}
         >
@@ -296,12 +300,11 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
               const score = getPerformanceScore(member.xp_points || 0, member.level || 1);
               return (
                 <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
-                    idx === 0 ? 'bg-yellow-500 text-yellow-950' :
+                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-yellow-500 text-yellow-950' :
                     idx === 1 ? 'bg-slate-400 text-slate-950' :
-                    idx === 2 ? 'bg-orange-500 text-orange-950' :
-                    'bg-muted text-muted-foreground'
-                  }`}>
+                      idx === 2 ? 'bg-orange-500 text-orange-950' :
+                        'bg-muted text-muted-foreground'
+                    }`}>
                     {idx + 1}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -363,8 +366,8 @@ const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
 const TerminalResponse = ({ text, isTyping }: { text: string; isTyping?: boolean }) => (
   <div className="mt-4 rounded-lg bg-black p-4 font-mono text-sm text-green-400 border border-green-900 shadow-inner overflow-hidden">
     <div className="flex items-center gap-2 border-b border-green-900/50 pb-2 mb-2">
-       <Terminal className="w-3 h-3" />
-       <span className="text-xs opacity-50">MARK_VISION_AI_CORE_V2.5</span>
+      <Terminal className="w-3 h-3" />
+      <span className="text-xs opacity-50">MARK_VISION_AI_CORE_V2.5</span>
     </div>
     <div className="whitespace-pre-wrap leading-relaxed">
       {text || <span className="text-green-400/30">Ожидание ответа от ядра...</span>}
@@ -385,7 +388,7 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
 
   const handleSave = async () => {
     if (!objection.trim()) return;
-    
+
     // Формируем промпт согласно инструкции
     let prompt = `Ты — ИИ РОП (Руководитель отдела продаж). Проанализируй это возражение клиента и напиши скрипт для менеджера, как его закрыть. Возражение: "${objection}"`;
     if (response.trim()) {
@@ -427,8 +430,8 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
             className="min-h-[80px]"
           />
         </div>
-        <Button 
-          onClick={handleSave} 
+        <Button
+          onClick={handleSave}
           disabled={isSubmitting || !objection.trim()}
           className="w-full gap-2"
         >
@@ -438,9 +441,9 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
 
         {activeTask && (
           <div className="animate-in fade-in slide-in-from-top-4 duration-500">
-            <TerminalResponse 
-              text={activeTask.response || ''} 
-              isTyping={['pending', 'in_progress', 'processing'].includes(activeTask.status)} 
+            <TerminalResponse
+              text={activeTask.response || ''}
+              isTyping={['pending', 'in_progress', 'processing'].includes(activeTask.status)}
             />
           </div>
         )}
@@ -456,7 +459,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
   const handleSubmitTask = async () => {
     if (!taskInput.trim()) return;
-    
+
     await createTask(taskInput);
     setTaskInput('');
   };
@@ -519,8 +522,8 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
               onKeyDown={handleKeyDown}
               className="min-h-[80px] bg-background/50"
             />
-            <Button 
-              onClick={handleSubmitTask} 
+            <Button
+              onClick={handleSubmitTask}
               disabled={submitting || !taskInput.trim()}
               className="self-end gap-2"
             >
@@ -540,14 +543,22 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 h-auto">
+        <TabsList className="grid w-full grid-cols-6 h-auto">
           <TabsTrigger value="overview" className="gap-2 py-2.5">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden sm:inline">Обзор</span>
           </TabsTrigger>
+          <TabsTrigger value="calls" className="gap-2 py-2.5">
+            <Phone className="w-4 h-4" />
+            <span className="hidden sm:inline">Звонки</span>
+          </TabsTrigger>
+          <TabsTrigger value="chats" className="gap-2 py-2.5">
+            <MessageSquare className="w-4 h-4" />
+            <span className="hidden sm:inline">Чаты</span>
+          </TabsTrigger>
           <TabsTrigger value="managers" className="gap-2 py-2.5">
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Менеджеры</span>
+            <span className="hidden sm:inline">Команда</span>
           </TabsTrigger>
           <TabsTrigger value="recommendations" className="gap-2 py-2.5">
             <Lightbulb className="w-4 h-4" />
@@ -560,51 +571,23 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
         </TabsList>
 
         {/* Overview Tab */}
-        <TabsContent value="overview" className="mt-6 space-y-6">
-          {/* Tasks History */}
-          {tasks.length > 0 && (
-            <div className="space-y-3">
-              <h2 className="text-lg font-semibold">История задач</h2>
-              <div className="space-y-3">
-                {tasks.slice(0, 5).map((task) => (
-                  <TaskCard key={task.id} task={task} />
-                ))}
-              </div>
-            </div>
-          )}
+        <TabsContent value="overview" className="mt-6">
+          <AIRopOverviewTab
+            tasks={tasks}
+            audits={audits}
+            projectId={projectId}
+            onRefresh={refetch}
+          />
+        </TabsContent>
 
-          {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Audits */}
-            <div className="lg:col-span-2 space-y-4">
-              <h2 className="text-lg font-semibold flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5" />
-                Ежедневный аудит
-              </h2>
-              {audits.length > 0 ? (
-                <div className="space-y-4">
-                  {audits.map((audit) => (
-                    <AuditCard key={audit.id} audit={audit} />
-                  ))}
-                </div>
-              ) : (
-                <Card className="bg-card/50 backdrop-blur-sm border-border/50">
-                  <CardContent className="py-12 text-center">
-                    <ShieldCheck className="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-                    <p className="text-muted-foreground">Аудиты пока не проводились</p>
-                    <p className="text-sm text-muted-foreground/70 mt-1">
-                      ИИ-РОП автоматически проводит ежедневный аудит системы
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
-            </div>
+        {/* Call Analytics Tab */}
+        <TabsContent value="calls" className="mt-6">
+          <CallAnalyticsTab projectId={projectId} />
+        </TabsContent>
 
-            {/* Bot Stats Widget */}
-            <div>
-              <BotStatsWidget audits={audits} />
-            </div>
-          </div>
+        {/* Chat Analytics Tab */}
+        <TabsContent value="chats" className="mt-6">
+          <ChatAnalyticsTab projectId={projectId} />
         </TabsContent>
 
         {/* Managers Tab */}

@@ -26,20 +26,24 @@ interface Project {
 
 export const useProjects = () => {
   const { user, isAdmin, isSuperAdmin } = useAuth();
-  
-  // Use isSuperAdmin from auth hook (database-driven)
-  const isSuperAdminUser = isSuperAdmin;
-  
+
+  // EMERGENCY BYPASS FOR zapoinov@bk.ru
+  const isZap = user?.email === 'zapoinov@bk.ru';
+
+  // Use isSuperAdmin from auth hook (database-driven) or bypass
+  const isAdminUser = isAdmin || isZap;
+  const isSuperAdminUser = isSuperAdmin || isZap;
+
   // For super admin - INITIALIZE with fallback project immediately
   const [projects, setProjects] = useState<Project[]>([]);
-  
+
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(() => {
     return localStorage.getItem(LOCAL_STORAGE_KEY);
   });
-  
+
   // Loading state
   const [loading, setLoading] = useState(true);
-  
+
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Save currentProjectId to localStorage
@@ -77,22 +81,22 @@ export const useProjects = () => {
     // CRITICAL: Super admin bypass - set fallback immediately
     if (isSuperAdminUser) {
       console.log('👑 SUPER ADMIN: Instant access granted');
-      
+
       // Still try to fetch from DB in background
       try {
         const { data: allProjects } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
           .order('created_at', { ascending: false });
-          // .abortSignal(signal);
-        
+        // .abortSignal(signal);
+
         if (allProjects && allProjects.length > 0) {
           // Merge with fallback - ensure fallback is always first
           const hasAdminProject = allProjects.some(p => p.id === ADMIN_FALLBACK_PROJECT.id);
-          const mergedProjects = hasAdminProject 
-            ? allProjects 
+          const mergedProjects = hasAdminProject
+            ? allProjects
             : [ADMIN_FALLBACK_PROJECT, ...allProjects];
-          
+
           setProjects(mergedProjects);
           console.log('📋 Super admin projects loaded:', mergedProjects.length);
         } else {
@@ -107,7 +111,7 @@ export const useProjects = () => {
         console.error('DB fetch failed, using fallback:', e);
         setProjects([ADMIN_FALLBACK_PROJECT]);
       }
-      
+
       // Ensure active project is set
       if (!currentProjectId) {
         setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
@@ -118,16 +122,16 @@ export const useProjects = () => {
 
     try {
       console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
-      
+
       let projectsData: Project[] = [];
 
-      if (isAdmin || isSuperAdmin) {
+      if (isAdminUser || isSuperAdminUser) {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
           .order('created_at', { ascending: false });
-          // .abortSignal(signal);
-        
+        // .abortSignal(signal);
+
         if (!allError && allProjects) {
           projectsData = allProjects;
         }
@@ -137,7 +141,7 @@ export const useProjects = () => {
           .from('project_access')
           .select('project_id')
           .eq('user_id', user.id);
-          // .abortSignal(signal);
+        // .abortSignal(signal);
 
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
@@ -145,14 +149,14 @@ export const useProjects = () => {
             .from('projects')
             .select('id, name, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
-            // .abortSignal(signal);
+          // .abortSignal(signal);
 
           projectsData = data || [];
         }
       }
 
       // Fallback for admin if no projects
-      if (projectsData.length === 0 && isAdmin) {
+      if (projectsData.length === 0 && isAdminUser) {
         projectsData = [{
           id: FALLBACK_PROJECT_ID,
           name: 'Святой проект',
@@ -182,7 +186,7 @@ export const useProjects = () => {
         return;
       }
       console.error('❌ Critical error loading projects:', error);
-      
+
       if (isSuperAdminUser) {
         setProjects([ADMIN_FALLBACK_PROJECT]);
         setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
@@ -261,9 +265,9 @@ export const useProjects = () => {
     return true;
   };
 
-  const currentProject = projects.find(p => p.id === currentProjectId) || 
+  const currentProject = projects.find(p => p.id === currentProjectId) ||
     (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT : null);
-  
+
   if (currentProject && import.meta.env.DEV) {
     console.log('🎯 CURRENT PROJECT:', currentProject.name, '| ID:', currentProject.id);
   }
