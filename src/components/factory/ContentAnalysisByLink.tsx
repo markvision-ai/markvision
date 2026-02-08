@@ -2,22 +2,28 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Sparkles, 
-  Search, 
-  Loader2, 
-  FileText, 
-  CheckCircle, 
+import {
+  Sparkles,
+  Search,
+  Loader2,
+  FileText,
+  CheckCircle,
   ArrowRight,
   Link as LinkIcon,
   PlayCircle,
   MessageCircle,
   TrendingUp,
-  Target
+  Target,
+  ScanLine,
+  Binary,
+  Cpu,
+  Fingerprint
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface ContentAnalysisByLinkProps {
   projectId: string;
@@ -60,12 +66,12 @@ export const ContentAnalysisByLink = ({ projectId }: ContentAnalysisByLinkProps)
       if (data.error) {
         throw new Error(data.error);
       }
-      
+
       setResult(data);
       toast.success('Анализ завершен!');
     } catch (error: any) {
       console.error('Analysis error:', error);
-      toast.error(error.message || 'Не удалось проанализировать ссылку. Возможно, превышен лимит или сервис недоступен.');
+      toast.error(error.message || 'Не удалось проанализировать ссылку. Возможно, превышен лимит или сервиc недоступен.');
     } finally {
       setIsAnalyzing(false);
     }
@@ -73,7 +79,7 @@ export const ContentAnalysisByLink = ({ projectId }: ContentAnalysisByLinkProps)
 
   const handleCreateScenario = async () => {
     if (!result) return;
-    
+
     setIsCreating(true);
     try {
       const success = await createContent({
@@ -113,97 +119,130 @@ ${result.summary}
   };
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-background">
-       {/* Header with animated gradient text */}
-       <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full text-center items-center">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-medium uppercase tracking-wider mb-2">
-          <Sparkles className="w-3 h-3" />
-          AI Content Analyst
+    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-transparent font-sans">
+      {/* Header with animated deep scan effect */}
+      <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full text-center items-center relative">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-cyan-500/10 rounded-full blur-[120px] pointer-events-none" />
+
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-medium uppercase tracking-wider mb-2 backdrop-blur-md">
+          <ScanLine className="w-3 h-3 animate-pulse" />
+          Quantum Content Decoder
         </div>
-        <h2 className="text-4xl font-extrabолd tracking-tight text-foreground sm:text-5xl">
-          Анализ <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 via-emerald-400 to-lime-400">Контента</span>
+        <h2 className="text-4xl font-black tracking-tight text-white sm:text-5xl relative z-10 drop-shadow-lg">
+          Анализ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Контента</span>
         </h2>
-        <p className="text-lg text-muted-foreground max-w-2xl">
-          Прикрепите ссылку на Reels или аккаунт и получите детальный разбор: хуки, триггеры, сценарий и причины виральности.
+        <p className="text-lg text-white/50 max-w-2xl font-light relative z-10">
+          Прикрепите ссылку на Reels или TikTok. Наш AI деконструирует виральный код алгоритмов.
         </p>
       </div>
 
-      {/* Input Section */}
-      <div className="w-full max-w-2xl mx-auto space-y-4">
-        <div className="flex gap-2 p-2 bg-black/40 rounded-xl shadow-sm border border-white/10 backdrop-blur-xl focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all">
-          <div className="pl-3 flex items-center pointer-events-none text-white/40">
-            <LinkIcon className="w-5 h-5" />
+      {/* Deep Scan Input Section */}
+      <div className="w-full max-w-2xl mx-auto space-y-6 relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative group block"
+        >
+          {/* Animated Scanner Beam */}
+          {isAnalyzing && (
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent z-0 animate-pulse rounded-xl pointer-events-none" />
+          )}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-cyan-500 rounded-xl opacity-30 group-hover:opacity-100 blur transition duration-1000 group-hover:duration-200 animate-gradient-xy" />
+
+          <div className="relative flex items-center p-2 bg-black/80 rounded-xl shadow-2xl border border-white/10 backdrop-blur-xl focus-within:ring-1 focus-within:ring-cyan-500/50 transition-all">
+            <div className="pl-4 pr-3 flex items-center pointer-events-none text-cyan-400">
+              <LinkIcon className="w-5 h-5" />
+            </div>
+            <Input
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+              placeholder="Вставьте ссылку на виральный контент..."
+              className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-lg h-14 text-white placeholder:text-white/20 font-mono tracking-tight w-full"
+            />
+            <Button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing || !url.trim()}
+              className={cn(
+                "h-12 px-8 rounded-lg font-bold uppercase tracking-wider transition-all shadow-lg ml-2",
+                isAnalyzing
+                  ? "bg-cyan-500/20 text-cyan-400 cursor-wait"
+                  : "bg-cyan-500 text-black hover:bg-cyan-400 shadow-cyan-500/25 hover:scale-105 active:scale-95"
+              )}
+            >
+              {isAnalyzing ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Scanning...
+                </>
+              ) : (
+                <>
+                  <Binary className="w-4 h-4 mr-2" />
+                  Decode
+                </>
+              )}
+            </Button>
           </div>
-          <Input 
-            value={url}
-            onChange={(e) => setUrl(e.target.value)}
-            placeholder="Вставьте ссылку на Reels, TikTok или пост..." 
-            className="border-0 shadow-none focus-visible:ring-0 bg-transparent text-lg h-12 text-foreground placeholder:text-muted-foreground"
-          />
-          <Button 
-            onClick={handleAnalyze} 
-            disabled={isAnalyzing || !url.trim()}
-            className="h-12 px-8 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium transition-all shadow-md shadow-emerald-500/25"
-          >
-            {isAnalyzing ? (
-              <>
-                <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                Анализирую...
-              </>
-            ) : (
-              <>
-                <Search className="w-5 h-5 mr-2" />
-                Разобрать
-              </>
-            )}
-          </Button>
-        </div>
-        <p className="text-sm text-center text-white/50">
-          Поддерживается: Instagram Reels, TikTok, YouTube Shorts
+        </motion.div>
+
+        <p className="text-[10px] text-center text-white/30 uppercase tracking-[0.2em] font-mono">
+          Supported Protocols: Instagram Reels • TikTok • YouTube Shorts
         </p>
       </div>
 
       {/* Result Section */}
       {result && (
-        <div className="max-w-4xl mx-auto w-full animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid gap-6 md:grid-cols-2">
-            
-            {/* Left Column: Core Analysis */}
-            <div className="space-y-6">
-              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-foreground">
-                    <Target className="w-5 h-5 mr-2" />
-                    Тема и Хук
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, type: "spring" }}
+          className="max-w-6xl mx-auto w-full"
+        >
+          <div className="grid gap-6 lg:grid-cols-12 h-full">
+
+            {/* Left Column: Core Analysis (Decoded Signals) */}
+            <div className="lg:col-span-5 space-y-6 flex flex-col">
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl shadow-xl overflow-hidden relative group h-full">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/10 rounded-bl-full blur-2xl group-hover:bg-cyan-500/20 transition-all" />
+                <CardHeader className="pb-4 border-b border-white/5">
+                  <CardTitle className="flex items-center text-lg text-white font-mono uppercase tracking-wider">
+                    <Fingerprint className="w-5 h-5 mr-3 text-cyan-400" />
+                    Signal Identification
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-6 pt-6">
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Тема</h4>
-                    <p className="text-foreground font-medium">{result.topic}</p>
+                    <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <Target className="w-3 h-3" />
+                      Core Topic
+                    </h4>
+                    <p className="text-xl text-white font-bold leading-tight">{result.topic}</p>
                   </div>
                   <div>
-                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Хук (Зацепка)</h4>
-                    <div className="p-3 bg-white/5 rounded-lg text-foreground text-sm mt-1 border border-white/10">
-                      {result.hook}
+                    <h4 className="text-[10px] font-bold text-white/40 uppercase tracking-widest mb-2 flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-pink-500 animate-pulse" />
+                      Viral Hook
+                    </h4>
+                    <div className="p-4 bg-gradient-to-r from-pink-500/10 to-transparent border-l-2 border-pink-500 text-white font-medium text-lg leading-relaxed shadow-[0_0_20px_rgba(236,72,153,0.1)]">
+                      "{result.hook}"
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
-              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-foreground">
-                    <TrendingUp className="w-5 h-5 mr-2" />
-                    Почему это залетело?
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl shadow-xl overflow-hidden relative group flex-1">
+                <div className="absolute bottom-0 left-0 w-32 h-32 bg-purple-500/10 rounded-tr-full blur-3xl group-hover:bg-purple-500/20 transition-all" />
+                <CardHeader className="pb-4 border-b border-white/5">
+                  <CardTitle className="flex items-center text-lg text-white font-mono uppercase tracking-wider">
+                    <Cpu className="w-5 h-5 mr-3 text-purple-400" />
+                    Virality DNA
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <ul className="space-y-2">
+                <CardContent className="pt-6">
+                  <ul className="space-y-3">
                     {result.virality_factors.map((factor, idx) => (
-                      <li key={idx} className="flex items-start gap-2 text-sm text-foreground">
-                        <CheckCircle className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
-                        {factor}
+                      <li key={idx} className="flex items-start gap-3 text-sm text-white/90 group/item">
+                        <CheckCircle className="w-5 h-5 text-purple-400 mt-0.5 shrink-0 group-hover/item:text-purple-300 transition-colors" />
+                        <span className="group-hover/item:translate-x-1 transition-transform">{factor}</span>
                       </li>
                     ))}
                   </ul>
@@ -212,62 +251,75 @@ ${result.summary}
             </div>
 
             {/* Right Column: Structure & Action */}
-            <div className="space-y-6">
-              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl h-full flex flex-col">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center text-lg text-foreground">
-                    <PlayCircle className="w-5 h-5 mr-2" />
-                    Структура Сценария
+            <div className="lg:col-span-7 space-y-6 flex flex-col">
+              <Card className="border border-white/10 bg-black/40 backdrop-blur-xl h-full flex flex-col shadow-2xl relative overflow-hidden">
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 pointer-events-none" />
+
+                <CardHeader className="pb-4 border-b border-white/5 bg-white/5">
+                  <CardTitle className="flex items-center text-lg text-white font-mono uppercase tracking-wider justify-between">
+                    <div className="flex items-center">
+                      <TrendingUp className="w-5 h-5 mr-3 text-emerald-400" />
+                      Script Sequence
+                    </div>
+                    <div className="text-[10px] text-white/30 bg-black/50 px-2 py-1 rounded">
+                      {result.script_structure.length} NODES DETECTED
+                    </div>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-1 space-y-4">
-                  <div className="space-y-3">
+                <CardContent className="flex-1 space-y-0 p-0">
+                  <div className="relative p-6 space-y-4">
+                    {/* Connecting Line */}
+                    <div className="absolute top-8 bottom-8 left-[35px] w-0.5 bg-gradient-to-b from-cyan-500/50 via-purple-500/50 to-transparent" />
+
                     {result.script_structure.map((step, idx) => (
-                      <div key={idx} className="flex items-start gap-3 p-3 bg-white/5 rounded-lg border border-white/10">
-                        <span className="flex items-center justify-center w-6 h-6 rounded-full bg-emerald-500/15 text-emerald-400 text-xs font-bold shrink-0">
+                      <div key={idx} className="relative flex items-start gap-4 group">
+                        <span className="relative z-10 flex items-center justify-center w-8 h-8 rounded-lg bg-[#111] border border-white/10 text-white/50 text-xs font-mono font-bold shrink-0 shadow-lg group-hover:border-cyan-500/50 group-hover:text-cyan-400 transition-colors">
                           {idx + 1}
                         </span>
-                        <p className="text-sm text-foreground">{step}</p>
+                        <div className="flex-1 p-3 rounded-lg bg-white/5 border border-white/5 group-hover:bg-white/10 transition-colors">
+                          <p className="text-sm text-white/90 leading-relaxed">{step}</p>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-slate-100">
-                    <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-2">Call to Action (CTA)</h4>
-                    <div className="flex items-center gap-2 text-emerald-400 font-medium bg-emerald-500/10 px-3 py-2 rounded-lg border border-emerald-500/30">
-                      <MessageCircle className="w-4 h-4" />
-                      {result.cta}
+
+                  <div className="p-6 pt-0 mt-4">
+                    <div className="flex items-center gap-3 text-emerald-400 font-bold bg-emerald-950/30 px-4 py-3 rounded-xl border border-emerald-500/20 mb-6">
+                      <MessageCircle className="w-5 h-5 shrink-0" />
+                      <div>
+                        <div className="text-[10px] uppercase tracking-widest text-emerald-500 opacity-70">Call to Action</div>
+                        <div className="text-sm">{result.cta}</div>
+                      </div>
                     </div>
+
+                    <Button
+                      onClick={handleCreateScenario}
+                      disabled={isCreating}
+                      className="w-full h-16 text-xl font-bold uppercase tracking-widest bg-cyan-500 text-black hover:bg-cyan-400 shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] transition-all group scale-100 hover:scale-[1.01]"
+                    >
+                      {isCreating ? (
+                        <>
+                          <Loader2 className="w-6 h-6 mr-3 animate-spin" />
+                          Reconstructing...
+                        </>
+                      ) : (
+                        <>
+                          <Cpu className="w-6 h-6 mr-3" />
+                          Initialize Remake
+                          <ArrowRight className="w-6 h-6 ml-3 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </Button>
+                    <p className="text-[10px] text-center text-white/30 mt-3 font-mono">
+                      TRANSMITTING STRUCTURE TO PRODUCTION PIPELINE...
+                    </p>
                   </div>
                 </CardContent>
-                
-                <div className="p-6 pt-0 mt-auto">
-                  <Button 
-                    onClick={handleCreateScenario} 
-                    disabled={isCreating}
-                    className="w-full h-14 text-lg bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-500/25 group"
-                  >
-                    {isCreating ? (
-                      <>
-                        <Loader2 className="w-5 h-5 mr-2 animate-spin" />
-                        Создаю...
-                      </>
-                    ) : (
-                      <>
-                        Создать сценарий
-                        <ArrowRight className="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </Button>
-                  <p className="text-xs text-center text-white/50 mt-3">
-                    Отправит структуру во входящий поток для генерации контента
-                  </p>
-                </div>
               </Card>
             </div>
 
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

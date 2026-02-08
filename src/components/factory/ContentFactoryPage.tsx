@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Eye, Sparkles, Rocket } from 'lucide-react';
+import { Plus, Eye, Sparkles, Rocket, RefreshCw } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
 import { ContentFactoryV4 } from './v4/ContentFactoryV4';
+import { ContentFactoryWizard } from './wizard/ContentFactoryWizard';
 import { useWebhookConfig } from '@/hooks/useWebhookConfig';
 import { useFactoryStore } from './v4/store';
 
@@ -21,41 +22,45 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   const { createContent } = useContentFactory(projectId);
   const { getWebhookUrl } = useWebhookConfig(projectId);
   const { setWebhookUrl } = useFactoryStore();
-  
+
   // State
   const [activeTab, setActiveTab] = useState('v4');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  
+
   useEffect(() => {
     const url = getWebhookUrl();
     if (url) setWebhookUrl(url);
   }, [projectId]);
-  
+
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
-      
+
       {/* Header & Tabs */}
       <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 interstellar-glass">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
           <TabsList className="bg-white/5 border border-white/10">
-            <TabsTrigger value="v4" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
+            <TabsTrigger value="wizard" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
               <Rocket className="w-4 h-4 mr-2" />
-              Контент-Завод
+              Мастерская контента
+            </TabsTrigger>
+            <TabsTrigger value="v4" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Старая версия
             </TabsTrigger>
             <TabsTrigger value="competitors" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
               <Eye className="w-4 h-4 mr-2" />
-              Мониторинг конкурентов
+              Мониторинг
             </TabsTrigger>
             <TabsTrigger value="analysis" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
               <Sparkles className="w-4 h-4 mr-2" />
-              Анализ по ссылке
+              Анализ
             </TabsTrigger>
           </TabsList>
         </Tabs>
 
-        <Button 
+        <Button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.35)]"
+          className="hidden" // Hiding old create button as wizard handles it
         >
           <Plus className="w-4 h-4 mr-2" />
           Создать контент
@@ -64,8 +69,13 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
 
       {/* Content Area */}
       <div className="flex-1 overflow-hidden relative">
-        
-        {/* Content Factory V4 Tab Content */}
+
+        {/* New Wizard Tab Content */}
+        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'wizard' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <ContentFactoryWizard />
+        </div>
+
+        {/* Legacy V4 Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'v4' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
           <ContentFactoryV4 />
         </div>
@@ -82,8 +92,8 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
 
       </div>
 
-      <CreateContentDialog 
-        open={isCreateDialogOpen} 
+      <CreateContentDialog
+        open={isCreateDialogOpen}
         onOpenChange={setIsCreateDialogOpen}
         onCreate={createContent}
       />

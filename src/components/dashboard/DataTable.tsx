@@ -123,7 +123,7 @@ const EditableCell = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={cn(
-          "w-full text-right bg-black/5 dark:bg-black/20 border border-white/5 focus:border-primary/50 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 rounded-lg px-3 py-2 transition-all font-mono font-medium",
+          "w-full text-right bg-transparent border border-transparent focus:border-primary/50 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 rounded-md px-2 py-1 transition-all font-mono font-medium hover:bg-white/5 hover:border-white/10",
           className
         )}
         disabled={isSaving}
@@ -138,9 +138,6 @@ const EditableCell = ({
 };
 
 
-
-
-
 export const DataTable = React.memo(({
   dailyData,
   onDataChange,
@@ -152,8 +149,6 @@ export const DataTable = React.memo(({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
   });
-
-
 
   const daysInRange = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return [];
@@ -167,7 +162,6 @@ export const DataTable = React.memo(({
     }
   }, [dateRange]);
 
-
   const handlePrevMonth = () => {
     if (!dateRange?.from) return;
     const prevMonth = subMonths(dateRange.from, 1);
@@ -179,7 +173,6 @@ export const DataTable = React.memo(({
     const nextMonth = addMonths(dateRange.from, 1);
     setDateRange({ from: startOfMonth(nextMonth), to: endOfMonth(nextMonth) });
   };
-
 
   const totals = useMemo(() => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
@@ -197,8 +190,6 @@ export const DataTable = React.memo(({
     };
   }, [dailyData, daysInRange]);
 
-  // Определяем, какой план показывать
-  // Логика: Если выбранный диапазон начинается в определенном месяце, показываем план этого месяца.
   const effectivePlanData = useMemo(() => {
     if (!dateRange?.from) return planData;
 
@@ -210,7 +201,6 @@ export const DataTable = React.memo(({
     return planData;
   }, [plansMap, dateRange, planData]);
 
-  // Calculated metrics
   const customerCost = totals.sales > 0 ? Math.round(totals.spend / totals.sales) : null;
   const visitCost = totals.visits > 0 ? Math.round(totals.spend / totals.visits) : null;
   const leadCost = totals.leads > 0 ? Math.round(totals.spend / totals.leads) : null;
@@ -218,7 +208,6 @@ export const DataTable = React.memo(({
   const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null;
   const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null;
 
-  // Average revenue for heatmap
   const averageRevenue = useMemo(() => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
     const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
@@ -266,152 +255,141 @@ export const DataTable = React.memo(({
   };
 
   return (
-    <div className="space-y-3 md:space-y-4">
-      {/* Calculated Metrics Bar */}
-      <div className="grid gap-2 sm:gap-3 grid-cols-2 sm:grid-cols-3 lg:grid-cols-6">
+    <div className="space-y-6">
+      {/* Calculated Metrics Grid - Premium Style */}
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <SummaryCard
           title="Стоимость клиента"
           icon={ShoppingCart}
-          value={customerCost !== null ? formatCurrency(customerCost) : <span className="text-muted-foreground">—</span>}
-          subtitle={customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}
+          value={customerCost !== null ? formatCurrency(customerCost) : '—'}
+          subtitle="Расходы / продажи"
+          variant="blue"
         />
         <SummaryCard
           title="Стоимость визита"
           icon={Target}
-          value={visitCost !== null ? formatCurrency(visitCost) : <span className="text-muted-foreground">—</span>}
-          subtitle={visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}
+          value={visitCost !== null ? formatCurrency(visitCost) : '—'}
+          subtitle="Расходы / визиты"
+          variant="cyan"
         />
         <SummaryCard
           title="Стоимость лида"
           icon={Users}
-          value={leadCost !== null ? formatCurrency(leadCost) : <span className="text-muted-foreground">—</span>}
-          subtitle={leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}
+          value={leadCost !== null ? formatCurrency(leadCost) : '—'}
+          subtitle="Расходы / лиды"
+          variant="emerald"
         />
         <SummaryCard
           title="CR (Показы→Лид)"
           icon={TrendingUp}
-          value={impressionToLeadConv !== null ? (
-            <>
-              {formatCR(impressionToLeadConv).replace('%', '')}
-              <span className="text-muted-foreground">%</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-          subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
+          value={formatCR(impressionToLeadConv)}
+          subtitle="Лиды / показы"
+          variant="purple"
         />
         <SummaryCard
-          title="CR (Лид→Диагностика)"
+          title="CR (Лид→Диагност)"
           icon={Target}
-          value={leadToVisitConv !== null ? (
-            <>
-              {formatCR(leadToVisitConv).replace('%', '')}
-              <span className="text-muted-foreground">%</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-          subtitle={leadToVisitConv !== null ? 'Диагностика / лиды' : 'Нет данных'}
+          value={formatCR(leadToVisitConv)}
+          subtitle="Диагностика / лиды"
+          variant="orange"
         />
         <SummaryCard
-          title="CR (Диагностика→Продажа)"
+          title="CR (Диагн→Продажа)"
           icon={ShoppingCart}
-          value={visitToSaleConv !== null ? (
-            <>
-              {formatCR(visitToSaleConv).replace('%', '')}
-              <span className="text-muted-foreground">%</span>
-            </>
-          ) : (
-            <span className="text-muted-foreground">—</span>
-          )}
-          subtitle={visitToSaleConv !== null ? 'Продажи / диагностика' : 'Нет данных'}
+          value={formatCR(visitToSaleConv)}
+          subtitle="Продажи / диагностика"
+          variant="pink"
         />
       </div>
 
-      <div className="glass-card border rounded-xl stripe-blue">
-        {/* Header with Date Range Selection */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
+      <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10">
+        {/* Glow behind header */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
 
-          {/* Controls Container */}
-          <div className="flex items-center gap-2">
+        {/* Header toolbar */}
+        <div className="relative p-4 md:p-5 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 z-10">
+          <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={handlePrevMonth}
-              className="h-8 w-8"
+              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
 
-            <div className="text-sm font-medium capitalize min-w-[120px] text-center">
+            <div className="text-sm font-semibold capitalize min-w-[140px] text-center text-white/90">
               {dateRange?.from ? format(dateRange.from, 'LLLL yyyy', { locale: ru }) : ''}
             </div>
 
             <Button
-              variant="outline"
+              variant="ghost"
               size="icon"
               onClick={handleNextMonth}
-              className="h-8 w-8"
+              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
           </div>
 
-          <Button onClick={exportToCSV} variant="glow" size="sm" className="gap-2 self-end lg:self-auto">
+          <Button
+            onClick={exportToCSV}
+            variant="outline"
+            size="sm"
+            className="gap-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 transition-all rounded-lg h-9"
+          >
             <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Экспорт CSV</span>
+            Экспорт CSV
           </Button>
         </div>
 
-        {/* Table Container */}
-        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative rounded-b-xl">
-          <table className="w-full text-xs md:text-sm border-separate border-spacing-0">
-            <thead className="sticky top-0 z-50">
-              <tr className="bg-card/95 backdrop-blur-md">
-                <th className="text-left p-3 md:p-4 font-semibold text-muted-foreground sticky left-0 bg-card/95 backdrop-blur-md min-w-[100px] md:min-w-[140px] z-40 border-b border-border/10 shadow-[1px_0_0_0_rgba(0,0,0,0.02)]">Дата</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[90px] md:min-w-[120px] border-b border-border/10">Расходы</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[80px] md:min-w-[110px] border-b border-border/10">Показы</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[70px] md:min-w-[90px] border-b border-border/10">Клики</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[70px] md:min-w-[90px] border-b border-border/10">Лиды</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px] border-b border-border/10">Подписчики</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px] border-b border-border/10">Диагностика</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[80px] md:min-w-[100px] border-b border-border/10">Продажи</th>
-                <th className="text-right p-3 md:p-4 font-semibold text-muted-foreground min-w-[100px] md:min-w-[140px] border-b border-border/10">Выручка</th>
+        {/* Table Content */}
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm border-separate border-spacing-0">
+            <thead>
+              <tr className="bg-white/[0.02]">
+                <th className="p-4 text-left font-medium text-muted-foreground sticky left-0 bg-[#0B0C15] z-20 min-w-[100px] border-b border-white/5">Дата</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[110px] border-b border-white/5">Расходы</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Показы</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[80px] border-b border-white/5">Клики</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[80px] border-b border-white/5">Лиды</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Подписчики</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Диагн.</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[90px] border-b border-white/5">Продажи</th>
+                <th className="p-4 text-right font-medium text-muted-foreground min-w-[130px] border-b border-white/5">Выручка</th>
               </tr>
             </thead>
-            <tbody>
-              {/* Plan Row - Premium dark-teal/emerald styling as per reference */}
+            <tbody className="divide-y divide-white/5">
+
+              {/* PLAN ROW - Special Highlighting */}
               {effectivePlanData && (
-                <tr className="bg-emerald-950/20 dark:bg-emerald-500/10 font-bold border-b border-emerald-500/20">
-                  <td className="p-0 sticky left-0 z-30 shadow-[1px_0_0_0_rgba(16,185,129,0.1)]">
-                    <div className="bg-emerald-600 dark:bg-emerald-800/80 p-4 h-full flex items-center gap-3">
-                      <div className="w-6 h-6 rounded-lg bg-emerald-500/20 flex items-center justify-center border border-emerald-400/30">
-                        <Target className="w-3.5 h-3.5 text-white" />
+                <tr className="group relative">
+                  <td className="p-4 sticky left-0 z-20 border-r border-emerald-500/10 bg-emerald-950/30 backdrop-blur-md">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                        <Target className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
-                      <div className="flex flex-col">
-                        <span className="text-white tracking-widest text-[11px] font-black uppercase">ПЛАН</span>
-                        {dateRange?.from && (
-                          <span className="text-[10px] text-emerald-100/70 font-medium">
-                            {format(dateRange.from, 'LLLL', { locale: ru })}
-                          </span>
-                        )}
-                      </div>
+                      <span className="font-bold text-emerald-400 tracking-wider text-[10px] uppercase">ПЛАН</span>
                     </div>
                   </td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => (
-                    <td key={field} className="p-1 md:p-2 align-middle">
+                    <td key={field} className="p-2 text-right bg-emerald-950/10 group-hover:bg-emerald-950/20 transition-colors">
                       {onPlanChange ? (
-                        <EditableCell
-                          value={effectivePlanData[field]}
-                          onSave={(val) => {
-                            const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
-                            onPlanChange(field, val, monthKey);
-                          }}
-                          className="text-emerald-500 dark:text-emerald-400 font-bold"
-                        />
+                        <div className="relative">
+                          <EditableCell
+                            value={effectivePlanData[field]}
+                            onSave={(val) => {
+                              const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
+                              onPlanChange(field, val, monthKey);
+                            }}
+                            className="text-emerald-400 font-bold bg-emerald-500/5 focus:bg-emerald-500/10 border-0 focus:ring-1 focus:ring-emerald-500/50 rounded-lg py-1.5 px-3"
+                          />
+                        </div>
                       ) : (
-                        <span className="block text-right px-3 py-2 font-mono text-emerald-500 dark:text-emerald-400 font-bold text-sm">
-                          {field === 'spend' || field === 'revenue' ? formatCurrency(effectivePlanData[field]) : formatNumber(effectivePlanData[field])}
+                        <span className="font-bold text-emerald-400 px-3">
+                          {field === 'spend' || field === 'revenue'
+                            ? formatCurrency(effectivePlanData[field])
+                            : formatNumber(effectivePlanData[field])}
                         </span>
                       )}
                     </td>
@@ -419,55 +397,61 @@ export const DataTable = React.memo(({
                 </tr>
               )}
 
-              {/* Fact Totals Row - Matching reference spacing and bold look */}
-              <tr className="bg-card dark:bg-slate-900/40 font-bold border-b border-border/10 shadow-[0_4px_12px_rgba(0,0,0,0.02)]">
-                <td className="p-4 md:p-5 sticky left-0 bg-card dark:bg-slate-900/60 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(255,255,255,0.02)] border-b border-border/10 text-xs md:text-sm tracking-widest">ФАКТИТОГО</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatCurrency(totals.spend)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.impressions)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.clicks)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.leads)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.followers)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.visits)}</td>
-                <td className="p-4 md:p-5 text-right text-foreground font-mono text-sm border-b border-border/10">{formatNumber(totals.sales)}</td>
-                <td className="p-4 md:p-5 text-right text-emerald-500 font-mono border-b border-border/10 text-base md:text-lg">{formatCurrency(totals.revenue)}</td>
+              {/* FACT TOTALS ROW */}
+              <tr className="bg-white/[0.02]">
+                <td className="p-4 sticky left-0 bg-[#0B0C15] z-20 border-r border-white/5 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Факт Итого</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatCurrency(totals.spend)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.impressions)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.clicks)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.leads)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.followers)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.visits)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.sales)}</td>
+                <td className="p-4 text-right font-mono text-emerald-400 font-bold text-base shadow-[0_0_15px_rgba(16,185,129,0.2)]">{formatCurrency(totals.revenue)}</td>
               </tr>
 
-              {/* Percentage Execution Row - Premium progress bars */}
+              {/* EXECUTION % ROW */}
               {effectivePlanData && (
-                <tr className="bg-card/50 dark:bg-slate-800/20 border-b border-border/5">
-                  <td className="p-4 md:p-5 sticky left-0 bg-card/60 dark:bg-slate-800/40 backdrop-blur-sm z-30 text-muted-foreground text-[10px] font-black uppercase tracking-[0.2em] border-b border-border/5">% выполн.</td>
+                <tr className="bg-white/[0.01]">
+                  <td className="p-4 sticky left-0 bg-[#0B0C15] z-20 border-r border-white/5 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-medium">% Вып.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
-                    const percent = plan > 0 ? fact / plan * 100 : 0;
+                    const percent = plan > 0 ? (fact / plan) * 100 : 0;
 
-                    let colorClass = '';
+                    let colorClass = 'text-muted-foreground';
+                    let barColor = 'bg-white/20';
+
                     if (field === 'spend') {
-                      colorClass = percent <= 100 ? 'text-emerald-500' : percent <= 120 ? 'text-amber-500' : 'text-rose-500'
+                      if (percent <= 100) { colorClass = 'text-emerald-400'; barColor = 'bg-emerald-500'; }
+                      else if (percent <= 120) { colorClass = 'text-amber-400'; barColor = 'bg-amber-500'; }
+                      else { colorClass = 'text-red-400'; barColor = 'bg-red-500'; }
                     } else {
-                      colorClass = percent >= 100 ? 'text-emerald-500' : percent >= 80 ? 'text-amber-500' : 'text-rose-500'
+                      if (percent >= 100) { colorClass = 'text-emerald-400'; barColor = 'bg-emerald-500'; }
+                      else if (percent >= 80) { colorClass = 'text-amber-400'; barColor = 'bg-amber-500'; }
+                      else { colorClass = 'text-red-400'; barColor = 'bg-red-500'; }
                     }
+
                     return (
-                      <td key={field} className="p-4 md:p-5 border-b border-border/5">
-                        <div className={`text-right font-mono font-black text-sm ${colorClass}`}>{percent.toFixed(0)}%</div>
-                        <div className="mt-2.5 h-1.5 w-full bg-slate-200 dark:bg-slate-800/60 rounded-full overflow-hidden">
-                          <div
-                            className="h-full rounded-full transition-all duration-700 ease-out"
-                            style={{
-                              width: `${Math.min(percent, 100)}%`,
-                              background: field === 'spend'
-                                ? (percent <= 100 ? 'hsl(142, 76%, 45%)' : percent <= 120 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)')
-                                : (percent >= 100 ? 'hsl(142, 76%, 45%)' : percent >= 80 ? 'hsl(38, 92%, 50%)' : 'hsl(0, 84%, 60%)'),
-                              boxShadow: `0 0 10px ${field === 'spend' && percent > 120 ? 'rgba(244,63,94,0.4)' : 'rgba(16,185,129,0.4)'}`,
-                            }}
-                          />
+                      <td key={field} className="p-4 pt-3 pb-5 align-top">
+                        <div className="flex flex-col gap-1.5">
+                          <div className={cn("text-right text-[11px] font-bold", colorClass)}>
+                            {percent.toFixed(0)}%
+                          </div>
+                          <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                            <div
+                              className={cn("h-full rounded-full transition-all duration-700 ease-out", barColor)}
+                              style={{ width: `${Math.min(percent, 100)}%` }}
+                            />
+                          </div>
                         </div>
                       </td>
                     );
                   })}
                 </tr>
               )}
-              {/* Daily data rows */}
+
+              {/* DAILY DATA ROWS */}
               {daysInRange.map(day => {
                 const dateKey = format(day, 'yyyy-MM-dd');
                 const weekDay = getWeekDay(day);
@@ -475,124 +459,117 @@ export const DataTable = React.memo(({
                 const isToday = format(day, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
                 const dayData = dailyData[dateKey];
                 const dayRevenue = dayData?.revenue || 0;
-                const isRevenueAboveAverage = dayRevenue > averageRevenue && averageRevenue > 0;
+                const isHighRevenue = dayRevenue > averageRevenue * 1.5;
 
                 return (
                   <tr
                     key={dateKey}
                     className={cn(
-                      "group/row transition-colors",
-                      isToday ? "bg-primary/[0.04]" : isWeekend ? "bg-muted/[0.08]" : "odd:bg-card/20 even:bg-transparent"
+                      "group transition-colors border-l-2",
+                      isToday
+                        ? "bg-blue-500/5 border-l-blue-500"
+                        : isWeekend
+                          ? "bg-white/[0.015] border-l-transparent hover:bg-white/[0.03]"
+                          : "bg-transparent border-l-transparent hover:bg-white/[0.03]"
                     )}
                   >
                     <td className={cn(
-                      "p-3 md:p-4 sticky left-0 z-20 backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.02)] border-b border-border/10",
-                      isToday ? "bg-primary/[0.04]" : isWeekend ? "bg-muted/[0.08]" : "bg-card/40"
+                      "p-3 md:p-3 sticky left-0 z-10 border-r border-white/5 backdrop-blur-sm",
+                      isToday ? "bg-blue-950/30" : "bg-[#0B0C15] group-hover:bg-[#121420]"
                     )}>
                       <div className="flex flex-col">
-                        <span className={cn(
-                          "font-bold text-sm",
-                          isToday && "text-primary"
-                        )}>
-                          {format(day, 'dd')}
+                        <span className={cn("font-bold text-sm font-mono", isToday ? "text-blue-400" : "text-white/80")}>
+                          {format(day, 'dd', { locale: ru })}
                         </span>
-                        <span className="text-[9px] text-muted-foreground uppercase font-medium tracking-tighter">
+                        <span className="text-[9px] uppercase text-muted-foreground/60">
                           {WEEKDAYS[weekDay]}
                         </span>
                       </div>
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.spend}
                           onSave={(val) => onDataChange(dateKey, 'spend', val)}
-                          className="group-hover/row:bg-muted/20"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono">{formatCurrency(dayData?.spend || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs">{formatCurrency(dayData?.spend || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.impressions}
                           onSave={(val) => onDataChange(dateKey, 'impressions', val)}
-                          className="group-hover/row:bg-muted/20"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono">{formatNumber(dayData?.impressions || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.impressions || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.clicks}
                           onSave={(val) => onDataChange(dateKey, 'clicks', val)}
-                          className="group-hover/row:bg-muted/20"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono">{formatNumber(dayData?.clicks || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.clicks || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.leads}
                           onSave={(val) => onDataChange(dateKey, 'leads', val)}
-                          className="group-hover/row:bg-muted/20 font-bold"
+                          className="text-white/90 font-bold"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono font-bold">{formatNumber(dayData?.leads || 0)}</span>
+                        <span className="text-white/90 font-mono text-xs font-bold">{formatNumber(dayData?.leads || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.followers}
                           onSave={(val) => onDataChange(dateKey, 'followers', val)}
-                          className="group-hover/row:bg-muted/20"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono">{formatNumber(dayData?.followers || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.followers || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.visits}
                           onSave={(val) => onDataChange(dateKey, 'visits', val)}
-                          className="group-hover/row:bg-muted/20"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono">{formatNumber(dayData?.visits || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.visits || 0)}</span>
                       )}
                     </td>
-                    <td className="p-1 md:p-2 text-right border-b border-border/30">
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.sales}
                           onSave={(val) => onDataChange(dateKey, 'sales', val)}
-                          className="group-hover/row:bg-muted/20 font-bold"
+                          className="text-white/90 font-bold"
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono font-bold">{formatNumber(dayData?.sales || 0)}</span>
+                        <span className="text-white/90 font-mono text-xs font-bold">{formatNumber(dayData?.sales || 0)}</span>
                       )}
                     </td>
-                    <td className={cn(
-                      "p-1 md:p-2 text-right border-b border-border/30",
-                      isRevenueAboveAverage ? "text-emerald-500/90" : ""
-                    )}>
+                    <td className="p-2 text-right">
                       {onDataChange ? (
                         <EditableCell
                           value={dayData?.revenue}
                           onSave={(val) => onDataChange(dateKey, 'revenue', val)}
                           className={cn(
-                            "group-hover/row:bg-muted/20 font-bold",
-                            isRevenueAboveAverage ? "text-emerald-500 font-bold" : ""
+                            "font-bold",
+                            isHighRevenue ? "text-emerald-400" : "text-white"
                           )}
                         />
                       ) : (
-                        <span className="px-3 py-2 font-mono font-bold">{formatCurrency(dayData?.revenue || 0)}</span>
+                        <span className={cn("font-mono text-xs font-bold", isHighRevenue ? "text-emerald-400" : "text-white")}>{formatCurrency(dayData?.revenue || 0)}</span>
                       )}
                     </td>
                   </tr>

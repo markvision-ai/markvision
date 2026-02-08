@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { DollarSign, Users, TrendingUp } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Activity, BarChart3 } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface DailyData {
   date: string;
@@ -21,7 +21,6 @@ interface RevenueChartProps {
   daysInMonth: Date[];
 }
 
-// ИСПРАВЛЕНО: Только "млн" для миллионов
 const formatCurrency = (value: number): string => {
   if (value >= 1000000) return `${(value / 1000000).toFixed(1).replace('.0', '')} млн`;
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
@@ -30,26 +29,29 @@ const formatCurrency = (value: number): string => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-popover/95 backdrop-blur-md rounded-lg p-3 shadow-xl border border-border text-xs">
-        <p className="font-medium text-[11px] mb-2 text-foreground/80">{label}</p>
-        {payload.map((entry: any, index: number) => (
-          <div key={index} className="flex items-center justify-between gap-4 mb-1">
-            <div className="flex items-center gap-2">
-              <div
-                className="w-1.5 h-1.5 rounded-full shadow-[0_0_8px_currentColor]"
-                style={{ backgroundColor: entry.color, color: entry.color }}
-              />
-              <span className="text-muted-foreground">
-                {entry.name}:
+      <div className="bg-[#0B0C15]/90 backdrop-blur-xl rounded-xl p-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
+        <p className="font-mono text-xs text-white/50 mb-3 border-b border-white/5 pb-2 uppercase tracking-widest">{label}</p>
+
+        <div className="space-y-2">
+          {payload.map((entry: any, index: number) => (
+            <div key={index} className="flex items-center justify-between gap-6">
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]"
+                  style={{ backgroundColor: entry.color, color: entry.color }}
+                />
+                <span className="text-xs text-white/70 font-medium">
+                  {entry.name}
+                </span>
+              </div>
+              <span className="font-mono text-sm font-bold text-white drop-shadow-md">
+                {['Расходы', 'Выручка'].includes(entry.name)
+                  ? `${new Intl.NumberFormat('ru-RU').format(entry.value)} ₸`
+                  : new Intl.NumberFormat('ru-RU').format(entry.value)}
               </span>
             </div>
-            <span className="font-mono font-medium text-foreground">
-              {['Расходы', 'Выручка'].includes(entry.name)
-                ? `${new Intl.NumberFormat('ru-RU').format(entry.value)} ₸`
-                : new Intl.NumberFormat('ru-RU').format(entry.value)}
-            </span>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     );
   }
@@ -91,126 +93,154 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="glass-card border border-border/40 rounded-xl p-6 min-h-[350px] flex flex-col items-center justify-center">
-        <h3 className="text-sm font-semibold text-foreground/90 flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4 text-primary" />
-          Динамика показателей
-        </h3>
-        <div className="text-xs text-muted-foreground">
-          Нет данных за выбранный период
+      <div className="interstellar-card border border-white/10 rounded-2xl p-8 min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden group">
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+        <div className="relative z-10 flex flex-col items-center">
+          <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-500">
+            <Activity className="w-8 h-8 text-white/20" />
+          </div>
+          <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-2">Нет данных</h3>
+          <p className="text-xs text-white/30">За выбранный период активность не зафиксирована</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="group glass-card border border-border/40 rounded-xl p-5 transition-all duration-300 hover:border-border/60 hover:shadow-2xl hover:shadow-primary/5 min-h-[350px] flex flex-col bg-card backdrop-blur-xl">
-      {/* Header & Tabs */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h3 className="text-sm font-semibold text-foreground/90 flex items-center gap-2 mb-1">
-            <TrendingUp className="w-4 h-4 text-primary" />
-            Динамика показателей
-          </h3>
-          <p className="text-[11px] text-muted-foreground">
-            {activeTab === 'finance' ? 'Финансовые потоки (Выручка vs Расходы)' : 'Конверсионная воронка (Лиды → Продажи)'}
-          </p>
+    <div className="interstellar-card border border-white/10 rounded-2xl p-0 relative overflow-hidden flex flex-col min-h-[420px] bg-[#0B0C15]">
+      {/* Ambient Background */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[80px] pointer-events-none" />
+      <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 pointer-events-none" />
+
+      {/* Header */}
+      <div className="relative p-5 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/[0.02]">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-white/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+            <BarChart3 className="w-5 h-5 text-blue-400" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-white/90 tracking-tight flex items-center gap-2">
+              Динамика показателей
+              <span className="flex h-2 w-2 relative">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+            </h3>
+            <p className="text-[10px] uppercase tracking-widest text-white/40 font-semibold mt-0.5">Live Analytics • 24h Update</p>
+          </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)} className="w-full sm:w-auto">
-          <TabsList className="bg-muted/50 border border-border/20 p-1 h-9">
-            <TabsTrigger value="finance" className="text-xs px-3 h-7 data-[state=active]:bg-background shadow-sm">
-              <DollarSign className="w-3 h-3 mr-1.5" />
-              Финансы
-            </TabsTrigger>
-            <TabsTrigger value="funnel" className="text-xs px-3 h-7 data-[state=active]:bg-background shadow-sm">
-              <Users className="w-3 h-3 mr-1.5" />
-              Воронка
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* Custom Tabs Toggle */}
+        <div className="bg-[#0f111a] p-1 rounded-lg border border-white/10 flex relative">
+          <div
+            className={cn(
+              "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-md transition-all duration-300 ease-out border border-white/5 shadow-inner",
+              activeTab === 'finance' ? "left-1 bg-gradient-to-r from-blue-500/20 to-indigo-500/20" : "left-[calc(50%)] bg-gradient-to-r from-purple-500/20 to-pink-500/20"
+            )}
+          />
+          <button
+            onClick={() => setActiveTab('finance')}
+            className={cn(
+              "relative z-10 px-4 py-1.5 text-xs font-bold transition-colors w-24 text-center rounded-md",
+              activeTab === 'finance' ? "text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.2)]" : "text-white/40 hover:text-white/70"
+            )}
+          >
+            Финансы
+          </button>
+          <button
+            onClick={() => setActiveTab('funnel')}
+            className={cn(
+              "relative z-10 px-4 py-1.5 text-xs font-bold transition-colors w-24 text-center rounded-md",
+              activeTab === 'funnel' ? "text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-white/40 hover:text-white/70"
+            )}
+          >
+            Воронка
+          </button>
+        </div>
       </div>
 
-      {/* Totals Summary */}
-      <div className="flex gap-4 sm:gap-6 mb-6 overflow-x-auto pb-2 sm:pb-0 scrollbar-hide">
+      {/* Metrics HUD */}
+      <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-4 p-5">
         {activeTab === 'finance' ? (
           <>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Выручка</span>
-              <span className="text-lg font-bold text-emerald-500 dark:text-emerald-400">{formatCurrency(totals.revenue)} ₸</span>
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
+              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-emerald-400 transition-colors">Выручка</div>
+              <div className="text-xl font-bold font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
+                {formatCurrency(totals.revenue)} <span className="text-xs text-white/30">₸</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Расходы</span>
-              <span className="text-lg font-bold text-red-500 dark:text-red-400">{formatCurrency(totals.spend)} ₸</span>
+            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
+              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-red-400 transition-colors">Расходы</div>
+              <div className="text-xl font-bold font-mono text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.3)]">
+                {formatCurrency(totals.spend)} <span className="text-xs text-white/30">₸</span>
+              </div>
             </div>
-            <div className="flex flex-col pl-4 border-l border-border/20">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Прибыль</span>
-              <span className={`text-lg font-bold ${profit >= 0 ? 'text-primary' : 'text-red-500'}`}>
-                {profit > 0 ? '+' : ''}{formatCurrency(profit)} ₸
-              </span>
+            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 col-span-2 md:col-span-1 hover:border-emerald-500/40 transition-colors">
+              <div className="text-[10px] text-emerald-300/60 uppercase tracking-wider font-bold mb-1">Чистая прибыль</div>
+              <div className="text-xl font-bold font-mono text-emerald-300">
+                {profit > 0 ? '+' : ''}{formatCurrency(profit)} <span className="text-xs opacity-50">₸</span>
+              </div>
             </div>
           </>
         ) : (
           <>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Лиды</span>
-              <span className="text-lg font-bold text-blue-500 dark:text-blue-400">{totals.leads}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Диагностика</span>
-              <span className="text-lg font-bold text-amber-500 dark:text-amber-400">{totals.visits}</span>
-            </div>
-            <div className="flex flex-col">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Продажи</span>
-              <span className="text-lg font-bold text-purple-500 dark:text-purple-400">{totals.sales}</span>
-            </div>
-            <div className="flex flex-col pl-4 border-l border-border/20">
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider mb-1">Конверсия</span>
-              <span className="text-lg font-bold text-foreground">
-                {totals.leads > 0 ? ((totals.sales / totals.leads) * 100).toFixed(1) : 0}%
-              </span>
-            </div>
+            {[
+              { label: "Лиды", value: totals.leads, color: "text-blue-400", border: "group-hover:text-blue-400" },
+              { label: "Диагностика", value: totals.visits, color: "text-amber-400", border: "group-hover:text-amber-400" },
+              { label: "Продажи", value: totals.sales, color: "text-purple-400", border: "group-hover:text-purple-400" },
+              { label: "Конверсия", value: `${totals.leads > 0 ? ((totals.sales / totals.leads) * 100).toFixed(1) : 0}%`, color: "text-white", border: "group-hover:text-white" }
+            ].map((stat) => (
+              <div key={stat.label} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
+                <div className={cn("text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 transition-colors", stat.border)}>{stat.label}</div>
+                <div className={cn("text-xl font-bold font-mono drop-shadow-[0_0_5px_rgba(255,255,255,0.1)]", stat.color)}>
+                  {stat.value}
+                </div>
+              </div>
+            ))}
           </>
         )}
       </div>
 
-      {/* Chart */}
-      <div className="flex-1 min-h-[250px] w-full">
+      {/* Chart Canvas */}
+      <div className="flex-1 w-full min-h-[300px] relative">
+        {/* Grid Overlay */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808008_1px,transparent_1px),linear-gradient(to_bottom,#80808008_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 20, right: 30, left: 10, bottom: 20 }}>
             <defs>
               <linearGradient id="spendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(239, 68, 68)" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="rgb(239, 68, 68)" stopOpacity={0} />
+                <stop offset="0%" stopColor="#EF4444" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#EF4444" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(16, 185, 129)" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="rgb(16, 185, 129)" stopOpacity={0} />
+                <stop offset="0%" stopColor="#10B981" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#10B981" stopOpacity={0} />
               </linearGradient>
-
               <linearGradient id="leadsGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity={0} />
+                <stop offset="0%" stopColor="#3B82F6" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#3B82F6" stopOpacity={0} />
               </linearGradient>
               <linearGradient id="visitsGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="rgb(245, 158, 11)" stopOpacity={0.4} />
-                <stop offset="100%" stopColor="rgb(245, 158, 11)" stopOpacity={0} />
+                <stop offset="0%" stopColor="#F59E0B" stopOpacity={0.3} />
+                <stop offset="100%" stopColor="#F59E0B" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="hsl(var(--border) / 0.5)"
+              stroke="rgba(255,255,255,0.05)"
               vertical={false}
             />
             <XAxis
               dataKey="displayDate"
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace' }}
               tickLine={false}
               axisLine={false}
-              dy={10}
+              dy={15}
             />
             <YAxis
-              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 10 }}
+              tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10, fontFamily: 'monospace' }}
               tickLine={false}
               axisLine={false}
               tickFormatter={(value) => activeTab === 'finance'
@@ -218,7 +248,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                 : value
               }
             />
-            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'hsl(var(--muted-foreground) / 0.2)', strokeWidth: 1 }} />
+            <Tooltip content={<CustomTooltip />} cursor={{ stroke: 'rgba(255,255,255,0.2)', strokeWidth: 1, strokeDasharray: '4 4' }} />
 
             {activeTab === 'finance' ? (
               <>
@@ -226,7 +256,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                   type="monotone"
                   dataKey="revenue"
                   name="Выручка"
-                  stroke="rgb(16, 185, 129)"
+                  stroke="#10B981"
                   strokeWidth={2}
                   fill="url(#revenueGradient)"
                   animationDuration={1500}
@@ -235,7 +265,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                   type="monotone"
                   dataKey="spend"
                   name="Расходы"
-                  stroke="rgb(239, 68, 68)"
+                  stroke="#EF4444"
                   strokeWidth={2}
                   fill="url(#spendGradient)"
                   animationDuration={1500}
@@ -247,7 +277,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                   type="monotone"
                   dataKey="leads"
                   name="Лиды"
-                  stroke="rgb(59, 130, 246)"
+                  stroke="#3B82F6"
                   strokeWidth={2}
                   fill="url(#leadsGradient)"
                   animationDuration={1500}
@@ -256,7 +286,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                   type="monotone"
                   dataKey="visits"
                   name="Диагностика"
-                  stroke="rgb(245, 158, 11)"
+                  stroke="#F59E0B"
                   strokeWidth={2}
                   fill="url(#visitsGradient)"
                   animationDuration={1500}
@@ -265,9 +295,9 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                   type="monotone"
                   dataKey="sales"
                   name="Продажи"
-                  stroke="rgb(168, 85, 247)"
+                  stroke="#A855F7"
                   strokeWidth={2}
-                  fillOpacity={0} // Only line for sales to keep clean
+                  fillOpacity={0}
                   animationDuration={1500}
                 />
               </>
@@ -278,3 +308,4 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
     </div>
   );
 };
+

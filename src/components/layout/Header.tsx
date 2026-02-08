@@ -65,7 +65,7 @@ export const Header = ({
   const [isSearching, setIsSearching] = useState(false);
 
   return (
-    <header className="h-16 md:h-20 border-b border-border/10 bg-card/60 dark:bg-slate-900/40 backdrop-blur-lg flex items-center justify-between px-3 md:px-8 sticky top-0 z-50 transition-all duration-300">
+    <header className="h-16 md:h-20 border-b border-border/5 bg-card/40 dark:bg-slate-900/30 backdrop-blur-xl flex items-center justify-between px-3 md:px-8 sticky top-0 z-50 transition-all duration-300 shadow-sm">
       <div className="flex items-center gap-3">
         {/* Mobile Menu Button */}
         <button

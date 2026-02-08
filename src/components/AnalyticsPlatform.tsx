@@ -34,7 +34,7 @@ import { FloatingChat } from '@/components/analytics/FloatingChat';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
-import { WelcomeHero } from './dashboard/WelcomeHero';
+import { PremiumHero } from './dashboard/PremiumHero';
 import { QuickActions } from './dashboard/QuickActions';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
@@ -433,14 +433,13 @@ export const AnalyticsPlatform = () => {
             // Welcome Hero
             const userName = profile?.name || profile?.email?.split('@')[0] || 'Пользователь';
             registerWidget('welcome-hero', (
-              <WelcomeHero
+              <PremiumHero
                 userName={userName}
                 keyMetrics={{
                   revenue: totals.revenue,
                   leads: totals.leads,
                   romi: romiPercent,
                 }}
-                systemStatus={systemHasErrors ? 'error' : 'healthy'}
               />
             ));
 
