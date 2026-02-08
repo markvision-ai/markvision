@@ -6,10 +6,7 @@ import { Plus, Eye, Sparkles, Rocket, RefreshCw } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
-import { ContentFactoryV4 } from './v4/ContentFactoryV4';
 import { ContentFactoryWizard } from './wizard/ContentFactoryWizard';
-import { useWebhookConfig } from '@/hooks/useWebhookConfig';
-import { useFactoryStore } from './v4/store';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -20,17 +17,9 @@ const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryPageProps) => {
   const projectId = propProjectId || TARGET_PROJECT_ID;
   const { createContent } = useContentFactory(projectId);
-  const { getWebhookUrl } = useWebhookConfig(projectId);
-  const { setWebhookUrl } = useFactoryStore();
-
   // State
-  const [activeTab, setActiveTab] = useState('v4');
+  const [activeTab, setActiveTab] = useState('wizard');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const url = getWebhookUrl();
-    if (url) setWebhookUrl(url);
-  }, [projectId]);
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
@@ -42,10 +31,6 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
             <TabsTrigger value="wizard" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
               <Rocket className="w-4 h-4 mr-2" />
               Мастерская контента
-            </TabsTrigger>
-            <TabsTrigger value="v4" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Старая версия
             </TabsTrigger>
             <TabsTrigger value="competitors" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
               <Eye className="w-4 h-4 mr-2" />
@@ -73,11 +58,6 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         {/* New Wizard Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'wizard' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
           <ContentFactoryWizard />
-        </div>
-
-        {/* Legacy V4 Tab Content */}
-        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'v4' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
-          <ContentFactoryV4 />
         </div>
 
         {/* Competitors Tab Content */}
