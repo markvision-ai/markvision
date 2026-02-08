@@ -10,6 +10,7 @@ import {
 
 interface QuickActionsProps {
   onTabChange: (tab: string) => void;
+  userName?: string | null;
   className?: string;
 }
 
@@ -23,11 +24,23 @@ const containerVariants = {
   }
 };
 
-export const QuickActions = ({ onTabChange, className }: QuickActionsProps) => {
+export const QuickActions = ({ onTabChange, userName, className }: QuickActionsProps) => {
+  const displayName = userName || 'Пользователь';
+
   return (
     <div className={cn("space-y-4", className)}>
+      {/* Welcome Text */}
+      <div className="space-y-1">
+        <h2 className="text-2xl md:text-3xl font-bold text-white">
+          MarkVision Online
+        </h2>
+        <p className="text-white/60 text-base md:text-lg">
+          Добро пожаловать, {displayName}
+        </p>
+      </div>
+
       <h3 className="text-sm font-semibold text-white/70 uppercase tracking-wider">
-        Управление рекламой
+        БЫСТРЫЙ ДОСТУП
       </h3>
 
       <motion.div

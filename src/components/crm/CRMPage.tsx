@@ -11,12 +11,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { 
-  RefreshCw, 
-  Kanban, 
-  TrendingUp, 
-  Search, 
-  Filter, 
+import {
+  RefreshCw,
+  Kanban,
+  TrendingUp,
+  Search,
+  Filter,
   X,
   SlidersHorizontal,
   Zap,
@@ -24,7 +24,9 @@ import {
   Calendar,
   Users,
   Bot,
-  ArrowUpDown
+  ArrowUpDown,
+  Sparkles,
+  Target
 } from 'lucide-react';
 import { subDays, isAfter, isBefore, startOfDay, endOfDay } from 'date-fns';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -87,14 +89,14 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const [activeTab, setActiveTab] = useState<TabValue>('kanban');
   const [direction, setDirection] = useState(0);
   const isMobile = useIsMobile();
-  
+
   // Filters
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
   const [selectedSources, setSelectedSources] = useState<string[]>([]);
   const [selectedDatePreset, setSelectedDatePreset] = useState<string | null>(null);
   const [sortByLtv, setSortByLtv] = useState<'desc' | 'asc' | null>(null);
-  
+
   // Selection mode
   const [selectionMode, setSelectionMode] = useState(false);
   const [selectedLeads, setSelectedLeads] = useState<Set<string>>(new Set());
@@ -103,9 +105,12 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   // Filter leads
   const filteredLeads = useMemo(() => {
     let result = leads.filter((lead) => {
+      // Guard clause: skip leads that are null/undefined or missing critical fields
+      if (!lead || !lead.created_at) return false;
+
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
-        const matchesSearch = 
+        const matchesSearch =
           (lead.name?.toLowerCase().includes(query)) ||
           (lead.phone?.toLowerCase().includes(query)) ||
           (lead.utm_source?.toLowerCase().includes(query)) ||
@@ -129,7 +134,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         if (preset) {
           const leadDate = new Date(lead.created_at);
           const today = new Date();
-          
+
           if (preset.id === 'today') {
             const start = startOfDay(today);
             const end = endOfDay(today);
@@ -192,7 +197,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const handleSwipe = (_evt: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
     const swipeThreshold = 50;
     const currentIndex = tabs.indexOf(activeTab);
-    
+
     if (info.offset.x < -swipeThreshold && currentIndex < tabs.length - 1) {
       setDirection(1);
       setActiveTab(tabs[currentIndex + 1]);
@@ -225,16 +230,16 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   };
 
   const toggleStatus = (statusId: string) => {
-    setSelectedStatuses(prev => 
-      prev.includes(statusId) 
+    setSelectedStatuses(prev =>
+      prev.includes(statusId)
         ? prev.filter(s => s !== statusId)
         : [...prev, statusId]
     );
   };
 
   const toggleSource = (sourceId: string) => {
-    setSelectedSources(prev => 
-      prev.includes(sourceId) 
+    setSelectedSources(prev =>
+      prev.includes(sourceId)
         ? prev.filter(s => s !== sourceId)
         : [...prev, sourceId]
     );
@@ -273,7 +278,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   // Bulk actions
   const handleBulkDelete = async () => {
     if (selectedLeads.size === 0) return;
-    
+
     setIsBulkUpdating(true);
     try {
       const { error } = await supabase
@@ -297,12 +302,12 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
   const handleBulkStatusChange = async (newStatus: string) => {
     if (selectedLeads.size === 0) return;
-    
+
     setIsBulkUpdating(true);
     try {
       const { error } = await supabase
         .from('leads')
-        .update({ 
+        .update({
           status: newStatus,
           updated_at: new Date().toISOString()
         } as any)
@@ -336,60 +341,65 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative min-h-screen">
+      {/* Background patterns for depth */}
+      <div className="absolute inset-x-0 -top-24 -bottom-24 dot-pattern opacity-30 pointer-events-none -z-10" />
+      <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10" />
+
       {/* Ultra Premium Header */}
-      <motion.div 
-        className="ui-page-header rounded-xl"
-        initial={{ opacity: 0, y: -10 }}
+      <motion.div
+        className="ui-page-header rounded-2xl interstellar-glass border-white/10 p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+        initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
       >
-        <div className="flex items-center gap-3">
-          <div className="ui-section-icon">
-            <Zap className="w-5 h-5" />
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center shadow-xl shadow-primary/20 glow-primary">
+            <Zap className="w-7 h-7 text-primary-foreground animate-pulse-slow" />
           </div>
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold">CRM</h2>
-            <p className="text-muted-foreground text-xs sm:text-sm font-medium">
-              {filteredLeads.length} из {leads.length} лидов
+            <h2 className="text-2xl md:text-4xl font-black tracking-tight bg-gradient-to-br from-foreground to-foreground/70 bg-clip-text text-transparent">
+              CRM
+            </h2>
+            <p className="text-muted-foreground text-xs sm:text-sm font-semibold flex items-center gap-2 mt-1">
+              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              {filteredLeads.length} из {leads.length} активных лидов
             </p>
           </div>
         </div>
-        
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-            {projectId && (
-              <AddLeadDialog 
-                projectId={projectId} 
-                onLeadAdded={refetch} 
-                onDuplicateFound={handleLeadClick}
-              />
+
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+          {projectId && (
+            <AddLeadDialog
+              projectId={projectId}
+              onLeadAdded={refetch}
+              onDuplicateFound={handleLeadClick}
+            />
+          )}
+          <Button
+            variant={selectionMode ? "default" : "outline"}
+            size="sm"
+            onClick={toggleSelectionMode}
+            className={cn(
+              "h-11 px-5 rounded-xl transition-all duration-300 font-bold",
+              selectionMode
+                ? "bg-primary text-primary-foreground shadow-lg shadow-primary/20 scale-105"
+                : "interstellar-button-ghost"
             )}
-            <Button
-              variant={selectionMode ? "default" : "outline"}
-              size="sm"
-              onClick={toggleSelectionMode}
-              className={cn(
-                "flex-shrink-0 transition-all h-10 rounded-xl",
-                selectionMode 
-                  ? "bg-primary text-primary-foreground shadow-md"
-                  : "crm-card-glass border-border/50 hover:border-primary/50"
-              )}
-            >
-              <CheckSquare className="w-4 h-4" />
-              <span className="ml-2 hidden sm:inline">
-                {selectionMode ? 'Отменить' : 'Выбрать'}
-              </span>
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleRefresh}
-              disabled={isRefreshing}
-            className="flex-shrink-0 h-10 rounded-xl crm-card-glass border-border/50 hover:border-primary/50 transition-all"
-            >
-              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-              <span className="ml-2 hidden sm:inline">Обновить</span>
-            </Button>
+          >
+            <CheckSquare className="w-4 h-4 mr-2" />
+            <span>{selectionMode ? 'Завершить' : 'Выбрать'}</span>
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="h-11 px-5 rounded-xl interstellar-button-ghost font-bold"
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
+            <span>Обновить</span>
+          </Button>
         </div>
       </motion.div>
 
@@ -416,6 +426,69 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         transition={{ duration: 0.4, delay: 0.1 }}
         className="space-y-3"
       >
+        {/* Quick Filters */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (searchQuery === 'hot') {
+                setSearchQuery('');
+              } else {
+                setSortByLtv('desc');
+                toast.info('Показаны самые перспективные лиды');
+              }
+            }}
+            className={cn(
+              "rounded-full h-8 px-4 text-xs font-medium border-dashed border-amber-500/30 text-amber-400 hover:bg-amber-500/10 hover:text-amber-300",
+              sortByLtv === 'desc' && "bg-amber-500/10 border-solid border-amber-500 text-amber-300"
+            )}
+          >
+            <Sparkles className="w-3 h-3 mr-1.5" />
+            Горячие лиды
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              const todayPreset = datePresets.find(p => p.id === 'today');
+              if (selectedDatePreset === 'today') {
+                setSelectedDatePreset(null);
+              } else {
+                setSelectedDatePreset('today');
+                toast.info('Показаны лиды за сегодня');
+              }
+            }}
+            className={cn(
+              "rounded-full h-8 px-4 text-xs font-medium border-dashed border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300",
+              selectedDatePreset === 'today' && "bg-blue-500/10 border-solid border-blue-500 text-blue-300"
+            )}
+          >
+            <Zap className="w-3 h-3 mr-1.5" />
+            Новые сегодня
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              // Toggle 'new' status filter
+              if (selectedStatuses.includes('new') && selectedStatuses.length === 1) {
+                setSelectedStatuses([]);
+              } else {
+                setSelectedStatuses(['new']);
+                toast.info('Показаны только новые лиды');
+              }
+            }}
+            className={cn(
+              "rounded-full h-8 px-4 text-xs font-medium border-dashed border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300",
+              selectedStatuses.includes('new') && selectedStatuses.length === 1 && "bg-emerald-500/10 border-solid border-emerald-500 text-emerald-300"
+            )}
+          >
+            <Target className="w-3 h-3 mr-1.5" />
+            Только новые
+          </Button>
+        </div>
+
         <div className="flex flex-col sm:flex-row gap-3">
           {/* Search Input */}
           <div className="relative flex-1">
@@ -440,8 +513,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className={cn(
                     "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedStatuses.length > 0 && "border-primary bg-primary/10"
@@ -477,8 +550,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className={cn(
                     "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedSources.length > 0 && "border-accent bg-accent/10"
@@ -512,8 +585,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             {/* Date Filter */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className={cn(
                     "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedDatePreset && "border-emerald-500 bg-emerald-500/10"
@@ -545,8 +618,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             </DropdownMenu>
 
             {/* LTV Sort Button */}
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={toggleLtvSort}
               className={cn(
                 "h-12 px-4 crm-card-glass border-border/50 hover:border-primary/50 transition-all rounded-xl",
@@ -574,10 +647,10 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               className="flex flex-wrap items-center gap-2"
             >
               <span className="text-xs text-muted-foreground font-medium">Активные фильтры:</span>
-              
+
               {searchQuery && (
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className="bg-primary/10 text-primary border-primary/20 gap-1 cursor-pointer hover:bg-primary/20"
                   onClick={() => setSearchQuery('')}
                 >
@@ -586,13 +659,13 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   <X className="w-3 h-3 ml-1" />
                 </Badge>
               )}
-              
+
               {selectedStatuses.map(status => {
                 const statusData = statusOptions.find(s => s.id === status);
                 return (
-                  <Badge 
+                  <Badge
                     key={status}
-                    variant="secondary" 
+                    variant="secondary"
                     className="bg-secondary/50 gap-1 cursor-pointer hover:bg-secondary"
                     onClick={() => toggleStatus(status)}
                   >
@@ -602,13 +675,13 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   </Badge>
                 );
               })}
-              
+
               {selectedSources.map(source => {
                 const sourceData = sourceOptions.find(s => s.id === source);
                 return (
-                  <Badge 
+                  <Badge
                     key={source}
-                    variant="secondary" 
+                    variant="secondary"
                     className="bg-accent/10 text-accent gap-1 cursor-pointer hover:bg-accent/20"
                     onClick={() => toggleSource(source)}
                   >
@@ -619,8 +692,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               })}
 
               {selectedDatePreset && (
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className="bg-emerald-500/10 text-emerald-600 gap-1 cursor-pointer hover:bg-emerald-500/20"
                   onClick={() => setSelectedDatePreset(null)}
                 >
@@ -631,8 +704,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               )}
 
               {sortByLtv && (
-                <Badge 
-                  variant="secondary" 
+                <Badge
+                  variant="secondary"
                   className="bg-amber-500/10 text-amber-600 gap-1 cursor-pointer hover:bg-amber-500/20"
                   onClick={() => setSortByLtv(null)}
                 >
@@ -641,7 +714,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   <X className="w-3 h-3 ml-1" />
                 </Badge>
               )}
-              
+
               <Button
                 variant="ghost"
                 size="sm"
@@ -655,41 +728,43 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         </AnimatePresence>
       </motion.div>
 
-      {/* Premium Tabs */}
+      {/* Premium Segmented Tabs */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <motion.div
-          initial={{ opacity: 0, y: 10 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="flex justify-center sm:justify-start"
         >
-          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex crm-card-glass p-1.5 gap-1 rounded-xl">
-            <TabsTrigger 
-              value="kanban" 
-              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex interstellar-glass p-1.5 gap-1.5 rounded-2xl border-white/5 shadow-2xl">
+            <TabsTrigger
+              value="kanban"
+              className="gap-2.5 px-6 py-2.5 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-primary data-[state=active]:to-primary/80 data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20 transition-all duration-500 rounded-xl"
             >
               <Kanban className="w-4 h-4" />
               <span className="hidden sm:inline">Канбан</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="clients" 
-              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+
+            <TabsTrigger
+              value="clients"
+              className="gap-2.5 px-6 py-2.5 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-accent data-[state=active]:to-accent/80 data-[state=active]:text-accent-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-accent/20 transition-all duration-500 rounded-xl"
             >
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">Клиенты</span>
+              <span className="hidden sm:inline">База клиентов</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="funnel" 
-              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-success data-[state=active]:to-success/80 data-[state=active]:text-success-foreground data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+            <TabsTrigger
+              value="funnel"
+              className="gap-2.5 px-6 py-2.5 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-500 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/20 transition-all duration-500 rounded-xl"
             >
               <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Воронка</span>
+              <span className="hidden sm:inline">Аналитика воронки</span>
             </TabsTrigger>
-            <TabsTrigger 
-              value="automation" 
-              className="gap-2 text-sm font-semibold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-500 data-[state=active]:to-purple-500 data-[state=active]:text-white data-[state=active]:shadow-lg transition-all duration-300 rounded-lg"
+            <TabsTrigger
+              value="automation"
+              className="gap-2.5 px-6 py-2.5 text-sm font-bold data-[state=active]:bg-gradient-to-r data-[state=active]:from-violet-600 data-[state=active]:to-purple-600 data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-violet-600/20 transition-all duration-500 rounded-xl"
             >
               <Bot className="w-4 h-4" />
-              <span className="hidden sm:inline">Автоматизация</span>
+              <span className="hidden sm:inline">AI-Автоматизация</span>
             </TabsTrigger>
           </TabsList>
         </motion.div>
@@ -716,15 +791,15 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                     transition={{ type: 'tween', duration: 0.2, ease: 'easeInOut' }}
                   >
                     {activeTab === 'kanban' ? (
-                      <KanbanBoard 
-                        leads={filteredLeads} 
-                        loading={loading} 
+                      <KanbanBoard
+                        leads={filteredLeads}
+                        loading={loading}
                         onRefetch={refetch}
                         projectId={projectId}
                         selectionMode={selectionMode}
                         selectedLeads={selectedLeads}
                         onSelectLead={handleSelectLead}
-                        
+
                       />
                     ) : activeTab === 'clients' ? (
                       <ClientsManagement projectId={projectId} />
@@ -744,16 +819,16 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               transition={{ duration: 0.4, delay: 0.3 }}
             >
               {activeTab === 'kanban' ? (
-                <KanbanBoard 
-                  leads={filteredLeads} 
-                  loading={loading} 
+                <KanbanBoard
+                  leads={filteredLeads}
+                  loading={loading}
                   onRefetch={refetch}
                   projectId={projectId}
                   selectionMode={selectionMode}
                   selectedLeads={selectedLeads}
                   onSelectLead={handleSelectLead}
                   onLeadClick={handleLeadClick}
-                  
+
                 />
               ) : activeTab === 'clients' ? (
                 <ClientsManagement projectId={projectId} />
@@ -772,11 +847,10 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             {tabs.map((tab) => (
               <motion.div
                 key={tab}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  activeTab === tab 
-                    ? 'w-8 bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/30' 
-                    : 'w-1.5 bg-muted-foreground/30'
-                }`}
+                className={`h-1.5 rounded-full transition-all duration-300 ${activeTab === tab
+                  ? 'w-8 bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/30'
+                  : 'w-1.5 bg-muted-foreground/30'
+                  }`}
                 layoutId="tabIndicator"
               />
             ))}
@@ -814,11 +888,11 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
       {/* Selected Lead Modal */}
       <AnimatePresence>
         {selectedLead && (
-          <LeadFullPage 
-            lead={selectedLead} 
-            projectId={effectiveProjectId} 
-            onClose={handleCloseLead} 
-            onUpdate={refetch} 
+          <LeadFullPage
+            lead={selectedLead}
+            projectId={effectiveProjectId}
+            onClose={handleCloseLead}
+            onUpdate={refetch}
           />
         )}
       </AnimatePresence>

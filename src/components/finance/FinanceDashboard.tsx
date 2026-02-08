@@ -5,15 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -27,12 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Plus, 
-  ArrowUpRight, 
-  ArrowDownRight, 
-  Wallet, 
-  Download, 
+import {
+  Plus,
+  ArrowUpRight,
+  ArrowDownRight,
+  Wallet,
+  Download,
   RefreshCw,
   Calendar,
   Filter,
@@ -45,13 +45,13 @@ import {
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import { 
-  BarChart, 
-  Bar, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   Legend
 } from 'recharts';
@@ -182,7 +182,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       const formattedData: Transaction[] = (data || []).map((item: any) => ({
         id: item.id,
         type: item.type || 'expense',
@@ -226,7 +226,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
       }]);
 
       if (error) throw error;
-      
+
       toast.success('Транзакция добавлена');
       setIsAddDialogOpen(false);
       setNewTransaction({ type: 'expense', category: 'salary', amount: 0, description: '' });
@@ -278,7 +278,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   const totalIncome = filteredTransactions
     .filter(t => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
-  
+
   const totalExpense = filteredTransactions
     .filter(t => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -289,18 +289,18 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   // Prepare monthly chart data
   const chartData = useMemo(() => {
     const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
-    
+
     filteredTransactions.forEach(t => {
       const dateStr = t.transaction_date || t.created_at;
       if (!dateStr) return;
       const date = parseISO(dateStr);
       const monthKey = format(date, 'yyyy-MM');
       const monthLabel = format(date, 'MMM', { locale: ru });
-      
+
       if (!months[monthKey]) {
         months[monthKey] = { month: monthLabel, income: 0, expense: 0, profit: 0 };
       }
-      
+
       if (t.type === 'income') {
         months[monthKey].income += t.amount;
       } else {
@@ -317,7 +317,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   // Category breakdown for expenses
   const expensesByCategory = useMemo(() => {
     const categories: Record<string, number> = {};
-    
+
     filteredTransactions
       .filter(t => t.type === 'expense')
       .forEach(t => {
@@ -362,7 +362,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           </h2>
           <p className="text-muted-foreground">P&L дашборд и учёт финансов</p>
         </div>
-        
+
         {/* Hide controls when Decomposition is active */}
         {activeTab !== 'decomposition' && (
           <div className="flex gap-2 flex-wrap">
@@ -383,9 +383,9 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
               <RefreshCw className="w-4 h-4 mr-2" />
               Обновить
             </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleSyncAds} 
+            <Button
+              variant="outline"
+              onClick={handleSyncAds}
               disabled={syncing}
               className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
             >
@@ -394,7 +394,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
               ) : (
                 <Zap className="w-4 h-4 mr-2" />
               )}
-              Синхр. QuantumAds
+              Синхр. Данных
             </Button>
             <Button onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
@@ -409,64 +409,64 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           Actually, let's keep KPI cards unless requested.
       */}
       {activeTab !== 'decomposition' && (
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-l-4 border-l-green-500">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-green-500/10">
-                <ArrowUpRight className="w-6 h-6 text-green-500" />
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <Card className="border-l-4 border-l-green-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-green-500/10">
+                  <ArrowUpRight className="w-6 h-6 text-green-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Выручка</p>
+                  <p className="text-2xl font-bold text-green-500">{formatCurrency(totalIncome)}</p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Выручка</p>
-                <p className="text-2xl font-bold text-green-500">{formatCurrency(totalIncome)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-red-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-red-500/10">
+                  <ArrowDownRight className="w-6 h-6 text-red-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Расходы</p>
+                  <p className="text-2xl font-bold text-red-500">{formatCurrency(totalExpense)}</p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-red-500">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-red-500/10">
-                <ArrowDownRight className="w-6 h-6 text-red-500" />
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-primary">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-primary/10">
+                  <Wallet className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Чистая прибыль</p>
+                  <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {formatCurrency(profit)}
+                  </p>
+                </div>
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Расходы</p>
-                <p className="text-2xl font-bold text-red-500">{formatCurrency(totalExpense)}</p>
+            </CardContent>
+          </Card>
+          <Card className="border-l-4 border-l-purple-500">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 rounded-lg bg-purple-500/10">
+                  <Percent className="w-6 h-6 text-purple-500" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Рентабельность</p>
+                  <p className={`text-2xl font-bold ${Number(margin) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                    {margin}%
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-primary">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-primary/10">
-                <Wallet className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Чистая прибыль</p>
-                <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {formatCurrency(profit)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-l-4 border-l-purple-500">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-purple-500/10">
-                <Percent className="w-6 h-6 text-purple-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Рентабельность</p>
-                <p className={`text-2xl font-bold ${Number(margin) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                  {margin}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
+        </div>
       )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -503,30 +503,30 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={chartData} barCategoryGap="20%">
                       <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis 
-                        dataKey="month" 
-                        stroke="hsl(var(--muted-foreground))" 
+                      <XAxis
+                        dataKey="month"
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                         tickLine={false}
                       />
-                      <YAxis 
-                        stroke="hsl(var(--muted-foreground))" 
+                      <YAxis
+                        stroke="hsl(var(--muted-foreground))"
                         fontSize={12}
                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                         tickLine={false}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Legend />
-                      <Bar 
-                        dataKey="income" 
-                        name="Доходы" 
-                        fill="#22c55e" 
+                      <Bar
+                        dataKey="income"
+                        name="Доходы"
+                        fill="#22c55e"
                         radius={[4, 4, 0, 0]}
                       />
-                      <Bar 
-                        dataKey="expense" 
-                        name="Расходы" 
-                        fill="#ef4444" 
+                      <Bar
+                        dataKey="expense"
+                        name="Расходы"
+                        fill="#ef4444"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
@@ -557,7 +557,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                           <span className="text-sm text-muted-foreground">{item.percent}%</span>
                         </div>
                         <div className="h-2 bg-muted rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-red-500 rounded-full transition-all"
                             style={{ width: `${item.percent}%` }}
                           />
@@ -646,7 +646,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                           {format(parseISO(t.transaction_date), 'dd.MM.yyyy', { locale: ru })}
                         </TableCell>
                         <TableCell>
-                          <Badge 
+                          <Badge
                             variant={t.type === 'income' ? 'default' : 'destructive'}
                             className="whitespace-nowrap"
                           >
@@ -660,9 +660,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
                         <TableCell className="max-w-[200px] truncate">
                           {t.description || '—'}
                         </TableCell>
-                        <TableCell className={`text-right font-medium whitespace-nowrap ${
-                          t.type === 'income' ? 'text-green-500' : 'text-red-500'
-                        }`}>
+                        <TableCell className={`text-right font-medium whitespace-nowrap ${t.type === 'income' ? 'text-green-500' : 'text-red-500'
+                          }`}>
                           {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
                         </TableCell>
                       </TableRow>
@@ -684,11 +683,11 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Тип</Label>
-              <Select 
-                value={newTransaction.type} 
+              <Select
+                value={newTransaction.type}
                 onValueChange={(value: 'income' | 'expense') => {
-                  setNewTransaction({ 
-                    ...newTransaction, 
+                  setNewTransaction({
+                    ...newTransaction,
                     type: value,
                     category: value === 'income' ? 'sales' : 'salary'
                   });
@@ -715,8 +714,8 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             </div>
             <div className="space-y-2">
               <Label>Категория</Label>
-              <Select 
-                value={newTransaction.category} 
+              <Select
+                value={newTransaction.category}
                 onValueChange={(value) => setNewTransaction({ ...newTransaction, category: value })}
               >
                 <SelectTrigger>

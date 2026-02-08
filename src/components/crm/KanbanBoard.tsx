@@ -88,10 +88,10 @@ interface KanbanBoardProps {
   onLeadClick?: (lead: Lead) => void;
 }
 
-export const KanbanBoard = ({ 
-  leads, 
-  loading, 
-  onRefetch, 
+export const KanbanBoard = ({
+  leads,
+  loading,
+  onRefetch,
   projectId,
   selectionMode = false,
   selectedLeads = new Set(),
@@ -120,19 +120,19 @@ export const KanbanBoard = ({
       const isActive = channels.some(ch => ch.state === 'joined');
       setIsConnected(isActive);
     };
-    
+
     checkConnection();
     const interval = setInterval(checkConnection, 5000);
-    
+
     return () => clearInterval(interval);
   }, []);
 
   // Улучшенные сенсоры для плавного Drag-and-Drop
   const sensors = useSensors(
-    useSensor(PointerSensor, { 
-      activationConstraint: { 
+    useSensor(PointerSensor, {
+      activationConstraint: {
         distance: 5 // Меньше расстояние для более быстрой активации
-      } 
+      }
     })
   );
 
@@ -185,12 +185,12 @@ export const KanbanBoard = ({
       setPaymentLead(lead);
       return;
     }
-    
+
     if (newStatusId === 'appointment') {
       setAppointmentLead(lead);
       return;
     }
-    
+
     if (newStatusId === 'cancelled') {
       setRejectionLead(lead);
       return;
@@ -200,19 +200,19 @@ export const KanbanBoard = ({
   };
 
   const updateLeadStatus = async (
-    leadId: string, 
-    statusLabel: string, 
+    leadId: string,
+    statusLabel: string,
     oldStatus?: string,
     extraData?: { appointment_date?: string; rejection_reason?: string }
   ) => {
     setIsUpdating(true);
     try {
       const lead = leads.find(l => l.id === leadId);
-      const updateData: any = { 
-        status: statusLabel, 
-        updated_at: new Date().toISOString() 
+      const updateData: any = {
+        status: statusLabel,
+        updated_at: new Date().toISOString()
       };
-      
+
       if (extraData?.appointment_date) {
         updateData.appointment_date = extraData.appointment_date;
       }
@@ -224,7 +224,7 @@ export const KanbanBoard = ({
         .from('leads')
         .update(updateData)
         .eq('id', leadId);
-      
+
       if (error) throw error;
 
       // Log status change
@@ -275,18 +275,18 @@ export const KanbanBoard = ({
   // Payment confirmation handler
   const handlePaymentConfirm = async (amount: number) => {
     if (!paymentLead || !pendingStatusChange) return;
-    
+
     setIsUpdating(true);
     try {
       const { error } = await supabase
         .from('leads')
-        .update({ 
-          status: 'Оплачен', 
+        .update({
+          status: 'Оплачен',
           deal_amount: amount,
-          updated_at: new Date().toISOString() 
+          updated_at: new Date().toISOString()
         })
         .eq('id', paymentLead.id);
-      
+
       if (error) throw error;
 
       // ✨ AUTO-SYNC: Create income transaction in MarkFinance
@@ -343,7 +343,7 @@ export const KanbanBoard = ({
 
       // Trigger confetti celebration!
       triggerSuccessConfetti();
-      
+
       toast.success('Оплата зарегистрирована и синхронизирована с MarkFinance! 🎉');
       onRefetch();
     } catch (error: any) {
@@ -363,8 +363,8 @@ export const KanbanBoard = ({
   const handleAppointmentConfirm = async (appointmentDate: string) => {
     if (!appointmentLead || !pendingStatusChange) return;
     await updateLeadStatus(
-      appointmentLead.id, 
-      'Записан', 
+      appointmentLead.id,
+      'Записан',
       pendingStatusChange.oldStatus,
       { appointment_date: appointmentDate }
     );
@@ -376,8 +376,8 @@ export const KanbanBoard = ({
   const handleRejectionConfirm = async (reasonId: string, reasonText: string) => {
     if (!rejectionLead || !pendingStatusChange) return;
     await updateLeadStatus(
-      rejectionLead.id, 
-      'Отказ', 
+      rejectionLead.id,
+      'Отказ',
       pendingStatusChange.oldStatus,
       { rejection_reason: reasonText }
     );
@@ -404,19 +404,26 @@ export const KanbanBoard = ({
 
       <DndContext sensors={sensors} collisionDetection={closestCorners} onDragStart={handleDragStart} onDragOver={handleDragOver} onDragEnd={handleDragEnd}>
         <div className="flex gap-3 md:gap-4 overflow-x-auto pb-4 -mx-3 px-3 md:mx-0 md:px-0 snap-x snap-mandatory md:snap-none scrollbar-thin min-h-[500px] md:min-h-[600px]">
-          {KANBAN_STATUSES.map(status => (
-            <div key={status.id} className="snap-start">
-              <KanbanColumn
-                status={status}
-                leads={leadsByStatus[status.id] || []}
-                onLeadClick={onLeadClick}
-                isDropTarget={overId === status.id}
-                selectionMode={selectionMode}
-                selectedLeads={selectedLeads}
-                onSelectLead={onSelectLead}
-              />
-            </div>
-          ))}
+          {KANBAN_STATUSES.map(status => {
+            const statusLeads = leadsByStatus[status.id] || [];
+            const totalAmount = statusLeads.reduce((sum, lead) => sum + (lead.deal_amount || 0), 0);
+
+            return (
+              <div key={status.id} className="snap-start">
+                <KanbanColumn
+                  status={status}
+                  leads={statusLeads}
+                  onLeadClick={onLeadClick}
+                  isDropTarget={overId === status.id}
+                  selectionMode={selectionMode}
+                  selectedLeads={selectedLeads}
+                  onSelectLead={onSelectLead}
+                  totalAmount={totalAmount}
+                  totalCount={statusLeads.length}
+                />
+              </div>
+            );
+          })}
         </div>
         <DragOverlay>{activeLead && <LeadCard lead={activeLead} isDragging />}</DragOverlay>
       </DndContext>

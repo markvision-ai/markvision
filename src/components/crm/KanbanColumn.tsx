@@ -4,6 +4,8 @@ import { Lead } from '@/hooks/useLeads';
 import { LeadCard } from './LeadCard';
 import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DollarSign } from 'lucide-react';
@@ -18,18 +20,22 @@ interface KanbanColumnProps {
   onSelectLead?: (leadId: string, selected: boolean) => void;
   onSelectAllInColumn?: (statusId: string, selected: boolean) => void;
   animatingLeadId?: string | null;
+  totalAmount?: number;
+  totalCount?: number;
 }
 
-export const KanbanColumn = ({ 
-  status, 
-  leads, 
-  onLeadClick, 
+export const KanbanColumn = ({
+  status,
+  leads,
+  onLeadClick,
   isDropTarget,
   selectionMode = false,
   selectedLeads = new Set(),
   onSelectLead,
   onSelectAllInColumn,
-  animatingLeadId
+  animatingLeadId,
+  totalAmount = 0,
+  totalCount = 0
 }: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
@@ -37,12 +43,8 @@ export const KanbanColumn = ({
 
   const allInColumnSelected = leads.length > 0 && leads.every(lead => selectedLeads.has(lead.id));
 
-  // Calculate total revenue for "Записан" and "Оплачено" columns
-  const showRevenue = status.id === 'appointment' || status.id === 'paid';
-  const totalRevenue = useMemo(() => {
-    if (!showRevenue) return 0;
-    return leads.reduce((sum, lead) => sum + (lead.deal_amount || 0), 0);
-  }, [leads, showRevenue]);
+  // Use passed totalAmount
+  const showRevenue = totalAmount > 0;
 
   const formatRevenue = (value: number) => {
     return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
@@ -66,57 +68,80 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[280px] sm:w-80 rounded-xl border backdrop-blur-sm bg-card/50 border-border p-3 sm:p-4 transition-all duration-300',
-        isHighlighted && 'ring-2 ring-primary/50 ring-offset-2 ring-offset-background/50 shadow-lg shadow-primary/20'
+        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border transition-all duration-500 flex flex-col',
+        'interstellar-glass border-white/5 shadow-2xl backdrop-blur-xl',
+        isHighlighted ? 'ring-2 ring-primary/40 ring-offset-4 ring-offset-background/50 scale-[1.01]' : 'opacity-95 hover:opacity-100'
       )}
     >
-      {/* Column Header - Glassmorphism */}
-      <div className={cn(
-        'flex flex-col gap-1 mb-4 px-3 py-2 rounded-lg backdrop-blur-sm border border-border',
-        status.color === 'success' && 'bg-emerald-500/20 border-emerald-500/30',
-        status.color === 'destructive' && 'bg-red-500/20 border-red-500/30',
-        !status.color && 'bg-primary/10 border-primary/20'
-      )}>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
+      {/* Column Header - Premium Branded */}
+      <div className="p-4 flex flex-col gap-2 relative overflow-hidden group">
+        {/* Subtle header glow */}
+        <div className={cn(
+          "absolute -top-12 -right-12 w-32 h-32 blur-3xl opacity-20 transition-opacity duration-500 group-hover:opacity-40",
+          status.color === 'success' ? 'bg-emerald-500' :
+            status.color === 'destructive' ? 'bg-red-500' : 'bg-primary'
+        )} />
+
+        <div className="flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-2.5">
             {selectionMode && leads.length > 0 && (
               <Checkbox
                 checked={allInColumnSelected}
                 onCheckedChange={(checked) => onSelectAllInColumn?.(status.id, !!checked)}
-                className="border-current/50"
+                className="border-white/20 data-[state=checked]:bg-primary"
               />
             )}
-            <h3 className="font-semibold text-sm">
+            <h3 className="font-black text-xs uppercase tracking-[0.15em] text-foreground/80">
               {status.label}
             </h3>
           </div>
-          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-background/30">
+          <Badge
+            variant="outline"
+            className="rounded-lg h-7 px-2.5 font-bold border-white/10 bg-white/5 text-[11px]"
+          >
             {leads.length}
-          </span>
+          </Badge>
         </div>
-        {/* Revenue total for Записан and Оплачено */}
-        {showRevenue && totalRevenue > 0 && (
-          <div className="flex items-center gap-1 text-xs opacity-90">
-            <DollarSign className="w-3 h-3" />
-            <span className="font-semibold">{formatRevenue(totalRevenue)}</span>
-          </div>
+
+        {/* Revenue/Lead Metrics */}
+        {(showRevenue) && (
+          <motion.div
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-2 relative z-10"
+          >
+            <div className={cn(
+              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-black shadow-sm",
+              status.color === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+            )}>
+              <DollarSign className="w-3 h-3" />
+              <span>{formatRevenue(totalAmount)}</span>
+            </div>
+            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider opacity-60">
+              Оборот этапа
+            </span>
+          </motion.div>
         )}
       </div>
 
+      <Separator className="bg-white/5 mx-4 w-auto" />
+
       {/* Cards Container with AnimatePresence */}
-      <div className="space-y-3 min-h-[200px]">
+      <div className="space-y-3 min-h-[200px] p-4 scrollbar-none overflow-y-auto">
         <AnimatePresence mode="popLayout">
           {leads.map((lead) => (
             <motion.div
               key={lead.id}
               layout
               initial={{ opacity: 0, scale: 0.8, y: -20 }}
-              animate={{ 
-                opacity: 1, 
-                scale: animatingLeadId === lead.id ? 1.02 : 1, 
+              animate={{
+                opacity: 1,
+                scale: animatingLeadId === lead.id ? 1.02 : 1,
                 y: 0,
-                boxShadow: animatingLeadId === lead.id 
-                  ? '0 0 20px rgba(var(--primary), 0.3)' 
+                boxShadow: animatingLeadId === lead.id
+                  ? '0 0 20px rgba(var(--primary), 0.3)'
                   : 'none'
               }}
               exit={{ opacity: 0, scale: 0.8, y: 20 }}

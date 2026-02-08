@@ -4,8 +4,25 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { Send, Loader2, Trash2, MessageSquare, Paperclip, X, FileText, Image, Sparkles } from 'lucide-react';
+import {
+  Send,
+  Loader2,
+  Trash2,
+  MessageSquare,
+  Paperclip,
+  X,
+  FileText,
+  Image as ImageIcon,
+  Sparkles,
+  Zap,
+  CheckCheck,
+  MoreVertical,
+  ShieldCheck,
+  Smile,
+  Circle
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -21,7 +38,7 @@ const getSignedUrl = async (filePath: string): Promise<string | null> => {
   const { data, error } = await supabase.storage
     .from('lead-attachments')
     .createSignedUrl(filePath, 3600); // 1 hour expiry
-  
+
   if (error) {
     console.error('Error getting signed URL:', error);
     return null;
@@ -30,15 +47,15 @@ const getSignedUrl = async (filePath: string): Promise<string | null> => {
 };
 
 // Component for displaying file attachments with signed URLs
-const FileAttachment = ({ 
-  filePath, 
-  fileName, 
-  fileType, 
-  isOwn 
-}: { 
-  filePath: string; 
-  fileName: string | null; 
-  fileType: string | null; 
+const FileAttachment = ({
+  filePath,
+  fileName,
+  fileType,
+  isOwn
+}: {
+  filePath: string;
+  fileName: string | null;
+  fileType: string | null;
   isOwn: boolean;
 }) => {
   const [signedUrl, setSignedUrl] = useState<string | null>(null);
@@ -57,48 +74,65 @@ const FileAttachment = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        <span className="text-xs">Загрузка файла...</span>
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 animate-pulse">
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+        <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Encryption in progress...</span>
       </div>
     );
   }
 
   if (!signedUrl) {
     return (
-      <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 text-destructive">
-        <FileText className="w-4 h-4" />
-        <span className="text-xs">Файл недоступен</span>
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-destructive/10 border border-destructive/20 text-destructive">
+        <FileText className="w-5 h-5" />
+        <span className="text-[10px] font-black uppercase tracking-widest">Failed to retrieve</span>
       </div>
     );
   }
 
   if (isImage) {
     return (
-      <a href={signedUrl} target="_blank" rel="noopener noreferrer">
-        <img 
-          src={signedUrl} 
-          alt={fileName || 'Изображение'} 
-          className="max-w-full max-h-48 rounded-lg object-cover shadow-lg"
+      <motion.a
+        href={signedUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        initial={{ scale: 0.95, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        className="block group relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl"
+      >
+        <img
+          src={signedUrl}
+          alt={fileName || 'Изображение'}
+          className="max-w-full max-h-[300px] rounded-[2rem] object-cover transition-transform duration-700 group-hover:scale-105"
         />
-      </a>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-4">
+          <p className="text-[10px] font-black text-white uppercase tracking-widest">Open full resolution</p>
+        </div>
+      </motion.a>
     );
   }
 
   return (
-    <a 
-      href={signedUrl} 
-      target="_blank" 
+    <a
+      href={signedUrl}
+      target="_blank"
       rel="noopener noreferrer"
       className={cn(
-        'flex items-center gap-2 p-3 rounded-lg transition-colors',
-        isOwn ? 'bg-primary-foreground/10 hover:bg-primary-foreground/20' : 'bg-muted/50 hover:bg-muted'
+        'flex items-center gap-4 p-4 rounded-[1.5rem] transition-all duration-300 border',
+        isOwn
+          ? 'bg-white/10 border-white/20 hover:bg-white/20'
+          : 'bg-primary/5 border-primary/10 hover:bg-primary/10'
       )}
     >
-      <FileText className="w-5 h-5" />
-      <span className="text-xs truncate max-w-[150px] font-medium">
-        {fileName || 'Файл'}
-      </span>
+      <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center">
+        <FileText className="w-5 h-5" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-50 mb-0.5">Attachment</p>
+        <p className="text-xs font-bold truncate">
+          {fileName || 'Unknown File'}
+        </p>
+      </div>
     </a>
   );
 };
@@ -150,7 +184,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
 
       // Get signed URL instead of public URL for secure access
       const signedUrl = await getSignedUrl(filePath);
-      
+
       if (!signedUrl) throw new Error('Failed to get signed URL');
 
       return {
@@ -170,12 +204,12 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
     if ((!newMessage.trim() && !selectedFile) || sending || uploading) return;
 
     let fileData = null;
-    
+
     if (selectedFile) {
       setUploading(true);
       fileData = await uploadFile(selectedFile);
       setUploading(false);
-      
+
       if (!fileData) return;
     }
 
@@ -183,7 +217,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
       newMessage.trim() || (fileData ? `📎 ${fileData.name}` : ''),
       fileData
     );
-    
+
     if (success) {
       setNewMessage('');
       removeSelectedFile();
@@ -197,7 +231,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
     }
   };
 
-  
+
 
   if (loading) {
     return (
@@ -211,159 +245,248 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
   }
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Premium Header */}
-      <div className="flex items-center gap-3 px-5 py-4 border-b crm-card-glass">
-        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-lg">
-          <MessageSquare className="w-5 h-5 text-primary-foreground" />
+    <div className="flex flex-col h-full bg-background/5 relative">
+      {/* Branded Messenger Header */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-background/20 backdrop-blur-md">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center shadow-2xl shadow-primary/20">
+              <MessageSquare className="w-6 h-6 text-white drop-shadow-md" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0A0A0B] shadow-lg animate-pulse" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h3 className="font-black text-sm uppercase tracking-wider text-white">Project Intelligence</h3>
+              <Badge className="bg-primary/10 text-primary border-primary/20 text-[10px] font-black p-1 px-2 uppercase tracking-widest">LIVE</Badge>
+            </div>
+            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.2em] mt-0.5">
+              {messages.length} Secure data points encryption
+            </p>
+          </div>
         </div>
-        <div>
-          <h3 className="font-bold text-sm">Чат по заявке</h3>
-          <span className="text-xs text-muted-foreground">
-            {messages.length} {messages.length === 1 ? 'сообщение' : 'сообщений'}
-          </span>
+        <div className="flex items-center gap-2">
+          <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl bg-white/5 border border-white/5">
+            <MoreVertical className="w-4 h-4 opacity-40" />
+          </Button>
         </div>
       </div>
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-        {messages.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-full text-center py-12">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center mb-4">
-              <Sparkles className="w-8 h-8 text-primary/50" />
+      {/* Messenger Flow */}
+      <ScrollArea className="flex-1" ref={scrollRef}>
+        <div className="p-6">
+          {messages.length === 0 ? (
+            <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+              <div className="relative mb-8">
+                <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse" />
+                <div className="w-24 h-24 rounded-[2.5rem] interstellar-glass border-white/10 flex items-center justify-center relative z-10">
+                  <Sparkles className="w-12 h-12 text-primary" />
+                </div>
+              </div>
+              <h4 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Начните диалог</h4>
+              <p className="text-xs font-black text-muted-foreground uppercase tracking-[0.3em] max-w-[200px] leading-relaxed">
+                Secure connection established. Awaiting initial input...
+              </p>
             </div>
-            <p className="text-sm font-medium text-muted-foreground">Нет сообщений</p>
-            <p className="text-xs text-muted-foreground mt-1">
-              Напишите первое сообщение
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <AnimatePresence>
-              {messages.map((msg) => {
-                const isOwn = msg.user_id === user?.id;
-                return (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className={cn(
-                      'flex flex-col max-w-[85%]',
-                      isOwn ? 'ml-auto items-end' : 'items-start'
-                    )}
-                  >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <span className="text-xs font-semibold">
-                        {isOwn ? 'Вы' : msg.user_name || 'Пользователь'}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {format(new Date(msg.created_at), 'd MMM, HH:mm', { locale: ru })}
-                      </span>
-                    </div>
-                    <div
+          ) : (
+            <div className="space-y-8">
+              <AnimatePresence>
+                {messages.map((msg, idx) => {
+                  const isOwn = msg.user_id === user?.id;
+                  const showAvatar = idx === 0 || messages[idx - 1].user_id !== msg.user_id;
+
+                  return (
+                    <motion.div
+                      key={msg.id}
+                      initial={{ opacity: 0, x: isOwn ? 30 : -30, scale: 0.95 }}
+                      animate={{ opacity: 1, x: 0, scale: 1 }}
+                      transition={{ type: "spring", damping: 25, stiffness: 200 }}
                       className={cn(
-                        'rounded-2xl px-4 py-3 text-sm group relative shadow-sm',
-                        isOwn
-                          ? 'bg-gradient-to-br from-primary to-primary/90 text-primary-foreground rounded-br-md'
-                          : 'crm-card-glass rounded-bl-md'
+                        'flex gap-4 max-w-[90%]',
+                        isOwn ? 'ml-auto flex-row-reverse' : 'flex-row'
                       )}
                     >
-                      {/* File attachment - uses signed URLs for secure access */}
-                      {msg.file_url && (
-                        <div className="mb-2">
-                          <FileAttachment
-                            filePath={msg.file_url}
-                            fileName={msg.file_name}
-                            fileType={msg.file_type}
-                            isOwn={isOwn}
-                          />
+                      {/* Avatar System */}
+                      <div className={cn(
+                        "w-10 h-10 shrink-0",
+                        !showAvatar && "invisible"
+                      )}>
+                        <div className={cn(
+                          "absolute w-10 h-10 rounded-2xl flex items-center justify-center text-[10px] font-black border",
+                          isOwn
+                            ? "bg-primary/20 border-primary/30 text-primary"
+                            : "bg-white/10 border-white/10 text-white"
+                        )}>
+                          {isOwn ? 'YOU' : (msg.user_name?.[0] || 'U').toUpperCase()}
                         </div>
-                      )}
-                      {msg.message && !msg.message.startsWith('📎') && (
-                        <p className="whitespace-pre-wrap break-words">{msg.message}</p>
-                      )}
-                      {isOwn && (
-                        <button
-                          onClick={() => deleteMessage(msg.id)}
-                          className="absolute -left-8 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-all p-1.5 hover:bg-destructive/20 rounded-lg"
-                          title="Удалить"
+                      </div>
+
+                      <div className={cn(
+                        'flex flex-col gap-1.5',
+                        isOwn ? 'items-end' : 'items-start'
+                      )}>
+                        {showAvatar && (
+                          <div className="flex items-center gap-3 px-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                              {isOwn ? 'MarkVision System' : msg.user_name}
+                            </span>
+                            <span className="text-[10px] font-bold text-muted-foreground/30">
+                              {format(new Date(msg.created_at), 'HH:mm')}
+                            </span>
+                          </div>
+                        )}
+
+                        <div
+                          className={cn(
+                            'relative p-4 rounded-[1.75rem] text-sm group transition-all duration-300',
+                            isOwn
+                              ? 'bg-primary text-white shadow-2xl shadow-primary/20 rounded-tr-none'
+                              : 'interstellar-glass border-white/5 text-white/90 rounded-tl-none hover:border-white/20'
+                          )}
                         >
-                          <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                        </button>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </div>
-        )}
+                          {/* Secure File Handling */}
+                          {msg.file_url && (
+                            <div className="mb-3">
+                              <FileAttachment
+                                filePath={msg.file_url}
+                                fileName={msg.file_name}
+                                fileType={msg.file_type}
+                                isOwn={isOwn}
+                              />
+                            </div>
+                          )}
+
+                          {msg.message && !msg.message.startsWith('📎') && (
+                            <p className="leading-relaxed font-bold tracking-tight whitespace-pre-wrap break-words">{msg.message}</p>
+                          )}
+
+                          {/* Quick Actions Bar */}
+                          <div className={cn(
+                            "absolute top-0 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300",
+                            isOwn ? "-left-16" : "-right-16"
+                          )}>
+                            {isOwn && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteMessage(msg.id)}
+                                className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive shadow-lg"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          )}
+        </div>
       </ScrollArea>
 
-      {/* Selected file preview */}
-      <AnimatePresence>
-        {selectedFile && (
-          <motion.div 
-            className="px-4 py-3 border-t crm-card-glass"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-          >
-            <div className="flex items-center gap-3 p-2 bg-primary/10 rounded-lg">
-              {selectedFile.type.startsWith('image/') ? (
-                <Image className="w-5 h-5 text-primary" />
-              ) : (
-                <FileText className="w-5 h-5 text-primary" />
-              )}
-              <span className="text-xs truncate flex-1 font-medium">{selectedFile.name}</span>
-              <button onClick={removeSelectedFile} className="p-1.5 hover:bg-destructive/20 rounded-lg transition-colors">
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Premium Input */}
-      <div className="p-4 border-t crm-card-glass">
-        <div className="flex gap-3">
-          <input
-            ref={fileInputRef}
-            type="file"
-            className="hidden"
-            accept="image/*,.pdf,.doc,.docx"
-            onChange={handleFileSelect}
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            className="flex-shrink-0 hover:bg-primary/10 hover:text-primary transition-colors"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            <Paperclip className="w-5 h-5" />
-          </Button>
-          <Textarea
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Напишите сообщение..."
-            className="min-h-[48px] max-h-[120px] resize-none text-sm bg-background/50 border-border/50 focus:border-primary rounded-xl"
-            rows={1}
-          />
-          <Button
-            size="icon"
-            onClick={handleSend}
-            disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
-            className="flex-shrink-0 bg-gradient-to-br from-primary to-accent hover:opacity-90 shadow-lg transition-all"
-          >
-            {sending || uploading ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
-            ) : (
-              <Send className="w-5 h-5" />
+      {/* Pro Command Center (Input) */}
+      <div className="p-6 border-t border-white/5 bg-background/40 backdrop-blur-xl">
+        <div className="flex flex-col gap-4">
+          {/* File Queue Visualization */}
+          <AnimatePresence>
+            {selectedFile && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                className="interstellar-glass p-3 rounded-2xl border-primary/20 bg-primary/5 flex items-center justify-between group"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    {selectedFile.type.startsWith('image/') ? <ImageIcon className="w-5 h-5 text-primary" /> : <FileText className="w-5 h-5 text-primary" />}
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary">Ready to upload</p>
+                    <p className="text-xs font-bold text-white/90 truncate max-w-[200px]">{selectedFile.name}</p>
+                  </div>
+                </div>
+                <Button
+                  onClick={removeSelectedFile}
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-lg hover:bg-destructive/20 hover:text-destructive"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </motion.div>
             )}
-          </Button>
+          </AnimatePresence>
+
+          <div className="flex items-end gap-3">
+            <div className="flex gap-1">
+              <input
+                ref={fileInputRef}
+                type="file"
+                className="hidden"
+                accept="image/*,.pdf,.doc,.docx"
+                onChange={handleFileSelect}
+              />
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                <Paperclip className="w-6 h-6" />
+              </Button>
+            </div>
+
+            <div className="flex-1 relative">
+              <Textarea
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Secure message command..."
+                className="interstellar-input min-h-[56px] max-h-[200px] py-4 px-6 text-base font-bold tracking-tight resize-none rounded-[1.75rem] border-white/10 focus:border-primary/50"
+                rows={1}
+              />
+              <div className="absolute right-4 bottom-4 flex items-center gap-2">
+                <Button variant="ghost" size="icon" className="h-8 w-8 opacity-40 hover:opacity-100">
+                  <Smile className="w-5 h-5" />
+                </Button>
+              </div>
+            </div>
+
+            <Button
+              onClick={handleSend}
+              disabled={(!newMessage.trim() && !selectedFile) || sending || uploading}
+              className={cn(
+                "h-14 px-8 rounded-[1.75rem] font-black uppercase tracking-widest transition-all duration-500",
+                (newMessage.trim() || selectedFile) && !sending && !uploading
+                  ? "bg-primary text-white shadow-2xl shadow-primary/40 hover:scale-[1.02] hover:opacity-90"
+                  : "bg-white/5 text-white/20 border border-white/5"
+              )}
+            >
+              {sending || uploading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <div className="flex items-center gap-2">
+                  <span>SEND</span>
+                  <Send className="w-4 h-4 ml-1" />
+                </div>
+              )}
+            </Button>
+          </div>
+
+          <div className="flex items-center justify-center gap-6 opacity-30">
+            <div className="flex items-center gap-2 font-black text-[9px] uppercase tracking-[0.2em]">
+              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+              END-TO-END ENCRYPTED
+            </div>
+            <div className="flex items-center gap-2 font-black text-[9px] uppercase tracking-[0.2em]">
+              <Zap className="w-3 h-3 text-primary" />
+              AI ENHANCED STREAMING
+            </div>
+          </div>
         </div>
       </div>
     </div>

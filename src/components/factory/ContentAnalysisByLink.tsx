@@ -126,7 +126,7 @@ ${result.summary}
 
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-xs font-medium uppercase tracking-wider mb-2 backdrop-blur-md">
           <ScanLine className="w-3 h-3 animate-pulse" />
-          Quantum Content Decoder
+          ИИ-Анализатор контента
         </div>
         <h2 className="text-4xl font-black tracking-tight text-white sm:text-5xl relative z-10 drop-shadow-lg">
           Анализ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Контента</span>

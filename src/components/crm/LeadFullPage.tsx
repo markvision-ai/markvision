@@ -6,12 +6,12 @@ import { logStatusChange } from '@/hooks/useLeadStatusHistory';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { 
-  ArrowLeft, 
-  User, 
-  Phone, 
-  Calendar, 
-  Tag, 
+import {
+  ArrowLeft,
+  User,
+  Phone,
+  Calendar,
+  Tag,
   Target,
   DollarSign,
   Save,
@@ -25,7 +25,13 @@ import {
   Gift,
   Users,
   Copy,
-  AlertCircle
+  AlertCircle,
+  Sparkles,
+  Zap,
+  ChevronRight,
+  ShieldCheck,
+  Award,
+  Crown
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -33,12 +39,12 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue 
+  SelectValue
 } from '@/components/ui/select';
 import { LeadChat } from './LeadChat';
 import { LeadTasks } from './LeadTasks';
@@ -67,15 +73,15 @@ const statusLabels: Record<string, string> = {
   cancelled: 'Отказ',
 };
 
-const statusStyles: Record<string, { bg: string; text: string; gradient: string }> = {
-  new: { bg: 'bg-blue-500/20', text: 'text-blue-500', gradient: 'from-blue-500 to-cyan-500' },
-  invoiced: { bg: 'bg-indigo-500/20', text: 'text-indigo-500', gradient: 'from-indigo-500 to-violet-500' },
-  paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-emerald-500 to-green-500' },
-  appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
-  visit_completed: { bg: 'bg-fuchsia-500/20', text: 'text-fuchsia-500', gradient: 'from-fuchsia-500 to-pink-500' },
-  in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
-  no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
-  cancelled: { bg: 'bg-destructive/20', text: 'text-destructive', gradient: 'from-red-500 to-rose-500' },
+const statusStyles: Record<string, { bg: string; text: string; gradient: string; glow: string }> = {
+  new: { bg: 'bg-blue-600/20', text: 'text-blue-400', gradient: 'from-blue-600 to-cyan-500', glow: 'shadow-blue-500/20' },
+  invoiced: { bg: 'bg-indigo-600/20', text: 'text-indigo-400', gradient: 'from-indigo-600 to-violet-500', glow: 'shadow-indigo-500/20' },
+  paid: { bg: 'bg-emerald-600/20', text: 'text-emerald-400', gradient: 'from-emerald-500 to-green-500', glow: 'shadow-emerald-500/20' },
+  appointment: { bg: 'bg-purple-600/20', text: 'text-purple-400', gradient: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/20' },
+  visit_completed: { bg: 'bg-fuchsia-600/20', text: 'text-fuchsia-400', gradient: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/20' },
+  in_progress: { bg: 'bg-yellow-600/20', text: 'text-yellow-400', gradient: 'from-yellow-500 to-orange-500', glow: 'shadow-yellow-500/20' },
+  no_answer: { bg: 'bg-orange-600/20', text: 'text-orange-400', gradient: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/20' },
+  cancelled: { bg: 'bg-red-600/20', text: 'text-red-400', gradient: 'from-red-500 to-rose-500', glow: 'shadow-red-500/20' },
 };
 
 interface LeadFullPageProps {
@@ -112,16 +118,16 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
   const handleVisitClick = async () => {
     if (isVisitDisabled) return;
-    
+
     setVisitLoading(true);
     try {
       // If status is new or no_answer, change to in_progress first
       if (formData.status === 'new' || formData.status === 'no_answer') {
         const { error } = await supabase
           .from('leads')
-          .update({ 
-            status: 'in_progress', 
-            updated_at: new Date().toISOString() 
+          .update({
+            status: 'in_progress',
+            updated_at: new Date().toISOString()
           })
           .eq('id', lead.id);
 
@@ -146,12 +152,12 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
         setFormData(prev => ({ ...prev, status: 'in_progress' }));
         onUpdate?.();
-        
+
         toast.success('Статус обновлен, переход к визиту...');
       } else {
         toast.info('Переход к визиту...');
       }
-      
+
       // Build URL and open in new tab AFTER successful status update
       // Updated to new visits app URL
       const visitUrl = `https://markvision-visits.vercel.app/?lead_id=${lead.id}`;
@@ -165,7 +171,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   };
 
   useEffect(() => {
-    const changed = 
+    const changed =
       formData.name !== (lead.name || '') ||
       formData.phone !== (lead.phone || '') ||
       formData.status !== (lead.status || 'new') ||
@@ -175,7 +181,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
   const handleSave = async () => {
     if (!user) return;
-    
+
     setSaving(true);
     try {
       const oldStatus = lead.status || 'new';
@@ -221,417 +227,350 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
 
   return createPortal(
     <AnimatePresence>
-      <motion.div 
+      <motion.div
         className="fixed inset-0 z-[100] bg-background flex flex-col"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
       >
-        {/* Premium Header */}
-        <header className="ui-page-header shrink-0">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-primary/10">
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
-            <div className="flex items-center gap-3">
-              <div className={cn('w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg', currentStatusStyle.gradient)}>
-                <User className="w-6 h-6 text-white" />
-              </div>
-              <div>
-                <h1 className="text-lg md:text-xl font-bold">
-                  {lead.name || 'Без имени'}
-                </h1>
-                <Badge className={cn('mt-1', currentStatusStyle.bg, currentStatusStyle.text, 'border-0')}>
-                  {statusLabels[formData.status]}
-                </Badge>
+        {/* Premium Profile Header */}
+        <header className="relative h-24 md:h-32 flex items-center px-6 overflow-hidden shrink-0 border-b border-white/5">
+          {/* Dynamic Background Glow */}
+          <div className={cn(
+            "absolute inset-0 bg-gradient-to-r opacity-20 blur-3xl -z-10 transition-all duration-1000",
+            currentStatusStyle.gradient
+          )} />
+          <div className="absolute inset-0 bg-background/40 backdrop-blur-xl -z-20" />
+          <div className="absolute inset-0 dot-pattern opacity-10 -z-10" />
+
+          <div className="flex items-center justify-between w-full max-w-[1600px] mx-auto">
+            <div className="flex items-center gap-6">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-primary/10 transition-all"
+              >
+                <ArrowLeft className="w-6 h-6" />
+              </Button>
+
+              <div className="flex items-center gap-5">
+                <div className="relative">
+                  <div className={cn(
+                    'w-16 h-16 rounded-2xl bg-gradient-to-br flex items-center justify-center shadow-2xl transition-all duration-1000 rotate-3 group-hover:rotate-0',
+                    currentStatusStyle.gradient,
+                    currentStatusStyle.glow
+                  )}>
+                    <User className="w-8 h-8 text-white drop-shadow-lg" />
+                  </div>
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-emerald-500 border-2 border-background flex items-center justify-center">
+                    <Zap className="w-3 h-3 text-white fill-current" />
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center gap-3">
+                    <h1 className="text-2xl md:text-3xl font-black tracking-tight text-white drop-shadow-sm">
+                      {lead.name || 'Анонимный клиент'}
+                    </h1>
+                    {lead.ltv && lead.ltv > 0 && (
+                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-black px-3 py-1">
+                        VIP • {new Intl.NumberFormat('ru-RU').format(lead.ltv)} ₸
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <Badge className={cn('font-black uppercase tracking-[0.1em] text-[10px] px-3 py-1 rounded-lg border-white/10 shadow-lg', currentStatusStyle.bg, currentStatusStyle.text)}>
+                      {statusLabels[formData.status]}
+                    </Badge>
+                    <span className="text-muted-foreground/60 text-xs font-bold px-2">•</span>
+                    <span className="text-muted-foreground/80 text-xs font-bold tracking-wide">
+                      ID: {lead.id.slice(0, 8)}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {hasChanges && (
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
+
+            <div className="flex items-center gap-3">
+              <AnimatePresence>
+                {hasChanges && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                  >
+                    <Button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="h-12 px-6 rounded-2xl bg-gradient-to-br from-primary to-accent hover:opacity-90 shadow-2xl shadow-primary/20 font-black tracking-wide"
+                    >
+                      {saving ? <Loader2 className="w-5 h-5 animate-spin mr-2" /> : <Save className="w-5 h-5 mr-2" />}
+                      СОХРАНИТЬ
+                    </Button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
               >
-                <Button 
-                  onClick={handleSave} 
-                  disabled={saving} 
-                  size="sm"
-                  className="bg-gradient-to-r from-primary to-accent hover:opacity-90 shadow-lg"
-                >
-                  {saving ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : (
-                    <Save className="w-4 h-4 mr-2" />
-                  )}
-                  Сохранить
-                </Button>
-              </motion.div>
-            )}
-            <Button variant="ghost" size="icon" onClick={onClose} className="hover:bg-destructive/10">
-              <X className="w-5 h-5" />
-            </Button>
+                <X className="w-6 h-6" />
+              </Button>
+            </div>
           </div>
         </header>
 
-        {/* Content */}
+        {/* Content Workspace */}
         <div className="flex-1 flex overflow-hidden">
-          {/* Left: Lead Details */}
-          <div className="w-1/2 border-r border-border/50 overflow-hidden flex flex-col bg-gradient-to-b from-background to-muted/20">
-            <ScrollArea className="flex-1 p-6">
-              <div className="space-y-6 max-w-xl">
-                {/* Contact Info Section */}
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <User className="w-4 h-4 text-primary-foreground" />
-                    </div>
-                    Контактные данные
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="name" className="ui-field-label">Имя</Label>
-                      <Input
-                        id="name"
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="Имя клиента"
-                        className="mt-1.5 ui-input"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone" className="ui-field-label">Телефон</Label>
-                      <div className="relative mt-1.5">
-                        <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary/60" />
-                        <Input
-                          id="phone"
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          placeholder="+7 (___) ___-__-__"
-                          className="pl-10 ui-input"
-                        />
-                      </div>
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* Status & Deal Section */}
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <DollarSign className="w-4 h-4 text-success-foreground" />
-                    </div>
-                    Статус и сделка
-                  </h2>
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="status" className="ui-field-label">Статус</Label>
-                      <Select
-                        value={formData.status}
-                        onValueChange={(value) => setFormData({ ...formData, status: value })}
-                      >
-                        <SelectTrigger className="mt-1.5 ui-input">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(statusLabels)
-                            .map(([key, label]) => (
-                            <SelectItem key={key} value={key}>
-                              <div className="flex items-center gap-2">
-                                <div className={cn('w-2 h-2 rounded-full bg-gradient-to-r', statusStyles[key]?.gradient)} />
-                                {label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="amount" className="ui-field-label">Сумма сделки</Label>
-                      <div className="relative mt-1.5">
-                        <Input
-                          id="amount"
-                          type="number"
-                          value={formData.deal_amount}
-                          onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
-                          placeholder="0"
-                          className="pr-10 ui-input"
-                        />
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground font-medium">₸</span>
-                      </div>
-                    </div>
-                    {/* Visit Button */}
-                    <div className="pt-2">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              onClick={handleVisitClick}
-                              disabled={isVisitDisabled || visitLoading}
-                              className={cn(
-                                'w-full text-white transition-all',
-                                isVisitDone 
-                                  ? 'bg-purple-500 hover:bg-purple-600' 
-                                  : 'bg-blue-500 hover:bg-blue-600',
-                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
-                              )}
-                            >
-                              {visitLoading ? (
-                                <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                              ) : isVisitDone ? (
-                                <RefreshCw className="w-4 h-4 mr-2" />
-                              ) : (
-                                <Activity className="w-4 h-4 mr-2" />
-                              )}
-                              {isVisitDone ? 'Повторить визит' : 'Провести визит'}
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="max-w-xs">
-                            <p>Данные визита автоматически сохранятся в историю этого клиента</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-
-                      {/* Viral Loop Button */}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              onClick={() => setViralLoopOpen(true)}
-                              disabled={isVisitDisabled}
-                              className={cn(
-                                'w-full text-white transition-all shadow-lg',
-                                'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500',
-                                'hover:from-blue-600 hover:via-indigo-600 hover:to-purple-600',
-                                'hover:shadow-blue-500/50 hover:scale-[1.02]',
-                                isVisitDisabled && 'opacity-50 cursor-not-allowed'
-                              )}
-                            >
-                              <Gift className="w-4 h-4 mr-2" />
-                              Подарить 3 сертификата друзьям 🎁
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent side="bottom" className="max-w-xs">
-                            <p>Запустить виральную петлю: отправить сертификаты на 10 000 ₸ друзьям пациента</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </div>
-                </motion.section>
-
-                {/* Duplicates Section */}
-                {(lead.extra_data as any)?.duplicates && ((lead.extra_data as any).duplicates as any[]).length > 0 && (
-                  <motion.section
-                    initial={{ opacity: 0, y: 20 }}
+          {/* Left: Lead Intelligence System */}
+          <div className="w-[60%] border-r border-white/5 overflow-hidden flex flex-col bg-background/30 backdrop-blur-md">
+            <ScrollArea className="flex-1">
+              <div className="p-8 max-w-[1200px] mx-auto pb-24">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Phase 1: Contact Intelligence */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.25 }}
-                    className="ui-section border-l-4 border-l-orange-500"
+                    transition={{ delay: 0.2 }}
+                    className="md:col-span-2 interstellar-glass p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden group"
                   >
-                    <h2 className="ui-section-header">
-                      <div className="ui-section-icon">
-                        <Copy className="w-4 h-4 text-white" />
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -z-10 group-hover:bg-primary/10 transition-colors duration-700" />
+
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
+                        <User className="w-6 h-6 text-primary" />
                       </div>
-                      Найдены дубликаты
-                    </h2>
-                    <div className="space-y-3">
-                      {((lead.extra_data as any).duplicates as any[]).map((dup, idx) => (
-                        <div key={idx} className="p-3 bg-orange-500/10 rounded-lg border border-orange-500/20 flex items-start gap-3">
-                           <div className="mt-1">
-                             <AlertCircle className="w-4 h-4 text-orange-500" />
-                           </div>
-                           <div>
-                             <p className="text-sm font-medium">Попытка создания дубля</p>
-                             <p className="text-xs text-muted-foreground mt-1">
-                               {new Date(dup.attempted_at).toLocaleString('ru-RU')}
-                             </p>
-                             {dup.source && (
-                               <p className="text-xs text-muted-foreground mt-0.5">
-                                 Источник: {dup.source}
-                               </p>
-                             )}
-                              {dup.name && dup.name !== lead.name && (
-                               <p className="text-xs text-muted-foreground mt-0.5">
-                                 Имя: {dup.name}
-                               </p>
-                             )}
-                           </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight text-white/90 uppercase">Основные данные</h2>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Contact Intelligence</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground pl-1">ФИО Клиента</Label>
+                        <Input
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          placeholder="Введите имя..."
+                          className="interstellar-input h-14 text-lg font-bold"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground pl-1">Канал связи</Label>
+                        <div className="relative">
+                          <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-primary/60" />
+                          <Input
+                            value={formData.phone}
+                            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                            placeholder="+7 (___) ___-__-__"
+                            className="interstellar-input h-14 pl-12 text-lg font-bold tracking-wider"
+                          />
                         </div>
-                      ))}
-                    </div>
-                  </motion.section>
-                )}
-
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <Tag className="w-4 h-4 text-white" />
-                    </div>
-                    UTM-метки
-                  </h2>
-                  <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { key: 'utm_source', label: 'Source', value: lead.utm_source },
-                      { key: 'utm_medium', label: 'Medium', value: lead.utm_medium },
-                      { key: 'utm_campaign', label: 'Campaign', value: lead.utm_campaign },
-                      { key: 'utm_content', label: 'Content', value: lead.utm_content },
-                      { key: 'utm_term', label: 'Term', value: lead.utm_term },
-                    ].filter(item => item.value).map(item => (
-                      <div key={item.key} className="p-3 bg-muted/10 rounded-lg border border-border/30">
-                        <p className="ui-subtle uppercase tracking-wide">{item.label}</p>
-                        <p className="text-sm font-semibold truncate">{item.value}</p>
                       </div>
-                    ))}
-                    {!lead.utm_source && !lead.utm_medium && !lead.utm_campaign && (
-                      <p className="text-sm text-muted-foreground col-span-2 text-center py-4">
-                        UTM-метки отсутствуют
-                      </p>
-                    )}
-                  </div>
-                </motion.section>
+                    </div>
+                  </motion.div>
 
-                {/* Touchpoints Section */}
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.4 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <Target className="w-4 h-4 text-white" />
+                  {/* Phase 2: Deal Strategy */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                  >
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                        <DollarSign className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight text-white/90 uppercase">Сделка</h2>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Deal Strategy</p>
+                      </div>
                     </div>
-                    История касаний
-                  </h2>
-                  {touchpointsLoading ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                    </div>
-                  ) : touchpoints.length > 0 ? (
-                    <div className="space-y-2">
-                      {touchpoints.map((tp, index) => (
-                        <div
-                          key={tp.id}
-                          className="flex items-start gap-3 p-3 bg-gradient-to-r from-muted/30 to-transparent rounded-lg border border-border/20"
+
+                    <div className="space-y-6">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground pl-1">Статус воронки</Label>
+                        <Select
+                          value={formData.status}
+                          onValueChange={(value) => setFormData({ ...formData, status: value })}
                         >
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-xs font-bold text-primary-foreground">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1 flex-wrap">
-                              <span className="font-semibold text-sm">{tp.channel_name}</span>
-                              {tp.is_first && (
-                                <Badge variant="outline" className="text-[10px] border-primary/30 text-primary">Первый</Badge>
-                              )}
-                              {tp.is_last && (
-                                <Badge variant="outline" className="text-[10px] border-success/30 text-success">Последний</Badge>
-                              )}
+                          <SelectTrigger className="interstellar-input h-14 font-black">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="interstellar-glass border-white/10">
+                            {Object.entries(statusLabels).map(([key, label]) => (
+                              <SelectItem key={key} value={key} className="focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">
+                                <div className="flex items-center gap-3">
+                                  <div className={cn('w-2.5 h-2.5 rounded-full shadow-lg', statusStyles[key]?.gradient)} />
+                                  <span className="font-bold">{label}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] uppercase tracking-[0.2em] font-black text-muted-foreground pl-1">Сумма оплаты</Label>
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            value={formData.deal_amount}
+                            onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
+                            className="interstellar-input h-14 text-xl font-black pr-12 text-emerald-400"
+                          />
+                          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500/80 font-black text-lg">₸</span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 gap-3 pt-2">
+                        <Button
+                          onClick={handleVisitClick}
+                          disabled={isVisitDisabled || visitLoading}
+                          className={cn(
+                            'h-14 rounded-2xl font-black uppercase tracking-widest transition-all shadow-2xl',
+                            isVisitDone
+                              ? 'interstellar-glass bg-violet-600/20 text-violet-400 hover:bg-violet-600/30'
+                              : 'bg-primary text-primary-foreground hover:scale-[1.02]'
+                          )}
+                        >
+                          {visitLoading ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : isVisitDone ? <RefreshCw className="w-5 h-5 mr-3" /> : <Activity className="w-5 h-5 mr-3" />}
+                          {isVisitDone ? 'Повторный замер' : 'Провести замер/визит'}
+                        </Button>
+
+                        <Button
+                          onClick={() => setViralLoopOpen(true)}
+                          disabled={isVisitDisabled}
+                          className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:scale-[1.02] transition-transform"
+                        >
+                          <Gift className="w-5 h-5 mr-3" />
+                          Виральная петля 🔥
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+
+                  {/* Phase 3: Actionable Insights */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                  >
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
+                        <Target className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight text-white/90 uppercase">Задачи</h2>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Actionable Insights</p>
+                      </div>
+                    </div>
+
+                    <div className="max-h-[350px] overflow-hidden">
+                      <LeadTasks leadId={lead.id} />
+                    </div>
+                  </motion.div>
+
+                  {/* Phase 4: Marketing Intelligence (UTM) */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 30 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="md:col-span-2 interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                  >
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+                        <Tag className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-black tracking-tight text-white/90 uppercase">Маркетинг</h2>
+                        <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Origin Tracking</p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                      {[
+                        { key: 'utm_source', label: 'Channel', value: lead.utm_source, icon: <Users className="w-3 h-3" /> },
+                        { key: 'utm_medium', label: 'Medium', value: lead.utm_medium, icon: <Activity className="w-3 h-3" /> },
+                        { key: 'utm_campaign', label: 'Campaign', value: lead.utm_campaign, icon: <Target className="w-3 h-3" /> },
+                        { key: 'utm_content', label: 'Content', value: lead.utm_content, icon: <Copy className="w-3 h-3" /> },
+                        { key: 'utm_term', label: 'Keyword', value: lead.utm_term, icon: <Tag className="w-3 h-3" /> },
+                      ].map(item => (
+                        <div key={item.key} className={cn(
+                          "p-4 rounded-[1.5rem] transition-all duration-500",
+                          item.value ? "bg-white/5 border border-white/10 shadow-lg" : "bg-black/20 border border-white/5 opacity-40"
+                        )}>
+                          <div className="flex items-center gap-2 mb-2">
+                            <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground">
+                              {item.icon}
                             </div>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                              {tp.campaign_name && <span>{tp.campaign_name}</span>}
-                              {tp.campaign_name && <span>•</span>}
-                              <span>
-                                {format(new Date(tp.touched_at), 'd MMM yyyy, HH:mm', { locale: ru })}
-                              </span>
-                            </div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">{item.label}</p>
                           </div>
+                          <p className="text-xs font-black truncate text-white/90">{item.value || 'None'}</p>
                         </div>
                       ))}
                     </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground text-center py-4">
-                      История касаний недоступна
-                    </p>
-                  )}
-                </motion.section>
+                  </motion.div>
 
-                {/* Tasks Section */}
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <ListTodo className="w-4 h-4 text-white" />
+                  {/* Secondary Views: History, Referrals, etc */}
+                  <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div className="md:col-span-2 space-y-6">
+                      <div className="interstellar-glass p-8 rounded-[2.5rem] border-white/5">
+                        <div className="flex items-center gap-4 mb-8">
+                          <div className="w-12 h-12 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center text-success">
+                            <Activity className="w-6 h-6" />
+                          </div>
+                          <div>
+                            <h2 className="text-lg font-black tracking-tight text-white/90 uppercase">Касания</h2>
+                            <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-0.5">Customer Journey</p>
+                          </div>
+                        </div>
+                        <div className="space-y-3">
+                          {touchpoints.slice(0, 5).map((tp, idx) => (
+                            <div key={tp.id} className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/5">
+                              <div className="flex items-center gap-3">
+                                <div className="w-8 h-8 rounded-xl bg-primary/20 flex items-center justify-center text-primary font-black text-xs">
+                                  {idx + 1}
+                                </div>
+                                <span className="font-bold text-sm">{tp.channel_name}</span>
+                              </div>
+                              <span className="text-[10px] font-bold opacity-40">{format(new Date(tp.touched_at), 'd MMM')}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
                     </div>
-                    Задачи
-                  </h2>
-                  <LeadTasks leadId={lead.id} />
-                </motion.section>
 
-                {/* Referrals Section */}
-                <motion.section
-                  key={refreshReferrals}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.55 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <Users className="w-4 h-4 text-white" />
+                    <div className="space-y-6">
+                      <div className="interstellar-glass p-8 rounded-[2.5rem] border-white/5">
+                        <div className="flex items-center gap-4 mb-8">
+                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+                            <History className="w-5 h-5" />
+                          </div>
+                          <h2 className="text-lg font-black tracking-tight text-white/90 uppercase">История</h2>
+                        </div>
+                        <LeadStatusHistory leadId={lead.id} />
+                      </div>
                     </div>
-                    Приглашенные друзья
-                  </h2>
-                  <ReferralsList leadId={lead.id} projectId={projectId || lead.project_id} />
-                </motion.section>
-
-                {/* Status History Section */}
-                <motion.section
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.6 }}
-                  className="ui-section"
-                >
-                  <h2 className="ui-section-header">
-                    <div className="ui-section-icon">
-                      <History className="w-4 h-4 text-white" />
-                    </div>
-                    История изменений
-                  </h2>
-                  <LeadStatusHistory leadId={lead.id} />
-                </motion.section>
-
-                {/* Meta Info */}
-                <motion.div 
-                  className="flex items-center gap-2 text-xs text-muted-foreground p-4"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.7 }}
-                >
-                  <Calendar className="w-3.5 h-3.5" />
-                  <span>
-                    Создано: {format(new Date(lead.created_at), 'd MMMM yyyy, HH:mm', { locale: ru })}
-                  </span>
-                </motion.div>
+                  </div>
+                </div>
               </div>
             </ScrollArea>
           </div>
 
-          {/* Right: Chat */}
-          <motion.div 
-            className="w-1/2 flex flex-col overflow-hidden bg-gradient-to-b from-muted/10 to-background"
-            initial={{ opacity: 0, x: 20 }}
+          {/* Right: Modern Messenger Interface */}
+          <motion.div
+            className="w-[40%] flex flex-col overflow-hidden bg-background/20 backdrop-blur-3xl relative"
+            initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.4, type: "spring", damping: 30 }}
           >
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
             <LeadChat leadId={lead.id} />
           </motion.div>
         </div>

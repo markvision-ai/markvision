@@ -1,11 +1,11 @@
 // @ts-nocheck
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Rocket, 
-  Search, 
-  Filter, 
-  Calendar, 
+import {
+  Rocket,
+  Search,
+  Filter,
+  Calendar,
   ChevronDown,
   Eye,
   MessageCircle,
@@ -19,9 +19,20 @@ import {
   Globe,
   Send,
   Loader2,
-  ArrowUpRight
+  ArrowUpRight,
+  Plus,
+  BarChart3,
+  Calendar as CalendarIcon,
+  Settings,
+  MoreVertical,
+  Target,
+  Zap,
+  ChevronLeft,
+  ChevronRight,
+  FileImage,
+  FileVideo
 } from 'lucide-react';
-import { format, subDays, startOfMonth, startOfWeek, isWithinInterval, parseISO } from 'date-fns';
+import { format, subDays, startOfMonth, startOfWeek, isWithinInterval, parseISO, subMonths, addMonths, endOfMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -30,7 +41,9 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
-import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
+import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
+import { AutoPostingOnboarding } from './AutoPostingOnboarding';
+import { PostCreatorWizard } from './PostCreatorWizard';
 
 // Icons for channels
 const ChannelIcon = ({ channel, className }: { channel: string, className?: string }) => {
@@ -59,7 +72,7 @@ interface PostStats {
   comments: number;
   likes: number;
   channel: string;
-  
+
   // Funnel stats
   clicks: number;
   leads_count: number;
@@ -79,13 +92,16 @@ export const PublicationsPage = () => {
   const [promoteDialogOpen, setPromoteDialogOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<PostStats | null>(null);
   const [promoting, setPromoting] = useState(false);
+  const [isCreatorOpen, setIsCreatorOpen] = useState(false);
+  const [hasConnectedAccounts, setHasConnectedAccounts] = useState(true);
+  const [sortBy, setSortBy] = useState<'date' | 'reach' | 'comments' | 'leads' | 'revenue'>('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
 
   // Fetch Data
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch Instagram Posts Stats (serving as "Publications" source for now)
         const { data: postsData, error: postsError } = await supabase
           .from('instagram_posts_stats')
           .select('*')
@@ -100,10 +116,7 @@ export const PublicationsPage = () => {
           return;
         }
 
-        // 2. Fetch Leads linked to these posts
         const postIds = postsData.map(p => p.post_id).filter(Boolean);
-        
-        // If we have posts, fetch associated leads
         let leadsData: any[] = [];
         if (postIds.length > 0) {
           const { data, error: leadsError } = await supabase
@@ -111,14 +124,12 @@ export const PublicationsPage = () => {
             .select('id, post_id, status, deal_amount, revenue')
             .eq('project_id', TARGET_PROJECT_ID)
             .in('post_id', postIds);
-            
+
           if (!leadsError && data) {
             leadsData = data;
           }
         }
 
-        // 3. Merge Data
-        // Group leads by post_id for O(1) lookup
         const leadsByPost = new Map<string, any[]>();
         leadsData.forEach(lead => {
           if (!lead.post_id) return;
@@ -129,19 +140,13 @@ export const PublicationsPage = () => {
 
         const mergedPosts: PostStats[] = postsData.map(post => {
           const postLeads = leadsByPost.get(post.post_id) || [];
-          
           const leadsCount = postLeads.length;
-          // Calculate metrics
-          const visitsCount = postLeads.filter(l => 
+          const visitsCount = postLeads.filter(l =>
             ['visit_completed', 'visit', 'meeting', 'consultation', 'scheduled'].some(s => l.status?.toLowerCase().includes(s))
           ).length;
-          
-          // Heuristic for sales: status 'won', 'paid' or deal_amount > 0
-          const salesCount = postLeads.filter(l => 
+          const salesCount = postLeads.filter(l =>
             ['won', 'paid', 'success'].some(s => l.status?.toLowerCase().includes(s)) || (l.deal_amount && l.deal_amount > 0)
           ).length;
-          
-          // Sum deal_amount as requested
           const revenue = postLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
 
           return {
@@ -155,8 +160,8 @@ export const PublicationsPage = () => {
             reach: post.reach || 0,
             comments: post.comments || 0,
             likes: post.likes || 0,
-            channel: 'instagram', // Default to instagram as we pull from instagram_posts_stats
-            clicks: Math.floor((post.reach || 0) * 0.05), // Placeholder calculation for clicks (5% CTR) as data is missing
+            channel: 'instagram',
+            clicks: Math.floor((post.reach || 0) * 0.05),
             leads_count: leadsCount,
             visits_count: visitsCount,
             sales_count: salesCount,
@@ -165,7 +170,6 @@ export const PublicationsPage = () => {
         });
 
         setPosts(mergedPosts);
-
       } catch (error) {
         console.error("Error loading publications:", error);
         toast.error("Ошибка загрузки публикаций");
@@ -175,36 +179,45 @@ export const PublicationsPage = () => {
     };
 
     fetchData();
-  }, []); 
+  }, []);
 
-  // Filter Logic
   const filteredPosts = useMemo(() => {
     let filtered = [...posts];
-
-    // Channel Filter
     if (selectedChannel !== 'all') {
       filtered = filtered.filter(p => p.channel === selectedChannel);
     }
-
-    // Period Filter
     if (dateRange.from && dateRange.to) {
       filtered = filtered.filter(p => {
         if (!p.posted_at) return false;
-        // Adjust end date to end of day to include posts from that day
         const end = new Date(dateRange.to);
         end.setHours(23, 59, 59, 999);
-        
-        return isWithinInterval(parseISO(p.posted_at), { 
-          start: dateRange.from, 
-          end: end 
+        return isWithinInterval(parseISO(p.posted_at), {
+          start: dateRange.from,
+          end: end
         });
       });
     }
 
-    return filtered;
-  }, [posts, dateRange, selectedChannel]);
+    // Sorting logic
+    filtered.sort((a, b) => {
+      let valA, valB;
+      switch (sortBy) {
+        case 'reach': valA = a.reach; valB = b.reach; break;
+        case 'comments': valA = a.comments; valB = b.comments; break;
+        case 'leads': valA = a.leads_count; valB = b.leads_count; break;
+        case 'revenue': valA = a.revenue; valB = b.revenue; break;
+        case 'date':
+        default:
+          valA = a.posted_at ? new Date(a.posted_at).getTime() : 0;
+          valB = b.posted_at ? new Date(b.posted_at).getTime() : 0;
+          break;
+      }
+      return sortOrder === 'desc' ? valB - valA : valA - valB;
+    });
 
-  // Promote Action
+    return filtered;
+  }, [posts, dateRange, selectedChannel, sortBy, sortOrder]);
+
   const handlePromoteClick = (post: PostStats) => {
     setSelectedPost(post);
     setPromoteDialogOpen(true);
@@ -228,9 +241,7 @@ export const PublicationsPage = () => {
             target_audience: 'lookalike_1pct'
           }
         });
-
       if (error) throw error;
-
       toast.success("Команда отправлена ИИ-таргетологу!");
       setPromoteDialogOpen(false);
     } catch (error) {
@@ -241,250 +252,346 @@ export const PublicationsPage = () => {
     }
   };
 
+  const handlePrevMonth = () => {
+    const newFrom = subMonths(startOfMonth(dateRange.from), 1);
+    const newTo = endOfMonth(newFrom);
+    setDateRange({ from: newFrom, to: newTo });
+  };
+
+  const handleNextMonth = () => {
+    const newFrom = addMonths(startOfMonth(dateRange.from), 1);
+    const newTo = endOfMonth(newFrom);
+    setDateRange({ from: newFrom, to: newTo });
+  };
+
   return (
-    <div className="min-h-screen bg-background text-foreground p-6 font-sans">
-      <div className="max-w-[1800px] mx-auto space-y-8">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground tracking-tight">
-              Публикации
-            </h1>
-            <p className="text-muted-foreground mt-1 text-sm">
-              Аналитика контента и управление продвижением
-            </p>
-          </div>
-          
-          <div className="flex items-center gap-3">
-            <DateRangePicker 
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              align="end"
-            />
-          </div>
-        </div>
+    <div className="h-full flex flex-col p-8 space-y-8 overflow-y-auto bg-transparent font-sans">
 
-        {/* Channel Filters */}
-        <div className="flex flex-wrap gap-2">
-          {['all', 'instagram', 'youtube', 'tiktok', 'telegram', 'site'].map(channel => (
-            <Button
-              key={channel}
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedChannel(channel)}
-              className={cn(
-                "gap-2 border border-border/50 bg-card hover:bg-muted text-muted-foreground hover:text-foreground transition-all rounded-xl px-4",
-                selectedChannel === channel && "bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
-              )}
-            >
-              {channel === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel} className="w-4 h-4" />}
-              <span className="capitalize text-xs font-medium">{channel === 'all' ? 'Все каналы' : channel}</span>
-            </Button>
-          ))}
-        </div>
+      {!hasConnectedAccounts ? (
+        <AutoPostingOnboarding
+          onConnect={() => setHasConnectedAccounts(true)}
+          onCreatePost={() => setIsCreatorOpen(true)}
+        />
+      ) : (
+        <div className="max-w-[1700px] mx-auto w-full space-y-10">
 
-        {/* Table Header */}
-        <div className="w-full overflow-hidden rounded-2xl border border-border/50 bg-card">
-          <div className="grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 border-b border-border/50 bg-muted/50 text-xs font-medium text-muted-foreground uppercase tracking-wider items-center">
-            <div>Контент</div>
-            <div>Канал</div>
-            <div className="text-center">Охват</div>
-            <div className="text-center">Клики</div>
-            <div className="text-center">Комменты</div>
-            {/* Funnel Header Group */}
-            <div className="col-span-3 text-center text-primary/80 border-b border-primary/20 pb-1 mx-2">
-              Воронка
+          {/* Header with high-tech aesthetic */}
+          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative">
+            <div className="absolute -top-20 -left-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
+
+            <div className="relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-widest mb-3">
+                <Rocket className="w-3 h-3" />
+                Автопостинг
+              </div>
+              <h1 className="text-4xl font-black text-white tracking-tighter uppercase transition-all">
+                Управление <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Контентом</span>
+              </h1>
+              <p className="text-white/40 mt-1 text-sm font-light">
+                Планируйте и анализируйте ваши публикации во всех соцсетях.
+              </p>
             </div>
-            <div className="text-right">Выручка</div>
-            <div className="text-right">Действие</div>
-          </div>
 
-          {/* Sub-header for Funnel columns (optional, or just handle in rows) */}
-          {/* To match "distinct columns", we label them in the main header but grouped. Let's rely on row values and tooltip/labels */}
+            <div className="flex flex-wrap items-center gap-4 relative z-10">
+              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-white/5 border border-white/10 h-12">
+                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest mr-2">Сортировка:</span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as any)}
+                  className="bg-transparent text-white text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
+                >
+                  <option value="date" className="bg-slate-900">Дата</option>
+                  <option value="reach" className="bg-slate-900">Охват</option>
+                  <option value="leads" className="bg-slate-900">Лиды</option>
+                  <option value="revenue" className="bg-slate-900">Доход</option>
+                  <option value="comments" className="bg-slate-900">Комменты</option>
+                </select>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-white/40 hover:text-white"
+                  onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
+                >
+                  {sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 rotate-180" />}
+                </Button>
+              </div>
 
-          {/* Table Body */}
-          <div className="divide-y divide-border/50">
-            {loading ? (
-              <div className="flex items-center justify-center py-32">
-                <Loader2 className="w-8 h-8 animate-spin text-primary" />
-              </div>
-            ) : filteredPosts.length === 0 ? (
-              <div className="text-center py-32 text-muted-foreground">
-                Нет публикаций за выбранный период
-              </div>
-            ) : (
-              <AnimatePresence>
-                {filteredPosts.map((post) => (
-                  <motion.div
-                    key={post.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    className="group grid grid-cols-[minmax(250px,3fr)_1.2fr_0.8fr_0.8fr_0.8fr_0.6fr_0.6fr_0.6fr_1.2fr_1.2fr] gap-4 px-6 py-4 items-center hover:bg-muted/30 transition-colors duration-200 relative overflow-hidden"
+              <div className="p-1 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-1">
+                <Button
+                  onClick={() => setIsCreatorOpen(true)}
+                  className="h-12 px-8 bg-cyan-500 text-black hover:bg-cyan-400 font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] active:scale-95"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Создать пост
+                </Button>
+                <div className="w-px h-8 bg-white/10 mx-1" />
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handlePrevMonth}
+                    className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/10 rounded-xl"
                   >
-                    {/* Content */}
-                    <div className="flex items-center gap-4 min-w-0 relative z-10">
-                      <div className="h-[60px] w-[60px] rounded-xl bg-muted border border-border/50 overflow-hidden flex-shrink-0 relative group-hover:border-border transition-colors">
-                        {post.media_url ? (
-                          <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="h-full w-full flex items-center justify-center text-muted-foreground">
-                            <Eye className="w-6 h-6" />
-                          </div>
-                        )}
-                        {/* Type Indicator */}
-                        <div className="absolute bottom-1 right-1 bg-black/60 backdrop-blur-sm rounded-full p-1">
-                           {post.media_type === 'VIDEO' ? <Youtube className="w-3 h-3 text-white" /> : <Instagram className="w-3 h-3 text-white" />}
-                        </div>
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-foreground truncate pr-4" title={post.caption || ''}>
-                          {post.caption || 'Без названия'}
-                        </p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {post.posted_at ? format(parseISO(post.posted_at), 'dd MMM, HH:mm', { locale: ru }) : '-'}
-                        </p>
-                      </div>
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <DateRangePicker
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                    align="end"
+                  />
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleNextMonth}
+                    className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/10 rounded-xl"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Platform Filters as Navigation Nodes */}
+          <div className="flex flex-wrap gap-3">
+            {[
+              { id: 'all', label: 'Все каналы' },
+              { id: 'instagram', label: 'Инстаграм' },
+              { id: 'youtube', label: 'Ютуб' },
+              { id: 'tiktok', label: 'ТикТок' },
+              { id: 'telegram', label: 'Телеграм' },
+              { id: 'threads', label: 'Тредс' },
+              { id: 'site', label: 'Сайт' }
+            ].map(channel => (
+              <Button
+                key={channel.id}
+                variant="ghost"
+                onClick={() => setSelectedChannel(channel.id)}
+                className={cn(
+                  "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-bold uppercase tracking-widest text-[10px]",
+                  selectedChannel === channel.id
+                    ? "bg-white/10 border-white/20 text-white shadow-lg"
+                    : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:text-white"
+                )}
+              >
+                {channel.id === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel.id} className="w-4 h-4" />}
+                {channel.label}
+              </Button>
+            ))}
+          </div>
+
+          {/* Analytics Table - Interstellar Redesign */}
+          <div className="relative group">
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
+
+            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/10 bg-black/40 backdrop-blur-2xl shadow-2xl">
+
+              {/* Table Header Container */}
+              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-white/5 bg-white/5 items-center">
+                <div className="flex items-center gap-3">
+                  <BarChart3 className="w-4 h-4 text-cyan-400" />
+                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Контент</span>
+                </div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Канал</div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Охват</div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Клики</div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Комменты</div>
+                <div className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em] text-center border-b border-cyan-500/20 pb-1">Воронка</div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-right">Доход</div>
+                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-right whitespace-nowrap">Действие</div>
+              </div>
+
+              {/* Table Body */}
+              <div className="divide-y divide-white/5">
+                {loading ? (
+                  <div className="flex flex-col items-center justify-center py-40 gap-4">
+                    <Loader2 className="w-10 h-10 animate-spin text-cyan-500" />
+                    <span className="text-xs font-mono text-cyan-500/50 uppercase tracking-widest animate-pulse">Синхронизация данных...</span>
+                  </div>
+                ) : filteredPosts.length === 0 ? (
+                  <div className="text-center py-40">
+                    <div className="inline-flex flex-col items-center gap-3 opacity-20 grayscale">
+                      <Rocket className="w-16 h-16 mb-2" />
+                      <p className="text-sm font-mono uppercase tracking-[0.2em]">Публикаций не найдено</p>
                     </div>
-
-                    {/* Channel */}
-                    <div className="flex items-center gap-2 relative z-10">
-                      <div className="p-2 rounded-full bg-muted/50 border border-border/50">
-                        <ChannelIcon channel={post.channel} className="w-4 h-4" />
-                      </div>
-                      <span className="text-sm text-muted-foreground capitalize">{post.channel}</span>
-                    </div>
-
-                    {/* Reach */}
-                    <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <Eye className="w-3.5 h-3.5 text-muted-foreground/70" />
-                        <span>{new Intl.NumberFormat('ru-RU').format(post.reach)}</span>
-                      </div>
-                    </div>
-
-                    {/* Clicks */}
-                    <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                         <MousePointer2 className="w-3.5 h-3.5 text-muted-foreground/70" />
-                         <span>{post.clicks}</span>
-                      </div>
-                    </div>
-
-                    {/* Comments */}
-                    <div className="flex justify-center relative z-10">
-                      <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-                        <MessageCircle className="w-3.5 h-3.5 text-muted-foreground/70" />
-                        <span>{post.comments}</span>
-                      </div>
-                    </div>
-
-                    {/* Funnel Group (3 columns visually connected) */}
-                    <div className="col-span-3 relative z-10">
-                      {/* Blue Glow Background for this section */}
-                      <div className="absolute inset-0 -inset-x-2 bg-primary/5 blur-lg rounded-full opacity-50 group-hover:opacity-80 transition-opacity pointer-events-none" />
-                      
-                      <div className="relative grid grid-cols-3 gap-2 items-center text-center">
-                        {/* Leads */}
-                        <div className="flex flex-col items-center">
-                           <span className="text-sm font-semibold text-foreground">{post.leads_count}</span>
-                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Лиды</span>
-                        </div>
-                        
-                        {/* Visits */}
-                        <div className="flex flex-col items-center border-l border-border/50">
-                           <span className="text-sm font-semibold text-foreground">{post.visits_count}</span>
-                           <span className="text-[10px] text-muted-foreground uppercase tracking-tight">Виз.</span>
-                        </div>
-
-                        {/* Sales */}
-                        <div className="flex flex-col items-center border-l border-border/50">
-                           <span className="text-sm font-semibold text-green-600 ">{post.sales_count}</span>
-                           <span className="text-[10px] text-green-600/70  uppercase tracking-tight">Прод.</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Revenue */}
-                    <div className="text-right relative z-10">
-                      <span className="text-sm font-bold text-green-600 ">
-                        {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
-                      </span>
-                    </div>
-
-                    {/* Action */}
-                    <div className="text-right relative z-10">
-                      <Button 
-                        size="sm" 
-                        onClick={() => handlePromoteClick(post)}
-                        className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20 transition-all duration-300 w-full"
+                  </div>
+                ) : (
+                  <AnimatePresence>
+                    {filteredPosts.map((post, idx) => (
+                      <motion.div
+                        key={post.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.05 }}
+                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-white/5 transition-all duration-300 relative overflow-hidden"
                       >
-                        <Rocket className="w-3.5 h-3.5 mr-2" />
-                        Продвигать
-                      </Button>
-                    </div>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            )}
+                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/0 to-cyan-500/0 group-hover:via-cyan-500/5 transition-all duration-500" />
+
+                        {/* Content */}
+                        <div className="flex items-center gap-6 min-w-0 relative z-10">
+                          <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-xl">
+                            {post.media_url ? (
+                              <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
+                            ) : (
+                              <div className="h-full w-full flex items-center justify-center text-white/20">
+                                <Eye className="w-6 h-6" />
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all" />
+                            <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-md rounded-lg p-1 border border-white/10">
+                              {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-cyan-400" /> : <FileImage className="w-3 h-3 text-purple-400" />}
+                            </div>
+                          </div>
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <p className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors truncate pr-8" title={post.caption || ''}>
+                              {post.caption || 'Без названия'}
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] text-white/30 font-mono uppercase tracking-tighter">
+                              <CalendarIcon className="w-3 h-3" />
+                              {post.posted_at ? format(parseISO(post.posted_at), 'dd MMM yyyy, HH:mm', { locale: ru }) : 'Недавно'}
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Node (Channel) */}
+                        <div className="flex justify-center relative z-10">
+                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/5 border border-white/5 min-w-[80px] group-hover:border-white/10 transition-all">
+                            <ChannelIcon channel={post.channel} className="w-5 h-5 mb-1" />
+                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{post.channel}</span>
+                          </div>
+                        </div>
+
+                        {/* Metrics */}
+                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                          {new Intl.NumberFormat('ru-RU').format(post.reach)}
+                        </div>
+                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                          {post.clicks}
+                        </div>
+                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                          {post.comments}
+                        </div>
+
+                        {/* Funnel Matrix */}
+                        <div className="relative z-10">
+                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/5 border border-white/5 group-hover:bg-cyan-500/10 transition-all">
+                            <div className="space-y-0.5">
+                              <div className="text-[14px] font-black text-white">{post.leads_count}</div>
+                              <div className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-bold">Лиды</div>
+                            </div>
+                            <div className="space-y-0.5 border-l border-white/5">
+                              <div className="text-[14px] font-black text-white">{post.visits_count}</div>
+                              <div className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-bold">Визиты</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Revenue */}
+                        <div className="text-right relative z-10">
+                          <div className="flex flex-col items-end">
+                            <span className="text-sm font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+                              {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
+                            </span>
+                            <div className="flex items-center gap-1 text-[10px] text-emerald-400/40 font-mono">
+                              <Target className="w-2.5 h-2.5" />
+                              {post.sales_count} ПРОДАЖИ
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Action Protocol */}
+                        <div className="flex justify-end relative z-10">
+                          <Button
+                            onClick={() => handlePromoteClick(post)}
+                            className="h-10 px-6 bg-white/5 hover:bg-cyan-500 hover:text-black border border-white/10 hover:border-cyan-400 rounded-xl transition-all duration-300 group/btn"
+                          >
+                            <Zap className="w-4 h-4 mr-2 group-hover/btn:fill-current" />
+                            <span className="text-[10px] font-black uppercase tracking-widest">Продвигать</span>
+                          </Button>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      )
+      }
 
-      {/* Promote Dialog */}
+      {/* Creator Wizard Overlays */}
+      {
+        isCreatorOpen && (
+          <PostCreatorWizard
+            onClose={() => setIsCreatorOpen(false)}
+            onSuccess={() => {
+              // refresh data
+            }}
+          />
+        )
+      }
+
+      {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px] bg-background border-border text-foreground">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-foreground">
-              <Rocket className="w-5 h-5 text-primary" />
-              Запуск продвижения
-            </DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              ИИ-таргетолог проанализировал пост и подготовил прогноз эффективности.
-            </DialogDescription>
+        <DialogContent className="sm:max-w-[480px] bg-black/90 border-white/10 text-white backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
+          <DialogHeader className="space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+              <Rocket className="w-8 h-8" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight">ИИ-Продвижение</DialogTitle>
+              <DialogDescription className="text-white/40 mt-1 font-light">
+                Нейронный анализ рекомендует этот пост для масштабирования.
+              </DialogDescription>
+            </div>
           </DialogHeader>
-          
-          <div className="py-4 space-y-4">
-            <div className="p-4 rounded-xl bg-muted/30 border border-border/50 flex gap-4">
-               <div className="h-20 w-20 rounded-lg bg-muted overflow-hidden flex-shrink-0 border border-border/10">
-                 {selectedPost?.media_url && (
-                   <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
-                 )}
-               </div>
-               <div className="min-w-0 flex-1">
-                 <h4 className="font-medium text-sm text-foreground line-clamp-2 mb-2">{selectedPost?.caption}</h4>
-                 <div className="flex flex-wrap gap-2">
-                   <Badge variant="outline" className="bg-blue-500/10 text-blue-400 border-blue-500/20 text-[10px]">
-                     <Eye className="w-3 h-3 mr-1" /> {selectedPost?.reach}
-                   </Badge>
-                   <Badge variant="outline" className="bg-emerald-500/10 text-emerald-400 border-emerald-500/20 text-[10px]">
-                     <TrendingUp className="w-3 h-3 mr-1" /> High Potential
-                   </Badge>
-                 </div>
-               </div>
+
+          <div className="py-6 space-y-6">
+            <div className="p-5 rounded-[24px] bg-white/5 border border-white/10 flex gap-5 items-center">
+              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-white/10 relative">
+                {selectedPost?.media_url && (
+                  <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
+                )}
+                <div className="absolute inset-0 bg-black/40" />
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <h4 className="font-bold text-sm text-white line-clamp-1">{selectedPost?.caption || 'Без названия'}</h4>
+                <div className="flex flex-wrap gap-2">
+                  <div className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[9px] font-black uppercase font-mono">
+                    ПОТЕНЦИАЛ: ВЫСОКИЙ
+                  </div>
+                  <div className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase font-mono">
+                    CTR: 4.8%
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3">
-              <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 text-center">
-                <div className="text-xs text-blue-300 mb-1 uppercase tracking-wider">Прогноз лидов</div>
-                <div className="text-2xl font-bold text-blue-400">+50</div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="p-6 rounded-[24px] bg-cyan-500/5 border border-white/5 text-center space-y-1">
+                <div className="text-[10px] text-cyan-400 font-black uppercase tracking-widest">Прогноз лидов</div>
+                <div className="text-3xl font-black text-white">+50</div>
+                <div className="text-[9px] text-white/20 uppercase">Ожидается</div>
               </div>
-              <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-center">
-                <div className="text-xs text-emerald-300 mb-1 uppercase tracking-wider">Бюджет</div>
-                <div className="text-2xl font-bold text-emerald-400">20 000 ₸</div>
+              <div className="p-6 rounded-[24px] bg-purple-500/5 border border-white/5 text-center space-y-1">
+                <div className="text-[10px] text-purple-400 font-black uppercase tracking-widest">Бюджет</div>
+                <div className="text-3xl font-black text-white">20к</div>
+                <div className="text-[9px] text-white/20 uppercase text-center ml-4">₸</div>
               </div>
             </div>
           </div>
 
-          <DialogFooter>
-            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="hover:bg-muted text-muted-foreground hover:text-foreground">Отмена</Button>
-            <Button onClick={confirmPromote} disabled={promoting} className="bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20">
-              {promoting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : <Rocket className="w-4 h-4 mr-2" />}
-              Запустить ракету
+          <DialogFooter className="gap-3 sm:justify-center">
+            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-white/30 hover:text-white uppercase font-bold text-xs tracking-widest">Отмена</Button>
+            <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-cyan-500 text-black hover:bg-cyan-400 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02]">
+              {promoting ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <Rocket className="w-5 h-5 mr-3" />}
+              Запустить рост
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
+    </div >
   );
 };
+

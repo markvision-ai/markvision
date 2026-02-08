@@ -14,7 +14,7 @@ import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
 import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
 import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, subDays, startOfMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange } from 'react-day-picker';
 import { supabase } from '@/integrations/supabase/client';
@@ -366,7 +366,42 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </div>
 
               {/* Date & Refresh Controls */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-1.5 bg-black/20 rounded-2xl border border-white/5 backdrop-blur-sm self-start">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-1.5 bg-black/20 rounded-2xl border border-white/5 backdrop-blur-sm self-start">
+                {/* Quick Date Presets - Load from DB (instant) */}
+                <div className="flex items-center gap-1 px-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const yesterday = subDays(new Date(), 1);
+                      setDateRange({ from: yesterday, to: yesterday });
+                    }}
+                    className="h-8 px-3 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    Вчера
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange({ from: subDays(new Date(), 6), to: new Date() });
+                    }}
+                    className="h-8 px-3 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    7 дней
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDateRange({ from: startOfMonth(new Date()), to: new Date() });
+                    }}
+                    className="h-8 px-3 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    Этот месяц
+                  </Button>
+                </div>
+                <div className="h-6 w-px bg-white/10 hidden sm:block" />
                 <DateRangePicker
                   dateRange={{
                     from: dateRange?.from ?? new Date(),

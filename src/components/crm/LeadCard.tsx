@@ -23,9 +23,9 @@ interface LeadCardProps {
   projectId?: string;
 }
 
-export const LeadCard = ({ 
-  lead, 
-  onClick, 
+export const LeadCard = ({
+  lead,
+  onClick,
   isDragging = false,
   isSelected = false,
   onSelect,
@@ -41,7 +41,7 @@ export const LeadCard = ({
   const [needsAttention, setNeedsAttention] = useState(false);
   const [minutesWaiting, setMinutesWaiting] = useState(0);
   const [isNewLead, setIsNewLead] = useState(false);
-  
+
   useEffect(() => {
     const checkSLA = () => {
       if (lead.status === 'Новая' || lead.status === 'new') {
@@ -64,7 +64,7 @@ export const LeadCard = ({
         setIsNewLead(false);
       }
     };
-    
+
     checkSLA();
     const interval = setInterval(checkSLA, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
@@ -76,9 +76,9 @@ export const LeadCard = ({
   // Only apply transform, no transition during drag to prevent stickiness
   const style: React.CSSProperties = transform
     ? {
-        transform: CSS.Translate.toString(transform),
-        transition: undefined, // Remove transition during drag
-      }
+      transform: CSS.Translate.toString(transform),
+      transition: undefined, // Remove transition during drag
+    }
     : {};
 
   // Lead scoring visualization based on lead_score from database
@@ -86,45 +86,45 @@ export const LeadCard = ({
   const marketingBudget = extraData?.budget || extraData?.marketing_budget_total || 0;
   const isGoldenLead = marketingBudget > 1000000;
   const leadScore = lead.lead_score ?? null;
-  
+
   const getScoreTier = () => {
     const budgetTier = extraData?.budget_tier?.toUpperCase?.();
-    
+
     // Приоритет: lead_score из БД > budget_tier > marketing_budget
     if (leadScore !== null) {
       // Горячий (Красный): score >= 80
       if (leadScore >= 80) {
-        return { 
-          tier: 'HOT', 
+        return {
+          tier: 'HOT',
           label: 'Hot Lead',
-          color: 'border-l-4 border-l-red-500 bg-red-500/5', 
-          icon: <Flame className="w-4 h-4 text-red-500" />, 
+          color: 'border-l-4 border-l-red-500 bg-red-500/5',
+          icon: <Flame className="w-4 h-4 text-red-500" />,
           emoji: '🔥',
           glow: true
         };
       }
       // Теплый (Желтый): score >= 50
       if (leadScore >= 50) {
-        return { 
-          tier: 'WARM', 
+        return {
+          tier: 'WARM',
           label: 'Теплый',
-          color: 'border-l-4 border-l-yellow-500 bg-yellow-500/5', 
-          icon: <ThermometerSun className="w-4 h-4 text-yellow-500" />, 
+          color: 'border-l-4 border-l-yellow-500 bg-yellow-500/5',
+          icon: <ThermometerSun className="w-4 h-4 text-yellow-500" />,
           emoji: '🌡️',
           glow: false
         };
       }
       // Холодный (Голубой): score < 50
-      return { 
-        tier: 'COLD', 
+      return {
+        tier: 'COLD',
         label: 'Холодный',
-        color: 'border-l-4 border-l-blue-500 bg-blue-500/5', 
-        icon: <Snowflake className="w-4 h-4 text-blue-500" />, 
+        color: 'border-l-4 border-l-blue-500 bg-blue-500/5',
+        icon: <Snowflake className="w-4 h-4 text-blue-500" />,
         emoji: '❄️',
         glow: false
       };
     }
-    
+
     // Fallback на старую логику для совместимости
     // MEGA: budget_tier MEGA, or marketing_budget >= 1,000,000
     if (budgetTier === 'MEGA' || marketingBudget >= 1000000) {
@@ -148,16 +148,16 @@ export const LeadCard = ({
 
   // Extract clinic name from extra_data if available
   const clinicName = (lead.extra_data as any)?.clinic_name || (lead.extra_data as any)?.clinicName || null;
-  
+
   // Name mapping: prefer name, fallback to contact_name
   const displayName = lead.name || (lead.extra_data as any)?.contact_name || 'Без имени';
-  
+
   // Chat appointment date from selected_date
   const selectedDate = (lead.extra_data as any)?.selected_date;
 
   const getSourceBadge = () => {
     const source = lead.utm_source?.toLowerCase();
-    
+
     const sourceStyles: Record<string, { bg: string; text: string; icon: React.ReactNode }> = {
       yandex: { bg: 'bg-yellow-500/20', text: 'text-yellow-600', icon: <Globe className="w-3 h-3" /> },
       google: { bg: 'bg-blue-500/20', text: 'text-blue-600', icon: <Globe className="w-3 h-3" /> },
@@ -167,8 +167,8 @@ export const LeadCard = ({
       telegram: { bg: 'bg-cyan-500/20', text: 'text-cyan-600', icon: <Globe className="w-3 h-3" /> },
     };
 
-    const styleData = source && sourceStyles[source] 
-      ? sourceStyles[source] 
+    const styleData = source && sourceStyles[source]
+      ? sourceStyles[source]
       : { bg: 'bg-muted', text: 'text-muted-foreground', icon: <Globe className="w-3 h-3" /> };
 
     return (
@@ -191,7 +191,7 @@ export const LeadCard = ({
   const handleQuickAction = (e: React.MouseEvent, action: 'call' | 'whatsapp') => {
     e.stopPropagation();
     e.preventDefault();
-    
+
     if (action === 'call' && lead.phone) {
       window.open(`tel:${lead.phone}`, '_self');
     } else if (action === 'whatsapp' && lead.phone) {
@@ -205,7 +205,7 @@ export const LeadCard = ({
     if ((e.target as HTMLElement).closest('button, a, [role="checkbox"]')) {
       return;
     }
-    
+
     if (selectionMode) {
       onSelect?.(!isSelected);
     } else {
@@ -214,7 +214,7 @@ export const LeadCard = ({
   };
 
   const showDragging = isDragging || isCurrentlyDragging;
-  
+
   // Check if lead is MEGA tier for VIP Shine effect
   const isMegaTier = scoreTier.tier === 'MEGA';
   // Check if lead has high score for Glow effect
@@ -226,32 +226,31 @@ export const LeadCard = ({
       style={style}
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
-        'rounded-xl p-3 sm:p-4 group touch-none relative overflow-hidden',
-        // Glassmorphism: backdrop-blur и тонкие границы
-        'backdrop-blur-sm bg-card/50 border border-border',
-        // SLA Alert - Subtle red border for leads waiting > 15 min (removed animation)
-        needsAttention && 'border-red-400  shadow-sm',
+        'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-500',
+        'interstellar-card-elevated backdrop-blur-xl border border-white/5 shadow-2xl',
+        // SLA Alert
+        needsAttention && 'border-red-500/50 shadow-red-500/20',
         // VIP Shine + Gold Glow for MEGA leads
-        isMegaTier && !needsAttention && 'vip-shine vip-glow',
+        isMegaTier && !needsAttention && 'vip-shine vip-glow border-amber-500/30',
         // Glow effect for high scoring leads (>= 80)
-        hasHighScore && !needsAttention && 'shadow-lg shadow-red-500/30 ring-1 ring-red-500/20',
+        hasHighScore && !needsAttention && 'shadow-[0_0_30px_rgba(239,68,68,0.2)] ring-1 ring-red-500/30',
         // Golden background for MEGA leads (budget > 1M)
-        isGoldenLead && !needsAttention
-          ? 'bg-gradient-to-br from-amber-50/80 via-yellow-50/80 to-amber-100/80    border-2 border-amber-400/70'
-          : !needsAttention,
-        needsAttention && 'bg-red-50/40', 
-        // Only apply hover transitions when not dragging
-        !showDragging && 'transition-all duration-200 hover:shadow-lg hover:bg-card/70',
-        !showDragging && !isGoldenLead && !needsAttention && !hasHighScore && 'hover:border-foreground/20',
-        !showDragging && isGoldenLead && 'hover:shadow-[0_0_40px_rgba(251,191,36,0.5)]',
-        !showDragging && hasHighScore && 'hover:shadow-[0_0_30px_rgba(239,68,68,0.4)]',
+        isGoldenLead && !needsAttention && 'bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-amber-900/10 border-amber-500/40',
+
         selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
-        showDragging && 'shadow-xl opacity-95 z-50',
-        isSelected && 'ring-2 ring-primary bg-primary/5',
-        !isGoldenLead && !needsAttention && scoreTier.color // Apply tier-based styling only for non-golden
+        showDragging && 'shadow-2xl opacity-90 z-50 scale-[1.02] border-primary/50',
+        isSelected && 'ring-2 ring-primary bg-primary/10 border-primary/40',
+        !isGoldenLead && !needsAttention && scoreTier.color
       )}
       onClick={handleCardClick}
     >
+      {/* Decorative background glow based on tier */}
+      <div className={cn(
+        "absolute -top-12 -right-12 w-24 h-24 blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-700",
+        scoreTier.tier === 'HOT' ? 'bg-red-500' :
+          scoreTier.tier === 'WARM' ? 'bg-yellow-500' :
+            scoreTier.tier === 'COLD' ? 'bg-blue-500' : 'bg-primary'
+      )} />
       {/* SLA Alert Badge - Subtle */}
       {needsAttention && (
         <div className="mb-3 flex items-center gap-2 px-2 py-1.5 rounded-md bg-red-100/50  border border-red-200  text-red-700  text-xs font-medium">
@@ -273,8 +272,8 @@ export const LeadCard = ({
 
       {/* NEW Badge - синее свечение для лидов < 1 часа */}
       {isNewLead && (
-        <div className="absolute top-2 right-2 z-10">
-          <Badge className="bg-blue-500/20 text-blue-600  border-blue-500/30 shadow-lg shadow-blue-500/20 animate-pulse">
+        <div className="absolute top-3 right-3 z-10">
+          <Badge className="bg-blue-600/30 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-pulse font-black text-[10px] tracking-tighter">
             NEW
           </Badge>
         </div>
@@ -338,38 +337,36 @@ export const LeadCard = ({
       )}
 
       {/* Header: Name + Drag Handle */}
-      <div className="flex items-start gap-2 mb-3">
+      <div className="flex items-start gap-4 mb-4 relative z-10">
         {selectionMode ? (
-          <div 
-            className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5"
+          <div
+            className="w-9 h-9 rounded-xl interstellar-glass flex items-center justify-center flex-shrink-0"
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
               checked={isSelected}
               onCheckedChange={(checked) => onSelect?.(!!checked)}
-              className="data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              className="data-[state=checked]:bg-primary border-white/20"
             />
           </div>
         ) : (
-          <div className="w-7 h-7 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
-            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-300">
+            <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
           </div>
         )}
         <div className="flex-1 min-w-0">
-          {/* Clinic name bold if available */}
           {clinicName && (
-            <p className="font-bold text-sm leading-tight truncate text-primary mb-0.5">
+            <p className="font-black text-[11px] uppercase tracking-widest text-primary mb-1">
               {clinicName}
             </p>
           )}
           <div className="flex items-center gap-2">
-            <p className={cn("text-sm leading-tight truncate", clinicName ? "text-muted-foreground" : "font-semibold")}>
+            <h4 className={cn("text-base leading-tight truncate font-bold", clinicName ? "text-foreground" : "text-foreground")}>
               {displayName}
-            </p>
-            {/* LTV Badge */}
+            </h4>
             {lead.ltv && lead.ltv > 0 && (
-              <Badge className="bg-emerald-500/20 text-emerald-600 border-0 text-[10px] font-bold px-1.5 py-0 h-5 flex-shrink-0">
-                <DollarSign className="w-2.5 h-2.5 mr-0.5" />
+              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-black px-1.5 py-0 h-5 flex-shrink-0">
+                <DollarSign className="w-2.5 h-3 mr-0.5" />
                 {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.ltv)}
               </Badge>
             )}
@@ -377,36 +374,34 @@ export const LeadCard = ({
         </div>
       </div>
 
-      {/* Phone */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-9">
-        <Phone className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="truncate font-medium">
-          {lead.phone || 'Нет телефона'}
-        </span>
-      </div>
-
-      {/* Date */}
-      <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2 pl-9">
-        <Calendar className="w-3.5 h-3.5 flex-shrink-0" />
-        <span className="truncate">
-          {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', 'Дата неизвестна')}
-        </span>
-      </div>
-
-      {/* Chat appointment date if available */}
-      {selectedDate && (
-        <div className="flex items-center gap-2 text-xs text-emerald-600 mb-2 pl-9">
-          <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-          <span className="truncate font-medium">
-            Запись из чата: {selectedDate}
+      {/* Info Rows */}
+      <div className="space-y-2.5 mb-4 pl-1 relative z-10">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
+          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+          <span className="truncate font-semibold tracking-wide">
+            {lead.phone || 'Нет телефона'}
           </span>
         </div>
-      )}
 
-      {/* Source */}
-      <div className="mb-3 pl-9">
-        <p className="text-[10px] text-muted-foreground font-medium mb-1">Источник</p>
-        {getSourceBadge()}
+        <div className="flex items-center gap-3 text-xs text-muted-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
+          <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+          <span className="truncate font-medium">
+            {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', 'Дата неизвестна')}
+          </span>
+        </div>
+
+        {selectedDate && (
+          <div className="flex items-center gap-3 text-[11px] text-emerald-400 px-2 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+            <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
+            <span className="truncate font-black uppercase tracking-wider">
+              Записан: {selectedDate}
+            </span>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 px-2 mt-2">
+          {getSourceBadge()}
+        </div>
       </div>
 
       {/* Payment Screenshot - if available */}
@@ -440,52 +435,46 @@ export const LeadCard = ({
 
       {/* Budget Qualification Block - Premium "Growth Potential" Calculator */}
       {marketingBudget > 0 && (
-        <div className={cn(
-          "mb-3 pl-9",
-        )}>
+        <div className="mb-5 relative z-10">
           <div className={cn(
-            "p-2.5 rounded-lg border",
-            isGoldenLead 
-              ? "bg-gradient-to-r from-amber-100/80 to-yellow-100/80 border-amber-300/50" 
-              : "bg-muted/50 border-border/50"
+            "p-3.5 rounded-2xl border transition-all duration-300 backdrop-blur-md",
+            isGoldenLead
+              ? "interstellar-glass border-amber-500/40 bg-amber-500/5 shadow-lg shadow-amber-500/10"
+              : "bg-white/5 border-white/10"
           )}>
-            <div className="flex items-center gap-1.5 mb-1.5">
-              <TrendingUp className={cn(
-                "w-3.5 h-3.5",
-                isGoldenLead ? "text-amber-600" : "text-muted-foreground"
-              )} />
-              <span className={cn(
-                "text-[10px] font-semibold uppercase tracking-wider",
-                isGoldenLead ? "text-amber-700" : "text-muted-foreground"
+            <div className="flex items-center gap-2 mb-3">
+              <div className={cn(
+                "p-1.5 rounded-lg",
+                isGoldenLead ? "bg-amber-500/20" : "bg-white/10"
               )}>
-                Бюджетная квалификация
+                <TrendingUp className={cn(
+                  "w-3.5 h-3.5",
+                  isGoldenLead ? "text-amber-400" : "text-blue-400"
+                )} />
+              </div>
+              <span className={cn(
+                "text-[10px] font-black uppercase tracking-[0.2em]",
+                isGoldenLead ? "text-amber-400" : "text-muted-foreground"
+              )}>
+                Квалификация
               </span>
             </div>
-            <div className="flex items-baseline justify-between gap-2">
+
+            <div className="grid grid-cols-2 gap-4">
               <div>
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Текущий</p>
                 <p className={cn(
-                  "text-[10px]",
-                  isGoldenLead ? "text-amber-600" : "text-muted-foreground"
-                )}>
-                  Текущий бюджет
-                </p>
-                <p className={cn(
-                  "text-sm font-bold",
-                  isGoldenLead ? "text-amber-700" : "text-foreground"
+                  "text-sm font-black tracking-tight",
+                  isGoldenLead ? "text-amber-500" : "text-foreground"
                 )}>
                   {new Intl.NumberFormat('ru-RU').format(Math.round(marketingBudget))} ₸
                 </p>
               </div>
-              <div className="text-right">
+              <div className="text-right border-l border-white/10 pl-4">
+                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Потенциал x3</p>
                 <p className={cn(
-                  "text-[10px]",
-                  isGoldenLead ? "text-amber-600" : "text-muted-foreground"
-                )}>
-                  Потенциал роста ×3
-                </p>
-                <p className={cn(
-                  "text-sm font-bold",
-                  isGoldenLead ? "text-amber-700" : "text-primary"
+                  "text-sm font-black tracking-tight",
+                  isGoldenLead ? "text-amber-400" : "text-primary"
                 )}>
                   {new Intl.NumberFormat('ru-RU').format(Math.round(growthPotential))} ₸
                 </p>
@@ -495,23 +484,22 @@ export const LeadCard = ({
         </div>
       )}
 
-      {/* Quick Actions - всегда видимые быстрые кнопки */}
-      <div 
-        className="flex gap-1.5 pl-9 mt-2"
+      {/* Quick Actions - Premium Floating Buttons */}
+      <div
+        className="flex gap-2 mt-auto relative z-10"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <TooltipProvider delayDuration={300}>
-          {/* WhatsApp - прямая ссылка wa.me */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
-                  lead.phone 
-                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-600  hover:border-green-500/30" 
-                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                  "h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass",
+                  lead.phone
+                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/20"
+                    : "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -522,81 +510,47 @@ export const LeadCard = ({
                 }}
                 disabled={!lead.phone}
               >
-                <MessageCircle className="w-3.5 h-3.5 mr-1" />
-                WhatsApp
+                <MessageCircle className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>{lead.phone ? 'Написать в WhatsApp' : 'Нет телефона'}</p>
-            </TooltipContent>
+            <TooltipContent>WhatsApp</TooltipContent>
           </Tooltip>
 
-          {/* Позвонить */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border",
-                  lead.phone 
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-600  hover:border-blue-500/30" 
-                    : "bg-muted/50 text-muted-foreground cursor-not-allowed"
+                  "h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass",
+                  lead.phone
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20"
+                    : "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
                 )}
                 onClick={(e) => handleQuickAction(e, 'call')}
                 disabled={!lead.phone}
               >
-                <Phone className="w-3.5 h-3.5 mr-1" />
-                Позвонить
+                <Phone className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>{lead.phone ? 'Позвонить' : 'Нет телефона'}</p>
-            </TooltipContent>
+            <TooltipContent>Звонок</TooltipContent>
           </Tooltip>
 
-          {/* Payment Screenshot */}
-          {(lead.extra_data as any)?.payment_screenshot && (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-600  hover:border-emerald-500/30"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open((lead.extra_data as any).payment_screenshot, '_blank');
-                  }}
-                >
-                  <Image className="w-3.5 h-3.5 mr-1" />
-                  Скрин
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Открыть скриншот оплаты</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
-
-          {/* ИИ-анализ */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2.5 rounded-lg text-xs backdrop-blur-sm border border-border bg-purple-500/10 hover:bg-purple-500/20 text-purple-600  hover:border-purple-500/30"
+                className="h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-purple-500/20"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onClick?.(); // Открыть полную страницу лида для анализа
+                  onClick?.();
                 }}
               >
-                <Brain className="w-3.5 h-3.5 mr-1" />
-                ИИ-анализ
+                <Brain className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>
-              <p>Открыть ИИ-анализ лида</p>
-            </TooltipContent>
+            <TooltipContent>ИИ-Анализ</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>

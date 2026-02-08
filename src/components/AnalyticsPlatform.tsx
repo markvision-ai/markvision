@@ -47,6 +47,7 @@ import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
 import { DotPatternBackground } from './ui/dot-pattern-background';
+import { ErrorBoundary } from './ErrorBoundary';
 import { cn } from '@/lib/utils';
 
 // Lazy load heavy modules for performance
@@ -437,7 +438,7 @@ export const AnalyticsPlatform = () => {
                 userName={userName}
                 keyMetrics={{
                   revenue: totals.revenue,
-                  leads: totals.leads,
+                  expenses: totals.spend,
                   romi: romiPercent,
                 }}
               />
@@ -445,58 +446,11 @@ export const AnalyticsPlatform = () => {
 
             // Quick Actions
             registerWidget('quick-actions', (
-              <QuickActions onTabChange={handleTabChange} />
+              <QuickActions onTabChange={handleTabChange} userName={userName} />
             ));
 
-            // Top Row (Main KPIs): Revenue, Spend, Net Profit, ROMI
-            registerWidget('kpi-top', (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <MetricCard
-                  label="Выручка"
-                  value={formatInt(totals.revenue)}
-                  previousValue={previousWeekTotals.revenue}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(totals.revenue, previousWeekTotals.revenue) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.revenue, previousWeekTotals.revenue))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Расходы"
-                  value={formatInt(totals.spend)}
-                  previousValue={previousWeekTotals.spend}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
-                  icon={<DollarSign className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${calcDelta(totals.spend, previousWeekTotals.spend) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.spend, previousWeekTotals.spend))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Маржа маркетинга"
-                  value={formatInt(profit)}
-                  previousValue={previousWeekTotals.revenue - previousWeekTotals.spend}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    return (dd?.revenue || 0) - (dd?.spend || 0);
-                  })}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="ROMI"
-                  value={`${formatPercent1(romiPercent)}%`}
-                  previousValue={prevConversionRate}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    const spend = dd?.spend || 0;
-                    const revenue = dd?.revenue || 0;
-                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
-                  })}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${romiPercent - prevConversionRate >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevConversionRate)}% к прошлой неделе`}
-                />
-              </div>
-            ));
+
+            // kpi-top widget removed per user request
 
             registerWidget('plan-fact', (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
@@ -571,7 +525,7 @@ export const AnalyticsPlatform = () => {
 
             // Third Row: CPL & CPV elevated
             registerWidget('cost-row', (
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
+              <div className="grid grid-cols-3 gap-3 md:gap-4">
                 <MetricCard
                   label="Стоимость лида (CPL)"
                   value={leadCost !== null ? formatInt(leadCost) + ' ₸' : '—'}
@@ -585,6 +539,13 @@ export const AnalyticsPlatform = () => {
                   icon={<Target className="w-5 h-5" />}
                   variant="success"
                   subValue={`${visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}`}
+                />
+                <MetricCard
+                  label="Стоимость клиента"
+                  value={customerCost !== null ? formatInt(customerCost) + ' ₸' : '—'}
+                  icon={<ShoppingCart className="w-5 h-5" />}
+                  variant="warning"
+                  subValue={`${customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}`}
                 />
               </div>
             ));
@@ -648,7 +609,9 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'crm' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <CRMPage projectId={currentProjectId} />
+          <ErrorBoundary>
+            <CRMPage projectId={currentProjectId} />
+          </ErrorBoundary>
         </Suspense>
       )}
 

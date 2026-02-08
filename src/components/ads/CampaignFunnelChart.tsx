@@ -503,15 +503,15 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                       <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-slate-800/80 border border-white/10 rounded-xl backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] group-hover:border-blue-500/50 group-hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] transition-all" />
 
                       {/* Content */}
-                      <div className="absolute inset-0 flex items-center justify-between px-6">
-                        <div className="flex items-center gap-4">
+                      <div className="absolute inset-0 flex items-center justify-between px-5">
+                        <div className="flex items-center gap-3">
                           <div className="p-2 rounded-lg bg-white/5 ring-1 ring-white/10 text-blue-400 group-hover:text-white group-hover:bg-blue-600 transition-colors shadow-lg">
                             <stage.icon className="w-5 h-5" />
                           </div>
-                          <span className="text-sm font-bold text-white uppercase tracking-wider shadow-black drop-shadow-md">{stage.name}</span>
+                          <span className="text-sm font-bold text-white/80 uppercase tracking-wider">{stage.name}</span>
                         </div>
-                        <span className="font-mono text-2xl font-bold text-white drop-shadow-[0_2px_10px_rgba(255,255,255,0.2)]">
-                          {new Intl.NumberFormat('ru-RU', { notation: "compact", maximumFractionDigits: 1 }).format(stage.value)}
+                        <span className="font-mono text-2xl font-bold text-white tracking-tight">
+                          {new Intl.NumberFormat('ru-RU', { notation: "compact", maximumFractionDigits: 1 }).format(stage.value).replace(/\u00a0/g, ' ')}
                         </span>
                       </div>
                     </div>
