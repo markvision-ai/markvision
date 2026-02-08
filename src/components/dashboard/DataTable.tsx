@@ -7,7 +7,8 @@ import { ru } from 'date-fns/locale';
 import {
   Download, Target, Loader2,
   ShoppingCart, Users, TrendingUp,
-  ChevronLeft, ChevronRight
+  ChevronLeft, ChevronRight,
+  TrendingDown
 } from 'lucide-react';
 import { DateRange } from "react-day-picker";
 import { cn } from "@/lib/utils";
@@ -45,10 +46,6 @@ const formatNumber = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-const formatPercent = (value: number): string => {
-  return Math.round(value) + '%';
-};
-
 // Умное форматирование для CR (проценты)
 const formatCR = (value: number | null): string => {
   if (value === null || isNaN(value) || !isFinite(value)) return '—';
@@ -74,11 +71,13 @@ interface DataTableProps {
 const EditableCell = ({
   value,
   onSave,
-  className
+  className,
+  isCurrency = false
 }: {
   value: number | undefined;
   onSave: (value: number) => void;
   className?: string;
+  isCurrency?: boolean;
 }) => {
   const [localValue, setLocalValue] = useState(value?.toString() || '');
   const [isSaving, setIsSaving] = useState(false);
@@ -123,7 +122,7 @@ const EditableCell = ({
         onBlur={handleBlur}
         onKeyDown={handleKeyDown}
         className={cn(
-          "w-full text-right bg-transparent border border-transparent focus:border-primary/50 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 rounded-md px-2 py-1 transition-all font-mono font-medium hover:bg-white/5 hover:border-white/10",
+          "w-full text-right bg-transparent border-transparent focus:border-primary/50 placeholder:text-muted-foreground/30 focus:outline-none focus:ring-0 rounded-md px-1 py-1 transition-all font-mono font-medium hover:bg-white/5 hover:border-white/10 text-sm",
           className
         )}
         disabled={isSaving}
@@ -257,7 +256,7 @@ export const DataTable = React.memo(({
   return (
     <div className="space-y-6">
       {/* Calculated Metrics Grid - Premium Style */}
-      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid gap-4 grid-cols-2 md:grid-cols-3 xl:grid-cols-6 mb-6">
         <SummaryCard
           title="Стоимость клиента"
           icon={ShoppingCart}
@@ -302,18 +301,18 @@ export const DataTable = React.memo(({
         />
       </div>
 
-      <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10">
+      <div className="interstellar-card relative overflow-hidden rounded-2xl border border-white/5 bg-black/40 backdrop-blur-xl">
         {/* Glow behind header */}
         <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
 
         {/* Header toolbar */}
-        <div className="relative p-4 md:p-5 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 z-10">
+        <div className="relative p-4 md:p-5 border-b border-white/5 flex flex-col md:flex-row items-center justify-between gap-4 z-10 bg-white/[0.02]">
           <div className="flex items-center gap-2 bg-black/40 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePrevMonth}
-              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
+              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors border border-transparent hover:border-white/10"
             >
               <ChevronLeft className="h-4 w-4" />
             </Button>
@@ -326,7 +325,7 @@ export const DataTable = React.memo(({
               variant="ghost"
               size="icon"
               onClick={handleNextMonth}
-              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors"
+              className="h-8 w-8 hover:bg-white/10 hover:text-white rounded-lg transition-colors border border-transparent hover:border-white/10"
             >
               <ChevronRight className="h-4 w-4" />
             </Button>
@@ -336,7 +335,7 @@ export const DataTable = React.memo(({
             onClick={exportToCSV}
             variant="outline"
             size="sm"
-            className="gap-2 bg-emerald-500/10 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/20 hover:text-emerald-300 hover:border-emerald-500/30 transition-all rounded-lg h-9"
+            className="gap-2 bg-emerald-500/5 text-emerald-400 border-emerald-500/20 hover:bg-emerald-500/10 hover:text-emerald-300 hover:border-emerald-500/30 transition-all rounded-lg h-9"
           >
             <Download className="w-4 h-4" />
             Экспорт CSV
@@ -344,36 +343,38 @@ export const DataTable = React.memo(({
         </div>
 
         {/* Table Content */}
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto custom-scrollbar">
           <table className="w-full text-sm border-separate border-spacing-0">
             <thead>
               <tr className="bg-white/[0.02]">
-                <th className="p-4 text-left font-medium text-muted-foreground sticky left-0 bg-[#0B0C15] z-20 min-w-[100px] border-b border-white/5">Дата</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[110px] border-b border-white/5">Расходы</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Показы</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[80px] border-b border-white/5">Клики</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[80px] border-b border-white/5">Лиды</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Подписчики</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[100px] border-b border-white/5">Диагн.</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[90px] border-b border-white/5">Продажи</th>
-                <th className="p-4 text-right font-medium text-muted-foreground min-w-[130px] border-b border-white/5">Выручка</th>
+                <th className="p-4 text-left font-bold text-xs uppercase tracking-wider text-muted-foreground/60 sticky left-0 bg-[#0B0C15] z-20 min-w-[100px] border-b border-white/5 backdrop-blur-md">
+                  Дата
+                </th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[120px] border-b border-white/5">Расходы</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[100px] border-b border-white/5">Показы</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[80px] border-b border-white/5">Клики</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[80px] border-b border-white/5">Лиды</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[100px] border-b border-white/5">Подписчики</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[100px] border-b border-white/5">Диагн.</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[90px] border-b border-white/5">Продажи</th>
+                <th className="p-4 text-right font-bold text-xs uppercase tracking-wider text-muted-foreground/60 min-w-[130px] border-b border-white/5">Выручка</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/5">
+            <tbody className="divide-y divide-white/[0.03]">
 
               {/* PLAN ROW - Special Highlighting */}
               {effectivePlanData && (
-                <tr className="group relative">
-                  <td className="p-4 sticky left-0 z-20 border-r border-emerald-500/10 bg-emerald-950/30 backdrop-blur-md">
+                <tr className="group relative bg-[#0B0C15]/50 hover:bg-[#0B0C15]/80 transition-colors">
+                  <td className="p-4 sticky left-0 z-20 bg-[#0B0C15]/90 border-r border-emerald-500/10 backdrop-blur-md">
                     <div className="flex items-center gap-2.5">
-                      <div className="w-6 h-6 rounded bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30">
+                      <div className="w-6 h-6 rounded bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]">
                         <Target className="w-3.5 h-3.5 text-emerald-400" />
                       </div>
                       <span className="font-bold text-emerald-400 tracking-wider text-[10px] uppercase">ПЛАН</span>
                     </div>
                   </td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => (
-                    <td key={field} className="p-2 text-right bg-emerald-950/10 group-hover:bg-emerald-950/20 transition-colors">
+                    <td key={field} className="p-2 text-right">
                       {onPlanChange ? (
                         <div className="relative">
                           <EditableCell
@@ -382,11 +383,11 @@ export const DataTable = React.memo(({
                               const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
                               onPlanChange(field, val, monthKey);
                             }}
-                            className="text-emerald-400 font-bold bg-emerald-500/5 focus:bg-emerald-500/10 border-0 focus:ring-1 focus:ring-emerald-500/50 rounded-lg py-1.5 px-3"
+                            className="text-emerald-400 font-bold bg-emerald-500/5 focus:bg-emerald-500/10 border border-transparent focus:border-emerald-500/30 rounded-lg py-1.5 px-3 shadow-none focus:shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all"
                           />
                         </div>
                       ) : (
-                        <span className="font-bold text-emerald-400 px-3">
+                        <span className="font-bold text-emerald-400 px-3 tabular-nums">
                           {field === 'spend' || field === 'revenue'
                             ? formatCurrency(effectivePlanData[field])
                             : formatNumber(effectivePlanData[field])}
@@ -398,21 +399,21 @@ export const DataTable = React.memo(({
               )}
 
               {/* FACT TOTALS ROW */}
-              <tr className="bg-white/[0.02]">
-                <td className="p-4 sticky left-0 bg-[#0B0C15] z-20 border-r border-white/5 text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Факт Итого</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatCurrency(totals.spend)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.impressions)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.clicks)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.leads)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.followers)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.visits)}</td>
-                <td className="p-4 text-right font-mono text-white/90 font-semibold">{formatNumber(totals.sales)}</td>
-                <td className="p-4 text-right font-mono text-emerald-400 font-bold text-base shadow-[0_0_15px_rgba(16,185,129,0.2)]">{formatCurrency(totals.revenue)}</td>
+              <tr className="bg-white/[0.02] border-b-2 border-white/5">
+                <td className="p-4 sticky left-0 bg-[#0B0C15] z-20 border-r border-white/5 text-[10px] uppercase tracking-widest text-muted-foreground font-bold shadow-[4px_0_24px_rgba(0,0,0,0.5)]">Факт Итого</td>
+                <td className="p-4 text-right font-mono text-white font-bold tabular-nums">{formatCurrency(totals.spend)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.impressions)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.clicks)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.leads)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.followers)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.visits)}</td>
+                <td className="p-4 text-right font-mono text-white/90 font-semibold tabular-nums">{formatNumber(totals.sales)}</td>
+                <td className="p-4 text-right font-mono text-emerald-400 font-bold text-base shadow-[0_0_15px_rgba(16,185,129,0.1)] tabular-nums">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* EXECUTION % ROW */}
               {effectivePlanData && (
-                <tr className="bg-white/[0.01]">
+                <tr className="bg-white/[0.01] border-b border-white/5">
                   <td className="p-4 sticky left-0 bg-[#0B0C15] z-20 border-r border-white/5 text-[10px] uppercase tracking-widest text-muted-foreground/50 font-medium">% Вып.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
@@ -433,14 +434,14 @@ export const DataTable = React.memo(({
                     }
 
                     return (
-                      <td key={field} className="p-4 pt-3 pb-5 align-top">
-                        <div className="flex flex-col gap-1.5">
-                          <div className={cn("text-right text-[11px] font-bold", colorClass)}>
+                      <td key={field} className="p-4 pt-3 pb-5 align-top border-b border-white/5">
+                        <div className="flex flex-col gap-1.5 justify-end h-full">
+                          <div className={cn("text-right text-[11px] font-bold tabular-nums", colorClass)}>
                             {percent.toFixed(0)}%
                           </div>
                           <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
                             <div
-                              className={cn("h-full rounded-full transition-all duration-700 ease-out", barColor)}
+                              className={cn("h-full rounded-full transition-all duration-700 ease-out shadow-[0_0_8px_rgba(255,255,255,0.2)]", barColor)}
                               style={{ width: `${Math.min(percent, 100)}%` }}
                             />
                           </div>
@@ -465,20 +466,20 @@ export const DataTable = React.memo(({
                   <tr
                     key={dateKey}
                     className={cn(
-                      "group transition-colors border-l-2",
+                      "group transition-all hover:bg-white/[0.04]",
                       isToday
-                        ? "bg-blue-500/5 border-l-blue-500"
+                        ? "bg-blue-500/5 relative z-10"
                         : isWeekend
-                          ? "bg-white/[0.015] border-l-transparent hover:bg-white/[0.03]"
-                          : "bg-transparent border-l-transparent hover:bg-white/[0.03]"
+                          ? "bg-white/[0.01] hover:bg-white/[0.03]"
+                          : "bg-transparent"
                     )}
                   >
                     <td className={cn(
-                      "p-3 md:p-3 sticky left-0 z-10 border-r border-white/5 backdrop-blur-sm",
-                      isToday ? "bg-blue-950/30" : "bg-[#0B0C15] group-hover:bg-[#121420]"
+                      "p-3 md:p-3 sticky left-0 z-10 border-r border-white/5 backdrop-blur-sm transition-colors",
+                      isToday ? "bg-blue-950/40 border-l-2 border-l-blue-500" : "bg-[#0B0C15] group-hover:bg-[#121420]"
                     )}>
                       <div className="flex flex-col">
-                        <span className={cn("font-bold text-sm font-mono", isToday ? "text-blue-400" : "text-white/80")}>
+                        <span className={cn("font-bold text-sm font-mono tracking-tight", isToday ? "text-blue-400" : "text-white/80")}>
                           {format(day, 'dd', { locale: ru })}
                         </span>
                         <span className="text-[9px] uppercase text-muted-foreground/60">
@@ -493,7 +494,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'spend', val)}
                         />
                       ) : (
-                        <span className="text-white/60 font-mono text-xs">{formatCurrency(dayData?.spend || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs tabular-nums">{formatCurrency(dayData?.spend || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -503,7 +504,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'impressions', val)}
                         />
                       ) : (
-                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.impressions || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs tabular-nums">{formatNumber(dayData?.impressions || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -513,7 +514,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'clicks', val)}
                         />
                       ) : (
-                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.clicks || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs tabular-nums">{formatNumber(dayData?.clicks || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -524,7 +525,7 @@ export const DataTable = React.memo(({
                           className="text-white/90 font-bold"
                         />
                       ) : (
-                        <span className="text-white/90 font-mono text-xs font-bold">{formatNumber(dayData?.leads || 0)}</span>
+                        <span className="text-white/90 font-mono text-xs font-bold tabular-nums">{formatNumber(dayData?.leads || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -534,7 +535,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'followers', val)}
                         />
                       ) : (
-                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.followers || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs tabular-nums">{formatNumber(dayData?.followers || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -544,7 +545,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'visits', val)}
                         />
                       ) : (
-                        <span className="text-white/60 font-mono text-xs">{formatNumber(dayData?.visits || 0)}</span>
+                        <span className="text-white/60 font-mono text-xs tabular-nums">{formatNumber(dayData?.visits || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -555,7 +556,7 @@ export const DataTable = React.memo(({
                           className="text-white/90 font-bold"
                         />
                       ) : (
-                        <span className="text-white/90 font-mono text-xs font-bold">{formatNumber(dayData?.sales || 0)}</span>
+                        <span className="text-white/90 font-mono text-xs font-bold tabular-nums">{formatNumber(dayData?.sales || 0)}</span>
                       )}
                     </td>
                     <td className="p-2 text-right">
@@ -569,7 +570,7 @@ export const DataTable = React.memo(({
                           )}
                         />
                       ) : (
-                        <span className={cn("font-mono text-xs font-bold", isHighRevenue ? "text-emerald-400" : "text-white")}>{formatCurrency(dayData?.revenue || 0)}</span>
+                        <span className={cn("font-mono text-xs font-bold tabular-nums", isHighRevenue ? "text-emerald-400" : "text-white")}>{formatCurrency(dayData?.revenue || 0)}</span>
                       )}
                     </td>
                   </tr>
