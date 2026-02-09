@@ -12,7 +12,10 @@ const MAX_PAYLOAD_SIZE = 100000; // 100KB
 const MAX_DEAL_AMOUNT = 1000000000;
 const MAX_PATH_DEPTH = 5;
 const SIGNATURE_MAX_AGE_MS = 300000; // 5 minutes - prevent replay attacks
-const REQUIRE_WEBHOOK_SIGNATURE = true;
+const REQUIRE_WEBHOOK_SIGNATURE = (() => {
+  const raw = (Deno.env.get('REQUIRE_WEBHOOK_SIGNATURE') ?? 'true').trim().toLowerCase();
+  return raw === 'true' || raw === '1' || raw === 'yes';
+})();
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
@@ -266,6 +269,21 @@ async function logFailedAuth(supabase: any, projectId: string | null, reason: st
   }
 }
 
+async function logSignatureBypass(supabase: any, projectId: string | null, ipAddress: string) {
+  try {
+    await supabase.from('audit_logs').insert({
+      user_id: '00000000-0000-0000-0000-000000000000', // System user
+      project_id: projectId,
+      action: 'webhook_signature_bypass',
+      entity_type: 'webhook',
+      old_values: { reason: 'signature_not_required', ip_address: ipAddress },
+      new_values: { timestamp: new Date().toISOString() }
+    });
+  } catch (_error) {
+    console.error('Failed to log signature bypass');
+  }
+}
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -378,6 +396,11 @@ Deno.serve(async (req) => {
         }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    if (!REQUIRE_WEBHOOK_SIGNATURE && !hasSignature) {
+      console.warn('Webhook signature not required (migration mode). Token-only request accepted.');
+      await logSignatureBypass(supabase, webhookConfig.project_id, ipAddress);
     }
 
     if (hasSignature && webhookConfig.webhook_secret) {

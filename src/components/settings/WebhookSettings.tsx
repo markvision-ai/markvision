@@ -349,6 +349,22 @@ export const WebhookSettings = ({ projectId }: WebhookSettingsProps) => {
           </div>
         </div>
       </div>
+
+      {/* Request signature */}
+      <div className="bg-card border rounded-xl p-4">
+        <h4 className="font-medium mb-2">Подпись запроса (доп. защита)</h4>
+        <p className="text-sm text-muted-foreground mb-3">
+          Если включена проверка подписи, нужно отправлять два заголовка. Это защищает от подделки и повторной отправки.
+        </p>
+        <div className="space-y-2 text-sm">
+          <code className="text-xs bg-muted px-2 py-1 rounded block">
+            X-Webhook-Timestamp: [unix timestamp в миллисекундах]
+          </code>
+          <code className="text-xs bg-muted px-2 py-1 rounded block">
+            X-Webhook-Signature: [HMAC SHA-256 от &quot;timestamp.body&quot;]
+          </code>
+        </div>
+      </div>
     </div>
   );
 };
