@@ -199,37 +199,37 @@ export const ContentFactoryWizard = () => {
         </div>
     );
 
-	// STEP 2: CONFIGURATION
-	const renderStep2 = () => (
-		<div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500">
-			<div className="flex items-center justify-between mb-8">
-				<div className="flex items-center">
-					<Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
-						<ArrowLeft className="w-6 h-6" />
-					</Button>
-					<div>
-						<h2 className="text-3xl font-black text-white tracking-tight">Настройки <span className="text-cyan-400">контента</span></h2>
-						<p className="text-white/40 text-sm">Заполните пару полей и нажмите «Сгенерировать»</p>
-					</div>
-				</div>
+    // STEP 2: CONFIGURATION
+    const renderStep2 = () => (
+        <div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500">
+            <div className="flex items-center justify-between mb-8">
+                <div className="flex items-center">
+                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
+                        <ArrowLeft className="w-6 h-6" />
+                    </Button>
+                    <div>
+                        <h2 className="text-3xl font-black text-white tracking-tight">Настройки <span className="text-cyan-400">контента</span></h2>
+                        <p className="text-white/40 text-sm">Заполните пару полей и нажмите «Сгенерировать»</p>
+                    </div>
+                </div>
 
-				<div className="flex items-center gap-3">
-					<div className="flex -space-x-2">
-						{[1, 2, 3].map(i => (
-							<div key={i} className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-								<span className="text-[10px] text-white/20">{i}</span>
-							</div>
-						))}
-					</div>
-					<div className="h-px w-12 bg-white/10" />
-					<div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Шаг 2 из 3</div>
-				</div>
-			</div>
+                <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                        {[1, 2, 3].map(i => (
+                            <div key={i} className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+                                <span className="text-[10px] text-white/20">{i}</span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="h-px w-12 bg-white/10" />
+                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Шаг 2 из 3</div>
+                </div>
+            </div>
 
-			<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 pb-28 overflow-y-auto custom-scrollbar pr-2">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 pb-28 overflow-y-auto custom-scrollbar pr-2">
 
-				{/* Left Column: Inputs */}
-				<div className="lg:col-span-7 space-y-10">
+                {/* Left Column: Inputs */}
+                <div className="lg:col-span-7 space-y-10">
                     {/* Description Section */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center px-1">
@@ -237,38 +237,38 @@ export const ContentFactoryWizard = () => {
                                 <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
                                 Опишите задачу
                             </Label>
-							<Button
-								variant="ghost"
-								size="sm"
-								onClick={enhancePrompt}
-								disabled={state.isEnhancing || !state.description}
-								className={cn(
-									"text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
-									state.isEnhancing && "animate-pulse"
-								)}
-							>
-								<Sparkles className="w-4 h-4 mr-2" />
-								{state.isEnhancing ? "Улучшаю..." : "Улучшить текст"}
-							</Button>
-						</div>
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={enhancePrompt}
+                                disabled={state.isEnhancing || !state.description}
+                                className={cn(
+                                    "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+                                    state.isEnhancing && "animate-pulse"
+                                )}
+                            >
+                                <Sparkles className="w-4 h-4 mr-2" />
+                                {state.isEnhancing ? "Улучшаю..." : "Улучшить текст"}
+                            </Button>
+                        </div>
 
-						<div className="relative group overflow-hidden rounded-2xl">
-							<div className={cn(
-								"absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
-								state.isEnhancing && "opacity-100 animate-pulse"
-							)} />
-							<Textarea
-								placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
-								className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
-								value={state.description}
-								onChange={(e) => updateState({ description: e.target.value })}
-							/>
+                        <div className="relative group overflow-hidden rounded-2xl">
+                            <div className={cn(
+                                "absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
+                                state.isEnhancing && "opacity-100 animate-pulse"
+                            )} />
+                            <Textarea
+                                placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
+                                className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
+                                value={state.description}
+                                onChange={(e) => updateState({ description: e.target.value })}
+                            />
 
-							<div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
-								{state.description?.length || 0} символов
-							</div>
-						</div>
-					</div>
+                            <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
+                                {state.description?.length || 0} символов
+                            </div>
+                        </div>
+                    </div>
 
                     {/* Type Selection */}
                     <div className="space-y-6">
@@ -314,39 +314,39 @@ export const ContentFactoryWizard = () => {
                     </div>
                 </div>
 
-				{/* Right Column: Parameters */}
-				<div className="lg:col-span-5 flex flex-col">
-					<div className="bg-white/[0.03] rounded-3xl p-8 border border-white/5 backdrop-blur-2xl relative overflow-hidden flex-1 flex flex-col shadow-2xl">
-						<h3 className="text-sm font-bold text-white uppercase tracking-[0.3em] border-b border-white/5 pb-6 mb-8 flex items-center gap-3">
-							<Cpu className="w-4 h-4 text-cyan-400" />
-							Настройки
-						</h3>
+                {/* Right Column: Parameters */}
+                <div className="lg:col-span-5 flex flex-col">
+                    <div className="bg-white/[0.03] rounded-3xl p-8 border border-white/5 backdrop-blur-2xl relative overflow-hidden flex-1 flex flex-col shadow-2xl">
+                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.3em] border-b border-white/5 pb-6 mb-8 flex items-center gap-3">
+                            <Cpu className="w-4 h-4 text-cyan-400" />
+                            Настройки
+                        </h3>
 
-						<div className="space-y-10 flex-1">
-							{/* Style Selection - Working Interactivity */}
-							<div className="space-y-4">
-								<Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Стиль</Label>
-								<div className="grid grid-cols-3 gap-3">
-									<VisualTemplateOption
-										label="Простой"
-										color="bg-zinc-900"
-										active={state.designStyle === 'minimalism'}
-										onClick={() => updateState({ designStyle: 'minimalism' })}
-									/>
-									<VisualTemplateOption
-										label="Яркий"
-										color="bg-purple-900/60"
-										active={state.designStyle === 'neon'}
-										onClick={() => updateState({ designStyle: 'neon' })}
-									/>
-									<VisualTemplateOption
-										label="Деловой"
-										color="bg-blue-900/60"
-										active={state.designStyle === 'business'}
-										onClick={() => updateState({ designStyle: 'business' })}
-									/>
-								</div>
-							</div>
+                        <div className="space-y-10 flex-1">
+                            {/* Style Selection - Working Interactivity */}
+                            <div className="space-y-4">
+                                <Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Стиль</Label>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <VisualTemplateOption
+                                        label="Простой"
+                                        color="bg-zinc-900"
+                                        active={state.designStyle === 'minimalism'}
+                                        onClick={() => updateState({ designStyle: 'minimalism' })}
+                                    />
+                                    <VisualTemplateOption
+                                        label="Яркий"
+                                        color="bg-purple-900/60"
+                                        active={state.designStyle === 'neon'}
+                                        onClick={() => updateState({ designStyle: 'neon' })}
+                                    />
+                                    <VisualTemplateOption
+                                        label="Деловой"
+                                        color="bg-blue-900/60"
+                                        active={state.designStyle === 'business'}
+                                        onClick={() => updateState({ designStyle: 'business' })}
+                                    />
+                                </div>
+                            </div>
 
                             {/* Carousel Specifics */}
                             {state.category === 'carousel' && (
@@ -402,56 +402,56 @@ export const ContentFactoryWizard = () => {
                                 </motion.div>
                             )}
 
-							{(!state.category || state.category !== 'carousel') && (
-								<div className="flex-1 flex flex-col items-center justify-center text-white/10 space-y-4">
-									<Palette className="w-16 h-16 opacity-50" />
-									<p className="text-[10px] text-center font-bold uppercase tracking-widest leading-relaxed">
-										Сначала выберите<br />тип контента слева
-									</p>
-								</div>
-							)}
-						</div>
-					</div>
-				</div>
-			</div>
+                            {(!state.category || state.category !== 'carousel') && (
+                                <div className="flex-1 flex flex-col items-center justify-center text-white/10 space-y-4">
+                                    <Palette className="w-16 h-16 opacity-50" />
+                                    <p className="text-[10px] text-center font-bold uppercase tracking-widest leading-relaxed">
+                                        Сначала выберите<br />тип контента слева
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-			{/* Sticky actions: всегда видимые кнопки */}
-			<div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-[#050505] via-[#050505]/95 to-transparent">
-				<div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
-					<Button
-						variant="ghost"
-						onClick={prevStep}
-						className="h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/5"
-					>
-						<ArrowLeft className="w-4 h-4 mr-2" />
-						Назад
-					</Button>
-					<Button
-						onClick={handleGenerate}
-						disabled={!state.description || !state.category || state.isGenerating}
-						className={cn(
-							"h-12 px-6 rounded-xl font-bold",
-							state.description && state.category
-								? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_45px_rgba(6,182,212,0.35)]"
-								: "bg-white/5 border border-white/10 text-white/20"
-						)}
-					>
-						{state.isGenerating ? (
-							<>
-								<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
-								Готовлю...
-							</>
-						) : (
-							<>
-								<Rocket className="w-4 h-4 mr-2" />
-								Сгенерировать
-							</>
-						)}
-					</Button>
-				</div>
-			</div>
-		</div>
-	);
+            {/* Sticky actions: всегда видимые кнопки */}
+            <div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-[#050505] via-[#050505]/95 to-transparent">
+                <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+                    <Button
+                        variant="ghost"
+                        onClick={prevStep}
+                        className="h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/5"
+                    >
+                        <ArrowLeft className="w-4 h-4 mr-2" />
+                        Назад
+                    </Button>
+                    <Button
+                        onClick={handleGenerate}
+                        disabled={!state.description || !state.category || state.isGenerating}
+                        className={cn(
+                            "h-12 px-6 rounded-xl font-bold",
+                            state.description && state.category
+                                ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_45px_rgba(6,182,212,0.35)]"
+                                : "bg-white/5 border border-white/10 text-white/20"
+                        )}
+                    >
+                        {state.isGenerating ? (
+                            <>
+                                <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+                                Готовлю...
+                            </>
+                        ) : (
+                            <>
+                                <Rocket className="w-4 h-4 mr-2" />
+                                Сгенерировать
+                            </>
+                        )}
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
 
     // STEP 3: PRODUCTION FLOOR (Enhanced)
     const renderStep3 = () => (
@@ -475,32 +475,32 @@ export const ContentFactoryWizard = () => {
 
 // Enhanced Production Floor
 const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
-	const [currentStep, setCurrentStep] = useState(0);
-	const [logs, setLogs] = useState<string[]>([]);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [logs, setLogs] = useState<string[]>([]);
 
-	const steps = [
-		{ label: "Запуск", icon: <Cpu />, detail: "Начинаю работу..." },
-		{ label: "Разбор", icon: <DnaIcon />, detail: "Понимаю задачу..." },
-		{ label: "План", icon: <Terminal />, detail: "Собираю структуру..." },
-		{ label: "Оформление", icon: <ImageIcon />, detail: "Подбираю подачу..." },
-		{ label: "Готово", icon: <CheckCircle2 />, detail: "Финальные штрихи..." }
-	];
+    const steps = [
+        { label: "Запуск", icon: <Cpu />, detail: "Начинаю работу..." },
+        { label: "Разбор", icon: <DnaIcon />, detail: "Понимаю задачу..." },
+        { label: "План", icon: <Terminal />, detail: "Собираю структуру..." },
+        { label: "Оформление", icon: <ImageIcon />, detail: "Подбираю подачу..." },
+        { label: "Готово", icon: <CheckCircle2 />, detail: "Финальные штрихи..." }
+    ];
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-		const runNextStep = (index: number) => {
-			if (index < steps.length) {
-				setCurrentStep(index);
-				setLogs(prev => [...prev, `Шаг: ${steps[index].label}`]);
-				timer = setTimeout(() => runNextStep(index + 1), 2000 + Math.random() * 1500);
-			} else {
-				setLogs(prev => [...prev, "Готово: контент создан."]);
-				toast.success("Контент успешно сгенерирован!", {
-					description: "Вы можете найти его в ленте публикаций",
-					icon: <Rocket className="w-5 h-5 text-emerald-400" />
-				});
-			}
-		};
+        const runNextStep = (index: number) => {
+            if (index < steps.length) {
+                setCurrentStep(index);
+                setLogs(prev => [...prev, `Шаг: ${steps[index].label}`]);
+                timer = setTimeout(() => runNextStep(index + 1), 2000 + Math.random() * 1500);
+            } else {
+                setLogs(prev => [...prev, "Готово: контент создан."]);
+                toast.success("Контент успешно сгенерирован!", {
+                    description: "Вы можете найти его в ленте публикаций",
+                    icon: <Rocket className="w-5 h-5 text-emerald-400" />
+                });
+            }
+        };
 
         runNextStep(0);
         return () => clearTimeout(timer);
@@ -636,10 +636,17 @@ const VisualTemplateOption = ({ label, color, active, onClick }: { label: string
 
 const SourceCard = ({ icon, title, description, color, active, onClick }: any) => {
     const colors: Record<string, string> = {
-        cyan: "group-hover:text-cyan-400 group-data-[active=true]:text-cyan-400 border-cyan-500/30",
-        emerald: "group-hover:text-emerald-400 group-data-[active=true]:text-emerald-400 border-emerald-500/30",
-        violet: "group-hover:text-violet-400 group-data-[active=true]:text-violet-400 border-violet-500/30",
-        fuchsia: "group-hover:text-fuchsia-400 group-data-[active=true]:text-fuchsia-400 border-fuchsia-500/30",
+        cyan: "group-hover:text-cyan-400 group-data-[active=true]:text-cyan-400 border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.15)]",
+        emerald: "group-hover:text-emerald-400 group-data-[active=true]:text-emerald-400 border-emerald-500/30 shadow-[0_0_30px_rgba(16,185,129,0.15)]",
+        violet: "group-hover:text-violet-400 group-data-[active=true]:text-violet-400 border-violet-500/30 shadow-[0_0_30px_rgba(139,92,246,0.15)]",
+        fuchsia: "group-hover:text-fuchsia-400 group-data-[active=true]:text-fuchsia-400 border-fuchsia-500/30 shadow-[0_0_30px_rgba(217,70,239,0.15)]",
+    };
+
+    const glows: Record<string, string> = {
+        cyan: "from-cyan-500/20 to-transparent",
+        emerald: "from-emerald-500/20 to-transparent",
+        violet: "from-violet-500/20 to-transparent",
+        fuchsia: "from-fuchsia-500/20 to-transparent",
     };
 
     return (
@@ -648,24 +655,46 @@ const SourceCard = ({ icon, title, description, color, active, onClick }: any) =
             data-active={active}
             onClick={onClick}
             className={cn(
-                "group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] border border-white/5 bg-white/[0.02] backdrop-blur-xl transition-all duration-500 hover:scale-[1.05] cursor-pointer hover:bg-white/[0.05]",
-                active ? "bg-white/[0.08] border-white/20 shadow-[0_0_50px_rgba(255,255,255,0.03)]" : "",
-                "h-[320px]"
+                "group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] border border-white/5 bg-[#050505]/40 backdrop-blur-2xl transition-all duration-500 hover:scale-[1.03] cursor-pointer hover:bg-white/[0.03]",
+                active ? "bg-white/[0.06] border-white/20 scale-[1.03]" : "",
+                "h-[340px] overflow-hidden"
             )}
         >
+            {/* Reactor Core Icon Container */}
             <div className={cn(
-                "mb-8 p-6 rounded-3xl bg-black/40 transition-colors shadow-2xl relative z-10",
-                colors[color] || "text-white text-cyan-400"
+                "mb-8 p-6 rounded-full bg-[#0A0A0A] border border-white/5 transition-all duration-500 relative z-10 group-hover:scale-110 group-hover:rotate-3",
+                active ? "scale-110 rotate-3 border-transparent" : "",
+                colors[color]
             )}>
-                {icon}
+                <div className={cn("absolute inset-0 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500",
+                    color === 'cyan' && "bg-cyan-500/30",
+                    color === 'emerald' && "bg-emerald-500/30",
+                    color === 'violet' && "bg-violet-500/30",
+                    color === 'fuchsia' && "bg-fuchsia-500/30",
+                    active && "opacity-100"
+                )} />
+                <div className="relative z-10">
+                    {icon}
+                </div>
             </div>
-            <h3 className="text-2xl font-black text-white mb-2 tracking-tight z-10">{title}</h3>
-            <p className="text-[11px] font-bold text-white/30 text-center uppercase tracking-widest z-10">{description}</p>
 
+            <h3 className="text-2xl font-black text-white mb-3 tracking-tight z-10 group-hover:text-white transition-colors">{title}</h3>
+            <p className="text-[11px] font-bold text-white/30 text-center uppercase tracking-[0.2em] z-10 group-hover:text-white/60 transition-colors">{description}</p>
+
+            {/* Gradient Overlay */}
             <div className={cn(
-                "absolute inset-0 rounded-[2.5rem] opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none bg-gradient-to-b from-transparent to-white/5",
+                "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none bg-gradient-to-b",
+                glows[color],
                 active && "opacity-100"
             )} />
+
+            {/* Selection Indicator */}
+            <div className={cn(
+                "absolute top-6 right-6 p-2 rounded-full bg-white text-black transform scale-0 transition-transform duration-300 shadow-lg z-20",
+                active && "scale-100"
+            )}>
+                <Check className="w-4 h-4" />
+            </div>
         </div>
     );
 };

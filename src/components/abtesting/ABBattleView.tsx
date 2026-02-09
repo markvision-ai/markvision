@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Button } from "@/components/ui/button";
 import { Swords, Trophy, TrendingUp, TrendingDown, Target, Zap, Clock, Info, BrainCircuit } from 'lucide-react';
 import { ABTest, TestStats } from './types';
 import { cn } from '@/lib/utils';
@@ -14,6 +15,8 @@ interface ABBattleViewProps {
 }
 
 export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
+    const valA = stats.variantA.conversionRate;
+    const valB = stats.variantB.conversionRate;
     const leader = valA > valB ? 'a' : valB > valA ? 'b' : null;
 
     // --- Statistical Logic ---
