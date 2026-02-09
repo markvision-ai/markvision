@@ -52,7 +52,7 @@ CREATE POLICY "Users can view competitor posts for their projects"
     ON public.competitor_posts FOR SELECT
     USING (
         project_id IN (
-            SELECT project_id FROM public.user_projects 
+            SELECT id FROM public.projects
             WHERE user_id = auth.uid()
         )
     );
@@ -61,7 +61,7 @@ CREATE POLICY "Users can insert competitor posts for their projects"
     ON public.competitor_posts FOR INSERT
     WITH CHECK (
         project_id IN (
-            SELECT project_id FROM public.user_projects 
+            SELECT id FROM public.projects
             WHERE user_id = auth.uid()
         )
     );
@@ -70,7 +70,7 @@ CREATE POLICY "Users can update competitor posts for their projects"
     ON public.competitor_posts FOR UPDATE
     USING (
         project_id IN (
-            SELECT project_id FROM public.user_projects 
+            SELECT id FROM public.projects
             WHERE user_id = auth.uid()
         )
     );
@@ -79,7 +79,7 @@ CREATE POLICY "Users can delete competitor posts for their projects"
     ON public.competitor_posts FOR DELETE
     USING (
         project_id IN (
-            SELECT project_id FROM public.user_projects 
+            SELECT id FROM public.projects
             WHERE user_id = auth.uid()
         )
     );
