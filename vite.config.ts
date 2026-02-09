@@ -37,6 +37,8 @@ export default defineConfig(({ mode }) => {
 	    VitePWA({
 	      registerType: "autoUpdate",
 	      includeAssets: ["favicon.ico", "robots.txt", "pwa-icons/*.png"],
+	      // Don't fail the build when some assets are intentionally excluded from precache by size limit.
+	      showMaximumFileSizeToCacheInBytesWarning: true,
       manifest: {
         name: "MarkVision AI",
         short_name: "MarkVision",
@@ -79,11 +81,12 @@ export default defineConfig(({ mode }) => {
 	      workbox: {
 	        mode: workboxMode,
 	        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-	        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+	        // Keep SW install fast: avoid precaching huge images by default.
+	        maximumFileSizeToCacheInBytes: 1 * 1024 * 1024,
 	        cleanupOutdatedCaches: true,
 	        clientsClaim: true,
-        skipWaiting: true,
-        runtimeCaching: [
+	        skipWaiting: true,
+	        runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
             handler: "NetworkFirst",
