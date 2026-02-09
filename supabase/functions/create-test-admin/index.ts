@@ -11,12 +11,57 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const allowTestAdminCreation = Deno.env.get("ALLOW_TEST_ADMIN_CREATION") === "true";
+    if (!allowTestAdminCreation) {
+      return new Response(
+        JSON.stringify({ success: false, error: "create-test-admin is disabled" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+    const authHeader = req.headers.get("Authorization") ?? "";
+
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Missing Authorization header" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
       auth: { autoRefreshToken: false, persistSession: false }
     });
+
+    const supabaseAuth = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { autoRefreshToken: false, persistSession: false }
+    });
+
+    const { data: authData, error: authError } = await supabaseAuth.auth.getUser();
+    const requester = authData.user;
+    if (authError || !requester) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const { data: requesterRole, error: roleCheckError } = await supabaseAdmin
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", requester.id)
+      .eq("role", "super_admin")
+      .maybeSingle();
+
+    if (roleCheckError || !requesterRole) {
+      return new Response(
+        JSON.stringify({ success: false, error: "Forbidden: super_admin role required" }),
+        { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const email = "testadmin@markvision.app";
     const password = "TestAdmin123!";

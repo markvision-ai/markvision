@@ -12,6 +12,7 @@ const MAX_PAYLOAD_SIZE = 100000; // 100KB
 const MAX_DEAL_AMOUNT = 1000000000;
 const MAX_PATH_DEPTH = 5;
 const SIGNATURE_MAX_AGE_MS = 300000; // 5 minutes - prevent replay attacks
+const REQUIRE_WEBHOOK_SIGNATURE = true;
 
 // Rate limiting configuration
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute
@@ -353,10 +354,32 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify HMAC signature if provided (recommended for production)
+    // Verify HMAC signature (required)
     const hasSignature = signature && timestamp;
     let signatureValid = false;
-    
+
+    if (REQUIRE_WEBHOOK_SIGNATURE && !hasSignature) {
+      console.log('Auth failed: Missing required signature headers');
+      await logFailedAuth(supabase, webhookConfig.project_id, 'missing_signature', ipAddress);
+      return new Response(
+        JSON.stringify({
+          error: 'Missing signature',
+          hint: 'Provide X-Webhook-Signature and X-Webhook-Timestamp headers'
+        }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (REQUIRE_WEBHOOK_SIGNATURE && !webhookConfig.webhook_secret) {
+      console.log('Invalid webhook config: missing webhook secret');
+      return new Response(
+        JSON.stringify({
+          error: 'Webhook secret is not configured for this webhook'
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (hasSignature && webhookConfig.webhook_secret) {
       // Verify timestamp is not too old (prevent replay attacks)
       const requestTime = parseInt(timestamp, 10);
@@ -390,9 +413,6 @@ Deno.serve(async (req) => {
       }
       
       console.log('HMAC signature verified successfully');
-    } else {
-      // Token-only authentication (legacy mode - log warning)
-      console.log('WARNING: Request authenticated with token only (no HMAC signature)');
     }
 
     // Parse JSON payload with error handling

@@ -16,9 +16,7 @@ export interface TeamMember {
 }
 
 export const useTeamMembers = () => {
-  const { user, isAdmin: authIsAdmin } = useAuth();
-  const isZap = user?.email === 'zapoinov@bk.ru';
-  const isAdmin = authIsAdmin || isZap;
+  const { user, isAdmin } = useAuth();
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
 

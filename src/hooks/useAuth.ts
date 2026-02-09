@@ -68,7 +68,7 @@ export const useAuth = () => {
         if (currentUser) {
           // Defer to avoid blocking auth flow
           setTimeout(() => {
-            checkAdminRole(currentUser.id, currentUser.email);
+            checkAdminRole(currentUser.id);
             fetchProfile(currentUser.id);
           }, 0);
         } else {
@@ -93,7 +93,7 @@ export const useAuth = () => {
       }));
 
       if (currentUser) {
-        checkAdminRole(currentUser.id, currentUser.email);
+        checkAdminRole(currentUser.id);
         fetchProfile(currentUser.id);
       }
     });
@@ -156,7 +156,7 @@ export const useAuth = () => {
    * Check if user has admin or super_admin role in user_roles table.
    * Role management is now centralized in the database.
    */
-  const checkAdminRole = async (userId: string, email?: string) => {
+  const checkAdminRole = async (userId: string) => {
     try {
       // Query for any admin-level role
       const { data, error } = await supabase
@@ -179,14 +179,11 @@ export const useAuth = () => {
       // Check for admin-level roles (admin or super_admin)
       const role = data?.role as string | null;
 
-      // EMERGENCY BYPASS FOR zapoinov@bk.ru
-      const userEmail = email || authState.user?.email;
-      const isZap = userEmail === 'zapoinov@bk.ru';
-      const isAdminRole = role === 'admin' || role === 'super_admin' || isZap;
-      const isSuperAdminRole = role === 'super_admin' || isZap;
+      const isAdminRole = role === 'admin' || role === 'super_admin';
+      const isSuperAdminRole = role === 'super_admin';
 
       if (import.meta.env.DEV) {
-        console.log('🔐 Role check:', role || (isZap ? 'SUPER-ADMIN (BYPASS)' : 'USER'));
+        console.log('🔐 Role check:', role || 'USER');
       }
 
       setAuthState(prev => ({

@@ -104,7 +104,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
           name: values.name,
           phone: values.phone,
           utm_source: values.source,
-          project_id: '64c94e87-630c-470e-8ab1-8f7c8c835efa',
+          project_id: projectId,
           status: 'new'
         }]);
       if (error) {
@@ -116,6 +116,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
             const { data: existingLead } = await (supabase as any)
               .from('leads')
               .select('*')
+              .eq('project_id', projectId)
               .eq('phone', values.phone)
               .single();
               

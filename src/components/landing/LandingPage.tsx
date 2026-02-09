@@ -347,7 +347,7 @@ export const LandingPage = () => {
             <p className="text-gray-300 leading-relaxed">
               <span className="font-semibold text-white">Мы управляем маркетингом, продажами и аналитикой —</span>
               <br />
-              вы концентрируетесь на клиентах
+              вы управляйте бизнесом
             </p>
           </div>
         </motion.div>

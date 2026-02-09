@@ -324,7 +324,34 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     const accessToken = await getAccessToken(supabase, projectId);
     const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
     
-    // Fetch hierarchy: Campaigns -> AdSets -> Ads
+    // 1. Fetch ad account status to surface payment/disable errors
+    let accountStatus: any = null;
+    try {
+        const acctUrl = `https://graph.facebook.com/v21.0/${adAccountId}?` +
+            `access_token=${accessToken}&` +
+            `fields=account_status,disable_reason,name,amount_spent,balance,currency,funding_source_details{display_string,type}`;
+        console.log(`Fetching account status for: ${adAccountId}`);
+        const acctRes = await fetch(acctUrl);
+        if (acctRes.ok) {
+            const acctData = await acctRes.json();
+            if (!acctData.error) {
+                accountStatus = {
+                    account_status: acctData.account_status,
+                    disable_reason: acctData.disable_reason,
+                    name: acctData.name,
+                    currency: acctData.currency,
+                    balance: acctData.balance,
+                    amount_spent: acctData.amount_spent,
+                    funding_source: acctData.funding_source_details?.display_string || null,
+                    funding_type: acctData.funding_source_details?.type || null,
+                };
+            }
+        }
+    } catch (e) {
+        console.error('Failed to fetch account status (non-critical):', e);
+    }
+
+    // 2. Fetch hierarchy: Campaigns -> AdSets -> Ads
     // Support custom date range or default to last_30d
     const insightFields = `spend,actions,action_values,clicks,impressions,cpc,cpm,ctr`;
     
@@ -354,7 +381,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
         const errorText = await res.text();
         // Check for Rate Limit specifically
         if (errorText.includes('(#80004)')) {
-            return { error: '(#80004) There have been too many calls to this ad-account.' };
+            return { error: '(#80004) There have been too many calls to this ad-account.', accountStatus };
         }
         console.error('Facebook API Error (Raw):', errorText);
         try {
@@ -375,6 +402,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     return { 
         data: data.data || [],
         adAccountId: adAccountId,
+        accountStatus,
         debug: {
             source: 'live_graph_api',
             api_version: 'v21.0'

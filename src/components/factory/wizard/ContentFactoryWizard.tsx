@@ -1,6 +1,6 @@
 
 import * as React from 'react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Link as LinkIcon,
@@ -80,6 +80,12 @@ const INITIAL_STATE: WizardState = {
 export const ContentFactoryWizard = () => {
     const [state, setState] = useState<WizardState>(INITIAL_STATE);
 
+    // Ref to always hold latest description — avoids stale closures in setTimeout
+    const descriptionRef = useRef(state.description);
+    useEffect(() => {
+        descriptionRef.current = state.description;
+    }, [state.description]);
+
     const updateState = (updates: Partial<WizardState>) => {
         setState(prev => ({ ...prev, ...updates }));
     };
@@ -87,31 +93,28 @@ export const ContentFactoryWizard = () => {
     const nextStep = () => updateState({ step: state.step + 1 });
     const prevStep = () => updateState({ step: state.step - 1 });
 
-    // Magic Prompt Logic
+    // Magic Prompt Logic — reads description from ref to guarantee freshness
     const enhancePrompt = () => {
-        const currentDescription = state.description;
-        if (!currentDescription) {
-            console.log("[DEBUG]: No description to enhance");
-            return;
-        }
+        const currentDescription = descriptionRef.current?.trim();
+        if (!currentDescription) return;
 
-        console.log("[DEBUG]: Enhancing prompt for:", currentDescription);
-        updateState({ isEnhancing: true });
+        setState(prev => ({ ...prev, isEnhancing: true }));
 
-        // Simulate AI delay
         setTimeout(() => {
             const input = currentDescription.toLowerCase();
-            let enhanced = currentDescription;
+            let enhanced: string;
 
-            // Simple "Magic" transformation
-            if (input.includes('зубы') || input.includes('гигиена')) {
+            if (input.includes('зубы') || input.includes('гигиена') || input.includes('стоматолог') || input.includes('чистк')) {
                 enhanced = "Создай экспертную карусель из 7 слайдов о важности профессиональной гигиены зубов раз в полгода, используя тональность заботливого врача и факты о предотвращении кариеса. Включи слайд с 'до/после' описанием и четкий призыв к действию.";
-            } else if (input.length < 30) {
+            } else if (input.includes('продаж') || input.includes('скидк') || input.includes('акци')) {
+                enhanced = `Разработай продающий контент на тему "${currentDescription}". Структура: боль аудитории → решение → социальное доказательство → ограниченное предложение → CTA. Тон: уверенный, профессиональный с элементами срочности.`;
+            } else if (input.includes('отзыв') || input.includes('кейс') || input.includes('результат')) {
+                enhanced = `Создай убедительный кейс/отзыв на тему "${currentDescription}". Формат: ситуация до → процесс работы → результат после → цифры и факты. Используй сторителлинг и эмоциональные триггеры доверия.`;
+            } else {
                 enhanced = `Разработай глубокую контент-стратегию на тему "${currentDescription}". Цель: максимизировать охват и доверие аудитории. Тон: экспертный, вдохновляющий. Добавь виральные крючки и структурированные блоки преимуществ.`;
             }
 
-            console.log("[DEBUG]: Enhanced prompt to:", enhanced);
-            updateState({ description: enhanced, isEnhancing: false });
+            setState(prev => ({ ...prev, description: enhanced, isEnhancing: false }));
             toast.success("Промпт превращен в экспертное ТЗ!", {
                 icon: <Sparkles className="w-4 h-4 text-cyan-400" />
             });
@@ -135,7 +138,7 @@ export const ContentFactoryWizard = () => {
             timestamp: new Date().toISOString()
         };
 
-        console.log('🚀 [LAUNCH]: ТРАНСЛЯЦИЯ В ПРОИЗВОДСТВО...', payload);
+        console.log('🚀 [LAUNCH]: ПЕРЕДАЧА В РАБОТУ...', payload);
 
         // Simulation of Webhook call
         setTimeout(() => {
@@ -148,14 +151,14 @@ export const ContentFactoryWizard = () => {
         <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-6xl mx-auto px-4 animate-in fade-in zoom-in duration-500">
             <div className="text-center mb-16 space-y-4">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold uppercase tracking-widest mb-4">
-                    <Cpu className="w-3 h-3" />
-                    System.Init()
+                    <Sparkles className="w-3 h-3" />
+                    Готов к работе
                 </div>
                 <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2 drop-shadow-[0_0_20px_rgba(34,211,238,0.3)]">
                     Источник <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Контента</span>
                 </h1>
                 <p className="text-lg text-white/50 font-light max-w-md mx-auto">
-                    Выберите базис, на котором нейросеть выстроит ваш виральный проект.
+                    Выберите, с чего начать создание вашего контента.
                 </p>
             </div>
 
@@ -428,7 +431,7 @@ export const ContentFactoryWizard = () => {
                                 {state.isGenerating ? (
                                     <>
                                         <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                        <span>[MARK]: СОБИРАЮ СВЯЗИ...</span>
+                                        <span>[MARK]: ГОТОВЛЮ КОНТЕНТ...</span>
                                     </>
                                 ) : (
                                     <>
@@ -474,11 +477,11 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
     const [logs, setLogs] = useState<string[]>([]);
 
     const steps = [
-        { label: "Neural Init", icon: <Cpu />, detail: "Подключение к вычислительному ядру..." },
-        { label: "semantic Scan", icon: <Dna />, detail: "Анализ семантических связей промпта..." },
-        { label: "Script engine", icon: <Terminal />, detail: "Генерация сценарной структуры..." },
-        { label: "Visual Synthesis", icon: <ImageIcon />, detail: "Синтез визуальных образов и макетов..." },
-        { label: "Final assembly", icon: <CheckCircle2 />, detail: "Сборка финальных слоев контента..." }
+        { label: "Запуск", icon: <Cpu />, detail: "Подключение к нейросети..." },
+        { label: "Анализ", icon: <DnaIcon />, detail: "Обработка вашего запроса..." },
+        { label: "Сценарий", icon: <Terminal />, detail: "Генерация структуры..." },
+        { label: "Визуал", icon: <ImageIcon />, detail: "Создание изображений и макетов..." },
+        { label: "Сборка", icon: <CheckCircle2 />, detail: "Финальная упаковка контента..." }
     ];
 
     useEffect(() => {
@@ -486,10 +489,10 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
         const runNextStep = (index: number) => {
             if (index < steps.length) {
                 setCurrentStep(index);
-                setLogs(prev => [...prev, `[PROCESS]: ${steps[index].label.toUpperCase()} COMPLETED`]);
+                setLogs(prev => [...prev, `[ПРОЦЕСС]: ${steps[index].label.toUpperCase()} ЗАВЕРШЕНО`]);
                 timer = setTimeout(() => runNextStep(index + 1), 2000 + Math.random() * 1500);
             } else {
-                setLogs(prev => [...prev, "[SYSTEM]: ПРОИЗВОДСТВО ЗАВЕРШЕНО. КОНТЕНТ ГОТОВ."]);
+                setLogs(prev => [...prev, "[СИСТЕМА]: ГЕНЕРАЦИЯ ЗАВЕРШЕНА. КОНТЕНТ ГОТОВ."]);
                 toast.success("Контент успешно сгенерирован!", {
                     description: "Вы можете найти его в ленте публикаций",
                     icon: <Rocket className="w-5 h-5 text-emerald-400" />
@@ -506,10 +509,10 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
             <div className="text-center mb-16">
                 <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-[0.3em] mb-6">
                     <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                    ЦЕХ ПРОИЗВОДСТВА
+                    СОЗДАНИЕ КОНТЕНТА
                 </div>
-                <h2 className="text-5xl font-black text-white tracking-tighter mb-4">ИНДУСТРИАЛЬНЫЙ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">СИНТЕЗ</span></h2>
-                <p className="text-white/30 text-lg font-light">Ваша идея проходит через 5 этапов нейронной обработки</p>
+                <h2 className="text-5xl font-black text-white tracking-tighter mb-4">ВАШ КОНТЕНТ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">ГОТОВИТСЯ</span></h2>
+                <p className="text-white/30 text-lg font-light">Алгоритмы MarkVision создают пост по вашим параметрам</p>
             </div>
 
             <div className="grid grid-cols-5 gap-4 w-full mb-20 relative">
@@ -557,10 +560,10 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <Terminal className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Neural Logs</span>
+                        <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Логи процесса</span>
                     </div>
                     <div className="px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-mono">
-                        {Math.round((currentStep + 1 / steps.length) * 100)}% LOAD
+                        {Math.round((currentStep + 1 / steps.length) * 100)}% ГОТОВО
                     </div>
                 </div>
 

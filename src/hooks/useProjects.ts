@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
 import { logError } from '@/lib/validation';
@@ -8,14 +8,6 @@ const LOCAL_STORAGE_KEY = 'activeProjectId';
 
 // NOTE: Super admin status is now determined from the database user_roles table
 // No more hardcoded UIDs for security.
-
-// HARDCODED fallback project for admins - ALWAYS available
-const ADMIN_FALLBACK_PROJECT = {
-  id: '11111111-1111-1111-1111-111111111111',
-  name: 'MARKVISION ГЛОБАЛ (АКТИВЕН)',
-  telegram_chat_id: null,
-  onboarding_status: 'active',
-};
 
 interface Project {
   id: string;
@@ -27,12 +19,9 @@ interface Project {
 export const useProjects = () => {
   const { user, isAdmin, isSuperAdmin } = useAuth();
 
-  // EMERGENCY BYPASS FOR zapoinov@bk.ru
-  const isZap = user?.email === 'zapoinov@bk.ru';
-
-  // Use isSuperAdmin from auth hook (database-driven) or bypass
-  const isAdminUser = isAdmin || isZap;
-  const isSuperAdminUser = isSuperAdmin || isZap;
+  // Use roles from auth hook (database-driven)
+  const isAdminUser = isAdmin;
+  const isSuperAdminUser = isSuperAdmin;
 
   // For super admin - INITIALIZE with fallback project immediately
   const [projects, setProjects] = useState<Project[]>([]);
@@ -54,16 +43,6 @@ export const useProjects = () => {
     }
   }, [currentProjectId]);
 
-  // CRITICAL: Ensure super admin always has projects
-  useEffect(() => {
-    if (isSuperAdminUser && projects.length === 0) {
-      console.log('🛡️ SUPER ADMIN: Forcing fallback project');
-      setProjects([ADMIN_FALLBACK_PROJECT]);
-      setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
-      setLoading(false);
-    }
-  }, [isSuperAdminUser, projects.length]);
-
   const fetchProjects = useCallback(async () => {
     if (!user) {
       setLoading(false);
@@ -78,43 +57,32 @@ export const useProjects = () => {
     // abortControllerRef.current = new AbortController();
     // const signal = abortControllerRef.current.signal;
 
-    // CRITICAL: Super admin bypass - set fallback immediately
     if (isSuperAdminUser) {
       console.log('👑 SUPER ADMIN: Instant access granted');
-
-      // Still try to fetch from DB in background
       try {
-        const { data: allProjects } = await supabase
+        const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
           .order('created_at', { ascending: false });
-        // .abortSignal(signal);
+        if (allError) throw allError;
 
+        setProjects(allProjects || []);
         if (allProjects && allProjects.length > 0) {
-          // Merge with fallback - ensure fallback is always first
-          const hasAdminProject = allProjects.some(p => p.id === ADMIN_FALLBACK_PROJECT.id);
-          const mergedProjects = hasAdminProject
-            ? allProjects
-            : [ADMIN_FALLBACK_PROJECT, ...allProjects];
-
-          setProjects(mergedProjects);
-          console.log('📋 Super admin projects loaded:', mergedProjects.length);
-        } else {
-          // No projects from DB - use fallback
-          setProjects([ADMIN_FALLBACK_PROJECT]);
+          console.log('📋 Super admin projects loaded:', allProjects.length);
         }
       } catch (e: any) {
         if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
           // Ignore abort errors
           return;
         }
-        console.error('DB fetch failed, using fallback:', e);
-        setProjects([ADMIN_FALLBACK_PROJECT]);
+        console.error('DB fetch failed:', e);
+        toast.error('Ошибка загрузки проектов (super admin)');
+        setProjects([]);
       }
 
-      // Ensure active project is set
-      if (!currentProjectId) {
-        setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
+      // Ensure active project is set if we have any
+      if (!currentProjectId && (projects.length > 0)) {
+        setCurrentProjectId(projects[0].id);
       }
       setLoading(false);
       return;
@@ -155,16 +123,6 @@ export const useProjects = () => {
         }
       }
 
-      // Fallback for admin if no projects
-      if (projectsData.length === 0 && isAdminUser) {
-        projectsData = [{
-          id: FALLBACK_PROJECT_ID,
-          name: 'Святой проект',
-          telegram_chat_id: null,
-          onboarding_status: null,
-        }];
-      }
-
       setProjects(projectsData);
 
       // Auto-select first project
@@ -186,15 +144,10 @@ export const useProjects = () => {
         return;
       }
       console.error('❌ Critical error loading projects:', error);
-
-      if (isSuperAdminUser) {
-        setProjects([ADMIN_FALLBACK_PROJECT]);
-        setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
-      }
     } finally {
       setLoading(false);
     }
-  }, [user, isAdmin, isSuperAdmin, isSuperAdminUser, currentProjectId]);
+  }, [user, isAdminUser, isSuperAdminUser, currentProjectId]);
 
   useEffect(() => {
     fetchProjects();
@@ -203,12 +156,9 @@ export const useProjects = () => {
   // FORCE LOAD function for manual trigger
   const forceLoadProject = useCallback(() => {
     console.log('🔧 FORCE LOAD PROJECT triggered');
-    setProjects([ADMIN_FALLBACK_PROJECT]);
-    setCurrentProjectId(ADMIN_FALLBACK_PROJECT.id);
-    localStorage.setItem(LOCAL_STORAGE_KEY, ADMIN_FALLBACK_PROJECT.id);
-    setLoading(false);
-    toast.success('Проект принудительно загружен');
-  }, []);
+    fetchProjects();
+    toast.success('Обновляю список проектов…');
+  }, [fetchProjects]);
 
   const createProject = async (name: string): Promise<{ id: string; name: string } | null> => {
     if (!user) {
@@ -265,19 +215,18 @@ export const useProjects = () => {
     return true;
   };
 
-  const currentProject = projects.find(p => p.id === currentProjectId) ||
-    (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT : null);
+  const currentProject = projects.find(p => p.id === currentProjectId) || null;
 
   if (currentProject && import.meta.env.DEV) {
     console.log('🎯 CURRENT PROJECT:', currentProject.name, '| ID:', currentProject.id);
   }
 
   return {
-    projects: projects.length > 0 ? projects : (isSuperAdminUser ? [ADMIN_FALLBACK_PROJECT] : []),
-    currentProjectId: currentProjectId || (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT.id : null),
+    projects,
+    currentProjectId,
     setCurrentProjectId,
-    currentProject: currentProject || (isSuperAdminUser ? ADMIN_FALLBACK_PROJECT : null),
-    loading: isSuperAdminUser ? false : loading, // NEVER loading for super admin
+    currentProject,
+    loading,
     createProject,
     deleteProject,
     refetch: fetchProjects,

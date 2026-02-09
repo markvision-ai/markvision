@@ -87,16 +87,10 @@ interface AppSidebarProps {
   onProjectChange?: (projectId: string) => void;
   onCreateProject?: (name: string) => Promise<{ id: string; name: string } | null>;
   onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
-  userId?: string;
+  isSuperAdmin?: boolean;
   systemHasErrors?: boolean;
   onForceLoadProject?: () => void; // NEW: Force load for super admin
 }
-
-// Super admin UIDs - these users should be in user_roles table with super_admin role
-const SUPER_ADMIN_UIDS = [
-  'd94043b0-1c76-4017-84de-df0dbf00a2c9',
-  '71d54527-0eb1-461b-a51a-a49905c0c92e'
-];
 
 export const AppSidebar = ({
   activeTab,
@@ -108,11 +102,10 @@ export const AppSidebar = ({
   onProjectChange,
   onCreateProject,
   onDeleteProject,
-  userId,
+  isSuperAdmin = false,
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
-  const isSuperAdmin = userId ? SUPER_ADMIN_UIDS.includes(userId) : false;
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);

@@ -58,8 +58,6 @@ const ChannelIcon = ({ channel, className }: { channel: string, className?: stri
   }
 };
 
-const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
 interface PostStats {
   id: string;
   post_id: string;
@@ -81,7 +79,11 @@ interface PostStats {
   revenue: number;
 }
 
-export const PublicationsPage = () => {
+interface PublicationsPageProps {
+  projectId: string;
+}
+
+export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<PostStats[]>([]);
   const [dateRange, setDateRange] = useState<{ from: Date; to: Date }>({
@@ -105,7 +107,7 @@ export const PublicationsPage = () => {
         const { data: postsData, error: postsError } = await supabase
           .from('instagram_posts_stats')
           .select('*')
-          .eq('project_id', TARGET_PROJECT_ID)
+          .eq('project_id', projectId)
           .order('posted_at', { ascending: false });
 
         if (postsError) throw postsError;
@@ -122,7 +124,7 @@ export const PublicationsPage = () => {
           const { data, error: leadsError } = await supabase
             .from('leads')
             .select('id, post_id, status, deal_amount, revenue')
-            .eq('project_id', TARGET_PROJECT_ID)
+            .eq('project_id', projectId)
             .in('post_id', postIds);
 
           if (!leadsError && data) {
@@ -179,7 +181,7 @@ export const PublicationsPage = () => {
     };
 
     fetchData();
-  }, []);
+  }, [projectId]);
 
   const filteredPosts = useMemo(() => {
     let filtered = [...posts];
@@ -230,7 +232,7 @@ export const PublicationsPage = () => {
       const { error } = await supabase
         .from('ai_commands')
         .insert({
-          project_id: TARGET_PROJECT_ID,
+          project_id: projectId,
           type: 'promote_post',
           status: 'pending',
           payload: {
@@ -594,4 +596,3 @@ export const PublicationsPage = () => {
     </div >
   );
 };
-

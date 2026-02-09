@@ -10,7 +10,11 @@ import {
   Settings2,
   LayoutDashboard,
   Download,
-  Pencil
+  Pencil,
+  AlertTriangle,
+  XCircle,
+  CreditCard,
+  ShieldAlert
 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
@@ -128,12 +132,49 @@ type SortConfig = {
   direction: 'asc' | 'desc';
 };
 
+interface AccountStatus {
+  account_status: number;
+  disable_reason: number;
+  name?: string;
+  currency?: string;
+  balance?: string;
+  amount_spent?: string;
+  funding_source?: string | null;
+  funding_type?: number | null;
+}
+
+// Facebook account_status codes
+const ACCOUNT_STATUS_MAP: Record<number, { label: string; severity: 'ok' | 'warning' | 'error' }> = {
+  1: { label: 'Активен', severity: 'ok' },
+  2: { label: 'Отключён', severity: 'error' },
+  3: { label: 'Проблема с оплатой', severity: 'error' },
+  7: { label: 'На проверке (риски)', severity: 'warning' },
+  8: { label: 'Ожидание расчёта', severity: 'warning' },
+  9: { label: 'Льготный период', severity: 'warning' },
+  100: { label: 'Закрытие в процессе', severity: 'error' },
+  101: { label: 'Закрыт', severity: 'error' },
+};
+
+const DISABLE_REASON_MAP: Record<number, string> = {
+  0: '',
+  1: 'Нарушение рекламной политики',
+  2: 'Проверка IP рекламы',
+  3: 'Проблема с оплатой (риск платежа)',
+  4: 'Аккаунт заблокирован',
+  5: 'Проверка AFC рекламы',
+  6: 'Нарушение бизнес-целостности',
+  7: 'Аккаунт закрыт навсегда',
+  8: 'Неиспользуемый реселлерский аккаунт',
+  9: 'Неиспользуемый аккаунт',
+};
+
 export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
   const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
   const { leads } = useLeads(pid);
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
+  const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [toggling, setToggling] = useState<string | null>(null);
@@ -614,6 +655,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       if (data.adAccountId) {
         setAdAccountId(data.adAccountId);
       }
+      if (data.accountStatus) {
+        setAccountStatus(data.accountStatus);
+      }
     } catch (e: any) {
       console.error('Failed to fetch ads hierarchy', e);
       toast.error(`Ошибка загрузки структуры рекламы: ${e.message || 'Неизвестная ошибка'}`);
@@ -1046,10 +1090,27 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             <div>
               <h2 className="text-lg font-bold text-white/90">Active Ads Manager</h2>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_#10b981]" />
-                  Live Sync
-                </span>
+                {accountStatus && accountStatus.account_status !== 1 ? (
+                  <span className={cn(
+                    "flex items-center gap-1.5 px-2 py-0.5 rounded-full border",
+                    accountStatus.account_status === 3
+                      ? "bg-red-500/10 border-red-500/20 text-red-400"
+                      : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                  )}>
+                    <div className={cn(
+                      "w-1.5 h-1.5 rounded-full",
+                      accountStatus.account_status === 3
+                        ? "bg-red-500 shadow-[0_0_5px_#ef4444]"
+                        : "bg-amber-500 shadow-[0_0_5px_#f59e0b]"
+                    )} />
+                    {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_#10b981]" />
+                    Live Sync
+                  </span>
+                )}
                 {adAccountId && (
                   <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-white/60">
                     ID: {adAccountId}
@@ -1126,6 +1187,84 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             </DropdownMenu>
           </div>
         </div>
+
+        {/* Account Status Alert Banner */}
+        {accountStatus && accountStatus.account_status !== 1 && (() => {
+          const statusInfo = ACCOUNT_STATUS_MAP[accountStatus.account_status] || { label: `Неизвестный статус (${accountStatus.account_status})`, severity: 'warning' as const };
+          const disableReason = accountStatus.disable_reason ? DISABLE_REASON_MAP[accountStatus.disable_reason] || '' : '';
+          const isError = statusInfo.severity === 'error';
+
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className={cn(
+                "mx-4 md:mx-5 mt-3 p-4 rounded-xl border backdrop-blur-md flex items-start gap-3",
+                isError
+                  ? "bg-red-500/[0.08] border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
+                  : "bg-amber-500/[0.08] border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+              )}
+            >
+              <div className={cn(
+                "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
+                isError ? "bg-red-500/20" : "bg-amber-500/20"
+              )}>
+                {accountStatus.account_status === 3 ? (
+                  <CreditCard className={cn("w-5 h-5", isError ? "text-red-400" : "text-amber-400")} />
+                ) : accountStatus.account_status === 2 ? (
+                  <XCircle className="w-5 h-5 text-red-400" />
+                ) : accountStatus.account_status >= 100 ? (
+                  <ShieldAlert className="w-5 h-5 text-red-400" />
+                ) : (
+                  <AlertTriangle className={cn("w-5 h-5", isError ? "text-red-400" : "text-amber-400")} />
+                )}
+              </div>
+
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className={cn(
+                    "text-sm font-bold",
+                    isError ? "text-red-400" : "text-amber-400"
+                  )}>
+                    Статус кабинета: {statusInfo.label}
+                  </span>
+                  <span className={cn(
+                    "text-[10px] font-mono px-2 py-0.5 rounded-full",
+                    isError ? "bg-red-500/20 text-red-300" : "bg-amber-500/20 text-amber-300"
+                  )}>
+                    code {accountStatus.account_status}
+                  </span>
+                </div>
+
+                {disableReason && (
+                  <p className="text-sm text-white/60 mt-1">
+                    Причина: <span className="text-white/80 font-medium">{disableReason}</span>
+                  </p>
+                )}
+
+                {accountStatus.account_status === 3 && (
+                  <p className="text-sm text-white/50 mt-1.5">
+                    Рекламные кампании приостановлены из-за ошибки оплаты. Проверьте способ оплаты в{' '}
+                    <a
+                      href="https://business.facebook.com/settings/payment-methods"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                    >
+                      настройках платежей Facebook
+                    </a>.
+                  </p>
+                )}
+
+                {accountStatus.funding_source && (
+                  <p className="text-xs text-white/30 mt-2 font-mono">
+                    Способ оплаты: {accountStatus.funding_source}
+                  </p>
+                )}
+              </div>
+            </motion.div>
+          );
+        })()}
 
         <div className="overflow-x-auto">
           <Table>

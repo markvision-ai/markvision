@@ -38,7 +38,6 @@ import { PremiumHero } from './dashboard/PremiumHero';
 import { QuickActions } from './dashboard/QuickActions';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
-import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
@@ -138,7 +137,7 @@ export const AnalyticsPlatform = () => {
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { profile, user } = useAuth();
+  const { profile, user, isSuperAdmin } = useAuth();
 
   // Обновляем URL при смене вкладки
   const handleTabChange = useCallback((tab: string) => {
@@ -167,9 +166,7 @@ export const AnalyticsPlatform = () => {
   const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
   const systemHasErrors = false; // System health check disabled
 
-  // CRITICAL: Super admin UUID - bypass all loading states
-  const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
-  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
+  const isSuperAdminUser = isSuperAdmin;
 
   // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
@@ -568,7 +565,7 @@ export const AnalyticsPlatform = () => {
         </DraggableDashboard>
       )}
 
-      {activeTab === 'dashboard' && (
+      {activeTab === 'dashboard' && currentProjectId && (
         <FloatingChat context={{
           spend: totals.spend,
           impressions: totals.impressions,
@@ -578,7 +575,7 @@ export const AnalyticsPlatform = () => {
           sales: totals.sales,
           revenue: totals.revenue,
           romi: romiPercent,
-          projectId: currentProjectId || FALLBACK_PROJECT_ID
+          projectId: currentProjectId
         }} />
       )}
 
@@ -606,7 +603,7 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'publications' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <PublicationsPage />
+          <PublicationsPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -696,9 +693,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'scoring' && (
+      {activeTab === 'scoring' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <LeadScoring projectId={currentProjectId || FALLBACK_PROJECT_ID} />
+          <LeadScoring projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -734,9 +731,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'automation' && (
+      {activeTab === 'automation' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <AutomationPage projectId={currentProjectId || FALLBACK_PROJECT_ID} />
+          <AutomationPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -789,7 +786,7 @@ export const AnalyticsPlatform = () => {
             onProjectChange={setCurrentProjectId}
             onCreateProject={createProject}
             onDeleteProject={deleteProject}
-            userId={user?.id}
+            isSuperAdmin={isSuperAdminUser}
             systemHasErrors={systemHasErrors}
             onForceLoadProject={forceLoadProject}
           />

@@ -49,14 +49,14 @@ interface AnalysisResult {
 }
 
 const SYSTEM_LOGS = [
-  "[SYSTEM]: Инициализация диагностического порта...",
-  "[SYSTEM]: Подключение к нейронному шлюзу n8n...",
-  "[SYSTEM]: Декодирую виральный код ролика...",
-  "[SYSTEM]: Транскрибирую аудио-дорожку...",
-  "[SYSTEM]: Анализирую эмоциональные пики...",
-  "[SYSTEM]: Извлечение хуков и CTA...",
-  "[SYSTEM]: Генерация стратегий адаптации...",
-  "[SYSTEM]: Деконструкция завершена успешно."
+  "[SYSTEM]: Инициализация...",
+  "[SYSTEM]: Подключение к сервису...",
+  "[SYSTEM]: Анализирую ролик...",
+  "[SYSTEM]: Транскрибирую аудио...",
+  "[SYSTEM]: Выделяю главное...",
+  "[SYSTEM]: Извлекаю хуки и CTA...",
+  "[SYSTEM]: Генерирую идеи...",
+  "[SYSTEM]: Анализ завершен успешно."
 ];
 
 export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
@@ -140,7 +140,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
       };
 
       setResult(mockData);
-      toast.success('Декодирование завершено!');
+      toast.success('Анализ завершен!');
     } catch (error) {
       console.error('Decoding failed:', error);
       // Check if logs finished, if not, wait a bit
@@ -174,16 +174,16 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
             animate={{ opacity: 1, scale: 1 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/[0.03] border border-white/10 backdrop-blur-md"
           >
-            <Binary className="w-4 h-4 text-cyan-400" />
-            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">Content Decoder v5.0</span>
+            <Sparkles className="w-4 h-4 text-cyan-400" />
+            <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-cyan-400">Анализ контента</span>
           </motion.div>
 
           <h1 className="text-4xl md:text-6xl font-black tracking-tight text-white drop-shadow-2xl">
-            ДЕКОДЕР <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">ВИРАЛЬНОСТИ</span>
+            АНАЛИЗ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">КОНТЕНТА</span>
           </h1>
           <p className="text-sm text-muted-foreground max-w-xl mx-auto font-light leading-relaxed">
-            Вставьте ссылку на любой успешный ролик. Наш AI разложит его на атомы:
-            от нейронных триггеров до полного сценария адаптации.
+            Вставьте ссылку на любой успешный ролик. Наш AI разложит его на детали:
+            от главных триггеров до сценария адаптации под ваш продукт.
           </p>
         </div>
 

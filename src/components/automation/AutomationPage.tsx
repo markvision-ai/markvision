@@ -23,7 +23,6 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
-import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAutomation, type AutomationFlowRow } from '@/hooks/useAutomation';
 
@@ -80,7 +79,7 @@ interface AutomationPageProps {
 
 export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const effectiveProjectId = projectId ?? FALLBACK_PROJECT_ID;
+  const effectiveProjectId = projectId ?? null;
   const { flows, loading, refetch } = useAutomation(effectiveProjectId);
   const [refreshing, setRefreshing] = useState(false);
   const [n8nWebhookUrl, setN8nWebhookUrl] = useState('');
@@ -93,6 +92,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   // которых нет в пересозданной таблице. Обновление — по кнопке «Обновить» и после действий.
 
   useEffect(() => {
+    if (!effectiveProjectId) {
+      setN8nWebhookUrl(N8N_DISPATCHER_URL);
+      return;
+    }
     const controller = new AbortController();
     const load = async () => {
       try {
@@ -115,6 +118,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   }, [effectiveProjectId]);
 
   const handleSaveWebhook = useCallback(async () => {
+    if (!effectiveProjectId) {
+      toast.error('Сначала выберите проект');
+      return;
+    }
     setSavingWebhook(true);
     try {
       const { error } = await supabase.from('projects').update({ n8n_webhook_url: n8nWebhookUrl }).eq('id', effectiveProjectId);
@@ -129,6 +136,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
   }, [effectiveProjectId, n8nWebhookUrl, refetch]);
 
   const handleRefresh = useCallback(async () => {
+    if (!effectiveProjectId) {
+      toast.error('Сначала выберите проект');
+      return;
+    }
     // Cancel previous request
     if (refreshAbortControllerRef.current) {
       refreshAbortControllerRef.current.abort();
