@@ -7,8 +7,12 @@ import compression from "vite-plugin-compression";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
+  const nodeMajor = Number(process.versions.node.split(".")[0] || "0");
   const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
   const basePath = isVercel ? "/" : mode === "production" ? "/markvision/" : "/";
+  // Workbox/build + Node 24 can crash during SW generation due to terser finishing early.
+  // Keep production mode on LTS, but avoid the problematic codepath on Node 23+.
+  const workboxMode = nodeMajor >= 23 ? "development" : "production";
   return {
   base: basePath,
   server: {
@@ -30,9 +34,9 @@ export default defineConfig(({ mode }) => {
     react(),
     mode === "development" && componentTagger(),
     compression(),
-    VitePWA({
-      registerType: "autoUpdate",
-      includeAssets: ["favicon.ico", "robots.txt", "pwa-icons/*.png"],
+	    VitePWA({
+	      registerType: "autoUpdate",
+	      includeAssets: ["favicon.ico", "robots.txt", "pwa-icons/*.png"],
       manifest: {
         name: "MarkVision AI",
         short_name: "MarkVision",
@@ -71,12 +75,13 @@ export default defineConfig(({ mode }) => {
             label: "MarkVision AI Mobile",
           },
         ],
-      },
-      workbox: {
-        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
-        cleanupOutdatedCaches: true,
-        clientsClaim: true,
+	      },
+	      workbox: {
+	        mode: workboxMode,
+	        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+	        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
+	        cleanupOutdatedCaches: true,
+	        clientsClaim: true,
         skipWaiting: true,
         runtimeCaching: [
           {
