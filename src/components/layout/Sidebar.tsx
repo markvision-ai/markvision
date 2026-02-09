@@ -156,11 +156,7 @@ export const Sidebar = ({
     );
     return activeGroup ? [activeGroup.id] : ['dashboard-group'];
   });
-  const { isAdmin, user } = useAuth();
-
-  // CRITICAL: Get current project name - never show "Неактивен" for super admin
-  const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
-  const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
+  const { isAdmin, isSuperAdmin, user } = useAuth();
 
   const currentProjectData = projects.find(p => p.id === currentProject);
   const displayProjectName = currentProjectData?.name ||

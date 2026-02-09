@@ -18,6 +18,7 @@ vi.mock('lucide-react', () => ({
   Zap: () => <div data-testid="zap-icon" />,
   Loader2: () => <div data-testid="loader-icon" />,
   AlertCircle: () => <div data-testid="alert-icon" />,
+  WifiOff: () => <div data-testid="wifi-icon" />,
 }));
 
 describe('AIStatusIndicator', () => {
@@ -29,23 +30,23 @@ describe('AIStatusIndicator', () => {
   });
 
   it('renders "AI Active" when idle (no active commands)', async () => {
-    // Mock no active commands
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        in: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue({ data: [], error: null }),
-        }),
-        order: vi.fn().mockReturnValue({
-            limit: vi.fn().mockReturnValue({
-                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null })
-            })
-        })
-      }),
+    const activeQ = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+    };
+    const lastQ = {
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+    };
+
+    (supabase.from as any).mockReturnValue({
+      select: vi.fn((fields: string) => (fields === 'id' ? activeQ : lastQ)),
     });
 
-    (supabase.from as any).mockReturnValue({ select: selectMock });
-
-    render(<AIStatusIndicator />);
+    render(<AIStatusIndicator projectId="test-project" />);
 
     await waitFor(() => {
       expect(screen.getByText('AI Active')).toBeInTheDocument();
@@ -54,21 +55,17 @@ describe('AIStatusIndicator', () => {
   });
 
   it('renders "AI Generating..." when there are pending commands', async () => {
-    // Mock active commands
-    const selectMock = vi.fn().mockReturnValue({
-      eq: vi.fn().mockReturnValue({
-        in: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue({ 
-            data: [{ id: 'cmd-1' }], 
-            error: null 
-          }),
-        }),
-      }),
+    const activeQ = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [{ id: 'cmd-1' }], error: null }),
+    };
+
+    (supabase.from as any).mockReturnValue({
+      select: vi.fn(() => activeQ),
     });
 
-    (supabase.from as any).mockReturnValue({ select: selectMock });
-
-    render(<AIStatusIndicator />);
+    render(<AIStatusIndicator projectId="test-project" />);
 
     await waitFor(() => {
       expect(screen.getByText('AI Generating...')).toBeInTheDocument();
@@ -77,57 +74,26 @@ describe('AIStatusIndicator', () => {
   });
 
   it('renders "AI Error" when last command failed', async () => {
-    // Mock no active commands
-    const activeSelectMock = vi.fn().mockResolvedValue({ data: [], error: null });
-    
     // Mock last command failed
     const lastCommandMock = { status: 'failed', error: 'Test error' };
-    
-    const selectMock = vi.fn();
-    
-    // Setup chain for active commands check
-    selectMock.mockReturnValueOnce({
-        eq: vi.fn().mockReturnValue({
-            in: vi.fn().mockReturnValue({
-                limit: vi.fn().mockResolvedValue({ data: [], error: null })
-            })
-        })
+
+    const activeQ = {
+      eq: vi.fn().mockReturnThis(),
+      in: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockResolvedValue({ data: [], error: null }),
+    };
+    const lastQ = {
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      maybeSingle: vi.fn().mockResolvedValue({ data: lastCommandMock, error: null }),
+    };
+
+    (supabase.from as any).mockReturnValue({
+      select: vi.fn((fields: string) => (fields === 'id' ? activeQ : lastQ)),
     });
 
-    // Setup chain for last command check (which is called if active is empty)
-    // Note: AIStatusIndicator calls from('ai_commands') twice sequentially.
-    // We need to mock the implementation of 'from' to handle calls.
-    
-    // Let's refine the mock to handle the specific chains based on logic
-    (supabase.from as any).mockImplementation(() => ({
-        select: vi.fn().mockImplementation((fields) => {
-            if (fields === 'id') {
-                // Active commands check
-                return {
-                    eq: vi.fn().mockReturnValue({
-                        in: vi.fn().mockReturnValue({
-                            limit: vi.fn().mockResolvedValue({ data: [], error: null })
-                        })
-                    })
-                };
-            }
-            if (fields === 'status, error') {
-                // Last command check
-                return {
-                    eq: vi.fn().mockReturnValue({
-                        order: vi.fn().mockReturnValue({
-                            limit: vi.fn().mockReturnValue({
-                                maybeSingle: vi.fn().mockResolvedValue({ data: lastCommandMock, error: null })
-                            })
-                        })
-                    })
-                };
-            }
-            return { eq: vi.fn() };
-        })
-    }));
-
-    render(<AIStatusIndicator />);
+    render(<AIStatusIndicator projectId="test-project" />);
 
     await waitFor(() => {
       expect(screen.getByText('AI Error')).toBeInTheDocument();

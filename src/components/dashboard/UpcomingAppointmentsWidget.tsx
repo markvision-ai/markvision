@@ -44,10 +44,14 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const navigate = useNavigate();
 
-  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
   useEffect(() => {
     const fetchUpcoming = async () => {
+      if (!projectId) {
+        setAppointments([]);
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
         const now = new Date();
@@ -57,7 +61,7 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
         const { data, error } = await supabase
           .from('leads')
           .select('id, name, phone, appointment_date, status, extra_data, lead_score')
-          .eq('project_id', effectiveProjectId)
+          .eq('project_id', projectId)
           .not('appointment_date', 'is', null)
           .gte('appointment_date', now.toISOString())
           .lte('appointment_date', weekEnd.toISOString())
@@ -90,7 +94,7 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
     };
 
     fetchUpcoming();
-  }, [effectiveProjectId]);
+  }, [projectId]);
 
   const getScoreTier = (appointment: AppointmentEvent) => {
     const budgetTier = appointment.budget_tier?.toUpperCase?.();

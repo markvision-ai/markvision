@@ -2,8 +2,6 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 
-const BRIDGE_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
@@ -65,9 +63,17 @@ export const useAIChat = () => {
     }]);
 
     try {
+      const projectId = context?.projectId;
+      if (!projectId) {
+        toast.error('Сначала выберите проект');
+        setIsLoading(false);
+        setMessages(prev => prev.map(m => m.id === assistantId ? { ...m, content: 'Выберите проект и повторите запрос.', isStreaming: false } : m));
+        return null;
+      }
+
       // 3.5 Save user message to history
       const { error: chatError } = await supabase.from('ai_chat_messages').insert({
-        project_id: BRIDGE_PROJECT_ID,
+        project_id: projectId,
         role: 'user',
         content: message,
         type: 'text'
@@ -78,7 +84,7 @@ export const useAIChat = () => {
       }
 
       const payload = {
-        project_id: BRIDGE_PROJECT_ID,
+        project_id: projectId,
         prompt: message,
         status: 'pending'
       };

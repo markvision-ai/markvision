@@ -29,7 +29,7 @@ The hook supports three period modes:
 3. **Custom**: User-selected range.
 
 ## Project ID
-Defaults to `64c94e87-630c-470e-8ab1-8f7c8c835efa` if not provided.
+If `projectId` is not provided, the hook does not make any requests.
 
 ## Logic Details
 - **Aggregation**: Metrics are summed up for the selected period.

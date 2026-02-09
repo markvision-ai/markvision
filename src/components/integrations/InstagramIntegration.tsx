@@ -30,12 +30,10 @@ export const InstagramIntegration = ({ projectId }: InstagramIntegrationProps) =
   const fetchFacebookToken = useCallback(async () => {
     setLoading(true);
     try {
-      const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-      
       const { data } = await supabase
         .from('ad_accounts')
         .select('access_token, status')
-        .eq('project_id', targetProjectId)
+        .eq('project_id', projectId)
         .eq('platform', 'facebook')
         .eq('status', 'active')
         .single();

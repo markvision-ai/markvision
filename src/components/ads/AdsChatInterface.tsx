@@ -275,18 +275,20 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
   };
 
   const handleExecuteAction = async (actionId: string, label: string) => {
+    if (!projectId) {
+      toast.error('Выберите проект');
+      return;
+    }
     await saveMessage('user', `[Действие] ${label}`);
     setIsLoading(true);
     setLoadingText('Выполняю действие...');
-
-    const activeProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
 
     try {
        // Create Bridge Task for Action
       const { data: task, error } = await (supabase as any)
         .from('ai_bridge_tasks')
         .insert({
-          project_id: activeProjectId,
+          project_id: projectId,
           prompt: `[ACTION] ${actionId} ${label}`, // Encoding action in prompt
           status: 'pending'
         })
@@ -373,6 +375,10 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
+    if (!projectId) {
+      toast.error('Выберите проект');
+      return;
+    }
 
     const text = inputValue;
     setInputValue('');
@@ -382,14 +388,12 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
     // Save user message immediately
     await saveMessage('user', text);
 
-    const activeProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
     try {
       // Create Bridge Task
       const { data: task, error } = await (supabase as any)
         .from('ai_bridge_tasks')
         .insert({
-          project_id: activeProjectId,
+          project_id: projectId,
           prompt: text,
           status: 'pending'
         })

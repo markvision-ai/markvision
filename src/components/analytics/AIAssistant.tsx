@@ -172,11 +172,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
     }
   }, [hideDashboard]);
 
-  // Default context if missing
-  const safeContext = {
-    ...context,
-    projectId: context?.projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa'
-  };
+  const safeContext = context;
 
   const data = {
     spend: context?.spend || 0,

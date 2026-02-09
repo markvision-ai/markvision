@@ -4,15 +4,13 @@ import { Zap, Loader2, AlertCircle, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
-export const AIStatusIndicator = () => {
+export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) => {
   const { user } = useAuth();
   const [status, setStatus] = useState<'idle' | 'working' | 'error' | 'offline'>('idle');
   const [lastError, setLastError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user) {
+    if (!user || !projectId) {
       setStatus('idle');
       return;
     }
@@ -26,6 +24,7 @@ export const AIStatusIndicator = () => {
           .from('ai_commands')
           .select('id')
           .eq('user_id', user.id)
+          .eq('project_id', projectId)
           .in('status', ['pending', 'in_progress'])
           .limit(1);
 
@@ -40,6 +39,7 @@ export const AIStatusIndicator = () => {
           .from('ai_commands')
           .select('status, error')
           .eq('user_id', user.id)
+          .eq('project_id', projectId)
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
@@ -73,7 +73,7 @@ export const AIStatusIndicator = () => {
               event: '*',
               schema: 'public',
               table: 'ai_commands',
-              filter: `project_id=eq.${TARGET_PROJECT_ID}`
+              filter: `project_id=eq.${projectId}`
             },
             (payload: any) => {
               if (payload.new && payload.new.user_id === user.id) {
@@ -106,7 +106,7 @@ export const AIStatusIndicator = () => {
         void e;
       }
     };
-  }, [user]);
+  }, [user, projectId]);
 
   if (status === 'working') {
     return (

@@ -18,8 +18,6 @@ export interface ContentPlanFactData {
   unit: string;
 }
 
-const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
 export const useFactoryAnalytics = (projectId: string | null) => {
   const [periodType, setPeriodType] = useState<PeriodType>('this_month');
   const [dateRange, setDateRange] = useState<DateRange>({
@@ -37,12 +35,7 @@ export const useFactoryAnalytics = (projectId: string | null) => {
     publications: 0
   });
 
-  // Effective project ID to use
-  // If projectId is provided, use it. If not, fallback to TARGET_PROJECT_ID only if appropriate.
-  // Given the user instruction "Ensure everything filters by project_id = ...", 
-  // we default to that if no prop is passed, or enforce it if strictly required.
-  // Here we'll prefer the prop but fallback to the target ID if prop is null/undefined.
-  const effectiveProjectId = projectId || TARGET_PROJECT_ID;
+  const effectiveProjectId = projectId;
 
   // Initial plan data
   const [planData, setPlanData] = useState<ContentPlanFactData[]>([
@@ -74,7 +67,10 @@ export const useFactoryAnalytics = (projectId: string | null) => {
   }, [periodType]);
 
   useEffect(() => {
-    if (!effectiveProjectId || !dateRange.from || !dateRange.to) return;
+    if (!effectiveProjectId || !dateRange.from || !dateRange.to) {
+      setLoading(false);
+      return;
+    }
 
     const controller = new AbortController();
     const signal = controller.signal;

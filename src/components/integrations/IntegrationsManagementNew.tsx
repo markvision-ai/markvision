@@ -78,7 +78,7 @@ interface ConnectedAccount {
   created_at: string;
 }
 
-const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
+const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) => {
   const [loading, setLoading] = useState(true);
   const [connectedAccount, setConnectedAccount] = useState<ConnectedAccount | null>(null);
   const [selectedPageName, setSelectedPageName] = useState<string>('');
@@ -102,10 +102,15 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
   // Automation Modal
   const [isAutomationOpen, setIsAutomationOpen] = useState(false);
 
-  const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const currentProjectId = projectId;
 
   // Fetch connected account from database
   const fetchConnectedAccount = useCallback(async () => {
+    if (!currentProjectId) {
+      setConnectedAccount(null);
+      setLoading(false);
+      return;
+    }
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -194,6 +199,10 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
 
   // Fetch available resources for modal
   const fetchAvailableResources = useCallback(async (type: 'facebook' | 'instagram') => {
+    if (!currentProjectId) {
+      toast.error('Выберите проект');
+      return;
+    }
     if (!connectedAccount?.access_token) {
       toast.error('Токен доступа не найден');
       return;
@@ -278,7 +287,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     } finally {
       setModalLoading(false);
     }
-  }, [connectedAccount]);
+  }, [connectedAccount, currentProjectId]);
 
   useEffect(() => {
     fetchConnectedAccount();
@@ -359,6 +368,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId?: string }) => {
     toast.success('Данные обновлены');
     setLoading(false);
   };
+
+  if (!currentProjectId) {
+    return (
+      <div className="flex items-center justify-center p-16 text-muted-foreground">
+        Выберите проект, чтобы настроить подключение Meta.
+      </div>
+    );
+  }
 
   if (loading) {
     return (

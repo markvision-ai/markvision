@@ -130,7 +130,7 @@ const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']
 const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
-  const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const pid = projectId ?? null;
   const [activeTab, setActiveTab] = useState<'sales-roi' | 'split-tests' | 'sources'>('sales-roi');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
@@ -175,6 +175,12 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
   useEffect(() => {
     const loadData = async () => {
+      if (!pid) {
+        setLeads([]);
+        setDailyData([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       await Promise.all([fetchLeads(), fetchDailyData()]);
       setLoading(false);

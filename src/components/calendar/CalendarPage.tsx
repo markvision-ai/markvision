@@ -51,17 +51,20 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
   const [leadDetails, setLeadDetails] = useState<Lead | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 
-  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
   // Fetch appointments from leads table
   useEffect(() => {
     const fetchAppointments = async () => {
+      if (!projectId) {
+        setEvents([]);
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const { data, error } = await supabase
           .from('leads')
           .select('id, name, phone, appointment_date, deal_amount, status, extra_data, lead_score')
-          .eq('project_id', effectiveProjectId)
+          .eq('project_id', projectId)
           .not('appointment_date', 'is', null)
           .order('appointment_date', { ascending: true });
 
@@ -87,7 +90,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
         const { data: extraDateLeads, error: extraError } = await supabase
           .from('leads')
           .select('id, name, phone, deal_amount, status, extra_data, lead_score')
-          .eq('project_id', effectiveProjectId)
+          .eq('project_id', projectId)
           .is('appointment_date', null);
 
         if (!extraError && extraDateLeads) {
@@ -138,7 +141,7 @@ export const CalendarPage = ({ projectId }: CalendarPageProps) => {
     };
 
     fetchAppointments();
-  }, [effectiveProjectId]);
+  }, [projectId]);
 
   // Get days to display based on view mode
   const displayDays = useMemo(() => {

@@ -384,12 +384,10 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
           console.log('✅ Got access token from Facebook!', accessToken.substring(0, 20) + '...');
           
           // Сохраняем токен в базу
-          const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-          
           supabase
             .from('ad_accounts')
             .upsert({
-              project_id: targetProjectId,
+              project_id: projectId,
               platform: 'facebook',
               external_id: 'facebook_sdk_token',
               access_token: accessToken,

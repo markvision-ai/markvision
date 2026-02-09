@@ -30,9 +30,14 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
   const [loading, setLoading] = useState(true);
   const [statuses, setStatuses] = useState<Record<string, string>>({});
   const [selectedIntegration, setSelectedIntegration] = useState<string | null>(null);
-  const currentProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const currentProjectId = projectId ?? null;
 
   const fetchStatuses = useCallback(async () => {
+    if (!currentProjectId) {
+      setStatuses({});
+      setLoading(false);
+      return;
+    }
     const { data } = await supabase.from('integrations').select('type, status').eq('project_id', currentProjectId);
     if (data) {
       const map = data.reduce((acc: any, curr) => ({ ...acc, [curr.type]: curr.status }), {});
@@ -65,6 +70,7 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
   useEffect(() => {
     fetchStatuses();
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!currentProjectId) return;
       if (session?.provider_token) {
         await supabase.from('integrations').upsert({
           project_id: currentProjectId,
@@ -101,6 +107,14 @@ export const IntegrationsManagement = ({ projectId }: { projectId?: string }) =>
     setStatuses(prev => ({ ...prev, [id]: 'disconnected' }));
     toast.success("Интеграция отключена");
   };
+
+  if (!currentProjectId) {
+    return (
+      <div className="flex items-center justify-center p-16 text-muted-foreground">
+        Выберите проект, чтобы настроить интеграции.
+      </div>
+    );
+  }
 
   if (loading) return <div className="flex justify-center p-20"><Loader2 className="animate-spin text-primary" /></div>;
 

@@ -83,8 +83,7 @@ const datePresets = [
 ];
 
 export const CRMPage = ({ projectId }: CRMPageProps) => {
-  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-  const { leads, loading, refetch } = useLeads(effectiveProjectId);
+  const { leads, loading, refetch } = useLeads(projectId);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabValue>('kanban');
   const [direction, setDirection] = useState(0);
@@ -339,6 +338,14 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
   const handleCloseLead = () => {
     setSelectedLead(null);
   };
+
+  if (!projectId) {
+    return (
+      <div className="flex items-center justify-center p-16 text-muted-foreground">
+        Выберите проект, чтобы открыть CRM.
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 relative min-h-screen">

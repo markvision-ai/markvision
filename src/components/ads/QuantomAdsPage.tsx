@@ -326,7 +326,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               <div className={`w-2 h-2 rounded-full shadow-[0_0_8px_currentColor] ${metaOnline ? 'bg-emerald-500' : metaOnline === false ? 'bg-red-500' : 'bg-white/40'}`} />
               Meta {metaOnline ? 'Online' : metaOnline === false ? 'Offline' : 'Checking'}
             </div>
-            <AIStatusIndicator />
+            <AIStatusIndicator projectId={projectId} />
           </div>
         </div>
 

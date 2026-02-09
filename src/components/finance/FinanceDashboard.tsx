@@ -121,10 +121,8 @@ const getCategoryLabel = (category: string, type: string): string => {
   return categories.find(c => c.value === category)?.label || category;
 };
 
-const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
-
 export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
-  const { user } = useAuth();
+  const { user, isSuperAdmin } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -137,7 +135,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     description: '',
   });
 
-  const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
+  const isSuperAdminUser = isSuperAdmin;
   const { syncing, syncAdSpend } = useAdSpendSync(projectId);
 
   const handleSyncAds = async () => {
@@ -409,7 +407,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
           {[
             { id: 'decomposition', label: 'Декомпозиция', icon: TrendingUp },
             { id: 'dashboard', label: 'P&L Дашборд', icon: BarChart3 },
-            ...(isSuperAdmin ? [{ id: 'agency', label: 'Агентская аналитика', icon: Building2 }] : []),
+            ...(isSuperAdminUser ? [{ id: 'agency', label: 'Агентская аналитика', icon: Building2 }] : []),
             { id: 'platforms', label: 'Площадки', icon: PieChartIcon },
             { id: 'transactions', label: 'Транзакции', icon: List }
           ].map(tab => (
@@ -490,7 +488,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
             </TabsContent>
           )}
 
-          {activeTab === 'agency' && isSuperAdmin && (
+          {activeTab === 'agency' && isSuperAdminUser && (
             <TabsContent value="agency" className="mt-6 focus-visible:outline-none">
               <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
                 <AgencyAnalytics />

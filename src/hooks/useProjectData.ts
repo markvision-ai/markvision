@@ -1,14 +1,11 @@
 // @ts-nocheck
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { supabase, FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
+import { supabase } from '@/integrations/supabase/client';
 import { format, startOfMonth } from 'date-fns';
 import { toast } from 'sonner';
 import { validateFieldValue, logError } from '@/lib/validation';
 import { useAuth } from './useAuth';
 import { usePermissions } from './usePermissions';
-
-// Жёстко закодированный project_id для использования по умолчанию
-const DEFAULT_PROJECT_ID = FALLBACK_PROJECT_ID;
 
 // Время устаревания данных (5 минут) - данные не будут перезапрашиваться чаще
 const STALE_TIME = 5 * 60 * 1000;
@@ -41,8 +38,7 @@ export interface PlanData {
 
 export const useProjectData = (projectId: string | null) => {
   const { isAdmin } = useAuth();
-  // Используем переданный projectId или DEFAULT_PROJECT_ID
-  const effectiveProjectId = projectId || DEFAULT_PROJECT_ID;
+  const effectiveProjectId = projectId;
   
   const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(effectiveProjectId);
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
@@ -76,6 +72,11 @@ export const useProjectData = (projectId: string | null) => {
 
   // Fetch daily data with better caching
   const fetchDailyData = useCallback(async (force = false) => {
+    if (!effectiveProjectId) {
+      setDailyData({});
+      setLoading(false);
+      return;
+    }
     const now = Date.now();
     const isSameProject = lastProjectIdRef.current === effectiveProjectId;
     const isStale = now - lastFetchTimeRef.current > STALE_TIME;
@@ -275,6 +276,11 @@ export const useProjectData = (projectId: string | null) => {
 
   // Fetch ALL plan data
   const fetchPlanData = useCallback(async (force = false) => {
+    if (!effectiveProjectId) {
+      setPlansMap({});
+      setLoading(false);
+      return;
+    }
     console.log('📋 useProjectData | Загрузка ВСЕХ планов из plan_data');
     
     const signal = abortControllerRef.current?.signal;
@@ -332,6 +338,10 @@ export const useProjectData = (projectId: string | null) => {
 
   // Update plan data with optimistic UI and month support
   const updatePlanData = useCallback(async (field: keyof PlanData, value: number, month?: string) => {
+    if (!effectiveProjectId) {
+      toast.error('Сначала выберите проект');
+      return;
+    }
     if (!isAdmin && !canEditPlan) {
       console.log('⚠️ updatePlanData | Пробуем сохранить без явных прав');
     }
@@ -403,6 +413,10 @@ export const useProjectData = (projectId: string | null) => {
 
   // Update daily data with optimistic UI
   const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
+    if (!effectiveProjectId) {
+      toast.error('Сначала выберите проект');
+      return;
+    }
     if (!isAdmin && !canEditDailyData) {
        console.log('⚠️ updateDailyData | Пробуем сохранить без явных прав');
     }
@@ -483,6 +497,14 @@ export const useProjectData = (projectId: string | null) => {
 
   // Оптимизированный useEffect - загрузка только при смене проекта
   useEffect(() => {
+    if (!effectiveProjectId) {
+      setDailyData({});
+      setPlansMap({});
+      setLoading(false);
+      lastProjectIdRef.current = null;
+      lastFetchTimeRef.current = 0;
+      return;
+    }
     let isMounted = true;
     
     const loadData = async () => {

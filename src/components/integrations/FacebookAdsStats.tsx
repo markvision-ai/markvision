@@ -40,12 +40,10 @@ export const FacebookAdsStats = ({ projectId }: FacebookAdsStatsProps) => {
     const signal = abortControllerRef.current.signal;
 
     try {
-      const targetProjectId = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-      
       const { data, error } = await supabase
         .from('ad_accounts')
         .select('access_token')
-        .eq('project_id', targetProjectId)
+        .eq('project_id', projectId)
         .eq('platform', 'facebook')
         .eq('status', 'active')
         .abortSignal(signal)

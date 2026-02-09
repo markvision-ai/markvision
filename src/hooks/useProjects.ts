@@ -70,6 +70,11 @@ export const useProjects = () => {
         if (allProjects && allProjects.length > 0) {
           console.log('📋 Super admin projects loaded:', allProjects.length);
         }
+
+        // Ensure active project is set if we have any
+        if (!currentProjectId && allProjects && allProjects.length > 0) {
+          setCurrentProjectId(allProjects[0].id);
+        }
       } catch (e: any) {
         if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
           // Ignore abort errors
@@ -78,11 +83,6 @@ export const useProjects = () => {
         console.error('DB fetch failed:', e);
         toast.error('Ошибка загрузки проектов (super admin)');
         setProjects([]);
-      }
-
-      // Ensure active project is set if we have any
-      if (!currentProjectId && (projects.length > 0)) {
-        setCurrentProjectId(projects[0].id);
       }
       setLoading(false);
       return;

@@ -54,7 +54,7 @@ const getStatusConfig = (status: string | null) => {
 };
 
 export const VisitsPage = ({ projectId }: VisitsPageProps) => {
-  const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const pid = projectId ?? null;
   const [selectedType, setSelectedType] = useState<string | null>(null);
   
   const { data: visitResults, isLoading } = useQuery({
@@ -103,6 +103,14 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
     ...type,
     onClick: () => setSelectedType(type.id),
   }));
+
+  if (!pid) {
+    return (
+      <div className="flex items-center justify-center p-16 text-muted-foreground">
+        Выберите проект, чтобы открыть раздел визитов.
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

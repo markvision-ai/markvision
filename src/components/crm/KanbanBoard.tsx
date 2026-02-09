@@ -109,8 +109,6 @@ export const KanbanBoard = ({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
 
-  const effectiveProjectId = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
   // Realtime подписка вынесена в Index.tsx — здесь только UI состояние
   // Статус подключения синхронизируется через глобальный канал
   useEffect(() => {
@@ -275,6 +273,10 @@ export const KanbanBoard = ({
   // Payment confirmation handler
   const handlePaymentConfirm = async (amount: number) => {
     if (!paymentLead || !pendingStatusChange) return;
+    if (!projectId) {
+      toast.error('Выберите проект');
+      return;
+    }
 
     setIsUpdating(true);
     try {
@@ -293,7 +295,7 @@ export const KanbanBoard = ({
       const { error: transactionError } = await supabase
         .from('transactions')
         .insert({
-          project_id: effectiveProjectId,
+          project_id: projectId,
           type: 'income',
           category: 'sales',
           amount: amount,

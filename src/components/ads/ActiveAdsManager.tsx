@@ -169,7 +169,7 @@ const DISABLE_REASON_MAP: Record<number, string> = {
 };
 
 export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
-  const pid = projectId || '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+  const pid = projectId ?? null;
   const { leads } = useLeads(pid);
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
@@ -1073,6 +1073,14 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       setSaving(false);
     }
   };
+
+  if (!pid) {
+    return (
+      <div className="flex items-center justify-center p-16 text-muted-foreground">
+        Выберите проект, чтобы открыть менеджер рекламы.
+      </div>
+    );
+  }
 
 
   return (
