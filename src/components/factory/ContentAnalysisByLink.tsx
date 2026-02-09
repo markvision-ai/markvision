@@ -144,7 +144,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
     } catch (error) {
       console.error('Decoding failed:', error);
       // Check if logs finished, if not, wait a bit
-      toast.error('Ошибка связи с нейросетью. Попробуйте позже.');
+      toast.error('Сервис сейчас недоступен. Попробуйте позже.');
     } finally {
       setIsScanning(false);
     }

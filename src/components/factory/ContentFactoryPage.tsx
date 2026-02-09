@@ -10,17 +10,23 @@ import { ContentFactoryWizard } from './wizard/ContentFactoryWizard';
 import { CompetitorsPage } from '../competitors/CompetitorsPage';
 
 interface ContentFactoryPageProps {
-  projectId?: string | null;
+  projectId: string | null;
 }
 
-const TARGET_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
-
 export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryPageProps) => {
-  const projectId = propProjectId || TARGET_PROJECT_ID;
-  const { createContent } = useContentFactory(projectId);
+  const projectId = propProjectId;
   // State
+  const { createContent } = useContentFactory(projectId);
   const [activeTab, setActiveTab] = useState('wizard');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+
+  if (!projectId) {
+    return (
+      <div className="h-[calc(100vh-4rem)] flex items-center justify-center text-white/50">
+        Выберите проект
+      </div>
+    );
+  }
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">

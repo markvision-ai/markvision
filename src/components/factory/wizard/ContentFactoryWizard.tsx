@@ -199,37 +199,37 @@ export const ContentFactoryWizard = () => {
         </div>
     );
 
-    // STEP 2: CONFIGURATION
-    const renderStep2 = () => (
-        <div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500">
-            <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center">
-                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
-                        <ArrowLeft className="w-6 h-6" />
-                    </Button>
-                    <div>
-                        <h2 className="text-3xl font-black text-white tracking-tight">Параметры <span className="text-cyan-400">Синтеза</span></h2>
-                        <p className="text-white/40 text-sm font-mono uppercase tracking-widest">Configuring neural pathways</p>
-                    </div>
-                </div>
+	// STEP 2: CONFIGURATION
+	const renderStep2 = () => (
+		<div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500">
+			<div className="flex items-center justify-between mb-8">
+				<div className="flex items-center">
+					<Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
+						<ArrowLeft className="w-6 h-6" />
+					</Button>
+					<div>
+						<h2 className="text-3xl font-black text-white tracking-tight">Настройки <span className="text-cyan-400">контента</span></h2>
+						<p className="text-white/40 text-sm">Заполните пару полей и нажмите «Сгенерировать»</p>
+					</div>
+				</div>
 
-                <div className="flex items-center gap-3">
-                    <div className="flex -space-x-2">
-                        {[1, 2, 3].map(i => (
-                            <div key={i} className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-                                <span className="text-[10px] text-white/20">{i}</span>
-                            </div>
-                        ))}
-                    </div>
-                    <div className="h-px w-12 bg-white/10" />
-                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Production Ready</div>
-                </div>
-            </div>
+				<div className="flex items-center gap-3">
+					<div className="flex -space-x-2">
+						{[1, 2, 3].map(i => (
+							<div key={i} className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+								<span className="text-[10px] text-white/20">{i}</span>
+							</div>
+						))}
+					</div>
+					<div className="h-px w-12 bg-white/10" />
+					<div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Шаг 2 из 3</div>
+				</div>
+			</div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 pb-20 overflow-y-auto custom-scrollbar pr-2">
+			<div className="grid grid-cols-1 lg:grid-cols-12 gap-8 flex-1 pb-28 overflow-y-auto custom-scrollbar pr-2">
 
-                {/* Left Column: Inputs */}
-                <div className="lg:col-span-7 space-y-10">
+				{/* Left Column: Inputs */}
+				<div className="lg:col-span-7 space-y-10">
                     {/* Description Section */}
                     <div className="space-y-4">
                         <div className="flex justify-between items-center px-1">
@@ -237,39 +237,38 @@ export const ContentFactoryWizard = () => {
                                 <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
                                 Опишите задачу
                             </Label>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={enhancePrompt}
-                                disabled={state.isEnhancing || !state.description}
-                                className={cn(
-                                    "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
-                                    state.isEnhancing && "animate-pulse"
-                                )}
-                            >
-                                <Sparkles className="w-4 h-4 mr-2" />
-                                {state.isEnhancing ? "ОБРАБОТКА..." : "MAGIC PROMPT"}
-                            </Button>
-                        </div>
+							<Button
+								variant="ghost"
+								size="sm"
+								onClick={enhancePrompt}
+								disabled={state.isEnhancing || !state.description}
+								className={cn(
+									"text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+									state.isEnhancing && "animate-pulse"
+								)}
+							>
+								<Sparkles className="w-4 h-4 mr-2" />
+								{state.isEnhancing ? "Улучшаю..." : "Улучшить текст"}
+							</Button>
+						</div>
 
-                        <div className="relative group overflow-hidden rounded-2xl">
-                            <div className={cn(
-                                "absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
-                                state.isEnhancing && "opacity-100 animate-pulse"
-                            )} />
-                            <Textarea
-                                placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
-                                className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
-                                value={state.description}
-                                onChange={(e) => updateState({ description: e.target.value })}
-                            />
+						<div className="relative group overflow-hidden rounded-2xl">
+							<div className={cn(
+								"absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
+								state.isEnhancing && "opacity-100 animate-pulse"
+							)} />
+							<Textarea
+								placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
+								className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
+								value={state.description}
+								onChange={(e) => updateState({ description: e.target.value })}
+							/>
 
-                            {/* Visual Decor */}
-                            <div className="absolute bottom-4 right-4 text-[10px] font-mono text-white/10 select-none">
-                                SECURE_INPUT_NODE_84
-                            </div>
-                        </div>
-                    </div>
+							<div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
+								{state.description?.length || 0} символов
+							</div>
+						</div>
+					</div>
 
                     {/* Type Selection */}
                     <div className="space-y-6">
@@ -315,42 +314,39 @@ export const ContentFactoryWizard = () => {
                     </div>
                 </div>
 
-                {/* Right Column: Parameters */}
-                <div className="lg:col-span-5 flex flex-col">
-                    <div className="bg-white/[0.03] rounded-3xl p-8 border border-white/5 backdrop-blur-2xl relative overflow-hidden flex-1 flex flex-col shadow-2xl">
-                        {/* Decorative background grid */}
-                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none" />
+				{/* Right Column: Parameters */}
+				<div className="lg:col-span-5 flex flex-col">
+					<div className="bg-white/[0.03] rounded-3xl p-8 border border-white/5 backdrop-blur-2xl relative overflow-hidden flex-1 flex flex-col shadow-2xl">
+						<h3 className="text-sm font-bold text-white uppercase tracking-[0.3em] border-b border-white/5 pb-6 mb-8 flex items-center gap-3">
+							<Cpu className="w-4 h-4 text-cyan-400" />
+							Настройки
+						</h3>
 
-                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.3em] border-b border-white/5 pb-6 mb-8 flex items-center gap-3">
-                            <Cpu className="w-4 h-4 text-cyan-400" />
-                            Параметры генерации
-                        </h3>
-
-                        <div className="space-y-10 flex-1">
-                            {/* Style Selection - Working Interactivity */}
-                            <div className="space-y-4">
-                                <Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Визуальный Код</Label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    <VisualTemplateOption
-                                        label="Минимализм"
-                                        color="bg-zinc-900"
-                                        active={state.designStyle === 'minimalism'}
-                                        onClick={() => updateState({ designStyle: 'minimalism' })}
-                                    />
-                                    <VisualTemplateOption
-                                        label="Неон"
-                                        color="bg-purple-900/60"
-                                        active={state.designStyle === 'neon'}
-                                        onClick={() => updateState({ designStyle: 'neon' })}
-                                    />
-                                    <VisualTemplateOption
-                                        label="Бизнес"
-                                        color="bg-blue-900/60"
-                                        active={state.designStyle === 'business'}
-                                        onClick={() => updateState({ designStyle: 'business' })}
-                                    />
-                                </div>
-                            </div>
+						<div className="space-y-10 flex-1">
+							{/* Style Selection - Working Interactivity */}
+							<div className="space-y-4">
+								<Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Стиль</Label>
+								<div className="grid grid-cols-3 gap-3">
+									<VisualTemplateOption
+										label="Простой"
+										color="bg-zinc-900"
+										active={state.designStyle === 'minimalism'}
+										onClick={() => updateState({ designStyle: 'minimalism' })}
+									/>
+									<VisualTemplateOption
+										label="Яркий"
+										color="bg-purple-900/60"
+										active={state.designStyle === 'neon'}
+										onClick={() => updateState({ designStyle: 'neon' })}
+									/>
+									<VisualTemplateOption
+										label="Деловой"
+										color="bg-blue-900/60"
+										active={state.designStyle === 'business'}
+										onClick={() => updateState({ designStyle: 'business' })}
+									/>
+								</div>
+							</div>
 
                             {/* Carousel Specifics */}
                             {state.category === 'carousel' && (
@@ -406,50 +402,56 @@ export const ContentFactoryWizard = () => {
                                 </motion.div>
                             )}
 
-                            {(!state.category || state.category !== 'carousel') && (
-                                <div className="flex-1 flex flex-col items-center justify-center text-white/10 space-y-4">
-                                    <Palette className="w-16 h-16 opacity-50" />
-                                    <p className="text-[10px] text-center font-bold uppercase tracking-widest leading-relaxed">
-                                        Интерфейс настройки<br />ожидает выбора типа
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+							{(!state.category || state.category !== 'carousel') && (
+								<div className="flex-1 flex flex-col items-center justify-center text-white/10 space-y-4">
+									<Palette className="w-16 h-16 opacity-50" />
+									<p className="text-[10px] text-center font-bold uppercase tracking-widest leading-relaxed">
+										Сначала выберите<br />тип контента слева
+									</p>
+								</div>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
 
-                        {/* BIG LAUNCH BUTTON */}
-                        <div className="mt-10 pt-8 border-t border-white/5">
-                            <Button
-                                onClick={handleGenerate}
-                                disabled={!state.description || !state.category || state.isGenerating}
-                                className={cn(
-                                    "w-full h-16 text-lg font-black uppercase tracking-[0.2em] rounded-2xl transition-all duration-500 flex items-center justify-center gap-4 group/btn",
-                                    state.description && state.category
-                                        ? "interstellar-button-shimmer bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-[0_0_40px_rgba(6,182,212,0.3)] hover:shadow-[0_0_60px_rgba(6,182,212,0.5)] scale-100 active:scale-[0.98]"
-                                        : "bg-white/5 border border-white/5 text-white/20 grayscale pointer-events-none"
-                                )}
-                            >
-                                {state.isGenerating ? (
-                                    <>
-                                        <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                                        <span>[MARK]: ГОТОВЛЮ КОНТЕНТ...</span>
-                                    </>
-                                ) : (
-                                    <>
-                                        <Rocket className="w-6 h-6 group-hover/btn:-translate-y-1 group-hover/btn:translate-x-1 transition-transform duration-500" />
-                                        <span>ЗАПУСТИТЬ ГЕНЕРАЦИЮ</span>
-                                    </>
-                                )}
-                            </Button>
-                            <div className="mt-4 flex items-center justify-center gap-2">
-                                <ShieldCheck className="w-3 h-3 text-emerald-500/50" />
-                                <span className="text-[8px] font-mono text-white/20 uppercase tracking-widest leading-none">Neural Protocol v.5.0.2 Secured</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+			{/* Sticky actions: всегда видимые кнопки */}
+			<div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-[#050505] via-[#050505]/95 to-transparent">
+				<div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
+					<Button
+						variant="ghost"
+						onClick={prevStep}
+						className="h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/5"
+					>
+						<ArrowLeft className="w-4 h-4 mr-2" />
+						Назад
+					</Button>
+					<Button
+						onClick={handleGenerate}
+						disabled={!state.description || !state.category || state.isGenerating}
+						className={cn(
+							"h-12 px-6 rounded-xl font-bold",
+							state.description && state.category
+								? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_45px_rgba(6,182,212,0.35)]"
+								: "bg-white/5 border border-white/10 text-white/20"
+						)}
+					>
+						{state.isGenerating ? (
+							<>
+								<div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
+								Готовлю...
+							</>
+						) : (
+							<>
+								<Rocket className="w-4 h-4 mr-2" />
+								Сгенерировать
+							</>
+						)}
+					</Button>
+				</div>
+			</div>
+		</div>
+	);
 
     // STEP 3: PRODUCTION FLOOR (Enhanced)
     const renderStep3 = () => (
@@ -473,32 +475,32 @@ export const ContentFactoryWizard = () => {
 
 // Enhanced Production Floor
 const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
-    const [currentStep, setCurrentStep] = useState(0);
-    const [logs, setLogs] = useState<string[]>([]);
+	const [currentStep, setCurrentStep] = useState(0);
+	const [logs, setLogs] = useState<string[]>([]);
 
-    const steps = [
-        { label: "Запуск", icon: <Cpu />, detail: "Подключение к нейросети..." },
-        { label: "Анализ", icon: <DnaIcon />, detail: "Обработка вашего запроса..." },
-        { label: "Сценарий", icon: <Terminal />, detail: "Генерация структуры..." },
-        { label: "Визуал", icon: <ImageIcon />, detail: "Создание изображений и макетов..." },
-        { label: "Сборка", icon: <CheckCircle2 />, detail: "Финальная упаковка контента..." }
-    ];
+	const steps = [
+		{ label: "Запуск", icon: <Cpu />, detail: "Начинаю работу..." },
+		{ label: "Разбор", icon: <DnaIcon />, detail: "Понимаю задачу..." },
+		{ label: "План", icon: <Terminal />, detail: "Собираю структуру..." },
+		{ label: "Оформление", icon: <ImageIcon />, detail: "Подбираю подачу..." },
+		{ label: "Готово", icon: <CheckCircle2 />, detail: "Финальные штрихи..." }
+	];
 
     useEffect(() => {
         let timer: NodeJS.Timeout;
-        const runNextStep = (index: number) => {
-            if (index < steps.length) {
-                setCurrentStep(index);
-                setLogs(prev => [...prev, `[ПРОЦЕСС]: ${steps[index].label.toUpperCase()} ЗАВЕРШЕНО`]);
-                timer = setTimeout(() => runNextStep(index + 1), 2000 + Math.random() * 1500);
-            } else {
-                setLogs(prev => [...prev, "[СИСТЕМА]: ГЕНЕРАЦИЯ ЗАВЕРШЕНА. КОНТЕНТ ГОТОВ."]);
-                toast.success("Контент успешно сгенерирован!", {
-                    description: "Вы можете найти его в ленте публикаций",
-                    icon: <Rocket className="w-5 h-5 text-emerald-400" />
-                });
-            }
-        };
+		const runNextStep = (index: number) => {
+			if (index < steps.length) {
+				setCurrentStep(index);
+				setLogs(prev => [...prev, `Шаг: ${steps[index].label}`]);
+				timer = setTimeout(() => runNextStep(index + 1), 2000 + Math.random() * 1500);
+			} else {
+				setLogs(prev => [...prev, "Готово: контент создан."]);
+				toast.success("Контент успешно сгенерирован!", {
+					description: "Вы можете найти его в ленте публикаций",
+					icon: <Rocket className="w-5 h-5 text-emerald-400" />
+				});
+			}
+		};
 
         runNextStep(0);
         return () => clearTimeout(timer);
