@@ -11,6 +11,10 @@ export interface Competitor {
   last_scanned_at: string | null;
   top_content_links: any | null;
   created_at: string;
+  status?: 'active' | 'paused' | 'error';
+  followers_count?: number;
+  following_count?: number;
+  posts_count?: number;
 }
 
 export interface CompetitorPost {
@@ -41,7 +45,7 @@ export const useCompetitors = (projectId: string | null) => {
 
     try {
       const { data, error } = await supabase
-        .from('competitor_monitoring')
+        .from('competitors')
         .select('*')
         .eq('project_id', projectId)
         .order('created_at', { ascending: false });
@@ -50,6 +54,8 @@ export const useCompetitors = (projectId: string | null) => {
       setCompetitors(data || []);
     } catch (error) {
       console.error('Error fetching competitors:', error);
+      // Fallback for empty/missing table to avoid breaking UI
+      setCompetitors([]);
     }
   }, [projectId]);
 
@@ -57,8 +63,6 @@ export const useCompetitors = (projectId: string | null) => {
     if (!projectId) return;
 
     try {
-      // User mentioned n8n ingestion, so we expect a table like 'competitor_posts'
-      // If it doesn't exist yet, we'll get an error, but that's fine for now as we plan for its existence
       const { data, error } = await supabase
         .from('competitor_posts')
         .select('*')
@@ -66,7 +70,7 @@ export const useCompetitors = (projectId: string | null) => {
         .limit(50);
 
       if (error) {
-        console.warn('competitor_posts table not found or error fetching posts:', error);
+        console.warn('competitor_posts fetch error (table might be missing):', error);
         return;
       }
       setPosts(data || []);
@@ -84,19 +88,35 @@ export const useCompetitors = (projectId: string | null) => {
     if (!projectId) return null;
 
     try {
-      const { data, error } = await supabase.functions.invoke('create-competitor', {
-        body: { projectId, platform, handle }
-      });
+      // 1. Direct insert into 'competitors' table
+      const { data, error } = await supabase
+        .from('competitors')
+        .insert([{
+          project_id: projectId,
+          platform,
+          handle,
+          status: 'active',
+          created_at: new Date().toISOString()
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle unique constraint violation (already exists)
+        if (error.code === '23505') {
+          toast.error('Этот конкурент уже добавлен');
+          return null;
+        }
+        throw error;
+      }
 
       const newItem = data as Competitor;
       setCompetitors(prev => [newItem, ...prev]);
-      toast.success('Конкурент добавлен');
+      toast.success('Конкурент добавлен (мониторинг начнется скоро)');
       return newItem;
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding competitor:', error);
-      toast.error('Ошибка добавления конкурента');
+      toast.error(`Ошибка: ${error.message || 'Не удалось добавить конкурента'}`);
       return null;
     }
   }, [projectId]);
@@ -104,7 +124,7 @@ export const useCompetitors = (projectId: string | null) => {
   const removeCompetitor = useCallback(async (id: string) => {
     try {
       const { error } = await supabase
-        .from('competitor_monitoring')
+        .from('competitors')
         .delete()
         .eq('id', id);
 
