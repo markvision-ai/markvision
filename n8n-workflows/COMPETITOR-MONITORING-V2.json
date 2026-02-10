@@ -1,0 +1,340 @@
+{
+  "name": "Мониторинг конкурентов",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 24
+            }
+          ]
+        }
+      },
+      "id": "158dc3d2-3287-4927-b942-94f7ad0592a3",
+      "name": "1. Старт (10:00)",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        2160,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "getAll",
+        "tableId": "=competitors",
+        "returnAll": true
+      },
+      "id": "c7f1f270-5052-4479-a963-3b64a9a311a3",
+      "name": "2. Список конкурентов",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        2384,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "cxBKISOz1L4IKghQ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"directUrls\": [\"https://www.instagram.com/{{ $json.username }}/\"],\n  \"resultsType\": \"posts\",\n  \"resultsLimit\": 10,\n  \"addParentData\": false\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "6474905e-6309-4ab8-8cd6-e7b02fbbedf3",
+      "name": "3. Сбор постов (Apify)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        2608,
+        304
+      ],
+      "continueOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "APIFY_HEADER_AUTH_ID",
+          "name": "Apify Instagram Scraper"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "42887994-3e1d-4a15-b2b6-1813bb849f87",
+      "name": "4. Склеить данные",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.2,
+      "position": [
+        2832,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Валидация данных от Apify\nconst items = $input.all();\n\nif (!items || items.length === 0) {\n  console.log('⚠️ Apify не вернул данные');\n  return [];\n}\n\nconst validItems = items.filter(item => {\n  const data = item.json;\n  \n  // Проверяем обязательные поля\n  if (!data.url) {\n    console.log('⚠️ Пост без URL, пропускаем');\n    return false;\n  }\n  \n  // Проверяем что есть caption или media\n  if (!data.caption && !data.media_url) {\n    console.log('⚠️ Пост без контента, пропускаем');\n    return false;\n  }\n  \n  return true;\n});\n\nconsole.log(`✅ Валидация: ${validItems.length} из ${items.length} постов прошли проверку`);\n\nreturn validItems;"
+      },
+      "id": "validate-apify-data",
+      "name": "✅ Валидация данных",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2832,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Фильтруем посты которые уже есть в базе\nconst posts = $input.all();\nconst supabase_url = 'https://pyscczcuersdjvpmkiec.supabase.co';\nconst service_key = '{{ $env.VITE_SUPABASE_SERVICE_ROLE_KEY }}';\n\n// Получаем URL из базы (последние 30 дней)\nconst response = await fetch(\n  `${supabase_url}/rest/v1/competitor_posts?select=post_url&created_at=gte.${new Date(Date.now() - 30*24*60*60*1000).toISOString()}`,\n  {\n    headers: {\n      'apikey': service_key,\n      'Authorization': `Bearer ${service_key}`\n    }\n  }\n);\n\nconst existingUrls = await response.json();\nconst existingUrlSet = new Set(existingUrls.map(item => item.post_url));\n\n// Фильтруем новые посты\nconst newPosts = posts.filter(post => {\n  const url = post.json.url;\n  if (existingUrlSet.has(url)) {\n    console.log(`⏭️ Пост уже обработан: ${url}`);\n    return false;\n  }\n  return true;\n});\n\nconsole.log(`✅ Новых постов: ${newPosts.length} из ${posts.length}`);\n\nif (newPosts.length === 0) {\n  console.log('ℹ️ Все посты уже обработаны, пропускаем AI анализ');\n}\n\nreturn newPosts;"
+      },
+      "id": "filter-duplicates-early",
+      "name": "3a. Фильтр дублей",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3056,
+        304
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-pro",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-pro"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=={{ \"ИНСТРУКЦИЯ: Ты аналитик MarkVision. Проанализируй этот контент. Описание: \" + $node[\"3. Сбор постов (Apify)\"].json[\"caption\"] + \". Ссылка: \" + $node[\"3. Сбор постов (Apify)\"].json[\"url\"] + \". Сделай транскрибацию смыслов и выпиши триггеры.\" }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "535597b8-b323-47f7-b25b-57d609353c4d",
+      "name": "8. Разбор Gemini",
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        3728,
+        376
+      ],
+      "credentials": {
+        "googlePalmApi": {
+          "id": "2ozMiKIkkiKQv2SC",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "claude-3-7-sonnet-20250219",
+          "mode": "list",
+          "cachedResultName": "claude-3-7-sonnet-20250219"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Ты — эксперт по виральному контенту и главный сценарист агентства MarkVision. Твоя специализация — Reels и Shorts, которые удерживают внимание до последней секунды.\n\nДАННЫЕ ДЛЯ АДАПТАЦИИ (от Gemini):\n{{ $('8. Разбор Gemini').item.json.output }}\n\nТВОЯ ЗАДАЧА:\nНа основе данных выше напиши сценарий для Юрия. Это должен быть экспертный, но дерзкий контент.\n\nСТРУКТУРА СЦЕНАРИЯ:\n1. Hook (0-3 сек): Мощный заголовок, который бьет в боль или обещает невероятный результат.\n2. Проблема: Коротко опиши ситуацию, которая бесит целевую аудиторию.\n3. Решение: Дай конкретный «мясной» совет или методику (на основе данных Gemini).\n4. CTA (Призыв): Четкое действие (подпишись, напиши в директ, сохрани).\n\nПРАВИЛА ОТВЕТА:\n- Отвечай ТОЛЬКО в формате JSON.\n- Не используй вводные фразы типа \"Вот твой сценарий\".\n- Текст должен быть живым, без официоза.\n\nФОРМАТ JSON (строго соблюдай):\n{\n  \"analysis\": \"Почему это видео залетит (анализ стратегии)\",\n  \"hook\": \"Текст заголовка на экране\",\n  \"script\": \"Текст сценария: ХУК: ... ПРОБЛЕМА: ... РЕШЕНИЕ: ... ПРИЗЫВ: ...\",\n  \"score\": 95\n}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "a99ab355-94d7-4b86-8a50-1785a41fc43d",
+      "name": "9. Сценарий Claude",
+      "type": "@n8n/n8n-nodes-langchain.anthropic",
+      "typeVersion": 1,
+      "position": [
+        4080,
+        384
+      ],
+      "credentials": {
+        "anthropicApi": {
+          "id": "VvQkvvzMtCpvgRCT",
+          "name": "Anthropic account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Безопасный парсинг JSON от Claude\nconst items = $input.all();\n\nconst parsed = items.map(item => {\n  const claudeOutput = item.json.output || '';\n  \n  // Попытка извлечь JSON из ответа\n  let parsedData = {\n    analysis: 'Не удалось распарсить',\n    script: 'Не удалось распарсить',\n    score: 0\n  };\n  \n  try {\n    // Ищем JSON в ответе (может быть обернут в markdown)\n    const jsonMatch = claudeOutput.match(/\\{[\\s\\S]*\\}/);\n    if (jsonMatch) {\n      const jsonStr = jsonMatch[0];\n      parsedData = JSON.parse(jsonStr);\n      console.log('✅ JSON успешно распарсен');\n    } else {\n      console.log('⚠️ JSON не найден в ответе, используем весь текст');\n      parsedData.script = claudeOutput;\n    }\n  } catch (error) {\n    console.log('⚠️ Ошибка парсинга JSON:', error.message);\n    // Fallback: используем regex как запасной вариант\n    const analysisMatch = claudeOutput.match(/\"analysis\":\\s*\"(.+?)\"/s);\n    const scriptMatch = claudeOutput.match(/\"script\":\\s*\"(.+?)\"/s);\n    const scoreMatch = claudeOutput.match(/\"score\":\\s*(\\d+)/);\n    \n    if (analysisMatch) parsedData.analysis = analysisMatch[1];\n    if (scriptMatch) parsedData.script = scriptMatch[1];\n    if (scoreMatch) parsedData.score = parseInt(scoreMatch[1]);\n  }\n  \n  return {\n    json: {\n      ...item.json,\n      parsed_analysis: parsedData.analysis,\n      parsed_script: parsedData.script,\n      parsed_score: parsedData.score\n    }\n  };\n});\n\nreturn parsed;"
+      },
+      "id": "parse-claude-json",
+      "name": "🔍 Парсинг JSON от Claude",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4304,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "tableId": "=competitor_posts",
+        "fieldsUi": {
+          "fieldValues": [
+            {
+              "fieldId": "=project_id",
+              "fieldValue": "=64c94e87-630c-470e-8ab1-8f7c8c835efa"
+            },
+            {
+              "fieldId": "=competitor_id",
+              "fieldValue": "={{ $json.competitor_id || $('2. Список конкурентов').item.json.id }}"
+            },
+            {
+              "fieldId": "=post_url",
+              "fieldValue": "={{ $json.url }}"
+            },
+            {
+              "fieldId": "=platform",
+              "fieldValue": "=instagram"
+            },
+            {
+              "fieldId": "=caption",
+              "fieldValue": "={{ $json.caption || '' }}"
+            },
+            {
+              "fieldId": "=media_type",
+              "fieldValue": "={{ $json.type || 'IMAGE' }}"
+            },
+            {
+              "fieldId": "=media_url",
+              "fieldValue": "={{ $json.media_url || $json.url }}"
+            },
+            {
+              "fieldId": "=likes",
+              "fieldValue": "={{ $json.likesCount || 0 }}"
+            },
+            {
+              "fieldId": "=comments",
+              "fieldValue": "={{ $json.commentsCount || 0 }}"
+            },
+            {
+              "fieldId": "=ai_analysis",
+              "fieldValue": "={{ JSON.stringify({ gemini_transcription: $('8. Разбор Gemini').item.json.output, claude_analysis: $json.parsed_analysis, generated_script: $json.parsed_script }) }}"
+            },
+            {
+              "fieldId": "=viral_score",
+              "fieldValue": "={{ $json.parsed_score || 0 }}"
+            }
+          ]
+        }
+      },
+      "id": "fbaff44b-19bd-44f0-af3a-fcd25fd8e73a",
+      "name": "10. Сохранить в MarkVision",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [
+        4432,
+        304
+      ],
+      "credentials": {
+        "supabaseApi": {
+          "id": "cxBKISOz1L4IKghQ",
+          "name": "Supabase account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "error-handler-global",
+      "name": "❌ Обработчик ошибок",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [2160, 600]
+    },
+    {
+      "parameters": {
+        "operation": "insert",
+        "tableId": "=system_notifications",
+        "fieldsUi": {
+          "fieldValues": [
+            {"fieldId": "=project_id", "fieldValue": "=64c94e87-630c-470e-8ab1-8f7c8c835efa"},
+            {"fieldId": "=type", "fieldValue": "=error"},
+            {"fieldId": "=source", "fieldValue": "=competitor_monitoring"},
+            {"fieldId": "=message", "fieldValue": "={{ $json.error?.message || 'Workflow execution error' }}"},
+            {"fieldId": "=metadata", "fieldValue": "={{ JSON.stringify($json) }}"}
+          ]
+        }
+      },
+      "id": "error-logger",
+      "name": "💾 Логировать ошибку",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [2384, 600],
+      "credentials": {
+        "supabaseApi": {
+          "id": "cxBKISOz1L4IKghQ",
+          "name": "Supabase account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "1. Старт (10:00)": {
+      "main": [[{"node": "2. Список конкурентов", "type": "main", "index": 0}]]
+    },
+    "2. Список конкурентов": {
+      "main": [[{"node": "3. Сбор постов (Apify)", "type": "main", "index": 0}]]
+    },
+    "3. Сбор постов (Apify)": {
+      "main": [[{"node": "✅ Валидация данных", "type": "main", "index": 0}]]
+    },
+    "✅ Валидация данных": {
+      "main": [[{"node": "3a. Фильтр дублей", "type": "main", "index": 0}]]
+    },
+    "3a. Фильтр дублей": {
+      "main": [[{"node": "4. Склеить данные", "type": "main", "index": 0}]]
+    },
+    "4. Склеить данные": {
+      "main": [[{"node": "8. Разбор Gemini", "type": "main", "index": 0}]]
+    },
+    "8. Разбор Gemini": {
+      "main": [[{"node": "9. Сценарий Claude", "type": "main", "index": 0}]]
+    },
+    "9. Сценарий Claude": {
+      "main": [[{"node": "🔍 Парсинг JSON от Claude", "type": "main", "index": 0}]]
+    },
+    "🔍 Парсинг JSON от Claude": {
+      "main": [[{"node": "10. Сохранить в MarkVision", "type": "main", "index": 0}]]
+    },
+    "❌ Обработчик ошибок": {
+      "main": [[{"node": "💾 Логировать ошибку", "type": "main", "index": 0}]]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "eacfae05-2821-45d8-a7fc-5a465ff81236",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "cea061cea1f386dc815e9d955a502821b11522d6241e52d0bef9ca5dfa0e34e2"
+  },
+  "id": "qZ3WyT7_vF18f7MXF9Mqe",
+  "tags": []
+}

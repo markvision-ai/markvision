@@ -24,6 +24,8 @@ const LegalPage = lazy(() => import("./pages/LegalPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const HealthCheck = lazy(() => import("./pages/HealthCheck"));
 const Presentation = lazy(() => import("./pages/Presentation"));
+const Agents = lazy(() => import("./pages/Agents"));
+const AgentSetup = lazy(() => import("./pages/AgentSetup"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -160,6 +162,8 @@ const App = () => (
           <Route path="/calendar" element={<Index />} />
           <Route path="/automation" element={<Index />} />
           <Route path="/rop" element={<Index />} />
+          <Route path="/agents" element={<Index />} />
+          <Route path="/agents/setup/:agentType" element={<Suspense fallback={<PageLoader />}><AgentSetup /></Suspense>} />
 
           {/* Catch-all: неизвестные пути → главная */}
           <Route path="*" element={<Navigate to="/" replace />} />

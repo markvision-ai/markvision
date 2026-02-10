@@ -39,6 +39,7 @@ import {
   IconPlus,
   IconCheck,
   IconSettings,
+  IconRobot,
 } from "@tabler/icons-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -229,6 +230,18 @@ export const AppSidebar = ({
         icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
         tab: "scoring",
       },
+      {
+        label: "ИИ-РОП",
+        href: "/rop",
+        icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
+        tab: "rop",
+      },
+      {
+        label: "ИИ Агенты",
+        href: "/agents",
+        icon: <IconRobot className="h-5 w-5 flex-shrink-0" />,
+        tab: "agents",
+      },
     ],
     analytics: [
       {
@@ -249,12 +262,8 @@ export const AppSidebar = ({
         icon: <IconReport className="h-5 w-5 flex-shrink-0" />,
         tab: "reports",
       },
-      {
-        label: "ИИ-РОП",
-        href: "/rop",
-        icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
-        tab: "rop",
-      },
+    ],
+    settings: [
       {
         label: "Настройки",
         href: "/settings",
@@ -333,6 +342,18 @@ export const AppSidebar = ({
 
               <SidebarLabel label="Аналитика" />
               {links.analytics.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Настройки" />
+              {links.settings.map((link) => (
                 <SidebarLink
                   key={link.tab}
                   link={{
