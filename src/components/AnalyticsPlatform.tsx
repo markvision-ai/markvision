@@ -75,6 +75,7 @@ const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 const AgentRoster = lazy(() => import('./agents/AgentRoster').then(m => ({ default: m.AgentRoster })));
+const AgencyAnalytics = lazy(() => import('./finance/AgencyAnalytics').then(m => ({ default: m.AgencyAnalytics })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -408,6 +409,7 @@ export const AnalyticsPlatform = () => {
       case 'automation': return '🤖 Автоматизация';
       case 'competitors': return '🎯 Мониторинг конкурентов';
       case 'agents': return '🧠 ИИ Агенты';
+      case 'agency': return '🏢 Агентская аналитика';
       default: return 'Раздел в разработке';
     }
   };
@@ -757,6 +759,12 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
+      {activeTab === 'agency' && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AgencyAnalytics />
+        </Suspense>
+      )}
+
       {activeTab === 'help' && (
         <div className="bg-card border border-border rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">🆘 Центр помощи MarkVision AI Medical</h3>
@@ -766,7 +774,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop', 'competitors', 'agents', 'publications'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop', 'competitors', 'agents', 'publications', 'agency'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

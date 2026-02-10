@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
@@ -363,9 +364,9 @@ export const AgencyAnalytics = () => {
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {editingProject ? 'Редактировать проект' : 'Новый проект'}
             </DialogTitle>
-            <p className="text-sm text-muted-foreground">
+            <DialogDescription className="text-sm text-muted-foreground">
               {editingProject ? 'Измените финансовые показатели и даты' : 'Заполните данные для старта'}
-            </p>
+            </DialogDescription>
           </DialogHeader>
           <div className="p-6 space-y-4">
             <div className="space-y-2">

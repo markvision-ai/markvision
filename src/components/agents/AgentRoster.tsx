@@ -116,7 +116,7 @@ export const AgentRoster: React.FC = () => {
                 transition={{ delay: 0.3 }}
                 className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto"
             >
-                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center">
+                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center aspect-square flex flex-col items-center justify-center">
                     <div className="text-3xl font-black text-cyan-400">
                         {agentStatuses.filter(a => a.isActive).length}
                     </div>
@@ -124,7 +124,7 @@ export const AgentRoster: React.FC = () => {
                         Активных
                     </div>
                 </div>
-                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center">
+                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center aspect-square flex flex-col items-center justify-center">
                     <div className="text-3xl font-black text-purple-400">
                         {agentStatuses.filter(a => a.isConfigured).length}
                     </div>
@@ -132,7 +132,7 @@ export const AgentRoster: React.FC = () => {
                         Настроено
                     </div>
                 </div>
-                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center">
+                <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center aspect-square flex flex-col items-center justify-center">
                     <div className="text-3xl font-black text-white/60">
                         {AGENT_TYPES.length}
                     </div>

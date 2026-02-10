@@ -40,6 +40,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                 'rounded-2xl border-2 p-6',
                 'bg-white/[0.02] backdrop-blur-xl',
                 'transition-all duration-300',
+                'aspect-[3/4] flex flex-col',
                 isActive
                     ? `${colors.border} ${colors.glow}`
                     : 'border-white/5 hover:border-white/20'
@@ -59,7 +60,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
             />
 
             {/* Content */}
-            <div className="relative z-10 space-y-4">
+            <div className="relative z-10 space-y-4 flex flex-col flex-grow">
                 {/* Icon */}
                 <div
                     className={cn(
@@ -87,7 +88,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                 </div>
 
                 {/* Status Badge */}
-                <div className="flex items-center justify-between pt-2">
+                <div className="flex items-center justify-between pt-2 mt-auto">
                     {isConfigured ? (
                         <Badge
                             variant="outline"

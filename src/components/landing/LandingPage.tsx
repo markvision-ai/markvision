@@ -226,7 +226,14 @@ export const LandingPage = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-2xl border-b border-white/10 safe-area-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
-          <img alt="MarkVision AI" className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25" src={markvisionLogo} />
+          <img
+            alt="MarkVision AI"
+            className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25"
+            src={markvisionLogo}
+            width="40"
+            height="40"
+            fetchPriority="high"
+          />
           <span className="font-semibold text-xs sm:text-lg text-white tracking-tight">
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
           </span>
@@ -306,13 +313,13 @@ export const LandingPage = () => {
         {/* Main Headline */}
         <motion.h1 initial={{
           opacity: 0,
-          y: 30
+          y: 20
         }} animate={{
           opacity: 1,
           y: 0
         }} transition={{
-          delay: 0.1,
-          duration: 0.7
+          delay: 0,
+          duration: 0.4
         }} className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-black text-white tracking-tight leading-[1.05] mb-8 sm:mb-12 max-w-5xl mx-auto">
           <div>Хватит терять</div>
           <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
@@ -581,7 +588,7 @@ export const LandingPage = () => {
               duration: 0.3
             }} className="relative">
               <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-white/10 shadow-xl sm:shadow-2xl shadow-blue-500/20">
-                <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" loading="lazy" />
+                <img src={founderWithMark} alt="Юрий с сыном Марком" className="w-full h-full object-cover" fetchPriority="high" />
               </div>
               {/* Decorative elements */}
               <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl" />

@@ -40,6 +40,7 @@ import {
   IconCheck,
   IconSettings,
   IconRobot,
+  IconBuildingSkyscraper,
 } from "@tabler/icons-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
@@ -351,6 +352,17 @@ export const AppSidebar = ({
                   isActive={activeTab === link.tab}
                 />
               ))}
+
+              <SidebarLabel label="Агентство" />
+              <SidebarLink
+                link={{
+                  label: "Агентская аналитика",
+                  href: "/agency",
+                  icon: <IconBuildingSkyscraper className="h-5 w-5 flex-shrink-0" />,
+                  onClick: () => handleNavigation("agency", "/agency"),
+                }}
+                isActive={activeTab === "agency"}
+              />
 
               <SidebarLabel label="Настройки" />
               {links.settings.map((link) => (

@@ -18,7 +18,8 @@ import {
     Trash2,
     History,
     Activity,
-    BarChart3
+    BarChart3,
+    ScanLine
 } from 'lucide-react';
 import { useCompetitors, Competitor, CompetitorPost } from '@/hooks/useCompetitors';
 import { Button } from '@/components/ui/button';
