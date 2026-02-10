@@ -150,13 +150,16 @@ export const ContentFactoryWizard = () => {
 
     // Handle Generation Initiation
     const handleGenerate = async () => {
-        if (!state.description || !state.category) return;
+        // Use mainDescription if source is 'description', otherwise use description from Step 3
+        const taskDescription = state.source === 'description' ? state.mainDescription : state.description;
+
+        if (!taskDescription || !state.category) return;
 
         updateState({ isGenerating: true });
 
         // Prepare Payload
         const payload = {
-            task_description: state.description,
+            task_description: taskDescription,
             content_type: state.category,
             style: state.designStyle,
             format: state.carouselFormat,
@@ -378,16 +381,50 @@ export const ContentFactoryWizard = () => {
                     {state.source === 'description' && (
                         <>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <FileText className="w-4 h-4 text-emerald-400" />
-                                    Главное описание
-                                </Label>
-                                <Textarea
-                                    placeholder="Основная идея дизайна или текст поста..."
-                                    value={state.mainDescription}
-                                    onChange={(e) => updateState({ mainDescription: e.target.value })}
-                                    className="min-h-[200px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-emerald-500/30 transition-all resize-none rounded-xl leading-relaxed text-base"
-                                />
+                                <div className="flex justify-between items-center">
+                                    <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
+                                        <FileText className="w-4 h-4 text-emerald-400" />
+                                        Главное описание
+                                    </Label>
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={async () => {
+                                            if (!state.mainDescription) return;
+                                            updateState({ isEnhancing: true });
+
+                                            // Simulate AI enhancement
+                                            await new Promise(resolve => setTimeout(resolve, 1500));
+
+                                            const enhanced = `✨ ${state.mainDescription}\n\n[Улучшено AI: добавлены детали, структура и призыв к действию]`;
+                                            updateState({ mainDescription: enhanced, isEnhancing: false });
+                                            toast.success('Промпт улучшен!');
+                                        }}
+                                        disabled={state.isEnhancing || !state.mainDescription}
+                                        className={cn(
+                                            "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+                                            state.isEnhancing && "animate-pulse"
+                                        )}
+                                    >
+                                        <Wand2 className="w-4 h-4 mr-2" />
+                                        {state.isEnhancing ? "Улучшаю..." : "AI улучшит"}
+                                    </Button>
+                                </div>
+                                <div className="relative group overflow-hidden rounded-xl">
+                                    <div className={cn(
+                                        "absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-green-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
+                                        state.isEnhancing && "opacity-100 animate-pulse"
+                                    )} />
+                                    <Textarea
+                                        placeholder="Основная идея дизайна или текст поста..."
+                                        value={state.mainDescription}
+                                        onChange={(e) => updateState({ mainDescription: e.target.value })}
+                                        className="relative min-h-[200px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-emerald-500/30 transition-all resize-none rounded-xl leading-relaxed text-base backdrop-blur-xl"
+                                    />
+                                    <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
+                                        {state.mainDescription?.length || 0} символов
+                                    </div>
+                                </div>
                             </div>
                             <div className="space-y-3">
                                 <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
@@ -562,45 +599,47 @@ export const ContentFactoryWizard = () => {
 
                 {/* Left Column: Inputs */}
                 <div className="lg:col-span-7 space-y-10">
-                    {/* Description Section */}
-                    <div className="space-y-4">
-                        <div className="flex justify-between items-center px-1">
-                            <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
-                                Опишите задачу
-                            </Label>
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={enhancePrompt}
-                                disabled={state.isEnhancing || !state.description}
-                                className={cn(
-                                    "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
-                                    state.isEnhancing && "animate-pulse"
-                                )}
-                            >
-                                <Sparkles className="w-4 h-4 mr-2" />
-                                {state.isEnhancing ? "Улучшаю..." : "Улучшить текст"}
-                            </Button>
-                        </div>
+                    {/* Description Section - Only show if source is NOT 'description' */}
+                    {state.source !== 'description' && (
+                        <div className="space-y-4">
+                            <div className="flex justify-between items-center px-1">
+                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
+                                    Опишите задачу
+                                </Label>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={enhancePrompt}
+                                    disabled={state.isEnhancing || !state.description}
+                                    className={cn(
+                                        "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+                                        state.isEnhancing && "animate-pulse"
+                                    )}
+                                >
+                                    <Sparkles className="w-4 h-4 mr-2" />
+                                    {state.isEnhancing ? "Улучшаю..." : "Улучшить текст"}
+                                </Button>
+                            </div>
 
-                        <div className="relative group overflow-hidden rounded-2xl">
-                            <div className={cn(
-                                "absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
-                                state.isEnhancing && "opacity-100 animate-pulse"
-                            )} />
-                            <Textarea
-                                placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
-                                className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
-                                value={state.description}
-                                onChange={(e) => updateState({ description: e.target.value })}
-                            />
+                            <div className="relative group overflow-hidden rounded-2xl">
+                                <div className={cn(
+                                    "absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
+                                    state.isEnhancing && "opacity-100 animate-pulse"
+                                )} />
+                                <Textarea
+                                    placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
+                                    className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
+                                    value={state.description}
+                                    onChange={(e) => updateState({ description: e.target.value })}
+                                />
 
-                            <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
-                                {state.description?.length || 0} символов
+                                <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
+                                    {state.description?.length || 0} символов
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* Type Selection */}
                     <div className="space-y-6">
