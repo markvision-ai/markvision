@@ -740,14 +740,12 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           'subscribe'
         ];
 
-        const fallbackLeads = actions.reduce((sum: number, action: any) => {
+        leadsMeta = actions.reduce((sum: number, action: any) => {
           if (leadTypes.includes(action.action_type)) {
             return sum + parseInt(action.value || '0');
           }
           return sum;
         }, 0);
-
-        if (fallbackLeads > 0) leadsMeta = fallbackLeads;
       }
 
       const spendKZT = spend * KZT_RATE;
