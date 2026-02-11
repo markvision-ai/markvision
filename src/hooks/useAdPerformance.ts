@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
@@ -20,13 +20,23 @@ export interface AdPerformanceLog {
 export function useAdPerformance(projectId: string | null, dateRange?: { from: Date; to: Date }) {
   const [performanceLogs, setPerformanceLogs] = useState<AdPerformanceLog[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const fetchingRef = useRef(false);
+
+  // Stabilize dateRange to primitive string key to avoid infinite re-renders
+  const dateRangeKey = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return '';
+    return `${format(dateRange.from, 'yyyy-MM-dd')}_${format(dateRange.to, 'yyyy-MM-dd')}`;
+  }, [dateRange?.from?.getTime(), dateRange?.to?.getTime()]);
+
   const fetchPerformance = useCallback(async () => {
     if (!projectId) {
       setPerformanceLogs([]);
       setLoading(false);
       return;
     }
+
+    if (fetchingRef.current) return;
+    fetchingRef.current = true;
 
     setLoading(true);
     try {
@@ -45,14 +55,15 @@ export function useAdPerformance(projectId: string | null, dateRange?: { from: D
       const { data, error } = await query;
 
       if (error) throw error;
-      
+
       setPerformanceLogs((data || []) as AdPerformanceLog[]);
     } catch (error) {
-      console.error('Error fetching ad performance:', error);
+      console.error('[useAdPerformance] Error:', error);
     } finally {
       setLoading(false);
+      fetchingRef.current = false;
     }
-  }, [projectId, dateRange]);
+  }, [projectId, dateRangeKey]);
 
   useEffect(() => {
     fetchPerformance();

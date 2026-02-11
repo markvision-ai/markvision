@@ -348,89 +348,26 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     }
   };
 
-  // Circuit Breaker for Rate Limits
-  const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
-
   // Stable key for dateRange to prevent unnecessary refetches
   const dateRangeKey = useMemo(() => {
     if (!dateRange?.from || !dateRange?.to) return '';
     return `${format(dateRange.from, 'yyyy-MM-dd')}_${format(dateRange.to, 'yyyy-MM-dd')}`;
   }, [dateRange]);
 
+  // Load local data from DB only — no Meta API auto-sync from UI.
+  // Meta sync should be triggered server-side (Edge Function + cron).
   useEffect(() => {
     if (pid && dateRangeKey && dateRange?.from) {
-      // Check circuit breaker
-      if (Date.now() < rateLimitUntil) {
-        console.warn('Meta API requests paused due to Rate Limit.');
-        return;
-      }
-
-      // 1. Load Local Data Immediately (History + cached Today)
       fetchHierarchy(false);
       fetchAdInsights();
-
-      // 2. Smart Sync Logic
-      // We sync if we haven't synced this specific range recently to ensure data consistency
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
-      const fromStr = format(dateRange.from, 'yyyy-MM-dd');
-      const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
-
-      // Use a unique key for this specific date range
-      const lastSyncKey = `ads_sync_${pid}_${fromStr}_${toStr}`;
-      const lastSyncTime = sessionStorage.getItem(lastSyncKey);
-      const now = Date.now();
-
-      // Check if we should sync:
-      // 1. Not synced recently (5 mins cooldown)
-      // 2. Rate limit not active
-      if (!lastSyncTime || (now - parseInt(lastSyncTime)) > 300000) {
-        console.log(`Auto-syncing range: ${fromStr} to ${toStr}`);
-        sessionStorage.setItem(lastSyncKey, now.toString()); // Mark as syncing immediately
-
-        toast.info('Синхронизация данных с Meta Ads...');
-
-        supabase.functions.invoke('ads-manager', {
-          body: {
-            action: 'sync_metrics',
-            payload: {
-              projectId: pid,
-              date_range: { since: fromStr, until: toStr }
-            }
-          }
-        }).then(({ data, error }) => {
-          if (data?.error?.includes('#80004')) {
-            console.warn('Rate Limit hit during auto-sync');
-            setRateLimitUntil(Date.now() + 60000 * 5); // 5 min pause
-            sessionStorage.removeItem(lastSyncKey); // Retry later if failed
-            toast.warning('Meta API: Лимит запросов. Пауза 5 мин.');
-          } else if (!error && !data?.error) {
-            console.log('Range synced successfully, refreshing insights...');
-            toast.success('Данные Meta Ads обновлены');
-            fetchAdInsights(); // Refresh to show new data
-            fetchHierarchy(true); // Refresh hierarchy too in case of new campaigns
-          } else {
-            console.error('Sync error response:', data);
-            sessionStorage.removeItem(lastSyncKey); // Retry if other error
-          }
-        }).catch(err => {
-          console.error('Auto-sync failed', err);
-          sessionStorage.removeItem(lastSyncKey);
-        });
-      }
     }
-  }, [projectId, dateRangeKey, rateLimitUntil]);
+  }, [pid, dateRangeKey]);
 
   useEffect(() => {
     if (pid && refreshTrigger > 0) {
-      if (Date.now() < rateLimitUntil) {
-        console.warn('Meta API sync skipped due to Rate Limit.');
-        return;
-      }
-      // ONLY fetch from DB to avoid hitting Meta API limits
       fetchAdInsights();
-      // fetchHierarchy(); // Disable hierarchy fetch on auto-refresh too
     }
-  }, [refreshTrigger, rateLimitUntil]);
+  }, [refreshTrigger]);
 
   // Export to CSV
   const handleExportCSV = () => {

@@ -6,9 +6,6 @@ import { logError } from '@/lib/validation';
 
 const LOCAL_STORAGE_KEY = 'activeProjectId';
 
-// NOTE: Super admin status is now determined from the database user_roles table
-// No more hardcoded UIDs for security.
-
 interface Project {
   id: string;
   name: string;
@@ -19,47 +16,47 @@ interface Project {
 export const useProjects = () => {
   const { user, isAdmin, isSuperAdmin } = useAuth();
 
-  // Use roles from auth hook (database-driven)
   const isAdminUser = isAdmin;
   const isSuperAdminUser = isSuperAdmin;
 
-  // For super admin - INITIALIZE with fallback project immediately
   const [projects, setProjects] = useState<Project[]>([]);
 
   const [currentProjectId, setCurrentProjectId] = useState<string | null>(() => {
     return localStorage.getItem(LOCAL_STORAGE_KEY);
   });
 
-  // Loading state
   const [loading, setLoading] = useState(true);
 
-  const abortControllerRef = useRef<AbortController | null>(null);
+  // Refs to prevent re-entry and avoid stale closure over currentProjectId
+  const loadingRef = useRef(false);
+  const currentProjectIdRef = useRef(currentProjectId);
+  const didFetchRef = useRef(false);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    currentProjectIdRef.current = currentProjectId;
+  }, [currentProjectId]);
 
   // Save currentProjectId to localStorage
   useEffect(() => {
     if (currentProjectId) {
       localStorage.setItem(LOCAL_STORAGE_KEY, currentProjectId);
-      console.log('📦 CURRENT PROJECT ID:', currentProjectId);
     }
   }, [currentProjectId]);
 
+  // fetchProjects does NOT depend on currentProjectId — reads from ref
   const fetchProjects = useCallback(async () => {
     if (!user) {
       setLoading(false);
       return;
     }
 
-    // Cancel previous request
-    // We don't abort anymore to avoid console errors
-    // if (abortControllerRef.current) {
-    //   abortControllerRef.current.abort();
-    // }
-    // abortControllerRef.current = new AbortController();
-    // const signal = abortControllerRef.current.signal;
+    // Guard: prevent concurrent fetches
+    if (loadingRef.current) return;
+    loadingRef.current = true;
 
-    if (isSuperAdminUser) {
-      console.log('👑 SUPER ADMIN: Instant access granted');
-      try {
+    try {
+      if (isSuperAdminUser) {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
@@ -67,49 +64,35 @@ export const useProjects = () => {
         if (allError) throw allError;
 
         setProjects(allProjects || []);
-        if (allProjects && allProjects.length > 0) {
-          console.log('📋 Super admin projects loaded:', allProjects.length);
-        }
 
-        // Ensure active project is set if we have any
-        if (!currentProjectId && allProjects && allProjects.length > 0) {
+        if (!currentProjectIdRef.current && allProjects && allProjects.length > 0) {
           setCurrentProjectId(allProjects[0].id);
         }
-      } catch (e: any) {
-        if (e.name === 'AbortError' || e.message?.includes('AbortError') || e.message?.includes('aborted')) {
-          // Ignore abort errors
-          return;
-        }
-        console.error('DB fetch failed:', e);
-        toast.error('Ошибка загрузки проектов (super admin)');
-        setProjects([]);
-      }
-      setLoading(false);
-      return;
-    }
 
-    try {
-      console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
+        if (!didFetchRef.current) {
+          console.log('[useProjects] Loaded', allProjects?.length ?? 0, 'projects (super_admin)');
+          didFetchRef.current = true;
+        }
+        setLoading(false);
+        return;
+      }
 
       let projectsData: Project[] = [];
 
-      if (isAdminUser || isSuperAdminUser) {
+      if (isAdminUser) {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
           .select('id, name, telegram_chat_id, onboarding_status')
           .order('created_at', { ascending: false });
-        // .abortSignal(signal);
 
         if (!allError && allProjects) {
           projectsData = allProjects;
         }
       } else {
-        // Regular user - load via project_access
         const { data: accessData, error: accessError } = await supabase
           .from('project_access')
           .select('project_id')
           .eq('user_id', user.id);
-        // .abortSignal(signal);
 
         if (!accessError && accessData && accessData.length > 0) {
           const projectIds = accessData.map(a => a.project_id);
@@ -117,7 +100,6 @@ export const useProjects = () => {
             .from('projects')
             .select('id, name, telegram_chat_id, onboarding_status')
             .in('id', projectIds);
-          // .abortSignal(signal);
 
           projectsData = data || [];
         }
@@ -125,37 +107,44 @@ export const useProjects = () => {
 
       setProjects(projectsData);
 
-      // Auto-select first project
+      // Auto-select first project only if none currently selected
       if (projectsData.length > 0) {
         const savedProjectId = localStorage.getItem(LOCAL_STORAGE_KEY);
         const savedProjectExists = savedProjectId && projectsData.some(p => p.id === savedProjectId);
 
         if (savedProjectExists) {
           setCurrentProjectId(savedProjectId);
-        } else {
+        } else if (!currentProjectIdRef.current) {
           const newProjectId = projectsData[0].id;
           setCurrentProjectId(newProjectId);
           localStorage.setItem(LOCAL_STORAGE_KEY, newProjectId);
         }
       }
+
+      if (!didFetchRef.current) {
+        console.log('[useProjects] Loaded', projectsData.length, 'projects');
+        didFetchRef.current = true;
+      }
     } catch (error: any) {
       if (error.name === 'AbortError' || error.message?.includes('AbortError') || error.message?.includes('aborted')) {
-        // Ignore abort errors
         return;
       }
-      console.error('❌ Critical error loading projects:', error);
+      console.error('[useProjects] Critical error:', error);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  }, [user, isAdminUser, isSuperAdminUser, currentProjectId]);
+  }, [user, isAdminUser, isSuperAdminUser]);
 
+  // Single fetch on mount / when user or role changes
   useEffect(() => {
+    didFetchRef.current = false;
     fetchProjects();
   }, [fetchProjects]);
 
-  // FORCE LOAD function for manual trigger
   const forceLoadProject = useCallback(() => {
-    console.log('🔧 FORCE LOAD PROJECT triggered');
+    loadingRef.current = false; // allow re-fetch
+    didFetchRef.current = false;
     fetchProjects();
     toast.success('Обновляю список проектов…');
   }, [fetchProjects]);
@@ -193,6 +182,7 @@ export const useProjects = () => {
       user_id: user.id,
     });
 
+    loadingRef.current = false; // allow re-fetch
     await fetchProjects();
     setCurrentProjectId(data.id);
     return { id: data.id, name: data.name };
@@ -211,15 +201,12 @@ export const useProjects = () => {
     }
 
     toast.success('Проект удалён');
+    loadingRef.current = false; // allow re-fetch
     await fetchProjects();
     return true;
   };
 
   const currentProject = projects.find(p => p.id === currentProjectId) || null;
-
-  if (currentProject && import.meta.env.DEV) {
-    console.log('🎯 CURRENT PROJECT:', currentProject.name, '| ID:', currentProject.id);
-  }
 
   return {
     projects,
@@ -230,6 +217,6 @@ export const useProjects = () => {
     createProject,
     deleteProject,
     refetch: fetchProjects,
-    forceLoadProject, // New function for manual trigger
+    forceLoadProject,
   };
 };

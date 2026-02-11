@@ -42,13 +42,16 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
     const [refreshing, setRefreshing] = useState(false);
     const [lastCheckTime, setLastCheckTime] = useState<Date | null>(null);
     const intervalRef = useRef<NodeJS.Timeout | null>(null);
+    const lastCheckTimeRef = useRef<Date | null>(null);
+    const runningRef = useRef(false);
 
-    /**
-     * Fetch current health status from database
-     */
+    // Keep ref in sync
+    useEffect(() => {
+        lastCheckTimeRef.current = lastCheckTime;
+    }, [lastCheckTime]);
+
     const fetchHealthData = useCallback(async () => {
         try {
-            // Fetch system health
             const { data: healthData } = await supabase
                 .from('system_health')
                 .select('*')
@@ -59,7 +62,6 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
                 setServices(healthData as unknown as SystemHealth[]);
             }
 
-            // Fetch unresolved alerts
             const { data: alertsData } = await supabase
                 .from('system_alerts')
                 .select('*')
@@ -70,66 +72,58 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
                 setAlerts(alertsData as unknown as SystemAlert[]);
             }
         } catch (error) {
-            console.error('Error fetching health data:', error);
+            console.error('[useHealthMonitor] Error fetching health data:', error);
         }
     }, [projectId]);
 
-    /**
-     * Run health checks and update database
-     */
     const runChecks = useCallback(async () => {
+        if (runningRef.current) return;
+        runningRef.current = true;
         try {
             setRefreshing(true);
             await runHealthChecks(projectId);
             await fetchHealthData();
             setLastCheckTime(new Date());
         } catch (error) {
-            console.error('Error running health checks:', error);
+            console.error('[useHealthMonitor] Error running health checks:', error);
         } finally {
             setRefreshing(false);
+            runningRef.current = false;
         }
     }, [projectId, fetchHealthData]);
 
-    /**
-     * Manual refresh (fetch data without running checks)
-     */
     const refresh = useCallback(async () => {
         setRefreshing(true);
         await fetchHealthData();
         setRefreshing(false);
     }, [fetchHealthData]);
 
-    /**
-     * Initial load
-     */
+    // Initial load — runs once per projectId
     useEffect(() => {
+        let mounted = true;
+
         const initialize = async () => {
             setLoading(true);
             await fetchHealthData();
-            setLoading(false);
-
-            // Run initial health check
+            if (mounted) setLoading(false);
             await runChecks();
         };
 
         initialize();
-    }, [projectId, fetchHealthData, runChecks]);
 
-    /**
-     * Set up periodic health checks
-     */
+        return () => { mounted = false; };
+    }, [projectId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Periodic health checks
     useEffect(() => {
-        // Clear any existing interval
         if (intervalRef.current) {
             clearInterval(intervalRef.current);
         }
 
-        // Set up new interval
         intervalRef.current = setInterval(() => {
             runChecks();
         }, HEALTH_CHECK_INTERVAL);
 
-        // Cleanup on unmount
         return () => {
             if (intervalRef.current) {
                 clearInterval(intervalRef.current);
@@ -137,9 +131,7 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
         };
     }, [runChecks]);
 
-    /**
-     * Set up realtime subscriptions
-     */
+    // Realtime subscriptions
     useEffect(() => {
         const channel = supabase
             .channel('health-monitor-changes')
@@ -164,14 +156,12 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
         };
     }, [projectId, fetchHealthData]);
 
-    /**
-     * Run health check when tab becomes visible
-     */
+    // Run health check when tab becomes visible (uses ref to avoid dep on lastCheckTime)
     useEffect(() => {
         const handleVisibilityChange = () => {
             if (document.visibilityState === 'visible') {
-                // Only run if last check was more than 1 minute ago
-                if (!lastCheckTime || Date.now() - lastCheckTime.getTime() > 60000) {
+                const last = lastCheckTimeRef.current;
+                if (!last || Date.now() - last.getTime() > 60000) {
                     runChecks();
                 }
             }
@@ -182,7 +172,7 @@ export function useHealthMonitor(projectId: string): UseHealthMonitorResult {
         return () => {
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, [lastCheckTime, runChecks]);
+    }, [runChecks]);
 
     return {
         services,
