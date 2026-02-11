@@ -237,7 +237,7 @@ export const LeadCard = ({
         // Golden background for MEGA leads (budget > 1M)
         isGoldenLead && !needsAttention && 'bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-amber-900/10 border-amber-500/40',
 
-        selectionMode ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing',
+        selectionMode ? 'cursor-pointer' : 'cursor-pointer active:cursor-grabbing', // FORCE cursor-pointer
         showDragging && 'shadow-2xl opacity-90 z-50 scale-[1.02] border-primary/50',
         isSelected && 'ring-2 ring-primary bg-primary/10 border-primary/40',
         !isGoldenLead && !needsAttention && scoreTier.color

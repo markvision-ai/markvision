@@ -52,28 +52,8 @@ const statusLabels: Record<string, string> = {
 };
 
 const validateTransition = (currentStatusLabel: string, nextStatusId: string): boolean => {
-  // Find index of current status in KANBAN_STATUSES
-  const currentStatusId = Object.keys(statusLabels).find(key => statusLabels[key] === currentStatusLabel) || 'new';
-  const currentIndex = KANBAN_STATUSES.findIndex(s => s.id === currentStatusId);
-  const nextIndex = KANBAN_STATUSES.findIndex(s => s.id === nextStatusId);
-
-  // If status not found, block
-  if (currentIndex === -1 || nextIndex === -1) return false;
-
-  // Rule 1: Allow moving to "Rejected" (cancelled) from anywhere
-  if (nextStatusId === 'cancelled') return true;
-
-  // Rule 2: Allow staying in same column
-  if (currentIndex === nextIndex) return true;
-
-  // Rule 3: Allow moving back (regression)
-  if (nextIndex < currentIndex) return true;
-
-  // Rule 4: Allow moving forward ONLY by 1 step
-  if (nextIndex === currentIndex + 1) return true;
-
-  // Strict: Cannot skip stages forward
-  return false;
+  // Allow all transitions
+  return true;
 };
 
 interface KanbanBoardProps {

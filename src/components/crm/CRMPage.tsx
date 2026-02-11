@@ -897,7 +897,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
         {selectedLead && (
           <LeadFullPage
             lead={selectedLead}
-            projectId={effectiveProjectId}
+            projectId={projectId}
             onClose={handleCloseLead}
             onUpdate={refetch}
           />
