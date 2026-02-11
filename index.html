@@ -15,13 +15,15 @@
   <meta name="msapplication-config" content="/browserconfig.xml" />
   
   <!-- Performance Optimizations -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://pyscczcu.supabase.co">
-  
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Preload self-hosted critical fonts -->
+  <link rel="preload" href="/fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- JetBrains Mono from Google Fonts (code-only, low priority) -->
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=optional" rel="stylesheet">
 
   <title>MarkVision AI - Умный маркетинг</title>
   <meta name="description" content="AI-платформа для управления маркетингом медицинских клиник" />
@@ -42,6 +44,11 @@
 
   <!-- Theme color for mobile browsers (updated by useTheme from app) -->
   <meta name="theme-color" content="#020617" />
+
+  <!-- Critical CSS - Inline for fast FCP -->
+  <style>
+    *,::before,::after{box-sizing:border-box;border:0 solid}html{-webkit-text-size-adjust:100%;tab-size:4;font-family:Inter,sans-serif;line-height:1.5}body{margin:0;line-height:inherit;background:#020617;color:#fff}h1,h2,h3{font-size:inherit;font-weight:inherit}a{color:inherit}button{font-family:inherit;font-size:100%;line-height:inherit;color:inherit;margin:0;padding:0;background:0;border:0}img,svg{display:block;vertical-align:middle}img{max-width:100%}.min-h-screen{min-height:100vh}.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.gap-2{gap:.5rem}.gap-4{gap:1rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.text-white{color:#fff}.text-5xl{font-size:3rem;line-height:1}.font-black{font-weight:900}.fixed{position:fixed}.relative{position:relative}.absolute{position:absolute}.inset-0{inset:0}.top-0{top:0}.left-0{left:0}.right-0{right:0}.z-50{z-index:50}.backdrop-blur-2xl{backdrop-filter:blur(40px)}.backdrop-blur-xl{backdrop-filter:blur(24px)}
+  </style>
 
   <!-- Apple Touch Icons -->
   <link rel="apple-touch-icon" href="/markvision-logo.png" />

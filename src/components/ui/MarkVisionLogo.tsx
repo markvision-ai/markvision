@@ -1,7 +1,15 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import logoNew from '@/assets/markvision-logo-2.png';
-import logoOld from '@/assets/markvision-logo.png';
+
+// Logo 2 - WebP + PNG
+import logoNewSrcSet from '@/assets/markvision-logo-2.png?w=400;800&format=webp;png&as=srcset';
+import logoNewWebp from '@/assets/markvision-logo-2.png?w=400&format=webp';
+import logoNewPng from '@/assets/markvision-logo-2.png?w=400&format=png';
+
+// Logo - WebP + PNG
+import logoOldSrcSet from '@/assets/markvision-logo.png?w=400;800&format=webp;png&as=srcset';
+import logoOldWebp from '@/assets/markvision-logo.png?w=400&format=webp';
+import logoOldPng from '@/assets/markvision-logo.png?w=400&format=png';
 
 interface MarkVisionLogoProps {
   className?: string;
@@ -19,15 +27,21 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
   theme = 'auto'
 }) => {
   const iconSize = size || (variant === 'full' ? 40 : 60);
-  const logoSrc = type === 'text' ? logoNew : logoOld;
+
+  // Select appropriate logo set
+  const logoPng = type === 'text' ? logoNewPng : logoOldPng;
+  const logoSrcSet = type === 'text' ? logoNewSrcSet : logoOldSrcSet;
 
   const logoImg = (
-    <img 
-      src={logoSrc}
-      alt="MarkVision AI Logo"
-      className={cn("transition-all duration-300 block object-contain", className)}
-      style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
-    />
+    <picture>
+      <source type="image/webp" srcSet={logoSrcSet} />
+      <img
+        src={logoPng}
+        alt="MarkVision AI Logo"
+        className={cn("transition-all duration-300 block object-contain", className)}
+        style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
+      />
+    </picture>
   );
 
   if (variant === 'full') {

@@ -1,4 +1,5 @@
-import markvisionLogo from '@/assets/markvision-logo.png';
+import markvisionLogoSrcSet from '@/assets/markvision-logo.png?w=400;800&format=webp;png&as=srcset';
+import markvisionLogoPng from '@/assets/markvision-logo.png?w=400&format=png';
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Mail, Lock, User, Loader2, ArrowLeft, AlertTriangle, Sparkles } from 'lucide-react';
@@ -422,7 +423,10 @@ export default function Auth() {
             }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-md scale-125" />
+            <picture>
+              <source type="image/webp" srcSet={markvisionLogoSrcSet} />
+              <img src={markvisionLogoPng} alt="MarkVision AI" className="w-full h-full object-contain drop-shadow-md scale-125" />
+            </picture>
           </motion.div>
 
           <h1 className="text-2xl sm:text-3xl font-bold -mt-2">
