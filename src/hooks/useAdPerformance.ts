@@ -20,7 +20,7 @@ export interface AdPerformanceLog {
 export function useAdPerformance(projectId: string | null, dateRange?: { from: Date; to: Date }) {
   const [performanceLogs, setPerformanceLogs] = useState<AdPerformanceLog[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const fetchPerformance = useCallback(async () => {
     if (!projectId) {
       setPerformanceLogs([]);
@@ -31,7 +31,7 @@ export function useAdPerformance(projectId: string | null, dateRange?: { from: D
     setLoading(true);
     try {
       let query = supabase
-        .from('ad_performance_logs')
+        .from('ad_insights')
         .select('*')
         .eq('project_id', projectId);
 
@@ -45,7 +45,7 @@ export function useAdPerformance(projectId: string | null, dateRange?: { from: D
       const { data, error } = await query;
 
       if (error) throw error;
-      
+
       setPerformanceLogs((data || []) as AdPerformanceLog[]);
     } catch (error) {
       console.error('Error fetching ad performance:', error);
