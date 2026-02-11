@@ -1,4 +1,4 @@
-import { ReactNode, memo } from 'react';
+import { ReactNode } from 'react';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { motion } from 'framer-motion';
@@ -47,11 +47,11 @@ const formatPlanValue = (value: number, format: 'number' | 'currency' | 'percent
   return new Intl.NumberFormat('ru-RU').format(Math.round(value));
 };
 
-export const PlanFactCard = ({
-  label,
-  value,
-  plan,
-  fact,
+export const PlanFactCard = ({ 
+  label, 
+  value, 
+  plan, 
+  fact, 
   icon,
   format = 'number',
   className
@@ -64,82 +64,81 @@ export const PlanFactCard = ({
 
   const stripe =
     label.toLowerCase().includes('показ') ? 'blue' :
-      label.toLowerCase().includes('лид') ? 'cyan' :
-        label.toLowerCase().includes('визит') || label.toLowerCase().includes('диагност') ? 'emerald' :
-          label.toLowerCase().includes('продаж') ? 'gold' :
-            'cyan';
+    label.toLowerCase().includes('лид') ? 'cyan' :
+    label.toLowerCase().includes('визит') || label.toLowerCase().includes('диагност') ? 'emerald' :
+    label.toLowerCase().includes('продаж') ? 'gold' :
+    'cyan';
 
   return (
-    <motion.div
+    <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       transition={{ duration: 0.3 }}
-      className={cn("group relative overflow-hidden rounded-xl cursor-pointer", className)}
+      className={cn("group relative overflow-hidden rounded-xl", className)}
     >
       <GlassCard stripe={stripe} className="p-4">
-        <div className="space-y-2.5">
-          {/* Header: Icon, Label, Badge */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {icon && (
-                <div className="text-muted-foreground/70 w-4 h-4">
-                  {icon}
-                </div>
-              )}
-              <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
-                {label}
-              </span>
-            </div>
-
-            {showProgress && (
-              <Badge
-                className={cn(
-                  "text-[10px] font-semibold px-1.5 py-0 h-5",
-                  isOnTrack
-                    ? "bg-emerald-500/10 text-emerald-600  border-emerald-500/20"
-                    : "bg-amber-500/10 text-amber-600  border-amber-500/20"
-                )}
-                variant="outline"
-              >
-                {percentage.toFixed(0)}%
-              </Badge>
+      <div className="space-y-2.5">
+        {/* Header: Icon, Label, Badge */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {icon && (
+              <div className="text-muted-foreground/70 w-4 h-4">
+                {icon}
+              </div>
             )}
+            <span className="text-[11px] font-medium text-muted-foreground uppercase tracking-wide">
+              {label}
+            </span>
           </div>
-
-          {/* Main Value - Apple typography */}
-          <div className="space-y-1">
-            <p className="text-2xl font-semibold text-foreground tracking-tight leading-none">
-              {displayValue}
-            </p>
-
-            {/* Plan - minimal, clean */}
-            {plan !== undefined && plan > 0 && (
-              <p className="text-[11px] text-muted-foreground/70 font-medium">
-                План {formatPlanValue(plan, format)}
-              </p>
-            )}
-          </div>
-
-          {/* Progress Bar - thin, elegant */}
+          
           {showProgress && (
-            <div className="w-full bg-muted-foreground/20 rounded-full h-1 overflow-hidden">
-              <motion.div
-                initial={{ width: 0 }}
-                animate={{ width: `${Math.min(percentage, 100)}%` }}
-                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className={cn(
-                  "h-full rounded-full",
-                  isOverPerforming
-                    ? "bg-gradient-to-r from-amber-400 to-amber-500"
-                    : isOnTrack
-                      ? "bg-emerald-500"
-                      : "bg-primary"
-                )}
-              />
-            </div>
+            <Badge 
+              className={cn(
+                "text-[10px] font-semibold px-1.5 py-0 h-5",
+                isOnTrack 
+                  ? "bg-emerald-500/10 text-emerald-600  border-emerald-500/20"
+                  : "bg-amber-500/10 text-amber-600  border-amber-500/20"
+              )}
+              variant="outline"
+            >
+              {percentage.toFixed(0)}%
+            </Badge>
           )}
         </div>
+
+        {/* Main Value - Apple typography */}
+        <div className="space-y-1">
+          <p className="text-2xl font-semibold text-foreground tracking-tight leading-none">
+            {displayValue}
+          </p>
+
+          {/* Plan - minimal, clean */}
+          {plan !== undefined && plan > 0 && (
+            <p className="text-[11px] text-muted-foreground/70 font-medium">
+              План {formatPlanValue(plan, format)}
+            </p>
+          )}
+        </div>
+
+        {/* Progress Bar - thin, elegant */}
+        {showProgress && (
+          <div className="w-full bg-muted-foreground/20 rounded-full h-1 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.min(percentage, 100)}%` }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+              className={cn(
+                "h-full rounded-full",
+                isOverPerforming 
+                  ? "bg-gradient-to-r from-amber-400 to-amber-500"
+                  : isOnTrack
+                    ? "bg-emerald-500"
+                    : "bg-primary"
+              )}
+            />
+          </div>
+        )}
+      </div>
       </GlassCard>
     </motion.div>
   );

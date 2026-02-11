@@ -20,9 +20,15 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
     if (!widget.visible) return null;
 
     return (
-      <div
+      <motion.div
         ref={ref}
-        className="relative group mb-6"
+        layout
+        layoutId={widget.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.25, type: "spring", stiffness: 300, damping: 30 }}
+        className="relative group"
       >
         {/* Arrow Controls - appear on right side on hover */}
         <div className="absolute -right-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity flex-col gap-1 z-20 hidden md:flex">
@@ -79,10 +85,10 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
           </TooltipProvider>
         </div>
 
-        <div className="interstellar-card relative">
+        <div className="interstellar-card">
           {children}
         </div>
-      </div>
+      </motion.div>
     );
   }
 );
@@ -103,36 +109,25 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   // Collect all widget contents first
   const widgetContents = useMemo(() => {
     const contents: WidgetContent[] = [];
-
+    
     const registerWidget = (widgetId: string, content: React.ReactNode) => {
-      if (widgetId && content) {
-        contents.push({ id: widgetId, content });
-      }
+      contents.push({ id: widgetId, content });
     };
-
-    try {
-      // Execute children to collect widget registrations
-      children(registerWidget);
-    } catch (e) {
-      console.error('Error executing children in DraggableDashboard:', e);
-    }
-
+    
+    // Execute children to collect widget registrations
+    children(registerWidget);
+    
     return contents;
   }, [children]);
 
   // Sort widgets by their order and render
   const sortedVisibleWidgets = useMemo(() => {
-    if (!widgets) return [];
     return widgets
       .filter(w => w.visible)
       .sort((a, b) => a.order - b.order);
   }, [widgets]);
 
-  const hiddenCount = widgets ? widgets.filter(w => !w.visible).length : 0;
-
-  if (!widgets) {
-    return <div className="text-red-500">Error: No widgets configuration found</div>;
-  }
+  const hiddenCount = widgets.filter(w => !w.visible).length;
 
   return (
     <div className="space-y-6 md:pr-12">
@@ -144,33 +139,32 @@ export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
           </span>
         </div>
       )}
+      
+      
 
       {/* Widgets Container - render in sorted order */}
       <div className="space-y-6">
-        {sortedVisibleWidgets.map((widget) => {
-          if (!widget || !widget.id) return null;
+        <AnimatePresence mode="popLayout">
+          {sortedVisibleWidgets.map((widget) => {
+            const widgetContent = widgetContents.find(wc => wc.id === widget.id);
+            if (!widgetContent || !widgetContent.content) return null;
 
-          const widgetContent = widgetContents.find(wc => wc.id === widget.id);
-          if (!widgetContent || !widgetContent.content) {
-            // Silently skip missing widgets to avoid log spam, or log debug
-            return null;
-          }
+            const position = getVisiblePosition(widget.id);
 
-          const position = getVisiblePosition(widget.id);
-
-          return (
-            <WidgetWrapper
-              key={widget.id}
-              widget={widget}
-              onMoveUp={() => moveUp(widget.id)}
-              onMoveDown={() => moveDown(widget.id)}
-              isFirst={position.isFirst}
-              isLast={position.isLast}
-            >
-              {widgetContent.content}
-            </WidgetWrapper>
-          );
-        })}
+            return (
+              <WidgetWrapper
+                key={widget.id}
+                widget={widget}
+                onMoveUp={() => moveUp(widget.id)}
+                onMoveDown={() => moveDown(widget.id)}
+                isFirst={position.isFirst}
+                isLast={position.isLast}
+              >
+                {widgetContent.content}
+              </WidgetWrapper>
+            );
+          })}
+        </AnimatePresence>
       </div>
     </div>
   );

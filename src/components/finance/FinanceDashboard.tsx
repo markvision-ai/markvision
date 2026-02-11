@@ -5,15 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
 } from '@/components/ui/table';
-import {
+import { 
   Dialog,
   DialogContent,
   DialogHeader,
@@ -27,12 +27,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Plus,
-  ArrowUpRight,
-  ArrowDownRight,
-  Wallet,
-  Download,
+import { 
+  Plus, 
+  ArrowUpRight, 
+  ArrowDownRight, 
+  Wallet, 
+  Download, 
   RefreshCw,
   Calendar,
   Filter,
@@ -40,22 +40,18 @@ import {
   Zap,
   Loader2,
   TrendingUp,
-  TrendingDown,
-  Building2,
-  PieChart as PieChartIcon,
-  BarChart3,
-  List
+  TrendingDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
   ResponsiveContainer,
   Legend
 } from 'recharts';
@@ -65,10 +61,7 @@ import { useAdSpendSync } from '@/hooks/useAdSpendSync';
 import { PlatformSpendChart } from './PlatformSpendChart';
 import { AgencyAnalytics } from './AgencyAnalytics';
 import { FinancialDecomposition } from './FinancialDecomposition';
-import { motion, AnimatePresence } from 'framer-motion';
-import { cn } from '@/lib/utils';
 
-// ... (types and interfaces remain the same) ...
 interface Transaction {
   id: string;
   type: string;
@@ -121,8 +114,10 @@ const getCategoryLabel = (category: string, type: string): string => {
   return categories.find(c => c.value === category)?.label || category;
 };
 
+const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+
 export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
-  const { user, isSuperAdmin } = useAuth();
+  const { user } = useAuth();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [loading, setLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -135,7 +130,10 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     description: '',
   });
 
-  const isSuperAdminUser = isSuperAdmin;
+  // Check if user is super admin (Yuri)
+  const isSuperAdmin = user?.id === SUPER_ADMIN_UID;
+
+  // QuantumAds sync hook
   const { syncing, syncAdSpend } = useAdSpendSync(projectId);
 
   const handleSyncAds = async () => {
@@ -145,12 +143,34 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     }
   };
 
+  // Fetch transactions and set up realtime subscription
   useEffect(() => {
     fetchTransactions();
-    const channel = supabase.channel('finance-transactions-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'transactions', filter: `project_id=eq.${projectId}` }, () => fetchTransactions())
+
+    // Realtime subscription for instant updates
+    const channel = supabase
+      .channel('finance-transactions-realtime')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'transactions',
+          filter: `project_id=eq.${projectId}`
+        },
+        (payload) => {
+          if (import.meta.env.DEV) {
+            console.log('💰 Finance realtime update:', payload.eventType);
+          }
+          // Refetch on any change for consistency
+          fetchTransactions();
+        }
+      )
       .subscribe();
-    return () => { supabase.removeChannel(channel); };
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [projectId]);
 
   const fetchTransactions = async () => {
@@ -162,7 +182,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-
+      
       const formattedData: Transaction[] = (data || []).map((item: any) => ({
         id: item.id,
         type: item.type || 'expense',
@@ -170,14 +190,16 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         amount: item.amount || 0,
         currency: item.currency || 'KZT',
         description: item.description || '',
-        transaction_date: item.created_at,
+        transaction_date: item.created_at, // Use created_at as fallback
         created_at: item.created_at,
         project_id: item.project_id
       }));
 
       setTransactions(formattedData);
     } catch (error) {
-      console.error('Error fetching transactions:', error);
+      if (import.meta.env.DEV) {
+        console.error('Error fetching transactions:', error);
+      }
     } finally {
       setLoading(false);
     }
@@ -200,29 +222,47 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
         category: newTransaction.category,
         amount: newTransaction.amount,
         description: newTransaction.description,
+        // created_at will be set automatically
       }]);
 
       if (error) throw error;
-
+      
       toast.success('Транзакция добавлена');
       setIsAddDialogOpen(false);
       setNewTransaction({ type: 'expense', category: 'salary', amount: 0, description: '' });
+      // No need to fetchTransactions - realtime will handle it
     } catch (error) {
+      if (import.meta.env.DEV) {
+        console.error('Error adding transaction:', error);
+      }
       toast.error('Ошибка при добавлении транзакции');
     }
   };
 
+  // Filter transactions by date
   const filteredTransactions = useMemo(() => {
     const now = new Date();
     let startDate: Date | null = null;
 
     switch (datePreset) {
-      case 'today': startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate()); break;
-      case 'week': startDate = subDays(now, 7); break;
-      case 'month': startDate = subDays(now, 30); break;
-      case 'quarter': startDate = subDays(now, 90); break;
-      case 'year': startDate = subDays(now, 365); break;
-      case 'all': default: startDate = null;
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = subDays(now, 7);
+        break;
+      case 'month':
+        startDate = subDays(now, 30);
+        break;
+      case 'quarter':
+        startDate = subDays(now, 90);
+        break;
+      case 'year':
+        startDate = subDays(now, 365);
+        break;
+      case 'all':
+      default:
+        startDate = null;
     }
 
     return transactions.filter(t => {
@@ -234,52 +274,73 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
     });
   }, [transactions, datePreset, categoryFilter]);
 
-  const totalIncome = filteredTransactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
-  const totalExpense = filteredTransactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  // Calculate metrics
+  const totalIncome = filteredTransactions
+    .filter(t => t.type === 'income')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalExpense = filteredTransactions
+    .filter(t => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
   const profit = totalIncome - totalExpense;
   const margin = totalIncome > 0 ? Math.round((profit / totalIncome) * 100) : 0;
 
+  // Prepare monthly chart data
   const chartData = useMemo(() => {
     const months: Record<string, { month: string; income: number; expense: number; profit: number }> = {};
-
+    
     filteredTransactions.forEach(t => {
       const dateStr = t.transaction_date || t.created_at;
       if (!dateStr) return;
       const date = parseISO(dateStr);
       const monthKey = format(date, 'yyyy-MM');
       const monthLabel = format(date, 'MMM', { locale: ru });
-
-      if (!months[monthKey]) months[monthKey] = { month: monthLabel, income: 0, expense: 0, profit: 0 };
-      if (t.type === 'income') months[monthKey].income += t.amount;
-      else months[monthKey].expense += t.amount;
+      
+      if (!months[monthKey]) {
+        months[monthKey] = { month: monthLabel, income: 0, expense: 0, profit: 0 };
+      }
+      
+      if (t.type === 'income') {
+        months[monthKey].income += t.amount;
+      } else {
+        months[monthKey].expense += t.amount;
+      }
       months[monthKey].profit = months[monthKey].income - months[monthKey].expense;
     });
 
-    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, data]) => data);
+    return Object.entries(months)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([, data]) => data);
   }, [filteredTransactions]);
 
+  // Category breakdown for expenses
   const expensesByCategory = useMemo(() => {
     const categories: Record<string, number> = {};
-    filteredTransactions.filter(t => t.type === 'expense').forEach(t => {
-      categories[t.category] = (categories[t.category] || 0) + t.amount;
-    });
-    return Object.entries(categories).map(([category, amount]) => ({
-      category: getCategoryLabel(category, 'expense'),
-      amount,
-      percent: totalExpense > 0 ? ((amount / totalExpense) * 100).toFixed(1) : '0'
-    })).sort((a, b) => b.amount - a.amount);
+    
+    filteredTransactions
+      .filter(t => t.type === 'expense')
+      .forEach(t => {
+        categories[t.category] = (categories[t.category] || 0) + t.amount;
+      });
+
+    return Object.entries(categories)
+      .map(([category, amount]) => ({
+        category: getCategoryLabel(category, 'expense'),
+        amount,
+        percent: totalExpense > 0 ? ((amount / totalExpense) * 100).toFixed(1) : '0'
+      }))
+      .sort((a, b) => b.amount - a.amount);
   }, [filteredTransactions, totalExpense]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background/80 backdrop-blur-md border border-white/10 rounded-xl p-3 shadow-xl">
-          <p className="font-medium mb-2 text-foreground">{label}</p>
+        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+          <p className="font-medium mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
-            <p key={index} className="text-sm flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full" style={{ backgroundColor: entry.color }} />
-              <span className="text-muted-foreground">{entry.name}:</span>
-              <span className="font-bold text-foreground">{formatCurrency(entry.value)}</span>
+            <p key={index} className="text-sm" style={{ color: entry.color }}>
+              {entry.name}: {formatCurrency(entry.value)}
             </p>
           ))}
         </div>
@@ -291,317 +352,410 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   const [activeTab, setActiveTab] = useState('decomposition');
 
   return (
-    <div className="space-y-6 md:space-y-8 animate-in fade-in duration-700">
-
-      {/* Header controls & Title */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60 flex items-center gap-3">
-            <Wallet className="w-8 h-8 text-primary" />
+          <h2 className="text-2xl font-bold flex items-center gap-2">
+            <Wallet className="w-6 h-6 text-primary" />
             MarkFinance
           </h2>
-          <p className="text-muted-foreground mt-1 ml-11">Финансовое планирование и P&L</p>
+          <p className="text-muted-foreground">P&L дашборд и учёт финансов</p>
         </div>
-
+        
+        {/* Hide controls when Decomposition is active */}
         {activeTab !== 'decomposition' && (
-          <div className="flex flex-wrap items-center gap-2 bg-secondary/30 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
+          <div className="flex gap-2 flex-wrap">
             <Select value={datePreset} onValueChange={setDatePreset}>
-              <SelectTrigger className="w-[130px] h-9 border-none bg-transparent hover:bg-white/5 focus:ring-0">
-                <Calendar className="w-4 h-4 mr-2 text-muted-foreground" />
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="w-4 h-4 mr-2" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {DATE_PRESETS.map(preset => <SelectItem key={preset.value} value={preset.value}>{preset.label}</SelectItem>)}
+                {DATE_PRESETS.map(preset => (
+                  <SelectItem key={preset.value} value={preset.value}>
+                    {preset.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-
-            <div className="w-px h-6 bg-white/10 mx-1" />
-
-            <Button variant="ghost" size="sm" onClick={fetchTransactions} className="h-9 hover:bg-white/5">
-              <RefreshCw className="w-4 h-4" />
+            <Button variant="outline" onClick={fetchTransactions}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Обновить
             </Button>
-
-            <Button variant="ghost" size="sm" onClick={handleSyncAds} disabled={syncing} className="h-9 hover:bg-white/5 text-violet-400 hover:text-violet-300">
-              {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+            <Button 
+              variant="outline" 
+              onClick={handleSyncAds} 
+              disabled={syncing}
+              className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
+            >
+              {syncing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
+              Синхр. QuantumAds
             </Button>
-
-            <Button size="sm" onClick={() => setIsAddDialogOpen(true)} className="h-9 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20">
+            <Button onClick={() => setIsAddDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Добавить
+              Добавить расход
             </Button>
           </div>
         )}
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Hide on Decomposition tab as well? User said "section button", but maybe KPI cards are also noise? 
+          Let's stick to the buttons for now as per "section button". 
+          Actually, let's keep KPI cards unless requested.
+      */}
       {activeTab !== 'decomposition' && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 md:gap-6">
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-            <Card className="interstellar-glass border-white/5 group hover:border-emerald-500/30 transition-all">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-2.5 rounded-xl bg-emerald-500/10 text-emerald-400 group-hover:scale-110 transition-transform">
-                    <ArrowUpRight className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-bold tracking-tight text-emerald-400">{formatCurrency(totalIncome)}</h3>
-                  <p className="text-sm font-medium text-muted-foreground">Выручка</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-            <Card className="interstellar-glass border-white/5 group hover:border-red-500/30 transition-all">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-2.5 rounded-xl bg-red-500/10 text-red-400 group-hover:scale-110 transition-transform">
-                    <ArrowDownRight className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-bold tracking-tight text-red-400">{formatCurrency(totalExpense)}</h3>
-                  <p className="text-sm font-medium text-muted-foreground">Расходы</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-            <Card className="interstellar-glass border-white/5 group hover:border-primary/30 transition-all">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-2.5 rounded-xl bg-primary/10 text-primary group-hover:scale-110 transition-transform">
-                    <Wallet className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h3 className={cn("text-2xl font-bold tracking-tight", profit >= 0 ? "text-primary" : "text-red-400")}>{formatCurrency(profit)}</h3>
-                  <p className="text-sm font-medium text-muted-foreground">Чистая прибыль</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
-            <Card className="interstellar-glass border-white/5 group hover:border-purple-500/30 transition-all">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="p-2.5 rounded-xl bg-purple-500/10 text-purple-400 group-hover:scale-110 transition-transform">
-                    <Percent className="w-6 h-6" />
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <h3 className={cn("text-2xl font-bold tracking-tight", margin >= 0 ? "text-purple-400" : "text-red-400")}>{margin}%</h3>
-                  <p className="text-sm font-medium text-muted-foreground">Рентабельность</p>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="border-l-4 border-l-green-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-green-500/10">
+                <ArrowUpRight className="w-6 h-6 text-green-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Выручка</p>
+                <p className="text-2xl font-bold text-green-500">{formatCurrency(totalIncome)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-red-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-red-500/10">
+                <ArrowDownRight className="w-6 h-6 text-red-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Расходы</p>
+                <p className="text-2xl font-bold text-red-500">{formatCurrency(totalExpense)}</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-primary">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-primary/10">
+                <Wallet className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Чистая прибыль</p>
+                <p className={`text-2xl font-bold ${profit >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {formatCurrency(profit)}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-l-4 border-l-purple-500">
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-lg bg-purple-500/10">
+                <Percent className="w-6 h-6 text-purple-500" />
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Рентабельность</p>
+                <p className={`text-2xl font-bold ${Number(margin) >= 0 ? 'text-green-500' : 'text-red-500'}`}>
+                  {margin}%
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
       )}
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="w-full sm:w-auto bg-secondary/50 p-1 rounded-2xl border border-white/5 backdrop-blur-sm flex-wrap h-auto">
-          {[
-            { id: 'decomposition', label: 'Декомпозиция', icon: TrendingUp },
-            { id: 'dashboard', label: 'P&L Дашборд', icon: BarChart3 },
-            ...(isSuperAdminUser ? [{ id: 'agency', label: 'Агентская аналитика', icon: Building2 }] : []),
-            { id: 'platforms', label: 'Площадки', icon: PieChartIcon },
-            { id: 'transactions', label: 'Транзакции', icon: List }
-          ].map(tab => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="rounded-xl px-4 py-2.5 gap-2 data-[state=active]:bg-primary/20 data-[state=active]:text-primary data-[state=active]:border border-primary/20 transition-all font-medium flex-1 text-xs sm:text-sm"
-            >
-              <tab.icon className="w-4 h-4" />
-              <span className="truncate">{tab.label}</span>
-            </TabsTrigger>
-          ))}
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="flex-wrap">
+          <TabsTrigger value="decomposition">Декомпозиция</TabsTrigger>
+          <TabsTrigger value="dashboard">P&L Дашборд</TabsTrigger>
+          {isSuperAdmin && (
+            <TabsTrigger value="agency">Агентская аналитика</TabsTrigger>
+          )}
+          <TabsTrigger value="platforms">Рекламные площадки</TabsTrigger>
+          <TabsTrigger value="transactions">Транзакции</TabsTrigger>
         </TabsList>
 
-        <AnimatePresence mode="wait">
-          {activeTab === 'decomposition' && (
-            <TabsContent value="decomposition" className="mt-6 focus-visible:outline-none">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <FinancialDecomposition projectId={projectId} />
-              </motion.div>
-            </TabsContent>
-          )}
+        {isSuperAdmin && (
+          <TabsContent value="agency" className="mt-4">
+            <AgencyAnalytics />
+          </TabsContent>
+        )}
 
-          {activeTab === 'dashboard' && (
-            <TabsContent value="dashboard" className="mt-6 space-y-6 focus-visible:outline-none">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                <Card className="interstellar-glass border-white/5 shadow-xl lg:col-span-2">
-                  <CardHeader>
-                    <CardTitle>Доходы vs Расходы</CardTitle>
-                    <CardDescription>Динамика по месяцам</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="h-[350px]">
-                      <ResponsiveContainer width="100%" height="100%">
-                        <BarChart data={chartData} barGap={4}>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                          <XAxis dataKey="month" stroke="rgba(255,255,255,0.4)" fontSize={12} tickLine={false} axisLine={false} />
-                          <YAxis stroke="rgba(255,255,255,0.4)" fontSize={12} tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tickLine={false} axisLine={false} />
-                          <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
-                          <Legend />
-                          <Bar dataKey="income" name="Доходы" fill="#10B981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                          <Bar dataKey="expense" name="Расходы" fill="#EF4444" radius={[4, 4, 0, 0]} maxBarSize={40} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </div>
-                  </CardContent>
-                </Card>
+        <TabsContent value="decomposition" className="mt-4">
+          <FinancialDecomposition projectId={projectId} />
+        </TabsContent>
 
-                <Card className="interstellar-glass border-white/5 shadow-xl">
-                  <CardHeader>
-                    <CardTitle>Структура расходов</CardTitle>
-                    <CardDescription>По категориям</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-5">
-                      {expensesByCategory.map((item, idx) => (
-                        <div key={idx} className="space-y-1.5">
-                          <div className="flex justify-between text-sm">
-                            <span className="text-muted-foreground">{item.category}</span>
-                            <span className="font-medium">{item.percent}%</span>
-                          </div>
-                          <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${item.percent}%` }}
-                              transition={{ duration: 0.8, delay: idx * 0.1 }}
-                              className="h-full bg-gradient-to-r from-red-500 to-orange-500 rounded-full"
-                            />
-                          </div>
-                          <div className="text-xs text-right text-muted-foreground">{formatCurrency(item.amount)}</div>
+        <TabsContent value="dashboard" className="mt-4 space-y-6">
+          {/* Bar Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Доходы vs Расходы</CardTitle>
+              <CardDescription>Сравнение по месяцам за выбранный период</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[350px]">
+                {chartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={chartData} barCategoryGap="20%">
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                      <XAxis 
+                        dataKey="month" 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12}
+                        tickLine={false}
+                      />
+                      <YAxis 
+                        stroke="hsl(var(--muted-foreground))" 
+                        fontSize={12}
+                        tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                        tickLine={false}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Legend />
+                      <Bar 
+                        dataKey="income" 
+                        name="Доходы" 
+                        fill="#22c55e" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                      <Bar 
+                        dataKey="expense" 
+                        name="Расходы" 
+                        fill="#ef4444" 
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-muted-foreground">
+                    Нет данных за выбранный период
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Expense Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Структура расходов</CardTitle>
+              <CardDescription>Распределение по категориям</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {expensesByCategory.length > 0 ? (
+                <div className="space-y-4">
+                  {expensesByCategory.map((item, index) => (
+                    <div key={index} className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium">{item.category}</span>
+                          <span className="text-sm text-muted-foreground">{item.percent}%</span>
                         </div>
+                        <div className="h-2 bg-muted rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-red-500 rounded-full transition-all"
+                            style={{ width: `${item.percent}%` }}
+                          />
+                        </div>
+                      </div>
+                      <span className="text-sm font-medium w-32 text-right text-red-500">
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  Нет расходов за выбранный период
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Platform Spend Tab - New Pie Chart */}
+        <TabsContent value="platforms" className="mt-4 space-y-6">
+          <PlatformSpendChart projectId={projectId} />
+        </TabsContent>
+
+        <TabsContent value="transactions" className="mt-4">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row justify-between gap-4">
+                <div>
+                  <CardTitle>История транзакций</CardTitle>
+                  <CardDescription>
+                    Всего {filteredTransactions.length} записей
+                  </CardDescription>
+                </div>
+                <div className="flex gap-2">
+                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <Filter className="w-4 h-4 mr-2" />
+                      <SelectValue placeholder="Категория" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Все категории</SelectItem>
+                      {[...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(cat => (
+                        <SelectItem key={cat.value} value={cat.value}>
+                          {cat.label}
+                        </SelectItem>
                       ))}
-                      {expensesByCategory.length === 0 && <div className="text-center py-10 text-muted-foreground">Нет данных</div>}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-          )}
-
-          {activeTab === 'agency' && isSuperAdminUser && (
-            <TabsContent value="agency" className="mt-6 focus-visible:outline-none">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <AgencyAnalytics />
-              </motion.div>
-            </TabsContent>
-          )}
-
-          {activeTab === 'platforms' && (
-            <TabsContent value="platforms" className="mt-6 focus-visible:outline-none">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <PlatformSpendChart projectId={projectId} />
-              </motion.div>
-            </TabsContent>
-          )}
-
-          {activeTab === 'transactions' && (
-            <TabsContent value="transactions" className="mt-6 focus-visible:outline-none">
-              <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-                <Card className="interstellar-glass border-white/5 shadow-xl">
-                  <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle>История операций</CardTitle>
-                    <div className="flex gap-2">
-                      <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                        <SelectTrigger className="w-[180px] bg-background/50 border-white/10">
-                          <Filter className="w-3.5 h-3.5 mr-2" />
-                          <SelectValue placeholder="Категория" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">Все категории</SelectItem>
-                          {[...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="rounded-xl border border-white/5 overflow-hidden">
-                      <Table>
-                        <TableHeader className="bg-white/5">
-                          <TableRow className="hover:bg-transparent border-white/5">
-                            <TableHead className="text-white/60">Дата</TableHead>
-                            <TableHead className="text-white/60">Категория</TableHead>
-                            <TableHead className="text-white/60">Описание</TableHead>
-                            <TableHead className="text-white/60 text-right">Сумма</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {filteredTransactions.map((t) => (
-                            <TableRow key={t.id} className="border-white/5 hover:bg-white/5 transition-colors">
-                              <TableCell className="font-mono text-xs text-muted-foreground">{format(parseISO(t.transaction_date || t.created_at), 'dd.MM.yyyy')}</TableCell>
-                              <TableCell>
-                                <Badge variant="outline" className={cn("bg-transparent border-white/10", t.type === 'income' ? 'text-emerald-400' : 'text-red-400')}>
-                                  {t.type === 'income' ? <ArrowUpRight className="w-3 h-3 mr-1" /> : <ArrowDownRight className="w-3 h-3 mr-1" />}
-                                  {getCategoryLabel(t.category, t.type)}
-                                </Badge>
-                              </TableCell>
-                              <TableCell className="text-muted-foreground max-w-[200px] truncate">{t.description || '—'}</TableCell>
-                              <TableCell className={cn("text-right font-mono font-medium", t.type === 'income' ? "text-emerald-400" : "text-red-400")}>
-                                {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                          {filteredTransactions.length === 0 && <TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">Нет данных</TableCell></TableRow>}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-          )}
-        </AnimatePresence>
+                    </SelectContent>
+                  </Select>
+                  <Button variant="outline" size="sm">
+                    <Download className="w-4 h-4 mr-2" />
+                    Экспорт
+                  </Button>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Дата</TableHead>
+                    <TableHead>Категория</TableHead>
+                    <TableHead>Описание</TableHead>
+                    <TableHead className="text-right">Сумма</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8">
+                        <RefreshCw className="w-5 h-5 animate-spin mx-auto mb-2" />
+                        Загрузка...
+                      </TableCell>
+                    </TableRow>
+                  ) : filteredTransactions.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                        Транзакции не найдены
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    filteredTransactions.map((t) => (
+                      <TableRow key={t.id}>
+                        <TableCell className="whitespace-nowrap">
+                          {format(parseISO(t.transaction_date), 'dd.MM.yyyy', { locale: ru })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge 
+                            variant={t.type === 'income' ? 'default' : 'destructive'}
+                            className="whitespace-nowrap"
+                          >
+                            {t.type === 'income' ? (
+                              <><TrendingUp className="w-3 h-3 mr-1" /> {getCategoryLabel(t.category, t.type)}</>
+                            ) : (
+                              <><TrendingDown className="w-3 h-3 mr-1" /> {getCategoryLabel(t.category, t.type)}</>
+                            )}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="max-w-[200px] truncate">
+                          {t.description || '—'}
+                        </TableCell>
+                        <TableCell className={`text-right font-medium whitespace-nowrap ${
+                          t.type === 'income' ? 'text-green-500' : 'text-red-500'
+                        }`}>
+                          {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       {/* Add Transaction Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-md interstellar-glass border-white/10 bg-black/80 backdrop-blur-xl">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">Новая транзакция</DialogTitle>
+            <DialogTitle>Добавить транзакцию</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Тип</Label>
-                <Select value={newTransaction.type} onValueChange={(v: any) => setNewTransaction({ ...newTransaction, type: v, category: v === 'income' ? 'sales' : 'salary' })}>
-                  <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="expense">🔴 Расход</SelectItem>
-                    <SelectItem value="income">🟢 Доход</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Сумма</Label>
-                <Input type="number" value={newTransaction.amount || ''} onChange={e => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })} className="bg-white/5 border-white/10 font-mono" placeholder="0" />
-              </div>
-            </div>
             <div className="space-y-2">
-              <Label>Категория</Label>
-              <Select value={newTransaction.category} onValueChange={v => setNewTransaction({ ...newTransaction, category: v })}>
-                <SelectTrigger className="bg-white/5 border-white/10"><SelectValue /></SelectTrigger>
+              <Label>Тип</Label>
+              <Select 
+                value={newTransaction.type} 
+                onValueChange={(value: 'income' | 'expense') => {
+                  setNewTransaction({ 
+                    ...newTransaction, 
+                    type: value,
+                    category: value === 'income' ? 'sales' : 'salary'
+                  });
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
-                  {(newTransaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}
+                  <SelectItem value="expense">
+                    <span className="flex items-center gap-2">
+                      <ArrowDownRight className="w-4 h-4 text-red-500" />
+                      Расход
+                    </span>
+                  </SelectItem>
+                  <SelectItem value="income">
+                    <span className="flex items-center gap-2">
+                      <ArrowUpRight className="w-4 h-4 text-green-500" />
+                      Доход
+                    </span>
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Описание</Label>
-              <Input value={newTransaction.description} onChange={e => setNewTransaction({ ...newTransaction, description: e.target.value })} className="bg-white/5 border-white/10" placeholder="Комментарий" />
+              <Label>Категория</Label>
+              <Select 
+                value={newTransaction.category} 
+                onValueChange={(value) => setNewTransaction({ ...newTransaction, category: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(newTransaction.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES).map(cat => (
+                    <SelectItem key={cat.value} value={cat.value}>
+                      {cat.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Сумма (₸)</Label>
+              <Input
+                type="number"
+                value={newTransaction.amount || ''}
+                onChange={(e) => setNewTransaction({ ...newTransaction, amount: Number(e.target.value) })}
+                placeholder="100000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Описание (опционально)</Label>
+              <Input
+                value={newTransaction.description}
+                onChange={(e) => setNewTransaction({ ...newTransaction, description: e.target.value })}
+                placeholder="Комментарий к транзакции..."
+              />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setIsAddDialogOpen(false)}>Отмена</Button>
-            <Button onClick={handleAddTransaction} className="bg-primary hover:bg-primary/90 text-primary-foreground">Добавить</Button>
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+              Отмена
+            </Button>
+            <Button onClick={handleAddTransaction}>
+              Добавить
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

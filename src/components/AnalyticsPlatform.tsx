@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
-import {
-  DollarSign,
-  Eye,
-  Users,
-  Target,
-  ShoppingCart,
+import { 
+  DollarSign, 
+  Eye, 
+  Users, 
+  Target, 
+  ShoppingCart, 
   Wallet,
   TrendingUp,
   Loader2,
@@ -34,10 +34,11 @@ import { FloatingChat } from '@/components/analytics/FloatingChat';
 // OnboardingWizard moved to separate /setup page
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
-import { PremiumHero } from './dashboard/PremiumHero';
+import { WelcomeHero } from './dashboard/WelcomeHero';
 import { QuickActions } from './dashboard/QuickActions';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
+import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
@@ -46,7 +47,6 @@ import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
 import { DotPatternBackground } from './ui/dot-pattern-background';
-import { ErrorBoundary } from './ErrorBoundary';
 import { cn } from '@/lib/utils';
 
 // Lazy load heavy modules for performance
@@ -65,7 +65,6 @@ const KnowledgeBase = lazy(() => import('./knowledge/KnowledgeBase').then(m => (
 const FinanceDashboard = lazy(() => import('./finance/FinanceDashboard').then(m => ({ default: m.FinanceDashboard })));
 const OmnichannelInbox = lazy(() => import('./inbox/OmnichannelInbox').then(m => ({ default: m.OmnichannelInbox })));
 const LeadScoring = lazy(() => import('./scoring/LeadScoring').then(m => ({ default: m.LeadScoring })));
-const CompetitorsPage = lazy(() => import('./competitors/CompetitorsPage').then(m => ({ default: m.CompetitorsPage })));
 
 const ABOptimizer = lazy(() => import('./abtesting/ABOptimizer').then(m => ({ default: m.ABOptimizer })));
 const TechnicalHealth = lazy(() => import('./health/TechnicalHealth').then(m => ({ default: m.TechnicalHealth })));
@@ -74,8 +73,6 @@ const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ d
 const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default: m.VisitsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
-const AgentRoster = lazy(() => import('./agents/AgentRoster').then(m => ({ default: m.AgentRoster })));
-const AgencyAnalytics = lazy(() => import('./finance/AgencyAnalytics').then(m => ({ default: m.AgencyAnalytics })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -120,7 +117,7 @@ export const AnalyticsPlatform = () => {
   const { theme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-
+  
   // Синхронизация activeTab с URL
   const getTabFromPath = (pathname: string): string => {
     const path = pathname.replace('/', '');
@@ -129,18 +126,17 @@ export const AnalyticsPlatform = () => {
     const urlToTab: Record<string, string> = {
       'quantum-ads': 'quantom-ads',
       'content-factory': 'factory',
-      'competitors': 'factory',
       'ab-tests': 'ab-testing',
       'analytics': 'e2e-analytics',
     };
     return urlToTab[path] || path;
   };
-
+  
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
-  const { profile, user, isSuperAdmin } = useAuth();
-
+  const { profile, user } = useAuth();
+  
   // Обновляем URL при смене вкладки
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
@@ -155,7 +151,7 @@ export const AnalyticsPlatform = () => {
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
   }, [navigate]);
-
+  
   // При изменении URL (например F5 или история браузера) - обновляем вкладку
   useEffect(() => {
     const newTab = getTabFromPath(location.pathname);
@@ -163,12 +159,14 @@ export const AnalyticsPlatform = () => {
       setActiveTab(newTab);
     }
   }, [location.pathname, activeTab]);
-
+  
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
   const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
   const systemHasErrors = false; // System health check disabled
-
-  const isSuperAdminUser = isSuperAdmin;
+  
+  // CRITICAL: Super admin UUID - bypass all loading states
+  const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
+  const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
 
   // Debug: выводим информацию о текущем проекте (only in development)
   useEffect(() => {
@@ -208,7 +206,7 @@ export const AnalyticsPlatform = () => {
       const lastRangeDate = rangeDays[rangeDays.length - 1];
       const allDates = Object.keys(dailyData).sort();
       const candidateDates = allDates.filter(d => d <= lastRangeDate);
-
+      
       // Try to find explicit total first
       for (let i = candidateDates.length - 1; i >= 0; i--) {
         const d = dailyData[candidateDates[i]];
@@ -275,12 +273,12 @@ export const AnalyticsPlatform = () => {
     // Берем последний день текущего диапазона и отнимаем 7 дней
     const lastDayOfRange = dateRange.to;
     const sevenDaysAgo = subWeeks(lastDayOfRange, 1);
-
+    
     // Берем данные за 7 дней назад (от sevenDaysAgo минус 6 дней до sevenDaysAgo)
     const prevEnd = sevenDaysAgo;
     const prevStart = new Date(prevEnd);
     prevStart.setDate(prevStart.getDate() - 6); // 7 дней включая текущий
-
+    
     const prevDays = eachDayOfInterval({ start: prevStart, end: prevEnd });
     const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
     const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
@@ -296,7 +294,7 @@ export const AnalyticsPlatform = () => {
       const lastRangeDate = prevDaysFormatted[prevDaysFormatted.length - 1];
       const allDates = Object.keys(dailyData).sort();
       const candidateDates = allDates.filter(d => d <= lastRangeDate);
-
+      
       for (let i = candidateDates.length - 1; i >= 0; i--) {
         const d = dailyData[candidateDates[i]];
         if ((d.followers_total || 0) > 0) {
@@ -335,7 +333,7 @@ export const AnalyticsPlatform = () => {
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
   const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null; // CR (Лид→Визит)
   const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null; // CR (Визит→Продажа)
-
+  
   // ROMI, Рентабельность, ROAS
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
   const profitability = totals.revenue > 0 ? ((totals.revenue - totals.spend) / totals.revenue) * 100 : null; // Рентабельность: (Прибыль / Выручка) × 100%
@@ -407,9 +405,6 @@ export const AnalyticsPlatform = () => {
       case 'visits': return '📋 Диагностика';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
-      case 'competitors': return '🎯 Мониторинг конкурентов';
-      case 'agents': return '🧠 ИИ Агенты';
-      case 'agency': return '🏢 Агентская аналитика';
       default: return 'Раздел в разработке';
     }
   };
@@ -436,25 +431,73 @@ export const AnalyticsPlatform = () => {
             const todayData = dailyData[todayKey];
 
             // Welcome Hero
-            const userName = profile?.name || profile?.email?.split('@')[0] || 'Пользователь';
+            const captainName = profile?.full_name?.split(' ').pop() || profile?.full_name || 'Запойнов';
             registerWidget('welcome-hero', (
-              <PremiumHero
-                userName={userName}
+              <WelcomeHero
+                userName={`Капитан ${captainName}`}
                 keyMetrics={{
                   revenue: totals.revenue,
-                  expenses: totals.spend,
+                  leads: totals.leads,
                   romi: romiPercent,
                 }}
+                systemStatus={systemHasErrors ? 'error' : 'healthy'}
               />
             ));
 
             // Quick Actions
             registerWidget('quick-actions', (
-              <QuickActions onTabChange={handleTabChange} userName={userName} />
+              <QuickActions onTabChange={handleTabChange} />
             ));
 
-
-            // kpi-top widget removed per user request
+            // Top Row (Main KPIs): Revenue, Spend, Net Profit, ROMI
+            registerWidget('kpi-top', (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <MetricCard
+                  label="Выручка"
+                  value={formatInt(totals.revenue)}
+                  previousValue={previousWeekTotals.revenue}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(totals.revenue, previousWeekTotals.revenue) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.revenue, previousWeekTotals.revenue))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Расходы"
+                  value={formatInt(totals.spend)}
+                  previousValue={previousWeekTotals.spend}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${calcDelta(totals.spend, previousWeekTotals.spend) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.spend, previousWeekTotals.spend))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Маржа маркетинга"
+                  value={formatInt(profit)}
+                  previousValue={previousWeekTotals.revenue - previousWeekTotals.spend}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    return (dd?.revenue || 0) - (dd?.spend || 0);
+                  })}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="ROMI"
+                  value={`${formatPercent1(romiPercent)}%`}
+                  previousValue={prevConversionRate}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    const spend = dd?.spend || 0;
+                    const revenue = dd?.revenue || 0;
+                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
+                  })}
+                  icon={<TrendingUp className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${romiPercent - prevConversionRate >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevConversionRate)}% к прошлой неделе`}
+                />
+              </div>
+            ));
 
             registerWidget('plan-fact', (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
@@ -529,7 +572,7 @@ export const AnalyticsPlatform = () => {
 
             // Third Row: CPL & CPV elevated
             registerWidget('cost-row', (
-              <div className="grid grid-cols-3 gap-3 md:gap-4">
+              <div className="grid grid-cols-2 gap-3 md:gap-4">
                 <MetricCard
                   label="Стоимость лида (CPL)"
                   value={leadCost !== null ? formatInt(leadCost) + ' ₸' : '—'}
@@ -543,13 +586,6 @@ export const AnalyticsPlatform = () => {
                   icon={<Target className="w-5 h-5" />}
                   variant="success"
                   subValue={`${visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}`}
-                />
-                <MetricCard
-                  label="Стоимость клиента"
-                  value={customerCost !== null ? formatInt(customerCost) + ' ₸' : '—'}
-                  icon={<ShoppingCart className="w-5 h-5" />}
-                  variant="warning"
-                  subValue={`${customerCost !== null ? 'Расходы / продажи' : 'Нет данных'}`}
                 />
               </div>
             ));
@@ -569,7 +605,7 @@ export const AnalyticsPlatform = () => {
         </DraggableDashboard>
       )}
 
-      {activeTab === 'dashboard' && currentProjectId && (
+      {activeTab === 'dashboard' && (
         <FloatingChat context={{
           spend: totals.spend,
           impressions: totals.impressions,
@@ -579,18 +615,18 @@ export const AnalyticsPlatform = () => {
           sales: totals.sales,
           revenue: totals.revenue,
           romi: romiPercent,
-          projectId: currentProjectId
+          projectId: currentProjectId || FALLBACK_PROJECT_ID
         }} />
       )}
 
       {activeTab === 'table' && currentProjectId && (
-        <DataTable
-          dailyData={dailyData}
-          onDataChange={handleDataChange}
-          planData={planData}
-          plansMap={plansMap}
-          onPlanChange={handlePlanChange}
-        />
+        <DataTable 
+                dailyData={dailyData} 
+                onDataChange={handleDataChange}
+                planData={planData}
+                plansMap={plansMap}
+                onPlanChange={handlePlanChange}
+              />
       )}
 
       {activeTab === 'quantom-ads' && currentProjectId && (
@@ -607,15 +643,13 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'publications' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <PublicationsPage projectId={currentProjectId} />
+          <PublicationsPage />
         </Suspense>
       )}
 
       {activeTab === 'crm' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <ErrorBoundary>
-            <CRMPage projectId={currentProjectId} />
-          </ErrorBoundary>
+          <CRMPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -627,11 +661,11 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <ReportGenerator data={{
-            projectId: currentProjectId,
-            projectName: currentProject?.name || 'Проект',
-            dateRange: { from: dateRange.from || new Date(), to: dateRange.to || new Date() },
-            totals,
+          <ReportGenerator data={{ 
+            projectId: currentProjectId, 
+            projectName: currentProject?.name || 'Проект', 
+            dateRange: { from: dateRange.from || new Date(), to: dateRange.to || new Date() }, 
+            totals, 
             planData,
             metrics: {
               customerCost: customerCost ?? 0,
@@ -697,9 +731,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'scoring' && currentProjectId && (
+      {activeTab === 'scoring' && (
         <Suspense fallback={<ModuleLoader />}>
-          <LeadScoring projectId={currentProjectId} />
+          <LeadScoring projectId={currentProjectId || FALLBACK_PROJECT_ID} />
         </Suspense>
       )}
 
@@ -735,9 +769,9 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'automation' && currentProjectId && (
+      {activeTab === 'automation' && (
         <Suspense fallback={<ModuleLoader />}>
-          <AutomationPage projectId={currentProjectId} />
+          <AutomationPage projectId={currentProjectId || FALLBACK_PROJECT_ID} />
         </Suspense>
       )}
 
@@ -753,18 +787,6 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'agents' && (
-        <Suspense fallback={<ModuleLoader />}>
-          <AgentRoster />
-        </Suspense>
-      )}
-
-      {activeTab === 'agency' && (
-        <Suspense fallback={<ModuleLoader />}>
-          <AgencyAnalytics />
-        </Suspense>
-      )}
-
       {activeTab === 'help' && (
         <div className="bg-card border border-border rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">🆘 Центр помощи MarkVision AI Medical</h3>
@@ -774,7 +796,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop', 'competitors', 'agents', 'publications', 'agency'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
@@ -791,81 +813,81 @@ export const AnalyticsPlatform = () => {
       <SidebarProvider>
         <div className="h-screen overflow-hidden flex w-full relative bg-background">
 
-          {/* Premium Animated Sidebar - Fixed left, sticky */}
-          <AppSidebar
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userProfile={profile}
-            realtimeStatus="SUBSCRIBED"
-            projects={projects}
+        {/* Premium Animated Sidebar - Fixed left, sticky */}
+        <AppSidebar 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          userProfile={profile}
+          realtimeStatus="SUBSCRIBED"
+          projects={projects}
+          currentProjectId={currentProjectId}
+          onProjectChange={setCurrentProjectId}
+          onCreateProject={createProject}
+          onDeleteProject={deleteProject}
+          userId={user?.id}
+          systemHasErrors={systemHasErrors}
+          onForceLoadProject={forceLoadProject}
+        />
+        
+        {/* Main Content Area - Takes remaining space, no overlap */}
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+          {/* Mobile Header */}
+          <MobileHeader 
+            title={getTabTitle()}
+            subtitle={currentProject?.name}
+            onMenuClick={() => setIsMobileSidebarOpen(true)}
+            projects={projectsList}
             currentProjectId={currentProjectId}
             onProjectChange={setCurrentProjectId}
-            onCreateProject={createProject}
-            onDeleteProject={deleteProject}
-            isSuperAdmin={isSuperAdminUser}
-            systemHasErrors={systemHasErrors}
-            onForceLoadProject={forceLoadProject}
           />
-
-          {/* Main Content Area - Takes remaining space, no overlap */}
-          <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-            {/* Mobile Header */}
-            <MobileHeader
-              title={getTabTitle()}
+          
+          {/* Desktop Header with interstellar glass */}
+          <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
+            <Header
+              onTabChange={handleTabChange} 
+              title={getTabTitle()} 
               subtitle={currentProject?.name}
-              onMenuClick={() => setIsMobileSidebarOpen(true)}
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+              onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+              showDatePicker={activeTab === 'dashboard'}
+              onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
               projects={projectsList}
               currentProjectId={currentProjectId}
               onProjectChange={setCurrentProjectId}
+              onCreateProject={createProject}
+              showProjectSelector={true}
             />
+          </header>
+          
+          {/* Scrollable content area */}
+          <div className="flex-1 overflow-y-auto scrollbar-thin">
+            {isMobile ? (
+              <PullToRefresh onRefresh={handleRefresh}>
+                {mainContent}
+              </PullToRefresh>
+            ) : (
+              mainContent
+            )}
+          </div>
+        </main>
 
-            {/* Desktop Header Container - Inner Header handles the glass look */}
-            <header className="hidden md:block sticky top-0 z-40 bg-transparent">
-              <Header
-                onTabChange={handleTabChange}
-                title={getTabTitle()}
-                subtitle={currentProject?.name}
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-                onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
-                showDatePicker={activeTab === 'dashboard'}
-                onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
-                projects={projectsList}
-                currentProjectId={currentProjectId}
-                onProjectChange={setCurrentProjectId}
-                onCreateProject={createProject}
-                showProjectSelector={true}
-              />
-            </header>
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          activeTab={activeTab} 
+          onTabChange={handleTabChange}
+          onMoreClick={() => setIsMobileSidebarOpen(true)}
+        />
 
-            {/* Scrollable content area */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin">
-              {isMobile ? (
-                <PullToRefresh onRefresh={handleRefresh}>
-                  {mainContent}
-                </PullToRefresh>
-              ) : (
-                mainContent
-              )}
-            </div>
-          </main>
-
-          {/* Mobile Bottom Navigation */}
-          <MobileBottomNav
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onMoreClick={() => setIsMobileSidebarOpen(true)}
-          />
-
-          {/* Mobile Menu Drawer */}
-          <MobileMenuDrawer
-            open={isMobileSidebarOpen}
-            onOpenChange={setIsMobileSidebarOpen}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userProfile={profile}
-            currentProjectName={currentProject?.name}
-          />
+        {/* Mobile Menu Drawer */}
+        <MobileMenuDrawer
+          open={isMobileSidebarOpen}
+          onOpenChange={setIsMobileSidebarOpen}
+          activeTab={activeTab}
+          onTabChange={handleTabChange}
+          userProfile={profile}
+          currentProjectName={currentProject?.name}
+        />
         </div>
       </SidebarProvider>
     </DotPatternBackground>

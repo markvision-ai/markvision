@@ -92,7 +92,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
-        mono: ['JetBrains Mono', 'monospace'],
+        mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -141,14 +141,6 @@ export default {
             boxShadow: "0 0 30px hsl(192 100% 50% / 0.35), 0 0 60px hsl(192 100% 50% / 0.15)",
           },
         },
-        "shimmer": {
-          "0%": { transform: "translateX(-100%)" },
-          "100%": { transform: "translateX(100%)" },
-        },
-        "spin-slow": {
-          "0%": { transform: "rotate(0deg)" },
-          "100%": { transform: "rotate(360deg)" },
-        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -160,8 +152,6 @@ export default {
         "nebula-drift": "nebula-drift 60s ease-in-out infinite alternate",
         "interstellar-float": "interstellar-float 6s ease-in-out infinite",
         "interstellar-glow-pulse": "interstellar-glow-pulse 3s ease-in-out infinite",
-        "shimmer": "shimmer 3s ease-in-out infinite",
-        "spin-slow": "spin-slow 8s linear infinite",
       },
       boxShadow: {
         'glow': '0 0 20px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--primary) / 0.1)',

@@ -34,7 +34,7 @@ const formatCompact = (value: string | number): string => {
     }
     return value;
   }
-
+  
   if (value >= 1000000) {
     return (value / 1000000).toFixed(1).replace('.0', '') + ' млн';
   }
@@ -56,69 +56,68 @@ export const MetricCard = memo(({
   const numericValue = typeof value === 'number' ? value : parseFloat(String(value).replace(/[^\d.-]/g, '')) || 0;
 
   return (
-    <motion.div
+    <motion.div 
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
       transition={{ duration: 0.3 }}
-      className={cn("group relative overflow-hidden rounded-xl cursor-pointer", className)}
+      className={cn("group relative overflow-hidden rounded-xl", className)}
     >
       <GlassCard
         stripe={
           variant === 'primary'
             ? 'blue'
             : variant === 'success'
-              ? 'emerald'
-              : variant === 'warning'
-                ? 'gold'
-                : 'cyan'
+            ? 'emerald'
+            : variant === 'warning'
+            ? 'gold'
+            : 'cyan'
         }
         className="p-4"
       >
-        <div className="space-y-2.5">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {icon && (
-                <div className="text-muted-foreground/70 w-4 h-4">
-                  {icon}
-                </div>
-              )}
-              <span className="text-xs font-semibold text-foreground/80 dark:text-foreground/90 uppercase tracking-wide">
-                {label}
-              </span>
-            </div>
-
-            {previousValue !== undefined && numericValue !== previousValue && (
-              <TrendIndicator currentValue={numericValue} previousValue={previousValue} />
-            )}
-          </div>
-
-          {/* Main Content */}
-          <div className="flex items-end justify-between gap-3">
-            <div className="space-y-0.5 flex-1 min-w-0">
-              <p className="text-2xl font-semibold text-foreground tracking-tight leading-none font-mono">
-                {formattedValue}
-              </p>
-              {subValue && (
-                <p className="text-xs text-foreground/70 dark:text-foreground/80 font-semibold leading-relaxed">
-                  {subValue}
-                </p>
-              )}
-            </div>
-
-            {sparklineData && sparklineData.length > 1 && (
-              <div className="flex-shrink-0">
-                <Sparkline
-                  data={sparklineData}
-                  width={50}
-                  height={20}
-                  color="hsl(var(--primary))"
-                />
+      <div className="space-y-2.5">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            {icon && (
+              <div className="text-muted-foreground/70 w-4 h-4">
+                {icon}
               </div>
             )}
+            <span className="text-xs font-semibold text-foreground/80 dark:text-foreground/90 uppercase tracking-wide">
+              {label}
+            </span>
           </div>
+          
+          {previousValue !== undefined && numericValue !== previousValue && (
+            <TrendIndicator currentValue={numericValue} previousValue={previousValue} />
+          )}
         </div>
+
+        {/* Main Content */}
+        <div className="flex items-end justify-between gap-3">
+          <div className="space-y-0.5 flex-1 min-w-0">
+            <p className="text-2xl font-semibold text-foreground tracking-tight leading-none font-mono">
+              {formattedValue}
+            </p>
+            {subValue && (
+              <p className="text-xs text-foreground/70 dark:text-foreground/80 font-semibold leading-relaxed">
+                {subValue}
+              </p>
+            )}
+          </div>
+
+          {sparklineData && sparklineData.length > 1 && (
+            <div className="flex-shrink-0">
+              <Sparkline 
+                data={sparklineData} 
+                width={50} 
+                height={20} 
+                color="hsl(var(--primary))" 
+              />
+            </div>
+          )}
+        </div>
+      </div>
       </GlassCard>
     </motion.div>
   );

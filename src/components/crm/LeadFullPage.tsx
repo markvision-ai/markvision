@@ -326,9 +326,9 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
         {/* Content Workspace */}
         <div className="flex-1 flex overflow-hidden">
           {/* Left: Lead Intelligence System */}
-          <div className="w-[60%] border-r border-white/5 overflow-hidden flex flex-col bg-background/30 backdrop-blur-md">
-            <ScrollArea className="flex-1">
-              <div className="p-8 max-w-[1200px] mx-auto pb-24">
+          <div className="w-full lg:w-[65%] border-r border-white/5 flex flex-col bg-background/30 backdrop-blur-md relative">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">
+              <div className="p-6 md:p-8 max-w-[1200px] mx-auto pb-40 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Phase 1: Contact Intelligence */}
                   <motion.div
@@ -560,12 +560,12 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   </div>
                 </div>
               </div>
-            </ScrollArea>
+            </div>
           </div>
 
           {/* Right: Modern Messenger Interface */}
           <motion.div
-            className="w-[40%] flex flex-col overflow-hidden bg-background/20 backdrop-blur-3xl relative"
+            className="hidden lg:flex flex-1 flex-col overflow-hidden bg-background/20 backdrop-blur-3xl relative border-l border-white/5"
             initial={{ opacity: 0, x: 50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.4, type: "spring", damping: 30 }}
