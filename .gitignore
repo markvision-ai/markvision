@@ -23,3 +23,6 @@ dev-dist
 *.njsproj
 *.sln
 *.sw?
+
+# MCP server config (contains API keys)
+.mcp.json
