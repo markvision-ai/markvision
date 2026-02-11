@@ -21,6 +21,8 @@ import {
 import { QuestionRenderer } from './QuestionRenderer';
 import { ChannelSelector } from './ChannelSelector';
 import { PromptPreview } from './PromptPreview';
+import { DocumentUploader, Document } from './DocumentUploader';
+import { indexAgentDocuments, DEFAULT_RAG_SETTINGS } from '@/lib/agents/rag';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -28,7 +30,7 @@ const supabase = createClient(
     import.meta.env.VITE_SUPABASE_ANON_KEY
 );
 
-type WizardStep = 'questions' | 'channels' | 'preview' | 'deploying';
+type WizardStep = 'questions' | 'documents' | 'channels' | 'preview' | 'deploying';
 
 export const SetupWizard: React.FC = () => {
     const { agentType } = useParams<{ agentType: AgentType }>();
@@ -39,6 +41,7 @@ export const SetupWizard: React.FC = () => {
     const [step, setStep] = useState<WizardStep>('questions');
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
     const [answers, setAnswers] = useState<Record<string, any>>({});
+    const [documents, setDocuments] = useState<Document[]>([]);
     const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
     const [generatedPrompt, setGeneratedPrompt] = useState<string>('');
     const [isGenerating, setIsGenerating] = useState(false);
