@@ -100,7 +100,8 @@ export const KanbanBoard = ({
     };
 
     checkConnection();
-    const interval = setInterval(checkConnection, 5000);
+    // Check every 30s instead of 5s — connection status doesn't need real-time polling
+    const interval = setInterval(checkConnection, 30000);
 
     return () => clearInterval(interval);
   }, []);

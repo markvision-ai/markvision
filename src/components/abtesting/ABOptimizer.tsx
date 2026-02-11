@@ -31,10 +31,11 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
         if (running) setSelectedTestId(running.id);
       }
       fetchStats();
-      const interval = setInterval(fetchStats, 5000); // Poll every 5s
+      // Poll every 60s instead of 5s to reduce network load
+      const interval = setInterval(fetchStats, 60000);
       return () => clearInterval(interval);
     }
-  }, [tests, projectId]);
+  }, [tests.length, projectId]);
 
   const fetchTests = async () => {
     try {

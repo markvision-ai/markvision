@@ -198,7 +198,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     };
 
     checkConnection();
-    const interval = setInterval(checkConnection, 5000);
+    // Check every 30s instead of 5s — connection state is also updated by realtime subscription
+    const interval = setInterval(checkConnection, 30000);
     return () => clearInterval(interval);
   }, []);
 

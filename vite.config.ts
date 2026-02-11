@@ -128,6 +128,8 @@ export default defineConfig(({ mode }) => {
       },
     },
     build: {
+      // Disable source maps in production to reduce bundle size and hide source code
+      sourcemap: false,
       rollupOptions: {
         output: {
           manualChunks: {
@@ -150,6 +152,12 @@ export default defineConfig(({ mode }) => {
       chunkSizeWarningLimit: 600,
       // Optimize assets
       assetsInlineLimit: 4096, // Inline assets < 4KB
+      // Strip console.log in production (keep warn/error)
+      minify: 'esbuild',
     },
+    esbuild: mode === 'production' ? {
+      drop: ['debugger'],
+      pure: ['console.log'],
+    } : {},
   };
 });

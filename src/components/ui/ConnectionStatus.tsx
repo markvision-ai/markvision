@@ -55,9 +55,9 @@ export const ConnectionStatus = () => {
       }
     };
 
-    // Check immediately and then every 30 seconds
+    // Check immediately and then every 60 seconds
     checkSupabase();
-    const interval = setInterval(checkSupabase, 30000);
+    const interval = setInterval(checkSupabase, 60000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
