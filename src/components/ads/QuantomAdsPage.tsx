@@ -373,6 +373,17 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                     variant="ghost"
                     size="sm"
                     onClick={() => {
+                      const today = new Date();
+                      setDateRange({ from: today, to: today });
+                    }}
+                    className="h-8 px-3 text-xs text-white/60 hover:text-white hover:bg-white/10 rounded-lg transition-all"
+                  >
+                    Сегодня
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
                       const yesterday = subDays(new Date(), 1);
                       setDateRange({ from: yesterday, to: yesterday });
                     }}
