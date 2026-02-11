@@ -7,6 +7,9 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 console.log('Supabase initialized with URL:', !!SUPABASE_URL);
 
+
+export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: {
     storage: window.localStorage,
@@ -18,8 +21,8 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     fetch: (url, options) => {
       // Add connection log if not already logged
       if (!window['__supabase_logged'] && import.meta.env.DEV) {
-         console.log('Connecting to Supabase at:', SUPABASE_URL);
-         window['__supabase_logged'] = true;
+        console.log('Connecting to Supabase at:', SUPABASE_URL);
+        window['__supabase_logged'] = true;
       }
       return fetch(url, {
         ...options,
@@ -28,18 +31,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
       }).catch(err => {
         // Silently ignore AbortError to prevent console noise
         if (err.name === 'AbortError' || err.message === 'The user aborted a request.') {
-          return new Response(JSON.stringify({ message: 'AbortError: Request aborted' }), { 
-            status: 499, 
+          return new Response(JSON.stringify({ message: 'AbortError: Request aborted' }), {
+            status: 499,
             statusText: 'Request Aborted',
             headers: { 'Content-Type': 'application/json' }
           });
         }
         // Log other errors
         if (err instanceof TypeError && err.message === 'Failed to fetch') {
-           console.warn('Supabase connection failed. This might be due to an AdBlocker or Network issue.');
-           // Don't log full error trace for common network failures
+          console.warn('Supabase connection failed. This might be due to an AdBlocker or Network issue.');
+          // Don't log full error trace for common network failures
         } else {
-           console.error('Supabase fetch error:', err);
+          console.error('Supabase fetch error:', err);
         }
         throw err;
       });
