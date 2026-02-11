@@ -718,35 +718,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const processedData = useMemo(() => {
     const getMetrics = (id: string, node?: any) => {
       const record = adInsights[id];
-      let spend = record?.spend || 0;
-      let leadsMeta = record?.leads || 0;
-      let clicks = record?.clicks || 0;
-      let impressions = record?.impressions || 0;
+      const spend = record?.spend || 0;
+      const leadsMeta = record?.leads || 0;
+      const clicks = record?.clicks || 0;
+      const impressions = record?.impressions || 0;
 
-      // Fallback: If DB logs are missing (sync delay or zero), use Hierarchy API data
-      if (spend === 0 && node?.insights?.data?.[0]) {
-        const apiData = node.insights.data[0];
-        spend = parseFloat(apiData.spend || '0');
-        clicks = parseInt(apiData.clicks || '0');
-        impressions = parseInt(apiData.impressions || '0');
-
-        // Simple Lead Extraction for Fallback
-        const actions = apiData.actions || [];
-        const leadTypes = [
-          'lead',
-          'offsite_conversion.fb_pixel_lead',
-          'messaging_conversation_started_7d',
-          'contact',
-          'subscribe'
-        ];
-
-        leadsMeta = actions.reduce((sum: number, action: any) => {
-          if (leadTypes.includes(action.action_type)) {
-            return sum + parseInt(action.value || '0');
-          }
-          return sum;
-        }, 0);
-      }
+      // Fallback removed to prevent mixing Lifetime (API) and Daily (DB) data.
+      // We rely strictly on DB logs for consistent aggregation.
 
       const spendKZT = spend * KZT_RATE;
       return { spend, leadsMeta, clicks, impressions, spendKZT };
