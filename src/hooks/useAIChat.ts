@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { searchAgentKnowledge } from '@/lib/agents/rag';
 
 export interface ChatMessage {
   id: string;
@@ -24,6 +25,7 @@ interface DataContext {
   aov?: number;
   romi?: number;
   projectId?: string;
+  agentId?: string;
 }
 
 export const useAIChat = () => {
@@ -83,9 +85,35 @@ export const useAIChat = () => {
         console.error('Failed to save chat message:', chatError);
       }
 
+      // 3.7 RAG Enhancement: Search knowledge base if agent has documents
+      let augmentedMessage = message;
+      
+      if (context?.agentId) {
+        try {
+          const relevantDocs = await searchAgentKnowledge(context.agentId, message, {
+            threshold: 0.7,
+            limit: 5
+          });
+
+          if (relevantDocs.length > 0) {
+            console.log(`📚 Found ${relevantDocs.length} relevant documents for RAG`);
+            
+            // Build augmented message with context
+            const docContext = relevantDocs
+              .map((doc, i) => `[${i + 1}] ${doc.content}`)
+              .join('\n\n');
+            
+            augmentedMessage = `${message}\n\n=== БАЗА ЗНАНИЙ ===\n${docContext}\n===`;
+          }
+        } catch (ragError) {
+          console.warn('RAG search failed, continuing without augmentation:', ragError);
+          // Gracefully continue without RAG if it fails
+        }
+      }
+
       const payload = {
         project_id: projectId,
-        prompt: message,
+        prompt: augmentedMessage,
         status: 'pending'
       };
       
