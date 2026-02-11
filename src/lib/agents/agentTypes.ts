@@ -12,6 +12,28 @@ export interface AgentSchedule {
     };
 }
 
+export interface RAGDocument {
+    id: string;
+    filename: string;
+    content: string;
+    uploaded_at: string;
+}
+
+export interface RAGConfig {
+    // Enable/disable RAG functionality
+    enabled: boolean;
+
+    // Documents uploaded by user
+    documents?: RAGDocument[];
+
+    // RAG search settings
+    settings?: {
+        similarity_threshold: number; // 0.0 - 1.0 (default: 0.7)
+        max_results: number;           // 1 - 10 (default: 5)
+        chunk_size: number;            // characters per chunk (default: 1000)
+    };
+}
+
 export interface AgentConfigData {
     // Business context
     business_description: string;
@@ -35,6 +57,9 @@ export interface AgentConfigData {
 
     // Schedule
     schedule: AgentSchedule;
+
+    // RAG (Retrieval Augmented Generation) configuration
+    rag_config?: RAGConfig;
 }
 
 export interface AgentConfig {
