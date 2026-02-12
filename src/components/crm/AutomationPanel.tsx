@@ -143,11 +143,13 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
 
+      const n8nApiKey = import.meta.env.VITE_N8N_API_KEY || '';
       // Отправляем запрос в n8n для активации шаблона
       const response = await fetch(projectData.n8n_webhook_url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(n8nApiKey ? { 'Authorization': `Bearer ${n8nApiKey}` } : {}),
         },
         body: JSON.stringify({
           action: 'activate_template',

@@ -30,6 +30,7 @@ const N8N_BASE = 'https://n8n.zapoinov.com';
 const DISPATCHER_URL = `${N8N_BASE}/webhook/execute-any-flow-new`;
 const N8N_DISPATCHER_URL = import.meta.env.VITE_N8N_DISPATCHER_URL || DISPATCHER_URL;
 const N8N_SYNC_URL = `${N8N_BASE}/webhook/sync-markvision-flows`;
+const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY || '';
 const SYNC_FETCH_TIMEOUT_MS = 15_000;
 
 /** Возвращает URL как есть - n8n поддерживает CORS */
@@ -156,7 +157,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         {
           method: 'POST',
           mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(N8N_API_KEY ? { 'Authorization': `Bearer ${N8N_API_KEY}` } : {}),
+          },
           body: JSON.stringify({ project_id: effectiveProjectId }),
           signal,
         },
@@ -213,7 +217,10 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
         const res = await fetch(targetUrl, {
           method: 'POST',
           mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(N8N_API_KEY ? { 'Authorization': `Bearer ${N8N_API_KEY}` } : {}),
+          },
           body: JSON.stringify(body),
         });
         return res.ok;

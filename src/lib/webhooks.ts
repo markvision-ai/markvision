@@ -1,6 +1,6 @@
 // n8n Webhook Bridge for CRM automation
-// Replace with your actual n8n webhook URL
-const N8N_WEBHOOK_URL = 'https://your-n8n-instance.app.n8n.cloud/webhook/crm-trigger';
+const N8N_WEBHOOK_URL = 'https://n8n.zapoinov.com/webhook/crm-trigger';
+const N8N_API_KEY = import.meta.env.VITE_N8N_API_KEY || '';
 
 export interface WebhookPayload {
   lead_id: string;
@@ -17,24 +17,21 @@ export interface WebhookPayload {
 
 export const sendStatusChangeWebhook = async (payload: WebhookPayload): Promise<boolean> => {
   try {
-    // Log webhook attempt (for debugging)
-    console.log('[Webhook] Sending status change notification:', payload);
+    console.log('[Webhook] Sending status change notification');
 
-    // In production, uncomment this to send actual webhook
-    // const response = await fetch(N8N_WEBHOOK_URL, {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(payload),
-    // });
-    
-    // if (!response.ok) {
-    //   throw new Error(`Webhook failed: ${response.status}`);
-    // }
+    const response = await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(N8N_API_KEY ? { 'Authorization': `Bearer ${N8N_API_KEY}` } : {}),
+      },
+      body: JSON.stringify(payload),
+    });
 
-    // For now, just log and return success
-    console.log('[Webhook] Status change logged successfully');
+    if (!response.ok) {
+      throw new Error(`Webhook failed: ${response.status}`);
+    }
+
     return true;
   } catch (error) {
     console.error('[Webhook] Error sending webhook:', error);
