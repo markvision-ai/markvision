@@ -39,12 +39,12 @@ export interface PlanData {
 export const useProjectData = (projectId: string | null) => {
   const { isAdmin } = useAuth();
   const effectiveProjectId = projectId;
-  
+
   const { canEditPlan, canEditDailyData, canViewSales, canViewRevenue } = usePermissions(effectiveProjectId);
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
   const [plansMap, setPlansMap] = useState<Record<string, PlanData>>({});
   const [loading, setLoading] = useState(true);
-  
+
   // Кэш для предотвращения лишних запросов
   const lastFetchTimeRef = useRef<number>(0);
   const lastProjectIdRef = useRef<string | null>(null);
@@ -54,7 +54,7 @@ export const useProjectData = (projectId: string | null) => {
   const planData = useMemo((): PlanData => {
     const currentMonthKey = format(startOfMonth(new Date()), 'yyyy-MM-dd');
     const currentPlan = plansMap[currentMonthKey];
-    
+
     if (!currentPlan) {
       return {
         spend: 0,
@@ -80,7 +80,7 @@ export const useProjectData = (projectId: string | null) => {
     const now = Date.now();
     const isSameProject = lastProjectIdRef.current === effectiveProjectId;
     const isStale = now - lastFetchTimeRef.current > STALE_TIME;
-    
+
     // Пропускаем запрос если данные свежие и проект не изменился
     if (!force && isSameProject && !isStale && Object.keys(dailyData).length > 0) {
       console.log('📊 useProjectData | Данные свежие, пропускаем запрос');
@@ -106,29 +106,29 @@ export const useProjectData = (projectId: string | null) => {
       const lastSyncKey = `ads_sync_${effectiveProjectId}_${todayStr}`;
       const lastSyncTime = sessionStorage.getItem(lastSyncKey);
       const nowMs = Date.now();
-      
+
       // Sync if not synced in last 5 minutes (300000ms)
       if (!lastSyncTime || (nowMs - parseInt(lastSyncTime)) > 300000) {
         console.log('🔄 useProjectData | Triggering Auto-Sync for Meta Ads...');
         sessionStorage.setItem(lastSyncKey, nowMs.toString());
-        
+
         // Fire and forget - the realtime subscription will catch the updates
         supabase.functions.invoke('ads-manager', {
-          body: { 
-            action: 'sync_metrics', 
-            payload: { 
+          body: {
+            action: 'sync_metrics',
+            payload: {
               projectId: effectiveProjectId,
-              date_range: { since: todayStr, until: todayStr } 
-            } 
+              date_range: { since: todayStr, until: todayStr }
+            }
           }
         }).then(({ data, error }) => {
-           if (error || data?.error) {
-             console.warn('⚠️ useProjectData | Auto-sync failed or rate limited:', error || data?.error);
-             // If failed, clear storage so we retry next time (or maybe keep it to avoid spamming?)
-             // Better to keep it for at least a minute to avoid loop
-           } else {
-             console.log('✅ useProjectData | Auto-sync initiated successfully');
-           }
+          if (error || data?.error) {
+            console.warn('⚠️ useProjectData | Auto-sync failed or rate limited:', error || data?.error);
+            // If failed, clear storage so we retry next time (or maybe keep it to avoid spamming?)
+            // Better to keep it for at least a minute to avoid loop
+          } else {
+            console.log('✅ useProjectData | Auto-sync initiated successfully');
+          }
         });
       }
 
@@ -140,7 +140,7 @@ export const useProjectData = (projectId: string | null) => {
           .select('*')
           .eq('project_id', effectiveProjectId)
           .order('date', { ascending: true }),
-        
+
         // Fetch ad logs for today to ensure real-time spend/metrics visibility
         supabase
           .from('ad_performance_logs')
@@ -157,7 +157,7 @@ export const useProjectData = (projectId: string | null) => {
       } else {
         console.log(`✅ useProjectData | Fetched ${adsLogs?.length || 0} ads logs for today`);
         if (adsLogs?.length) {
-            console.log('🔍 First ad log sample:', adsLogs[0]);
+          console.log('🔍 First ad log sample:', adsLogs[0]);
         }
       }
 
@@ -175,9 +175,9 @@ export const useProjectData = (projectId: string | null) => {
       }
 
       console.log('✅ useProjectData | Получено записей daily_data:', data?.length || 0);
-      
+
       const dataMap: Record<string, DailyData> = {};
-      
+
       // 1. Process standard daily_data
       data?.forEach((row) => {
         const followersDelta = Number(row.ig_followers_new) || Number(row.new_followers) || Number(row.followers) || 0;
@@ -201,17 +201,17 @@ export const useProjectData = (projectId: string | null) => {
       // 2. Process & Merge Real-time Ads Data for Today
       if (adsLogs && adsLogs.length > 0) {
         console.log(`📊 useProjectData | Merging ${adsLogs.length} ad logs for today (${todayStr})`);
-        
+
         // Deduplicate logs (logic from ActiveAdsManager)
         const uniqueLogs: Record<string, any> = {};
         adsLogs.forEach((item: any) => {
-            const key = `${item.entity_id}_${item.date_start}`;
-            const currentSpend = Number(item.spend) || 0;
-            const existingSpend = uniqueLogs[key] ? (Number(uniqueLogs[key].spend) || 0) : -1;
-            
-            if (!uniqueLogs[key] || currentSpend >= existingSpend) {
-                uniqueLogs[key] = item;
-            }
+          const key = `${item.entity_id}_${item.date_start}`;
+          const currentSpend = Number(item.spend) || 0;
+          const existingSpend = uniqueLogs[key] ? (Number(uniqueLogs[key].spend) || 0) : -1;
+
+          if (!uniqueLogs[key] || currentSpend >= existingSpend) {
+            uniqueLogs[key] = item;
+          }
         });
 
         // Calculate totals
@@ -229,21 +229,21 @@ export const useProjectData = (projectId: string | null) => {
 
         // Initialize today's entry if missing
         if (!dataMap[todayStr]) {
-           dataMap[todayStr] = {
-             date: todayStr,
-             spend: 0,
-             impressions: 0,
-             clicks: 0,
-             leads: 0,
-             followers: 0,
-             followers_total: 0,
-             visits: 0,
-             visit_results: 0,
-             sales: 0,
-             revenue: 0,
-             ig_followers_new: 0,
-             new_followers: 0
-           };
+          dataMap[todayStr] = {
+            date: todayStr,
+            spend: 0,
+            impressions: 0,
+            clicks: 0,
+            leads: 0,
+            followers: 0,
+            followers_total: 0,
+            visits: 0,
+            visit_results: 0,
+            sales: 0,
+            revenue: 0,
+            ig_followers_new: 0,
+            new_followers: 0
+          };
         }
 
         // Overwrite with real-time aggregated values
@@ -257,7 +257,7 @@ export const useProjectData = (projectId: string | null) => {
         // but for "Ads Management" context, ad logs are used.
         // Let's use logic from CampaignFunnelChart: MAX(Meta Logs, CRM Leads)
         dataMap[todayStr].leads = Math.max(dataMap[todayStr].leads, todayLeads);
-        
+
         console.log('✅ useProjectData | Updated today with real-time ads data:', { todaySpend, todayImpressions, todayClicks, todayLeads });
       }
 
@@ -272,7 +272,7 @@ export const useProjectData = (projectId: string | null) => {
       console.error('❌ useProjectData | Exception:', err);
       toast.error('Критическая ошибка загрузки данных');
     }
-  }, [effectiveProjectId]);
+  }, [effectiveProjectId, dailyData]);
 
   // Fetch ALL plan data
   const fetchPlanData = useCallback(async (force = false) => {
@@ -282,7 +282,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
     console.log('📋 useProjectData | Загрузка ВСЕХ планов из plan_data');
-    
+
     const signal = abortControllerRef.current?.signal;
 
     try {
@@ -309,7 +309,7 @@ export const useProjectData = (projectId: string | null) => {
       if (data) {
         console.log('✅ useProjectData | Планы загружены:', data.length);
         const newPlansMap: Record<string, PlanData> = {};
-        
+
         data.forEach(plan => {
           if (plan.month) {
             newPlansMap[plan.month] = {
@@ -324,7 +324,7 @@ export const useProjectData = (projectId: string | null) => {
             };
           }
         });
-        
+
         setPlansMap(newPlansMap);
       }
     } catch (err: any) {
@@ -353,7 +353,7 @@ export const useProjectData = (projectId: string | null) => {
     }
 
     const targetMonth = month || format(startOfMonth(new Date()), 'yyyy-MM-dd');
-    
+
     console.log('💾 updatePlanData | Сохраняем ПЛАН:', { date: targetMonth, field, value, project_id: effectiveProjectId });
 
     const previousPlansMap = { ...plansMap };
@@ -362,7 +362,7 @@ export const useProjectData = (projectId: string | null) => {
       const existingPlan = prev[targetMonth] || {
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0
       };
-      
+
       return {
         ...prev,
         [targetMonth]: {
@@ -418,7 +418,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
     if (!isAdmin && !canEditDailyData) {
-       console.log('⚠️ updateDailyData | Пробуем сохранить без явных прав');
+      console.log('⚠️ updateDailyData | Пробуем сохранить без явных прав');
     }
 
     const validation = validateFieldValue(field, value);
@@ -429,6 +429,7 @@ export const useProjectData = (projectId: string | null) => {
 
     console.log('💾 updateDailyData | Сохраняем ФАКТ:', { date, field, value, project_id: effectiveProjectId });
 
+    // Store previous data for rollback - requires dailyData in dependency array
     const previousDailyData = { ...dailyData };
 
     setDailyData(prev => {
@@ -453,7 +454,7 @@ export const useProjectData = (projectId: string | null) => {
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
         visits: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
       };
-      
+
       // Merge current data with new value for the payload
       const dataToSave = {
         ...currentData,
@@ -490,9 +491,10 @@ export const useProjectData = (projectId: string | null) => {
       logError('Save daily data failed', error);
       console.error('❌ updateDailyData | Ошибка:', error);
       toast.error('Ошибка сохранения данных: ' + error.message);
+      // Rollback
       setDailyData(previousDailyData);
     }
-  }, [effectiveProjectId, isAdmin, canEditDailyData, dailyData]);
+  }, [effectiveProjectId, isAdmin, canEditDailyData, dailyData]); // Added dailyData to dependencies
 
 
   // Оптимизированный useEffect - загрузка только при смене проекта
@@ -506,16 +508,19 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
     let isMounted = true;
-    
+
+    // Moved loadData inside useEffect to capture current dependencies
     const loadData = async () => {
       // Проверяем, изменился ли проект
+      // We rely on effectiveProjectId change to trigger this effect
       if (lastProjectIdRef.current === effectiveProjectId && !loading) {
+        // Already loaded for this project
         return;
       }
-      
+
       setLoading(true);
       console.log('🔄 useProjectData | Начинаем загрузку данных для project_id:', effectiveProjectId);
-      
+
       try {
         await Promise.all([fetchDailyData(true), fetchPlanData(true)]);
         if (isMounted) {
@@ -524,7 +529,7 @@ export const useProjectData = (projectId: string | null) => {
       } catch (err) {
         console.error('❌ useProjectData | Ошибка загрузки:', err);
       }
-      
+
       if (isMounted) {
         setLoading(false);
       }
@@ -544,18 +549,18 @@ export const useProjectData = (projectId: string | null) => {
           filter: `project_id=eq.${effectiveProjectId}`
         },
         (payload) => {
-           console.log('🔔 useProjectData | Realtime update from ad_performance_logs:', payload.eventType);
-           // Refresh daily data (which includes ads merge logic)
-           fetchDailyData(true);
+          console.log('🔔 useProjectData | Realtime update from ad_performance_logs:', payload.eventType);
+          // Refresh daily data (which includes ads merge logic)
+          fetchDailyData(true);
         }
       )
       .subscribe();
-    
+
     return () => {
       isMounted = false;
       supabase.removeChannel(channel);
     };
-  }, [effectiveProjectId]); // Только при смене проекта!
+  }, [effectiveProjectId, fetchDailyData, fetchPlanData, loading]); // Added loading as requested by linter
 
   return {
     dailyData,

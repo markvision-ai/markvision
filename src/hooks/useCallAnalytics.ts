@@ -243,7 +243,7 @@ export function useCallAnalytics(projectId: string | null) {
         } finally {
             setLoading(false);
         }
-    }, [projectId, filters]);
+    }, [projectId]); // Removed filters from dependencies as they are not used yet
 
     useEffect(() => {
         fetchCalls();

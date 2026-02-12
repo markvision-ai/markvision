@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -32,10 +32,9 @@ const CAMPAIGN_FIELDS = '*';
 export function useCampaigns(projectId: string | null) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const abortControllerRef = useCallback((controller: AbortController | null) => {
-    if (controller) controller.abort();
-  }, []);
-  const controllerRef = useState<{ current: AbortController | null }>({ current: null })[0];
+
+  // Use standard useRef for AbortController
+  const controllerRef = useRef<AbortController | null>(null);
 
   const fetchCampaigns = useCallback(async () => {
     if (!projectId) {
@@ -62,7 +61,7 @@ export function useCampaigns(projectId: string | null) {
         .abortSignal(signal);
 
       if (error) throw error;
-      
+
       const typedData = (data || []) as any[];
       setCampaigns(typedData.map(c => ({
         id: c.id,
@@ -126,15 +125,15 @@ export function useCampaigns(projectId: string | null) {
             } as Campaign;
             setCampaigns(prev => [newCampaign, ...prev]);
           } else if (payload.eventType === 'UPDATE') {
-            setCampaigns(prev => prev.map(c => 
-              c.id === payload.new.id 
+            setCampaigns(prev => prev.map(c =>
+              c.id === payload.new.id
                 ? {
-                    ...c,
-                    ...payload.new,
-                    platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
-                    rules: (payload.new.rules || {}) as Campaign['rules'],
-                    ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
-                  } as Campaign
+                  ...c,
+                  ...payload.new,
+                  platform: (payload.new.platform || 'facebook') as 'facebook' | 'tiktok' | 'google',
+                  rules: (payload.new.rules || {}) as Campaign['rules'],
+                  ai_log: (payload.new.ai_log || []) as Campaign['ai_log'],
+                } as Campaign
                 : c
             ));
           } else if (payload.eventType === 'DELETE') {
@@ -157,11 +156,11 @@ export function useCampaigns(projectId: string | null) {
         .eq('id', id);
 
       if (error) throw error;
-      
-      setCampaigns(prev => prev.map(c => 
+
+      setCampaigns(prev => prev.map(c =>
         c.id === id ? { ...c, ...updates } : c
       ));
-      
+
       toast.success('Кампания обновлена');
       return true;
     } catch (error) {
@@ -180,7 +179,7 @@ export function useCampaigns(projectId: string | null) {
         .single();
 
       if (error) throw error;
-      
+
       const typedData = data as any;
       setCampaigns(prev => [{
         ...typedData,
@@ -188,7 +187,7 @@ export function useCampaigns(projectId: string | null) {
         rules: (typedData.rules || {}) as Campaign['rules'],
         ai_log: (typedData.ai_log || []) as Campaign['ai_log'],
       } as Campaign, ...prev]);
-      
+
       toast.success('Кампания создана');
       return typedData;
     } catch (error) {
