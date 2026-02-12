@@ -5,6 +5,16 @@ import type { Database } from './types';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('🚨 CRITICAL ERROR: Missing Supabase Environment Variables!');
+  console.error('Please ensure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are set in your environment (Vercel/local).');
+  // Throwing error here might crash the app immediately, which is validation, but let's just log loudly for now 
+  // to avoid white screen of death if possible, although createClient will likely fail anyway.
+  if (import.meta.env.PROD) {
+    throw new Error('Application Configuration Error: Missing Database Connection.');
+  }
+}
+
 console.log('Supabase initialized with URL:', !!SUPABASE_URL);
 
 

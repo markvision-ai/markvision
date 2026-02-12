@@ -14,8 +14,12 @@ export default defineConfig(({ mode }) => {
   // Workbox/build + Node 24 can crash during SW generation due to terser finishing early.
   // Keep production mode on LTS, but avoid the problematic codepath on Node 23+.
   const workboxMode = nodeMajor >= 23 ? "development" : "production";
+
   return {
     base: basePath,
+    esbuild: {
+      drop: mode === 'production' ? ['console', 'debugger'] : [],
+    },
     server: {
       host: "::",
       port: 8080,
@@ -95,7 +99,7 @@ export default defineConfig(({ mode }) => {
           mode: workboxMode,
           globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
           // Keep SW install fast: avoid precaching huge images by default.
-          maximumFileSizeToCacheInBytes: 1 * 1024 * 1024,
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
           cleanupOutdatedCaches: true,
           clientsClaim: true,
           skipWaiting: true,
@@ -147,7 +151,7 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-      chunkSizeWarningLimit: 600,
+      chunkSizeWarningLimit: 1000,
       // Optimize assets
       assetsInlineLimit: 4096, // Inline assets < 4KB
     },
