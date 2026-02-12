@@ -1,12 +1,12 @@
 import { useState, useMemo, useCallback, useEffect, lazy, Suspense } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, subWeeks } from 'date-fns';
-import { 
-  DollarSign, 
-  Eye, 
-  Users, 
-  Target, 
-  ShoppingCart, 
+import {
+  DollarSign,
+  Eye,
+  Users,
+  Target,
+  ShoppingCart,
   Wallet,
   TrendingUp,
   Loader2,
@@ -117,7 +117,7 @@ export const AnalyticsPlatform = () => {
   const { theme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
-  
+
   // Синхронизация activeTab с URL
   const getTabFromPath = (pathname: string): string => {
     const path = pathname.replace('/', '');
@@ -131,12 +131,12 @@ export const AnalyticsPlatform = () => {
     };
     return urlToTab[path] || path;
   };
-  
+
   const [activeTab, setActiveTab] = useState(() => getTabFromPath(location.pathname));
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const isMobile = useIsMobile();
   const { profile, user } = useAuth();
-  
+
   // Обновляем URL при смене вкладки
   const handleTabChange = useCallback((tab: string) => {
     setActiveTab(tab);
@@ -151,7 +151,7 @@ export const AnalyticsPlatform = () => {
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
   }, [navigate]);
-  
+
   // При изменении URL (например F5 или история браузера) - обновляем вкладку
   useEffect(() => {
     const newTab = getTabFromPath(location.pathname);
@@ -159,11 +159,11 @@ export const AnalyticsPlatform = () => {
       setActiveTab(newTab);
     }
   }, [location.pathname, activeTab]);
-  
+
   const { projects, currentProjectId, setCurrentProjectId, currentProject, loading: projectsLoading, createProject, deleteProject, refetch: refetchProjects, forceLoadProject } = useProjects();
   const { dailyData, planData, plansMap, loading: dataLoading, updateDailyData, updatePlanData, refetch } = useProjectData(currentProjectId);
   const systemHasErrors = false; // System health check disabled
-  
+
   // CRITICAL: Super admin UUID - bypass all loading states
   const SUPER_ADMIN_UID = 'd94043b0-1c76-4017-84de-df0dbf00a2c9';
   const isSuperAdminUser = user?.id === SUPER_ADMIN_UID;
@@ -206,7 +206,7 @@ export const AnalyticsPlatform = () => {
       const lastRangeDate = rangeDays[rangeDays.length - 1];
       const allDates = Object.keys(dailyData).sort();
       const candidateDates = allDates.filter(d => d <= lastRangeDate);
-      
+
       // Try to find explicit total first
       for (let i = candidateDates.length - 1; i >= 0; i--) {
         const d = dailyData[candidateDates[i]];
@@ -273,12 +273,12 @@ export const AnalyticsPlatform = () => {
     // Берем последний день текущего диапазона и отнимаем 7 дней
     const lastDayOfRange = dateRange.to;
     const sevenDaysAgo = subWeeks(lastDayOfRange, 1);
-    
+
     // Берем данные за 7 дней назад (от sevenDaysAgo минус 6 дней до sevenDaysAgo)
     const prevEnd = sevenDaysAgo;
     const prevStart = new Date(prevEnd);
     prevStart.setDate(prevStart.getDate() - 6); // 7 дней включая текущий
-    
+
     const prevDays = eachDayOfInterval({ start: prevStart, end: prevEnd });
     const prevDaysFormatted = prevDays.map(d => format(d, 'yyyy-MM-dd'));
     const prevData = prevDaysFormatted.map(date => dailyData[date]).filter(Boolean);
@@ -294,7 +294,7 @@ export const AnalyticsPlatform = () => {
       const lastRangeDate = prevDaysFormatted[prevDaysFormatted.length - 1];
       const allDates = Object.keys(dailyData).sort();
       const candidateDates = allDates.filter(d => d <= lastRangeDate);
-      
+
       for (let i = candidateDates.length - 1; i >= 0; i--) {
         const d = dailyData[candidateDates[i]];
         if ((d.followers_total || 0) > 0) {
@@ -333,7 +333,7 @@ export const AnalyticsPlatform = () => {
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null; // CR (Показы→Лид)
   const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null; // CR (Лид→Визит)
   const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null; // CR (Визит→Продажа)
-  
+
   // ROMI, Рентабельность, ROAS
   const romi = totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null; // ROMI: прибыльность маркетинга в %
   const profitability = totals.revenue > 0 ? ((totals.revenue - totals.spend) / totals.revenue) * 100 : null; // Рентабельность: (Прибыль / Выручка) × 100%
@@ -431,13 +431,13 @@ export const AnalyticsPlatform = () => {
             const todayData = dailyData[todayKey];
 
             // Welcome Hero
-            const captainName = profile?.full_name?.split(' ').pop() || profile?.full_name || 'Запойнов';
+            const captainName = profile?.name?.split(' ').pop() || profile?.name || 'Запойнов';
             registerWidget('welcome-hero', (
               <WelcomeHero
-                userName={`Капитан ${captainName}`}
+                projectName={currentProject?.name || 'Стоматология'}
                 keyMetrics={{
                   revenue: totals.revenue,
-                  leads: totals.leads,
+                  expenses: totals.spend,
                   romi: romiPercent,
                 }}
                 systemStatus={systemHasErrors ? 'error' : 'healthy'}
@@ -449,55 +449,7 @@ export const AnalyticsPlatform = () => {
               <QuickActions onTabChange={handleTabChange} />
             ));
 
-            // Top Row (Main KPIs): Revenue, Spend, Net Profit, ROMI
-            registerWidget('kpi-top', (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <MetricCard
-                  label="Выручка"
-                  value={formatInt(totals.revenue)}
-                  previousValue={previousWeekTotals.revenue}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(totals.revenue, previousWeekTotals.revenue) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.revenue, previousWeekTotals.revenue))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Расходы"
-                  value={formatInt(totals.spend)}
-                  previousValue={previousWeekTotals.spend}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
-                  icon={<DollarSign className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${calcDelta(totals.spend, previousWeekTotals.spend) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals.spend, previousWeekTotals.spend))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Маржа маркетинга"
-                  value={formatInt(profit)}
-                  previousValue={previousWeekTotals.revenue - previousWeekTotals.spend}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    return (dd?.revenue || 0) - (dd?.spend || 0);
-                  })}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, (previousWeekTotals.revenue - previousWeekTotals.spend)))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="ROMI"
-                  value={`${formatPercent1(romiPercent)}%`}
-                  previousValue={prevConversionRate}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    const spend = dd?.spend || 0;
-                    const revenue = dd?.revenue || 0;
-                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
-                  })}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${romiPercent - prevConversionRate >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevConversionRate)}% к прошлой неделе`}
-                />
-              </div>
-            ));
+
 
             registerWidget('plan-fact', (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
@@ -620,13 +572,13 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'table' && currentProjectId && (
-        <DataTable 
-                dailyData={dailyData} 
-                onDataChange={handleDataChange}
-                planData={planData}
-                plansMap={plansMap}
-                onPlanChange={handlePlanChange}
-              />
+        <DataTable
+          dailyData={dailyData}
+          onDataChange={handleDataChange}
+          planData={planData}
+          plansMap={plansMap}
+          onPlanChange={handlePlanChange}
+        />
       )}
 
       {activeTab === 'quantom-ads' && currentProjectId && (
@@ -643,7 +595,7 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'publications' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <PublicationsPage />
+          <PublicationsPage projectId={currentProjectId} />
         </Suspense>
       )}
 
@@ -661,30 +613,12 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
-          <ReportGenerator data={{ 
-            projectId: currentProjectId, 
-            projectName: currentProject?.name || 'Проект', 
-            dateRange: { from: dateRange.from || new Date(), to: dateRange.to || new Date() }, 
-            totals, 
+          <ReportGenerator data={{
+            projectId: currentProjectId,
+            projectName: currentProject?.name || 'Проект',
+            dateRange: { from: dateRange.from || new Date(), to: dateRange.to || new Date() },
+            totals,
             planData,
-            metrics: {
-              customerCost: customerCost ?? 0,
-              visitCost: visitCost ?? 0,
-              leadCost: leadCost ?? 0,
-              impressionToLeadConv: impressionToLeadConv ?? 0,
-              leadToVisitConv: leadToVisitConv ?? 0,
-              visitToSaleConv: visitToSaleConv ?? 0,
-              romi: romi ?? 0,
-              profitability: profitability ?? 0,
-              roas: roas ?? 0,
-            },
-            funnelSteps: [
-              { label: 'Показы', value: totals.impressions, color: 'hsl(220, 90%, 56%)' },
-              { label: 'Клики', value: totals.clicks, color: 'hsl(200, 80%, 50%)' },
-              { label: 'Лиды', value: totals.leads, color: 'hsl(262, 83%, 58%)' },
-              { label: 'Диагностика', value: totals.visits, color: 'hsl(38, 92%, 50%)' },
-              { label: 'Продажи', value: totals.sales, color: 'hsl(142, 76%, 36%)' },
-            ]
           }} />
         </Suspense>
       )}
@@ -813,81 +747,81 @@ export const AnalyticsPlatform = () => {
       <SidebarProvider>
         <div className="h-screen overflow-hidden flex w-full relative bg-background">
 
-        {/* Premium Animated Sidebar - Fixed left, sticky */}
-        <AppSidebar 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          userProfile={profile}
-          realtimeStatus="SUBSCRIBED"
-          projects={projects}
-          currentProjectId={currentProjectId}
-          onProjectChange={setCurrentProjectId}
-          onCreateProject={createProject}
-          onDeleteProject={deleteProject}
-          userId={user?.id}
-          systemHasErrors={systemHasErrors}
-          onForceLoadProject={forceLoadProject}
-        />
-        
-        {/* Main Content Area - Takes remaining space, no overlap */}
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-          {/* Mobile Header */}
-          <MobileHeader 
-            title={getTabTitle()}
-            subtitle={currentProject?.name}
-            onMenuClick={() => setIsMobileSidebarOpen(true)}
-            projects={projectsList}
+          {/* Premium Animated Sidebar - Fixed left, sticky */}
+          <AppSidebar
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            userProfile={profile}
+            realtimeStatus="SUBSCRIBED"
+            projects={projects}
             currentProjectId={currentProjectId}
             onProjectChange={setCurrentProjectId}
+            onCreateProject={createProject}
+            onDeleteProject={deleteProject}
+
+            systemHasErrors={systemHasErrors}
+            onForceLoadProject={forceLoadProject}
           />
-          
-          {/* Desktop Header with interstellar glass */}
-          <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
-            <Header
-              onTabChange={handleTabChange} 
-              title={getTabTitle()} 
+
+          {/* Main Content Area - Takes remaining space, no overlap */}
+          <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
+            {/* Mobile Header */}
+            <MobileHeader
+              title={getTabTitle()}
               subtitle={currentProject?.name}
-              dateRange={dateRange}
-              onDateRangeChange={setDateRange}
-              onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
-              showDatePicker={activeTab === 'dashboard'}
-              onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+              onMenuClick={() => setIsMobileSidebarOpen(true)}
               projects={projectsList}
               currentProjectId={currentProjectId}
               onProjectChange={setCurrentProjectId}
-              onCreateProject={createProject}
-              showProjectSelector={true}
             />
-          </header>
-          
-          {/* Scrollable content area */}
-          <div className="flex-1 overflow-y-auto scrollbar-thin">
-            {isMobile ? (
-              <PullToRefresh onRefresh={handleRefresh}>
-                {mainContent}
-              </PullToRefresh>
-            ) : (
-              mainContent
-            )}
-          </div>
-        </main>
 
-        {/* Mobile Bottom Navigation */}
-        <MobileBottomNav 
-          activeTab={activeTab} 
-          onTabChange={handleTabChange}
-          onMoreClick={() => setIsMobileSidebarOpen(true)}
-        />
+            {/* Desktop Header with interstellar glass */}
+            <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
+              <Header
+                onTabChange={handleTabChange}
+                title={getTabTitle()}
+                subtitle={currentProject?.name}
+                dateRange={dateRange}
+                onDateRangeChange={setDateRange}
+                onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+                showDatePicker={activeTab === 'dashboard'}
+                onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+                projects={projectsList}
+                currentProjectId={currentProjectId}
+                onProjectChange={setCurrentProjectId}
+                onCreateProject={createProject}
+                showProjectSelector={true}
+              />
+            </header>
 
-        {/* Mobile Menu Drawer */}
-        <MobileMenuDrawer
-          open={isMobileSidebarOpen}
-          onOpenChange={setIsMobileSidebarOpen}
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          userProfile={profile}
-          currentProjectName={currentProject?.name}
-        />
+            {/* Scrollable content area */}
+            <div className="flex-1 overflow-y-auto scrollbar-thin">
+              {isMobile ? (
+                <PullToRefresh onRefresh={handleRefresh}>
+                  {mainContent}
+                </PullToRefresh>
+              ) : (
+                mainContent
+              )}
+            </div>
+          </main>
+
+          {/* Mobile Bottom Navigation */}
+          <MobileBottomNav
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            onMoreClick={() => setIsMobileSidebarOpen(true)}
+          />
+
+          {/* Mobile Menu Drawer */}
+          <MobileMenuDrawer
+            open={isMobileSidebarOpen}
+            onOpenChange={setIsMobileSidebarOpen}
+            activeTab={activeTab}
+            onTabChange={handleTabChange}
+            userProfile={profile}
+            currentProjectName={currentProject?.name}
+          />
         </div>
       </SidebarProvider>
     </DotPatternBackground>

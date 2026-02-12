@@ -15,15 +15,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
 import { z } from "zod";
 
-// Founder image - WebP + PNG fallback
-import founderSrcSet from "@/assets/founder-with-mark.png?w=800;1200&format=webp;png&as=srcset";
-import founderWebp from "@/assets/founder-with-mark.png?w=800&format=webp";
-import founderPng from "@/assets/founder-with-mark.png?w=800&format=png";
+// Founder image
+import founderImg from "@/assets/founder-with-mark.png";
 
-// Logo - WebP + PNG fallback
-import markvisionLogoSrcSet from "@/assets/markvision-logo.png?w=400;800&format=webp;png&as=srcset";
-import markvisionLogoWebp from "@/assets/markvision-logo.png?w=400&format=webp";
-import markvisionLogoPng from "@/assets/markvision-logo.png?w=400&format=png";
+// Logo
+import markvisionLogo from "@/assets/markvision-logo.png";
 
 const modules = [{
   title: "Контент за вас",
@@ -235,17 +231,16 @@ export const LandingPage = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-2xl border-b border-white/10 safe-area-top">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-12 py-3 sm:py-5 flex items-center justify-between">
         <div className="flex items-center gap-2 sm:gap-3">
-          <picture>
-            <source type="image/webp" srcSet={markvisionLogoSrcSet} />
+          <div className="relative">
             <img
               alt="MarkVision AI"
               className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/25"
-              src={markvisionLogoPng}
+              src={markvisionLogo}
               width="40"
               height="40"
               fetchPriority="high"
             />
-          </picture>
+          </div>
           <span className="font-semibold text-xs sm:text-lg text-white tracking-tight">
             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>
           </span>
@@ -600,10 +595,7 @@ export const LandingPage = () => {
               duration: 0.3
             }} className="relative">
               <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-white/10 shadow-xl sm:shadow-2xl shadow-blue-500/20">
-                <picture>
-                  <source type="image/webp" srcSet={founderSrcSet} />
-                  <img src={founderPng} alt="Юрий с сыном Марком" className="w-full h-full object-cover" fetchPriority="high" />
-                </picture>
+                <img src={founderImg} alt="Юрий с сыном Марком" className="w-full h-full object-cover" fetchPriority="high" />
               </div>
               {/* Decorative elements */}
               <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-500/20 rounded-full blur-3xl" />

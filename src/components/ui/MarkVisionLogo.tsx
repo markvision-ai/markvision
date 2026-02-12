@@ -1,15 +1,9 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
 
-// Logo 2 - WebP + PNG
-import logoNewSrcSet from '@/assets/markvision-logo-2.png?w=400;800&format=webp;png&as=srcset';
-import logoNewWebp from '@/assets/markvision-logo-2.png?w=400&format=webp';
-import logoNewPng from '@/assets/markvision-logo-2.png?w=400&format=png';
-
-// Logo - WebP + PNG
-import logoOldSrcSet from '@/assets/markvision-logo.png?w=400;800&format=webp;png&as=srcset';
-import logoOldWebp from '@/assets/markvision-logo.png?w=400&format=webp';
-import logoOldPng from '@/assets/markvision-logo.png?w=400&format=png';
+// Standard Imports (Bypassing vite-imagetools due to build error)
+import logoNew from '@/assets/markvision-logo-2.png';
+import logoOld from '@/assets/markvision-logo.png';
 
 interface MarkVisionLogoProps {
   className?: string;
@@ -19,8 +13,8 @@ interface MarkVisionLogoProps {
   theme?: 'light' | 'dark' | 'auto'; // Force a theme or use auto
 }
 
-export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({ 
-  className = "", 
+export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
+  className = "",
   variant = 'icon',
   type = 'default',
   size,
@@ -28,20 +22,16 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
 }) => {
   const iconSize = size || (variant === 'full' ? 40 : 60);
 
-  // Select appropriate logo set
-  const logoPng = type === 'text' ? logoNewPng : logoOldPng;
-  const logoSrcSet = type === 'text' ? logoNewSrcSet : logoOldSrcSet;
+  // Select appropriate logo
+  const logoSrc = type === 'text' ? logoNew : logoOld;
 
   const logoImg = (
-    <picture>
-      <source type="image/webp" srcSet={logoSrcSet} />
-      <img
-        src={logoPng}
-        alt="MarkVision AI Logo"
-        className={cn("transition-all duration-300 block object-contain", className)}
-        style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
-      />
-    </picture>
+    <img
+      src={logoSrc}
+      alt="MarkVision AI Logo"
+      className={cn("transition-all duration-300 block object-contain", className)}
+      style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
+    />
   );
 
   if (variant === 'full') {
@@ -49,9 +39,9 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
       <div className={cn("flex flex-col items-center justify-center", className)}>
         {/* Icon Container */}
         <div className="relative flex items-center justify-center mb-1">
-            {logoImg}
+          {logoImg}
         </div>
-        
+
         {/* Text Container */}
         <div className="flex flex-col items-center leading-none mt-1">
           <span className={cn(

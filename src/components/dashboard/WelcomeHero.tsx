@@ -3,22 +3,24 @@ import { cn } from '@/lib/utils';
 import { TrendingUp, Users, Wallet, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
 
 interface WelcomeHeroProps {
-  userName: string | null;
+  projectName: string | null;
   keyMetrics: {
     revenue: number;
-    leads: number;
+    expenses: number;
     romi: number | null;
   };
   systemStatus: 'healthy' | 'warning' | 'error';
   className?: string;
 }
 
-const getGreeting = (): string => {
+const getGreeting = (name: string): string => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return 'Доброе утро';
-  if (hour >= 12 && hour < 17) return 'Добрый день';
-  if (hour >= 17 && hour < 22) return 'Добрый вечер';
-  return 'Доброй ночи';
+  let timeGreeting = 'Доброй ночи';
+  if (hour >= 5 && hour < 12) timeGreeting = 'Доброе утро';
+  else if (hour >= 12 && hour < 17) timeGreeting = 'Добрый день';
+  else if (hour >= 17 && hour < 22) timeGreeting = 'Добрый вечер';
+
+  return `${timeGreeting}, ${name}`;
 };
 
 const formatCurrency = (value: number): string => {
@@ -42,20 +44,20 @@ const formatPercent = (value: number | null): string => {
 };
 
 export const WelcomeHero = ({
-  userName,
+  projectName,
   keyMetrics,
   systemStatus,
   className
 }: WelcomeHeroProps) => {
-  const greeting = getGreeting();
-  const displayName = userName || 'Пользователь';
+  const displayName = projectName || 'Проект';
+  const greeting = getGreeting(displayName);
 
   const statusConfig = {
     healthy: {
       icon: CheckCircle2,
       color: 'text-emerald-500',
       bg: 'bg-emerald-500/10',
-      label: 'Система работает',
+      label: 'Все системы онлайн',
     },
     warning: {
       icon: AlertTriangle,
@@ -95,24 +97,24 @@ export const WelcomeHero = ({
           MarkVision Online
         </h2>
         <p className="text-muted-foreground text-base md:text-lg mb-4">
-          Добро пожаловать, {displayName}
+          {greeting}
         </p>
 
         {/* System Status */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-full",
-              status.bg
-            )}
-          >
-            <StatusIcon className={cn("w-4 h-4", status.color)} />
-            <span className={cn("text-sm font-medium", status.color)}>
-              {status.label}
-            </span>
-          </motion.div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.3 }}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-full",
+            status.bg
+          )}
+        >
+          <StatusIcon className={cn("w-4 h-4", status.color)} />
+          <span className={cn("text-sm font-medium", status.color)}>
+            {status.label}
+          </span>
+        </motion.div>
         <div className="mb-4" />
 
         {/* Key Metrics */}
@@ -135,7 +137,7 @@ export const WelcomeHero = ({
             </p>
           </motion.div>
 
-          {/* Leads */}
+          {/* Expenses */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -143,13 +145,13 @@ export const WelcomeHero = ({
             className="welcome-hero-kpi"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Users className="w-4 h-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-red-500" />
               </div>
-              <span className="kpi-label">Лиды</span>
+              <span className="kpi-label">Расходы</span>
             </div>
-            <p className="kpi-value text-blue-600 dark:text-blue-400 font-mono">
-              {formatNumber(keyMetrics.leads)}
+            <p className="kpi-value text-red-600 dark:text-red-400 font-mono">
+              {formatCurrency(keyMetrics.expenses)}
             </p>
           </motion.div>
 

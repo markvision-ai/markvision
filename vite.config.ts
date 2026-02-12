@@ -38,7 +38,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === "development" && componentTagger(),
-      imagetools({
+      mode === "production" && imagetools({
         defaultDirectives: (url) => {
           if (url.pathname.includes('/assets/')) {
             return new URLSearchParams({
