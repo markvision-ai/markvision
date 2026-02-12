@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 
 // Standard Imports (Bypassing vite-imagetools due to build error)
 import logoNew from '@/assets/markvision-logo-2.png';
-import logoOld from '@/assets/markvision-logo.png';
+const logoOld = '/markvision-logo.png';
 
 interface MarkVisionLogoProps {
   className?: string;

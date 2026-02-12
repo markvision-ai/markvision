@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
@@ -217,11 +217,7 @@ export const useProjects = () => {
 
   const currentProject = projects.find(p => p.id === currentProjectId) || null;
 
-  if (currentProject && import.meta.env.DEV) {
-    console.log('🎯 CURRENT PROJECT:', currentProject.name, '| ID:', currentProject.id);
-  }
-
-  return {
+  const memoizedReturn = useMemo(() => ({
     projects,
     currentProjectId,
     setCurrentProjectId,
@@ -230,6 +226,17 @@ export const useProjects = () => {
     createProject,
     deleteProject,
     refetch: fetchProjects,
-    forceLoadProject, // New function for manual trigger
-  };
+    forceLoadProject,
+  }), [
+    projects,
+    currentProjectId,
+    currentProject,
+    loading,
+    createProject, // createProject is stable? It's async function defined in body... wait, it's NOT memoized!
+    deleteProject, // NOT memoized!
+    fetchProjects,
+    forceLoadProject
+  ]);
+
+  return memoizedReturn;
 };

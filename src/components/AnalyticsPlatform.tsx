@@ -35,7 +35,6 @@ import { FloatingChat } from '@/components/analytics/FloatingChat';
 import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
 import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
 import { WelcomeHero } from './dashboard/WelcomeHero';
-import { QuickActions } from './dashboard/QuickActions';
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
@@ -409,6 +408,128 @@ export const AnalyticsPlatform = () => {
     }
   };
 
+
+
+  const renderDashboardWidgets = useCallback((registerWidget: any) => {
+    // Register all widgets - the DraggableDashboard will render them in sorted order
+    const todayKey = format(new Date(), 'yyyy-MM-dd');
+    const todayData = dailyData[todayKey];
+
+    // Welcome Hero
+    const captainName = profile?.name?.split(' ').pop() || profile?.name || 'Запойнов';
+    registerWidget('welcome-hero', (
+      <WelcomeHero
+        projectName={currentProject?.name || 'Стоматология'}
+        keyMetrics={{
+          revenue: totals.revenue,
+          expenses: totals.spend,
+          romi: romiPercent,
+        }}
+        systemStatus={systemHasErrors ? 'error' : 'healthy'}
+        onTabChange={handleTabChange}
+      />
+    ));
+
+    registerWidget('plan-fact', (
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-4">
+        <PlanFactCard
+          label="Показы"
+          value={totals.impressions}
+          plan={planData.impressions}
+          fact={totals.impressions}
+          icon={<Eye className="w-4 h-4" />}
+          format="number"
+        />
+        <PlanFactCard
+          label="Лиды"
+          value={totals.leads}
+          plan={planData.leads}
+          fact={totals.leads}
+          icon={<Users className="w-4 h-4" />}
+          format="number"
+        />
+        <MetricCard
+          label="Стоимость лида"
+          value={leadCost !== null ? formatInt(leadCost) + ' ₸' : '—'}
+          icon={<Users className="w-5 h-5" />}
+          variant="primary"
+          subValue={`${leadCost !== null ? 'CPL' : 'Нет данных'}`}
+        />
+        <PlanFactCard
+          label="Визиты"
+          value={totals.visits}
+          plan={planData.visits}
+          fact={totals.visits}
+          icon={<Target className="w-4 h-4" />}
+          format="number"
+        />
+        <MetricCard
+          label="Стоимость визита"
+          value={visitCost !== null ? formatInt(visitCost) + ' ₸' : '—'}
+          icon={<Target className="w-5 h-5" />}
+          variant="success"
+          subValue={`${visitCost !== null ? 'CPV' : 'Нет данных'}`}
+        />
+        <PlanFactCard
+          label="Продажи"
+          value={totals.sales}
+          plan={planData.sales}
+          fact={totals.sales}
+          icon={<ShoppingCart className="w-4 h-4" />}
+          format="number"
+        />
+        <MetricCard
+          label="Стоимость клиента"
+          value={customerCost !== null ? formatInt(customerCost) + ' ₸' : '—'}
+          icon={<ShoppingCart className="w-5 h-5" />}
+          variant="primary"
+          subValue={`${customerCost !== null ? 'CPS' : 'Нет данных'}`}
+        />
+        <PlanFactCard
+          label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
+          value={totals.followers}
+          plan={planData.followers}
+          fact={totals.followers}
+          icon={<Users className="w-4 h-4" />}
+          format="number"
+        />
+      </div>
+    ));
+
+    // Second Row: Connected Funnel analysis
+    registerWidget('charts-row', (
+      <div className="grid grid-cols-1 gap-3 md:gap-4">
+        <FunnelStandalone steps={funnelSteps} />
+        <PerformanceChartWidget data={daysInRange.map(d => {
+          const dateKey = format(d, 'yyyy-MM-dd');
+          const dd = dailyData[dateKey] as any || {};
+          return {
+            date: dateKey,
+            displayDate: format(d, 'd MMM'),
+            spend: dd.spend || 0,
+            leads: dd.leads || 0,
+            visits: dd.visits || 0,
+            sales: dd.sales || 0,
+            revenue: dd.revenue || 0,
+          };
+        })} />
+      </div>
+    ));
+
+    if (currentProjectId) {
+      registerWidget('appointments', (
+        <UpcomingAppointmentsWidget projectId={currentProjectId} />
+      ));
+    }
+
+    return null; // DraggableDashboard handles rendering
+  }, [
+    dailyData, profile, currentProject, totals, romiPercent, systemHasErrors, handleTabChange,
+    planData, leadCost, visitCost, customerCost, funnelSteps, daysInRange, currentProjectId
+  ]);
+
+  const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: '' }));
+
   // CRITICAL: Super admin NEVER sees loading screen
   if ((projectsLoading || dataLoading) && !isSuperAdminUser) {
     return (
@@ -418,195 +539,12 @@ export const AnalyticsPlatform = () => {
     );
   }
 
-  const projectsList = projects.map(p => ({ id: p.id, name: p.name, owner_id: '' }));
-
   const mainContent = (
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
       <div className="mb-2" />
       {activeTab === 'dashboard' && (
         <DraggableDashboard>
-          {(registerWidget) => {
-            // Register all widgets - the DraggableDashboard will render them in sorted order
-            const todayKey = format(new Date(), 'yyyy-MM-dd');
-            const todayData = dailyData[todayKey];
-
-            // Welcome Hero
-            const captainName = profile?.name?.split(' ').pop() || profile?.name || 'Запойнов';
-            registerWidget('welcome-hero', (
-              <WelcomeHero
-                projectName={currentProject?.name || 'Стоматология'}
-                keyMetrics={{
-                  revenue: totals.revenue,
-                  expenses: totals.spend,
-                  romi: romiPercent,
-                }}
-                systemStatus={systemHasErrors ? 'error' : 'healthy'}
-              />
-            ));
-
-            // Quick Actions
-            registerWidget('quick-actions', (
-              <QuickActions onTabChange={handleTabChange} />
-            ));
-
-
-
-            registerWidget('plan-fact', (
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-                <PlanFactCard
-                  label="Показы"
-                  value={totals.impressions}
-                  plan={planData.impressions}
-                  fact={totals.impressions}
-                  icon={<Eye className="w-4 h-4" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Лиды"
-                  value={totals.leads}
-                  plan={planData.leads}
-                  fact={totals.leads}
-                  icon={<Users className="w-4 h-4" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label={totals.isTotalFollowers ? "Подписчики" : "Новые подписчики"}
-                  value={totals.followers}
-                  plan={planData.followers}
-                  fact={totals.followers}
-                  icon={<Users className="w-4 h-4" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Визиты"
-                  value={totals.visits}
-                  plan={planData.visits}
-                  fact={totals.visits}
-                  icon={<Target className="w-4 h-4" />}
-                  format="number"
-                />
-                <PlanFactCard
-                  label="Продажи"
-                  value={totals.sales}
-                  plan={planData.sales}
-                  fact={totals.sales}
-                  icon={<ShoppingCart className="w-4 h-4" />}
-                  format="number"
-                />
-              </div>
-            ));
-
-            // Расчет прибыли за прошлый период для сравнения
-            const prevProfit = (previousWeekTotals?.revenue || 0) - (previousWeekTotals?.spend || 0);
-            const prevRomi = previousWeekTotals?.spend > 0
-              ? (((previousWeekTotals.revenue - previousWeekTotals.spend) / previousWeekTotals.spend) * 100)
-              : 0;
-
-            registerWidget('kpi-top', (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-                <MetricCard
-                  label="Выручка"
-                  value={formatInt(totals?.revenue || 0)}
-                  previousValue={previousWeekTotals?.revenue || 0}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(totals?.revenue || 0, previousWeekTotals?.revenue || 0) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals?.revenue || 0, previousWeekTotals?.revenue || 0))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Расходы"
-                  value={formatInt(totals?.spend || 0)}
-                  previousValue={previousWeekTotals?.spend || 0}
-                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
-                  icon={<DollarSign className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${calcDelta(totals?.spend || 0, previousWeekTotals?.spend || 0) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals?.spend || 0, previousWeekTotals?.spend || 0))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="Маржа маркетинга"
-                  value={formatInt(profit)}
-                  previousValue={prevProfit}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    return (dd?.revenue || 0) - (dd?.spend || 0);
-                  })}
-                  icon={<Wallet className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${calcDelta(profit, prevProfit) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, prevProfit))}% к прошлой неделе`}
-                />
-                <MetricCard
-                  label="ROMI"
-                  value={`${formatPercent1(romiPercent)}%`}
-                  previousValue={prevRomi}
-                  sparklineData={daysInRange.slice(-14).map(d => {
-                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
-                    const spend = dd?.spend || 0;
-                    const revenue = dd?.revenue || 0;
-                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
-                  })}
-                  icon={<TrendingUp className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${romiPercent - prevRomi >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevRomi)}% к прошлой неделе`}
-                />
-              </div>
-            ));
-
-            // removed LTV widget per dashboard simplification
-
-            // removed quick stats widget to avoid duplicate comparison noise
-
-            // Second Row: Connected Funnel analysis
-            registerWidget('charts-row', (
-              <div className="grid grid-cols-1 gap-3 md:gap-4">
-                <FunnelStandalone steps={funnelSteps} />
-                <PerformanceChartWidget data={daysInRange.map(d => {
-                  const dateKey = format(d, 'yyyy-MM-dd');
-                  const dd = dailyData[dateKey] as any || {};
-                  return {
-                    date: dateKey,
-                    displayDate: format(d, 'd MMM'),
-                    spend: dd.spend || 0,
-                    leads: dd.leads || 0,
-                    visits: dd.visits || 0,
-                    sales: dd.sales || 0,
-                    revenue: dd.revenue || 0,
-                  };
-                })} />
-              </div>
-            ));
-
-            // Third Row: CPL & CPV elevated
-            registerWidget('cost-row', (
-              <div className="grid grid-cols-2 gap-3 md:gap-4">
-                <MetricCard
-                  label="Стоимость лида (CPL)"
-                  value={leadCost !== null ? formatInt(leadCost) + ' ₸' : '—'}
-                  icon={<Users className="w-5 h-5" />}
-                  variant="primary"
-                  subValue={`${leadCost !== null ? 'Расходы / лиды' : 'Нет данных'}`}
-                />
-                <MetricCard
-                  label="Стоимость визита"
-                  value={visitCost !== null ? formatInt(visitCost) + ' ₸' : '—'}
-                  icon={<Target className="w-5 h-5" />}
-                  variant="success"
-                  subValue={`${visitCost !== null ? 'Расходы / визиты' : 'Нет данных'}`}
-                />
-              </div>
-            ));
-
-
-            if (currentProjectId) {
-              registerWidget('appointments', (
-                <UpcomingAppointmentsWidget projectId={currentProjectId} />
-              ));
-
-            }
-
-            // removed inline assistant widget; replaced by floating chat button
-
-            return null; // DraggableDashboard handles rendering
-          }}
+          {renderDashboardWidgets}
         </DraggableDashboard>
       )}
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -213,8 +213,10 @@ export const useAuth = () => {
     });
   };
 
-  return {
+  const memoizedReturn = useMemo(() => ({
     ...authState,
     signOut,
-  };
+  }), [authState]);
+
+  return memoizedReturn;
 };

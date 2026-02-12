@@ -1,6 +1,26 @@
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { TrendingUp, Users, Wallet, CheckCircle2, AlertTriangle, XCircle } from 'lucide-react';
+import {
+  TrendingUp,
+  Wallet,
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Users,
+  Megaphone,
+  Video,
+  BarChart3,
+  FileText,
+  LucideIcon
+} from 'lucide-react';
+
+interface QuickAction {
+  label: string;
+  icon: LucideIcon;
+  tab: string;
+  description: string;
+  color: string;
+}
 
 interface WelcomeHeroProps {
   projectName: string | null;
@@ -10,8 +30,54 @@ interface WelcomeHeroProps {
     romi: number | null;
   };
   systemStatus: 'healthy' | 'warning' | 'error';
+  onTabChange: (tab: string) => void;
   className?: string;
 }
+
+const defaultActions: QuickAction[] = [
+  {
+    label: 'CRM',
+    icon: Users,
+    tab: 'crm',
+    description: 'Клиенты и сделки',
+    color: 'text-blue-500 bg-blue-500/10 group-hover:bg-blue-500/20'
+  },
+  {
+    label: 'Реклама',
+    icon: Megaphone,
+    tab: 'quantom-ads',
+    description: 'Кампании',
+    color: 'text-purple-500 bg-purple-500/10 group-hover:bg-purple-500/20'
+  },
+  {
+    label: 'Контент-Завод',
+    icon: Video,
+    tab: 'factory',
+    description: 'Создание контента',
+    color: 'text-pink-500 bg-pink-500/10 group-hover:bg-pink-500/20'
+  },
+  {
+    label: 'Аналитика',
+    icon: BarChart3,
+    tab: 'e2e-analytics',
+    description: 'Сквозная',
+    color: 'text-cyan-500 bg-cyan-500/10 group-hover:bg-cyan-500/20'
+  },
+  {
+    label: 'Финансы',
+    icon: Wallet,
+    tab: 'finance',
+    description: 'Прибыль',
+    color: 'text-emerald-500 bg-emerald-500/10 group-hover:bg-emerald-500/20'
+  },
+  {
+    label: 'Отчёты',
+    icon: FileText,
+    tab: 'reports',
+    description: 'Генератор',
+    color: 'text-amber-500 bg-amber-500/10 group-hover:bg-amber-500/20'
+  },
+];
 
 const getGreeting = (name: string): string => {
   const hour = new Date().getHours();
@@ -31,13 +97,6 @@ const formatCurrency = (value: number): string => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
 };
 
-const formatNumber = (value: number): string => {
-  if (value >= 1000) {
-    return (value / 1000).toFixed(1).replace('.0', '') + 'K';
-  }
-  return String(Math.round(value));
-};
-
 const formatPercent = (value: number | null): string => {
   if (value === null || isNaN(value) || !isFinite(value)) return '—';
   return Math.round(value) + '%';
@@ -47,6 +106,7 @@ export const WelcomeHero = ({
   projectName,
   keyMetrics,
   systemStatus,
+  onTabChange,
   className
 }: WelcomeHeroProps) => {
   const displayName = projectName || 'Проект';
@@ -75,6 +135,11 @@ export const WelcomeHero = ({
 
   const status = statusConfig[systemStatus];
   const StatusIcon = status.icon;
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  };
 
   return (
     <motion.div
@@ -106,7 +171,7 @@ export const WelcomeHero = ({
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
           className={cn(
-            "flex items-center gap-2 px-4 py-2 rounded-full",
+            "flex items-center gap-2 px-4 py-2 rounded-full w-fit mb-6",
             status.bg
           )}
         >
@@ -115,10 +180,9 @@ export const WelcomeHero = ({
             {status.label}
           </span>
         </motion.div>
-        <div className="mb-4" />
 
         {/* Key Metrics */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {/* Revenue */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -177,6 +241,44 @@ export const WelcomeHero = ({
               {formatPercent(keyMetrics.romi)}
             </p>
           </motion.div>
+        </div>
+
+        {/* Separator */}
+        <div className="h-px w-full bg-border/50 mb-6" />
+
+        {/* Quick Actions Header */}
+        <h3 className="text-sm font-medium text-muted-foreground mb-4">
+          Быстрый доступ
+        </h3>
+
+        {/* Quick Actions Grid */}
+        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
+          {defaultActions.map((action, index) => {
+            const Icon = action.icon;
+
+            return (
+              <motion.button
+                key={action.tab}
+                variants={itemVariants}
+                initial="hidden"
+                animate="visible"
+                transition={{ delay: 0.5 + (index * 0.05) }}
+                onClick={() => onTabChange(action.tab)}
+                className="quick-action-card group interstellar-glow bg-background/50 hover:bg-background/80 border border-border/50"
+              >
+                <div className={cn(
+                  "action-icon transition-all duration-200",
+                  action.color.split(' ').slice(1).join(' ')
+                )}>
+                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", action.color.split(' ')[0])} />
+                </div>
+                <span className="action-label">{action.label}</span>
+                <span className="text-[10px] text-muted-foreground/60 hidden md:block">
+                  {action.description}
+                </span>
+              </motion.button>
+            );
+          })}
         </div>
       </div>
     </motion.div>
