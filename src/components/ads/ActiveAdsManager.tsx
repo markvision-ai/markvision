@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useLeads } from '@/hooks/useLeads';
@@ -293,8 +293,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   }, [hierarchy, filteredLeads, adInsights]);
 
 
-  const fetchAdInsights = async () => {
-    if (!pid) return;
+  const fetchAdInsights = useCallback(async () => {
+    if (!pid || !dateRange?.from) return;
 
     const since = format(dateRange.from, 'yyyy-MM-dd');
     const until = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : since;
@@ -312,7 +312,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       const insightsMap: Record<string, AdInsightRecord> = {};
 
       // Deduplicate logs: keep only the latest entry per (entity_id, date_start)
-      // We assume the entry with higher spend is more recent/complete for that day
       const uniqueLogs: Record<string, any> = {};
       data?.forEach((item: any) => {
         const key = `${item.entity_id}_${item.date_start}`;
@@ -346,10 +345,168 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     } catch (e) {
       console.error('Failed to fetch insights from DB', e);
     }
-  };
+  }, [pid, dateRange]);
 
   // Circuit Breaker for Rate Limits
   const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
+
+  const fetchHierarchy = useCallback(async (forceApi = false) => {
+    setLoading(true);
+    try {
+      // 0. Try Local DB First (if not forced) to save API calls
+      if (!forceApi) {
+        try {
+          // 0.1 Try 'campaigns' table
+          const { data: localCampaigns } = await (supabase as any)
+            .from('campaigns')
+            .select('*')
+            .eq('project_id', pid)
+            .order('created_at', { ascending: false });
+
+          if (localCampaigns && localCampaigns.length > 0) {
+            const localHierarchy = localCampaigns.map((c: any) => ({
+              id: c.external_id || c.id,
+              name: c.name,
+              status: c.status ? 'ACTIVE' : 'PAUSED',
+              daily_budget: c.budget ? c.budget.toString() : '0',
+              insights: { data: [] },
+              adsets: { data: [] }
+            }));
+            setHierarchy(localHierarchy);
+            setLoading(false);
+            return; // Exit early if we have local data
+          }
+
+          // 0.2 Try 'ad_performance_logs' table (if campaigns is empty)
+          const { data: logs } = await (supabase as any)
+            .from('ad_performance_logs')
+            .select('entity_id, entity_name, spend')
+            .eq('project_id', pid)
+            .eq('entity_type', 'campaign')
+            .order('date_start', { ascending: false });
+
+          if (logs && logs.length > 0) {
+            const uniqueMap = new Map();
+            logs.forEach((log: any) => {
+              if (!uniqueMap.has(log.entity_id)) {
+                uniqueMap.set(log.entity_id, {
+                  id: log.entity_id,
+                  name: log.entity_name || `Campaign ${log.entity_id}`,
+                  status: 'ACTIVE',
+                  daily_budget: '0',
+                  insights: { data: [] },
+                  adsets: { data: [] }
+                });
+              }
+            });
+            const fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
+            setHierarchy(fallbackHierarchy);
+            setLoading(false);
+            return; // Exit early!
+          }
+        } catch (localError) {
+          console.warn('Local fetch error', localError);
+        }
+      }
+
+      const payload: any = { projectId: pid };
+
+      if (dateRange?.from && dateRange?.to) {
+        payload.date_range = {
+          since: format(dateRange.from, 'yyyy-MM-dd'),
+          until: format(dateRange.to, 'yyyy-MM-dd')
+        };
+      }
+
+      // 1. Try to fetch from Meta API via Edge Function
+      const { data, error } = await supabase.functions.invoke('ads-manager', {
+        body: { action: 'get_hierarchy', payload }
+      });
+
+      // 2. Fallback Logic for Rate Limits or Errors
+      if (error || !data || data.error) {
+        console.error('Edge Function/Meta API Error:', error || data?.error);
+
+        const isRateLimit = data?.error?.includes('(#80004)') || data?.error?.includes('rate-limiting');
+
+        if (isRateLimit) {
+          toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
+        } else if (data?.error?.includes('No active Ad Account')) {
+          toast.error('Рекламный аккаунт не найден.');
+          return;
+        } else {
+          console.warn('Using local fallback due to API error');
+        }
+
+        // FETCH FALLBACK FROM DB (campaigns table)
+        let fallbackHierarchy: Campaign[] = [];
+
+        // 1. Try 'campaigns' table (structure source)
+        const { data: localCampaigns } = await (supabase as any)
+          .from('campaigns')
+          .select('*')
+          .eq('project_id', pid)
+          .order('created_at', { ascending: false });
+
+        if (localCampaigns && localCampaigns.length > 0) {
+          fallbackHierarchy = localCampaigns.map((c: any) => ({
+            id: c.external_id || c.id,
+            name: c.name,
+            status: c.status ? 'ACTIVE' : 'PAUSED',
+            daily_budget: c.budget ? c.budget.toString() : '0',
+            insights: { data: [] },
+            adsets: { data: [] }
+          }));
+        } else {
+          // 2. Try 'ad_performance_logs' (data source)
+          const { data: logs } = await (supabase as any)
+            .from('ad_performance_logs')
+            .select('entity_id, entity_name, spend')
+            .eq('project_id', projectId) // Use projectId from scope or pid
+            .eq('entity_type', 'campaign')
+            .order('date_start', { ascending: false });
+
+          if (logs && logs.length > 0) {
+            const uniqueMap = new Map();
+            logs.forEach((log: any) => {
+              if (!uniqueMap.has(log.entity_id)) {
+                uniqueMap.set(log.entity_id, {
+                  id: log.entity_id,
+                  name: log.entity_name || `Campaign ${log.entity_id}`,
+                  status: 'ACTIVE',
+                  daily_budget: '0',
+                  insights: { data: [] },
+                  adsets: { data: [] }
+                });
+              }
+            });
+            fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
+          }
+        }
+
+        if (fallbackHierarchy.length > 0) {
+          setHierarchy(fallbackHierarchy);
+        }
+        return;
+      }
+
+      // Success Path
+      setHierarchy(data.data || []);
+      if (data.adAccountId) {
+        setAdAccountId(data.adAccountId);
+      }
+      if (data.accountStatus) {
+        setAccountStatus(data.accountStatus);
+      }
+    } catch (e: any) {
+      console.error('Failed to fetch ads hierarchy', e);
+      toast.error(`Ошибка загрузки структуры рекламы: ${e.message || 'Неизвестная ошибка'}`);
+    } finally {
+      setLoading(false);
+    }
+  }, [pid, dateRange, projectId]); // moved here
+
+
 
   // Stable key for dateRange to prevent unnecessary refetches
   const dateRangeKey = useMemo(() => {
@@ -418,7 +575,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         });
       }
     }
-  }, [projectId, dateRangeKey, rateLimitUntil]);
+  }, [pid, dateRangeKey, dateRange, rateLimitUntil, fetchAdInsights, fetchHierarchy]);
 
   useEffect(() => {
     if (pid && refreshTrigger > 0) {
@@ -430,7 +587,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       fetchAdInsights();
       // fetchHierarchy(); // Disable hierarchy fetch on auto-refresh too
     }
-  }, [refreshTrigger, rateLimitUntil]);
+  }, [refreshTrigger, rateLimitUntil, pid, fetchAdInsights]);
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -505,166 +662,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     }
   };
 
-  const fetchHierarchy = async (forceApi = false) => {
-    setLoading(true);
-    try {
-      // 0. Try Local DB First (if not forced) to save API calls
-      if (!forceApi) {
-        // 0.1 Try 'campaigns' table
-        const { data: localCampaigns } = await (supabase as any)
-          .from('campaigns')
-          .select('*')
-          .eq('project_id', pid)
-          .order('created_at', { ascending: false });
-
-        if (localCampaigns && localCampaigns.length > 0) {
-          const localHierarchy = localCampaigns.map((c: any) => ({
-            id: c.external_id || c.id,
-            name: c.name,
-            status: c.status ? 'ACTIVE' : 'PAUSED',
-            daily_budget: c.budget ? c.budget.toString() : '0',
-            insights: { data: [] },
-            adsets: { data: [] }
-          }));
-          setHierarchy(localHierarchy);
-          setLoading(false);
-          return; // Exit early if we have local data
-        }
-
-        // 0.2 Try 'ad_performance_logs' table (if campaigns is empty)
-        // This prevents API calls even if structure table is empty, as long as we have logs
-        const { data: logs } = await (supabase as any)
-          .from('ad_performance_logs')
-          .select('entity_id, entity_name, spend')
-          .eq('project_id', pid)
-          .eq('entity_type', 'campaign')
-          .order('date_start', { ascending: false });
-
-        if (logs && logs.length > 0) {
-          const uniqueMap = new Map();
-          logs.forEach((log: any) => {
-            if (!uniqueMap.has(log.entity_id)) {
-              uniqueMap.set(log.entity_id, {
-                id: log.entity_id,
-                name: log.entity_name || `Campaign ${log.entity_id}`,
-                status: 'ACTIVE',
-                daily_budget: '0',
-                insights: { data: [] },
-                adsets: { data: [] }
-              });
-            }
-          });
-          const fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
-          setHierarchy(fallbackHierarchy);
-          setLoading(false);
-          return; // Exit early!
-        }
-      }
-
-      const payload: any = { projectId: pid };
-
-      if (dateRange?.from && dateRange?.to) {
-        payload.date_range = {
-          since: format(dateRange.from, 'yyyy-MM-dd'),
-          until: format(dateRange.to, 'yyyy-MM-dd')
-        };
-      }
-
-      // 1. Try to fetch from Meta API via Edge Function
-      const { data, error } = await supabase.functions.invoke('ads-manager', {
-        body: { action: 'get_hierarchy', payload }
-      });
-
-      // 2. Fallback Logic for Rate Limits or Errors
-      if (error || !data || data.error) {
-        console.error('Edge Function/Meta API Error:', error || data?.error);
-
-        const isRateLimit = data?.error?.includes('(#80004)') || data?.error?.includes('rate-limiting');
-
-        if (isRateLimit) {
-          toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
-        } else if (data?.error?.includes('No active Ad Account')) {
-          toast.error('Рекламный аккаунт не найден.');
-          return;
-        } else {
-          // Only show toast for non-rate-limit errors to reduce noise
-          console.warn('Using local fallback due to API error');
-        }
-
-        // FETCH FALLBACK FROM DB (campaigns table)
-        // This ensures the user sees something even if Meta is down
-        let fallbackHierarchy: Campaign[] = [];
-
-        // 1. Try 'campaigns' table (structure source)
-        const { data: localCampaigns } = await (supabase as any)
-          .from('campaigns')
-          .select('*')
-          .eq('project_id', pid)
-          .order('created_at', { ascending: false });
-
-        if (localCampaigns && localCampaigns.length > 0) {
-          // Map DB structure to Hierarchy structure
-          fallbackHierarchy = localCampaigns.map((c: any) => ({
-            id: c.external_id || c.id, // Prefer external_id (Meta ID) if available
-            name: c.name,
-            status: c.status ? 'ACTIVE' : 'PAUSED',
-            daily_budget: c.budget ? c.budget.toString() : '0',
-            insights: { data: [] }, // No insights in hierarchy structure, handled by adInsights map
-            adsets: { data: [] } // We don't have adsets structure in DB, flat list only
-          }));
-        } else {
-          // 2. Try 'ad_performance_logs' (data source)
-          // If we have no structure, try to reconstruct from performance logs
-          const { data: logs } = await (supabase as any)
-            .from('ad_performance_logs')
-            .select('entity_id, entity_name, spend')
-            .eq('project_id', projectId)
-            .eq('entity_type', 'campaign')
-            .order('date_start', { ascending: false }); // Get most recent first
-
-          if (logs && logs.length > 0) {
-            const uniqueMap = new Map();
-            logs.forEach((log: any) => {
-              if (!uniqueMap.has(log.entity_id)) {
-                uniqueMap.set(log.entity_id, {
-                  id: log.entity_id,
-                  name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'ACTIVE', // Default to ACTIVE to ensure visibility in fallback mode
-                  daily_budget: '0',
-                  insights: { data: [] },
-                  adsets: { data: [] }
-                });
-              }
-            });
-            fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
-          }
-        }
-
-        if (fallbackHierarchy.length > 0) {
-          setHierarchy(fallbackHierarchy);
-          // Don't return yet, allow finally block to run
-        } else {
-          // If local DB is also empty, we truly have no data
-          // Only then we might leave hierarchy empty
-        }
-        return;
-      }
-
-      // Success Path
-      setHierarchy(data.data || []);
-      if (data.adAccountId) {
-        setAdAccountId(data.adAccountId);
-      }
-      if (data.accountStatus) {
-        setAccountStatus(data.accountStatus);
-      }
-    } catch (e: any) {
-      console.error('Failed to fetch ads hierarchy', e);
-      toast.error(`Ошибка загрузки структуры рекламы: ${e.message || 'Неизвестная ошибка'}`);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Added projectId because it was used in fallback logging (line 621 in original)
 
   const handleToggleStatus = async (id: string, currentStatus: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -957,7 +955,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   }, [processedData, sortConfig]);
 
   // Flatten for rendering
-  const flattenRows = (nodes: RowData[], level = 0): (RowData & { level: number })[] => {
+  const flattenRows = useCallback((nodes: RowData[], level = 0): (RowData & { level: number })[] => {
     let result: (RowData & { level: number })[] = [];
     nodes.forEach(node => {
       result.push({ ...node, level });
@@ -966,9 +964,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
     });
     return result;
-  };
+  }, [expandedRows]);
 
-  const visibleRows = useMemo(() => flattenRows(sortedData), [sortedData, expandedRows]);
+  const visibleRows = useMemo(() => flattenRows(sortedData), [sortedData, flattenRows]);
 
   const handleSort = (key: keyof RowData) => {
     setSortConfig(current => ({
