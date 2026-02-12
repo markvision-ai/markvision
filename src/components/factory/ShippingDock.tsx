@@ -74,10 +74,8 @@ export const ShippingDock = ({ items, onManualPublish, onReject }: ShippingDockP
                         <div className="mb-3 p-3 bg-muted/30 rounded-md text-xs text-muted-foreground border border-border/30">
                             <p className="font-medium mb-1 text-foreground/80">Результат генерации:</p>
                             <p className="line-clamp-3 italic">
-                                "{item.original_script ? 
-                                    (typeof item.original_script === 'string' && item.original_script.startsWith('{') 
-                                        ? JSON.parse(item.original_script).main_idea 
-                                        : item.original_script) 
+                                "{item.original_script ?
+                                    (() => { try { return typeof item.original_script === 'string' && item.original_script.startsWith('{') ? JSON.parse(item.original_script).main_idea || item.original_script : item.original_script; } catch { return item.original_script; } })()
                                     : "Контент сгенерирован и ожидает проверки..."}"
                             </p>
                         </div>

@@ -651,6 +651,16 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     setExpandedRows(newExpanded);
   };
 
+  // Pre-normalize lead UTM fields once to avoid 25K+ normalize calls in tree traversal
+  const normalizedLeadUtms = useMemo(() => {
+    return filteredLeads.map(l => ({
+      lead: l,
+      campaign: normalize(l.utm_campaign),
+      term: normalize(l.utm_term),
+      content: normalize(l.utm_content),
+    }));
+  }, [filteredLeads]);
+
   // Process data into tree structure
   const processedData = useMemo(() => {
     const getMetrics = (id: string, node?: any) => {
@@ -725,49 +735,36 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       const finalImpressions = Math.max(ownMetrics.impressions, childrenSum.impressions);
 
       // CRM Metrics Logic
-      // Filter leads relevant to this node based on UTM parameters
-      const nodeLeads = filteredLeads.filter(l => {
-        const normId = normalize(node.id);
-        const normName = normalize(node.name);
+      // Filter leads relevant to this node using pre-normalized UTM fields
+      const normId = normalize(node.id);
+      const normName = normalize(node.name);
 
+      const matchedEntries = normalizedLeadUtms.filter(entry => {
         if (type === 'campaign') {
-          const utm = l.utm_campaign;
-          if (!utm) return false;
-          const normUtm = normalize(utm);
-
-          // 1. Exact Match (ID or Name)
-          if (utm === node.id || normUtm === normName) return true;
-
-          // 2. Loose Match (Inclusion)
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+          if (!entry.lead.utm_campaign) return false;
+          if (entry.lead.utm_campaign === node.id || entry.campaign === normName) return true;
+          if (entry.campaign.length > 3 && normName.length > 3) {
+            if (entry.campaign.includes(normName) || normName.includes(entry.campaign)) return true;
           }
           return false;
-
         } else if (type === 'adset') {
-          const utm = l.utm_term; // Standard UTM for AdSet
-          if (!utm) return false;
-          const normUtm = normalize(utm);
-
-          if (utm === node.id || normUtm === normName) return true;
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+          if (!entry.lead.utm_term) return false;
+          if (entry.lead.utm_term === node.id || entry.term === normName) return true;
+          if (entry.term.length > 3 && normName.length > 3) {
+            if (entry.term.includes(normName) || normName.includes(entry.term)) return true;
           }
           return false;
-
         } else if (type === 'ad') {
-          const utm = l.utm_content; // Standard UTM for Ad
-          if (!utm) return false;
-          const normUtm = normalize(utm);
-
-          if (utm === node.id || normUtm === normName) return true;
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+          if (!entry.lead.utm_content) return false;
+          if (entry.lead.utm_content === node.id || entry.content === normName) return true;
+          if (entry.content.length > 3 && normName.length > 3) {
+            if (entry.content.includes(normName) || normName.includes(entry.content)) return true;
           }
           return false;
         }
         return false;
       });
+      const nodeLeads = matchedEntries.map(e => e.lead);
 
       // Leads CRM (now Visits): For campaigns, if direct matching fails (0), try using children sum
       // This handles cases where leads match AdSets (via utm_term) but not Campaign (via utm_campaign)
@@ -867,7 +864,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         visits: campaign.visits
       }));
 
-  }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly]);
+  }, [fullHierarchy, normalizedLeadUtms, filteredLeads, adInsights, showActiveOnly]);
 
   // Sort Logic
   const sortedData = useMemo(() => {

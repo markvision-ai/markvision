@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
-import { LeadCard } from './LeadCard';
+import { LeadCard, type LeadSlaData } from './LeadCard';
 import { KanbanStatus } from './KanbanBoard';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +22,7 @@ interface KanbanColumnProps {
   animatingLeadId?: string | null;
   totalAmount?: number;
   totalCount?: number;
+  slaDataMap?: Record<string, LeadSlaData>;
 }
 
 export const KanbanColumn = ({
@@ -35,7 +36,8 @@ export const KanbanColumn = ({
   onSelectAllInColumn,
   animatingLeadId,
   totalAmount = 0,
-  totalCount = 0
+  totalCount = 0,
+  slaDataMap
 }: KanbanColumnProps) => {
   const { setNodeRef, isOver } = useDroppable({
     id: status.id,
@@ -160,6 +162,7 @@ export const KanbanColumn = ({
                 selectionMode={selectionMode}
                 isSelected={selectedLeads.has(lead.id)}
                 onSelect={(selected) => onSelectLead?.(lead.id, selected)}
+                slaData={slaDataMap?.[lead.id]}
               />
             </motion.div>
           ))}

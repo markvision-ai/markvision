@@ -111,8 +111,8 @@ export function useLeads(projectId: string | null) {
         .from('leads')
         .select(LEAD_FIELDS)
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
-        // .abortSignal(signal);
+        .order('created_at', { ascending: false })
+        .limit(200);
 
       // Apply filters
       if (filters.status) query = query.eq('status', filters.status);
@@ -162,18 +162,11 @@ export function useLeads(projectId: string | null) {
     } finally {
       setLoading(false);
     }
-    
-    return () => {
-        abortControllerRef.current?.abort();
-    };
   }, [projectId, filters]);
 
   // Initial fetch
   useEffect(() => {
-    const cleanup = fetchLeads();
-    return () => {
-        cleanup.then(abortFn => abortFn && abortFn());
-    };
+    fetchLeads();
   }, [fetchLeads]);
 
   // Set up realtime subscription

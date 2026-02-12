@@ -1,7 +1,6 @@
 import { useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { Lead } from '@/hooks/useLeads';
-import { differenceInMinutes, differenceInHours } from 'date-fns';
 import { Phone, Calendar, GripVertical, Sparkles, MessageCircle, Globe, Crown, Flame, Zap, TrendingUp, Gem, AlertTriangle, BoltIcon, Instagram, DollarSign, Brain, Snowflake, ThermometerSun, Image, ExternalLink, Clock } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,15 @@ import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { isLeadAutomated } from '@/lib/webhooks';
-import { useState, useEffect, useMemo } from 'react';
-import { safeFormat, safeParseDate } from '@/lib/dateUtils';
+import { useMemo } from 'react';
+import { safeFormat } from '@/lib/dateUtils';
 import { WhatsAppDialog } from './WhatsAppDialog';
+
+export interface LeadSlaData {
+  needsAttention: boolean;
+  minutesWaiting: number;
+  isNewLead: boolean;
+}
 
 interface LeadCardProps {
   lead: Lead;
@@ -21,6 +26,7 @@ interface LeadCardProps {
   onSelect?: (selected: boolean) => void;
   selectionMode?: boolean;
   projectId?: string;
+  slaData?: LeadSlaData;
 }
 
 export const LeadCard = ({
@@ -30,45 +36,18 @@ export const LeadCard = ({
   isSelected = false,
   onSelect,
   selectionMode = false,
-  projectId
+  projectId,
+  slaData
 }: LeadCardProps) => {
   const { attributes, listeners, setNodeRef, transform, isDragging: isCurrentlyDragging } = useDraggable({
     id: lead.id,
     disabled: selectionMode,
   });
 
-  // SLA Alert: Check if lead is in "Новая" status for more than 15 minutes
-  const [needsAttention, setNeedsAttention] = useState(false);
-  const [minutesWaiting, setMinutesWaiting] = useState(0);
-  const [isNewLead, setIsNewLead] = useState(false);
-
-  useEffect(() => {
-    const checkSLA = () => {
-      if (lead.status === 'Новая' || lead.status === 'new') {
-        const lastUpdate = lead.updated_at || lead.created_at;
-        const parsedDate = safeParseDate(lastUpdate);
-        if (parsedDate) {
-          const minutes = differenceInMinutes(new Date(), parsedDate);
-          const hours = differenceInHours(new Date(), parsedDate);
-          setMinutesWaiting(minutes);
-          setNeedsAttention(minutes >= 15);
-          setIsNewLead(hours < 1); // NEW badge if created less than 1 hour ago
-        } else {
-          setNeedsAttention(false);
-          setMinutesWaiting(0);
-          setIsNewLead(false);
-        }
-      } else {
-        setNeedsAttention(false);
-        setMinutesWaiting(0);
-        setIsNewLead(false);
-      }
-    };
-
-    checkSLA();
-    const interval = setInterval(checkSLA, 30000); // Check every 30 seconds
-    return () => clearInterval(interval);
-  }, [lead.status, lead.updated_at, lead.created_at]);
+  // SLA data computed by parent (KanbanBoard) via shared timer
+  const needsAttention = slaData?.needsAttention ?? false;
+  const minutesWaiting = slaData?.minutesWaiting ?? 0;
+  const isNewLead = slaData?.isNewLead ?? false;
 
   // Check if lead has active automation
   const hasAutomation = isLeadAutomated(lead.extra_data);

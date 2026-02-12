@@ -67,27 +67,9 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Load Facebook SDK
+  // Load Facebook SDK on demand
   useEffect(() => {
-    const loadFacebookSDK = () => {
-      if (window.FB) return;
-
-      const script = document.createElement('script');
-      script.src = 'https://connect.facebook.net/en_US/sdk.js';
-      script.async = true;
-      script.defer = true;
-      script.onload = () => {
-        window.FB.init({
-          appId: '1234567890123456', // Replace with actual app ID
-          cookie: true,
-          xfbml: true,
-          version: 'v21.0'
-        });
-      };
-      document.body.appendChild(script);
-    };
-
-    loadFacebookSDK();
+    import('@/lib/facebookSdk').then(({ loadFacebookSdk }) => loadFacebookSdk()).catch(() => {});
   }, []);
 
   const fetchConnection = useCallback(async () => {

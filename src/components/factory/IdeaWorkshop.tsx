@@ -69,10 +69,8 @@ export const IdeaWorkshop = ({ items, onApprove }: IdeaWorkshopProps) => {
                   </h3>
                   
                   <p className="text-xs text-muted-foreground mb-4 line-clamp-3">
-                    {item.original_script ? 
-                      (typeof item.original_script === 'string' && item.original_script.startsWith('{') 
-                        ? JSON.parse(item.original_script).main_idea 
-                        : item.original_script) 
+                    {item.original_script ?
+                      (() => { try { return typeof item.original_script === 'string' && item.original_script.startsWith('{') ? JSON.parse(item.original_script).main_idea || item.original_script : item.original_script; } catch { return item.original_script; } })()
                       : "Описание отсутствует..."}
                   </p>
 

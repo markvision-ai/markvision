@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   Zap,
   TrendingUp,
@@ -188,10 +188,16 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
     loadData();
   }, [fetchLeads, fetchDailyData]);
 
-  // Realtime Subscription
+  // Realtime Subscription (throttled to 30s per CLAUDE.md rules)
+  const realtimeThrottleRef = useRef<number>(0);
   useEffect(() => {
     if (!pid) return;
-    const channel = supabase.channel('e2e-leads').on('postgres_changes', { event: '*', schema: 'public', table: 'leads', filter: `project_id=eq.${pid}` }, () => fetchLeads()).subscribe();
+    const channel = supabase.channel('e2e-leads').on('postgres_changes', { event: '*', schema: 'public', table: 'leads', filter: `project_id=eq.${pid}` }, () => {
+      const now = Date.now();
+      if (now - realtimeThrottleRef.current < 30000) return;
+      realtimeThrottleRef.current = now;
+      fetchLeads();
+    }).subscribe();
     return () => { supabase.removeChannel(channel); };
   }, [pid, fetchLeads]);
 

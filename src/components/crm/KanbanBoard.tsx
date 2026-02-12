@@ -12,7 +12,7 @@ import {
 } from '@dnd-kit/core';
 import { Lead } from '@/hooks/useLeads';
 import { KanbanColumn } from './KanbanColumn';
-import { LeadCard } from './LeadCard';
+import { LeadCard, type LeadSlaData } from './LeadCard';
 import { PaymentDialog } from './PaymentDialog';
 import { AppointmentDialog } from './AppointmentDialog';
 import { RejectionDialog } from './RejectionDialog';
@@ -24,6 +24,8 @@ import { sendStatusChangeWebhook } from '@/lib/webhooks';
 import { triggerSuccessConfetti } from '@/lib/confetti';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
+import { differenceInMinutes, differenceInHours } from 'date-fns';
+import { safeParseDate } from '@/lib/dateUtils';
 
 export interface KanbanStatus {
   id: string;
@@ -88,6 +90,34 @@ export const KanbanBoard = ({
   const [pendingStatusChange, setPendingStatusChange] = useState<{ leadId: string; oldStatus: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
+
+  // Shared SLA timer — one interval for all leads instead of per-card
+  const [slaTimestamp, setSlaTimestamp] = useState(Date.now());
+  useEffect(() => {
+    const interval = setInterval(() => setSlaTimestamp(Date.now()), 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const slaDataMap = useMemo(() => {
+    const map: Record<string, LeadSlaData> = {};
+    leads.forEach(lead => {
+      const isNewStatus = lead.status === 'Новая' || lead.status === 'new' || lead.status === 'Новый лид';
+      if (!isNewStatus) {
+        map[lead.id] = { needsAttention: false, minutesWaiting: 0, isNewLead: false };
+        return;
+      }
+      const parsedDate = safeParseDate(lead.updated_at || lead.created_at);
+      if (!parsedDate) {
+        map[lead.id] = { needsAttention: false, minutesWaiting: 0, isNewLead: false };
+        return;
+      }
+      const now = new Date();
+      const minutes = differenceInMinutes(now, parsedDate);
+      const hours = differenceInHours(now, parsedDate);
+      map[lead.id] = { needsAttention: minutes >= 15, minutesWaiting: minutes, isNewLead: hours < 1 };
+    });
+    return map;
+  }, [leads, slaTimestamp]);
 
   // Realtime подписка вынесена в Index.tsx — здесь только UI состояние
   // Статус подключения синхронизируется через глобальный канал
@@ -403,6 +433,7 @@ export const KanbanBoard = ({
                   onSelectLead={onSelectLead}
                   totalAmount={totalAmount}
                   totalCount={statusLeads.length}
+                  slaDataMap={slaDataMap}
                 />
               </div>
             );

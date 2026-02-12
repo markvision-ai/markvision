@@ -106,19 +106,12 @@ interface DraggableDashboardProps {
 export const DraggableDashboard = ({ children }: DraggableDashboardProps) => {
   const { widgets, moveUp, moveDown, getVisiblePosition } = useDashboardWidgets();
 
-  // Collect all widget contents first
-  const widgetContents = useMemo(() => {
-    const contents: WidgetContent[] = [];
-    
-    const registerWidget = (widgetId: string, content: React.ReactNode) => {
-      contents.push({ id: widgetId, content });
-    };
-    
-    // Execute children to collect widget registrations
-    children(registerWidget);
-    
-    return contents;
-  }, [children]);
+  // Collect all widget contents (synchronous registration, no memo needed)
+  const widgetContents: WidgetContent[] = [];
+  const registerWidget = (widgetId: string, content: React.ReactNode) => {
+    widgetContents.push({ id: widgetId, content });
+  };
+  children(registerWidget);
 
   // Sort widgets by their order and render
   const sortedVisibleWidgets = useMemo(() => {

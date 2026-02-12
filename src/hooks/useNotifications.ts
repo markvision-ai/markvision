@@ -82,6 +82,8 @@ export const useNotifications = (projectId?: string) => {
       const twoWeeksAgoStr = twoWeeksAgo.toISOString().split('T')[0];
       const weekAgoIso = weekAgo.toISOString();
 
+      const projectIds = projects.map(p => p.id);
+
       // Parallel Fetching for performance and to reduce "hanging" requests
       const [
         currentWeekResult,
@@ -93,7 +95,8 @@ export const useNotifications = (projectId?: string) => {
         // 1. Current Week Data
         supabase
           .from('daily_data')
-          .select('*')
+          .select('date, spend, leads, clicks, impressions, revenue, visits, followers, project_id')
+          .in('project_id', projectIds)
           .gte('date', weekAgoStr)
           .lte('date', todayStr),
         // .abortSignal(signal),
@@ -101,7 +104,8 @@ export const useNotifications = (projectId?: string) => {
         // 2. Previous Week Data
         supabase
           .from('daily_data')
-          .select('*')
+          .select('date, spend, leads, clicks, impressions, revenue, visits, followers, project_id')
+          .in('project_id', projectIds)
           .gte('date', twoWeeksAgoStr)
           .lt('date', weekAgoStr),
         // .abortSignal(signal),

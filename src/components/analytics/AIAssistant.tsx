@@ -437,7 +437,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
             hideDashboard ? "lg:col-span-3" : "lg:col-span-1",
             activeTab === 'dashboard' && !hideDashboard && "hidden lg:block"
           )}>
-            <ChatInterface context={safeContext} suggestedQuestions={suggestedQuestions} />
+            <ChatInterface context={safeContext} suggestedQuestions={suggestedQuestions} isOnline={isMarkOnline} />
           </div>
 
         </div>
@@ -467,10 +467,9 @@ const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) =>
   </Card>
 );
 
-const ChatInterface = ({ context, suggestedQuestions }: any) => {
+const ChatInterface = ({ context, suggestedQuestions, isOnline }: any) => {
   const [input, setInput] = useState('');
   const { messages, isLoading, sendMessage, clearChat } = useAIChat();
-  const isOnline = useMarkStatus();
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 

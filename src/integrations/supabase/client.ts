@@ -55,26 +55,4 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
   }
 });
 
-// Управление Realtime подключением
-let reconnectAttempts = 0;
-const MAX_RECONNECT_LOG = 3;
-
-const channel = supabase.channel('leads-all');
-channel.subscribe((status) => {
-  if (status === 'SUBSCRIBED') {
-    reconnectAttempts = 0;
-    if (import.meta.env.DEV) console.log('✅ Realtime: Connected to External Supabase');
-  }
-  if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-    reconnectAttempts++;
-    if (reconnectAttempts <= MAX_RECONNECT_LOG && import.meta.env.DEV) {
-      console.log(`⚠️ Realtime: Connection lost. Reconnecting to MarkVision DB... (attempt ${reconnectAttempts})`);
-    }
-    setTimeout(() => {
-      channel.subscribe();
-    }, 30000);
-  }
-});
-
-// Лог для проверки в консоли браузера
-// console.log('🚀 Supabase: External MarkVision Database connected (pyscczcu)');
+// Global leads-all channel removed: each hook creates its own scoped channel with proper cleanup

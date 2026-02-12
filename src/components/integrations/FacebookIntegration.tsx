@@ -365,16 +365,19 @@ export const FacebookIntegration = ({ projectId }: FacebookIntegrationProps) => 
       }
 
       // ПРЯМАЯ авторизация через Facebook JS SDK
-      console.log('🚀 Starting Facebook Login...');
-      
-      // Проверяем FB SDK
-      const FB = (window as any).FB;
-      if (!FB) {
+      console.log('Starting Facebook Login...');
+
+      // Загружаем FB SDK по требованию
+      try {
+        const { loadFacebookSdk } = await import('@/lib/facebookSdk');
+        await loadFacebookSdk();
+      } catch {
         toast.error('Facebook SDK не загружен', {
-          description: 'Перезагрузите страницу'
+          description: 'Проверьте подключение к интернету'
         });
         return;
       }
+      const FB = (window as any).FB;
 
       FB.login(function(response: any) {
         console.log('📱 Facebook Login response:', response);

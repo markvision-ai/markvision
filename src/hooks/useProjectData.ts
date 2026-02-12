@@ -52,6 +52,12 @@ export const useProjectData = (projectId: string | null) => {
   const fetchingPlanRef = useRef(false);
   const realtimeThrottleRef = useRef<number>(0);
 
+  // Stable refs for mutable state used in useCallback (avoids re-creating callbacks)
+  const plansMapRef = useRef(plansMap);
+  plansMapRef.current = plansMap;
+  const dailyDataRef = useRef(dailyData);
+  dailyDataRef.current = dailyData;
+
   const planData = useMemo((): PlanData => {
     const currentMonthKey = format(startOfMonth(new Date()), 'yyyy-MM-dd');
     const currentPlan = plansMap[currentMonthKey];
@@ -271,7 +277,7 @@ export const useProjectData = (projectId: string | null) => {
 
     const targetMonth = month || format(startOfMonth(new Date()), 'yyyy-MM-dd');
 
-    const previousPlansMap = { ...plansMap };
+    const previousPlansMap = { ...plansMapRef.current };
 
     setPlansMap(prev => {
       const existingPlan = prev[targetMonth] || {
@@ -288,7 +294,7 @@ export const useProjectData = (projectId: string | null) => {
     });
 
     try {
-      const currentPlan = plansMap[targetMonth] || {
+      const currentPlan = plansMapRef.current[targetMonth] || {
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0
       };
 
@@ -322,7 +328,7 @@ export const useProjectData = (projectId: string | null) => {
       toast.error('Ошибка сохранения плана: ' + error.message);
       setPlansMap(previousPlansMap);
     }
-  }, [effectiveProjectId, isAdmin, canEditPlan, plansMap]);
+  }, [effectiveProjectId, isAdmin, canEditPlan]);
 
   // Update daily data with optimistic UI
   const updateDailyData = useCallback(async (date: string, field: keyof DailyData, value: number) => {
@@ -337,7 +343,7 @@ export const useProjectData = (projectId: string | null) => {
       return;
     }
 
-    const previousDailyData = { ...dailyData };
+    const previousDailyData = { ...dailyDataRef.current };
 
     setDailyData(prev => {
       const existingData = prev[date] || {
@@ -356,7 +362,7 @@ export const useProjectData = (projectId: string | null) => {
     });
 
     try {
-      const currentData = dailyData[date] || {
+      const currentData = dailyDataRef.current[date] || {
         date: date,
         spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, followers_total: 0,
         visits: 0, sales: 0, revenue: 0, ig_followers_new: 0, new_followers: 0
@@ -397,7 +403,7 @@ export const useProjectData = (projectId: string | null) => {
       toast.error('Ошибка сохранения данных: ' + error.message);
       setDailyData(previousDailyData);
     }
-  }, [effectiveProjectId, isAdmin, canEditDailyData, dailyData]);
+  }, [effectiveProjectId, isAdmin, canEditDailyData]);
 
 
   // Single load effect — runs once per projectId change

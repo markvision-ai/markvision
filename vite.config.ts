@@ -135,10 +135,11 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             // Vendor chunks
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-dropdown-menu'],
-            'chart-vendor': ['recharts'],
+            'motion-vendor': ['framer-motion'],
+            // Radix UI splits naturally per-component, no forced bundling
+            // chart-vendor removed: recharts included only in lazy-loaded chart components
             'date-vendor': ['date-fns'],
-            'pdf-vendor': ['html2canvas', 'jspdf'],
+            // pdf-vendor removed: html2canvas+jspdf are dynamically imported in ReportGenerator
             'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
             // Large components
             'reports': ['./src/components/reports/ReportGenerator.tsx'],

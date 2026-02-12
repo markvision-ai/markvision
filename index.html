@@ -64,34 +64,7 @@
 <body>
   <div id="root"></div>
 
-  <!-- Facebook SDK -->
-  <script>
-    window.fbAsyncInit = function () {
-      // Пропускаем инициализацию если протокол http (для локальной разработки)
-      if (window.location.protocol !== 'https:' && window.location.hostname === 'localhost') {
-        console.warn('⚠️ Facebook SDK skipped due to non-HTTPS protocol');
-        return;
-      }
-
-      FB.init({
-        appId: '1890905081453686',
-        cookie: true,
-        xfbml: true,
-        version: 'v21.0'
-      });
-
-      // Проверяем статус авторизации при загрузке
-      FB.getLoginStatus(function (response) {
-        if (response.status === 'connected') {
-          console.log('✅ Facebook SDK loaded, user connected');
-        } else {
-          console.log('📱 Facebook SDK loaded, user not connected');
-        }
-      });
-    };
-  </script>
-  <script async defer crossorigin="anonymous" src="https://connect.facebook.net/ru_RU/sdk.js">
-  </script>
+  <!-- Facebook SDK loaded on demand via src/lib/facebookSdk.ts -->
 
   <script type="module" src="/src/main.tsx"></script>
 </body>

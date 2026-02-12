@@ -106,7 +106,8 @@ export const useContentFactory = (projectId: string | null) => {
         .from('content_factory')
         .select('*')
         .eq('project_id', projectId)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .limit(100);
 
       if (error) throw error;
       
