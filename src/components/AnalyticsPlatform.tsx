@@ -496,7 +496,60 @@ export const AnalyticsPlatform = () => {
               </div>
             ));
 
-            // removed computed metrics widget to declutter top-level UI
+            // Расчет прибыли за прошлый период для сравнения
+            const prevProfit = (previousWeekTotals?.revenue || 0) - (previousWeekTotals?.spend || 0);
+            const prevRomi = previousWeekTotals?.spend > 0
+              ? (((previousWeekTotals.revenue - previousWeekTotals.spend) / previousWeekTotals.spend) * 100)
+              : 0;
+
+            registerWidget('kpi-top', (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                <MetricCard
+                  label="Выручка"
+                  value={formatInt(totals?.revenue || 0)}
+                  previousValue={previousWeekTotals?.revenue || 0}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.revenue || 0)}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(totals?.revenue || 0, previousWeekTotals?.revenue || 0) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals?.revenue || 0, previousWeekTotals?.revenue || 0))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Расходы"
+                  value={formatInt(totals?.spend || 0)}
+                  previousValue={previousWeekTotals?.spend || 0}
+                  sparklineData={daysInRange.slice(-14).map(d => dailyData[format(d, 'yyyy-MM-dd')]?.spend || 0)}
+                  icon={<DollarSign className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${calcDelta(totals?.spend || 0, previousWeekTotals?.spend || 0) >= 0 ? '+' : ''}${formatPercent1(calcDelta(totals?.spend || 0, previousWeekTotals?.spend || 0))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="Маржа маркетинга"
+                  value={formatInt(profit)}
+                  previousValue={prevProfit}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    return (dd?.revenue || 0) - (dd?.spend || 0);
+                  })}
+                  icon={<Wallet className="w-5 h-5" />}
+                  variant="success"
+                  subValue={`${calcDelta(profit, prevProfit) >= 0 ? '+' : ''}${formatPercent1(calcDelta(profit, prevProfit))}% к прошлой неделе`}
+                />
+                <MetricCard
+                  label="ROMI"
+                  value={`${formatPercent1(romiPercent)}%`}
+                  previousValue={prevRomi}
+                  sparklineData={daysInRange.slice(-14).map(d => {
+                    const dd = dailyData[format(d, 'yyyy-MM-dd')];
+                    const spend = dd?.spend || 0;
+                    const revenue = dd?.revenue || 0;
+                    return spend > 0 ? (((revenue - spend) / spend) * 100) : 0;
+                  })}
+                  icon={<TrendingUp className="w-5 h-5" />}
+                  variant="primary"
+                  subValue={`${romiPercent - prevRomi >= 0 ? '+' : ''}${formatPercent1(romiPercent - prevRomi)}% к прошлой неделе`}
+                />
+              </div>
+            ));
 
             // removed LTV widget per dashboard simplification
 
