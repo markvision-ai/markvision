@@ -21,11 +21,11 @@ const Index = () => {
     const checkOAuthParams = () => {
       const hashParams = new URLSearchParams(window.location.hash.substring(1));
       const searchParams = new URLSearchParams(window.location.search);
-      
+
       const hasAccessToken = hashParams.has('access_token') || searchParams.has('access_token');
       const hasCode = searchParams.has('code');
       const hasError = searchParams.has('error');
-      
+
       if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
         if (import.meta.env.DEV) console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
         navigate('/integrations', { replace: true });
@@ -77,7 +77,7 @@ const Index = () => {
         console.error('Error checking projects:', error);
         // Only set error if it's a network error/fetch failure to allow retry
         if (error instanceof TypeError && error.message === 'Failed to fetch') {
-           setProjectCheckError('Ошибка подключения к серверу. Проверьте интернет или отключите AdBlock.');
+          setProjectCheckError('Ошибка подключения к серверу. Проверьте интернет или отключите AdBlock.');
         }
       } finally {
         setCheckingProjects(false);
@@ -93,13 +93,13 @@ const Index = () => {
   useEffect(() => {
     const handleSessionCapture = async () => {
       if (!user) return;
-      
+
       const { data: { session } } = await supabase.auth.getSession();
-      
+
       // Если есть токен провайдера (Facebook/Google)
       if (session?.provider_token) {
         console.log("💎 MarkVision: Обнаружен токен Meta. Сохраняю...");
-        
+
         // Get user's project
         const { data: projects } = await supabase
           .from('projects')
@@ -150,7 +150,7 @@ const Index = () => {
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4 text-center">
         <div className="text-destructive font-semibold">Ошибка загрузки</div>
         <p className="text-muted-foreground max-w-md">{projectCheckError}</p>
-        <button 
+        <button
           onClick={() => window.location.reload()}
           className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90"
         >
@@ -162,11 +162,28 @@ const Index = () => {
 
   // Если пользователь не авторизован — показываем лендинг
   if (!user) {
-    return <LandingPage />;
+    return (
+      <Suspense fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+      }>
+        <LandingPage />
+      </Suspense>
+    );
   }
 
   // Если авторизован и прошёл онбординг — показываем платформу
-  return <AnalyticsPlatform />;
+  // Если авторизован и прошёл онбординг — показываем платформу
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    }>
+      <AnalyticsPlatform />
+    </Suspense>
+  );
 };
 
 export default Index;
