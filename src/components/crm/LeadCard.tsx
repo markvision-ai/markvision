@@ -226,34 +226,23 @@ export const LeadCard = ({
       style={style}
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
-        'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-500',
-        'interstellar-card-elevated backdrop-blur-xl border border-white/5 shadow-2xl',
-        // SLA Alert
-        needsAttention && 'border-red-500/50 shadow-red-500/20',
-        // VIP Shine + Gold Glow for MEGA leads
-        isMegaTier && !needsAttention && 'vip-shine vip-glow border-amber-500/30',
-        // Glow effect for high scoring leads (>= 80)
-        hasHighScore && !needsAttention && 'shadow-[0_0_30px_rgba(239,68,68,0.2)] ring-1 ring-red-500/30',
-        // Golden background for MEGA leads (budget > 1M)
-        isGoldenLead && !needsAttention && 'bg-gradient-to-br from-amber-500/10 via-yellow-500/5 to-amber-900/10 border-amber-500/40',
+        'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-200',
+        'bg-card border border-border shadow-sm hover:shadow-md',
+        needsAttention && 'border-red-300 ring-1 ring-red-200',
+        isMegaTier && !needsAttention && 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20',
+        hasHighScore && !needsAttention && 'border-red-200 ring-1 ring-red-100',
+        isGoldenLead && !needsAttention && 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/15',
 
-        selectionMode ? 'cursor-pointer' : 'cursor-pointer active:cursor-grabbing', // FORCE cursor-pointer
-        showDragging && 'shadow-2xl opacity-90 z-50 scale-[1.02] border-primary/50',
-        isSelected && 'ring-2 ring-primary bg-primary/10 border-primary/40',
+        selectionMode ? 'cursor-pointer' : 'cursor-pointer active:cursor-grabbing',
+        showDragging && 'shadow-lg z-50 scale-[1.02] border-primary',
+        isSelected && 'ring-2 ring-primary ring-offset-2 bg-primary/5 border-primary',
         !isGoldenLead && !needsAttention && scoreTier.color
       )}
       onClick={handleCardClick}
     >
-      {/* Decorative background glow based on tier */}
-      <div className={cn(
-        "absolute -top-12 -right-12 w-24 h-24 blur-3xl opacity-0 group-hover:opacity-40 transition-opacity duration-700",
-        scoreTier.tier === 'HOT' ? 'bg-red-500' :
-          scoreTier.tier === 'WARM' ? 'bg-yellow-500' :
-            scoreTier.tier === 'COLD' ? 'bg-blue-500' : 'bg-primary'
-      )} />
-      {/* SLA Alert Badge - Subtle */}
+      {/* SLA Alert */}
       {needsAttention && (
-        <div className="mb-3 flex items-center gap-2 px-2 py-1.5 rounded-md bg-red-100/50  border border-red-200  text-red-700  text-xs font-medium">
+        <div className="mb-3 flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 text-xs font-medium">
           <Clock className="w-3.5 h-3.5 flex-shrink-0" />
           <span>
             {(() => {
@@ -270,10 +259,10 @@ export const LeadCard = ({
         </div>
       )}
 
-      {/* NEW Badge - синее свечение для лидов < 1 часа */}
+      {/* NEW Badge */}
       {isNewLead && (
         <div className="absolute top-3 right-3 z-10">
-          <Badge className="bg-blue-600/30 text-blue-400 border-blue-500/50 shadow-[0_0_15px_rgba(37,99,235,0.4)] animate-pulse font-black text-[10px] tracking-tighter">
+          <Badge className="bg-blue-500 text-white border-0 font-semibold text-[10px]">
             NEW
           </Badge>
         </div>
@@ -297,75 +286,65 @@ export const LeadCard = ({
         </div>
       )}
 
-      {/* Score Tier Badge with Glow animation for high scores */}
+      {/* Score tier — компактная полоска */}
       {scoreTier.tier && (
         <div className={cn(
-          "flex items-center gap-1.5 mb-2 pl-0",
-          isGoldenLead && "relative",
-          scoreTier.glow && "relative"
+          "flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg border w-fit",
+          scoreTier.tier === 'HOT' && "bg-red-500/10 border-red-500/20",
+          scoreTier.tier === 'WARM' && "bg-amber-500/10 border-amber-500/20",
+          scoreTier.tier === 'COLD' && "bg-blue-500/10 border-blue-500/20",
+          scoreTier.tier === 'MEGA' && "bg-amber-500/15 border-amber-500/30",
+          (scoreTier.tier === 'HIGH' || scoreTier.tier === 'MEDIUM') && "bg-muted/50 border-border"
         )}>
-          <div className={cn(
-            "flex items-center gap-1.5",
-            scoreTier.glow && "animate-pulse"
+          {scoreTier.icon}
+          <span className={cn(
+            "text-xs font-semibold",
+            scoreTier.tier === 'HOT' && "text-red-600 dark:text-red-400",
+            scoreTier.tier === 'WARM' && "text-amber-600 dark:text-amber-400",
+            scoreTier.tier === 'COLD' && "text-blue-600 dark:text-blue-400",
+            scoreTier.tier === 'MEGA' && "text-amber-700 dark:text-amber-400",
+            scoreTier.tier === 'HIGH' && "text-orange-600 dark:text-orange-400",
+            scoreTier.tier === 'MEDIUM' && "text-foreground"
           )}>
-            {scoreTier.icon}
-            <span className={cn(
-              "text-xs font-bold tracking-wide text-[14px]",
-              scoreTier.tier === 'HOT' && 'text-red-500',
-              scoreTier.tier === 'WARM' && 'text-yellow-500',
-              scoreTier.tier === 'COLD' && 'text-blue-500',
-              scoreTier.tier === 'MEGA' && 'text-amber-600 drop-shadow-sm',
-              scoreTier.tier === 'HIGH' && 'text-orange-500',
-              scoreTier.tier === 'MEDIUM' && 'text-blue-500'
-            )}>
-              {scoreTier.label || scoreTier.tier}
-            </span>
-            {leadScore !== null && (
-              <Badge variant="outline" className="text-[12px] px-1.5 py-0">
-                {leadScore}
-              </Badge>
-            )}
-          </div>
-          {isGoldenLead && (
-            <Gem className="w-3.5 h-3.5 text-amber-500 ml-1 animate-pulse" />
+            {scoreTier.label || scoreTier.tier}
+          </span>
+          {leadScore !== null && (
+            <span className="text-[11px] font-bold text-muted-foreground tabular-nums">{leadScore}</span>
           )}
-          {/* Glow effect for scores >= 80 */}
-          {scoreTier.glow && (
-            <div className="absolute inset-0 rounded-xl bg-red-500/20 blur-xl -z-10 animate-pulse" />
-          )}
+          {isGoldenLead && <Gem className="w-3.5 h-3.5 text-amber-500" />}
         </div>
       )}
 
-      {/* Header: Name + Drag Handle */}
-      <div className="flex items-start gap-4 mb-4 relative z-10">
+      {/* Header: Name + Handle */}
+      <div className="flex items-start gap-3 mb-3 relative z-10">
         {selectionMode ? (
           <div
-            className="w-9 h-9 rounded-xl interstellar-glass flex items-center justify-center flex-shrink-0"
+            className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border"
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
               checked={isSelected}
               onCheckedChange={(checked) => onSelect?.(!!checked)}
-              className="data-[state=checked]:bg-primary border-white/20"
+              className="data-[state=checked]:bg-primary"
             />
           </div>
         ) : (
-          <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-300">
-            <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />
+          <div className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center flex-shrink-0 group-hover:bg-muted transition-colors">
+            <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
         <div className="flex-1 min-w-0">
           {clinicName && (
-            <p className="font-black text-[11px] uppercase tracking-widest text-primary mb-1">
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-0.5">
               {clinicName}
             </p>
           )}
-          <div className="flex items-center gap-2">
-            <h4 className={cn("text-base leading-tight truncate font-bold", clinicName ? "text-foreground" : "text-foreground")}>
+          <div className="flex items-center gap-2 flex-wrap">
+            <h4 className="text-base leading-tight truncate font-semibold text-foreground">
               {displayName}
             </h4>
             {lead.ltv && lead.ltv > 0 && (
-              <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px] font-black px-1.5 py-0 h-5 flex-shrink-0">
+              <Badge variant="secondary" className="text-[10px] font-semibold px-1.5 py-0 h-5 flex-shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-0">
                 <DollarSign className="w-2.5 h-3 mr-0.5" />
                 {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.ltv)}
               </Badge>
@@ -374,32 +353,32 @@ export const LeadCard = ({
         </div>
       </div>
 
-      {/* Info Rows */}
-      <div className="space-y-2.5 mb-4 pl-1 relative z-10">
-        <div className="flex items-center gap-3 text-xs text-muted-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
-          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
-          <span className="truncate font-semibold tracking-wide">
+      {/* Info */}
+      <div className="space-y-1.5 mb-3 pl-0 relative z-10">
+        <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1">
+          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+          <span className="truncate font-medium">
             {lead.phone || 'Нет телефона'}
           </span>
         </div>
 
-        <div className="flex items-center gap-3 text-xs text-muted-foreground px-2 py-1 rounded-lg hover:bg-white/5 transition-colors">
-          <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
-          <span className="truncate font-medium">
-            {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', 'Дата неизвестна')}
+        <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1">
+          <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+          <span className="truncate">
+            {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', '—')}
           </span>
         </div>
 
         {selectedDate && (
-          <div className="flex items-center gap-3 text-[11px] text-emerald-400 px-2 py-1.5 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+          <div className="flex items-center gap-2 text-[11px] text-emerald-600 dark:text-emerald-400 px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
             <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
-            <span className="truncate font-black uppercase tracking-wider">
+            <span className="truncate font-semibold uppercase tracking-wide">
               Записан: {selectedDate}
             </span>
           </div>
         )}
 
-        <div className="flex items-center gap-3 px-2 mt-2">
+        <div className="flex items-center gap-2 pt-1">
           {getSourceBadge()}
         </div>
       </div>
@@ -433,49 +412,34 @@ export const LeadCard = ({
         </div>
       )}
 
-      {/* Budget Qualification Block - Premium "Growth Potential" Calculator */}
+      {/* Квалификация / бюджет */}
       {marketingBudget > 0 && (
-        <div className="mb-5 relative z-10">
+        <div className="mb-4 relative z-10">
           <div className={cn(
-            "p-3.5 rounded-2xl border transition-all duration-300 backdrop-blur-md",
+            "p-3 rounded-xl border",
             isGoldenLead
-              ? "interstellar-glass border-amber-500/40 bg-amber-500/5 shadow-lg shadow-amber-500/10"
-              : "bg-white/5 border-white/10"
+              ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
+              : "bg-muted/50 border-border"
           )}>
-            <div className="flex items-center gap-2 mb-3">
-              <div className={cn(
-                "p-1.5 rounded-lg",
-                isGoldenLead ? "bg-amber-500/20" : "bg-white/10"
-              )}>
-                <TrendingUp className={cn(
-                  "w-3.5 h-3.5",
-                  isGoldenLead ? "text-amber-400" : "text-blue-400"
-                )} />
-              </div>
-              <span className={cn(
-                "text-[10px] font-black uppercase tracking-[0.2em]",
-                isGoldenLead ? "text-amber-400" : "text-muted-foreground"
-              )}>
+            <div className="flex items-center gap-2 mb-2">
+              <TrendingUp className={cn(
+                "w-3.5 h-3.5",
+                isGoldenLead ? "text-amber-600" : "text-primary"
+              )} />
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                 Квалификация
               </span>
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Текущий</p>
-                <p className={cn(
-                  "text-sm font-black tracking-tight",
-                  isGoldenLead ? "text-amber-500" : "text-foreground"
-                )}>
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Текущий</p>
+                <p className="text-sm font-semibold text-foreground">
                   {new Intl.NumberFormat('ru-RU').format(Math.round(marketingBudget))} ₸
                 </p>
               </div>
-              <div className="text-right border-l border-white/10 pl-4">
-                <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-1">Потенциал x3</p>
-                <p className={cn(
-                  "text-sm font-black tracking-tight",
-                  isGoldenLead ? "text-amber-400" : "text-primary"
-                )}>
+              <div className="text-right border-l border-border pl-3">
+                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Потенциал x3</p>
+                <p className="text-sm font-semibold text-primary">
                   {new Intl.NumberFormat('ru-RU').format(Math.round(growthPotential))} ₸
                 </p>
               </div>
@@ -484,22 +448,22 @@ export const LeadCard = ({
         </div>
       )}
 
-      {/* Quick Actions - Premium Floating Buttons */}
+      {/* Quick Actions */}
       <div
-        className="flex gap-2 mt-auto relative z-10"
+        className="flex gap-2 mt-auto pt-2 border-t border-border relative z-10"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <TooltipProvider delayDuration={300}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 className={cn(
-                  "h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass",
+                  "h-9 flex-1 rounded-lg border",
                   lead.phone
-                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/20"
-                    : "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
+                    ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                    : "opacity-50 cursor-not-allowed"
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -519,13 +483,13 @@ export const LeadCard = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
                 className={cn(
-                  "h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass",
+                  "h-9 flex-1 rounded-lg border",
                   lead.phone
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20"
-                    : "bg-white/5 text-muted-foreground opacity-50 cursor-not-allowed"
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
+                    : "opacity-50 cursor-not-allowed"
                 )}
                 onClick={(e) => handleQuickAction(e, 'call')}
                 disabled={!lead.phone}
@@ -539,9 +503,9 @@ export const LeadCard = ({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="h-10 flex-1 rounded-xl text-[11px] font-black uppercase tracking-widest interstellar-glass bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border-purple-500/20"
+                className="h-9 flex-1 rounded-lg border bg-violet-500/10 hover:bg-violet-500/20 text-violet-700 dark:text-violet-400 border-violet-500/30"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick?.();
@@ -550,7 +514,7 @@ export const LeadCard = ({
                 <Brain className="w-4 h-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>ИИ-Анализ</TooltipContent>
+            <TooltipContent>Карточка / ИИ</TooltipContent>
           </Tooltip>
         </TooltipProvider>
       </div>

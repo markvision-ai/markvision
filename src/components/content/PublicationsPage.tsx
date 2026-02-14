@@ -286,39 +286,39 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 <Rocket className="w-3 h-3" />
                 Автопостинг
               </div>
-              <h1 className="text-4xl font-black text-white tracking-tighter uppercase transition-all">
+              <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase transition-all">
                 Управление <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Контентом</span>
               </h1>
-              <p className="text-white/40 mt-1 text-sm font-light">
+              <p className="text-muted-foreground mt-1 text-sm font-light">
                 Планируйте и анализируйте ваши публикации во всех соцсетях.
               </p>
             </div>
 
             <div className="flex flex-wrap items-center gap-4 relative z-10">
-              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-white/5 border border-white/10 h-12">
-                <span className="text-[10px] font-bold text-white/30 uppercase tracking-widest mr-2">Сортировка:</span>
+              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-muted/50 border border-border h-12">
+                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-2">Сортировка:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent text-white text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
+                  className="bg-transparent text-foreground text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
                 >
-                  <option value="date" className="bg-slate-900">Дата</option>
-                  <option value="reach" className="bg-slate-900">Охват</option>
-                  <option value="leads" className="bg-slate-900">Лиды</option>
-                  <option value="revenue" className="bg-slate-900">Доход</option>
-                  <option value="comments" className="bg-slate-900">Комменты</option>
+                  <option value="date" className="bg-background">Дата</option>
+                  <option value="reach" className="bg-background">Охват</option>
+                  <option value="leads" className="bg-background">Лиды</option>
+                  <option value="revenue" className="bg-background">Доход</option>
+                  <option value="comments" className="bg-background">Комменты</option>
                 </select>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-white/40 hover:text-white"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 >
                   {sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 rotate-180" />}
                 </Button>
               </div>
 
-              <div className="p-1 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-1">
+              <div className="p-1 rounded-2xl bg-muted/50 border border-border flex items-center gap-1">
                 <Button
                   onClick={() => setIsCreatorOpen(true)}
                   className="h-12 px-8 bg-cyan-500 text-black hover:bg-cyan-400 font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] active:scale-95"
@@ -326,13 +326,13 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                   <Plus className="w-5 h-5 mr-2" />
                   Создать пост
                 </Button>
-                <div className="w-px h-8 bg-white/10 mx-1" />
+                <div className="w-px h-8 bg-border mx-1" />
                 <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handlePrevMonth}
-                    className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/10 rounded-xl"
+                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
@@ -345,7 +345,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                     variant="ghost"
                     size="icon"
                     onClick={handleNextMonth}
-                    className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/10 rounded-xl"
+                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -372,8 +372,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 className={cn(
                   "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-bold uppercase tracking-widest text-[10px]",
                   selectedChannel === channel.id
-                    ? "bg-white/10 border-white/20 text-white shadow-lg"
-                    : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10 hover:text-white"
+                    ? "bg-muted border-border text-foreground shadow-lg"
+                    : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {channel.id === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel.id} className="w-4 h-4" />}
@@ -386,25 +386,25 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
 
-            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/10 bg-black/40 backdrop-blur-2xl shadow-2xl">
+            <div className="relative w-full overflow-hidden rounded-[32px] border border-border bg-card/80 backdrop-blur-2xl shadow-2xl">
 
               {/* Table Header Container */}
-              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-white/5 bg-white/5 items-center">
+              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-border bg-muted/30 items-center">
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-4 h-4 text-cyan-400" />
-                  <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Контент</span>
+                  <BarChart3 className="w-4 h-4 text-cyan-500" />
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Контент</span>
                 </div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Канал</div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Охват</div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Клики</div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-center">Комменты</div>
-                <div className="text-[10px] font-black text-cyan-400 uppercase tracking-[0.3em] text-center border-b border-cyan-500/20 pb-1">Воронка</div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-right">Доход</div>
-                <div className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em] text-right whitespace-nowrap">Действие</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Канал</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Охват</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Клики</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Комменты</div>
+                <div className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] text-center border-b border-cyan-500/20 pb-1">Воронка</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right">Доход</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right whitespace-nowrap">Действие</div>
               </div>
 
               {/* Table Body */}
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-border">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-40 gap-4">
                     <Loader2 className="w-10 h-10 animate-spin text-cyan-500" />
@@ -412,8 +412,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                   </div>
                 ) : filteredPosts.length === 0 ? (
                   <div className="text-center py-40">
-                    <div className="inline-flex flex-col items-center gap-3 opacity-20 grayscale">
-                      <Rocket className="w-16 h-16 mb-2" />
+                    <div className="inline-flex flex-col items-center gap-3 text-muted-foreground">
+                      <Rocket className="w-16 h-16 mb-2 opacity-50" />
                       <p className="text-sm font-mono uppercase tracking-[0.2em]">Публикаций не найдено</p>
                     </div>
                   </div>
@@ -425,30 +425,30 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-white/5 transition-all duration-300 relative overflow-hidden"
+                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-muted/30 transition-all duration-300 relative overflow-hidden"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/0 to-cyan-500/0 group-hover:via-cyan-500/5 transition-all duration-500" />
 
                         {/* Content */}
                         <div className="flex items-center gap-6 min-w-0 relative z-10">
-                          <div className="h-16 w-16 rounded-2xl bg-white/5 border border-white/10 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-xl">
+                          <div className="h-16 w-16 rounded-2xl bg-muted/50 border border-border overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-xl">
                             {post.media_url ? (
                               <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
                             ) : (
-                              <div className="h-full w-full flex items-center justify-center text-white/20">
+                              <div className="h-full w-full flex items-center justify-center text-muted-foreground">
                                 <Eye className="w-6 h-6" />
                               </div>
                             )}
-                            <div className="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-all" />
-                            <div className="absolute bottom-1 right-1 bg-black/80 backdrop-blur-md rounded-lg p-1 border border-white/10">
+                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
+                            <div className="absolute bottom-1 right-1 bg-background/90 backdrop-blur-md rounded-lg p-1 border border-border">
                               {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-cyan-400" /> : <FileImage className="w-3 h-3 text-purple-400" />}
                             </div>
                           </div>
                           <div className="min-w-0 flex-1 space-y-1">
-                            <p className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors truncate pr-8" title={post.caption || ''}>
+                            <p className="text-sm font-bold text-foreground group-hover:text-cyan-500 transition-colors truncate pr-8" title={post.caption || ''}>
                               {post.caption || 'Без названия'}
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] text-white/30 font-mono uppercase tracking-tighter">
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
                               <CalendarIcon className="w-3 h-3" />
                               {post.posted_at ? format(parseISO(post.posted_at), 'dd MMM yyyy, HH:mm', { locale: ru }) : 'Недавно'}
                             </div>
@@ -457,33 +457,33 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Node (Channel) */}
                         <div className="flex justify-center relative z-10">
-                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/5 border border-white/5 min-w-[80px] group-hover:border-white/10 transition-all">
+                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-muted/50 border border-border min-w-[80px] group-hover:border-border transition-all">
                             <ChannelIcon channel={post.channel} className="w-5 h-5 mb-1" />
-                            <span className="text-[10px] font-bold text-white/40 uppercase tracking-tighter">{post.channel}</span>
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">{post.channel}</span>
                           </div>
                         </div>
 
                         {/* Metrics */}
-                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                        <div className="text-center relative z-10 font-mono text-sm text-muted-foreground group-hover:text-foreground transition-colors">
                           {new Intl.NumberFormat('ru-RU').format(post.reach)}
                         </div>
-                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                        <div className="text-center relative z-10 font-mono text-sm text-muted-foreground group-hover:text-foreground transition-colors">
                           {post.clicks}
                         </div>
-                        <div className="text-center relative z-10 font-mono text-sm text-white/60 group-hover:text-white transition-colors">
+                        <div className="text-center relative z-10 font-mono text-sm text-muted-foreground group-hover:text-foreground transition-colors">
                           {post.comments}
                         </div>
 
                         {/* Funnel Matrix */}
                         <div className="relative z-10">
-                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/5 border border-white/5 group-hover:bg-cyan-500/10 transition-all">
+                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/10 border border-border group-hover:bg-cyan-500/15 transition-all">
                             <div className="space-y-0.5">
-                              <div className="text-[14px] font-black text-white">{post.leads_count}</div>
-                              <div className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-bold">Лиды</div>
+                              <div className="text-[14px] font-black text-foreground">{post.leads_count}</div>
+                              <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Лиды</div>
                             </div>
-                            <div className="space-y-0.5 border-l border-white/5">
-                              <div className="text-[14px] font-black text-white">{post.visits_count}</div>
-                              <div className="text-[9px] text-cyan-400/50 uppercase tracking-widest font-bold">Визиты</div>
+                            <div className="space-y-0.5 border-l border-border">
+                              <div className="text-[14px] font-black text-foreground">{post.visits_count}</div>
+                              <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Визиты</div>
                             </div>
                           </div>
                         </div>
@@ -536,29 +536,29 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
       {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-black/90 border-white/10 text-white backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
+        <DialogContent className="sm:max-w-[480px] bg-card border-border text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
           <DialogHeader className="space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
               <Rocket className="w-8 h-8" />
             </div>
             <div>
-              <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight">ИИ-Продвижение</DialogTitle>
-              <DialogDescription className="text-white/40 mt-1 font-light">
+              <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">ИИ-Продвижение</DialogTitle>
+              <DialogDescription className="text-muted-foreground mt-1 font-light">
                 Нейронный анализ рекомендует этот пост для масштабирования.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="py-6 space-y-6">
-            <div className="p-5 rounded-[24px] bg-white/5 border border-white/10 flex gap-5 items-center">
-              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-white/10 relative">
+            <div className="p-5 rounded-[24px] bg-muted/50 border border-border flex gap-5 items-center">
+              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border relative">
                 {selectedPost?.media_url && (
                   <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
                 )}
-                <div className="absolute inset-0 bg-black/40" />
+                <div className="absolute inset-0 bg-black/20" />
               </div>
               <div className="min-w-0 flex-1 space-y-2">
-                <h4 className="font-bold text-sm text-white line-clamp-1">{selectedPost?.caption || 'Без названия'}</h4>
+                <h4 className="font-bold text-sm text-foreground line-clamp-1">{selectedPost?.caption || 'Без названия'}</h4>
                 <div className="flex flex-wrap gap-2">
                   <div className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[9px] font-black uppercase font-mono">
                     ПОТЕНЦИАЛ: ВЫСОКИЙ
@@ -571,21 +571,21 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[24px] bg-cyan-500/5 border border-white/5 text-center space-y-1">
-                <div className="text-[10px] text-cyan-400 font-black uppercase tracking-widest">Прогноз лидов</div>
-                <div className="text-3xl font-black text-white">+50</div>
-                <div className="text-[9px] text-white/20 uppercase">Ожидается</div>
+              <div className="p-6 rounded-[24px] bg-cyan-500/10 border border-border text-center space-y-1">
+                <div className="text-[10px] text-cyan-500 font-black uppercase tracking-widest">Прогноз лидов</div>
+                <div className="text-3xl font-black text-foreground">+50</div>
+                <div className="text-[9px] text-muted-foreground uppercase">Ожидается</div>
               </div>
-              <div className="p-6 rounded-[24px] bg-purple-500/5 border border-white/5 text-center space-y-1">
-                <div className="text-[10px] text-purple-400 font-black uppercase tracking-widest">Бюджет</div>
-                <div className="text-3xl font-black text-white">20к</div>
-                <div className="text-[9px] text-white/20 uppercase text-center ml-4">₸</div>
+              <div className="p-6 rounded-[24px] bg-purple-500/10 border border-border text-center space-y-1">
+                <div className="text-[10px] text-purple-500 font-black uppercase tracking-widest">Бюджет</div>
+                <div className="text-3xl font-black text-foreground">20к</div>
+                <div className="text-[9px] text-muted-foreground uppercase text-center ml-4">₸</div>
               </div>
             </div>
           </div>
 
           <DialogFooter className="gap-3 sm:justify-center">
-            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-white/30 hover:text-white uppercase font-bold text-xs tracking-widest">Отмена</Button>
+            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-muted-foreground hover:text-foreground uppercase font-bold text-xs tracking-widest">Отмена</Button>
             <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-cyan-500 text-black hover:bg-cyan-400 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02]">
               {promoting ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <Rocket className="w-5 h-5 mr-3" />}
               Запустить рост

@@ -5,14 +5,15 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
-  Legend,
   Tooltip
 } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2, ExternalLink } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
+import { subDays, format } from 'date-fns';
+import { KZT_RATE } from '@/constants/ads';
 
 interface PlatformSpendChartProps {
   projectId: string;
@@ -39,20 +40,47 @@ const formatCurrency = (value: number): string => {
 
 export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   const [data, setData] = useState<DailyDataWithPlatforms[]>([]);
+  const [metaSpendFromLogs, setMetaSpendFromLogs] = useState<number>(0);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
+      if (!projectId) return;
       try {
-        const { data: dailyData, error } = await supabase
-          .from('daily_data')
-          .select('date, spend, spend_fb, spend_google, spend_tiktok')
-          .eq('project_id', projectId)
-          .order('date', { ascending: false })
-          .limit(90);
+        const dateFrom = format(subDays(new Date(), 90), 'yyyy-MM-dd');
 
-        if (error) throw error;
-        setData(dailyData || []);
+        const [dailyResult, logsResult] = await Promise.all([
+          supabase
+            .from('daily_data')
+            .select('date, spend, spend_fb, spend_google, spend_tiktok')
+            .eq('project_id', projectId)
+            .gte('date', dateFrom)
+            .order('date', { ascending: false }),
+
+          supabase
+            .from('ad_performance_logs')
+            .select('date_start, entity_id, spend')
+            .eq('project_id', projectId)
+            .gte('date_start', dateFrom)
+        ]);
+
+        if (dailyResult.error) throw dailyResult.error;
+        setData(dailyResult.data || []);
+
+        if (!logsResult.error && logsResult.data?.length) {
+          const uniqueByEntityDate: Record<string, number> = {};
+          logsResult.data.forEach((row: { date_start: string; entity_id: string; spend: number | null }) => {
+            const key = `${row.entity_id}_${row.date_start}`;
+            const spend = Number(row.spend) || 0;
+            if (!uniqueByEntityDate[key] || spend > uniqueByEntityDate[key]) {
+              uniqueByEntityDate[key] = spend;
+            }
+          });
+          const totalMetaUsd = Object.values(uniqueByEntityDate).reduce((s, v) => s + v, 0);
+          setMetaSpendFromLogs(Math.round(totalMetaUsd * KZT_RATE));
+        } else {
+          setMetaSpendFromLogs(0);
+        }
       } catch (error) {
         console.error('Error fetching platform spend:', error);
       } finally {
@@ -64,26 +92,26 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   }, [projectId]);
 
   const platformTotals = useMemo(() => {
-    const totals = data.reduce(
+    const fromDaily = data.reduce(
       (acc, day) => ({
-        facebook: acc.facebook + (day.spend_fb || 0),
         google: acc.google + (day.spend_google || 0),
         tiktok: acc.tiktok + (day.spend_tiktok || 0),
         total: acc.total + (day.spend || 0)
       }),
-      { facebook: 0, google: 0, tiktok: 0, total: 0 }
+      { google: 0, tiktok: 0, total: 0 }
     );
 
-    const knownSpend = totals.facebook + totals.google + totals.tiktok;
-    const other = Math.max(0, totals.total - knownSpend);
+    const facebook = metaSpendFromLogs > 0 ? metaSpendFromLogs : data.reduce((s, day) => s + (day.spend_fb || 0), 0);
+    const knownSpend = facebook + fromDaily.google + fromDaily.tiktok;
+    const other = Math.max(0, fromDaily.total - knownSpend);
 
     return [
-      { name: 'Facebook', key: 'facebook', value: Math.round(totals.facebook), ...PLATFORM_CONFIG.facebook },
-      { name: 'Google', key: 'google', value: Math.round(totals.google), ...PLATFORM_CONFIG.google },
-      { name: 'TikTok', key: 'tiktok', value: Math.round(totals.tiktok), ...PLATFORM_CONFIG.tiktok },
+      { name: 'Meta Ads', key: 'facebook', value: Math.round(facebook), ...PLATFORM_CONFIG.facebook },
+      { name: 'Google', key: 'google', value: Math.round(fromDaily.google), ...PLATFORM_CONFIG.google },
+      { name: 'TikTok', key: 'tiktok', value: Math.round(fromDaily.tiktok), ...PLATFORM_CONFIG.tiktok },
       { name: 'Прочие', key: 'other', value: Math.round(other), ...PLATFORM_CONFIG.other },
     ].filter(p => p.value > 0).sort((a, b) => b.value - a.value);
-  }, [data]);
+  }, [data, metaSpendFromLogs]);
 
   const totalSpend = platformTotals.reduce((sum, p) => sum + p.value, 0);
 
@@ -92,13 +120,13 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
       const item = payload[0].payload;
       const percent = totalSpend > 0 ? ((item.value / totalSpend) * 100).toFixed(1) : '0';
       return (
-        <div className="bg-background/90 backdrop-blur-md border border-white/10 rounded-xl p-4 shadow-xl">
-          <p className="font-medium flex items-center gap-2 mb-2">
+        <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+          <p className="font-medium flex items-center gap-2 mb-2 text-foreground">
             <span className="text-xl">{item.icon}</span>
             <span className="text-lg">{item.label}</span>
           </p>
           <div className="space-y-1">
-            <p className="text-2xl font-bold tracking-tight">{formatCurrency(item.value)}</p>
+            <p className="text-2xl font-bold tracking-tight text-foreground">{formatCurrency(item.value)}</p>
             <p className="text-sm text-muted-foreground">{percent}% от общего бюджета</p>
           </div>
         </div>
@@ -119,10 +147,10 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
       <text
         x={x}
         y={y}
-        fill="white"
+        fill="currentColor"
         textAnchor="middle"
         dominantBaseline="central"
-        className="font-bold text-xs drop-shadow-md pointer-events-none"
+        className="font-bold text-xs drop-shadow-md pointer-events-none fill-foreground"
       >
         {`${(percent * 100).toFixed(0)}%`}
       </text>
@@ -140,13 +168,15 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Pie Chart */}
-      <Card className="interstellar-glass border-white/5 shadow-xl lg:col-span-2">
+      <Card className="bg-card border border-border shadow-sm lg:col-span-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-foreground">
             <span className="w-2 h-6 bg-primary rounded-full" />
             Доля рекламных площадок
           </CardTitle>
-          <CardDescription>Распределение бюджета за последние 90 дней</CardDescription>
+          <CardDescription>
+            Распределение бюджета за последние 90 дней. Meta Ads — данные из кабинета Meta (ad_performance_logs).
+          </CardDescription>
         </CardHeader>
         <CardContent>
           {platformTotals.length > 0 ? (
@@ -172,7 +202,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
                         key={`cell-${index}`}
                         fill={entry.color}
                         className="hover:opacity-90 transition-opacity cursor-pointer"
-                        stroke="rgba(0,0,0,0.2)"
+                        stroke="rgba(0,0,0,0.1)"
                         strokeWidth={1}
                       />
                     ))}
@@ -181,16 +211,16 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
                 </PieChart>
               </ResponsiveContainer>
 
-              {/* Center Metrics */}
               <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
                 <span className="text-muted-foreground text-sm font-medium">Всего</span>
-                <span className="text-2xl font-bold">{formatCurrency(totalSpend)}</span>
+                <span className="text-2xl font-bold text-foreground">{formatCurrency(totalSpend)}</span>
               </div>
             </div>
           ) : (
-            <div className="h-[400px] flex items-center justify-center text-muted-foreground bg-white/5 rounded-2xl border border-white/5 border-dashed">
+            <div className="h-[400px] flex items-center justify-center text-muted-foreground rounded-2xl border border-dashed border-border bg-muted/20">
               <div className="text-center">
                 <p>Нет данных о расходах</p>
+                <p className="text-xs mt-1">Подключите рекламные кабинеты в Интеграциях</p>
               </div>
             </div>
           )}
@@ -209,7 +239,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={cn("interstellar-glass transition-all hover:scale-[1.02] cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
+              <Card className={cn("bg-card border border-border transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
@@ -217,23 +247,23 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
                         {platform.icon}
                       </div>
                       <div>
-                        <p className="font-semibold text-base">{platform.label}</p>
-                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-transparent border-white/10 opacity-70">
-                          Ad Spend
+                        <p className="font-semibold text-base text-foreground">{platform.label}</p>
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-border text-muted-foreground">
+                          {platform.key === 'facebook' ? 'из кабинета Meta' : 'Ad Spend'}
                         </Badge>
                       </div>
                     </div>
-                    <span className="font-bold text-lg font-mono">{percent}%</span>
+                    <span className="font-bold text-lg font-mono text-foreground">{percent}%</span>
                   </div>
 
                   <div className="mt-4">
                     <div className="flex justify-between items-baseline mb-1">
                       <span className="text-xs text-muted-foreground uppercase tracking-wider">Расход</span>
-                      <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+                      <span className="text-xl font-bold text-foreground">
                         {formatCurrency(platform.value)}
                       </span>
                     </div>
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                       <div
                         className="h-full rounded-full"
                         style={{ width: `${percent}%`, backgroundColor: platform.color }}
@@ -247,8 +277,8 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
         })}
 
         {platformTotals.length === 0 && (
-          <div className="p-6 text-center text-muted-foreground text-sm border border-white/5 rounded-xl bg-white/5">
-            Нет активных подключений к рекламным кабинетам
+          <div className="p-6 text-center text-muted-foreground text-sm border border-border rounded-xl bg-muted/20">
+            Нет данных. Подключите Meta в Интеграциях и синхронизируйте расходы.
           </div>
         )}
       </div>

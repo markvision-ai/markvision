@@ -276,14 +276,12 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
-            Сквозная аналитика
-          </h2>
-          <p className="text-muted-foreground mt-1">Отслеживайте эффективность каждого канала и путь клиента.</p>
+          <h2 className="text-2xl font-bold tracking-tight text-foreground">Сквозная аналитика</h2>
+          <p className="text-sm text-muted-foreground mt-1">Эффективность каналов и путь клиента от рекламы до продажи</p>
         </div>
-        <div className="flex items-center gap-3 bg-secondary/30 p-1.5 rounded-xl border border-white/5 backdrop-blur-md">
+        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-lg border border-border">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
-          <Button variant="ghost" size="icon" onClick={() => { fetchLeads(); fetchDailyData(); }} className="hover:bg-white/10 rounded-lg">
+          <Button variant="ghost" size="icon" onClick={() => { fetchLeads(); fetchDailyData(); }} className="rounded-lg h-9 w-9" title="Обновить">
             <Loader2 className={cn("w-4 h-4", loading && "animate-spin")} />
           </Button>
         </div>
@@ -299,7 +297,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             icon: Globe,
             color: 'text-blue-400',
             bg: 'bg-blue-500/10',
-            action: <Button variant="ghost" size="xs" onClick={syncMeta} disabled={metaLoading} className="h-6 text-[10px] ml-auto border border-blue-500/30 text-blue-300 hover:bg-blue-500/20">{metaLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sync'}</Button>
+            action: <Button variant="outline" size="sm" onClick={syncMeta} disabled={metaLoading} className="h-7 text-xs ml-auto">{metaLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sync'}</Button>
           },
           {
             label: 'Расходы (РК)',
@@ -332,19 +330,19 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className="interstellar-glass border-white/5 hover:border-white/10 transition-colors shadow-lg group">
-              <CardContent className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", card.bg)}>
+            <Card className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow group">
+              <CardContent className="p-5">
+                <div className="flex justify-between items-start mb-3">
+                  <div className={cn("p-2 rounded-lg", card.bg)}>
                     <card.icon className={cn("w-5 h-5", card.color)} />
                   </div>
                   {card.action}
                 </div>
                 <div className="space-y-1">
-                  <h3 className="text-2xl font-bold tracking-tight">{card.value}</h3>
-                  <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold tracking-tight text-foreground">{card.value}</h3>
+                  <div className="flex items-center justify-between gap-2">
                     <p className="text-sm font-medium text-muted-foreground">{card.label}</p>
-                    <span className="text-xs text-muted-foreground/70 font-mono">{card.sub}</span>
+                    <span className="text-xs text-muted-foreground font-mono truncate">{card.sub}</span>
                   </div>
                 </div>
               </CardContent>
@@ -367,7 +365,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* Analytics Tabs Section */}
       <Tabs defaultValue="sales-roi" className="w-full" onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="w-full sm:w-auto bg-secondary/50 p-1 rounded-2xl border border-white/5 backdrop-blur-sm">
+        <TabsList className="w-full sm:w-auto bg-muted/50 p-1 rounded-xl border border-border">
           {[
             { id: 'sales-roi', label: 'ROI и Продажи', icon: TrendingUp },
             { id: 'split-tests', label: 'Сплит-тесты', icon: SplitSquareVertical },
@@ -388,40 +386,38 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sales ROI Table */}
           <TabsContent value="sales-roi" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="interstellar-glass border-white/5 shadow-xl">
+              <Card className="bg-card border border-border shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 text-foreground">
                     <Globe className="w-5 h-5 text-primary" />
                     Эффективность посадочных страниц
                   </CardTitle>
-                  <CardDescription>Детальная статистика по URL и меткам</CardDescription>
+                  <CardDescription className="text-muted-foreground">Статистика по URL и кампаниям за период</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-xl border border-white/5 overflow-hidden">
+                  <div className="rounded-lg border border-border overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-white/5 text-muted-foreground text-xs uppercase font-medium">
+                      <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-medium">
                         <tr>
-                          <th className="px-6 py-4 text-left">Страница / Кампания</th>
-                          <th className="px-6 py-4 text-right">Лиды</th>
-                          <th className="px-6 py-4 text-right">Визиты</th>
-                          <th className="px-6 py-4 text-right">Продажи</th>
-                          <th className="px-6 py-4 text-right">Выручка</th>
+                          <th className="px-4 py-3 text-left">Страница / Кампания</th>
+                          <th className="px-4 py-3 text-right">Лиды</th>
+                          <th className="px-4 py-3 text-right">Визиты</th>
+                          <th className="px-4 py-3 text-right">Продажи</th>
+                          <th className="px-4 py-3 text-right">Выручка</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-white/5">
+                      <tbody className="divide-y divide-border">
                         {siteStats.map((site, i) => (
-                          <tr key={i} className="hover:bg-white/5 transition-colors group">
-                            <td className="px-6 py-4 font-medium max-w-[250px] truncate text-foreground/90 group-hover:text-primary transition-colors">
-                              {site.name}
-                            </td>
-                            <td className="px-6 py-4 text-right font-mono text-foreground/80">{site.leads}</td>
-                            <td className="px-6 py-4 text-right font-mono text-purple-400">{site.visits}</td>
-                            <td className="px-6 py-4 text-right font-mono text-emerald-400">{site.sales}</td>
-                            <td className="px-6 py-4 text-right font-bold text-amber-400">{formatCurrencyShort(site.revenue)}</td>
+                          <tr key={i} className="hover:bg-muted/30 transition-colors">
+                            <td className="px-4 py-3 font-medium max-w-[250px] truncate text-foreground">{site.name}</td>
+                            <td className="px-4 py-3 text-right font-mono text-foreground">{site.leads}</td>
+                            <td className="px-4 py-3 text-right font-mono text-muted-foreground">{site.visits}</td>
+                            <td className="px-4 py-3 text-right font-mono text-foreground">{site.sales}</td>
+                            <td className="px-4 py-3 text-right font-semibold text-foreground">{formatCurrencyShort(site.revenue)}</td>
                           </tr>
                         ))}
                         {siteStats.length === 0 && (
-                          <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Нет данных</td></tr>
+                          <tr><td colSpan={5} className="px-4 py-10 text-center text-muted-foreground">Нет данных за период</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -434,30 +430,31 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Split Tests */}
           <TabsContent value="split-tests" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="interstellar-glass border-white/5 shadow-xl">
+              <Card className="bg-card border border-border shadow-sm">
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <SplitSquareVertical className="w-5 h-5 text-accent" />
-                    Анализ источников
+                  <CardTitle className="flex items-center gap-2 text-foreground">
+                    <SplitSquareVertical className="w-5 h-5 text-primary" />
+                    Анализ по источникам
                   </CardTitle>
+                  <CardDescription className="text-muted-foreground">Лиды и выручка по каналам</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {sourceStats.map((source, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 transition-all hover:bg-white/10 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-background/50 text-2xl shadow-inner">
+                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border hover:bg-muted/50 transition-colors">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background text-xl border border-border">
                           {source.icon}
                         </div>
                         <div>
-                          <h4 className="font-bold text-foreground">{source.name}</h4>
+                          <h4 className="font-semibold text-foreground">{source.name}</h4>
                           <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-white/10 bg-white/5">{source.leads} лидов</Badge>
-                            <span className="text-xs text-muted-foreground">{((source.visits / (source.leads || 1)) * 100).toFixed(0)}% conv</span>
+                            <Badge variant="secondary" className="text-xs font-normal">{source.leads} лидов</Badge>
+                            <span className="text-xs text-muted-foreground">{source.leads ? ((source.visits / source.leads) * 100).toFixed(0) : 0}% conv</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-bold text-emerald-400">{formatCurrencyShort(source.revenue)}</div>
+                        <div className="text-base font-bold text-foreground">{formatCurrencyShort(source.revenue)}</div>
                         <div className="text-xs text-muted-foreground">{source.sales} продаж</div>
                       </div>
                     </div>
@@ -470,19 +467,20 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sources Pie */}
           <TabsContent value="sources" className="mt-6">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className="interstellar-glass border-white/5 h-[400px]">
+              <Card className="bg-card border border-border h-[400px]">
                 <CardHeader>
-                  <CardTitle>Распределение трафика</CardTitle>
+                  <CardTitle className="text-foreground">Распределение трафика</CardTitle>
+                  <CardDescription className="text-muted-foreground">Лиды по источникам за период</CardDescription>
                 </CardHeader>
-                <CardContent className="h-[320px]">
+                <CardContent className="h-[300px]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={pieData}
                         cx="50%" cy="50%"
-                        innerRadius={80}
-                        outerRadius={120}
-                        paddingAngle={4}
+                        innerRadius={70}
+                        outerRadius={100}
+                        paddingAngle={3}
                         dataKey="value"
                         stroke="none"
                       >
@@ -491,8 +489,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                         ))}
                       </Pie>
                       <Tooltip
-                        contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(10px)' }}
-                        itemStyle={{ color: '#fff' }}
+                        contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
+                        itemStyle={{ color: 'hsl(var(--foreground))' }}
                       />
                       <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" />
                     </PieChart>
@@ -506,7 +504,19 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* AI Assistant */}
       <div className="pt-4">
-        <AIAssistant context={{ projectId: pid, revenue: revenueSum, spend: totalSpend, leads: filteredTotals.leads }} />
+        <AIAssistant
+          context={{
+            projectId: pid ?? undefined,
+            revenue: revenueSum,
+            spend: totalSpend,
+            leads: filteredTotals.leads,
+            sales: filteredTotals.sales,
+            impressions: filteredTotals.impressions,
+            clicks: filteredTotals.clicks,
+            cpl: filteredTotals.leads ? totalSpend / filteredTotals.leads : 0,
+            romi: totalSpend ? (revenueSum / totalSpend) * 100 : 0,
+          }}
+        />
       </div>
 
     </div>

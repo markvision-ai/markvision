@@ -184,17 +184,11 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Funnel Visualization */}
-        <Card className="lg:col-span-2 interstellar-glass border-white/5 shadow-2xl overflow-hidden relative">
-          {/* Background Glows */}
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 blur-[100px] rounded-full pointer-events-none -z-10" />
-          <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent/10 blur-[80px] rounded-full pointer-events-none -z-10" />
-
+        <Card className="lg:col-span-2 bg-card border border-border shadow-sm overflow-hidden">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-primary animate-pulse" />
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary via-white to-primary font-bold">
-                Воронка продаж
-              </span>
+            <CardTitle className="flex items-center gap-2 text-foreground">
+              <Sparkles className="w-5 h-5 text-primary" />
+              Воронка продаж
             </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center py-6 relative">

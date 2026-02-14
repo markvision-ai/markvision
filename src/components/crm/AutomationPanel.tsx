@@ -84,7 +84,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
 
   if (loading) {
     return (
-      <Card className="crm-card-glass">
+      <Card className="bg-card border border-border">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-primary" />

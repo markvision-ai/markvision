@@ -722,7 +722,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

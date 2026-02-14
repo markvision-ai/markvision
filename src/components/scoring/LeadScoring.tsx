@@ -49,7 +49,6 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { BackgroundGradient } from '@/components/ui/background-gradient';
 import { cn } from '@/lib/utils';
 
 interface ScoringRule {
@@ -254,7 +253,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
           </div>
           <div className="min-w-0">
             <p className="text-sm font-medium truncate">{rule.name}</p>
-            <p className="ui-subtle">Вес: {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}</p>
+            <p className="text-xs text-muted-foreground">Вес: {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}</p>
           </div>
         </div>
         <Badge variant="outline" className="text-xs">{fields.find(f => f.value === rule.field)?.label || rule.field}</Badge>
@@ -477,71 +476,77 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     }
   };
 
+  const sourceOptions = Array.from(new Set(segmentLeads.map(l => (l.utm_source || '').toLowerCase()).filter(Boolean)));
+  const statusLabels: Record<string, string> = {
+    all: 'Все',
+    new: 'Новая',
+    in_progress: 'В работе',
+    no_answer: 'Недозвон',
+    appointment: 'Записан',
+    invoiced: 'Выставлен счёт',
+    paid: 'Оплачено',
+    cancelled: 'Отказ',
+    visit_completed: 'Визит завершён',
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold flex items-center gap-2 text-[16px] sm:text-2xl">
-            <Target className="w-6 h-6 text-primary" />
-            Lead Scoring
+          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-foreground">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Target className="w-5 h-5 text-primary" />
+            </div>
+            Рейтинг заявок
           </h2>
-          <p className="text-muted-foreground text-[14px]">Автоматическая оценка качества лидов</p>
+          <p className="text-sm text-muted-foreground mt-1">Автоматическая оценка качества лидов по правилам</p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline" 
-            onClick={recalculateScores} 
-            disabled={isRecalculating}
-            className="text-[14px]"
-          >
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" onClick={recalculateScores} disabled={isRecalculating}>
             <RefreshCw className={cn("w-4 h-4 mr-2", isRecalculating && "animate-spin")} />
             Пересчитать баллы
           </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)} className="text-[14px]">
+          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Добавить правило
           </Button>
         </div>
       </div>
 
-      {/* KPI Dashboard */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="metric-card-premium">
-          <CardContent className="pt-4">
-            <div className="metric-value">{scoreStats.avg}</div>
-            <div className="metric-label">Средний скоринг</div>
-            <div className="metric-subtext">по всем лидам</div>
+      {/* KPI */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="bg-card border border-border shadow-sm overflow-hidden">
+          <CardContent className="p-4">
+            <p className="text-2xl font-bold tabular-nums text-foreground">{scoreStats.avg}</p>
+            <p className="text-xs font-medium text-muted-foreground">Средний балл</p>
           </CardContent>
         </Card>
-        <Card className="metric-card-premium">
-          <CardContent className="pt-4">
-            <div className="metric-value">{scoreStats.hot}</div>
-            <div className="metric-label">Горячие</div>
-            <div className="metric-subtext">score ≥ 80</div>
+        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-red-500">
+          <CardContent className="p-4">
+            <p className="text-2xl font-bold tabular-nums text-red-600 dark:text-red-400">{scoreStats.hot}</p>
+            <p className="text-xs font-medium text-muted-foreground">Горячие (80–100)</p>
           </CardContent>
         </Card>
-        <Card className="metric-card-premium">
-          <CardContent className="pt-4">
-            <div className="metric-value">{scoreStats.warm}</div>
-            <div className="metric-label">Тёплые</div>
-            <div className="metric-subtext">50–79</div>
+        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500">
+          <CardContent className="p-4">
+            <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{scoreStats.warm}</p>
+            <p className="text-xs font-medium text-muted-foreground">Тёплые (50–79)</p>
           </CardContent>
         </Card>
-        <Card className="metric-card-premium">
-          <CardContent className="pt-4">
-            <div className="metric-value">{scoreStats.cold}</div>
-            <div className="metric-label">Холодные</div>
-            <div className="metric-subtext">0–49</div>
+        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500">
+          <CardContent className="p-4">
+            <p className="text-2xl font-bold tabular-nums text-blue-600 dark:text-blue-400">{scoreStats.cold}</p>
+            <p className="text-xs font-medium text-muted-foreground">Холодные (0–49)</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Distribution & Filters */}
-      <Card className="ui-section">
-        <CardHeader>
-          <CardTitle className="ui-section-header">Распределение скоринга и фильтры</CardTitle>
-          <CardDescription className="ui-subtle">Фильтруйте по источнику/статусу</CardDescription>
+      <Card className="bg-card border border-border shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold text-foreground">Распределение и фильтры</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">Фильтруйте по источнику и статусу</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col md:flex-row gap-6">
@@ -569,29 +574,31 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
               </ChartContainer>
             </div>
             <div className="w-full md:w-1/3 space-y-3">
-              <div>
-                <Label className="ui-field-label">Источник</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-foreground">Источник</Label>
                 <Select value={selectedSource || 'all'} onValueChange={(v) => setSelectedSource(v || 'all')}>
-                  <SelectTrigger className="mt-1.5 ui-input">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Все</SelectItem>
-                    {['yandex','google','vk','facebook','instagram','telegram','whatsapp','manual','website','referral'].map(s => (
-                      <SelectItem key={s} value={s}>{s}</SelectItem>
-                    ))}
+                    {sourceOptions.length > 0
+                      ? sourceOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)
+                      : ['yandex','google','vk','facebook','instagram','telegram','whatsapp','manual','website','referral'].map(s => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label className="ui-field-label">Статус</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-foreground">Статус</Label>
                 <Select value={selectedStatus || 'all'} onValueChange={(v) => setSelectedStatus(v || 'all')}>
-                  <SelectTrigger className="mt-1.5 ui-input">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
                   <SelectContent>
-                    {['all', 'new','in_progress','no_answer','appointment','invoiced','paid','cancelled','visit_completed'].map(s => (
-                      <SelectItem key={s} value={s}>{s === 'all' ? 'Все' : s}</SelectItem>
+                    {Object.entries(statusLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -602,46 +609,34 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       </Card>
 
       {/* Score Legend */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="ui-section">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-red-500/10">
-                <Flame className="w-6 h-6 text-red-500" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Горячие лиды</p>
-                <p className="ui-subtle">Score 80-100</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="ui-section">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-yellow-500/10">
-                <ThermometerSun className="w-6 h-6 text-yellow-500" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Теплые лиды</p>
-                <p className="ui-subtle">Score 50-79</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="ui-section">
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 rounded-lg bg-blue-500/10">
-                <Snowflake className="w-6 h-6 text-blue-500" />
-              </div>
-              <div>
-                <p className="font-medium text-sm">Холодные лиды</p>
-                <p className="ui-subtle">Score 0-49</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <div className="flex flex-wrap gap-3">
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+          <div className="p-1.5 rounded-full bg-red-500/15">
+            <Flame className="w-4 h-4 text-red-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Горячие</p>
+            <p className="text-xs text-muted-foreground">80–100</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+          <div className="p-1.5 rounded-full bg-amber-500/15">
+            <ThermometerSun className="w-4 h-4 text-amber-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Тёплые</p>
+            <p className="text-xs text-muted-foreground">50–79</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+          <div className="p-1.5 rounded-full bg-blue-500/15">
+            <Snowflake className="w-4 h-4 text-blue-500" />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">Холодные</p>
+            <p className="text-xs text-muted-foreground">0–49</p>
+          </div>
+        </div>
       </div>
 
       {/* Упрощение: AI Insights убран */}
@@ -649,82 +644,89 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Упрощение: убрана визуализация весов */}
 
       {/* Rules Table */}
-      <Card className="ui-section">
-        <CardHeader>
-          <CardTitle className="text-sm uppercase tracking-wide text-muted-foreground">Правила скоринга</CardTitle>
-          <CardDescription className="ui-subtle">Настройте правила для автоматической оценки лидов</CardDescription>
+      <Card className="bg-card border border-border shadow-sm">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base font-semibold text-foreground">Правила скоринга</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground">Настройте правила для автоматической оценки лидов</CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="text-sm">Правило</TableHead>
-                <TableHead className="text-sm">Поле</TableHead>
-                <TableHead className="text-sm">Условие</TableHead>
-                <TableHead className="text-sm">Баллы</TableHead>
-                <TableHead className="text-sm">Статус</TableHead>
-                <TableHead className="text-sm"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {loading ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-sm">
-                    Загрузка...
-                  </TableCell>
+          <div className="rounded-lg border border-border overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-muted/50 hover:bg-muted/50">
+                  <TableHead className="text-xs font-medium text-muted-foreground">Правило</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground">Поле</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground">Условие</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground">Баллы</TableHead>
+                  <TableHead className="text-xs font-medium text-muted-foreground">Вкл.</TableHead>
+                  <TableHead className="w-20" />
                 </TableRow>
-              ) : rules.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground text-sm">
-                    Правила не настроены
-                  </TableCell>
-                </TableRow>
-              ) : (
-                rules.map((rule) => (
-                  <TableRow key={rule.id}>
-                    <TableCell className="font-medium text-sm">{rule.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="text-sm">
-                        {fields.find(f => f.value === rule.field)?.label || rule.field}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {operators.find(o => o.value === rule.operator)?.label} {rule.value && `"${rule.value}"`}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={cn(
-                        "text-sm",
-                        rule.score_delta > 0 ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'
-                      )}>
-                        {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Switch
-                        checked={rule.is_active}
-                        onCheckedChange={(checked) => handleToggleRule(rule.id, checked)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-destructive hover:text-destructive"
-                          onClick={() => handleDeleteRule(rule.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+              </TableHeader>
+              <TableBody>
+                {loading ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
+                      Загрузка...
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+                ) : rules.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
+                      Правила не настроены. Добавьте первое правило.
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  rules.map((rule) => (
+                    <TableRow key={rule.id} className="hover:bg-muted/30">
+                      <TableCell className="font-medium text-sm text-foreground">{rule.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="secondary" className="text-xs font-normal">
+                          {fields.find(f => f.value === rule.field)?.label || rule.field}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {operators.find(o => o.value === rule.operator)?.label} {rule.value && `"${rule.value}"`}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-xs font-medium",
+                            rule.score_delta > 0
+                              ? 'border-green-500/50 text-green-600 dark:text-green-400'
+                              : 'border-red-500/50 text-red-600 dark:text-red-400'
+                          )}
+                        >
+                          {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Switch
+                          checked={rule.is_active}
+                          onCheckedChange={(checked) => handleToggleRule(rule.id, checked)}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-0.5">
+                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                            <Edit2 className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            onClick={() => handleDeleteRule(rule.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
         </CardContent>
       </Card>
 
@@ -734,84 +736,80 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* Add Rule Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-lg border-border bg-card">
           <DialogHeader>
-            <DialogTitle className="text-[16px]">Добавить правило скоринга</DialogTitle>
+            <DialogTitle className="text-base font-semibold text-foreground">Добавить правило скоринга</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label className="text-[14px]">Название правила *</Label>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-foreground">Название правила *</Label>
               <Input
                 value={newRule.name}
                 onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
-                placeholder="Лид с Google Ads"
-                className="text-[14px]"
+                placeholder="Например: Лид с Google Ads"
+                className="bg-background border-border text-foreground"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="text-[14px]">Поле *</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-foreground">Поле</Label>
                 <Select
                   value={newRule.field}
                   onValueChange={(value) => setNewRule({ ...newRule, field: value })}
                 >
-                  <SelectTrigger className="text-[14px]">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {fields.map(f => (
-                      <SelectItem key={f.value} value={f.value} className="text-[14px]">
-                        {f.label}
-                      </SelectItem>
+                      <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label className="text-[14px]">Условие *</Label>
+              <div className="space-y-1.5">
+                <Label className="text-sm font-medium text-foreground">Условие</Label>
                 <Select
                   value={newRule.operator}
                   onValueChange={(value) => setNewRule({ ...newRule, operator: value })}
                 >
-                  <SelectTrigger className="text-[14px]">
+                  <SelectTrigger className="bg-background border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     {operators.map(o => (
-                      <SelectItem key={o.value} value={o.value} className="text-[14px]">
-                        {o.label}
-                      </SelectItem>
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label className="text-[14px]">Значение</Label>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-foreground">Значение</Label>
               <Input
                 value={newRule.value}
                 onChange={(e) => setNewRule({ ...newRule, value: e.target.value })}
                 placeholder="google"
-                className="text-[14px]"
+                className="bg-background border-border text-foreground"
                 disabled={newRule.operator === 'is_not_empty' || newRule.operator === 'is_empty'}
               />
             </div>
-            <div className="space-y-2">
-              <Label className="text-[14px]">Баллы (+ добавить / - отнять) *</Label>
+            <div className="space-y-1.5">
+              <Label className="text-sm font-medium text-foreground">Баллы (+ добавить / − отнять)</Label>
               <Input
                 type="number"
                 value={newRule.score_delta}
                 onChange={(e) => setNewRule({ ...newRule, score_delta: Number(e.target.value) })}
                 placeholder="10"
-                className="text-[14px]"
+                className="bg-background border-border text-foreground"
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="text-[14px]">
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
               Отмена
             </Button>
-            <Button onClick={handleAddRule} disabled={!newRule.name} className="text-[14px]">
+            <Button onClick={handleAddRule} disabled={!newRule.name}>
               Добавить
             </Button>
           </DialogFooter>

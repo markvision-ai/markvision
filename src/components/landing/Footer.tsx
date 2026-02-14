@@ -70,7 +70,7 @@ const socialLinks = [{
   href: "https://tiktok.com/@markvision.ai"
 }];
 export const Footer = () => {
-  return <footer className="relative bg-black/40 backdrop-blur-xl border-t border-white/10">
+  return <footer className="relative bg-slate-100 border-t border-slate-200">
     {/* Main Footer Content */}
     <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
       {/* Desktop: 2-column grid, Mobile: stacked */}

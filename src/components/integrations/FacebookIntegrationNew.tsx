@@ -65,6 +65,8 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
   const [loadingProfiles, setLoadingProfiles] = useState(false);
   const [showAccountSelector, setShowAccountSelector] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [manualToken, setManualToken] = useState('');
+  const [savingToken, setSavingToken] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
 
   // Load Facebook SDK
@@ -367,21 +369,27 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
     if (!projectId) return;
 
     try {
-      // Сохраняем или обновляем токен
-      const { error } = await supabase
+      await supabase
         .from('ad_accounts')
         .upsert({
           project_id: projectId,
           platform: 'facebook',
           access_token: accessToken,
           status: 'active'
-        }, {
-          onConflict: 'project_id,platform'
-        });
+        }, { onConflict: 'project_id,platform' });
 
-      if (error) throw error;
+      await supabase
+        .from('integrations')
+        .upsert({
+          project_id: projectId,
+          type: 'facebook',
+          name: 'Meta / Facebook',
+          config: { access_token: accessToken },
+          status: 'active',
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'project_id,type' });
 
-      console.log('✅ Токен сохранен в базу данных');
+      console.log('✅ Токен сохранен (ad_accounts + integrations)');
     } catch (error: any) {
       console.error('Ошибка сохранения токена:', error);
       toast.error('Ошибка сохранения токена');
@@ -449,8 +457,51 @@ export const FacebookIntegrationNew = ({ projectId }: FacebookIntegrationProps) 
     );
   }
 
+  const handleSaveManualToken = async () => {
+    const token = manualToken.trim();
+    if (!token) {
+      toast.error('Вставьте токен');
+      return;
+    }
+    setSavingToken(true);
+    try {
+      await saveTokenToDatabase(token);
+      toast.success('Токен Meta сохранён. Синхронизация и отчёты будут использовать его.');
+      setManualToken('');
+      fetchConnection();
+    } catch (e) {
+      toast.error('Не удалось сохранить токен');
+    } finally {
+      setSavingToken(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
+      {/* Ручной ввод токена Meta */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl border border-border bg-card p-4"
+      >
+        <p className="text-sm font-medium text-foreground mb-2">Токен Meta (ручной ввод)</p>
+        <p className="text-xs text-muted-foreground mb-3">
+          Если вы получили долгоживущий Access Token из Graph API Explorer или Business Suite — вставьте его ниже. Он будет использоваться для синхронизации рекламы и отчётов.
+        </p>
+        <div className="flex gap-2">
+          <Input
+            type="password"
+            placeholder="EAA..."
+            value={manualToken}
+            onChange={(e) => setManualToken(e.target.value)}
+            className="font-mono text-sm flex-1"
+          />
+          <Button onClick={handleSaveManualToken} disabled={savingToken || !manualToken.trim()}>
+            {savingToken ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить токен'}
+          </Button>
+        </div>
+      </motion.div>
+
       {/* Главная карточка активного подключения */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}

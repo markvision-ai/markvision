@@ -68,67 +68,60 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border transition-all duration-500 flex flex-col',
-        'interstellar-glass border-white/5 shadow-2xl backdrop-blur-xl',
-        isHighlighted ? 'ring-2 ring-primary/40 ring-offset-4 ring-offset-background/50 scale-[1.01]' : 'opacity-95 hover:opacity-100'
+        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-border bg-card shadow-sm flex flex-col transition-all duration-200',
+        isHighlighted && 'ring-2 ring-primary/30 ring-offset-2 scale-[1.01]'
       )}
     >
-      {/* Column Header - Premium Branded */}
-      <div className="p-4 flex flex-col gap-2 relative overflow-hidden group">
-        {/* Subtle header glow */}
-        <div className={cn(
-          "absolute -top-12 -right-12 w-32 h-32 blur-3xl opacity-20 transition-opacity duration-500 group-hover:opacity-40",
-          status.color === 'success' ? 'bg-emerald-500' :
-            status.color === 'destructive' ? 'bg-red-500' : 'bg-primary'
-        )} />
-
-        <div className="flex items-center justify-between relative z-10">
+      {/* Column Header */}
+      <div className={cn(
+        "p-4 rounded-t-2xl flex flex-col gap-2",
+        status.color === 'success' && "bg-emerald-500/10",
+        status.color === 'destructive' && "bg-destructive/10",
+        !status.color && "bg-muted/30"
+      )}>
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
             {selectionMode && leads.length > 0 && (
               <Checkbox
                 checked={allInColumnSelected}
                 onCheckedChange={(checked) => onSelectAllInColumn?.(status.id, !!checked)}
-                className="border-white/20 data-[state=checked]:bg-primary"
+                className="data-[state=checked]:bg-primary"
               />
             )}
-            <h3 className="font-black text-xs uppercase tracking-[0.15em] text-foreground/80">
+            <h3 className="font-semibold text-sm text-foreground">
               {status.label}
             </h3>
           </div>
-          <Badge
-            variant="outline"
-            className="rounded-lg h-7 px-2.5 font-bold border-white/10 bg-white/5 text-[11px]"
-          >
+          <Badge variant="secondary" className="rounded-md h-6 px-2 font-semibold text-xs">
             {leads.length}
           </Badge>
         </div>
 
-        {/* Revenue/Lead Metrics */}
-        {(showRevenue) && (
+        {showRevenue && (
           <motion.div
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-2 relative z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-2"
           >
             <div className={cn(
-              "flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-[11px] font-black shadow-sm",
+              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold",
               status.color === 'success'
-                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                : 'bg-blue-500/10 border-blue-500/20 text-blue-400'
+                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                : 'bg-primary/10 text-primary'
             )}>
               <DollarSign className="w-3 h-3" />
               <span>{formatRevenue(totalAmount)}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider opacity-60">
-              Оборот этапа
+            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
+              Оборот
             </span>
           </motion.div>
         )}
       </div>
 
-      <Separator className="bg-white/5 mx-4 w-auto" />
+      <Separator className="bg-border" />
 
-      {/* Cards Container with AnimatePresence */}
+      {/* Cards */}
       <div className="space-y-3 min-h-[200px] p-4 scrollbar-none overflow-y-auto">
         <AnimatePresence mode="popLayout">
           {leads.map((lead) => (
@@ -166,11 +159,9 @@ export const KanbanColumn = ({
         </AnimatePresence>
 
         {leads.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-            <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center mb-2">
-              <span className="text-xl opacity-50">📭</span>
-            </div>
-            <span className="text-sm">Нет лидов</span>
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground rounded-xl border border-dashed border-border bg-muted/20">
+            <span className="text-2xl mb-1">📭</span>
+            <span className="text-sm font-medium">Нет лидов</span>
           </div>
         )}
       </div>

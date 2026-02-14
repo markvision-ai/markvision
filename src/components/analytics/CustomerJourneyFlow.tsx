@@ -33,16 +33,15 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
     };
 
     return (
-        <Card className="interstellar-glass overflow-hidden border-white/5 shadow-2xl relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
-            <CardHeader className="pb-8">
-                <CardTitle className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-                    Путь клиента: Impression → Profit
+        <Card className="bg-card border border-border overflow-hidden shadow-sm relative">
+            <CardHeader className="pb-6">
+                <CardTitle className="text-lg font-bold text-foreground">
+                    Путь клиента: Показы → Прибыль
                 </CardTitle>
             </CardHeader>
-            <CardContent className="relative z-10">
+            <CardContent className="relative">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4 relative">
-                    <div className="absolute top-[50%] left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-white/10 to-transparent hidden lg:block -z-10 translate-y-[-50%]" />
+                    <div className="absolute top-[50%] left-0 right-0 h-px bg-border hidden lg:block -z-10 translate-y-[-50%]" />
                     {steps.map((step, index) => {
                         const nextStep = steps[index + 1];
                         const conversion = nextStep && step.value > 0 ? (nextStep.value / step.value) * 100 : null;
@@ -53,22 +52,22 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     className={cn(
-                                        "flex flex-col items-center justify-center p-4 rounded-2xl border backdrop-blur-md transition-all duration-300 w-32 h-32 hover:scale-105 hover:shadow-lg hover:shadow-primary/5",
-                                        step.border, step.bg
+                                        "flex flex-col items-center justify-center p-4 rounded-xl border border-border transition-all w-28 h-28 sm:w-32 sm:h-32 hover:shadow-md",
+                                        step.bg
                                     )}
                                 >
-                                    <div className={cn("mb-2 p-2 rounded-lg bg-white/5", step.color)}>
+                                    <div className={cn("mb-2 p-2 rounded-lg bg-background/80", step.color)}>
                                         <step.icon className="w-5 h-5" />
                                     </div>
                                     <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider mb-1">{step.label}</span>
-                                    <span className={cn("font-bold tracking-tight", step.isCurrency ? "text-sm" : "text-xl")}>{formatValue(step)}</span>
+                                    <span className={cn("font-bold tracking-tight text-foreground", step.isCurrency ? "text-sm" : "text-lg")}>{formatValue(step)}</span>
                                 </motion.div>
                                 {index < steps.length - 1 && (
-                                    <div className="flex flex-col items-center justify-center py-2 lg:py-0 lg:px-4 text-muted-foreground/50 z-10">
+                                    <div className="flex flex-col items-center justify-center py-2 lg:py-0 lg:px-3 z-10">
                                         {conversion !== null && (
                                             <div className="flex flex-col items-center">
                                                 <span className="text-[10px] font-mono text-muted-foreground mb-1">{conversion < 100 ? `${conversion.toFixed(1)}%` : ''}</span>
-                                                <ArrowRight className="w-4 h-4 rotate-90 lg:rotate-0 text-white/20 group-hover:text-white/50 transition-colors" />
+                                                <ArrowRight className="w-4 h-4 rotate-90 lg:rotate-0 text-muted-foreground" />
                                             </div>
                                         )}
                                     </div>

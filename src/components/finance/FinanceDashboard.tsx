@@ -387,7 +387,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
               variant="outline" 
               onClick={handleSyncAds} 
               disabled={syncing}
-              className="border-violet-500/50 text-violet-600 hover:bg-violet-50"
+              className="border-primary/50 text-primary hover:bg-primary/10"
             >
               {syncing ? (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />

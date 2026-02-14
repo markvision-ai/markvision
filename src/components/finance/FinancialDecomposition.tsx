@@ -144,9 +144,9 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
   return (
     <div className="space-y-6 w-full overflow-x-hidden pb-8 relative">
       {/* Month Selection Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 interstellar-glass border border-white/5 p-2 rounded-2xl shadow-lg">
-        <div className="flex items-center gap-2 bg-white/5 rounded-xl p-1">
-          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="hover:bg-white/10 rounded-lg w-8 h-8">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border rounded-2xl p-3 shadow-sm">
+        <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1">
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="rounded-lg w-8 h-8">
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <AnimatePresence mode="wait">
@@ -155,26 +155,22 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
-              className="text-sm font-bold min-w-[140px] text-center capitalize text-foreground"
+              className="text-sm font-semibold min-w-[140px] text-center capitalize text-foreground"
             >
               {format(selectedMonth, 'LLLL yyyy', { locale: ru })}
             </motion.span>
           </AnimatePresence>
-          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')} className="hover:bg-white/10 rounded-lg w-8 h-8">
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')} className="rounded-lg w-8 h-8">
             <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="hidden sm:flex" disabled>
+          <Button variant="outline" size="sm" className="hidden sm:flex" disabled>
             <Share2 className="w-4 h-4 mr-2" />
             Поделиться
           </Button>
-          <Button
-            onClick={handleSaveAndAnalyze}
-            disabled={saveLoading}
-            className="gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500 shadow-lg shadow-violet-500/20 text-white border-0 rounded-xl"
-          >
+          <Button onClick={handleSaveAndAnalyze} disabled={saveLoading} className="gap-2">
             {saveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Сохранить модель
           </Button>

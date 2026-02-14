@@ -24,7 +24,8 @@ import {
   Cpu,
   Activity,
   Copy,
-  Check
+  Check,
+  DollarSign
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -77,73 +78,78 @@ const suggestedQuestions = [
   { text: 'Оптимизация бюджета', icon: BarChart3 },
 ];
 
+const MARK_ONLINE_THRESHOLD_SEC = 300; // 5 min
+
 const useMarkStatus = () => {
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState<boolean | null>(null);
 
   useEffect(() => {
     const checkStatus = (lastSeenStr: string | null) => {
-      if (!lastSeenStr) {
-        setIsOnline(false);
-        return;
-      }
+      if (!lastSeenStr) return false;
       const lastSeen = new Date(lastSeenStr);
-      const now = new Date();
-      const diffSeconds = (now.getTime() - lastSeen.getTime()) / 1000;
-      setIsOnline(diffSeconds < 300);
+      const diffSeconds = (Date.now() - lastSeen.getTime()) / 1000;
+      return diffSeconds < MARK_ONLINE_THRESHOLD_SEC;
     };
 
     const fetchStatus = async () => {
-      const channels = supabase.getChannels();
-      if (channels.some(ch => ch.state === 'joined')) {
-        setIsOnline(true);
-      }
-      const { data, error } = await supabase
-        .from('system_status')
-        .select('last_seen')
-        .eq('id', 'mark-ai-worker')
-        .single();
+      // 1) system_health (ai_worker) — основной источник, обновляется воркером
+      const { data: health } = await supabase
+        .from('system_health')
+        .select('last_check_at')
+        .eq('service_name', 'ai_worker')
+        .order('last_check_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (data && !error) {
-        checkStatus(data.last_seen);
+      if (health?.last_check_at && checkStatus(health.last_check_at)) {
+        setIsOnline(true);
         return;
       }
 
-      const bridge = await supabase
+      // 2) system_status (mark-ai-worker) — legacy
+      const { data: status } = await supabase
+        .from('system_status')
+        .select('last_seen')
+        .eq('id', 'mark-ai-worker')
+        .maybeSingle();
+
+      if (status?.last_seen && checkStatus(status.last_seen)) {
+        setIsOnline(true);
+        return;
+      }
+
+      // 3) ai_bridge_tasks — недавняя активность
+      const { data: tasks } = await supabase
         .from('ai_bridge_tasks')
-        .select('updated_at,status')
+        .select('updated_at, status')
         .order('updated_at', { ascending: false })
         .limit(1);
-      if (bridge.data && bridge.data.length > 0) {
-        const ts = new Date(bridge.data[0].updated_at as any);
-        const recent = (Date.now() - ts.getTime()) < 5 * 60 * 1000;
-        const ok = ['running', 'completed', 'pending'].includes((bridge.data[0] as any).status);
-        setIsOnline(recent && ok);
+
+      if (tasks && tasks.length > 0) {
+        const t = tasks[0] as { updated_at: string; status: string };
+        const recent = (Date.now() - new Date(t.updated_at).getTime()) < 5 * 60 * 1000;
+        const ok = ['running', 'completed', 'pending'].includes(t.status);
+        if (recent && ok) {
+          setIsOnline(true);
+          return;
+        }
       }
+
+      setIsOnline(false);
     };
 
     fetchStatus();
 
-    // Subscribe to updates
-    const channel = supabase.channel('system_health_ai_worker')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'system_health',
-          filter: "service_name=eq.ai_worker"
-        },
-        (payload: any) => {
-          if (payload.new && (payload.new as any).last_check_at) {
-            checkStatus((payload.new as any).last_check_at);
-          }
-        }
-      )
+    const channel = supabase.channel('mark_status')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_health', filter: 'service_name=eq.ai_worker' }, (p: any) => {
+        if (p.new?.last_check_at) setIsOnline(checkStatus(p.new.last_check_at));
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'system_status', filter: 'id=eq.mark-ai-worker' }, (p: any) => {
+        if (p.new?.last_seen) setIsOnline(checkStatus(p.new.last_seen));
+      })
       .subscribe();
 
-    // Periodic check to detect offline if no updates come in
     const interval = setInterval(fetchStatus, 30000);
-
     return () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
@@ -162,7 +168,8 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
     spend: true,
     revenue: true,
     romi: true,
-    cpl: true
+    cpl: true,
+    spl: true
   });
 
   // Force chat tab if hideDashboard is true
@@ -174,15 +181,18 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 
   const safeContext = context;
 
+  const leads = context?.leads || 0;
+  const revenue = context?.revenue || 0;
   const data = {
     spend: context?.spend || 0,
-    revenue: context?.revenue || 0,
+    revenue,
     impressions: context?.impressions || 0,
     clicks: context?.clicks || 0,
-    leads: context?.leads || 0,
+    leads,
     sales: context?.sales || 0,
     romi: context?.romi || 0,
     cpl: context?.cpl || 0,
+    spl: leads > 0 ? Math.round(revenue / leads) : 0,
   };
 
   const funnelData = [
@@ -212,9 +222,11 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                 <h2 className="text-xl font-bold tracking-tight">AI Центр Аналитики</h2>
                 <Badge variant="outline" className={cn(
                   "ml-2 transition-colors h-5 text-[10px] px-1.5",
-                  isMarkOnline ? "bg-green-500/10 text-green-500 border-green-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                  isMarkOnline === true && "bg-green-500/10 text-green-500 border-green-500/20",
+                  isMarkOnline === false && "bg-red-500/10 text-red-500 border-red-500/20",
+                  isMarkOnline === null && "bg-muted text-muted-foreground border-border"
                 )}>
-                  Статус Марка: {isMarkOnline ? 'Online' : 'Offline'}
+                  Марка: {isMarkOnline === true ? 'Online' : isMarkOnline === false ? 'Offline' : 'Проверка…'}
                 </Badge>
               </div>
               <p className="text-sm text-muted-foreground">Интеллектуальный анализ ваших показателей</p>
@@ -286,6 +298,14 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                               id="show-cpl"
                               checked={visibleMetrics.cpl}
                               onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, cpl: c }))}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <Label htmlFor="show-spl" className="text-sm font-normal">SPL (средний чек на лида)</Label>
+                            <Switch
+                              id="show-spl"
+                              checked={visibleMetrics.spl}
+                              onCheckedChange={(c) => setVisibleMetrics(prev => ({ ...prev, spl: c }))}
                             />
                           </div>
                         </div>
@@ -366,6 +386,16 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                     trendUp={true}
                     icon={User}
                     color="text-indigo-500"
+                  />
+                )}
+                {visibleMetrics.spl && (
+                  <MetricCard
+                    title="SPL"
+                    value={formatCurrency(data.spl)}
+                    trend="ср. чек на лида"
+                    trendUp={true}
+                    icon={DollarSign}
+                    color="text-amber-500"
                   />
                 )}
               </div>
@@ -509,10 +539,17 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
             <CardTitle className="text-sm font-medium">AI Ассистент</CardTitle>
             <div className="flex items-center gap-1.5">
               <span className={cn("relative flex h-2 w-2")}>
-                <span className={cn("animate-ping absolute inline-flex h-full w-full rounded-full opacity-75", isOnline ? "bg-green-400" : "bg-red-400")}></span>
-                <span className={cn("relative inline-flex rounded-full h-2 w-2", isOnline ? "bg-green-500" : "bg-red-500")}></span>
+                {isOnline === true && <span className="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 bg-green-400" />}
+                <span className={cn(
+                  "relative inline-flex rounded-full h-2 w-2",
+                  isOnline === true && "bg-green-500",
+                  isOnline === false && "bg-red-500",
+                  isOnline === null && "bg-muted-foreground"
+                )} />
               </span>
-              <CardDescription className="text-xs">{isOnline ? 'Online' : 'Offline'}</CardDescription>
+              <CardDescription className="text-xs">
+                {isOnline === true ? 'Online' : isOnline === false ? 'Offline' : 'Проверка…'}
+              </CardDescription>
             </div>
           </div>
         </div>

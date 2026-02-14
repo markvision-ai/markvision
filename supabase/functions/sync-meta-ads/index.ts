@@ -75,27 +75,56 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get Facebook integration config
-    const { data: integration, error: integrationError } = await supabase
+    // Resolve Meta access token: integrations → ad_accounts → projects.meta_access_token → pixel_configs.fb_access_token → META_ACCESS_TOKEN
+    let accessToken: string | null = null;
+
+    const { data: integration } = await supabase
       .from("integrations")
-      .select("config, status")
+      .select("config, access_token, status")
       .eq("project_id", projectId)
       .eq("type", "facebook")
-      .single();
+      .maybeSingle();
+    const tokenFromIntegration = integration?.config?.access_token ?? integration?.access_token;
+    if (integration?.status === "active" && tokenFromIntegration) accessToken = tokenFromIntegration;
 
-    if (integrationError || !integration || integration.status !== "active") {
-      return new Response(JSON.stringify({ 
-        error: "Facebook integration not connected",
-        details: "Please connect Facebook in Settings -> Integrations"
-      }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+    if (!accessToken) {
+      const { data: adAccount } = await supabase
+        .from("ad_accounts")
+        .select("access_token")
+        .eq("project_id", projectId)
+        .eq("platform", "facebook")
+        .limit(1)
+        .maybeSingle();
+      if (adAccount?.access_token) accessToken = adAccount.access_token;
     }
 
-    const accessToken = integration.config?.access_token;
     if (!accessToken) {
-      return new Response(JSON.stringify({ error: "No access token found" }), {
+      const { data: project } = await supabase
+        .from("projects")
+        .select("meta_access_token")
+        .eq("id", projectId)
+        .maybeSingle();
+      if (project?.meta_access_token) accessToken = project.meta_access_token;
+    }
+
+    if (!accessToken) {
+      const { data: pixel } = await supabase
+        .from("pixel_configs")
+        .select("fb_access_token")
+        .eq("project_id", projectId)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+      if (pixel?.fb_access_token) accessToken = pixel.fb_access_token;
+    }
+
+    if (!accessToken) accessToken = Deno.env.get("META_ACCESS_TOKEN");
+
+    if (!accessToken) {
+      return new Response(JSON.stringify({ 
+        error: "Meta token not found",
+        details: "Проверьте: integrations, ad_accounts, projects.meta_access_token, pixel_configs.fb_access_token или META_ACCESS_TOKEN в секретах Edge Function"
+      }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });

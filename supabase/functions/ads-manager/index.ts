@@ -454,25 +454,66 @@ async function getAdAccountId(accessToken: string): Promise<string> {
 // --- HELPERS ---
 
 async function getAccessToken(supabase: any, projectId: string): Promise<string> {
-  // 1. Try DB first (Project specific)
+  // 1. integrations (OAuth or config.access_token / access_token column)
   try {
-    const { data: integration, error } = await supabase
+    const { data: integration } = await supabase
         .from("integrations")
-        .select("config")
+        .select("config, access_token")
         .eq("project_id", projectId)
         .eq("type", "facebook")
         .maybeSingle();
-
-    if (integration?.config?.access_token) return integration.config.access_token;
+    const token = integration?.config?.access_token ?? integration?.access_token;
+    if (token) return token;
   } catch (e) {
     console.error("Error fetching integration:", e);
   }
 
-  // 2. Fallback to Env (Global/Dev)
+  // 2. ad_accounts (token saved from Integrations → Meta)
+  try {
+    const { data: adAccount } = await supabase
+        .from("ad_accounts")
+        .select("access_token")
+        .eq("project_id", projectId)
+        .eq("platform", "facebook")
+        .eq("status", "active")
+        .limit(1)
+        .maybeSingle();
+    if (adAccount?.access_token) return adAccount.access_token;
+  } catch (e) {
+    console.error("Error fetching ad_accounts token:", e);
+  }
+
+  // 3. projects.meta_access_token (уже есть в БД)
+  try {
+    const { data: project } = await supabase
+        .from("projects")
+        .select("meta_access_token")
+        .eq("id", projectId)
+        .maybeSingle();
+    if (project?.meta_access_token) return project.meta_access_token;
+  } catch (e) {
+    console.error("Error fetching projects.meta_access_token:", e);
+  }
+
+  // 4. pixel_configs.fb_access_token (CAPI/пиксель)
+  try {
+    const { data: pixel } = await supabase
+        .from("pixel_configs")
+        .select("fb_access_token")
+        .eq("project_id", projectId)
+        .eq("is_active", true)
+        .limit(1)
+        .maybeSingle();
+    if (pixel?.fb_access_token) return pixel.fb_access_token;
+  } catch (e) {
+    console.error("Error fetching pixel_configs.fb_access_token:", e);
+  }
+
+  // 5. Env (Supabase Edge Function Secret: META_ACCESS_TOKEN)
   const envToken = Deno.env.get("META_ACCESS_TOKEN");
   if (envToken) return envToken;
-  
-  throw new Error("Meta Access Token missing.");
+
+  throw new Error("Meta Access Token missing. Проверьте: integrations, ad_accounts, projects.meta_access_token, pixel_configs.fb_access_token или META_ACCESS_TOKEN в секретах.");
 }
 
 async function getProjectAdAccountId(supabase: any, projectId: string): Promise<string | null> {
@@ -482,17 +523,22 @@ async function getProjectAdAccountId(supabase: any, projectId: string): Promise<
       .select('ad_account_id')
       .eq('project_id', projectId)
       .limit(1)
-      .maybeSingle(); // Use maybeSingle to avoid error on 0 rows
-      
-    if (error) {
-       console.error("Error fetching project ad account:", error);
-       return null;
-    }
-    return data?.ad_account_id || null;
+      .maybeSingle();
+    if (!error && data?.ad_account_id) return data.ad_account_id;
   } catch (e) {
-    console.error("Unexpected error in getProjectAdAccountId:", e);
-    return null;
+    console.error("Error fetching ad_accounts.ad_account_id:", e);
   }
+  try {
+    const { data } = await supabase
+      .from('projects')
+      .select('meta_ad_account_id')
+      .eq('id', projectId)
+      .maybeSingle();
+    if (data?.meta_ad_account_id) return data.meta_ad_account_id;
+  } catch (e) {
+    console.error("Error fetching projects.meta_ad_account_id:", e);
+  }
+  return null;
 }
 
 async function getEffectiveAdAccountId(supabase: any, projectId: string, accessToken: string): Promise<string> {

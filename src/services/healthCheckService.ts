@@ -339,9 +339,11 @@ export async function runHealthChecks(projectId: string): Promise<HealthCheckRes
 
                 switch (integration.type) {
                     case 'facebook':
-                    case 'instagram':
-                        result = await checkFacebookIntegration(projectId, integration.config);
+                    case 'instagram': {
+                        const fbConfig = integration.config ?? (integration.access_token ? { access_token: integration.access_token } : null);
+                        result = await checkFacebookIntegration(projectId, fbConfig);
                         break;
+                    }
                     case 'greenapi':
                     case 'whatsapp':
                         result = await checkWhatsAppIntegration(projectId, integration.config);
