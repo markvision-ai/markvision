@@ -25,7 +25,12 @@ import {
   LineChart,
   ShoppingCart,
   Users,
-  ChevronDown
+  ChevronDown,
+  Megaphone,
+  ImageIcon,
+  MessageCircle,
+  Smartphone,
+  Share2
 } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, subWeeks, startOfMonth, endOfMonth, subMonths, subDays, differenceInDays } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -45,7 +50,11 @@ import { toast } from 'sonner';
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useCampaigns } from '@/hooks/useCampaigns';
+import { useAdPerformance } from '@/hooks/useAdPerformance';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Separator } from '@/components/ui/separator';
 
 interface DailyDataPoint {
   date: string;
@@ -144,6 +153,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [isSendingTest, setIsSendingTest] = useState(false);
   const [activePreset, setActivePreset] = useState<PresetKey>('month');
   const [projectSettings, setProjectSettings] = useState<any>({});
+  const [reportChannel, setReportChannel] = useState<'telegram' | 'whatsapp'>('telegram');
   const reportRef = useRef<HTMLDivElement>(null);
 
   // Templates state
@@ -179,6 +189,11 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     isLoading: boolean;
     planData?: typeof data.planData;
   }>({ totals: data.totals, dailyData: [], isLoading: false, planData: data.planData });
+
+  // Fetch detailed Ad Data for Top Campaigns/Creatives
+  const { performanceLogs, loading: isLoadingAds } = useAdPerformance(data.projectId || null, reportDateRange);
+  const { campaigns } = useCampaigns(data.projectId || null);
+
 
   // Load templates
   useEffect(() => {
@@ -344,7 +359,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         setTelegramChatId(projectData.telegram_chat_id || '');
         const settings = (projectData.settings as any) || {};
         setProjectSettings(settings);
+        setProjectSettings(settings);
         setIsAutoReportEnabled(settings.auto_reports_enabled === true);
+        setReportChannel(settings.report_channel || 'telegram');
       }
     };
     fetchSettings();
@@ -409,6 +426,58 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     if (previous === 0) return current > 0 ? 100 : 0;
     return ((current - previous) / previous) * 100;
   };
+
+  const topCampaigns = useMemo(() => {
+    const agg = performanceLogs
+      .filter(l => l.entity_type === 'CAMPAIGN' || l.entity_type === 'campaign')
+      .reduce((acc, log) => {
+        if (!acc[log.entity_id]) {
+          acc[log.entity_id] = {
+            id: log.entity_id,
+            name: log.entity_name || 'Неизвестная кампания',
+            spend: 0,
+            leads: 0,
+            impressions: 0,
+            clicks: 0
+          };
+        }
+        acc[log.entity_id].spend += Number(log.spend || 0);
+        acc[log.entity_id].leads += Number(log.leads || 0);
+        acc[log.entity_id].impressions += Number(log.impressions || 0);
+        acc[log.entity_id].clicks += Number(log.clicks || 0);
+        return acc;
+      }, {} as Record<string, any>);
+
+    return Object.values(agg)
+      .sort((a: any, b: any) => b.spend - a.spend)
+      .slice(0, 5);
+  }, [performanceLogs]);
+
+  const topAds = useMemo(() => {
+    const agg = performanceLogs
+      .filter(l => l.entity_type === 'AD' || l.entity_type === 'ad')
+      .reduce((acc, log) => {
+        if (!acc[log.entity_id]) {
+          acc[log.entity_id] = {
+            id: log.entity_id,
+            name: log.entity_name || 'Неизвестное объявление',
+            spend: 0,
+            leads: 0,
+            impressions: 0,
+            clicks: 0
+          };
+        }
+        acc[log.entity_id].spend += Number(log.spend || 0);
+        acc[log.entity_id].leads += Number(log.leads || 0);
+        acc[log.entity_id].impressions += Number(log.impressions || 0);
+        acc[log.entity_id].clicks += Number(log.clicks || 0);
+        return acc;
+      }, {} as Record<string, any>);
+
+    return Object.values(agg)
+      .sort((a: any, b: any) => b.spend - a.spend)
+      .slice(0, 6); // Top 6 for grid
+  }, [performanceLogs]);
 
   const handleComparisonPresetChange = (preset: PresetKey) => {
     const now = new Date();
@@ -489,15 +558,40 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         import('html2canvas'),
         import('jspdf')
       ]);
-      const canvas = await html2canvas(reportRef.current, { scale: 2, backgroundColor: '#000000', useCORS: true });
+
+      // Capture the whole report with high quality
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        backgroundColor: '#0A0A0A', // Dark background for PDF
+        useCORS: true,
+        logging: false
+      });
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
       const imgWidth = 210;
+      const pageHeight = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      // First Page
+      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pageHeight;
+
+      // Add extra pages if content overflows
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight; // Negative position to show lower part
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+      }
+
       pdf.save(`report_${format(reportDateRange.from, 'yyyy-MM-dd')}.pdf`);
-      toast.success('Отчёт скачан');
+      toast.success('Отчёт скачан (многостраничный)');
     } catch (e) {
+      console.error(e);
       toast.error('Ошибка генерации PDF');
     } finally {
       setIsGeneratingPDF(false);
@@ -750,40 +844,45 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               </div>
 
               {/* Report Meta */}
-              <div className="flex items-center gap-6 text-sm text-white/40 mb-10 p-4 rounded-xl bg-white/5 border border-white/5 w-fit">
-                <span className="flex items-center gap-2"><Calendar className="w-4 h-4" /> {format(reportDateRange.from, 'd MMM')} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}</span>
+              <div className="flex items-center gap-6 text-sm text-white/40 mb-10 p-4 rounded-xl bg-white/5 border border-white/5 w-fit backdrop-blur-md">
+                <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(reportDateRange.from, 'd MMM')} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}</span>
                 <span className="w-px h-4 bg-white/10" />
-                <span className="flex items-center gap-2"><Clock className="w-4 h-4" /> Сформировано: {format(new Date(), 'd MMM yyyy, HH:mm')}</span>
+                <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Сформировано: {format(new Date(), 'd MMM yyyy, HH:mm')}</span>
               </div>
 
               {/* Plan / Fact Table */}
               <div className="mb-12">
-                <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><FileText className="w-5 h-5 text-primary" /> План / Факт</h3>
-                <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white/90">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                    <FileText className="w-5 h-5" />
+                  </div>
+                  План / Факт
+                </h3>
+                <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5 backdrop-blur-sm">
                   <table className="w-full">
-                    <thead className="bg-black/20">
+                    <thead className="bg-white/5">
                       <tr className="border-b border-white/5">
-                        <th className="text-left p-4 font-medium text-white/60">Показатель</th>
-                        <th className="text-right p-4 font-medium text-white/60">План</th>
-                        <th className="text-right p-4 font-medium text-white/60">Факт</th>
-                        <th className="text-center p-4 font-medium text-white/60">Выполнение</th>
+                        <th className="text-left p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Показатель</th>
+                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">План</th>
+                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Факт</th>
+                        <th className="text-center p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Выполнение</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {metricsList.map((m, i) => {
                         const status = getPlanFactStatus(m.value, m.plan);
                         return (
-                          <tr key={i} className="hover:bg-white/5 transition-colors">
-                            <td className="p-4 font-medium">{m.label}</td>
-                            <td className="p-4 text-right text-white/40 font-mono">
+                          <tr key={i} className="hover:bg-white/5 transition-colors group">
+                            <td className="p-5 font-medium text-white/80 group-hover:text-white transition-colors">{m.label}</td>
+                            <td className="p-5 text-right text-white/40 font-mono text-sm">
                               {m.format === 'currency' ? formatCurrency(m.plan) : formatNumber(m.plan)}
                             </td>
-                            <td className="p-4 text-right font-bold text-white font-mono">
+                            <td className="p-5 text-right font-bold text-white font-mono text-sm">
                               {m.format === 'currency' ? formatCurrency(m.value) : formatNumber(m.value)}
                             </td>
-                            <td className="p-4 text-center">
+                            <td className="p-5 text-center">
                               <Badge variant="outline" className={cn(
-                                "bg-transparent border-white/10 font-mono",
+                                "bg-transparent border-white/10 font-mono text-xs px-2 py-0.5",
                                 status.percent >= 100 ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" :
                                   status.percent >= 80 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" :
                                     "text-red-400 border-red-500/30 bg-red-500/10"
@@ -796,6 +895,102 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                       })}
                     </tbody>
                   </table>
+                </div>
+              </div>
+
+              {/* Efficiency Metrics */}
+              <div className="mb-12 break-inside-avoid">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white/90">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                    <Target className="w-5 h-5" />
+                  </div>
+                  Эффективность
+                </h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                  {[
+                    { title: 'CAC (Клиент)', value: computedMetrics.customerCost, format: formatCurrency, icon: Users, color: 'text-blue-400' },
+                    { title: 'CPV (Визит)', value: computedMetrics.visitCost, format: formatCurrency, icon: ArrowDownRight, color: 'text-orange-400' },
+                    { title: 'CPL (Лид)', value: computedMetrics.leadCost, format: formatCurrency, icon: Target, color: 'text-violet-400' },
+                    { title: 'ROAS', value: computedMetrics.roas, format: (v: number) => v?.toFixed(2) + 'x', icon: TrendingUp, color: 'text-emerald-400' },
+                  ].map((m, i) => (
+                    <Card key={i} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                      <CardHeader className="p-5 pb-2">
+                        <CardTitle className="text-xs font-medium text-white/40 uppercase tracking-wider flex items-center justify-between">
+                          {m.title}
+                          <m.icon className={cn("w-4 h-4 opacity-50", m.color)} />
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="p-5 pt-0">
+                        <div className={cn("text-2xl font-bold font-mono mt-1", m.color)}>
+                          {m.value ? m.format(m.value) : '—'}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Campaigns */}
+              <div className="mb-12 break-inside-avoid">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white/90">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                    <Megaphone className="w-5 h-5" />
+                  </div>
+                  Топ Кампании
+                </h3>
+                <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5 backdrop-blur-sm">
+                  <table className="w-full">
+                    <thead className="bg-white/5">
+                      <tr className="border-b border-white/5">
+                        <th className="text-left p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Кампания</th>
+                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Расход</th>
+                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Лиды</th>
+                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">CPL (факт)</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5">
+                      {topCampaigns.length > 0 ? topCampaigns.map((c: any, i: number) => (
+                        <tr key={i} className="hover:bg-white/5 transition-colors group">
+                          <td className="p-5 font-medium text-white/90 truncate max-w-[200px] group-hover:text-white transition-colors" title={c.name}>{c.name}</td>
+                          <td className="p-5 text-right font-mono text-sm text-white/80">{formatCurrency(c.spend)}</td>
+                          <td className="p-5 text-right font-mono text-sm text-white/80">{c.leads}</td>
+                          <td className="p-5 text-right font-mono text-sm text-white/50 group-hover:text-white/80 transition-colors">
+                            {c.leads > 0 ? formatCurrency(c.spend / c.leads) : '—'}
+                          </td>
+                        </tr>
+                      )) : (
+                        <tr><td colSpan={4} className="p-8 text-center text-muted-foreground text-sm">Нет данных за выбранный период</td></tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Top Creatives */}
+              <div className="mb-12 break-inside-avoid">
+                <h3 className="text-xl font-bold mb-6 flex items-center gap-2 text-white/90">
+                  <div className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                    <ImageIcon className="w-5 h-5" />
+                  </div>
+                  Топ Креативы
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                  {topAds.length > 0 ? topAds.map((ad: any, i: number) => (
+                    <div key={i} className="group relative aspect-video bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+                      <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all">
+                        <ImageIcon className="w-10 h-10 text-white/20 group-hover:text-white/40 transition-colors" />
+                      </div>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-[2px]">
+                        <p className="text-xs font-medium text-white truncate mb-1.5">{ad.name}</p>
+                        <div className="flex items-center justify-between text-[10px] text-white/60">
+                          <span className="font-mono">{formatCurrency(ad.spend)}</span>
+                          <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-medium">{ad.leads} лидов</span>
+                        </div>
+                      </div>
+                    </div>
+                  )) : (
+                    <div className="col-span-3 text-center py-12 text-muted-foreground border border-dashed border-white/10 rounded-xl bg-white/5">Нет данных по креативам</div>
+                  )}
                 </div>
               </div>
 
@@ -857,14 +1052,16 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                     <RechartsLineChart data={chartData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                       <XAxis dataKey="name" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
-                      <YAxis stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => v >= 1000 ? `${v / 1000}k` : v} />
+                      <YAxis yAxisId="left" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => v >= 1000 ? `${v / 1000}k` : v} />
+                      <YAxis yAxisId="right" orientation="right" stroke="rgba(255,255,255,0.3)" fontSize={10} tickLine={false} axisLine={false} />
                       <Tooltip
                         contentStyle={{ backgroundColor: '#000', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
                         labelStyle={{ color: '#fff', marginBottom: '4px' }}
                       />
                       <Legend />
-                      <Line type="monotone" dataKey="revenue" name="Выручка" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
-                      <Line type="monotone" dataKey="spend" name="Расход" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                      <Line yAxisId="left" type="monotone" dataKey="revenue" name="Выручка" stroke="#10b981" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                      <Line yAxisId="left" type="monotone" dataKey="spend" name="Расход" stroke="#ef4444" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
+                      <Line yAxisId="right" type="monotone" dataKey="leads" name="Лиды" stroke="#8b5cf6" strokeWidth={3} dot={false} activeDot={{ r: 6 }} />
                     </RechartsLineChart>
                   </ResponsiveContainer>
                 </div>
@@ -898,14 +1095,42 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               {isAutoReportEnabled && (
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Telegram Chat ID</Label>
+                    <Label>Канал отправки</Label>
+                    <div className="flex bg-black/50 p-1 rounded-lg border border-white/10">
+                      <button
+                        onClick={() => setReportChannel('telegram')}
+                        className={cn(
+                          "flex-1 py-1.5 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
+                          reportChannel === 'telegram' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                        )}
+                      >
+                        <Send className="w-3.5 h-3.5" /> Telegram
+                      </button>
+                      <button
+                        onClick={() => setReportChannel('whatsapp')}
+                        className={cn(
+                          "flex-1 py-1.5 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
+                          reportChannel === 'whatsapp' ? "bg-green-600 text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                        )}
+                      >
+                        <MessageCircle className="w-3.5 h-3.5" /> WhatsApp
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>{reportChannel === 'telegram' ? 'Telegram Chat ID' : 'WhatsApp Номер'}</Label>
                     <Input
                       value={telegramChatId}
                       onChange={e => setTelegramChatId(e.target.value)}
-                      placeholder="-100xxxxxxxxx"
+                      placeholder={reportChannel === 'telegram' ? "-100xxxxxxxxx" : "7701xxxxxxx"}
                       className="bg-black/50 border-white/10 text-mono"
                     />
-                    <p className="text-xs text-muted-foreground">ID группы или пользователя, куда бот будет присылать PDF</p>
+                    <p className="text-xs text-muted-foreground">
+                      {reportChannel === 'telegram'
+                        ? 'ID группы или пользователя, куда бот будет присылать PDF'
+                        : 'Номер телефона с кодом страны (без +)'}
+                    </p>
                   </div>
                   <div className="flex gap-3 pt-4">
                     <Button onClick={handleSendTestReport} disabled={isSendingTest} variant="secondary" className="w-full">
