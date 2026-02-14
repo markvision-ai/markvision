@@ -68,6 +68,27 @@ export default {
           foreground: "hsl(var(--sidebar-foreground))",
           muted: "hsl(var(--sidebar-muted))",
         },
+        medical: {
+          blue: "hsl(var(--medical-blue))",
+          teal: "hsl(var(--medical-teal))",
+        },
+        // Interstellar Glass colors
+        space: {
+          void: "hsl(var(--space-void))",
+          nebula: "hsl(var(--space-nebula))",
+          dust: "hsl(var(--space-dust))",
+        },
+        glow: {
+          cyan: "hsl(var(--glow-cyan))",
+          purple: "hsl(var(--glow-purple))",
+          blue: "hsl(var(--glow-blue))",
+        },
+        glass: {
+          DEFAULT: "hsl(var(--glass-bg))",
+          elevated: "hsl(var(--glass-elevated))",
+          border: "hsl(var(--glass-border))",
+          "border-hover": "hsl(var(--glass-border-hover))",
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],
@@ -90,18 +111,60 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "progress": {
+          from: { width: "0%" },
+          to: { width: "var(--progress-width)" },
+        },
         "fade-in-up": {
           from: { opacity: "0", transform: "translateY(20px)" },
           to: { opacity: "1", transform: "translateY(0)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.4" },
+          "50%": { opacity: "0.8" },
+        },
+        // Interstellar animations
+        "nebula-drift": {
+          "0%": { filter: "hue-rotate(0deg) saturate(1)", transform: "scale(1)" },
+          "50%": { filter: "hue-rotate(10deg) saturate(1.1)", transform: "scale(1.02)" },
+          "100%": { filter: "hue-rotate(-5deg) saturate(1.05)", transform: "scale(1)" },
+        },
+        "interstellar-float": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-10px)" },
+        },
+        "interstellar-glow-pulse": {
+          "0%, 100%": {
+            boxShadow: "0 0 20px hsl(192 100% 50% / 0.2), 0 0 40px hsl(192 100% 50% / 0.1)",
+          },
+          "50%": {
+            boxShadow: "0 0 30px hsl(192 100% 50% / 0.35), 0 0 60px hsl(192 100% 50% / 0.15)",
+          },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "progress": "progress 1s ease-out forwards",
         "fade-in-up": "fade-in-up 0.5s ease-out forwards",
+        "glow-pulse": "glow-pulse 4s ease-in-out infinite",
+        // Interstellar animations
+        "nebula-drift": "nebula-drift 60s ease-in-out infinite alternate",
+        "interstellar-float": "interstellar-float 6s ease-in-out infinite",
+        "interstellar-glow-pulse": "interstellar-glow-pulse 3s ease-in-out infinite",
       },
       boxShadow: {
-        'card-hover': '0 8px 30px rgba(0,0,0,0.04)',
+        'glow': '0 0 20px hsl(var(--primary) / 0.2), 0 0 40px hsl(var(--primary) / 0.1)',
+        'glow-lg': '0 0 30px hsl(var(--primary) / 0.3), 0 0 60px hsl(var(--primary) / 0.15)',
+        'card-hover': '0 8px 30px hsl(var(--primary) / 0.08), 0 0 60px hsl(var(--primary) / 0.05)',
+        // Interstellar shadows
+        'interstellar': '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.08)',
+        'interstellar-hover': '0 12px 40px rgba(0, 0, 0, 0.5), 0 0 30px hsl(192 100% 50% / 0.15)',
+        'interstellar-glow': '0 0 30px hsl(192 100% 50% / 0.25), 0 0 60px hsl(192 100% 50% / 0.1)',
+        'interstellar-glow-strong': '0 0 40px hsl(192 100% 50% / 0.35), 0 0 80px hsl(192 100% 50% / 0.15)',
+      },
+      backdropBlur: {
+        '3xl': '64px',
       },
     },
   },

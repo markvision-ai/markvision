@@ -1,46 +1,67 @@
 "use client";
 import React, { useState, useCallback } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { MarkVisionLogo } from "@/components/ui/MarkVisionLogo";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard,
-  Activity,
-  Table2,
-  Megaphone,
-  FlaskConical,
-  Factory,
-  FileText,
-  Users,
-  ClipboardCheck,
-  Inbox,
-  Target,
-  ShieldCheck,
-  Bot,
-  BarChart3,
-  Wallet,
-  FileSpreadsheet,
-  Building2,
-  Settings,
-  LogOut,
-  Sun,
-  Moon,
-  ChevronDown,
-  Plus,
-  Trash2,
-  Menu,
-  CheckCircle2,
-  XCircle,
-  AlertCircle
-} from "lucide-react";
+  Sidebar,
+  SidebarBody,
+  SidebarLink,
+  SidebarLabel,
+} from "@/components/ui/aceternity-sidebar";
+import {
+  IconBrandTabler,
+  IconAd2,
+  IconVideo,
+  IconUsers,
+  IconCalendar,
+  IconClipboardCheck,
+  IconInbox,
+  IconChartBar,
+  IconWallet,
+  IconUsersGroup,
+  IconArrowLeft,
+  IconActivity,
+  IconTable,
+  IconFlask,
+  IconTrophy,
+  IconTarget,
+  IconReport,
+  IconPlugConnected,
+  IconUserCircle,
+  IconShieldCheck,
+  IconBook,
+  IconShield,
+  IconHeartbeat,
+  IconHelp,
+  IconChevronDown,
+  IconPlus,
+  IconCheck,
+  IconSettings,
+  IconRobot,
+  IconBuildingSkyscraper,
+} from "@tabler/icons-react";
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import {
   Dialog,
   DialogContent,
@@ -51,7 +72,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/useTheme";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { IconSun, IconMoon } from "@tabler/icons-react";
 
 interface Project {
   id: string;
@@ -70,7 +91,7 @@ interface AppSidebarProps {
   onDeleteProject?: (projectId: string) => Promise<void> | Promise<boolean>;
   isSuperAdmin?: boolean;
   systemHasErrors?: boolean;
-  onForceLoadProject?: () => void;
+  onForceLoadProject?: () => void; // NEW: Force load for super admin
 }
 
 export const AppSidebar = ({
@@ -87,6 +108,7 @@ export const AppSidebar = ({
   systemHasErrors = false,
   onForceLoadProject,
 }: AppSidebarProps) => {
+  const [open, setOpen] = useState(false);
   const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -137,189 +159,290 @@ export const AppSidebar = ({
     }
   };
 
-  const menuGroups = [
-    {
-      label: "Дашборд",
-      items: [
-        { label: "Главная панель", id: "dashboard", icon: LayoutDashboard, path: "/dashboard" },
-        { label: "Живая лента", id: "realtime", icon: Activity, path: "/realtime" },
-        { label: "Таблица", id: "table", icon: Table2, path: "/table" },
-      ]
-    },
-    {
-      label: "Маркетинг",
-      items: [
-        { label: "Реклама", id: "quantom-ads", icon: Megaphone, path: "/quantum-ads" },
-        { label: "A/B Тесты", id: "ab-testing", icon: FlaskConical, path: "/ab-tests" },
-        { label: "Контент", id: "factory", icon: Factory, path: "/content-factory" },
-        { label: "Публикации", id: "publications", icon: FileText, path: "/publications" },
-      ]
-    },
-    {
-      label: "Продажи",
-      items: [
-        { label: "CRM", id: "crm", icon: Users, path: "/crm" },
-        { label: "Диагностика", id: "visits", icon: ClipboardCheck, path: "/visits" },
-        { label: "Входящие", id: "inbox", icon: Inbox, path: "/inbox" },
-        { label: "Скорринг", id: "scoring", icon: Target, path: "/scoring" },
-        { label: "ИИ-РОП", id: "rop", icon: ShieldCheck, path: "/rop" },
-        { label: "Агенты", id: "agents", icon: Bot, path: "/agents" },
-      ]
-    },
-    {
-      label: "Аналитика",
-      items: [
-        { label: "Сквозная", id: "e2e-analytics", icon: BarChart3, path: "/analytics" },
-        { label: "Финансы", id: "finance", icon: Wallet, path: "/finance" },
-        { label: "Отчёты", id: "reports", icon: FileSpreadsheet, path: "/reports" },
-        { label: "Агентство", id: "agency", icon: Building2, path: "/agency" },
-      ]
-    },
-    {
-      label: "Система",
-      items: [
-        { label: "Настройки", id: "settings", icon: Settings, path: "/settings" },
-      ]
-    }
-  ];
+  const links = {
+    dashboard: [
+      {
+        label: "Главная панель",
+        href: "/dashboard",
+        icon: <IconBrandTabler className="h-5 w-5 flex-shrink-0" />,
+        tab: "dashboard",
+      },
+      {
+        label: "Живая лента",
+        href: "/realtime",
+        icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
+        tab: "realtime",
+      },
+      {
+        label: "Таблица показателей",
+        href: "/table",
+        icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
+        tab: "table",
+      },
+    ],
+    marketing: [
+      {
+        label: "Управление рекламой",
+        href: "/quantum-ads",
+        icon: <IconAd2 className="h-5 w-5 flex-shrink-0" />,
+        tab: "quantom-ads",
+      },
+      {
+        label: "A/B Оптимизатор",
+        href: "/ab-tests",
+        icon: <IconFlask className="h-5 w-5 flex-shrink-0" />,
+        tab: "ab-testing",
+      },
+      {
+        label: "Центр контента",
+        href: "/content-factory",
+        icon: <IconVideo className="h-5 w-5 flex-shrink-0" />,
+        tab: "factory",
+      },
+      {
+        label: "Публикации",
+        href: "/publications",
+        icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
+        tab: "publications",
+      },
+    ],
+    sales: [
+      {
+        label: "CRM",
+        href: "/crm",
+        icon: <IconUsers className="h-5 w-5 flex-shrink-0" />,
+        tab: "crm",
+      },
+      {
+        label: "Диагностика",
+        href: "/visits",
+        icon: <IconClipboardCheck className="h-5 w-5 flex-shrink-0" />,
+        tab: "visits",
+      },
+      {
+        label: "Входящие",
+        href: "/inbox",
+        icon: <IconInbox className="h-5 w-5 flex-shrink-0" />,
+        tab: "inbox",
+      },
+      {
+        label: "Рейтинг заявок",
+        href: "/scoring",
+        icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
+        tab: "scoring",
+      },
+      {
+        label: "ИИ-РОП",
+        href: "/rop",
+        icon: <IconShieldCheck className="h-5 w-5 flex-shrink-0" />,
+        tab: "rop",
+      },
+      {
+        label: "ИИ Агенты",
+        href: "/agents",
+        icon: <IconRobot className="h-5 w-5 flex-shrink-0" />,
+        tab: "agents",
+      },
+    ],
+    analytics: [
+      {
+        label: "Сквозная аналитика",
+        href: "/analytics",
+        icon: <IconChartBar className="h-5 w-5 flex-shrink-0" />,
+        tab: "e2e-analytics",
+      },
+      {
+        label: "Финансы и прибыль",
+        href: "/finance",
+        icon: <IconWallet className="h-5 w-5 flex-shrink-0" />,
+        tab: "finance",
+      },
+      {
+        label: "Отчёты",
+        href: "/reports",
+        icon: <IconReport className="h-5 w-5 flex-shrink-0" />,
+        tab: "reports",
+      },
+    ],
+    settings: [
+      {
+        label: "Настройки",
+        href: "/settings",
+        icon: <IconSettings className="h-5 w-5 flex-shrink-0" />,
+        tab: "settings",
+      },
+    ],
+  };
 
   return (
     <>
-      <div className="hidden md:flex w-64 flex-col fixed inset-y-0 z-50 bg-sidebar border-r border-border">
-        {/* Header / Logo */}
-        <div className="h-16 flex items-center px-6 border-b border-border bg-sidebar">
-          <div className="flex items-center gap-3">
-            <div className="relative">
-              <MarkVisionLogo size={32} />
+      <Sidebar open={open} setOpen={setOpen}>
+        <SidebarBody className="justify-between gap-4 bg-sidebar/40 backdrop-blur-xl border-r border-sidebar-border/[0.05] h-screen sticky top-0 shadow-2xl transition-all duration-500">
+          <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
+            {/* Logo */}
+            <AnimatePresence>
+              {open ? <Logo hasErrors={systemHasErrors} /> : <LogoIcon hasErrors={systemHasErrors} />}
+            </AnimatePresence>
+
+            {/* Realtime Indicator */}
+            <div className="flex items-center gap-2 px-3 mt-4">
               <div className={cn(
-                "absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full border-2 border-sidebar",
-                systemHasErrors ? "bg-red-500" : "bg-green-500"
+                "w-2 h-2 rounded-full animate-pulse",
+                realtimeStatus === 'SUBSCRIBED' ? "bg-green-500" :
+                  realtimeStatus === 'CONNECTING' ? "bg-yellow-500" : "bg-red-500"
               )} />
+              <motion.span
+                animate={{
+                  display: open ? "inline-block" : "none",
+                  opacity: open ? 1 : 0,
+                }}
+                className="text-sm font-medium text-sidebar-foreground/70"
+              >
+                {realtimeStatus === 'SUBSCRIBED' ? 'Подключено' :
+                  realtimeStatus === 'CONNECTING' ? 'Подключение...' : 'Офлайн'}
+              </motion.span>
             </div>
-            <div className="flex flex-col">
-              <span className="font-bold text-sm tracking-tight text-foreground">MarkVision</span>
-              <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">Enterprise</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Project Selector */}
-        <div className="px-4 py-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="w-full justify-between h-10 px-3 bg-background border-border hover:bg-muted text-foreground font-medium rounded-lg">
-                <span className="truncate">{currentProject?.name || "Выберите проект"}</span>
-                <ChevronDown className="h-4 w-4 opacity-50" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align="start">
-              {projects.map(p => (
-                <DropdownMenuItem
-                  key={p.id}
-                  onClick={() => onProjectChange?.(p.id)}
-                  className="justify-between cursor-pointer"
-                >
-                  <span className="truncate">{p.name}</span>
-                  {isSuperAdmin && (
-                    <Trash2
-                      className="h-3 w-3 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setProjectToDelete(p);
-                        setIsDeleteDialogOpen(true);
-                      }}
-                    />
-                  )}
-                </DropdownMenuItem>
+            {/* Navigation Groups */}
+            <div className="mt-6 flex flex-col gap-1">
+              <SidebarLabel label="Дашборд" />
+              {links.dashboard.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
               ))}
-              <DropdownMenuItem onClick={() => setIsCreateDialogOpen(true)} className="cursor-pointer text-primary font-medium">
-                <Plus className="h-4 w-4 mr-2" />
-                Создать проект
-              </DropdownMenuItem>
-              {isSuperAdmin && onForceLoadProject && (
-                <DropdownMenuItem onClick={onForceLoadProject} className="cursor-pointer text-orange-500">
-                  <Activity className="h-4 w-4 mr-2" />
-                  Force Reload
-                </DropdownMenuItem>
-              )}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
 
-        {/* Navigation */}
-        <ScrollArea className="flex-1 px-4">
-          <div className="space-y-6 pb-6">
-            {menuGroups.map((group, idx) => (
-              <div key={idx}>
-                <h4 className="mb-2 px-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {group.label}
-                </h4>
-                <div className="space-y-0.5">
-                  {group.items.map((item) => {
-                    const isActive = activeTab === item.id;
-                    const Icon = item.icon;
-                    return (
-                      <button
-                        key={item.id}
-                        onClick={() => handleNavigation(item.id, item.path)}
-                        className={cn(
-                          "w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                          isActive
-                            ? "bg-primary/10 text-primary"
-                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )}
-                      >
-                        <Icon className={cn("h-4 w-4", isActive ? "text-primary" : "text-muted-foreground/70")} />
-                        {item.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+              <SidebarLabel label="Маркетинг" />
+              {links.marketing.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
 
-        {/* Footer / User Profile */}
-        <div className="p-4 border-t border-border bg-sidebar">
-          <div className="flex items-center gap-3 px-2 mb-3">
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-              {userProfile?.name?.charAt(0) || "U"}
+              <SidebarLabel label="Продажи" />
+              {links.sales.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Аналитика" />
+              {links.analytics.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
+
+              <SidebarLabel label="Агентство" />
+              <SidebarLink
+                link={{
+                  label: "Агентская аналитика",
+                  href: "/agency",
+                  icon: <IconBuildingSkyscraper className="h-5 w-5 flex-shrink-0" />,
+                  onClick: () => handleNavigation("agency", "/agency"),
+                }}
+                isActive={activeTab === "agency"}
+              />
+
+              <SidebarLabel label="Настройки" />
+              {links.settings.map((link) => (
+                <SidebarLink
+                  key={link.tab}
+                  link={{
+                    ...link,
+                    onClick: () => handleNavigation(link.tab, link.href),
+                  }}
+                  isActive={activeTab === link.tab}
+                />
+              ))}
             </div>
-            <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-medium truncate">{userProfile?.name || "User"}</span>
-              <span className="text-xs text-muted-foreground truncate">{userProfile?.email}</span>
+          </div>
+
+          {/* User Profile & Logout */}
+          <div className="border-t border-border/10 pt-4">
+            <SidebarLink
+              link={{
+                label: userProfile?.name || "Профиль",
+                href: "#",
+                icon: (
+                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-lime-500 flex items-center justify-center text-white text-sm font-medium">
+                    {userProfile?.name?.charAt(0).toUpperCase() ||
+                      userProfile?.email?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                ),
+              }}
+            />
+            <div className="px-2 mt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={toggleTheme}
+                className="w-full h-9 gap-2 rounded-xl border-border/10 hover:bg-white/5"
+              >
+                {theme === 'dark' ? (
+                  <>
+                    <IconSun className="w-4 h-4 text-yellow-500" />
+                    <span className="text-xs">Светлая тема</span>
+                  </>
+                ) : (
+                  <>
+                    <IconMoon className="w-4 h-4 text-blue-500" />
+                    <span className="text-xs">Тёмная тема</span>
+                  </>
+                )}
+              </Button>
             </div>
+            <SidebarLink
+              link={{
+                label: "Выйти",
+                href: "#",
+                icon: <IconArrowLeft className="h-5 w-5 flex-shrink-0 text-neutral-400" />,
+                onClick: handleLogout,
+              }}
+              className="hover:bg-red-500/10 hover:text-red-400"
+            />
           </div>
+        </SidebarBody>
+      </Sidebar>
 
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={toggleTheme} className="flex-1 h-8 text-xs text-muted-foreground">
-              {theme === 'dark' ? <Sun className="h-3.5 w-3.5 mr-2" /> : <Moon className="h-3.5 w-3.5 mr-2" />}
-              Тема
-            </Button>
-            <Button variant="ghost" size="sm" onClick={handleLogout} className="flex-1 h-8 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10">
-              <LogOut className="h-3.5 w-3.5 mr-2" />
-              Выйти
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/* Dialogs */}
+      {/* Create Project Dialog - still kept for Header access if needed via logic, but UI hidden from Sidebar */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent>
+        <DialogContent className="bg-background border-border shadow-xl">
           <DialogHeader>
-            <DialogTitle>Создать новый проект</DialogTitle>
+            <DialogTitle className="text-foreground">Создать новый проект</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Input
-              placeholder="Название проекта"
+              placeholder="Название проекта (медицинская клиника)"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
+              className="interstellar-input"
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Отмена</Button>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-white/10 hover:bg-white/5">
+              Отмена
+            </Button>
             <Button onClick={handleCreateProject} disabled={isCreating || !newProjectName.trim()}>
               {isCreating ? "Создание..." : "Создать"}
             </Button>
@@ -327,6 +450,64 @@ export const AppSidebar = ({
         </DialogContent>
       </Dialog>
     </>
+  );
+};
+
+interface LogoProps {
+  hasErrors?: boolean;
+}
+
+const Logo = ({ hasErrors }: LogoProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
+    >
+      <div className="relative">
+        <MarkVisionLogo size={36} />
+        {/* Global Health Indicator */}
+        <div className={cn(
+          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
+          hasErrors ? "bg-red-500" : "bg-green-500"
+        )}>
+          {!hasErrors && (
+            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+          )}
+        </div>
+      </div>
+      <div className="flex flex-col">
+        <span className="bg-gradient-to-r from-primary via-cyan-300 to-primary bg-clip-text text-transparent font-bold text-base">
+          MarkVision AI
+        </span>
+        <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">
+          Умный маркетинг
+        </span>
+      </div>
+    </motion.div>
+  );
+};
+
+const LogoIcon = ({ hasErrors }: LogoProps) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
+    >
+      <div className="relative">
+        <MarkVisionLogo size={36} />
+        {/* Global Health Indicator */}
+        <div className={cn(
+          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
+          hasErrors ? "bg-red-500" : "bg-green-500"
+        )}>
+          {!hasErrors && (
+            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+          )}
+        </div>
+      </div>
+    </motion.div>
   );
 };
 
