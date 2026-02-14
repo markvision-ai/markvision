@@ -5,133 +5,77 @@
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(255, 255, 255, 0.1);
-    border-radius: 9999px;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background-color: rgba(255, 255, 255, 0.2);
-  }
-}
-
-/* ============================================
-   ACETERNITY UI PREMIUM THEME
-   Deep Dark Mode with Electric Blue Accent
-   ============================================ */
-
-html {
-  scroll-behavior: smooth;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-}
-
 @layer base {
   :root {
-    /* Stealth Light */
-    --background: 210 20% 98%;
-    --foreground: 222 20% 12%;
+    /* Clean Enterprise Light - Astana Hub Style */
+    --background: 0 0% 100%; /* White */
+    --foreground: 222 47% 11%; /* Dark Blue/Grey #0F172A */
 
     --card: 0 0% 100%;
-    --card-foreground: 222 20% 12%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 20% 12%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 192 100% 50%;
-    /* Cyber Cyan #00D1FF */
-    --primary-foreground: 0 0% 100%;
+    --primary: 221 83% 53%; /* Blue #2563EB */
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 0 0% 100%;
-    --secondary-foreground: 222 20% 20%;
+    --secondary: 210 40% 96.1%; /* Light Grey */
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 0 0% 100%;
-    --muted-foreground: 215 15% 45%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 0 0% 100%;
-    --accent-foreground: 222 20% 20%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47% 11%;
 
-    --destructive: 0 80% 54%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 215 20% 88%;
-    --input: 215 20% 88%;
-    --ring: 192 100% 50%;
+    --border: 214 32% 91%; /* #E5E7EB */
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
 
     --radius: 0.5rem;
 
-    --sidebar: 0 0% 98%;
+    --sidebar: 0 0% 98%; /* Very Light Grey */
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-muted: 240 4.8% 95.9%;
   }
 
-  /* Force Deep Dark Mode - INTERSTELLAR GLASS THEME */
   .dark {
-    --background: 230 30% 3%;
-    /* Deep space void */
-    --foreground: 0 0% 100%;
+    /* Clean Enterprise Dark - Professional Slate */
+    --background: 222 47% 11%; /* #0F172A */
+    --foreground: 210 40% 98%;
 
-    --card: 230 25% 5%;
-    --card-foreground: 0 0% 100%;
+    --card: 217 33% 17%; /* #1E293B */
+    --card-foreground: 210 40% 98%;
 
-    --popover: 230 25% 5%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 217 33% 17%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 192 100% 50%;
-    /* Cyber Cyan #00D1FF */
-    --primary-foreground: 0 0% 0%;
+    --primary: 217 91% 60%; /* Lighter Blue for Dark Mode */
+    --primary-foreground: 222 47% 11%;
 
-    --secondary: 197 93% 59%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
 
-    --muted: 230 20% 12%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 230 20% 15%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 0 0% 12%;
-    --input: 0 0% 12%;
-    --ring: 192 100% 50%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 224 76% 48%;
 
-    --radius: 0.5rem;
-
-    --sidebar: 230 30% 2%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-muted: 230 20% 10%;
-
-    /* ============================================
-       INTERSTELLAR GLASS VARIABLES
-       ============================================ */
-    --space-void: 230 30% 3%;
-    --space-nebula: 240 25% 8%;
-    --space-dust: 220 20% 12%;
-
-    --glass-bg: 0 0% 100% / 0.03;
-    --glass-elevated: 0 0% 100% / 0.05;
-    --glass-border: 0 0% 100% / 0.08;
-    --glass-border-hover: 0 0% 100% / 0.15;
-
-    --glow-cyan: 192 100% 50%;
-    --glow-purple: 270 60% 50%;
-    --glow-blue: 220 80% 60%;
+    --sidebar: 222 47% 11%;
+    --sidebar-foreground: 210 40% 96%;
+    --sidebar-muted: 217 33% 17%;
   }
 }
 
@@ -139,664 +83,26 @@ html {
   * {
     @apply border-border;
   }
-
   body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', sans-serif;
   }
-
-  /* Improved typography for better readability */
-  p,
-  span,
-  div,
-  label {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-  }
 }
-
-/* ============================================
-   ACETERNITY UI DOT PATTERN BACKGROUND
-   ============================================ */
-
-.dot-pattern {
-  background-image: radial-gradient(circle, hsl(var(--muted-foreground) / 0.25) 1px, transparent 1px);
-  background-size: 24px 24px;
-}
-
-.grid-pattern {
-  background-image:
-    linear-gradient(hsl(var(--muted-foreground) / 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, hsl(var(--muted-foreground) / 0.12) 1px, transparent 1px);
-  background-size: 60px 60px;
-}
-
-/* ============================================
-   AMBIENT GLOW EFFECTS
-   ============================================ */
-
-.ambient-glow {
-  position: relative;
-}
-
-.ambient-glow::before {
-  content: '';
-  position: fixed;
-  top: 10%;
-  left: 10%;
-  width: 500px;
-  height: 500px;
-  background: radial-gradient(circle, hsl(217 91% 60% / 0.08) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-.ambient-glow::after {
-  content: '';
-  position: fixed;
-  bottom: 10%;
-  right: 10%;
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, hsl(142 85% 52% / 0.06) 0%, transparent 70%);
-  border-radius: 50%;
-  filter: blur(80px);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* ============================================
-   ACETERNITY PREMIUM CARD STYLES
-   Glassmorphism with soft glow on hover
-   ============================================ */
 
 @layer components {
-
-  /* Design System: unified section/container */
-  .ui-container {
-    @apply max-w-[1280px] mx-auto px-4 md:px-6;
+  /* Clean Card Styles */
+  .card-clean {
+    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm;
+  }
+  
+  .card-clean:hover {
+    @apply shadow-md transition-shadow duration-200;
   }
 
-  .ui-page-header {
-    @apply flex items-center justify-between px-4 md:px-6 py-4 border-b bg-card/70 backdrop-blur-md border-border;
-  }
-
-  .ui-section {
-    @apply rounded-2xl bg-card border p-5 md:p-6 transition-all duration-300;
-    border-width: 0.5px;
-    border-color: hsl(var(--border));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  }
-
-  .ui-section:hover {
-    @apply border-border;
-  }
-
-  .ui-section-header {
-    @apply mb-4 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground;
-  }
-
-  .ui-section-icon {
-    @apply w-8 h-8 rounded-lg flex items-center justify-center bg-primary/20 text-primary;
-    border-width: 0.5px;
-    border-color: hsl(var(--primary) / 0.35);
-  }
-
-  .ui-divider {
-    @apply my-4 border-t border-border/40;
-  }
-
-  .ui-subtle {
-    @apply text-xs text-muted-foreground;
-  }
-
-  .ui-field-label {
-    @apply text-xs font-medium text-muted-foreground;
-  }
-
-  .ui-input {
-    @apply bg-background/50 border-border/50 focus:border-primary focus:ring-2 focus:ring-primary/15 rounded-xl;
-  }
-
-  .glass-card {
-    border-radius: 16px;
-  }
-
-  .light .glass-card {
-    background: hsl(var(--card));
-    backdrop-filter: none;
-    border: 1px solid hsl(var(--border));
-  }
-
-  .dark .glass-card {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-  }
-
-  .dark .glass-card:hover {
-    background: rgba(255, 255, 255, 0.1);
-  }
-
-  /* ============================================
-     INTERSTELLAR NEBULA BACKGROUND
-     ============================================ */
-  .dark body::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -2;
-    background:
-      /* Cyan nebula cloud */
-      radial-gradient(ellipse 800px 600px at 15% 25%,
-        hsl(192 100% 50% / 0.08) 0%,
-        transparent 50%),
-      /* Purple nebula cloud */
-      radial-gradient(ellipse 600px 500px at 85% 75%,
-        hsl(270 60% 50% / 0.06) 0%,
-        transparent 50%),
-      /* Blue nebula cloud */
-      radial-gradient(ellipse 900px 700px at 50% 50%,
-        hsl(220 80% 50% / 0.04) 0%,
-        transparent 60%),
-      /* Base gradient */
-      linear-gradient(135deg,
-        hsl(230 30% 3%) 0%,
-        hsl(240 25% 6%) 30%,
-        hsl(230 30% 4%) 70%,
-        hsl(240 20% 5%) 100%);
-    animation: nebula-drift 60s ease-in-out infinite alternate;
-  }
-
-  /* Star field */
-  .dark body::after {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    background-image:
-      radial-gradient(1px 1px at 10% 20%, white 50%, transparent 50%),
-      radial-gradient(1px 1px at 20% 50%, rgba(255, 255, 255, 0.8) 50%, transparent 50%),
-      radial-gradient(1px 1px at 30% 10%, rgba(255, 255, 255, 0.6) 50%, transparent 50%),
-      radial-gradient(1.5px 1.5px at 40% 60%, white 50%, transparent 50%),
-      radial-gradient(1px 1px at 50% 30%, rgba(255, 255, 255, 0.7) 50%, transparent 50%),
-      radial-gradient(1px 1px at 60% 80%, rgba(255, 255, 255, 0.5) 50%, transparent 50%),
-      radial-gradient(1.5px 1.5px at 70% 40%, white 50%, transparent 50%),
-      radial-gradient(1px 1px at 80% 70%, rgba(255, 255, 255, 0.6) 50%, transparent 50%),
-      radial-gradient(1px 1px at 90% 15%, rgba(255, 255, 255, 0.8) 50%, transparent 50%),
-      radial-gradient(1px 1px at 5% 85%, rgba(255, 255, 255, 0.4) 50%, transparent 50%),
-      radial-gradient(1px 1px at 15% 65%, rgba(255, 255, 255, 0.5) 50%, transparent 50%),
-      radial-gradient(1.5px 1.5px at 25% 35%, white 50%, transparent 50%),
-      radial-gradient(1px 1px at 35% 95%, rgba(255, 255, 255, 0.6) 50%, transparent 50%),
-      radial-gradient(1px 1px at 45% 5%, rgba(255, 255, 255, 0.7) 50%, transparent 50%),
-      radial-gradient(1px 1px at 55% 55%, rgba(255, 255, 255, 0.3) 50%, transparent 50%),
-      radial-gradient(1.5px 1.5px at 65% 25%, white 50%, transparent 50%),
-      radial-gradient(1px 1px at 75% 90%, rgba(255, 255, 255, 0.5) 50%, transparent 50%),
-      radial-gradient(1px 1px at 85% 45%, rgba(255, 255, 255, 0.4) 50%, transparent 50%),
-      radial-gradient(1px 1px at 95% 75%, rgba(255, 255, 255, 0.6) 50%, transparent 50%);
-    background-size: 200% 200%;
-    animation: stars-twinkle 120s linear infinite;
-    opacity: 0.5;
-    pointer-events: none;
-  }
-
-  @keyframes nebula-drift {
-    0% {
-      filter: hue-rotate(0deg) saturate(1);
-      transform: scale(1);
-    }
-
-    50% {
-      filter: hue-rotate(10deg) saturate(1.1);
-      transform: scale(1.02);
-    }
-
-    100% {
-      filter: hue-rotate(-5deg) saturate(1.05);
-      transform: scale(1);
-    }
-  }
-
-  @keyframes stars-twinkle {
-    0% {
-      background-position: 0% 0%;
-      opacity: 0.4;
-    }
-
-    25% {
-      opacity: 0.6;
-    }
-
-    50% {
-      background-position: 100% 100%;
-      opacity: 0.4;
-    }
-
-    75% {
-      opacity: 0.5;
-    }
-
-    100% {
-      background-position: 0% 0%;
-      opacity: 0.4;
-    }
-  }
-
-  .stripe {
-    position: relative;
-  }
-
-  .stripe::before {
-    content: "";
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 3px;
-    border-top-left-radius: 16px;
-    border-top-right-radius: 16px;
-  }
-
-  .stripe-blue::before {
-    background: linear-gradient(90deg, #1d4ed8, #3b82f6);
-  }
-
-  .stripe-cyan::before {
-    background: linear-gradient(90deg, #0891b2, #06b6d4);
-  }
-
-  .stripe-emerald::before {
-    background: linear-gradient(90deg, #059669, #10b981);
-  }
-
-  .stripe-gold::before {
-    background: linear-gradient(90deg, #ca8a04, #f59e0b);
-  }
-
-  /* ============================================
-     INTERSTELLAR GLASS COMPONENTS
-     ============================================ */
-
-  /* Base interstellar glass */
-  .interstellar-glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(20px) saturate(1.2);
-    -webkit-backdrop-filter: blur(20px) saturate(1.2);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 4px 24px rgba(0, 0, 0, 0.3);
-  }
-
-  .interstellar-glass:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: rgba(255, 255, 255, 0.12);
-  }
-
-  /* Interstellar card with glow */
-  .interstellar-card {
-    @apply relative rounded-2xl p-6 transition-all duration-500;
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(24px) saturate(1.3);
-    -webkit-backdrop-filter: blur(24px) saturate(1.3);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.05),
-      0 8px 32px rgba(0, 0, 0, 0.4);
-  }
-
-  .interstellar-card:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: hsl(192 100% 50% / 0.3);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 12px 40px rgba(0, 0, 0, 0.5),
-      0 0 30px hsl(192 100% 50% / 0.15),
-      0 0 60px hsl(192 100% 50% / 0.05);
-    transform: translateY(-2px);
-  }
-
-  /* Interstellar card elevated */
-  .interstellar-card-elevated {
-    @apply relative rounded-2xl p-6 transition-all duration-500;
-    background: rgba(255, 255, 255, 0.04);
-    backdrop-filter: blur(32px) saturate(1.4);
-    -webkit-backdrop-filter: blur(32px) saturate(1.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      0 16px 48px rgba(0, 0, 0, 0.5),
-      0 0 40px hsl(192 100% 50% / 0.1);
-  }
-
-  /* Interstellar input */
-  .interstellar-input {
-    @apply w-full rounded-xl px-4 py-3 transition-all duration-300;
-    background: rgba(255, 255, 255, 0.03) !important;
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.08) !important;
-    color: white !important;
-  }
-
-  .interstellar-input::placeholder {
-    color: rgba(255, 255, 255, 0.4) !important;
-  }
-
-  .interstellar-input:focus {
-    outline: none;
-    background: rgba(255, 255, 255, 0.05) !important;
-    border-color: hsl(192 100% 50% / 0.5) !important;
-    box-shadow:
-      0 0 0 3px hsl(192 100% 50% / 0.15),
-      0 0 20px hsl(192 100% 50% / 0.1);
-  }
-
-  /* Interstellar button - primary */
-  .interstellar-button {
-    @apply relative rounded-xl px-6 py-3 font-medium transition-all duration-300 overflow-hidden;
-    background: linear-gradient(135deg, hsl(192 100% 45%) 0%, hsl(200 100% 40%) 100%);
-    color: white;
-    border: none;
-    box-shadow:
-      0 4px 16px hsl(192 100% 50% / 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.2);
-  }
-
-  .interstellar-button:hover {
-    transform: translateY(-2px);
-    box-shadow:
-      0 8px 24px hsl(192 100% 50% / 0.4),
-      0 0 40px hsl(192 100% 50% / 0.2),
-      inset 0 1px 0 rgba(255, 255, 255, 0.25);
-  }
-
-  .interstellar-button:active {
-    transform: translateY(0);
-  }
-
-  /* Shimmer effect on interstellar button */
-  .interstellar-button::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.2) 50%,
-        transparent 100%);
-    transform: translateX(-100%);
-    animation: interstellar-shimmer 3s ease-in-out infinite;
-  }
-
-  @keyframes interstellar-shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  /* Interstellar button - ghost */
-  .interstellar-button-ghost {
-    @apply rounded-xl px-6 py-3 font-medium transition-all duration-300;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-  }
-
-  .interstellar-button-ghost:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border-color: hsl(192 100% 50% / 0.4);
-    color: white;
-    box-shadow: 0 0 20px hsl(192 100% 50% / 0.1);
-  }
-
-  /* Interstellar glow effects */
-  .interstellar-glow {
-    position: relative;
-  }
-
-  .interstellar-glow::before {
-    content: '';
-    position: absolute;
-    inset: -1px;
-    border-radius: inherit;
-    padding: 1px;
-    background: linear-gradient(135deg,
-        hsl(192 100% 50% / 0.3),
-        transparent 50%,
-        hsl(270 60% 50% / 0.2));
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    pointer-events: none;
-    opacity: 0;
-    transition: opacity 0.5s ease;
-  }
-
-  .interstellar-glow:hover::before {
-    opacity: 1;
-  }
-
-  /* Pulsing glow for active elements */
-  .interstellar-pulse {
-    animation: interstellar-pulse 3s ease-in-out infinite;
-  }
-
-  @keyframes interstellar-pulse {
-
-    0%,
-    100% {
-      box-shadow:
-        0 0 20px hsl(192 100% 50% / 0.2),
-        0 0 40px hsl(192 100% 50% / 0.1);
-    }
-
-    50% {
-      box-shadow:
-        0 0 30px hsl(192 100% 50% / 0.35),
-        0 0 60px hsl(192 100% 50% / 0.15),
-        0 0 90px hsl(192 100% 50% / 0.05);
-    }
-  }
-
-  /* Text glow */
-  .interstellar-text-glow {
-    text-shadow:
-      0 0 10px hsl(192 100% 50% / 0.5),
-      0 0 20px hsl(192 100% 50% / 0.3),
-      0 0 30px hsl(192 100% 50% / 0.2);
-  }
-
-  /* Gradient text for headings */
-  .interstellar-gradient-text {
-    background: linear-gradient(135deg,
-        hsl(192 100% 60%) 0%,
-        hsl(200 100% 70%) 50%,
-        hsl(180 100% 65%) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-
-  /* Premium Glassmorphism Card */
-  .premium-card {
-    @apply relative overflow-hidden rounded-xl;
-    @apply bg-card text-card-foreground;
-    @apply border;
-    border-width: 0.5px;
-    border-color: hsl(var(--border));
-    @apply transition-all duration-300;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  }
-
-  .premium-card:hover {
-    @apply border-border;
-  }
-
-  /* Metric card with large typography */
-  .metric-card-premium {
-    @apply premium-card p-5 md:p-6;
-  }
-
-  .metric-card-premium .metric-value {
-    @apply text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight;
-    font-family: 'JetBrains Mono', 'Roboto Mono', monospace;
-  }
-
-  .metric-card-premium .metric-label {
-    @apply text-sm text-muted-foreground font-medium;
-  }
-
-  .metric-card-premium .metric-subtext {
-    @apply text-xs text-muted-foreground/50 mt-1;
-  }
-
-  /* Sidebar active glow effect */
-  .sidebar-item-active {
-    @apply relative;
-    background: hsl(var(--primary) / 0.1);
-    box-shadow:
-      0 0 20px hsl(var(--primary) / 0.15),
-      inset 0 0 20px hsl(var(--primary) / 0.05);
-  }
-
-  .sidebar-item-active::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    background: hsl(var(--primary));
-    border-radius: 0 4px 4px 0;
-    box-shadow: 0 0 10px hsl(var(--primary) / 0.5);
-  }
-}
-
-/* ============================================
-   FADE-IN UP ANIMATION FOR CARDS
-   ============================================ */
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-/* Stagger animation delays */
-.animate-delay-1 {
-  animation-delay: 0.1s;
-}
-
-.animate-delay-2 {
-  animation-delay: 0.15s;
-}
-
-.animate-delay-3 {
-  animation-delay: 0.2s;
-}
-
-.animate-delay-4 {
-  animation-delay: 0.25s;
-}
-
-.animate-delay-5 {
-  animation-delay: 0.3s;
-}
-
-.animate-delay-6 {
-  animation-delay: 0.35s;
-}
-
-/* Initial state for stagger animation */
-.stagger-children>* {
-  opacity: 0;
-}
-
-.stagger-children.animate>* {
-  animation: fadeInUp 0.5s ease-out forwards;
-}
-
-.stagger-children.animate>*:nth-child(1) {
-  animation-delay: 0.05s;
-}
-
-.stagger-children.animate>*:nth-child(2) {
-  animation-delay: 0.1s;
-}
-
-.stagger-children.animate>*:nth-child(3) {
-  animation-delay: 0.15s;
-}
-
-.stagger-children.animate>*:nth-child(4) {
-  animation-delay: 0.2s;
-}
-
-.stagger-children.animate>*:nth-child(5) {
-  animation-delay: 0.25s;
-}
-
-.stagger-children.animate>*:nth-child(6) {
-  animation-delay: 0.3s;
-}
-
-/* ============================================
-   SCROLLBAR STYLES
-   ============================================ */
-
-@layer utilities {
-  .scrollbar-thin {
-    scrollbar-width: thin;
-    scrollbar-color: hsl(var(--muted-foreground) / 0.2) transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb {
-    background-color: hsl(var(--muted-foreground) / 0.2);
-    border-radius: 4px;
-  }
-
-  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-    background-color: hsl(var(--muted-foreground) / 0.3);
-  }
-
-  /* Glass morphism utilities */
-  .glass {
-    @apply bg-card/80 backdrop-blur-xl;
-  }
-
-  .glass-strong {
-    @apply bg-card/95 backdrop-blur-2xl;
+  /* Utility Classes */
+  .container-page {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
 
   /* Glow effects */

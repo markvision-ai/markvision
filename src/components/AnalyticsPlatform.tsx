@@ -44,8 +44,7 @@ import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
 import { MobileHeader } from './mobile/MobileHeader';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
-import { SidebarProvider } from './ui/aceternity-sidebar';
-import { DotPatternBackground } from './ui/dot-pattern-background';
+// SidebarProvider and DotPatternBackground removed
 import { cn } from '@/lib/utils';
 
 // Lazy load heavy modules for performance
@@ -735,88 +734,82 @@ export const AnalyticsPlatform = () => {
   );
 
   return (
-    <DotPatternBackground>
-      <SidebarProvider>
-        <div className="h-screen overflow-hidden flex w-full relative bg-background">
+    <div className="min-h-screen w-full bg-background flex relative overflow-hidden">
+      {/* Static Sidebar */}
+      <AppSidebar
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        userProfile={profile}
+        realtimeStatus="SUBSCRIBED"
+        projects={projects}
+        currentProjectId={currentProjectId}
+        onProjectChange={setCurrentProjectId}
+        onCreateProject={createProject}
+        onDeleteProject={deleteProject}
+        systemHasErrors={systemHasErrors}
+        onForceLoadProject={forceLoadProject}
+      />
 
-          {/* Premium Animated Sidebar - Fixed left, sticky */}
-          <AppSidebar
-            activeTab={activeTab}
+      {/* Main Content Area */}
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10 bg-background">
+        {/* Mobile Header */}
+        <MobileHeader
+          title={getTabTitle()}
+          subtitle={currentProject?.name}
+          onMenuClick={() => setIsMobileSidebarOpen(true)}
+          projects={projectsList}
+          currentProjectId={currentProjectId}
+          onProjectChange={setCurrentProjectId}
+        />
+
+        {/* Desktop Header - Clean Enterprise Style */}
+        <header className="hidden md:block sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border">
+          <Header
             onTabChange={handleTabChange}
-            userProfile={profile}
-            realtimeStatus="SUBSCRIBED"
-            projects={projects}
+            title={getTabTitle()}
+            subtitle={currentProject?.name}
+            dateRange={dateRange}
+            onDateRangeChange={setDateRange}
+            onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
+            showDatePicker={activeTab === 'dashboard'}
+            onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
+            projects={projectsList}
             currentProjectId={currentProjectId}
             onProjectChange={setCurrentProjectId}
             onCreateProject={createProject}
-            onDeleteProject={deleteProject}
-
-            systemHasErrors={systemHasErrors}
-            onForceLoadProject={forceLoadProject}
+            showProjectSelector={true}
           />
+        </header>
 
-          {/* Main Content Area - Takes remaining space, no overlap */}
-          <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
-            {/* Mobile Header */}
-            <MobileHeader
-              title={getTabTitle()}
-              subtitle={currentProject?.name}
-              onMenuClick={() => setIsMobileSidebarOpen(true)}
-              projects={projectsList}
-              currentProjectId={currentProjectId}
-              onProjectChange={setCurrentProjectId}
-            />
-
-            {/* Desktop Header with interstellar glass */}
-            <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
-              <Header
-                onTabChange={handleTabChange}
-                title={getTabTitle()}
-                subtitle={currentProject?.name}
-                dateRange={dateRange}
-                onDateRangeChange={setDateRange}
-                onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
-                showDatePicker={activeTab === 'dashboard'}
-                onMobileMenuClick={() => setIsMobileSidebarOpen(true)}
-                projects={projectsList}
-                currentProjectId={currentProjectId}
-                onProjectChange={setCurrentProjectId}
-                onCreateProject={createProject}
-                showProjectSelector={true}
-              />
-            </header>
-
-            {/* Scrollable content area */}
-            <div className="flex-1 overflow-y-auto scrollbar-thin">
-              {isMobile ? (
-                <PullToRefresh onRefresh={handleRefresh}>
-                  {mainContent}
-                </PullToRefresh>
-              ) : (
-                mainContent
-              )}
-            </div>
-          </main>
-
-          {/* Mobile Bottom Navigation */}
-          <MobileBottomNav
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onMoreClick={() => setIsMobileSidebarOpen(true)}
-          />
-
-          {/* Mobile Menu Drawer */}
-          <MobileMenuDrawer
-            open={isMobileSidebarOpen}
-            onOpenChange={setIsMobileSidebarOpen}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userProfile={profile}
-            currentProjectName={currentProject?.name}
-          />
+        {/* Scrollable content area */}
+        <div className="flex-1 overflow-y-auto scrollbar-thin p-0">
+          {isMobile ? (
+            <PullToRefresh onRefresh={handleRefresh}>
+              {mainContent}
+            </PullToRefresh>
+          ) : (
+            mainContent
+          )}
         </div>
-      </SidebarProvider>
-    </DotPatternBackground>
+      </main>
+
+      {/* Mobile Bottom Navigation */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        onMoreClick={() => setIsMobileSidebarOpen(true)}
+      />
+
+      {/* Mobile Menu Drawer */}
+      <MobileMenuDrawer
+        open={isMobileSidebarOpen}
+        onOpenChange={setIsMobileSidebarOpen}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
+        userProfile={profile}
+        currentProjectName={currentProject?.name}
+      />
+    </div>
   );
 };
 
