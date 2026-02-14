@@ -15,7 +15,9 @@ if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
   }
 }
 
-console.log('Supabase initialized with URL:', !!SUPABASE_URL);
+if (import.meta.env.DEV) {
+  console.log('Supabase initialized with URL:', !!SUPABASE_URL);
+}
 
 
 export const FALLBACK_PROJECT_ID = '64c94e87-630c-470e-8ab1-8f7c8c835efa';
@@ -62,27 +64,6 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_ANON_KEY, 
     params: {
       eventsPerSecond: 10,
     }
-  }
-});
-
-// Управление Realtime подключением
-let reconnectAttempts = 0;
-const MAX_RECONNECT_LOG = 3;
-
-const channel = supabase.channel('leads-all');
-channel.subscribe((status) => {
-  if (status === 'SUBSCRIBED') {
-    reconnectAttempts = 0;
-    if (import.meta.env.DEV) console.log('✅ Realtime: Connected to External Supabase');
-  }
-  if (status === 'CLOSED' || status === 'CHANNEL_ERROR') {
-    reconnectAttempts++;
-    if (reconnectAttempts <= MAX_RECONNECT_LOG && import.meta.env.DEV) {
-      console.log(`⚠️ Realtime: Connection lost. Reconnecting to MarkVision DB... (attempt ${reconnectAttempts})`);
-    }
-    setTimeout(() => {
-      channel.subscribe();
-    }, 30000);
   }
 });
 

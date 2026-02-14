@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { WifiOff, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -18,16 +17,19 @@ export const ConnectionStatus = () => {
 
     // Check Supabase reachability
     const checkSupabase = async () => {
+      if (!navigator.onLine) {
+        setIsSupabaseReachable(false);
+        return;
+      }
+      if (document.visibilityState === 'hidden') {
+        return;
+      }
       try {
-        // Simple health check: try to get session or just ping
-        // Since we can't ping standard health endpoints easily without CORS issues on some setups,
-        // we'll try a lightweight public query or auth check.
-        // auth.getSession is fast and local-first usually, but if we want to check NETWORK,
-        // we should try a real request.
-        
-        // We'll try to select from a public table or just check system status if possible.
-        // Or simply try to access auth configuration.
-        const { error } = await supabase.from('daily_data').select('id').limit(1).maybeSingle();
+        // Lightweight network check: HEAD-only query (no row payload).
+        const { error } = await supabase
+          .from('daily_data')
+          .select('id', { head: true })
+          .limit(1);
         
         // If we get a network error (like TypeError: Failed to fetch), it means blocked or offline.
         // Supabase-js usually returns { data, error } but throws on network failure in some versions,
@@ -55,13 +57,21 @@ export const ConnectionStatus = () => {
       }
     };
 
-    // Check immediately and then every 30 seconds
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        checkSupabase();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    // Check immediately and then periodically (keep it sparse to avoid DB load)
     checkSupabase();
-    const interval = setInterval(checkSupabase, 30000);
+    const interval = setInterval(checkSupabase, 2 * 60 * 1000);
 
     return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
       clearInterval(interval);
     };
   }, []);

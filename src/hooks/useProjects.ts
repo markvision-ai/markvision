@@ -39,7 +39,9 @@ export const useProjects = () => {
   useEffect(() => {
     if (currentProjectId) {
       localStorage.setItem(LOCAL_STORAGE_KEY, currentProjectId);
-      console.log('📦 CURRENT PROJECT ID:', currentProjectId);
+      if (import.meta.env.DEV) {
+        console.log('📦 CURRENT PROJECT ID:', currentProjectId);
+      }
     }
   }, [currentProjectId]);
 
@@ -58,7 +60,9 @@ export const useProjects = () => {
     // const signal = abortControllerRef.current.signal;
 
     if (isSuperAdminUser) {
-      console.log('👑 SUPER ADMIN: Instant access granted');
+      if (import.meta.env.DEV) {
+        console.log('👑 SUPER ADMIN: Instant access granted');
+      }
       try {
         const { data: allProjects, error: allError } = await supabase
           .from('projects')
@@ -68,7 +72,9 @@ export const useProjects = () => {
 
         setProjects(allProjects || []);
         if (allProjects && allProjects.length > 0) {
-          console.log('📋 Super admin projects loaded:', allProjects.length);
+          if (import.meta.env.DEV) {
+            console.log('📋 Super admin projects loaded:', allProjects.length);
+          }
         }
 
         // Ensure active project is set if we have any
@@ -89,7 +95,9 @@ export const useProjects = () => {
     }
 
     try {
-      console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
+      if (import.meta.env.DEV) {
+        console.log('🔍 Loading projects for user:', user.email, 'ID:', user.id);
+      }
 
       let projectsData: Project[] = [];
 
@@ -155,12 +163,14 @@ export const useProjects = () => {
 
   // FORCE LOAD function for manual trigger
   const forceLoadProject = useCallback(() => {
-    console.log('🔧 FORCE LOAD PROJECT triggered');
+    if (import.meta.env.DEV) {
+      console.log('🔧 FORCE LOAD PROJECT triggered');
+    }
     fetchProjects();
     toast.success('Обновляю список проектов…');
   }, [fetchProjects]);
 
-  const createProject = async (name: string): Promise<{ id: string; name: string } | null> => {
+  const createProject = useCallback(async (name: string): Promise<{ id: string; name: string } | null> => {
     if (!user) {
       toast.error('Необходимо авторизоваться');
       return null;
@@ -196,9 +206,9 @@ export const useProjects = () => {
     await fetchProjects();
     setCurrentProjectId(data.id);
     return { id: data.id, name: data.name };
-  };
+  }, [user, fetchProjects]);
 
-  const deleteProject = async (projectId: string): Promise<boolean> => {
+  const deleteProject = useCallback(async (projectId: string): Promise<boolean> => {
     const { error } = await supabase
       .from('projects')
       .delete()
@@ -213,7 +223,7 @@ export const useProjects = () => {
     toast.success('Проект удалён');
     await fetchProjects();
     return true;
-  };
+  }, [fetchProjects]);
 
   const currentProject = projects.find(p => p.id === currentProjectId) || null;
 
@@ -232,8 +242,8 @@ export const useProjects = () => {
     currentProjectId,
     currentProject,
     loading,
-    createProject, // createProject is stable? It's async function defined in body... wait, it's NOT memoized!
-    deleteProject, // NOT memoized!
+    createProject,
+    deleteProject,
     fetchProjects,
     forceLoadProject
   ]);

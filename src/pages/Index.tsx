@@ -1,10 +1,8 @@
 import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
 
 const AnalyticsPlatform = lazy(() => import('@/components/AnalyticsPlatform'));
 const LandingPage = lazy(() => import('@/components/landing/LandingPage'));
@@ -12,32 +10,8 @@ const LandingPage = lazy(() => import('@/components/landing/LandingPage'));
 const Index = () => {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [checkingProjects, setCheckingProjects] = useState(true);
   const [projectCheckError, setProjectCheckError] = useState<string | null>(null);
-
-  // КРИТИЧНО: Проверка OAuth параметров ПЕРЕД любыми редиректами
-  useEffect(() => {
-    const checkOAuthParams = () => {
-      const hashParams = new URLSearchParams(window.location.hash.substring(1));
-      const searchParams = new URLSearchParams(window.location.search);
-
-      const hasAccessToken = hashParams.has('access_token') || searchParams.has('access_token');
-      const hasCode = searchParams.has('code');
-      const hasError = searchParams.has('error');
-
-      if ((hasAccessToken || hasCode || hasError) && window.location.pathname !== '/integrations') {
-        if (import.meta.env.DEV) console.log('🚨 CRITICAL: OAuth params found in Index.tsx, forcing redirect to /integrations');
-        navigate('/integrations', { replace: true });
-        return true;
-      }
-      return false;
-    };
-
-    if (checkOAuthParams()) {
-      return; // Останавливаем выполнение других useEffect
-    }
-  }, [navigate]);
 
   // Check if user has projects with completed onboarding
   useEffect(() => {
@@ -88,54 +62,6 @@ const Index = () => {
       checkUserProjects();
     }
   }, [user, loading, navigate]);
-
-  // ГЛОБАЛЬНЫЙ ЗАХВАТ ТОКЕНОВ ИЗ ОПЛАТЫ И OAUTH
-  useEffect(() => {
-    const handleSessionCapture = async () => {
-      if (!user) return;
-
-      const { data: { session } } = await supabase.auth.getSession();
-
-      // Если есть токен провайдера (Facebook/Google)
-      if (session?.provider_token) {
-        console.log("💎 MarkVision: Обнаружен токен Meta. Сохраняю...");
-
-        // Get user's project
-        const { data: projects } = await supabase
-          .from('projects')
-          .select('id')
-          .eq('owner_id', user.id)
-          .limit(1);
-
-        if (projects && projects[0]) {
-          const { error } = await supabase.from('integrations').upsert({
-            project_id: projects[0].id,
-            type: 'facebook',
-            name: 'Facebook Ads',
-            config: { access_token: session.provider_token },
-            status: 'active',
-            updated_at: new Date().toISOString()
-          }, { onConflict: 'project_id,type' });
-
-          if (!error) {
-            toast.success("Интеграция с Meta успешно активирована!");
-            queryClient.invalidateQueries({ queryKey: ['integrations'] });
-          }
-        }
-      }
-    };
-
-    handleSessionCapture();
-
-    // Слушаем изменения авторизации
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN' && session?.provider_token) {
-        handleSessionCapture();
-      }
-    });
-
-    return () => authListener.subscription.unsubscribe();
-  }, [queryClient, user]);
 
   if (loading || checkingProjects) {
     return (

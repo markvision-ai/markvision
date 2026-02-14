@@ -249,14 +249,15 @@ export const AnalyticsPlatform = () => {
       { spend: 0, impressions: 0, clicks: 0, leads: 0, followers: 0, visits: 0, sales: 0, revenue: 0 }
     );
 
-    // DEBUG: Log for followers issue
-    console.log('FOLLOWERS DEBUG:', {
-      range: daysInRange.length,
-      hasTotal: !!latestFollowersTotal,
-      latestTotal: latestFollowersTotal,
-      sumDeltas: aggregated.followers,
-      recordsWithTotal: rangeData.filter(d => (d.followers_total || 0) > 0).length
-    });
+    if (import.meta.env.DEV) {
+      console.log('FOLLOWERS DEBUG:', {
+        range: daysInRange.length,
+        hasTotal: !!latestFollowersTotal,
+        latestTotal: latestFollowersTotal,
+        sumDeltas: aggregated.followers,
+        recordsWithTotal: rangeData.filter(d => (d.followers_total || 0) > 0).length
+      });
+    }
 
     return {
       ...aggregated,

@@ -12,8 +12,8 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ThemeProvider>
       <TooltipProvider>
         <App />
-        <SpeedInsights />
-        <Analytics />
+        {import.meta.env.PROD && <SpeedInsights />}
+        {import.meta.env.PROD && <Analytics />}
       </TooltipProvider>
     </ThemeProvider>
   // </React.StrictMode>

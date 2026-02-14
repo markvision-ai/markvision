@@ -11,6 +11,7 @@ export default defineConfig(({ mode }) => {
   const nodeMajor = Number(process.versions.node.split(".")[0] || "0");
   const isVercel = process.env.VERCEL === "1" || process.env.VERCEL === "true";
   const basePath = isVercel ? "/" : mode === "production" ? "/markvision/" : "/";
+  const enablePwaDev = process.env.VITE_PWA_DEV === "true";
   // Workbox/build + Node 24 can crash during SW generation due to terser finishing early.
   // Keep production mode on LTS, but avoid the problematic codepath on Node 23+.
   const workboxMode = nodeMajor >= 23 ? "development" : "production";
@@ -121,7 +122,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         devOptions: {
-          enabled: true,
+          enabled: mode === "development" && enablePwaDev,
         },
       }),
     ].filter(Boolean),
