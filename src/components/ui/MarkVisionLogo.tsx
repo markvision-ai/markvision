@@ -45,15 +45,15 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
         {/* Text Container */}
         <div className="flex flex-col items-center leading-none mt-1">
           <span className={cn(
-            "text-2xl font-bold tracking-tight bg-gradient-to-r from-sky-400 via-blue-500 to-cyan-400 bg-clip-text text-transparent filter drop-shadow-sm",
+            "text-2xl font-bold tracking-tight text-foreground",
             "font-sans"
           )}>
             MarkVision
           </span>
-          <div className="flex items-center justify-center w-full gap-2">
-            <div className="h-[1px] w-8 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
-            <span className="text-[10px] font-bold tracking-[0.2em] text-cyan-400/80 uppercase">AI</span>
-            <div className="h-[1px] w-8 bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-50"></div>
+          <div className="flex items-center justify-center w-full gap-2 mt-1">
+            <div className="h-[1px] w-8 bg-primary/20"></div>
+            <span className="text-[10px] font-bold tracking-[0.2em] text-primary uppercase">AI</span>
+            <div className="h-[1px] w-8 bg-primary/20"></div>
           </div>
         </div>
       </div>

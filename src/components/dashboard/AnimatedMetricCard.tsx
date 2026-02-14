@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ArrowUpRight, ArrowDownRight, Zap } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { useAnimatedCounter } from '@/hooks/useAnimatedCounter';
 import { cn } from '@/lib/utils';
 
@@ -44,11 +44,7 @@ export const AnimatedMetricCard = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.1 }}
-    >
+    <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
       <Card className={cn(
         "relative overflow-hidden transition-all duration-300",
         isPulsing && 'ring-2 ring-primary'
@@ -76,6 +72,6 @@ export const AnimatedMetricCard = ({
           )}
         </CardContent>
       </Card>
-    </motion.div>
+    </div>
   );
 };

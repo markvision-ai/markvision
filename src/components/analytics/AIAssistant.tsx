@@ -198,14 +198,14 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
   return (
     <div className={cn(
       "transition-all duration-300 ease-in-out",
-      isExpanded ? "fixed inset-4 z-50 bg-background/95 backdrop-blur-xl rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
+      isExpanded ? "fixed inset-4 z-50 bg-background rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
     )}>
       <div className="flex flex-col gap-6">
         {/* Header Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-gradient-to-br from-emerald-500 to-lime-500 rounded-xl shadow-lg shadow-emerald-500/20">
-              <Sparkles className="w-5 h-5 text-white" />
+            <div className="p-2.5 bg-primary/10 rounded-xl">
+              <Sparkles className="w-5 h-5 text-primary" />
             </div>
             <div>
               <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </Card>
 
               {/* Insights Block */}
-              <Card className="border-border/50 bg-gradient-to-r from-emerald-500/5 to-lime-500/5">
+              <Card className="border-border bg-muted/30">
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-full mt-1">
                     <Lightbulb className="w-5 h-5 text-primary" />
@@ -499,7 +499,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
   };
 
   return (
-    <Card className="ai-chat-card h-full flex flex-col glass-card border-border/50 shadow-lg">
+    <Card className="ai-chat-card h-full flex flex-col border-border shadow-sm">
       <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -532,7 +532,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
         <ScrollArea ref={scrollRef} className="h-full p-4">
           {messages.length === 0 ? (
             <div className="h-full flex flex-col items-center justify-center text-center p-4 space-y-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-purple-500/20 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Sparkles className="w-8 h-8 text-primary" />
               </div>
               <div className="space-y-2">
@@ -670,10 +670,9 @@ const StatsCard = ({ data }: { data: any }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
       {metrics.map((m, i) => (
-        <div key={i} className="relative overflow-hidden group bg-card/50 backdrop-blur-md border border-border/50 rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div key={i} className="relative overflow-hidden group bg-card border border-border rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
-          <span className="text-lg font-bold text-foreground drop-shadow-sm relative z-10">{formatValue(m.value, m.format)}</span>
+          <span className="text-lg font-bold text-foreground relative z-10">{formatValue(m.value, m.format)}</span>
         </div>
       ))}
     </div>

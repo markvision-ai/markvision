@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion';
+
 import { cn } from '@/lib/utils';
 import { HeroMetricCard } from './HeroMetricCard';
 import { DollarSign, Wallet, TrendingUp } from 'lucide-react';

@@ -392,26 +392,7 @@ export const AppSidebar = ({
                 ),
               }}
             />
-            <div className="px-2 mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={toggleTheme}
-                className="w-full h-9 gap-2 rounded-xl border-border/10 hover:bg-white/5"
-              >
-                {theme === 'dark' ? (
-                  <>
-                    <IconSun className="w-4 h-4 text-yellow-500" />
-                    <span className="text-xs">Светлая тема</span>
-                  </>
-                ) : (
-                  <>
-                    <IconMoon className="w-4 h-4 text-blue-500" />
-                    <span className="text-xs">Тёмная тема</span>
-                  </>
-                )}
-              </Button>
-            </div>
+            {/* Theme Toggle Removed - Enforced Light Mode */}
             <SidebarLink
               link={{
                 label: "Выйти",

@@ -26,18 +26,18 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
 
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/10 interstellar-glass">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
-          <TabsList className="bg-white/5 border border-white/10">
-            <TabsTrigger value="v4" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
+          <TabsList className="bg-muted border border-border">
+            <TabsTrigger value="v4" className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
               <Rocket className="w-4 h-4 mr-2" />
               Контент-Завод
             </TabsTrigger>
-            <TabsTrigger value="competitors" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
+            <TabsTrigger value="competitors" className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
               <Eye className="w-4 h-4 mr-2" />
               Мониторинг конкурентов
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:bg-white/10 data-[state=active]:shadow-sm data-[state=active]:text-white text-white/60">
+            <TabsTrigger value="analysis" className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
               <Sparkles className="w-4 h-4 mr-2" />
               Анализ по ссылке
             </TabsTrigger>
@@ -46,7 +46,8 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
 
         <Button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400 border border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.35)]"
+          variant="default"
+          className="shadow-sm"
         >
           <Plus className="w-4 h-4 mr-2" />
           Создать контент

@@ -147,18 +147,14 @@ export const WelcomeHero = ({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className={cn(
-        "relative overflow-hidden rounded-2xl p-6 md:p-8 interstellar-card",
-        "border-0",
+        "relative overflow-hidden rounded-2xl p-6 md:p-8",
+        "bg-card border border-border shadow-sm",
         className
       )}
     >
-      {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-48 h-48 bg-gradient-to-tr from-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-
       <div className="relative z-10">
         {/* Title */}
-        <h2 className="text-xl md:text-2xl font-bold interstellar-gradient-text mb-1">
+        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-1">
           MarkVision Online
         </h2>
         <p className="text-muted-foreground text-base md:text-lg mb-4">
@@ -251,11 +247,10 @@ export const WelcomeHero = ({
           Быстрый доступ
         </h3>
 
-        {/* Quick Actions Grid */}
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 md:gap-3">
+        {/* Quick Actions Grid - Astana Hub Style (Clean, Monochrome, Grid) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
           {defaultActions.map((action, index) => {
             const Icon = action.icon;
-
             return (
               <motion.button
                 key={action.tab}
@@ -264,18 +259,15 @@ export const WelcomeHero = ({
                 animate="visible"
                 transition={{ delay: 0.5 + (index * 0.05) }}
                 onClick={() => onTabChange(action.tab)}
-                className="quick-action-card group interstellar-glow bg-background/50 hover:bg-background/80 border border-border/50"
+                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card border border-border hover:bg-secondary/50 transition-all duration-300 text-left"
               >
-                <div className={cn(
-                  "action-icon transition-all duration-200",
-                  action.color.split(' ').slice(1).join(' ')
-                )}>
-                  <Icon className={cn("w-5 h-5 md:w-6 md:h-6", action.color.split(' ')[0])} />
+                <div className="p-2 rounded-lg bg-secondary text-foreground group-hover:bg-background transition-colors">
+                  <Icon className="w-5 h-5" />
                 </div>
-                <span className="action-label">{action.label}</span>
-                <span className="text-[10px] text-muted-foreground/60 hidden md:block">
-                  {action.description}
-                </span>
+                <div>
+                  <span className="block font-medium text-sm text-foreground mb-1">{action.label}</span>
+                  <span className="block text-[10px] text-muted-foreground uppercase tracking-wide opacity-80">{action.description}</span>
+                </div>
               </motion.button>
             );
           })}

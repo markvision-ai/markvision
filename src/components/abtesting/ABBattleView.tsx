@@ -73,15 +73,15 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
             className="w-full"
         >
             <BackgroundGradient className="rounded-3xl p-[1px]">
-                <Card className="border-0 bg-black/80 backdrop-blur-xl rounded-3xl overflow-hidden relative">
+                <Card className="border-0 bg-card shadow-lg rounded-3xl overflow-hidden relative">
 
                     {/* Header */}
-                    <CardHeader className="relative z-10 border-b border-white/5 pb-6">
+                    <CardHeader className="relative z-10 border-b border-border pb-6">
                         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                             <div>
-                                <CardTitle className="text-2xl flex items-center gap-3 text-white">
+                                <CardTitle className="text-2xl flex items-center gap-3 text-foreground">
                                     <Swords className="w-6 h-6 text-primary" />
-                                    <span className="bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
+                                    <span className="text-foreground font-bold">
                                         {test.name}
                                     </span>
                                 </CardTitle>
@@ -115,7 +115,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
                             <motion.div
                                 animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
                                 transition={{ duration: 3, repeat: Infinity }}
-                                className="text-[120px] font-black text-white/5"
+                                className="text-[120px] font-black text-muted/20"
                             >
                                 VS
                             </motion.div>
@@ -153,13 +153,13 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
                         </div>
 
                         {/* AI INSIGHTS FOOTER */}
-                        <div className="mt-12 p-6 rounded-2xl bg-gradient-to-r from-purple-500/10 to-blue-500/10 border border-white/5 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
-                            <div className="absolute inset-0 bg-white/[0.02] translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
-                            <div className="p-4 rounded-full bg-white/5 border border-white/10 relative z-10">
+                        <div className="mt-12 p-6 rounded-2xl bg-muted/30 border border-border flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
+                            <div className="absolute inset-0 bg-background/50 translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
+                            <div className="p-4 rounded-full bg-background border border-border relative z-10">
                                 <BrainCircuit className="w-8 h-8 text-primary" />
                             </div>
                             <div className="flex-1 relative z-10 text-center md:text-left">
-                                <h4 className="text-white font-bold mb-1 flex items-center justify-center md:justify-start gap-2">
+                                <h4 className="text-foreground font-bold mb-1 flex items-center justify-center md:justify-start gap-2">
                                     AI Recommendation
                                     <Badge className="bg-primary/20 text-primary border-primary/20 text-[10px] py-0">LIVE FEED</Badge>
                                 </h4>
@@ -170,7 +170,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
                                     }
                                 </p>
                             </div>
-                            <Button variant="outline" className="border-white/10 hover:bg-white/5 relative z-10">
+                            <Button variant="outline" className="border-border hover:bg-accent relative z-10">
                                 <Info className="w-4 h-4 mr-2" /> Детали отчета
                             </Button>
                         </div>
@@ -183,8 +183,8 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
 
 const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color }: any) => {
     const isGreen = isLeader;
-    const borderColor = isLeader ? 'border-emerald-500/50' : 'border-white/5';
-    const bgColor = isLeader ? 'bg-emerald-500/5' : 'bg-white/[0.02]';
+    const borderColor = isLeader ? 'border-emerald-500/50' : 'border-border';
+    const bgColor = isLeader ? 'bg-emerald-500/5' : 'bg-card';
     const shadow = isLeader ? 'shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)]' : '';
 
     // Lift calculation
@@ -213,10 +213,10 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/5 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
                 <div>
-                    <p className={cn("text-xs font-bold uppercase tracking-widest mb-1", color === 'blue' ? 'text-blue-400' : 'text-purple-400')}>{type}</p>
-                    <h3 className="text-xl font-bold text-white tracking-tight">{name}</h3>
+                    <p className={cn("text-xs font-bold uppercase tracking-widest mb-1", color === 'blue' ? 'text-blue-500' : 'text-purple-500')}>{type}</p>
+                    <h3 className="text-xl font-bold text-foreground tracking-tight">{name}</h3>
                 </div>
                 {isLeader && (
                     <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30">
@@ -233,7 +233,7 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
                     <div className="flex justify-between items-end mb-2">
                         <span className="text-sm text-muted-foreground font-medium">Конверсия</span>
                         <div className="text-right">
-                            <span className="text-2xl font-bold font-mono text-white">{cr.toFixed(2)}%</span>
+                            <span className="text-2xl font-bold font-mono text-foreground">{cr.toFixed(2)}%</span>
                             {lift !== 0 && (
                                 <div className={cn("text-xs font-bold flex items-center justify-end gap-1", lift > 0 ? "text-emerald-400" : "text-red-400")}>
                                     {lift > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
@@ -242,9 +242,9 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
                             )}
                         </div>
                     </div>
-                    <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden relative">
+                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden relative">
                         {/* Confidence Band Visual */}
-                        <div className="absolute inset-0 bg-white/[0.03] animate-pulse" style={{ left: '10%', right: '10%' }} title="Доверительный интервал" />
+                        <div className="absolute inset-0 bg-background/50 animate-pulse" style={{ left: '10%', right: '10%' }} title="Доверительный интервал" />
 
                         <motion.div
                             className={cn("h-full rounded-full relative overflow-hidden", isLeader ? "bg-emerald-500" : (color === 'blue' ? "bg-blue-500" : "bg-purple-500"))}
@@ -269,8 +269,8 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
 };
 
 const StatBox = ({ label, value, suffix }: any) => (
-    <div className="bg-white/[0.03] rounded-xl p-3 border border-white/5">
+    <div className="bg-muted/30 rounded-xl p-3 border border-border">
         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
-        <p className="text-lg font-bold font-mono text-white/90">{value} <span className="text-sm text-muted-foreground font-normal">{suffix}</span></p>
+        <p className="text-lg font-bold font-mono text-foreground">{value} <span className="text-sm text-muted-foreground font-normal">{suffix}</span></p>
     </div>
 );

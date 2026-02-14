@@ -37,12 +37,12 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
 
     if (tests.length === 0) {
         return (
-            <Card className="border-white/5 bg-black/40 backdrop-blur-xl">
+            <Card className="border-border bg-card shadow-sm">
                 <CardContent className="py-12 text-center flex flex-col items-center justify-center">
-                    <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4">
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                         <FlaskConical className="w-8 h-8 text-muted-foreground/50" />
                     </div>
-                    <h3 className="text-lg font-medium text-white mb-1">Нет тестов</h3>
+                    <h3 className="text-lg font-medium text-foreground mb-1">Нет тестов</h3>
                     <p className="text-muted-foreground">Создайте свой первый A/B тест, чтобы начать оптимизацию.</p>
                 </CardContent>
             </Card>
@@ -74,8 +74,8 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                     >
                         <BackgroundGradient containerClassName={isSelected ? "p-[1px]" : "p-0"} className="rounded-xl">
                             <Card className={cn(
-                                "border-white/5 bg-black/40 backdrop-blur-xl transition-colors",
-                                isSelected ? "bg-black/80" : "hover:bg-white/[0.02]"
+                                "border-border bg-card shadow-sm transition-colors",
+                                isSelected ? "bg-accent/5 ring-1 ring-primary" : "hover:bg-accent/5"
                             )}>
                                 <div className="p-5 flex flex-col md:flex-row gap-4 md:items-center justify-between">
 
@@ -85,9 +85,9 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                             <Icon className="w-5 h-5" />
                                         </div>
                                         <div>
-                                            <h4 className="font-semibold text-white text-base mb-1">{test.name}</h4>
+                                            <h4 className="font-semibold text-foreground text-base mb-1">{test.name}</h4>
                                             <div className="flex flex-wrap items-center gap-2">
-                                                <Badge variant="outline" className={cn("text-xs font-normal border-white/10")}>
+                                                <Badge variant="outline" className={cn("text-xs font-normal border-border")}>
                                                     {test.test_category}
                                                 </Badge>
                                                 <span className="text-xs text-muted-foreground">{test.description || 'Без описания'}</span>
@@ -96,14 +96,14 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                     </div>
 
                                     {/* Middle: Stats Preview */}
-                                    <div className="flex items-center gap-8 md:px-8 border-l border-white/5 border-r md:border-r-0 md:border-l-0 pl-4 md:pl-0">
+                                    <div className="flex items-center gap-8 md:px-8 border-l border-border border-r md:border-r-0 md:border-l-0 pl-4 md:pl-0">
                                         <div className="text-center">
                                             <p className="text-[10px] uppercase text-muted-foreground mb-1">Вар. А</p>
-                                            <p className="font-mono font-bold text-white">{crA.toFixed(1)}%</p>
+                                            <p className="font-mono font-bold text-foreground">{crA.toFixed(1)}%</p>
                                         </div>
                                         <div className="text-center">
                                             <p className="text-[10px] uppercase text-muted-foreground mb-1">Вар. Б</p>
-                                            <p className="font-mono font-bold text-white">{crB.toFixed(1)}%</p>
+                                            <p className="font-mono font-bold text-foreground">{crB.toFixed(1)}%</p>
                                         </div>
                                         <div className="text-center min-w-[80px]">
                                             <p className="text-[10px] uppercase text-muted-foreground mb-1">Прирост</p>
@@ -116,11 +116,11 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                     {/* Right: Actions */}
                                     <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                                         {test.status === 'running' ? (
-                                            <Button size="sm" variant="outline" className="border-white/10 hover:bg-white/5" onClick={() => onPause(test.id)}>
+                                            <Button size="sm" variant="outline" className="border-border hover:bg-accent" onClick={() => onPause(test.id)}>
                                                 <Pause className="w-4 h-4 mr-2" /> Пауза
                                             </Button>
                                         ) : test.status !== 'completed' ? (
-                                            <Button size="sm" className="bg-white/10 hover:bg-white/20 text-white" onClick={() => onStart(test.id)}>
+                                            <Button size="sm" variant="default" onClick={() => onStart(test.id)}>
                                                 <Play className="w-4 h-4 mr-2" /> Запуск
                                             </Button>
                                         ) : (

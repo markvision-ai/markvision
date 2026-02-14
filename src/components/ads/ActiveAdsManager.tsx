@@ -253,7 +253,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         derived.push({
           id: utm, // Use UTM as ID
           name: utm, // Use UTM as Name
-          status: 'ACTIVE', // Show as Active to ensure visibility
+          status: 'PAUSED', // Default to PAUSED for derived items
           daily_budget: '0',
           insights: { data: [] },
           adsets: { data: [] }
@@ -282,7 +282,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       derived.push({
         id: campaignId,
         name: insight.name || campaignId,
-        status: 'ACTIVE',
+        status: 'PAUSED',
         daily_budget: '0',
         insights: { data: [] },
         adsets: { data: [] }
@@ -392,7 +392,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 uniqueMap.set(log.entity_id, {
                   id: log.entity_id,
                   name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'ACTIVE',
+                  status: 'PAUSED',
                   daily_budget: '0',
                   insights: { data: [] },
                   adsets: { data: [] }
@@ -473,7 +473,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 uniqueMap.set(log.entity_id, {
                   id: log.entity_id,
                   name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'ACTIVE',
+                  status: 'PAUSED',
                   daily_budget: '0',
                   insights: { data: [] },
                   adsets: { data: [] }
@@ -1083,42 +1083,39 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
   return (
     <div className="space-y-6">
-      <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10">
-        {/* Glow behind header */}
-        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-blue-500/5 to-transparent pointer-events-none" />
-
+      <div className="rounded-xl border border-border bg-card shadow-sm">
         {/* Header toolbar */}
-        <div className="relative p-4 md:p-5 border-b border-white/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 z-10">
+        <div className="relative p-4 md:p-5 border-b border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center ring-1 ring-blue-500/20 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
-              <LayoutDashboard className="w-5 h-5 text-blue-400" />
+            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
+              <LayoutDashboard className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-white/90">Active Ads Manager</h2>
+              <h2 className="text-lg font-bold text-foreground">Active Ads Manager</h2>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {accountStatus && accountStatus.account_status !== 1 ? (
                   <span className={cn(
                     "flex items-center gap-1.5 px-2 py-0.5 rounded-full border",
                     accountStatus.account_status === 3
-                      ? "bg-red-500/10 border-red-500/20 text-red-400"
-                      : "bg-amber-500/10 border-amber-500/20 text-amber-400"
+                      ? "bg-red-100 border-red-200 text-red-700"
+                      : "bg-amber-100 border-amber-200 text-amber-700"
                   )}>
                     <div className={cn(
                       "w-1.5 h-1.5 rounded-full",
                       accountStatus.account_status === 3
-                        ? "bg-red-500 shadow-[0_0_5px_#ef4444]"
-                        : "bg-amber-500 shadow-[0_0_5px_#f59e0b]"
+                        ? "bg-red-500"
+                        : "bg-amber-500"
                     )} />
                     {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
                   </span>
                 ) : (
-                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_5px_#10b981]" />
+                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     Live Sync
                   </span>
                 )}
                 {adAccountId && (
-                  <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 font-mono text-white/60">
+                  <span className="px-2 py-0.5 rounded-full bg-muted border border-border font-mono text-muted-foreground">
                     ID: {adAccountId}
                   </span>
                 )}
@@ -1132,20 +1129,20 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               size="sm"
               onClick={handleForceSync}
               disabled={loading}
-              className="hidden md:flex h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+              className="hidden md:flex h-9"
             >
               <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
               Синхронизация
             </Button>
 
-            <div className="flex items-center space-x-2 bg-black/40 p-1.5 rounded-lg border border-white/5 backdrop-blur-md">
+            <div className="flex items-center space-x-2 bg-muted/50 p-1.5 rounded-lg border border-border">
               <Switch
                 id="active-mode"
                 checked={showActiveOnly}
                 onCheckedChange={setShowActiveOnly}
                 className="data-[state=checked]:bg-emerald-500"
               />
-              <Label htmlFor="active-mode" className="text-xs font-medium cursor-pointer text-white/80 pr-2">
+              <Label htmlFor="active-mode" className="text-xs font-medium cursor-pointer text-muted-foreground pr-2">
                 {showActiveOnly ? 'Только активные' : 'Все кампании'}
               </Label>
             </div>
@@ -1155,7 +1152,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               size="sm"
               onClick={handleExportCSV}
               disabled={loading || visibleRows.length === 0}
-              className="h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all"
+              className="h-9"
             >
               <Download className="w-4 h-4 mr-2" />
               Экспорт
@@ -1163,20 +1160,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9 bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all">
+                <Button variant="outline" size="sm" className="h-9">
                   <Settings2 className="w-4 h-4 mr-2" />
                   Столбцы
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-[#0B0C15] border-white/10 text-white/90">
+              <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Видимость столбцов</DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-white/10" />
+                <DropdownMenuSeparator />
                 {Object.keys(columnVisibility).map(key => (
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={columnVisibility[key]}
                     onCheckedChange={(checked) => setColumnVisibility(prev => ({ ...prev, [key]: checked }))}
-                    className="focus:bg-white/10 focus:text-white"
                   >
                     {key === 'status' ? 'Статус' :
                       key === 'spend' ? 'Расходы' :
@@ -1194,7 +1190,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           </div>
         </div>
 
-        {/* Account Status Alert Banner */}
         {accountStatus && accountStatus.account_status !== 1 && (() => {
           const statusInfo = ACCOUNT_STATUS_MAP[accountStatus.account_status] || { label: `Неизвестный статус (${accountStatus.account_status})`, severity: 'warning' as const };
           const disableReason = accountStatus.disable_reason ? DISABLE_REASON_MAP[accountStatus.disable_reason] || '' : '';
@@ -1205,24 +1200,24 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               className={cn(
-                "mx-4 md:mx-5 mt-3 p-4 rounded-xl border backdrop-blur-md flex items-start gap-3",
+                "mx-4 md:mx-5 mt-3 p-4 rounded-xl border flex items-start gap-3",
                 isError
-                  ? "bg-red-500/[0.08] border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.1)]"
-                  : "bg-amber-500/[0.08] border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]"
+                  ? "bg-red-50 border-red-200"
+                  : "bg-amber-50 border-amber-200"
               )}
             >
               <div className={cn(
                 "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5",
-                isError ? "bg-red-500/20" : "bg-amber-500/20"
+                isError ? "bg-red-100" : "bg-amber-100"
               )}>
                 {accountStatus.account_status === 3 ? (
-                  <CreditCard className={cn("w-5 h-5", isError ? "text-red-400" : "text-amber-400")} />
+                  <CreditCard className={cn("w-5 h-5", isError ? "text-red-600" : "text-amber-600")} />
                 ) : accountStatus.account_status === 2 ? (
-                  <XCircle className="w-5 h-5 text-red-400" />
+                  <XCircle className="w-5 h-5 text-red-600" />
                 ) : accountStatus.account_status >= 100 ? (
-                  <ShieldAlert className="w-5 h-5 text-red-400" />
+                  <ShieldAlert className="w-5 h-5 text-red-600" />
                 ) : (
-                  <AlertTriangle className={cn("w-5 h-5", isError ? "text-red-400" : "text-amber-400")} />
+                  <AlertTriangle className={cn("w-5 h-5", isError ? "text-red-600" : "text-amber-600")} />
                 )}
               </div>
 
@@ -1230,32 +1225,32 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={cn(
                     "text-sm font-bold",
-                    isError ? "text-red-400" : "text-amber-400"
+                    isError ? "text-red-700" : "text-amber-700"
                   )}>
                     Статус кабинета: {statusInfo.label}
                   </span>
                   <span className={cn(
                     "text-[10px] font-mono px-2 py-0.5 rounded-full",
-                    isError ? "bg-red-500/20 text-red-300" : "bg-amber-500/20 text-amber-300"
+                    isError ? "bg-red-100 text-red-700" : "bg-amber-100 text-amber-700"
                   )}>
                     code {accountStatus.account_status}
                   </span>
                 </div>
 
                 {disableReason && (
-                  <p className="text-sm text-white/60 mt-1">
-                    Причина: <span className="text-white/80 font-medium">{disableReason}</span>
+                  <p className="text-sm text-foreground/80 mt-1">
+                    Причина: <span className="text-foreground font-medium">{disableReason}</span>
                   </p>
                 )}
 
                 {accountStatus.account_status === 3 && (
-                  <p className="text-sm text-white/50 mt-1.5">
+                  <p className="text-sm text-muted-foreground mt-1.5">
                     Рекламные кампании приостановлены из-за ошибки оплаты. Проверьте способ оплаты в{' '}
                     <a
                       href="https://business.facebook.com/settings/payment-methods"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-blue-400 hover:text-blue-300 underline underline-offset-2"
+                      className="text-primary hover:underline underline-offset-2"
                     >
                       настройках платежей Facebook
                     </a>.
@@ -1263,7 +1258,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 )}
 
                 {accountStatus.funding_source && (
-                  <p className="text-xs text-white/30 mt-2 font-mono">
+                  <p className="text-xs text-muted-foreground mt-2 font-mono">
                     Способ оплаты: {accountStatus.funding_source}
                   </p>
                 )}
@@ -1275,75 +1270,75 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-white/[0.02] border-b border-white/5 hover:bg-white/[0.02]">
-                <TableHead className="w-[350px] p-4 text-white/60 sticky left-0 bg-[#0B0C15] z-20 border-b border-white/5 ring-1 ring-white/5">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 -ml-3 hover:bg-white/5 font-bold text-white/90">
+              <TableRow className="bg-muted/50 border-b border-border hover:bg-muted/50">
+                <TableHead className="w-[250px] p-2 text-muted-foreground sticky left-0 bg-card z-20 border-b border-border ring-1 ring-border/50">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 -ml-3 hover:bg-muted font-bold text-foreground">
                     Кампания
                     {getSortIcon('name')}
                   </Button>
                 </TableHead>
                 {columnVisibility.status && (
-                  <TableHead className="w-[100px] text-center p-4 text-white/60 border-b border-white/5">Статус</TableHead>
+                  <TableHead className="w-[80px] text-center p-2 text-muted-foreground border-b border-border">Статус</TableHead>
                 )}
                 {columnVisibility.spend && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="h-8 px-0 hover:bg-white/5 font-bold text-white/90 hover:text-white">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
                       Расходы
                       {getSortIcon('spend')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.leads && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="h-8 px-0 hover:bg-white/5 font-bold text-white/90 hover:text-white">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
                       Лиды
                       {getSortIcon('leadsMeta')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.cpl && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="h-8 px-0 hover:bg-white/5 font-bold text-white/90 hover:text-white">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
                       CPL
                       {getSortIcon('cpl')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.visits && (
-                  <TableHead className="text-right min-w-[100px] p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="h-8 px-0 hover:bg-white/5 font-bold text-blue-400 hover:text-blue-300">
-                      Виз. (CRM)
+                  <TableHead className="text-right min-w-[80px] p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="h-8 px-0 hover:bg-muted font-bold text-blue-600 hover:text-blue-700">
+                      Визит
                       {getSortIcon('visits')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.visitCost && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('visitCost')} className="h-8 px-0 hover:bg-white/5 font-bold text-blue-400 hover:text-blue-300">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('visitCost')} className="h-8 px-0 hover:bg-muted font-bold text-blue-600 hover:text-blue-700">
                       Цена виз.
                       {getSortIcon('visitCost')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.sales && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('sales')} className="h-8 px-0 hover:bg-white/5 font-bold text-emerald-400 hover:text-emerald-300">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('sales')} className="h-8 px-0 hover:bg-muted font-bold text-emerald-600 hover:text-emerald-700">
                       Продажи
                       {getSortIcon('sales')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.revenue && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('revenue')} className="h-8 px-0 hover:bg-white/5 font-bold text-emerald-400 hover:text-emerald-300">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('revenue')} className="h-8 px-0 hover:bg-muted font-bold text-emerald-600 hover:text-emerald-700">
                       Выручка
                       {getSortIcon('revenue')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.roi && (
-                  <TableHead className="text-right p-4 text-white/60 border-b border-white/5">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="h-8 px-0 hover:bg-white/5 font-bold text-white/90 hover:text-white">
+                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
                       ROI
                       {getSortIcon('roi')}
                     </Button>
@@ -1351,13 +1346,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 )}
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-white/5">
+            <TableBody className="divide-y divide-border">
               {loading ? (
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={10} className="h-40 text-center">
                     <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
-                      <div className="p-3 rounded-full bg-white/5">
-                        <Loader2 className="w-6 h-6 animate-spin text-blue-400" />
+                      <div className="p-3 rounded-full bg-muted">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
                       </div>
                       <span className="text-sm">Загрузка данных...</span>
                     </div>
@@ -1367,7 +1362,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 <TableRow className="hover:bg-transparent">
                   <TableCell colSpan={10} className="h-40 text-center text-muted-foreground">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <LayoutDashboard className="w-8 h-8 text-white/10" />
+                      <LayoutDashboard className="w-8 h-8 text-muted-foreground/50" />
                       <span>Нет активных рекламных кампаний</span>
                     </div>
                   </TableCell>
@@ -1377,14 +1372,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   <TableRow
                     key={row.id}
                     className={cn(
-                      "group transition-colors",
-                      row.type === 'campaign' ? "bg-white/[0.015] hover:bg-white/[0.03]" : "hover:bg-white/[0.02]",
-                      "border-transparent"
+                      "group transition-colors border-border",
+                      row.type === 'campaign' ? "bg-muted/30 hover:bg-muted/50" : "hover:bg-muted/30"
                     )}
                   >
                     <TableCell className={cn(
-                      "py-3 sticky left-0 z-10 border-r border-white/5 backdrop-blur-md",
-                      row.type === 'campaign' ? "bg-[#0f1019] group-hover:bg-[#151622]" : "bg-[#0B0C15] group-hover:bg-[#12131e]"
+                      "py-3 sticky left-0 z-10 border-r border-border backdrop-blur-md",
+                      row.type === 'campaign' ? "bg-muted/30 group-hover:bg-muted/50" : "bg-card group-hover:bg-muted/30"
                     )}>
                       <div
                         className="flex items-center gap-2 cursor-pointer select-none pl-2"
@@ -1394,7 +1388,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                         {row.children && row.children.length > 0 ? (
                           <div className={cn(
                             "w-5 h-5 rounded flex items-center justify-center transition-colors",
-                            expandedRows.has(row.id) ? "bg-white/10 text-white" : "text-white/40 hover:bg-white/5 hover:text-white/80"
+                            expandedRows.has(row.id) ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
                           )}>
                             <ChevronRight className={cn(
                               "w-3.5 h-3.5 transition-transform duration-200",
@@ -1407,11 +1401,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
                         <div className="relative shrink-0">
                           {row.type === 'ad' && row.thumbnail ? (
-                            <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-white/10" />
+                            <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-border" />
                           ) : (
                             <div className={cn(
-                              "w-2 h-2 rounded-full ring-2 ring-black",
-                              row.status === 'ACTIVE' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-white/20"
+                              "w-2 h-2 rounded-full ring-2 ring-background",
+                              row.status === 'ACTIVE' ? "bg-emerald-500" : "bg-muted-foreground/30"
                             )} />
                           )}
                         </div>
@@ -1420,20 +1414,20 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                           <div className="flex items-center gap-2">
                             <span className={cn(
                               "truncate max-w-[180px] md:max-w-[280px] text-sm",
-                              row.level === 0 ? "font-bold text-white/90" : "font-medium text-white/70"
+                              row.level === 0 ? "font-bold text-foreground" : "font-medium text-foreground/80"
                             )} title={row.name}>
                               {row.name}
                             </span>
                             <Button
                               variant="ghost"
                               size="icon"
-                              className="h-5 w-5 opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-white/10 hover:text-white"
+                              className="h-5 w-5 opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-muted hover:text-foreground"
                               onClick={(e) => openEditDialog(row, e)}
                             >
-                              <Pencil className="w-3 h-3 text-white/40" />
+                              <Pencil className="w-3 h-3 text-muted-foreground" />
                             </Button>
                           </div>
-                          <span className="text-[10px] text-white/30 uppercase tracking-wider flex items-center gap-1 font-mono">
+                          <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider flex items-center gap-1 font-mono">
                             {row.type}
                             <span className="opacity-30">•</span>
                             {row.id}
@@ -1446,13 +1440,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                       <TableCell className="text-center p-2">
                         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                           {toggling === row.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-white/40" />
+                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
                           ) : (
                             <Switch
                               checked={row.status === 'ACTIVE'}
                               onCheckedChange={(checked) => handleToggleStatus(row.id, row.status, { stopPropagation: () => { } } as any)}
                               className={cn(
-                                "data-[state=checked]:bg-emerald-500 border-white/10 bg-white/5",
+                                "data-[state=checked]:bg-emerald-500",
                                 row.status !== 'ACTIVE' && "opacity-60"
                               )}
                             />
@@ -1462,56 +1456,56 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     )}
 
                     {columnVisibility.spend && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-white/80 p-3">
+                      <TableCell className="text-right tabular-nums font-mono text-sm text-foreground/80 p-2">
                         {formatCurrency(row.spendKZT)}
                       </TableCell>
                     )}
 
                     {columnVisibility.leads && (
                       <TableCell className={cn(
-                        "text-right tabular-nums font-mono text-sm p-3",
+                        "text-right tabular-nums font-mono text-sm p-2",
                         row.status === 'ACTIVE' && row.leadsMeta === 0 && row.spendKZT > 2000
-                          ? "bg-red-500/10 text-red-400 font-bold border-l-2 border-red-500"
-                          : "text-white/90 font-semibold"
+                          ? "bg-red-100 text-red-600 font-bold border-l-2 border-red-500"
+                          : "text-foreground font-semibold"
                       )}>
                         {formatNumber(row.leadsMeta)}
                       </TableCell>
                     )}
 
                     {columnVisibility.cpl && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-white/50 p-3">
+                      <TableCell className="text-right tabular-nums font-mono text-sm text-muted-foreground p-2">
                         {row.leadsMeta === 0 ? '—' : formatCurrency(row.cpl)}
                       </TableCell>
                     )}
 
                     {columnVisibility.visits && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-blue-400 p-3">
-                        {row.visits > 0 ? formatNumber(row.visits) : <span className="text-white/10">-</span>}
+                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-blue-600 p-2">
+                        {row.visits > 0 ? formatNumber(row.visits) : <span className="text-muted-foreground/30">-</span>}
                       </TableCell>
                     )}
 
                     {columnVisibility.visitCost && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-blue-400/70 p-3">
-                        {row.visitCost > 0 ? formatCurrency(row.visitCost) : <span className="text-white/10">-</span>}
+                      <TableCell className="text-right tabular-nums font-mono text-sm text-blue-600/70 p-2">
+                        {row.visitCost > 0 ? formatCurrency(row.visitCost) : <span className="text-muted-foreground/30">-</span>}
                       </TableCell>
                     )}
 
                     {columnVisibility.sales && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-emerald-400 p-3">
-                        {row.sales > 0 ? formatNumber(row.sales) : <span className="text-white/10">-</span>}
+                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-emerald-600 p-2">
+                        {row.sales > 0 ? formatNumber(row.sales) : <span className="text-muted-foreground/30">-</span>}
                       </TableCell>
                     )}
 
                     {columnVisibility.revenue && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-emerald-400 font-bold p-3">
-                        {row.revenue > 0 ? formatCurrency(row.revenue) : <span className="text-white/10">-</span>}
+                      <TableCell className="text-right tabular-nums font-mono text-sm text-emerald-600 font-bold p-2">
+                        {row.revenue > 0 ? formatCurrency(row.revenue) : <span className="text-muted-foreground/30">-</span>}
                       </TableCell>
                     )}
 
                     {columnVisibility.roi && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm p-3">
+                      <TableCell className="text-right tabular-nums font-mono text-sm p-2">
                         <span className={cn(
-                          row.roi > 0 ? "text-emerald-400" : row.roi < 0 ? "text-red-400" : "text-white/30"
+                          row.roi > 0 ? "text-emerald-600" : row.roi < 0 ? "text-red-500" : "text-muted-foreground/50"
                         )}>
                           {row.roi !== 0 ? formatPercent(row.roi) : '-'}
                         </span>
@@ -1523,19 +1517,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
               {/* Totals Row */}
               {!loading && processedData.length > 0 && (
-                <TableRow className="bg-[#0B0C15] font-bold border-t border-white/10 hover:bg-[#0B0C15] sticky bottom-0 z-30 shadow-[0_-5px_20px_rgba(0,0,0,0.5)]">
-                  <TableCell className="sticky left-0 bg-[#0B0C15] border-r border-white/5 p-4 text-xs uppercase tracking-widest text-white/50">ИТОГО</TableCell>
+                <TableRow className="bg-card font-bold border-t border-border hover:bg-card sticky bottom-0 z-30 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
+                  <TableCell className="sticky left-0 bg-card border-r border-border p-4 text-xs uppercase tracking-widest text-muted-foreground">ИТОГО</TableCell>
                   {columnVisibility.status && <TableCell />}
-                  {columnVisibility.spend && <TableCell className="text-right p-3 text-white">{formatCurrency(totalSpendKZT)}</TableCell>}
-                  {columnVisibility.leads && <TableCell className="text-right p-3 text-white">{formatNumber(totalLeadsMeta)}</TableCell>}
-                  {columnVisibility.cpl && <TableCell className="text-right p-3 text-white/70">{formatCurrency(totalCpl)}</TableCell>}
-                  {columnVisibility.visits && <TableCell className="text-right p-3 text-blue-400">{formatNumber(totalVisits)}</TableCell>}
-                  {columnVisibility.visitCost && <TableCell className="text-right p-3 text-blue-400/70">{formatCurrency(totalVisitCost)}</TableCell>}
-                  {columnVisibility.sales && <TableCell className="text-right p-3 text-emerald-400">{formatNumber(totalSales)}</TableCell>}
-                  {columnVisibility.revenue && <TableCell className="text-right p-3 text-emerald-400 font-bold text-base shadow-[0_0_15px_rgba(16,185,129,0.2)]">{formatCurrency(totalRevenue)}</TableCell>}
+                  {columnVisibility.spend && <TableCell className="text-right p-3 text-foreground">{formatCurrency(totalSpendKZT)}</TableCell>}
+                  {columnVisibility.leads && <TableCell className="text-right p-3 text-foreground">{formatNumber(totalLeadsMeta)}</TableCell>}
+                  {columnVisibility.cpl && <TableCell className="text-right p-3 text-muted-foreground">{formatCurrency(totalCpl)}</TableCell>}
+                  {columnVisibility.visits && <TableCell className="text-right p-3 text-blue-600">{formatNumber(totalVisits)}</TableCell>}
+                  {columnVisibility.visitCost && <TableCell className="text-right p-3 text-blue-600/70">{formatCurrency(totalVisitCost)}</TableCell>}
+                  {columnVisibility.sales && <TableCell className="text-right p-3 text-emerald-600">{formatNumber(totalSales)}</TableCell>}
+                  {columnVisibility.revenue && <TableCell className="text-right p-3 text-emerald-600 font-bold text-base">{formatCurrency(totalRevenue)}</TableCell>}
                   {columnVisibility.roi && <TableCell className="text-right p-3">
                     <span className={cn(
-                      totalRoi > 0 ? "text-emerald-400" : totalRoi < 0 ? "text-red-400" : "text-white/30"
+                      totalRoi > 0 ? "text-emerald-600" : totalRoi < 0 ? "text-red-500" : "text-muted-foreground/50"
                     )}>
                       {totalRoi !== 0 ? formatPercent(totalRoi) : '-'}
                     </span>

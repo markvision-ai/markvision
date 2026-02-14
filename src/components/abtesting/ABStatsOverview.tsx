@@ -53,9 +53,9 @@ export const ABStatsOverview: React.FC<ABStatsOverviewProps> = ({ tests, stats, 
             {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                    <Card key={index} className="border-white/5 bg-black/40 backdrop-blur-xl relative overflow-hidden group">
-                        {/* Glow effect on hover */}
-                        <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-white/5 to-transparent")} />
+                    <Card key={index} className="border-border bg-card shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                        {/* Glow effect on hover - Removed for clean style */
+                        /* <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-white/5 to-transparent")} /> */}
 
                         <CardContent className="pt-6 relative z-10">
                             <div className="flex items-center gap-4">
@@ -64,7 +64,7 @@ export const ABStatsOverview: React.FC<ABStatsOverviewProps> = ({ tests, stats, 
                                 </div>
                                 <div>
                                     <p className="text-sm text-muted-foreground font-medium uppercase tracking-wider">{stat.label}</p>
-                                    <p className="text-2xl font-bold font-mono tracking-tight text-white/90">
+                                    <p className="text-2xl font-bold font-mono tracking-tight text-foreground">
                                         {loading ? "..." : stat.value}
                                     </p>
                                 </div>

@@ -183,14 +183,14 @@ export const ContentFactoryWizard = () => {
             return (
                 <div className="flex flex-col items-center justify-center min-h-[60vh] max-w-6xl mx-auto px-4 animate-in fade-in zoom-in duration-500">
                     <div className="text-center mb-16 space-y-4">
-                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-bold uppercase tracking-widest mb-4">
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-widest mb-4">
                             <Sparkles className="w-3 h-3" />
                             Готов к работе
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-2 drop-shadow-[0_0_20px_rgba(34,211,238,0.3)]">
-                            Источник <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Контента</span>
+                        <h1 className="text-4xl md:text-5xl font-black tracking-tight text-foreground mb-2">
+                            Источник <span className="text-primary">Контента</span>
                         </h1>
-                        <p className="text-lg text-white/50 font-light max-w-md mx-auto">
+                        <p className="text-lg text-muted-foreground font-light max-w-md mx-auto">
                             Выберите способ создания: по ссылке, по фото или по описанию
                         </p>
                     </div>
@@ -242,15 +242,15 @@ export const ContentFactoryWizard = () => {
                             variant="ghost"
                             size="icon"
                             onClick={() => updateState({ source: null })}
-                            className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl"
+                            className="text-muted-foreground hover:text-foreground hover:bg-accent mr-4 rounded-xl"
                         >
                             <ArrowLeft className="w-6 h-6" />
                         </Button>
                         <div>
-                            <h2 className="text-3xl font-black text-white tracking-tight">
-                                Источник <span className="text-cyan-400">контента</span>
+                            <h2 className="text-3xl font-black text-foreground tracking-tight">
+                                Источник <span className="text-primary">контента</span>
                             </h2>
-                            <p className="text-white/40 text-sm">
+                            <p className="text-muted-foreground text-sm">
                                 {state.source === 'link' && 'Вставьте ссылку на товар/статью/видео'}
                                 {state.source === 'photo' && 'Загрузите изображения для анализа'}
                                 {state.source === 'video' && 'Загрузите видео для обработки'}
@@ -265,15 +265,15 @@ export const ContentFactoryWizard = () => {
                     {state.source === 'link' && (
                         <>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <LinkIcon className="w-4 h-4 text-cyan-400" />
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <LinkIcon className="w-4 h-4 text-primary" />
                                     Ссылка на товар/статью/видео
                                 </Label>
                                 <Input
                                     placeholder="https://..."
                                     value={state.linkUrl}
                                     onChange={(e) => updateState({ linkUrl: e.target.value })}
-                                    className="bg-[#050505]/80 border-white/5 text-white p-4 focus:border-cyan-500/30 transition-all rounded-xl"
+                                    className="bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20">Wildberries</Badge>
@@ -282,14 +282,14 @@ export const ContentFactoryWizard = () => {
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Дополнительные инструкции (Текст или Голос)
                                 </Label>
                                 <Textarea
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-[#050505]/80 border-white/5 text-white p-4 focus:border-cyan-500/30 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                                 <Button variant="ghost" size="sm" className="text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-500/10">
                                     <Mic className="w-4 h-4 mr-2" />
@@ -314,25 +314,25 @@ export const ContentFactoryWizard = () => {
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Название товара
                                 </Label>
                                 <Input
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-[#050505]/80 border-white/5 text-white p-4 focus:border-fuchsia-500/30 transition-all rounded-xl"
+                                    className="bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Дополнительные инструкции
                                 </Label>
                                 <Textarea
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-[#050505]/80 border-white/5 text-white p-4 focus:border-fuchsia-500/30 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                             </div>
                         </>
@@ -353,25 +353,25 @@ export const ContentFactoryWizard = () => {
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Название товара
                                 </Label>
                                 <Input
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-[#050505]/80 border-white/5 text-white p-4 focus:border-violet-500/30 transition-all rounded-xl"
+                                    className="bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Дополнительные инструкции
                                 </Label>
                                 <Textarea
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-[#050505]/80 border-white/5 text-white p-4 focus:border-violet-500/30 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                             </div>
                         </>
@@ -382,8 +382,8 @@ export const ContentFactoryWizard = () => {
                         <>
                             <div className="space-y-3">
                                 <div className="flex justify-between items-center">
-                                    <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                                        <FileText className="w-4 h-4 text-emerald-400" />
+                                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                                        <FileText className="w-4 h-4 text-primary" />
                                         Главное описание
                                     </Label>
                                     <Button
@@ -427,25 +427,25 @@ export const ContentFactoryWizard = () => {
                                 </div>
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Название товара
                                 </Label>
                                 <Input
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-[#050505]/80 border-white/5 text-white p-4 focus:border-emerald-500/30 transition-all rounded-xl"
+                                    className="bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em]">
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em]">
                                     Дополнительные инструкции (Текст или Голос)
                                 </Label>
                                 <Textarea
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-[#050505]/80 border-white/5 text-white p-4 focus:border-emerald-500/30 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-background border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                                 <Button variant="ghost" size="sm" className="text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-500/10">
                                     <Mic className="w-4 h-4 mr-2" />
@@ -483,24 +483,24 @@ export const ContentFactoryWizard = () => {
         <div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500 px-4">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center">
-                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
+                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-muted-foreground hover:text-foreground hover:bg-accent mr-4 rounded-xl">
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-black text-white tracking-tight">Настройки <span className="text-cyan-400">формата</span></h2>
-                        <p className="text-white/40 text-sm">Настройки можно пропустить, если подходят базовые</p>
+                        <h2 className="text-3xl font-black text-foreground tracking-tight">Настройки <span className="text-primary">формата</span></h2>
+                        <p className="text-muted-foreground text-sm">Настройки можно пропустить, если подходят базовые</p>
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Шаг 2 из 3</div>
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Шаг 2 из 3</div>
                 </div>
             </div>
 
             <div className="space-y-8 flex-1 overflow-y-auto custom-scrollbar pb-28">
                 {/* Aspect Ratio Selection */}
                 <div className="space-y-6">
-                    <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                        <Layout className="w-4 h-4 text-purple-400" />
+                    <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                        <Layout className="w-4 h-4 text-primary" />
                         Соотношение сторон
                     </Label>
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -516,34 +516,34 @@ export const ContentFactoryWizard = () => {
                                 key={ratio}
                                 onClick={() => updateState({ aspectRatio: ratio })}
                                 className={cn(
-                                    "relative p-6 rounded-2xl border-2 cursor-pointer transition-all duration-300 group hover:scale-105",
+                                    "relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 group hover:shadow-md bg-card",
                                     state.aspectRatio === ratio
-                                        ? "border-fuchsia-500 bg-fuchsia-500/10 shadow-[0_0_30px_rgba(217,70,239,0.3)]"
-                                        : "border-white/5 bg-white/[0.02] hover:border-white/20"
+                                        ? "border-primary bg-primary/5 ring-1 ring-primary"
+                                        : "border-border hover:border-primary/50"
                                 )}
                             >
                                 <div className="text-center space-y-3">
                                     <div className={cn(
                                         "text-5xl font-black transition-colors",
-                                        state.aspectRatio === ratio ? "text-fuchsia-400" : "text-white/20 group-hover:text-white/40"
+                                        state.aspectRatio === ratio ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
                                     )}>
                                         {icon}
                                     </div>
                                     <div className="space-y-1">
                                         <div className={cn(
                                             "text-xl font-black transition-colors",
-                                            state.aspectRatio === ratio ? "text-white" : "text-white/60"
+                                            state.aspectRatio === ratio ? "text-foreground" : "text-muted-foreground"
                                         )}>
                                             {ratio}
                                         </div>
-                                        <div className="text-[10px] font-bold text-white/30 uppercase tracking-widest">
+                                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                                             {label}
                                         </div>
                                     </div>
                                 </div>
                                 {state.aspectRatio === ratio && (
-                                    <div className="absolute top-2 right-2 p-1.5 bg-fuchsia-500 rounded-full shadow-lg">
-                                        <Check className="w-3 h-3 text-black" />
+                                    <div className="absolute top-2 right-2 p-1.5 bg-primary rounded-full shadow-lg">
+                                        <Check className="w-3 h-3 text-primary-foreground" />
                                     </div>
                                 )}
                             </div>
@@ -553,12 +553,13 @@ export const ContentFactoryWizard = () => {
             </div>
 
             {/* Continue Button */}
-            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#0A0A0A] via-[#0A0A0A] to-transparent pointer-events-none">
+            <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/95 to-transparent pointer-events-none">
                 <div className="max-w-6xl mx-auto pointer-events-auto">
                     <Button
                         onClick={nextStep}
                         disabled={!state.aspectRatio}
-                        className="w-full bg-gradient-to-r from-fuchsia-600 to-purple-600 hover:from-fuchsia-500 hover:to-purple-500 text-white font-black text-lg py-7 rounded-2xl shadow-[0_0_40px_rgba(217,70,239,0.3)] hover:shadow-[0_0_60px_rgba(217,70,239,0.5)] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                        size="lg"
+                        className="w-full text-lg py-7 rounded-2xl shadow-lg transition-all duration-300 disabled:opacity-50"
                     >
                         Продолжить
                         <ArrowRight className="w-6 h-6 ml-3" />
@@ -573,25 +574,25 @@ export const ContentFactoryWizard = () => {
         <div className="max-w-6xl mx-auto h-full flex flex-col animate-in slide-in-from-right-10 duration-500">
             <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center">
-                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-white/30 hover:text-white hover:bg-white/5 mr-4 rounded-xl">
+                    <Button variant="ghost" size="icon" onClick={prevStep} className="text-muted-foreground hover:text-foreground hover:bg-accent mr-4 rounded-xl">
                         <ArrowLeft className="w-6 h-6" />
                     </Button>
                     <div>
-                        <h2 className="text-3xl font-black text-white tracking-tight">Настройки <span className="text-cyan-400">контента</span></h2>
-                        <p className="text-white/40 text-sm">Заполните пару полей и нажмите «Сгенерировать»</p>
+                        <h2 className="text-3xl font-black text-foreground tracking-tight">Настройки <span className="text-primary">контента</span></h2>
+                        <p className="text-muted-foreground text-sm">Заполните пару полей и нажмите «Сгенерировать»</p>
                     </div>
                 </div>
 
                 <div className="flex items-center gap-3">
                     <div className="flex -space-x-2">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-                                <span className="text-[10px] text-white/20">{i}</span>
+                            <div key={i} className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden">
+                                <span className="text-[10px] text-muted-foreground">{i}</span>
                             </div>
                         ))}
                     </div>
-                    <div className="h-px w-12 bg-white/10" />
-                    <div className="text-[10px] font-bold text-white/20 uppercase tracking-widest">Шаг 2 из 3</div>
+                    <div className="h-px w-12 bg-border" />
+                    <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Шаг 3 из 3</div>
                 </div>
             </div>
 
@@ -603,8 +604,8 @@ export const ContentFactoryWizard = () => {
                     {state.source !== 'description' && (
                         <div className="space-y-4">
                             <div className="flex justify-between items-center px-1">
-                                <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_cyan]" />
+                                <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                                     Опишите задачу
                                 </Label>
                                 <Button
@@ -613,7 +614,7 @@ export const ContentFactoryWizard = () => {
                                     onClick={enhancePrompt}
                                     disabled={state.isEnhancing || !state.description}
                                     className={cn(
-                                        "text-cyan-400 hover:text-cyan-300 hover:bg-cyan-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+                                        "text-primary hover:text-primary hover:bg-primary/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
                                         state.isEnhancing && "animate-pulse"
                                     )}
                                 >
@@ -623,18 +624,14 @@ export const ContentFactoryWizard = () => {
                             </div>
 
                             <div className="relative group overflow-hidden rounded-2xl">
-                                <div className={cn(
-                                    "absolute -inset-0.5 bg-gradient-to-r from-cyan-600 to-blue-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
-                                    state.isEnhancing && "opacity-100 animate-pulse"
-                                )} />
                                 <Textarea
                                     placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
-                                    className="relative min-h-[160px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-cyan-500/30 transition-all resize-none rounded-2xl leading-relaxed text-base backdrop-blur-xl"
+                                    className="relative min-h-[160px] bg-background border-input text-foreground p-6 focus:ring-primary/20 transition-all resize-none rounded-2xl leading-relaxed text-base"
                                     value={state.description}
                                     onChange={(e) => updateState({ description: e.target.value })}
                                 />
 
-                                <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
+                                <div className="absolute bottom-4 right-4 text-[10px] text-muted-foreground select-none">
                                     {state.description?.length || 0} символов
                                 </div>
                             </div>
@@ -643,8 +640,8 @@ export const ContentFactoryWizard = () => {
 
                     {/* Type Selection */}
                     <div className="space-y-6">
-                        <Label className="text-sm font-bold text-white/70 uppercase tracking-[0.2em] flex items-center gap-3 px-1">
-                            <div className="w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_purple]" />
+                        <Label className="text-sm font-bold text-muted-foreground uppercase tracking-[0.2em] flex items-center gap-3 px-1">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary" />
                             Тип контента
                         </Label>
 
@@ -687,16 +684,16 @@ export const ContentFactoryWizard = () => {
 
                 {/* Right Column: Parameters */}
                 <div className="lg:col-span-5 flex flex-col">
-                    <div className="bg-white/[0.03] rounded-3xl p-8 border border-white/5 backdrop-blur-2xl relative overflow-hidden flex-1 flex flex-col shadow-2xl">
-                        <h3 className="text-sm font-bold text-white uppercase tracking-[0.3em] border-b border-white/5 pb-6 mb-8 flex items-center gap-3">
-                            <Cpu className="w-4 h-4 text-cyan-400" />
+                    <div className="bg-card rounded-3xl p-8 border border-border flex-1 flex flex-col shadow-sm">
+                        <h3 className="text-sm font-bold text-foreground uppercase tracking-[0.3em] border-b border-border pb-6 mb-8 flex items-center gap-3">
+                            <Cpu className="w-4 h-4 text-primary" />
                             Настройки
                         </h3>
 
                         <div className="space-y-10 flex-1">
                             {/* Style Selection - Working Interactivity */}
                             <div className="space-y-4">
-                                <Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Стиль</Label>
+                                <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Стиль</Label>
                                 <div className="grid grid-cols-3 gap-3">
                                     <VisualTemplateOption
                                         label="Простой"
@@ -727,12 +724,12 @@ export const ContentFactoryWizard = () => {
                                     className="space-y-8 px-1"
                                 >
                                     <div className="space-y-4">
-                                        <Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Объем контента</Label>
+                                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Объем контента</Label>
                                         <Select value={state.carouselCount} onValueChange={(v) => updateState({ carouselCount: v })}>
-                                            <SelectTrigger className="bg-white/5 border-white/10 h-10 rounded-xl focus:ring-cyan-500/50">
+                                            <SelectTrigger className="bg-background border-input h-10 rounded-xl focus:ring-primary/50">
                                                 <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent className="bg-[#0a0a0a] border-white/10 text-white">
+                                            <SelectContent className="bg-popover border-border text-popover-foreground">
                                                 <SelectItem value="3">⚡️ 3 карточки (Экспресс)</SelectItem>
                                                 <SelectItem value="5">🔥 5 карточек (Стандарт)</SelectItem>
                                                 <SelectItem value="7">💎 7 карточек (Прогрев)</SelectItem>
@@ -742,14 +739,14 @@ export const ContentFactoryWizard = () => {
                                     </div>
 
                                     <div className="space-y-4">
-                                        <Label className="text-xs font-bold text-white/40 uppercase tracking-widest">Формат вывода</Label>
+                                        <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Формат вывода</Label>
                                         <div className="grid grid-cols-2 gap-3">
                                             <button
                                                 className={cn(
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'feed'
-                                                        ? "bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                                                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10"
+                                                        ? "bg-primary/10 border-primary text-primary shadow-sm"
+                                                        : "bg-background border-border text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'feed' })}
                                             >
@@ -760,8 +757,8 @@ export const ContentFactoryWizard = () => {
                                                 className={cn(
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'story'
-                                                        ? "bg-cyan-500/10 border-cyan-500 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]"
-                                                        : "bg-white/5 border-white/5 text-white/30 hover:bg-white/10"
+                                                        ? "bg-primary/10 border-primary text-primary shadow-sm"
+                                                        : "bg-background border-border text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'story' })}
                                             >
@@ -774,7 +771,7 @@ export const ContentFactoryWizard = () => {
                             )}
 
                             {(!state.category || state.category !== 'carousel') && (
-                                <div className="flex-1 flex flex-col items-center justify-center text-white/10 space-y-4">
+                                <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground/30 space-y-4">
                                     <Palette className="w-16 h-16 opacity-50" />
                                     <p className="text-[10px] text-center font-bold uppercase tracking-widest leading-relaxed">
                                         Сначала выберите<br />тип контента слева
@@ -787,12 +784,12 @@ export const ContentFactoryWizard = () => {
             </div>
 
             {/* Sticky actions: всегда видимые кнопки */}
-            <div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-[#050505] via-[#050505]/95 to-transparent">
+            <div className="sticky bottom-0 pt-4 pb-2 bg-gradient-to-t from-background via-background/95 to-transparent">
                 <div className="max-w-6xl mx-auto flex items-center justify-between gap-3">
                     <Button
                         variant="ghost"
                         onClick={prevStep}
-                        className="h-12 rounded-xl text-white/50 hover:text-white hover:bg-white/5"
+                        className="h-12 rounded-xl text-muted-foreground hover:text-foreground hover:bg-accent"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Назад
@@ -801,10 +798,10 @@ export const ContentFactoryWizard = () => {
                         onClick={nextStep}
                         disabled={!state.description || !state.category}
                         className={cn(
-                            "h-12 px-6 rounded-xl font-bold",
+                            "h-12 px-6 rounded-xl font-bold shadow-lg transition-all",
                             state.description && state.category
-                                ? "bg-gradient-to-r from-cyan-600 to-blue-700 text-white shadow-[0_0_30px_rgba(6,182,212,0.25)] hover:shadow-[0_0_45px_rgba(6,182,212,0.35)]"
-                                : "bg-white/5 border border-white/10 text-white/20"
+                                ? ""
+                                : "opacity-50"
                         )}
                     >
                         {state.isGenerating ? (
@@ -825,10 +822,10 @@ export const ContentFactoryWizard = () => {
     );
 
     return (
-        <div className="w-full min-h-[calc(100vh-8rem)] bg-[#050505] text-white p-6 relative overflow-hidden font-sans">
-            {/* Ambient Background */}
+        <div className="w-full min-h-[calc(100vh-8rem)] bg-background text-foreground p-6 relative overflow-hidden font-sans">
+            {/* Ambient Background
             <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[150px] pointer-events-none" />
-            <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" /> */}
 
             {state.step === 1 && renderStep1()}
             {state.step === 2 && renderStep2()}
@@ -864,7 +861,7 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
                 setLogs(prev => [...prev, "Готово: контент создан."]);
                 toast.success("Контент успешно сгенерирован!", {
                     description: "Вы можете найти его в ленте публикаций",
-                    icon: <Rocket className="w-5 h-5 text-emerald-400" />
+                    icon: <Rocket className="w-5 h-5 text-primary" />
                 });
             }
         };
@@ -876,17 +873,17 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
     return (
         <div className="max-w-5xl mx-auto min-h-[70vh] flex flex-col items-center justify-center animate-in fade-in duration-700">
             <div className="text-center mb-16">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-[0.3em] mb-6">
-                    <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-bold uppercase tracking-[0.3em] mb-6">
+                    <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                     СОЗДАНИЕ КОНТЕНТА
                 </div>
-                <h2 className="text-5xl font-black text-white tracking-tighter mb-4">ВАШ КОНТЕНТ <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">ГОТОВИТСЯ</span></h2>
-                <p className="text-white/30 text-lg font-light">Алгоритмы MarkVision создают пост по вашим параметрам</p>
+                <h2 className="text-5xl font-black text-foreground tracking-tighter mb-4">ВАШ КОНТЕНТ <span className="text-primary">ГОТОВИТСЯ</span></h2>
+                <p className="text-muted-foreground text-lg font-light">Алгоритмы MarkVision создают пост по вашим параметрам</p>
             </div>
 
             <div className="grid grid-cols-5 gap-4 w-full mb-20 relative">
                 {/* Connecting Path Background */}
-                <div className="absolute top-1/2 left-0 right-0 h-px bg-white/5 -translate-y-1/2" />
+                <div className="absolute top-1/2 left-0 right-0 h-px bg-border -translate-y-1/2" />
 
                 {steps.map((step, i) => (
                     <div key={i} className="relative z-10 flex flex-col items-center text-center group">
@@ -895,27 +892,27 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
                             animate={{ scale: 1 }}
                             transition={{ delay: i * 0.2 }}
                             className={cn(
-                                "w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-700",
-                                i < currentStep ? "bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]" :
-                                    i === currentStep ? "bg-cyan-500/30 border-2 border-cyan-400 text-cyan-300 shadow-[0_0_30px_rgba(34,211,238,0.4)] scale-110" :
-                                        "bg-white/5 border border-white/5 text-white/20"
+                                "w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-700 border",
+                                i < currentStep ? "bg-primary/10 border-primary text-primary" :
+                                    i === currentStep ? "bg-primary text-primary-foreground shadow-lg scale-110 ring-4 ring-primary/20" :
+                                        "bg-muted border-border text-muted-foreground"
                             )}
                         >
                             {React.cloneElement(step.icon as React.ReactElement, { className: "w-8 h-8" })}
 
                             {/* Scanning Animation for current step */}
                             {i === currentStep && (
-                                <div className="absolute inset-0 rounded-2xl border-2 border-cyan-400 animate-ping opacity-20" />
+                                <div className="absolute inset-0 rounded-2xl border-2 border-primary-foreground/30 animate-ping opacity-20" />
                             )}
                         </motion.div>
                         <div className="mt-4 space-y-1">
                             <span className={cn(
                                 "text-[10px] font-black uppercase tracking-widest",
-                                i <= currentStep ? "text-white" : "text-white/20"
+                                i <= currentStep ? "text-foreground" : "text-muted-foreground"
                             )}>{step.label}</span>
                             <p className={cn(
                                 "text-[9px] leading-tight px-4 transition-opacity duration-500",
-                                i === currentStep ? "opacity-100 text-cyan-500/70" : "opacity-0"
+                                i === currentStep ? "opacity-100 text-primary" : "opacity-0"
                             )}>{step.detail}</p>
                         </div>
                     </div>
@@ -923,15 +920,15 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
             </div>
 
             {/* Production Console */}
-            <div className="w-full max-w-2xl bg-black/80 border border-white/5 rounded-3xl p-8 backdrop-blur-3xl shadow-2xl relative overflow-hidden">
-                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+            <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-sm relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
-                        <Terminal className="w-4 h-4 text-cyan-400" />
-                        <span className="text-xs font-bold text-white/40 uppercase tracking-[0.2em]">Логи процесса</span>
+                        <Terminal className="w-4 h-4 text-primary" />
+                        <span className="text-xs font-bold text-muted-foreground uppercase tracking-[0.2em]">Логи процесса</span>
                     </div>
-                    <div className="px-3 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 text-[10px] font-mono">
+                    <div className="px-3 py-1 rounded-lg bg-primary/10 text-primary text-[10px] font-mono">
                         {Math.round((currentStep + 1 / steps.length) * 100)}% ГОТОВО
                     </div>
                 </div>
@@ -942,17 +939,17 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
                             key={i}
                             initial={{ opacity: 0, x: -10 }}
                             animate={{ opacity: 1, x: 0 }}
-                            className="flex items-center gap-3 border-l-2 border-cyan-500/20 pl-4 py-1"
+                            className="flex items-center gap-3 border-l-2 border-primary/20 pl-4 py-1"
                         >
-                            <span className="text-cyan-500/40">{`0${i + 1}`}</span>
+                            <span className="text-primary/40">{`0${i + 1}`}</span>
                             <span className={cn(
-                                i === logs.length - 1 ? "text-white font-bold" : "text-white/40"
+                                i === logs.length - 1 ? "text-foreground font-bold" : "text-muted-foreground"
                             )}>{log}</span>
                         </motion.div>
                     ))}
                     {currentStep < steps.length && (
                         <div className="flex items-center gap-3 pl-4">
-                            <span className="text-cyan-400 animate-pulse">_</span>
+                            <span className="text-primary animate-pulse">_</span>
                         </div>
                     )}
                 </div>
@@ -961,7 +958,7 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
             <Button
                 variant="ghost"
                 onClick={onCancel}
-                className="mt-12 text-white/20 hover:text-white/60 hover:bg-white/5 rounded-xl text-[10px] font-bold uppercase tracking-widest"
+                className="mt-12 text-muted-foreground hover:text-foreground hover:bg-accent rounded-xl text-[10px] font-bold uppercase tracking-widest"
             >
                 [ ABORT OPERATION ]
             </Button>
@@ -973,231 +970,101 @@ const VisualTemplateOption = ({ label, color, active, onClick }: { label: string
     <div
         onClick={onClick}
         className={cn(
-            "aspect-[4/5] rounded-xl border-2 cursor-pointer relative overflow-hidden group transition-all duration-500",
+            "aspect-[4/5] rounded-xl border cursor-pointer relative overflow-hidden group transition-all duration-300",
             active
-                ? "border-cyan-500 shadow-[0_0_25px_rgba(6,182,212,0.3)] scale-105"
-                : "border-white/5 opacity-40 hover:opacity-100 hover:border-white/20"
+                ? "border-primary shadow-sm"
+                : "border-border hover:border-primary/50"
         )}
     >
-        <div className={cn("absolute inset-0 transition-opacity", color)} />
+        <div className={cn("absolute inset-0 transition-opacity opacity-20", color)} />
         {/* Mock UI stripes */}
         <div className="absolute inset-x-3 top-3 space-y-1">
-            <div className="h-1 w-full bg-white/20 rounded-full" />
-            <div className="h-1 w-2/3 bg-white/10 rounded-full" />
+            <div className="h-1 w-full bg-foreground/10 rounded-full" />
+            <div className="h-1 w-2/3 bg-foreground/5 rounded-full" />
         </div>
-        <div className="absolute bottom-3 inset-x-3 h-4 bg-white/5 rounded-lg flex items-center justify-center">
-            <div className="w-4 h-0.5 bg-white/20 rounded-full" />
+        <div className="absolute bottom-3 inset-x-3 h-4 bg-foreground/5 rounded-lg flex items-center justify-center">
+            <div className="w-4 h-0.5 bg-foreground/10 rounded-full" />
         </div>
 
         {active && (
-            <div className="absolute top-1 right-1 p-1 bg-cyan-500 rounded-full shadow-lg z-20">
-                <Check className="w-2 h-2 text-black" />
+            <div className="absolute top-1 right-1 p-1 bg-primary rounded-full shadow-lg z-20">
+                <Check className="w-2 h-2 text-primary-foreground" />
             </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
         <div className="absolute bottom-0 inset-x-0 p-2 text-center">
-            <span className="text-[10px] font-black uppercase text-white tracking-widest">{label}</span>
+            <span className={cn("text-[10px] font-black uppercase tracking-widest", active ? "text-primary-foreground" : "text-muted-foreground")}>{label}</span>
         </div>
     </div>
 );
 
 const SourceCard = ({ icon, title, description, color, active, onClick }: any) => {
-    const colorSchemes: Record<string, { glow: string, gradient: string, border: string, text: string }> = {
-        cyan: {
-            glow: "shadow-[0_0_60px_rgba(6,182,212,0.5),0_0_100px_rgba(6,182,212,0.25)]",
-            gradient: "from-cyan-500/40 via-blue-500/40 to-cyan-500/40",
-            border: "border-cyan-500/60",
-            text: "text-cyan-400"
-        },
-        emerald: {
-            glow: "shadow-[0_0_60px_rgba(16,185,129,0.5),0_0_100px_rgba(16,185,129,0.25)]",
-            gradient: "from-emerald-500/40 via-green-500/40 to-emerald-500/40",
-            border: "border-emerald-500/60",
-            text: "text-emerald-400"
-        },
-        violet: {
-            glow: "shadow-[0_0_60px_rgba(139,92,246,0.5),0_0_100px_rgba(139,92,246,0.25)]",
-            gradient: "from-violet-500/40 via-purple-500/40 to-violet-500/40",
-            border: "border-violet-500/60",
-            text: "text-violet-400"
-        },
-        fuchsia: {
-            glow: "shadow-[0_0_60px_rgba(217,70,239,0.5),0_0_100px_rgba(217,70,239,0.25)]",
-            gradient: "from-fuchsia-500/40 via-pink-500/40 to-fuchsia-500/40",
-            border: "border-fuchsia-500/60",
-            text: "text-fuchsia-400"
-        },
-    };
-
-    const scheme = colorSchemes[color] || colorSchemes.cyan;
-
     return (
         <div
             role="button"
             data-active={active}
             onClick={onClick}
             className={cn(
-                "group relative flex flex-col items-center justify-center p-8 rounded-[2.5rem] border-2 bg-[#050505]/70 backdrop-blur-3xl transition-all duration-700 cursor-pointer overflow-hidden",
-                "hover:scale-[1.10] hover:-translate-y-3",
-                active ? "scale-[1.10] -translate-y-3" : "",
-                "h-[380px]",
-                scheme.border
+                "group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden bg-card hover:shadow-md",
+                active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/50",
+                "h-[320px]"
             )}
-            style={{
-                transformStyle: 'preserve-3d',
-                perspective: '1000px'
-            }}
         >
-            {/* Animated Gradient Border Glow */}
+            {/* Icon Container */}
             <div className={cn(
-                "absolute -inset-1 rounded-[2.6rem] opacity-0 group-hover:opacity-100 transition-opacity duration-700 bg-gradient-to-r blur-lg animate-spin-slow",
-                scheme.gradient,
-                active && "opacity-100"
-            )} />
-
-            {/* Orbital Ring Effect */}
-            <div className={cn(
-                "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700",
-                active && "opacity-100"
+                "mb-6 p-6 rounded-full transition-all duration-300",
+                active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
             )}>
-                <div className={cn(
-                    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full border-2 border-dashed animate-spin-slow",
-                    scheme.border
-                )} />
-                <div className={cn(
-                    "absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 rounded-full border border-dashed opacity-50",
-                    scheme.border
-                )}
-                    style={{ animationDuration: '15s', animationDirection: 'reverse' }}
-                />
+                {icon}
             </div>
 
-            {/* Reactor Core Icon Container with Mega Glow */}
-            <div className={cn(
-                "mb-8 p-8 rounded-full bg-gradient-to-br from-[#0A0A0A] via-[#1A1A1A] to-[#0A0A0A] border-2 transition-all duration-700 relative z-10",
-                "group-hover:scale-[1.35] group-hover:rotate-12",
-                active ? "scale-[1.35] rotate-12" : "",
-                scheme.border,
-                scheme.glow
-            )}>
-                {/* Pulsing Inner Mega Glow */}
-                <div className={cn(
-                    "absolute inset-0 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 animate-pulse bg-gradient-to-br",
-                    scheme.gradient,
-                    active && "opacity-100"
-                )} />
-
-                {/* Icon with Color */}
-                <div className={cn(
-                    "relative z-10 transition-all duration-500",
-                    active ? scheme.text : `text-white/50 group-hover:${scheme.text}`
-                )}>
-                    {icon}
-                </div>
-            </div>
-
-            {/* Title with Mega Glow */}
+            {/* Title */}
             <h3 className={cn(
-                "text-3xl font-black mb-4 tracking-tight z-10 transition-all duration-500",
-                "group-hover:text-white group-hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]",
-                active ? "text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]" : "text-white/80"
+                "text-2xl font-bold mb-3 tracking-tight text-foreground"
             )}>
                 {title}
             </h3>
 
             {/* Description */}
             <p className={cn(
-                "text-[12px] font-bold text-center uppercase tracking-[0.25em] z-10 transition-all duration-500",
-                "group-hover:text-white/90",
-                active ? "text-white/90" : "text-white/30"
+                "text-sm font-medium text-center text-muted-foreground max-w-[200px]"
             )}>
                 {description}
             </p>
 
-            {/* Animated Background Mega Gradient */}
-            <div className={cn(
-                "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none bg-gradient-to-b rounded-[2.5rem]",
-                scheme.gradient,
-                active && "opacity-100"
-            )} />
-
-            {/* Shimmer Effect */}
-            <div className={cn(
-                "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none overflow-hidden rounded-[2.5rem]",
-                active && "opacity-100"
-            )}>
-                <div className="absolute -inset-full top-0 bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12 animate-shimmer" />
-            </div>
-
-            {/* Selection Indicator with Mega Pulse */}
-            <div className={cn(
-                "absolute top-6 right-6 p-3 rounded-full bg-white text-black transform scale-0 transition-all duration-500 shadow-2xl z-20",
-                "animate-pulse",
-                active && "scale-110",
-                active && scheme.glow
-            )}>
-                <Check className="w-6 h-6" />
-            </div>
-
-            {/* Corner Accents with Glow */}
-            <div className={cn(
-                "absolute top-4 left-4 w-10 h-10 border-l-2 border-t-2 rounded-tl-2xl opacity-0 group-hover:opacity-80 transition-opacity duration-500",
-                scheme.border,
-                active && "opacity-80"
-            )} />
-            <div className={cn(
-                "absolute bottom-4 right-4 w-10 h-10 border-r-2 border-b-2 rounded-br-2xl opacity-0 group-hover:opacity-80 transition-opacity duration-500",
-                scheme.border,
-                active && "opacity-80"
-            )} />
-            <div className={cn(
-                "absolute top-4 right-4 w-10 h-10 border-r-2 border-t-2 rounded-tr-2xl opacity-0 group-hover:opacity-80 transition-opacity duration-500",
-                scheme.border,
-                active && "opacity-80"
-            )} />
-            <div className={cn(
-                "absolute bottom-4 left-4 w-10 h-10 border-l-2 border-b-2 rounded-bl-2xl opacity-0 group-hover:opacity-80 transition-opacity duration-500",
-                scheme.border,
-                active && "opacity-80"
-            )} />
+            {/* Selection Indicator */}
+            {active && (
+                <div className="absolute top-4 right-4 p-1.5 rounded-full bg-primary text-primary-foreground shadow-sm animate-in zoom-in">
+                    <Check className="w-4 h-4" />
+                </div>
+            )}
         </div>
     );
 };
 
 const TypeSelectionCard = ({ icon, title, description, active, onClick, color }: any) => {
-    const accents: Record<string, string> = {
-        cyan: "text-cyan-400 group-hover:bg-cyan-500/20",
-        purple: "text-purple-400 group-hover:bg-purple-500/20",
-        violet: "text-violet-400 group-hover:bg-violet-500/20",
-        fuchsia: "text-fuchsia-400 group-hover:bg-fuchsia-500/20",
-        pink: "text-pink-400 group-hover:bg-pink-500/20",
-        blue: "text-blue-400 group-hover:bg-blue-500/20",
-    };
-
     return (
         <div
             onClick={onClick}
             className={cn(
-                "flex items-center gap-4 p-5 rounded-[1.25rem] border transition-all duration-500 relative overflow-hidden group",
+                "flex items-center gap-4 p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group cursor-pointer bg-card",
                 active
-                    ? "bg-white/[0.08] border-cyan-500/40 shadow-[0_0_20px_rgba(34,211,238,0.1)]"
-                    : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05] hover:border-white/10"
+                    ? "border-primary bg-primary/5 shadow-sm"
+                    : "border-border hover:border-primary/50 hover:bg-muted/50"
             )}
         >
             <div className={cn(
-                "p-3 rounded-xl transition-all duration-500",
-                active ? "bg-cyan-500/20 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.2)]" : "bg-white/5 text-white/30 group-hover:text-white/80",
-                !active && accents[color]
+                "p-3 rounded-lg transition-all duration-300",
+                active ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground group-hover:bg-primary/10 group-hover:text-primary"
             )}>
                 {icon}
             </div>
             <div className="relative z-10">
-                <h4 className={cn("text-xs font-black uppercase tracking-widest", active ? "text-white" : "text-white/50 group-hover:text-white/80")}>{title}</h4>
-                <p className="text-[10px] text-white/20 font-bold uppercase tracking-tight">{description}</p>
+                <h4 className="text-sm font-bold text-foreground">{title}</h4>
+                <p className="text-xs text-muted-foreground">{description}</p>
             </div>
 
             {active && (
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-cyan-500 animate-in zoom-in duration-300">
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-primary animate-in zoom-in duration-300">
                     <CheckCircle2 className="w-5 h-5" />
                 </div>
             )}

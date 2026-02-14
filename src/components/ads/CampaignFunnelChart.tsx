@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, LabelList, PieChart, Pie } from 'recharts';
-import { TrendingUp, Users, CalendarCheck, CreditCard, Eye, MousePointerClick, Download, Info, ArrowRight } from 'lucide-react';
+import { TrendingUp, Users, CalendarCheck, CreditCard, Eye, MousePointerClick, Download, Info, ArrowRight, Filter, BarChart3 } from 'lucide-react';
 import { Campaign } from '@/hooks/useCampaigns';
 import { Lead } from '@/hooks/useLeads';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,14 @@ import { cn } from '@/lib/utils';
 import { AdPerformanceLog } from '@/hooks/useAdPerformance';
 import { DailyData } from '@/hooks/useProjectData';
 import { KZT_RATE } from '@/constants/ads';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface CampaignFunnelChartProps {
   campaigns: Campaign[];
@@ -36,6 +44,10 @@ const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('ru-RU').format(Math.round(value)) + ' ₸';
 };
 
+const formatNumber = (value: number) => {
+  return new Intl.NumberFormat('ru-RU', { notation: "compact", maximumFractionDigits: 1 }).format(value).replace(/\u00a0/g, ' ');
+};
+
 function getPlatformColor(platform: string) {
   const p = platform?.toLowerCase() || '';
   if (p.includes('facebook') || p.includes('instagram')) return '#1877F2';
@@ -54,6 +66,7 @@ function getPlatformName(platform: string) {
 
 export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance = [], dailyData = {}, dateRange }: CampaignFunnelChartProps) => {
   const [selectedCampaign, setSelectedCampaign] = useState<string | null>(null);
+  const [selectedMetric, setSelectedMetric] = useState<'cpl' | 'cpc' | 'ctr' | 'cpm'>('cpl');
 
   // Filter leads by period (for deep funnel metrics)
   const filteredLeads = useMemo(() => {
@@ -185,7 +198,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Показы',
           value: impressions,
-          color: 'bg-muted-foreground/20',
+          color: 'text-muted-foreground',
           icon: Eye,
           percentage: 100,
           details: [{ label: 'Всего показов', value: new Intl.NumberFormat('ru-RU').format(impressions) }]
@@ -193,7 +206,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Клики',
           value: clicks,
-          color: 'bg-blue-500/20',
+          color: 'text-blue-500',
           icon: MousePointerClick,
           percentage: impressions > 0 ? (clicks / impressions) * 100 : 0,
           details: [
@@ -203,7 +216,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Лиды',
           value: totalLeads,
-          color: 'bg-primary/20',
+          color: 'text-primary',
           icon: Users,
           percentage: clicks > 0 ? (totalLeads / clicks) * 100 : 0,
           details: [
@@ -213,7 +226,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Записи',
           value: appointmentLeads,
-          color: 'bg-warning/20',
+          color: 'text-orange-500',
           icon: CalendarCheck,
           percentage: totalLeads > 0 ? (appointmentLeads / totalLeads) * 100 : 0,
           details: [
@@ -223,7 +236,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Оплаты',
           value: paidLeads,
-          color: 'bg-success/20',
+          color: 'text-emerald-500',
           icon: CreditCard,
           percentage: totalLeads > 0 ? (paidLeads / totalLeads) * 100 : 0,
           details: [
@@ -289,8 +302,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           (log.entity_id && idToName.get(log.entity_id) === name);
       });
 
-      const impressions = logs.reduce((sum, log) => sum + (log.impressions || 0), 0);
-      const clicks = logs.reduce((sum, log) => sum + (log.clicks || 0), 0);
+      const impressions = logs.reduce((sum, log) => sum + (Number(log.impressions) || 0), 0);
+      const clicks = logs.reduce((sum, log) => sum + (Number(log.clicks) || 0), 0);
 
       // Helper for loose matching
       const isMatch = (lead: Lead) => {
@@ -320,10 +333,10 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
       // Use CRM leads if available, otherwise fallback to Meta logs
       // This ensures "Top Campaigns" and "Efficiency" match the "Summary" block
-      const metaLeads = logs.reduce((sum, log) => sum + (log.leads || 0), 0);
+      const metaLeads = logs.reduce((sum, log) => sum + (Number(log.leads) || 0), 0);
       const adLeads = Math.max(metaLeads, crmLeadsCount);
 
-      const spendKZT = logs.reduce((sum, log) => sum + ((log.spend || 0) * KZT_RATE), 0);
+      const spendKZT = logs.reduce((sum, log) => sum + ((Number(log.spend) || 0) * KZT_RATE), 0);
 
       const visits = filteredLeads
         .filter(l => ['appointment', 'paid', 'visit_completed'].includes(l.status))
@@ -397,6 +410,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         platformName: getPlatformName(s.platform),
         rawPlatform: s.platform,
         value: s.leads,
+        leads: s.leads,
         spend: s.spend,
         cpl: s.leads > 0 ? s.spend / s.leads : 0,
         visits: s.visits,
@@ -436,123 +450,130 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
   // Helper for max value safe check
   const maxFunnelValue = Math.max(...funnelData.stages.map(s => s.value || 0), 1);
 
+  // Sort channels for display
+  const sortedPlacements = [...channelData].sort((a, b) => b.value - a.value);
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 rounded-lg border border-indigo-500/30 shadow-[0_0_15px_rgba(99,102,241,0.2)]">
-            <TrendingUp className="w-5 h-5 text-indigo-400" />
+    <div className="space-y-6">
+      <div className="flex items-center justify-between px-2">
+        <h2 className="text-xl font-bold flex items-center gap-2">
+          <TrendingUp className="w-5 h-5 text-primary" />
+          Воронка конверсии
+        </h2>
+        <div className="flex gap-2">
+          {/* Live Data Badge */}
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg border border-border">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-medium text-muted-foreground">Live Data</span>
           </div>
-          <div>
-            <h2 className="text-xl font-bold tracking-tight text-white/90">Аналитика конверсии</h2>
-            <p className="text-xs text-white/50">Воронка продаж и эффективность каналов</p>
-          </div>
+          <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-8">
+            <Download className="w-4 h-4 mr-2" />
+            CSV
+          </Button>
         </div>
-        <Button variant="outline" size="sm" onClick={handleExportCSV} className="bg-white/5 border-white/10 hover:bg-white/10 hover:text-white transition-all">
-          <Download className="w-4 h-4 mr-2" />
-          Экспорт CSV
-        </Button>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[850px]">
-        {/* Column 1: "The Beam" Funnel */}
-        <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10 p-0 flex flex-col h-full">
-          {/* Header */}
-          <div className="p-5 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
-            <div className="font-bold text-white/90 flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_10px_#22d3ee] animate-pulse" />
-              Воронка продаж
-            </div>
-            {(() => {
-              const impressions = funnelData.stages[0]?.value || 0;
-              const sales = funnelData.stages[funnelData.stages.length - 1]?.value || 0;
-              const overallCR = impressions > 0 ? (sales / impressions) * 100 : 0;
-              return (
-                <div className="px-2.5 py-1 rounded-full border border-cyan-500/30 bg-cyan-500/10 text-[11px] font-bold text-cyan-400 tracking-wide shadow-[0_0_10px_rgba(34,211,238,0.1)]">
-                  CR OB: {overallCR.toFixed(2)}%
-                </div>
-              );
-            })()}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
+        {/* Main Funnel Visualization */}
+        <div className="rounded-xl border border-border bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <Filter className="w-4 h-4 text-primary" />
+              Эффективность этапов
+            </h3>
+            <span className="text-xs text-muted-foreground">CR: Conversion Rate</span>
           </div>
 
-          {/* Funnel Visual */}
-          <div className="flex-1 relative flex flex-col items-center justify-center p-6 bg-[#0B0C15]">
-            {/* Ambient Background - Clean Deep Space */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-[#0B0C15]/50 to-[#0B0C15] pointer-events-none" />
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:14px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
-
-            {/* Central Laser Line - Brighter */}
-            <div className="absolute left-1/2 top-10 bottom-10 w-0.5 bg-gradient-to-b from-transparent via-cyan-400/50 to-transparent shadow-[0_0_15px_#22d3ee]" />
-
+          <div className="flex-1 relative flex flex-col items-center justify-center p-6 bg-card">
+            {/* Conversion Path Visualization */}
             <div className="w-full max-w-md space-y-4 relative z-10">
-              {funnelData.stages.map((stage, index) => {
-                const widthPercent = Math.max(30, Math.round((stage.value / maxFunnelValue) * 100));
-                const nextStage = funnelData.stages[index + 1];
-                const conv = nextStage && stage.value > 0 ? (nextStage.value / stage.value) * 100 : null;
-                const isHigh = conv !== null && (stage.name === 'Клики' ? conv > 1.5 : conv > 20);
-                const isLow = conv !== null && (stage.name === 'Клики' ? conv < 0.5 : conv < 5);
+              {funnelData.stages.map((step, index) => {
+                const nextStep = funnelData.stages[index + 1];
+                const dropoff = nextStep && step.value > 0 ? 100 - ((nextStep.value / step.value) * 100) : 0;
+                const conversion = nextStep && step.value > 0 ? (nextStep.value / step.value) * 100 : 0;
 
                 return (
-                  <div key={stage.name} className="relative group">
-                    {/* Stage Card */}
-                    <div
-                      className="relative mx-auto h-20 transition-all duration-300 hover:scale-[1.02]"
-                      style={{ width: `${widthPercent}%` }}
-                    >
-                      {/* Glass Plate - Brighter & Cleaner */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 to-slate-800/80 border border-white/10 rounded-xl backdrop-blur-xl shadow-[0_4px_20px_rgba(0,0,0,0.4)] group-hover:border-blue-500/50 group-hover:shadow-[0_0_25px_rgba(59,130,246,0.25)] transition-all" />
+                  <div key={step.name} className="relative group">
+                    {/* Connector Line */}
+                    {index < funnelData.stages.length - 1 && (
+                      <div className="absolute left-[28px] top-10 bottom-[-16px] w-0.5 bg-border -z-10" />
+                    )}
 
-                      {/* Content */}
-                      <div className="absolute inset-0 flex items-center justify-between px-5">
-                        <div className="flex items-center gap-3">
-                          <div className="p-2 rounded-lg bg-white/5 ring-1 ring-white/10 text-blue-400 group-hover:text-white group-hover:bg-blue-600 transition-colors shadow-lg">
-                            <stage.icon className="w-5 h-5" />
-                          </div>
-                          <span className="text-sm font-bold text-white/80 uppercase tracking-wider">{stage.name}</span>
+                    <div className={cn(
+                      "relative overflow-hidden rounded-xl border transition-all duration-300 bg-card hover:shadow-md",
+                      // step.color.replace('text-', 'border-').replace('400', '200') // Simplify colors
+                      "border-border"
+                    )}>
+                      <div className={cn(
+                        "absolute inset-y-0 left-0 w-1",
+                        step.color.replace('text-', 'bg-')
+                      )} />
+
+                      <div className="p-3 pl-5 flex items-center gap-4">
+                        <div className={cn(
+                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-muted",
+                          step.color
+                        )}>
+                          <step.icon className="w-5 h-5" />
                         </div>
-                        <span className="font-mono text-2xl font-bold text-white tracking-tight">
-                          {new Intl.NumberFormat('ru-RU', { notation: "compact", maximumFractionDigits: 1 }).format(stage.value).replace(/\u00a0/g, ' ')}
-                        </span>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-sm font-medium text-foreground">{step.name}</span>
+                            <span className="text-sm font-bold text-foreground font-mono">
+                              {step.name === 'Показы' || step.name === 'Клики' || step.name === 'Лиды'
+                                ? formatNumber(step.value)
+                                : step.value
+                              }
+                            </span>
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">
+                              {step.details?.[0]?.label}
+                            </span>
+                            {index < funnelData.stages.length - 1 && (
+                              <div className={cn(
+                                "flex items-center gap-1 font-medium px-1.5 py-0.5 rounded",
+                                conversion > 20 ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
+                              )}>
+                                {conversion > 0 ? (
+                                  <>
+                                    <ArrowRight className="w-3 h-3" />
+                                    {conversion.toFixed(1)}%
+                                  </>
+                                ) : (
+                                  <span className="text-muted-foreground">-</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-
-                    {/* Conversion Pill */}
-                    {conv !== null && (
-                      <div className="flex justify-center my-1.5 relative z-20">
-                        <div className={cn(
-                          "z-10 bg-[#0B0C15] text-[11px] font-bold px-3 py-1 rounded-full border shadow-xl flex items-center gap-1.5 transition-transform hover:scale-110",
-                          isHigh ? "text-emerald-400 border-emerald-500/40 shadow-[0_0_15px_rgba(16,185,129,0.2)]" :
-                            isLow ? "text-red-400 border-red-500/40 shadow-[0_0_15px_rgba(239,68,68,0.2)]" :
-                              "text-slate-400 border-white/10"
-                        )}>
-                          {conv.toFixed(1)}%
-                          {isHigh && <TrendingUp className="w-3.5 h-3.5" />}
-                        </div>
-                      </div>
-                    )}
                   </div>
-                )
+                );
               })}
             </div>
           </div>
 
           {/* Footer Stats */}
-          <div className="grid grid-cols-2 divide-x divide-white/10 border-t border-white/10 bg-[#0B0C15]/50 backdrop-blur-md">
+          <div className="grid grid-cols-2 divide-x divide-border border-t border-border bg-muted/20">
             <div className="p-4 flex flex-col items-center">
-              <span className="text-[10px] uppercase tracking-widest text-white/40 mb-1">Выручка</span>
-              <span className="text-xl font-bold font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
-                {Math.round(funnelData.totalRevenue / 1000)}k ₸
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Выручка</span>
+              <span className="text-lg font-bold font-mono text-emerald-600">
+                {formatCurrency(funnelData.totalRevenue)}
               </span>
             </div>
             <div className="p-4 flex flex-col items-center">
-              <span className="text-[10px] uppercase tracking-widest text-white/40 mb-1">ROMI</span>
+              <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">ROMI</span>
               {(() => {
-                const spend = campaignBreakdown.reduce((sum, c) => sum + c.spend, 0);
-                const romi = spend > 0 ? ((funnelData.totalRevenue - spend) / spend) * 100 : 0;
+                const totalSpend = campaignBreakdown.reduce((sum, c) => sum + c.spend, 0);
+                const romi = totalSpend > 0 ? ((funnelData.totalRevenue - totalSpend) / totalSpend) * 100 : 0;
                 return (
                   <span className={cn(
-                    "text-xl font-bold font-mono drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]",
-                    romi > 0 ? "text-emerald-400" : romi < -50 ? "text-red-400" : "text-white"
+                    "text-lg font-bold font-mono",
+                    romi > 0 ? "text-emerald-600" : romi < -50 ? "text-red-600" : "text-foreground"
                   )}>
                     {Math.round(romi)}%
                   </span>
@@ -562,173 +583,94 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           </div>
         </div>
 
-        {/* Column 2: Channel Efficiency "Holo-Chips" */}
-        <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10 p-0 flex flex-col h-full bg-[#0B0C15]/80">
-          <div className="p-5 border-b border-white/5 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-purple-400 shadow-[0_0_10px_#c084fc]" />
-            <span className="font-bold text-white/90">Эффективность каналов</span>
+        {/* Channel Efficiency Chart */}
+        <div className="rounded-xl border border-border bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden">
+          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
+            <h3 className="font-semibold text-foreground flex items-center gap-2">
+              <BarChart3 className="w-4 h-4 text-primary" />
+              Эффективность размещений
+            </h3>
+            <Select value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
+              <SelectTrigger className="w-[140px] h-8 text-xs bg-background border-border">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cpl">Стоимость лида</SelectItem>
+                <SelectItem value="cpc">Цена клика</SelectItem>
+                <SelectItem value="ctr">CTR %</SelectItem>
+                <SelectItem value="cpm">CPM (1000 пок.)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <div className="flex-1 p-5 space-y-4 overflow-y-auto pr-2 custom-scrollbar">
-            {channelData.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full text-white/30 space-y-2">
-                <Users className="w-8 h-8 opacity-20" />
-                <span className="text-xs">Нет данных по каналам</span>
-              </div>
-            ) : (
-              channelData.map((channel) => {
-                const isMeta = channel.platformName.includes('Meta');
-                const isGoogle = channel.platformName.includes('Google');
-                const isTikTok = channel.platformName.includes('TikTok');
-
-                const accentColor = isMeta ? 'text-blue-400' : isGoogle ? 'text-orange-400' : isTikTok ? 'text-pink-400' : 'text-white';
-                const ringColor = isMeta ? 'ring-blue-500/30' : isGoogle ? 'ring-orange-500/30' : isTikTok ? 'ring-pink-500/30' : 'ring-white/20';
-                const glowColor = isMeta ? 'shadow-[0_0_15px_rgba(59,130,246,0.1)]' : isGoogle ? 'shadow-[0_0_15px_rgba(249,115,22,0.1)]' : 'shadow-none';
-
-                return (
-                  <div key={channel.platformName} className={cn(
-                    "relative group overflow-hidden rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-all hover:bg-white/[0.04]",
-                    glowColor
-                  )}>
-                    {/* Gradient Border Effect */}
-                    <div className={cn("absolute inset-0 border rounded-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none ring-1 inset-ring", ringColor)} />
-
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 border border-white/10",
-                          accentColor
-                        )}>
-                          {isMeta ? <Users className="w-4 h-4" /> :
-                            isGoogle ? <Eye className="w-4 h-4" /> :
-                              <TrendingUp className="w-4 h-4" />}
-                        </div>
-                        <div>
-                          <div className="text-sm font-bold text-white/90">{channel.platformName}</div>
-                          <div className="text-[10px] text-white/40 font-mono">
-                            {formatCurrency(channel.spend)} spent
-                          </div>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-emerald-400 drop-shadow-[0_0_5px_rgba(16,185,129,0.3)]">
-                          {formatCurrency(channel.revenue)}
-                        </div>
-                        <div className="text-[10px] text-emerald-500/70 uppercase tracking-wider font-bold">Выручка</div>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-4 gap-2">
-                      {[
-                        { label: 'Лиды', value: channel.value },
-                        { label: 'CPL', value: formatCurrency(channel.cpl).replace('₸', '') },
-                        { label: 'Записи', value: channel.visits },
-                        { label: 'Продажи', value: channel.sales }
-                      ].map((stat) => (
-                        <div key={stat.label} className="bg-[#0B0C15]/50 rounded-lg p-2 border border-white/5 text-center group-hover:border-white/10 transition-colors">
-                          <div className="text-[9px] text-white/40 uppercase tracking-wide mb-1">{stat.label}</div>
-                          <div className="text-xs font-bold font-mono text-white/90">{stat.value}</div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })
-            )}
-          </div>
-
-          {/* Recommendation Box */}
-          <div className="p-4 border-t border-white/5 bg-gradient-to-r from-blue-500/5 to-transparent">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse shadow-[0_0_8px_#60a5fa]" />
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-blue-400 uppercase tracking-widest">AI Рекомендация</span>
-                <p className="text-xs text-white/60 leading-relaxed">
-                  {channelData[0]?.platformName === 'Meta Ads'
-                    ? 'Meta Ads показывает лучший ROI (+45%). Рекомендуем увеличить дневной бюджет на 20% для масштабирования лидов.'
-                    : 'Диверсификация каналов поможет снизить риски. Попробуйте ретаргетинг в Google Ads.'}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Column 3: Top Campaigns "Leaderboard" */}
-        <div className="interstellar-card relative overflow-hidden ring-1 ring-white/10 p-0 flex flex-col h-full bg-[#0B0C15]/80">
-          <div className="p-5 border-b border-white/5 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_10px_#4ade80]" />
-              <span className="font-bold text-white/90">Топ кампаний</span>
-            </div>
-            <div className="text-[10px] text-white/40 font-mono bg-white/5 px-2 py-0.5 rounded">
-              По лидам
-            </div>
-          </div>
-
-          <div className="flex-1 overflow-y-auto px-2 py-2 mb-2 custom-scrollbar">
-            {campaignBreakdown.length === 0 ? (
-              <div className="flex items-center justify-center h-full text-white/30 text-xs">Нет активных кампаний</div>
-            ) : (
-              <div className="space-y-1">
-                {campaignBreakdown.map((campaign, i) => {
-                  const isTop3 = i < 3;
-                  const maxLeads = campaignBreakdown[0]?.leads || 1;
-                  const relativePercent = (campaign.leads / maxLeads) * 100;
+          <div className="flex-1 p-6 flex flex-col justify-center overflow-y-auto">
+            {sortedPlacements.length > 0 ? (
+              <div className="space-y-6">
+                {sortedPlacements.map((item, index) => {
+                  const val = item[selectedMetric];
+                  const maxVal = Math.max(...sortedPlacements.map(i => i[selectedMetric]));
+                  const percent = maxVal > 0 ? (val / maxVal) * 100 : 0;
 
                   return (
-                    <div key={campaign.name} className="relative group p-2 rounded-lg hover:bg-white/5 transition-colors cursor-default">
-                      {/* Progress Bar Background */}
-                      <div
-                        className="absolute left-0 top-0 bottom-0 bg-white/[0.02] rounded-lg transition-all"
-                        style={{ width: `${relativePercent}%` }}
-                      />
-
-                      <div className="relative flex items-center gap-3">
-                        {/* Rank Badge */}
-                        <div className={cn(
-                          "w-6 h-6 rounded flex items-center justify-center text-xs font-bold font-mono",
-                          i === 0 ? "bg-yellow-500/20 text-yellow-400 shadow-[0_0_10px_rgba(234,179,8,0.2)] border border-yellow-500/30" :
-                            i === 1 ? "bg-slate-400/20 text-slate-300 border border-slate-400/30" :
-                              i === 2 ? "bg-amber-700/20 text-amber-500 border border-amber-700/30" :
-                                "text-white/30 bg-white/5"
-                        )}>
-                          {i + 1}
+                    <div key={item.name} className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="font-medium flex items-center gap-2">
+                          <div className={cn(
+                            "w-2 h-2 rounded-full",
+                            index === 0 ? "bg-emerald-500" :
+                              index === 1 ? "bg-blue-500" :
+                                index === 2 ? "bg-indigo-500" : "bg-slate-500"
+                          )} />
+                          {item.name}
+                        </span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="font-bold text-foreground">
+                            {formatNumber(item.leads)} лидов
+                          </span>
+                          <span className="text-xs text-muted-foreground font-mono">
+                            {formatCurrency(item.spend)}
+                          </span>
                         </div>
+                      </div>
 
-                        <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-white/90 truncate pr-2" title={campaign.fullName}>
-                            {campaign.name}
-                          </div>
-                          <div className="flex items-center gap-2 text-[10px] text-white/40">
-                            <div className={cn(
-                              "w-1 h-1 rounded-full",
-                              campaign.platform.includes('facebook') ? "bg-blue-500" :
-                                campaign.platform.includes('google') ? "bg-orange-500" : "bg-white"
-                            )} />
-                            {getPlatformName(campaign.platform)}
-                            <span className="mx-1 opacity-20">|</span>
-                            {campaign.conversionRate.toFixed(1)}% CR
-                          </div>
-                        </div>
-
-                        <div className="text-right">
-                          <div className="text-sm font-bold text-white font-mono">{campaign.leads} <span className="text-[10px] text-white/40 font-sans">leads</span></div>
-                          <div className="text-[10px] text-emerald-400 font-mono">
-                            {formatCurrency(campaign.cpl || (campaign.spend / (campaign.leads || 1)))}
-                          </div>
-                        </div>
+                      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                        <motion.div
+                          className={cn(
+                            "h-full rounded-full",
+                            index === 0 ? "bg-emerald-500" :
+                              index === 1 ? "bg-blue-500" :
+                                index === 2 ? "bg-indigo-500" : "bg-slate-500"
+                          )}
+                          initial={{ width: 0 }}
+                          animate={{ width: `${percent}%` }}
+                          transition={{ duration: 1, ease: "easeOut" }}
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center text-muted-foreground h-full opacity-50">
+                <PieChart className="w-12 h-12 mb-2" />
+                <p>Нет данных по размещениям</p>
+              </div>
             )}
           </div>
 
-          <div className="p-3 bg-white/[0.02] border-t border-white/5 text-center">
-            <Button variant="ghost" size="sm" className="h-7 text-xs text-white/50 hover:text-white w-full">
-              Показать все кампании <ArrowRight className="w-3 h-3 ml-1" />
-            </Button>
+          {/* Recommendation Box */}
+          <div className="p-4 border-t border-border bg-blue-50/50">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
+              <div className="space-y-1">
+                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">AI Рекомендация</span>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {channelData[0]?.platformName === 'Meta Ads'
+                    ? 'Meta Ads показывает лучший ROI. Рекомендуем увеличить бюджет на 20%.'
+                    : 'Рассмотрите диверсификацию каналов для снижения рисков.'}
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

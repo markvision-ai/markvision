@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
-type Theme = 'light' | 'dark';
+type Theme = 'light';
 
 interface ThemeContextType {
   theme: Theme;
@@ -9,25 +9,21 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
-  setTheme: () => {},
-  toggleTheme: () => {},
+  theme: 'light',
+  setTheme: () => { },
+  toggleTheme: () => { },
 });
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const stored = localStorage.getItem('ui-theme') as Theme | null;
-    if (stored === 'light' || stored === 'dark') return stored;
-    const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-    return prefersDark ? 'dark' : 'light';
-  });
+  // Always force light theme
+  const theme: Theme = 'light';
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('light', 'dark');
-    root.classList.add(theme);
-    root.style.colorScheme = theme;
-    localStorage.setItem('ui-theme', theme);
+    root.classList.remove('dark');
+    root.classList.add('light');
+    root.style.colorScheme = 'light';
+    localStorage.setItem('ui-theme', 'light');
 
     // Update meta theme-color
     let meta = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
@@ -36,12 +32,16 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       meta.name = 'theme-color';
       document.head.appendChild(meta);
     }
-    meta.content = theme === 'dark' ? '#0B0E14' : '#ffffff';
-    
-  }, [theme]);
+    meta.content = '#ffffff';
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    // Disabled: Light theme only
+    console.log("Dark mode is disabled");
+  };
+
+  const setTheme = () => {
+    // Disabled
   };
 
   return (

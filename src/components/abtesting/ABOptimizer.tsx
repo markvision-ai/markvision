@@ -138,11 +138,11 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const activeTest = tests.find(t => t.id === selectedTestId);
 
   return (
-    <div className="space-y-8 min-h-screen bg-[#0B0C15] p-6"> {/* Ensure background matches if not inherited */}
+    <div className="space-y-8 min-h-screen bg-background p-6"> {/* Ensure background matches if not inherited */}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-end sm:items-center">
         <div>
-          <h2 className="text-3xl font-bold flex items-center gap-3 text-white">
+          <h2 className="text-3xl font-bold flex items-center gap-3 text-foreground">
             <FlaskConical className="w-8 h-8 text-primary" />
             A/B Optimizer
           </h2>
@@ -151,7 +151,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
             AI-аналитика конверсии
           </p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="bg-white text-black hover:bg-white/90 font-bold shadow-[0_0_20px_-5px_rgba(255,255,255,0.3)] transition-all hover:scale-105">
+        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-lg transition-all hover:scale-105">
           <Plus className="w-4 h-4 mr-2" />
           Новый тест
         </Button>
@@ -165,7 +165,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
           <div className="flex items-center gap-2 mb-4">
             <TrendingUp className="w-5 h-5 text-primary animate-pulse" />
-            <h3 className="text-lg font-bold text-white uppercase tracking-wider">Анализ текущего эксперимента</h3>
+            <h3 className="text-lg font-bold text-foreground uppercase tracking-wider">Анализ текущего эксперимента</h3>
           </div>
           <ABBattleView test={activeTest} stats={stats} />
         </div>
@@ -173,7 +173,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
 
       {/* Tests List */}
       <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-        <h3 className="text-lg font-bold text-white uppercase tracking-wider mb-4 border-b border-white/5 pb-2">История экспериментов</h3>
+        <h3 className="text-lg font-bold text-foreground uppercase tracking-wider mb-4 border-b border-border pb-2">История экспериментов</h3>
         <ABTestList
           tests={tests}
           onStart={handleStartTest}

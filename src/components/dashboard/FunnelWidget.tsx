@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ArrowRight, TrendingUp, TrendingDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { GlassCard } from '@/components/ui/GlassCard';
 
 interface FunnelStep {
@@ -31,7 +31,7 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
   }, [steps]);
 
   const overallConversionRate = useMemo(() => {
-    return steps[0]?.value > 0 
+    return steps[0]?.value > 0
       ? ((steps[steps.length - 1]?.value / steps[0]?.value) * 100)
       : 0;
   }, [steps]);
@@ -63,12 +63,12 @@ export const FunnelWidget = ({ steps }: FunnelWidgetProps) => {
                 </div>
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-2 bg-muted-foreground/15 rounded-full overflow-hidden">
-                    <motion.div
-                      initial={{ width: 0 }}
-                      animate={{ width: `${Math.min((s.value / maxValue) * 100, 100)}%` }}
-                      transition={{ duration: 0.8, ease: "easeOut" }}
-                      className="h-full rounded-full"
-                      style={{ background: `linear-gradient(90deg, ${s.color}, rgba(255,255,255,0.2))` }}
+                    <div
+                      className="h-full rounded-full transition-all duration-1000 ease-out"
+                      style={{
+                        width: `${Math.min((s.value / maxValue) * 100, 100)}%`,
+                        backgroundColor: s.color
+                      }}
                     />
                   </div>
                   <div className="text-lg md:text-xl font-semibold text-foreground font-mono">
