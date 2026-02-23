@@ -109,13 +109,13 @@ export const useContentFactory = (projectId: string | null) => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      
+
       const typedData = (data || []).map(mapDbToContentItem);
-      
+
       setContent(typedData);
     } catch (error) {
       console.error('Error fetching content:', error);
-      toast.error('Ошибка загрузки контента');
+      console.warn('Content factory load failed (non-critical):', error);
     }
   }, [projectId]);
 
@@ -194,12 +194,12 @@ export const useContentFactory = (projectId: string | null) => {
           .eq('id', projectId)
           .single();
 
-        const payload: any = { 
-          project_id: projectId, 
-          user_id: userId, 
-          role: 'owner' 
+        const payload: any = {
+          project_id: projectId,
+          user_id: userId,
+          role: 'owner'
         };
-        
+
         if (project?.organization_id) {
           payload.organization_id = project.organization_id;
         }
@@ -207,7 +207,7 @@ export const useContentFactory = (projectId: string | null) => {
         const { error } = await supabase
           .from('project_members')
           .insert([payload]);
-          
+
         if (error) console.error('Auto-join project failed:', error);
       }
     } catch (e) {
@@ -221,15 +221,15 @@ export const useContentFactory = (projectId: string | null) => {
     try {
       // 0. Get current user for RLS
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (user) {
         await ensureProjectMember(projectId, user.id);
       }
-      
+
       // 1. Create task for n8n (Queue)
       const { error: taskError } = await (supabase as any)
         .from('content_tasks')
-        .insert([{ 
+        .insert([{
           ...data,
           project_id: projectId,
           user_id: user?.id, // Add user_id for RLS if available
@@ -237,7 +237,7 @@ export const useContentFactory = (projectId: string | null) => {
         }]);
 
       if (taskError) throw taskError;
-      
+
       toast.success('Задача на создание контента отправлена');
       return true;
     } catch (error) {
@@ -249,7 +249,7 @@ export const useContentFactory = (projectId: string | null) => {
 
   const addCompetitor = async (platform: string, handle: string) => {
     if (!projectId) return null;
-    
+
     try {
       // Use Edge Function to bypass RLS and ensure project membership
       const { data, error } = await supabase.functions.invoke('create-competitor', {
@@ -261,7 +261,7 @@ export const useContentFactory = (projectId: string | null) => {
       });
 
       if (error) throw error;
-      
+
       // Map response to Competitor interface
       const newItem: Competitor = {
         id: data.id,
@@ -273,7 +273,7 @@ export const useContentFactory = (projectId: string | null) => {
         top_content_links: data.top_content_links || null,
         created_at: data.created_at
       };
-      
+
       setCompetitors(prev => [newItem, ...prev]);
       toast.success('Конкурент добавлен');
       return newItem;
@@ -292,7 +292,7 @@ export const useContentFactory = (projectId: string | null) => {
         .eq('id', id);
 
       if (error) throw error;
-      
+
       setCompetitors(prev => prev.filter(c => c.id !== id));
       toast.success('Конкурент удален');
     } catch (error) {
@@ -313,7 +313,7 @@ export const useContentFactory = (projectId: string | null) => {
 
       if (error) throw error;
 
-      setCompetitors(prev => prev.map(c => 
+      setCompetitors(prev => prev.map(c =>
         c.id === id ? { ...c, ...updates } : c
       ));
       toast.success('Данные обновлены');
