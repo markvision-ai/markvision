@@ -705,8 +705,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
       if (status === 'DELETED' || status === 'ARCHIVED') return false;
 
-      // When "Только активные" is ON — show ONLY active campaigns
-      if (showActiveOnly && status !== 'ACTIVE') return false;
+      // When "Только активные" is ON — show campaigns that are truly running:
+      // 1. status === 'ACTIVE', OR
+      // 2. Campaign has spend > 0 in this period (Meta counts it as delivering)
+      if (showActiveOnly) {
+        const isRunning = status === 'ACTIVE' || metrics.spend > 0;
+        if (!isRunning) return false;
+      }
 
       // When "Все кампании" — show everything (including paused)
       return true;
@@ -867,8 +872,20 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         applyMetricsRecursively(children[0], metricsToPush);
       }
 
-      // Use effective_status from Meta API if available, fallback to status
-      const effectiveStatus = node.effective_status || node.status;
+      // Determine effective running status:
+      // 1. Use effective_status from Meta API if available
+      // 2. If campaign itself is PAUSED but has active children or spend > 0 → treat as ACTIVE (delivering)
+      let effectiveStatus = node.effective_status || node.status;
+
+      // Override: if campaign status is PAUSED but it has spend in this period,
+      // it means Meta was delivering ads (children are active)
+      if (effectiveStatus !== 'ACTIVE' && finalSpend > 0) {
+        effectiveStatus = 'ACTIVE';
+      }
+      // Also check: if any child has ACTIVE status
+      if (effectiveStatus !== 'ACTIVE' && children.some(c => c.status === 'ACTIVE')) {
+        effectiveStatus = 'ACTIVE';
+      }
 
       return {
         id: node.id,
