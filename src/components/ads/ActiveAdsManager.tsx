@@ -180,6 +180,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   dateRangeRef.current = dateRange;
 
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
+  const [liveStatusMap, setLiveStatusMap] = useState<Record<string, { status: string; effective_status: string }>>({});
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
@@ -360,6 +361,24 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     }
   }, [pid]); // Only depends on pid, reads dateRange from ref
 
+  // Lightweight: get ONLY real-time status from Meta (no insights, no rate limit concerns)
+  const fetchLiveStatuses = useCallback(async () => {
+    if (!pid) return;
+    try {
+      const { data, error } = await supabase.functions.invoke('ads-manager', {
+        body: { action: 'get_statuses', payload: { projectId: pid } }
+      });
+      if (!error && data?.statusMap) {
+        setLiveStatusMap(data.statusMap);
+        console.log(`✅ Live status sync: ${data.total} entities from Meta`);
+      } else if (error || data?.error) {
+        console.warn('Live status fetch failed (non-critical):', error || data?.error);
+      }
+    } catch (e) {
+      console.warn('fetchLiveStatuses error (non-critical):', e);
+    }
+  }, [pid]);
+
   // Circuit Breaker for Rate Limits
   const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
 
@@ -503,6 +522,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // 1. Load Local Data Immediately (History + cached Today)
       fetchHierarchy(false);
       fetchAdInsights();
+      fetchLiveStatuses(); // Always get fresh statuses from Meta on every load
 
       // 2. Smart Sync Logic
       // We sync if we haven't synced this specific range recently to ensure data consistency
@@ -564,6 +584,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // Refresh DB insights + hierarchy to update active statuses
       fetchAdInsights();
       fetchHierarchy(true);
+      fetchLiveStatuses(); // Refresh live statuses on manual refresh too
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, rateLimitUntil, pid]);
@@ -707,11 +728,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       return { spend, leadsMeta, clicks, impressions, spendKZT };
     };
 
-      const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
-        if (status === 'DELETED' || status === 'ARCHIVED') return false;
+    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
+      if (status === 'DELETED' || status === 'ARCHIVED') return false;
 
-        // When "Только активные" is ON — show ONLY entities with ACTIVE status from Meta API
-        if (showActiveOnly && (status !== 'ACTIVE' || !metaSourceIds.has(id))) return false;
+      // When "Только активные" is ON — show ONLY entities with ACTIVE status from Meta API
+      if (showActiveOnly && (status !== 'ACTIVE' || (!metaSourceIds.has(id) && !liveStatusMap[id]))) return false;
 
       // When "Все кампании" — show everything (including paused)
       return true;
@@ -872,8 +893,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         applyMetricsRecursively(children[0], metricsToPush);
       }
 
-      // Use effective_status from Meta API if available, fallback to status
-      const effectiveStatus = normalizeStatus(node.effective_status || node.status);
+      // Prefer live status map (status-only endpoint), fallback to hierarchy status
+      const liveStatus = getLiveStatus(node.id);
+      const effectiveStatus = liveStatus ?? normalizeStatus(node.effective_status || node.status);
 
       return {
         id: node.id,
@@ -1709,22 +1731,28 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     </div>
   );
 };
-  const normalizeStatus = (value: unknown) => {
-    if (typeof value !== 'string') return value;
-    return value.toUpperCase();
-  };
+const normalizeStatus = (value: unknown) => {
+  if (typeof value !== 'string') return value;
+  return value.toUpperCase();
+};
 
   const normalizeNodeStatuses = (nodes: any[]): any[] => {
     return nodes.map((node: any) => {
       const status = normalizeStatus(node.status);
       const effective = normalizeStatus(node.effective_status ?? status);
       const next = { ...node, status, effective_status: effective };
-      if (node.adsets?.data) {
-        next.adsets = { data: normalizeNodeStatuses(node.adsets.data) };
-      }
-      if (node.ads?.data) {
-        next.ads = { data: normalizeNodeStatuses(node.ads.data) };
-      }
+    if (node.adsets?.data) {
+      next.adsets = { data: normalizeNodeStatuses(node.adsets.data) };
+    }
+    if (node.ads?.data) {
+      next.ads = { data: normalizeNodeStatuses(node.ads.data) };
+    }
       return next;
     });
+  };
+
+  const getLiveStatus = (id: string) => {
+    const live = liveStatusMap[id];
+    if (!live) return null;
+    return normalizeStatus(live.effective_status ?? live.status);
   };

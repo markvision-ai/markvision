@@ -69,6 +69,8 @@ Deno.serve(async (req: Request) => {
       result = await syncMetricsAction(supabase, projectId, payload);
     } else if (action === 'healthcheck') {
       result = await healthcheckAction(supabase, projectId);
+    } else if (action === 'get_statuses') {
+      result = await fetchCampaignStatuses(supabase, projectId);
     } else {
       result = { message: "Unknown action" };
     }
@@ -408,6 +410,67 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
       api_version: 'v21.0'
     }
   };
+}
+
+// Lightweight status-only fetch — no insights, just current campaign/adset/ad statuses
+async function fetchCampaignStatuses(supabase: any, projectId: string) {
+  const accessToken = await getAccessToken(supabase, projectId);
+  const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
+
+  // Only request status fields — fast, minimal data
+  const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
+    `access_token=${accessToken}&` +
+    `fields=id,name,status,effective_status,` +
+    `adsets{id,name,status,effective_status,` +
+    `ads{id,name,status,effective_status}}` +
+    `&limit=100`;
+
+  console.log(`Fetching statuses only for: ${adAccountId}`);
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    const errorText = await res.text();
+    console.error('Status fetch error:', errorText);
+    throw new Error(`Meta status fetch failed: ${res.status}`);
+  }
+
+  const data = await res.json();
+
+  if (data.error) {
+    throw new Error(data.error.message);
+  }
+
+  // Return as flat map: { campaignId: { status, effective_status }, ... }
+  const statusMap: Record<string, { status: string; effective_status: string | null; name: string; type: string }> = {};
+
+  (data.data || []).forEach((campaign: any) => {
+    statusMap[campaign.id] = {
+      type: 'campaign',
+      name: campaign.name,
+      status: campaign.status,
+      effective_status: campaign.effective_status || campaign.status,
+    };
+
+    (campaign.adsets?.data || []).forEach((adset: any) => {
+      statusMap[adset.id] = {
+        type: 'adset',
+        name: adset.name,
+        status: adset.status,
+        effective_status: adset.effective_status || adset.status,
+      };
+
+      (adset.ads?.data || []).forEach((ad: any) => {
+        statusMap[ad.id] = {
+          type: 'ad',
+          name: ad.name,
+          status: ad.status,
+          effective_status: ad.effective_status || ad.status,
+        };
+      });
+    });
+  });
+
+  return { statusMap, total: Object.keys(statusMap).length };
 }
 
 async function updateEntityStatus(supabase: any, projectId: string, payload: any) {
