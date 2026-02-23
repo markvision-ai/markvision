@@ -557,8 +557,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         console.warn('Meta API sync skipped due to Rate Limit.');
         return;
       }
-      // ONLY fetch from DB to avoid hitting Meta API limits
+      // Refresh DB insights + hierarchy to update active statuses
       fetchAdInsights();
+      fetchHierarchy(true);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [refreshTrigger, rateLimitUntil, pid]);

@@ -98,7 +98,12 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     const toStr = format(dateRange.to, 'd MMM yyyy г.', { locale: ru });
     return `${fromStr} — ${toStr}`;
   }, [dateRange, currentPresetLabel]);
-  const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId);
+  const adRange = useMemo(() => {
+    if (!dateRange?.from) return undefined;
+    return { from: dateRange.from, to: dateRange.to ?? dateRange.from };
+  }, [dateRange]);
+
+  const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId, adRange);
 
   // Auto-refresh data every 60 seconds - DISABLED to prevent Rate Limits
   useEffect(() => {
