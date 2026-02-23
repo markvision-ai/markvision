@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { useCampaigns } from '@/hooks/useCampaigns';
 import { useLeads } from '@/hooks/useLeads';
 import { useContentFactory } from '@/hooks/useContentFactory';
@@ -12,11 +12,10 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
-import { DateRangePicker, PresetKey } from '@/components/dashboard/DateRangePicker';
-import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText } from 'lucide-react';
-import { format, subDays, startOfMonth } from 'date-fns';
+import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown } from 'lucide-react';
+import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { DateRange } from 'react-day-picker';
+import { DateRange, DayPicker } from 'react-day-picker';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -40,7 +39,65 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     from: new Date(),
     to: new Date(),
   });
-  const [activePreset, setActivePreset] = useState<PresetKey | undefined>(undefined);
+  const [activePreset, setActivePreset] = useState<string>('today');
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const datePickerRef = useRef<HTMLDivElement>(null);
+
+  // Close date picker when clicking outside
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
+        setDatePickerOpen(false);
+      }
+    };
+    if (datePickerOpen) document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [datePickerOpen]);
+
+  // Preset definitions
+  const presets = useMemo(() => {
+    const today = new Date();
+    const yesterday = subDays(today, 1);
+    return [
+      { key: 'today', label: 'Сегодня', from: today, to: today },
+      { key: 'yesterday', label: 'Вчера', from: yesterday, to: yesterday },
+      { key: '7days', label: '7 дней', from: subDays(today, 6), to: today },
+      { key: 'this_month', label: 'Этот месяц', from: startOfMonth(today), to: today },
+      { key: 'last_month', label: 'Прошлый месяц', from: startOfMonth(subMonths(today, 1)), to: endOfMonth(subMonths(today, 1)) },
+      { key: 'maximum', label: 'Максимум', from: subDays(today, 365), to: today },
+    ];
+  }, []);
+
+  const currentPresetLabel = useMemo(() => {
+    const p = presets.find(p => p.key === activePreset);
+    return p?.label || 'Период';
+  }, [activePreset, presets]);
+
+  const applyPreset = useCallback((key: string) => {
+    const p = presets.find(pr => pr.key === key);
+    if (p) {
+      setDateRange({ from: p.from, to: p.to });
+      setActivePreset(key);
+      setDatePickerOpen(false);
+    }
+  }, [presets]);
+
+  const applyCustomRange = useCallback((range: DateRange | undefined) => {
+    if (range?.from) {
+      setDateRange(range);
+      setActivePreset('custom');
+    }
+  }, []);
+
+  const dateButtonLabel = useMemo(() => {
+    if (!dateRange?.from) return 'Выберите период';
+    const fromStr = format(dateRange.from, 'd MMM yyyy г.', { locale: ru });
+    if (!dateRange.to || dateRange.from.getTime() === dateRange.to.getTime()) {
+      return `${currentPresetLabel}: ${fromStr}`;
+    }
+    const toStr = format(dateRange.to, 'd MMM yyyy г.', { locale: ru });
+    return `${fromStr} — ${toStr}`;
+  }, [dateRange, currentPresetLabel]);
   const { performanceLogs, refetch: refetchAds } = useAdPerformance(projectId);
 
   // Auto-refresh data every 60 seconds - DISABLED to prevent Rate Limits
@@ -347,7 +404,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                   <div>
                     <h1 className="text-3xl font-bold tracking-tight">Обзор кампаний</h1>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Управление и статистика Meta Ads в реальном времени
+                      Управление и статистика Meta Ads
                     </p>
                   </div>
                 </div>
@@ -373,65 +430,101 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                 </div>
               </div>
 
-              {/* Date & Refresh Controls */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-1.5 bg-card/50 rounded-2xl border border-border self-start">
-                {/* Quick Date Presets */}
-                <div className="flex items-center gap-1 px-1">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setDateRange({ from: new Date(), to: new Date() });
-                    }}
-                    className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
+              {/* Meta-style Date Picker + Refresh */}
+              <div className="flex items-center gap-3 self-start">
+                <div className="relative" ref={datePickerRef}>
+                  {/* Trigger Button — Meta style */}
+                  <button
+                    onClick={() => setDatePickerOpen(prev => !prev)}
+                    className={cn(
+                      "inline-flex items-center gap-2 h-10 px-4 rounded-lg border text-sm font-medium transition-all",
+                      "bg-card border-border hover:border-primary/40 hover:bg-accent",
+                      "text-foreground shadow-sm",
+                      datePickerOpen && "border-primary ring-2 ring-primary/20"
+                    )}
                   >
-                    Сегодня
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const yesterday = subDays(new Date(), 1);
-                      setDateRange({ from: yesterday, to: yesterday });
-                    }}
-                    className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
-                  >
-                    Вчера
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setDateRange({ from: subDays(new Date(), 6), to: new Date() });
-                    }}
-                    className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
-                  >
-                    7 дней
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setDateRange({ from: startOfMonth(new Date()), to: new Date() });
-                    }}
-                    className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-all"
-                  >
-                    Этот месяц
-                  </Button>
+                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                    <span>{dateButtonLabel}</span>
+                    <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", datePickerOpen && "rotate-180")} />
+                  </button>
+
+                  {/* Dropdown Panel */}
+                  {datePickerOpen && (
+                    <div className="absolute top-full left-0 mt-2 z-50 bg-card border border-border rounded-xl shadow-xl flex overflow-hidden min-w-[520px]">
+                      {/* Left: Presets */}
+                      <div className="w-[180px] border-r border-border p-3 space-y-0.5">
+                        {presets.map(p => (
+                          <button
+                            key={p.key}
+                            onClick={() => applyPreset(p.key)}
+                            className={cn(
+                              "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
+                              activePreset === p.key
+                                ? "bg-primary/10 text-primary font-semibold"
+                                : "text-foreground hover:bg-accent"
+                            )}
+                          >
+                            {activePreset === p.key && (
+                              <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
+                            )}
+                            {p.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {/* Right: Calendar */}
+                      <div className="p-4">
+                        <DayPicker
+                          mode="range"
+                          selected={dateRange}
+                          onSelect={applyCustomRange}
+                          numberOfMonths={2}
+                          locale={ru}
+                          showOutsideDays
+                          className="text-sm"
+                          classNames={{
+                            months: 'flex gap-4',
+                            month: 'space-y-3',
+                            caption: 'flex justify-center items-center h-8 relative',
+                            caption_label: 'text-sm font-semibold',
+                            nav: 'flex items-center gap-1',
+                            nav_button: 'h-7 w-7 bg-transparent border border-border hover:bg-accent rounded-md flex items-center justify-center transition-colors',
+                            head_row: 'flex',
+                            head_cell: 'text-muted-foreground w-9 font-medium text-[11px] uppercase',
+                            row: 'flex mt-0.5',
+                            cell: 'w-9 h-9 text-center text-sm relative',
+                            day: 'w-9 h-9 rounded-md hover:bg-accent transition-colors font-normal',
+                            day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
+                            day_today: 'border border-primary/30 font-semibold',
+                            day_outside: 'text-muted-foreground/40',
+                            day_range_middle: 'bg-primary/10 rounded-none',
+                            day_range_start: 'rounded-r-none',
+                            day_range_end: 'rounded-l-none',
+                          }}
+                        />
+                        {/* Footer: current range info */}
+                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
+                          <span className="text-xs text-muted-foreground">
+                            {dateRange?.from ? format(dateRange.from, 'd MMMM yyyy', { locale: ru }) : '—'}
+                            {dateRange?.to && dateRange.to.getTime() !== dateRange.from?.getTime()
+                              ? ` — ${format(dateRange.to, 'd MMMM yyyy', { locale: ru })}`
+                              : ''}
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={() => setDatePickerOpen(false)}
+                            className="h-8 px-4 text-xs"
+                          >
+                            Применить
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="h-6 w-px bg-border hidden sm:block" />
-                <DateRangePicker
-                  dateRange={{
-                    from: dateRange?.from ?? new Date(),
-                    to: dateRange?.to ?? new Date()
-                  }}
-                  onDateRangeChange={(range) => setDateRange(range)}
-                  onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
-                  align="start"
-                />
-                <div className="h-8 w-px bg-border mx-1 hidden sm:block" />
+
                 <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-10 w-10 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-all">
-                  <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin text-primary' : ''}`} />
+                  <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin text-primary')} />
                 </Button>
               </div>
             </div>
