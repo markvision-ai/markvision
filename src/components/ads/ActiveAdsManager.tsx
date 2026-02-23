@@ -183,6 +183,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
+  const [metaSourceIds, setMetaSourceIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [toggling, setToggling] = useState<string | null>(null);
@@ -447,6 +448,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         if (fallbackHierarchy.length > 0) {
           setHierarchy(fallbackHierarchy);
         }
+        // Fallback data does not guarantee real Meta statuses
+        setMetaSourceIds(new Set());
         return;
       }
 
@@ -465,6 +468,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       };
       collectIds(apiData);
       setExpandedRows(allIds);
+      setMetaSourceIds(allIds);
 
       if (data.adAccountId) {
         setAdAccountId(data.adAccountId);
@@ -703,11 +707,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       return { spend, leadsMeta, clicks, impressions, spendKZT };
     };
 
-    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
-      if (status === 'DELETED' || status === 'ARCHIVED') return false;
+      const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
+        if (status === 'DELETED' || status === 'ARCHIVED') return false;
 
-      // When "Только активные" is ON — show ONLY campaigns with ACTIVE status from Meta
-      if (showActiveOnly && status !== 'ACTIVE') return false;
+        // When "Только активные" is ON — show ONLY entities with ACTIVE status from Meta API
+        if (showActiveOnly && (status !== 'ACTIVE' || !metaSourceIds.has(id))) return false;
 
       // When "Все кампании" — show everything (including paused)
       return true;
@@ -902,7 +906,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         visits: campaign.visits
       }));
 
-  }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly]);
+  }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly, metaSourceIds]);
 
   // Sort Logic
   const sortedData = useMemo(() => {
