@@ -205,6 +205,32 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     roi: true,
   });
 
+  const normalizeStatus = useCallback((value: unknown) => {
+    if (typeof value !== 'string') return value;
+    return value.toUpperCase();
+  }, []);
+
+  const normalizeNodeStatuses = useCallback((nodes: any[]): any[] => {
+    return nodes.map((node: any) => {
+      const status = normalizeStatus(node.status);
+      const effective = normalizeStatus(node.effective_status ?? status);
+      const next = { ...node, status, effective_status: effective };
+      if (node.adsets?.data) {
+        next.adsets = { data: normalizeNodeStatuses(node.adsets.data) };
+      }
+      if (node.ads?.data) {
+        next.ads = { data: normalizeNodeStatuses(node.ads.data) };
+      }
+      return next;
+    });
+  }, [normalizeStatus]);
+
+  const getLiveStatus = useCallback((id: string) => {
+    const live = liveStatusMap[id];
+    if (!live) return null;
+    return normalizeStatus(live.effective_status ?? live.status);
+  }, [liveStatusMap, normalizeStatus]);
+
   // Filter leads by date range for accurate CRM metrics
   const filteredLeads = useMemo(() => {
     if (!dateRange?.from) return leads;
@@ -1731,28 +1757,3 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     </div>
   );
 };
-const normalizeStatus = (value: unknown) => {
-  if (typeof value !== 'string') return value;
-  return value.toUpperCase();
-};
-
-  const normalizeNodeStatuses = (nodes: any[]): any[] => {
-    return nodes.map((node: any) => {
-      const status = normalizeStatus(node.status);
-      const effective = normalizeStatus(node.effective_status ?? status);
-      const next = { ...node, status, effective_status: effective };
-    if (node.adsets?.data) {
-      next.adsets = { data: normalizeNodeStatuses(node.adsets.data) };
-    }
-    if (node.ads?.data) {
-      next.ads = { data: normalizeNodeStatuses(node.ads.data) };
-    }
-      return next;
-    });
-  };
-
-  const getLiveStatus = (id: string) => {
-    const live = liveStatusMap[id];
-    if (!live) return null;
-    return normalizeStatus(live.effective_status ?? live.status);
-  };
