@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useLeads } from '@/hooks/useLeads';
@@ -84,6 +84,7 @@ interface Ad {
   id: string;
   name: string;
   status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  effective_status?: string;
   insights?: { data: MetaInsight[] };
   creative?: { thumbnail_url?: string };
 }
@@ -92,6 +93,7 @@ interface AdSet {
   id: string;
   name: string;
   status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  effective_status?: string;
   insights?: { data: MetaInsight[] };
   ads?: { data: Ad[] };
 }
@@ -100,6 +102,7 @@ interface Campaign {
   id: string;
   name: string;
   status: 'ACTIVE' | 'PAUSED' | 'ARCHIVED';
+  effective_status?: string;
   daily_budget?: string;
   insights?: { data: MetaInsight[] };
   adsets?: { data: AdSet[] };
@@ -171,6 +174,11 @@ const DISABLE_REASON_MAP: Record<number, string> = {
 export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
   const pid = projectId ?? null;
   const { leads } = useLeads(pid);
+
+  // Stable ref for dateRange to prevent callback re-creation
+  const dateRangeRef = useRef(dateRange);
+  dateRangeRef.current = dateRange;
+
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
@@ -178,7 +186,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const [loading, setLoading] = useState(true);
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [toggling, setToggling] = useState<string | null>(null);
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'adsets' | 'ads'>('campaigns');
+  const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
+  const [selectedAdsets, setSelectedAdsets] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     status: true,
@@ -294,10 +305,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
 
   const fetchAdInsights = useCallback(async () => {
-    if (!pid || !dateRange?.from) return;
+    const dr = dateRangeRef.current;
+    if (!pid || !dr?.from) return;
 
-    const since = format(dateRange.from, 'yyyy-MM-dd');
-    const until = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : since;
+    const since = format(dr.from, 'yyyy-MM-dd');
+    const until = dr.to ? format(dr.to, 'yyyy-MM-dd') : since;
 
     try {
       const { data, error } = await (supabase as any)
@@ -345,7 +357,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     } catch (e) {
       console.error('Failed to fetch insights from DB', e);
     }
-  }, [pid, dateRange]);
+  }, [pid]); // Only depends on pid, reads dateRange from ref
 
   // Circuit Breaker for Rate Limits
   const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
@@ -353,68 +365,16 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const fetchHierarchy = useCallback(async (forceApi = false) => {
     setLoading(true);
     try {
-      // 0. Try Local DB First (if not forced) to save API calls
-      if (!forceApi) {
-        try {
-          // 0.1 Try 'campaigns' table
-          const { data: localCampaigns } = await (supabase as any)
-            .from('campaigns')
-            .select('*')
-            .eq('project_id', pid)
-            .order('created_at', { ascending: false });
-
-          if (localCampaigns && localCampaigns.length > 0) {
-            const localHierarchy = localCampaigns.map((c: any) => ({
-              id: c.external_id || c.id,
-              name: c.name,
-              status: c.status ? 'ACTIVE' : 'PAUSED',
-              daily_budget: c.budget ? c.budget.toString() : '0',
-              insights: { data: [] },
-              adsets: { data: [] }
-            }));
-            setHierarchy(localHierarchy);
-            setLoading(false);
-            return; // Exit early if we have local data
-          }
-
-          // 0.2 Try 'ad_performance_logs' table (if campaigns is empty)
-          const { data: logs } = await (supabase as any)
-            .from('ad_performance_logs')
-            .select('entity_id, entity_name, spend')
-            .eq('project_id', pid)
-            .eq('entity_type', 'campaign')
-            .order('date_start', { ascending: false });
-
-          if (logs && logs.length > 0) {
-            const uniqueMap = new Map();
-            logs.forEach((log: any) => {
-              if (!uniqueMap.has(log.entity_id)) {
-                uniqueMap.set(log.entity_id, {
-                  id: log.entity_id,
-                  name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'PAUSED',
-                  daily_budget: '0',
-                  insights: { data: [] },
-                  adsets: { data: [] }
-                });
-              }
-            });
-            const fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
-            setHierarchy(fallbackHierarchy);
-            setLoading(false);
-            return; // Exit early!
-          }
-        } catch (localError) {
-          console.warn('Local fetch error', localError);
-        }
-      }
+      // Always fetch from Meta API to get real statuses.
+      // Local DB is only used as a fallback when API fails.
 
       const payload: any = { projectId: pid };
 
-      if (dateRange?.from && dateRange?.to) {
+      const dr = dateRangeRef.current;
+      if (dr?.from && dr?.to) {
         payload.date_range = {
-          since: format(dateRange.from, 'yyyy-MM-dd'),
-          until: format(dateRange.to, 'yyyy-MM-dd')
+          since: format(dr.from, 'yyyy-MM-dd'),
+          until: format(dr.to, 'yyyy-MM-dd')
         };
       }
 
@@ -452,7 +412,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           fallbackHierarchy = localCampaigns.map((c: any) => ({
             id: c.external_id || c.id,
             name: c.name,
-            status: c.status ? 'ACTIVE' : 'PAUSED',
+            status: (c.status === 'ACTIVE' || c.status === true || c.status === 1) ? 'ACTIVE' : (c.status === 'PAUSED' ? 'PAUSED' : (c.status ? String(c.status).toUpperCase() : 'ACTIVE')),
             daily_budget: c.budget ? c.budget.toString() : '0',
             insights: { data: [] },
             adsets: { data: [] }
@@ -473,7 +433,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 uniqueMap.set(log.entity_id, {
                   id: log.entity_id,
                   name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'PAUSED',
+                  status: 'ACTIVE',
                   daily_budget: '0',
                   insights: { data: [] },
                   adsets: { data: [] }
@@ -491,7 +451,21 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
 
       // Success Path
-      setHierarchy(data.data || []);
+      const apiData = data.data || [];
+      setHierarchy(apiData);
+
+      // Auto-expand ALL campaigns and adsets to show full hierarchy
+      const allIds = new Set<string>();
+      const collectIds = (nodes: any[]) => {
+        nodes.forEach((n: any) => {
+          allIds.add(n.id);
+          if (n.adsets?.data) collectIds(n.adsets.data);
+          if (n.ads?.data) collectIds(n.ads.data);
+        });
+      };
+      collectIds(apiData);
+      setExpandedRows(allIds);
+
       if (data.adAccountId) {
         setAdAccountId(data.adAccountId);
       }
@@ -504,7 +478,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     } finally {
       setLoading(false);
     }
-  }, [pid, dateRange, projectId]); // moved here
+  }, [pid, projectId]); // Only depends on pid/projectId, reads dateRange from ref
 
 
 
@@ -528,7 +502,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       // 2. Smart Sync Logic
       // We sync if we haven't synced this specific range recently to ensure data consistency
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
       const fromStr = format(dateRange.from, 'yyyy-MM-dd');
       const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
 
@@ -575,7 +548,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         });
       }
     }
-  }, [pid, dateRangeKey, dateRange, rateLimitUntil, fetchAdInsights, fetchHierarchy]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pid, dateRangeKey, rateLimitUntil]); // Stable deps only — callbacks use refs internally
 
   useEffect(() => {
     if (pid && refreshTrigger > 0) {
@@ -585,9 +559,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
       // ONLY fetch from DB to avoid hitting Meta API limits
       fetchAdInsights();
-      // fetchHierarchy(); // Disable hierarchy fetch on auto-refresh too
     }
-  }, [refreshTrigger, rateLimitUntil, pid, fetchAdInsights]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger, rateLimitUntil, pid]);
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -693,7 +667,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const updateLocalStatus = (id: string, status: 'ACTIVE' | 'PAUSED') => {
     const updateNode = (nodes: any[]): any[] => {
       return nodes.map(node => {
-        if (node.id === id) return { ...node, status };
+        if (node.id === id) return { ...node, status, effective_status: status };
         if (node.adsets) return { ...node, adsets: { data: updateNode(node.adsets.data) } };
         if (node.ads) return { ...node, ads: { data: updateNode(node.ads.data) } };
         return node;
@@ -731,14 +705,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
       if (status === 'DELETED' || status === 'ARCHIVED') return false;
 
-      // ALWAYS show items that have performance data in the selected period,
-      // regardless of their current status or the "Active Only" toggle.
-      // This ensures historical data (e.g. from Feb 1st) is visible even if the campaign is now paused.
-      if (metrics.spend > 0 || metrics.leadsMeta > 0 || metrics.visits > 0) {
-        return true;
-      }
-
+      // When "Только активные" is ON — show ONLY active campaigns
       if (showActiveOnly && status !== 'ACTIVE') return false;
+
+      // When "Все кампании" — show everything (including paused)
       return true;
     };
 
@@ -897,11 +867,14 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         applyMetricsRecursively(children[0], metricsToPush);
       }
 
+      // Use effective_status from Meta API if available, fallback to status
+      const effectiveStatus = node.effective_status || node.status;
+
       return {
         id: node.id,
         type,
         name: node.name,
-        status: node.status,
+        status: effectiveStatus,
         spend: finalSpend,
         spendKZT: finalSpendKZT,
         leadsMeta: finalLeadsMeta,
@@ -954,7 +927,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     return sortNodes(processedData);
   }, [processedData, sortConfig]);
 
-  // Flatten for rendering
+  // Flatten for rendering — respects activeTab
   const flattenRows = useCallback((nodes: RowData[], level = 0): (RowData & { level: number })[] => {
     let result: (RowData & { level: number })[] = [];
     nodes.forEach(node => {
@@ -966,7 +939,75 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     return result;
   }, [expandedRows]);
 
-  const visibleRows = useMemo(() => flattenRows(sortedData), [sortedData, flattenRows]);
+  // Flatten ALL rows with parent tracking (for adsets/ads tabs)
+  const flattenAllWithParent = useCallback((nodes: RowData[], parentCampaignId?: string, parentAdsetId?: string): (RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string })[] => {
+    let result: (RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string })[] = [];
+    nodes.forEach(node => {
+      const campId = node.type === 'campaign' ? node.id : parentCampaignId;
+      const adsetId = node.type === 'adset' ? node.id : parentAdsetId;
+      result.push({ ...node, level: 0, parentCampaignId: campId, parentAdsetId: adsetId });
+      if (node.children) {
+        result = result.concat(flattenAllWithParent(node.children, campId, adsetId));
+      }
+    });
+    return result;
+  }, []);
+
+  // Selection helpers
+  const toggleCampaignSelection = useCallback((id: string) => {
+    setSelectedCampaigns(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleAdsetSelection = useCallback((id: string) => {
+    setSelectedAdsets(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const toggleRowSelection = useCallback((row: RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string }) => {
+    if (activeTab === 'campaigns') {
+      if (row.type === 'campaign') toggleCampaignSelection(row.id);
+    } else if (activeTab === 'adsets') {
+      toggleAdsetSelection(row.id);
+    }
+    // ads tab — no selection needed (it's the leaf level)
+  }, [activeTab, toggleCampaignSelection, toggleAdsetSelection]);
+
+  const isRowSelected = useCallback((row: RowData) => {
+    if (activeTab === 'campaigns') return selectedCampaigns.has(row.id);
+    if (activeTab === 'adsets') return selectedAdsets.has(row.id);
+    return false;
+  }, [activeTab, selectedCampaigns, selectedAdsets]);
+
+  const visibleRows = useMemo(() => {
+    const allRows = flattenAllWithParent(sortedData);
+
+    if (activeTab === 'campaigns') {
+      // FLAT list of campaigns only — no children
+      return allRows.filter(r => r.type === 'campaign');
+    } else if (activeTab === 'adsets') {
+      // Show adsets belonging to selected campaigns (or all if none selected)
+      const adsetRows = allRows.filter(r => r.type === 'adset');
+      if (selectedCampaigns.size === 0) return adsetRows;
+      return adsetRows.filter(r => r.parentCampaignId && selectedCampaigns.has(r.parentCampaignId));
+    } else {
+      // Show ads belonging to selected adsets (or selected campaigns if no adsets selected, or all)
+      const adRows = allRows.filter(r => r.type === 'ad');
+      if (selectedAdsets.size > 0) {
+        return adRows.filter(r => r.parentAdsetId && selectedAdsets.has(r.parentAdsetId));
+      }
+      if (selectedCampaigns.size > 0) {
+        return adRows.filter(r => r.parentCampaignId && selectedCampaigns.has(r.parentCampaignId));
+      }
+      return adRows;
+    }
+  }, [sortedData, flattenAllWithParent, activeTab, selectedCampaigns, selectedAdsets]);
 
   const handleSort = (key: keyof RowData) => {
     setSortConfig(current => ({
@@ -1082,86 +1123,154 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-xl border border-border bg-card shadow-sm">
-        {/* Header toolbar */}
-        <div className="relative p-4 md:p-5 border-b border-border flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <div className="space-y-0">
+      <div className="border border-[#dddfe2] bg-white rounded-lg overflow-hidden">
+        {/* Meta-style Top Bar */}
+        <div className="px-4 py-3 border-b border-[#dddfe2] flex items-center justify-between bg-white">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center border border-primary/20">
-              <LayoutDashboard className="w-5 h-5 text-primary" />
-            </div>
-            <div>
-              <h2 className="text-lg font-bold text-foreground">Active Ads Manager</h2>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                {accountStatus && accountStatus.account_status !== 1 ? (
-                  <span className={cn(
-                    "flex items-center gap-1.5 px-2 py-0.5 rounded-full border",
-                    accountStatus.account_status === 3
-                      ? "bg-red-100 border-red-200 text-red-700"
-                      : "bg-amber-100 border-amber-200 text-amber-700"
-                  )}>
-                    <div className={cn(
-                      "w-1.5 h-1.5 rounded-full",
-                      accountStatus.account_status === 3
-                        ? "bg-red-500"
-                        : "bg-amber-500"
-                    )} />
-                    {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
-                  </span>
-                ) : (
-                  <span className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-100 border border-emerald-200 text-emerald-700">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                    Live Sync
-                  </span>
-                )}
-                {adAccountId && (
-                  <span className="px-2 py-0.5 rounded-full bg-muted border border-border font-mono text-muted-foreground">
-                    ID: {adAccountId}
-                  </span>
-                )}
-              </div>
+            <h2 className="text-[15px] font-semibold text-[#1c1e21]">Кампании</h2>
+            <div className="flex items-center gap-2 text-xs">
+              {accountStatus && accountStatus.account_status !== 1 ? (
+                <span className={cn(
+                  "flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium",
+                  accountStatus.account_status === 3
+                    ? "bg-red-50 text-red-700"
+                    : "bg-amber-50 text-amber-700"
+                )}>
+                  <div className={cn(
+                    "w-1.5 h-1.5 rounded-full",
+                    accountStatus.account_status === 3 ? "bg-red-500" : "bg-amber-500"
+                  )} />
+                  {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
+                </span>
+              ) : (
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#e7f3ef] text-[#1a7f37] text-xs font-medium">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#31a24c]" />
+                  META ONLINE
+                </span>
+              )}
+              {adAccountId && (
+                <span className="px-2 py-1 rounded-md bg-[#f0f2f5] text-[#65676b] font-mono text-[11px]">
+                  {adAccountId}
+                </span>
+              )}
             </div>
           </div>
-
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
               onClick={handleForceSync}
               disabled={loading}
-              className="hidden md:flex h-9"
+              className="h-8 text-xs border-[#dddfe2] text-[#1c1e21] hover:bg-[#f0f2f5] bg-white rounded-md"
             >
-              <RefreshCw className={cn("w-4 h-4 mr-2", loading && "animate-spin")} />
-              Синхронизация
+              <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", loading && "animate-spin")} />
+              Обновить
             </Button>
+          </div>
+        </div>
 
-            <div className="flex items-center space-x-2 bg-muted/50 p-1.5 rounded-lg border border-border">
-              <Switch
-                id="active-mode"
-                checked={showActiveOnly}
-                onCheckedChange={setShowActiveOnly}
-                className="data-[state=checked]:bg-emerald-500"
-              />
-              <Label htmlFor="active-mode" className="text-xs font-medium cursor-pointer text-muted-foreground pr-2">
-                {showActiveOnly ? 'Только активные' : 'Все кампании'}
-              </Label>
-            </div>
+        {/* Meta-style 3-Level Tab Navigation with selection badges */}
+        <div className="border-b border-[#dddfe2] bg-[#f0f2f5]">
+          <div className="flex">
+            <button
+              onClick={() => setActiveTab('campaigns')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
+                activeTab === 'campaigns'
+                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
+                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
+              )}
+            >
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M2 3a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm7 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V3zM2 10a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3zm7 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" /></svg>
+              Кампании
+              {selectedCampaigns.size > 0 && (
+                <span className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full bg-[#1b74e4] text-white text-[11px] font-bold">
+                  {selectedCampaigns.size} выбрано
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedCampaigns(new Set()); setSelectedAdsets(new Set()); }}
+                    className="ml-0.5 hover:bg-white/20 rounded-full w-3.5 h-3.5 flex items-center justify-center"
+                  >✕</button>
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('adsets')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
+                activeTab === 'adsets'
+                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
+                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
+              )}
+            >
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 012.5 1h3A1.5 1.5 0 017 2.5v3A1.5 1.5 0 015.5 7h-3A1.5 1.5 0 011 5.5v-3zM9 2.5A1.5 1.5 0 0110.5 1h3A1.5 1.5 0 0115 2.5v3A1.5 1.5 0 0113.5 7h-3A1.5 1.5 0 019 5.5v-3zM1 10.5A1.5 1.5 0 012.5 9h3A1.5 1.5 0 017 10.5v3A1.5 1.5 0 015.5 15h-3A1.5 1.5 0 011 13.5v-3zM9 10.5A1.5 1.5 0 0110.5 9h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 019 13.5v-3z" /></svg>
+              Группы объяв.
+              {selectedAdsets.size > 0 && (
+                <span className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full bg-[#1b74e4] text-white text-[11px] font-bold">
+                  {selectedAdsets.size} выбрано
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setSelectedAdsets(new Set()); }}
+                    className="ml-0.5 hover:bg-white/20 rounded-full w-3.5 h-3.5 flex items-center justify-center"
+                  >✕</button>
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('ads')}
+              className={cn(
+                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
+                activeTab === 'ads'
+                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
+                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
+              )}
+            >
+              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M2 2a1 1 0 011-1h10a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V2zm2 1v4h8V3H4zm0 6v4h8V9H4z" /></svg>
+              Объявления
+            </button>
+          </div>
+        </div>
 
+        {/* Toolbar: Filter + Actions */}
+        <div className="px-4 py-2 border-b border-[#dddfe2] bg-white flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setShowActiveOnly(false)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                !showActiveOnly
+                  ? "bg-[#1b74e4] text-white"
+                  : "text-[#1c1e21] hover:bg-[#f0f2f5] border border-[#dddfe2]"
+              )}
+            >
+              Все
+            </button>
+            <button
+              onClick={() => setShowActiveOnly(true)}
+              className={cn(
+                "px-3 py-1.5 rounded-md text-[13px] font-medium transition-colors",
+                showActiveOnly
+                  ? "bg-[#31a24c] text-white"
+                  : "text-[#1c1e21] hover:bg-[#f0f2f5] border border-[#dddfe2]"
+              )}
+            >
+              Активные
+            </button>
+          </div>
+          <div className="flex items-center gap-1.5">
             <Button
               variant="outline"
               size="sm"
               onClick={handleExportCSV}
               disabled={loading || visibleRows.length === 0}
-              className="h-9"
+              className="h-7 text-xs border-[#dddfe2] text-[#65676b] hover:bg-[#f0f2f5] bg-white rounded-md"
             >
-              <Download className="w-4 h-4 mr-2" />
-              Экспорт
+              <Download className="w-3 h-3 mr-1" />
+              CSV
             </Button>
-
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-9">
-                  <Settings2 className="w-4 h-4 mr-2" />
+                <Button variant="outline" size="sm" className="h-7 text-xs border-[#dddfe2] text-[#65676b] hover:bg-[#f0f2f5] bg-white rounded-md">
+                  <Settings2 className="w-3 h-3 mr-1" />
                   Столбцы
                 </Button>
               </DropdownMenuTrigger>
@@ -1270,100 +1379,117 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="bg-muted/50 border-b border-border hover:bg-muted/50">
-                <TableHead className="w-[250px] p-2 text-muted-foreground sticky left-0 bg-card z-20 border-b border-border ring-1 ring-border/50">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-8 -ml-3 hover:bg-muted font-bold text-foreground">
-                    Кампания
+              <TableRow className="bg-[#f0f2f5] border-b border-[#dddfe2] hover:bg-[#f0f2f5]">
+                <TableHead className="w-[40px] p-2 text-center">
+                  <input
+                    type="checkbox"
+                    className="w-[15px] h-[15px] rounded border-[#ccd0d5] accent-[#1b74e4] cursor-pointer"
+                    checked={visibleRows.length > 0 && visibleRows.filter(r => activeTab === 'campaigns' ? r.type === 'campaign' : true).every(r => isRowSelected(r))}
+                    onChange={() => {
+                      const relevantRows = visibleRows.filter(r => activeTab === 'campaigns' ? r.type === 'campaign' : true);
+                      const allSelected = relevantRows.every(r => isRowSelected(r));
+                      if (activeTab === 'campaigns') {
+                        if (allSelected) {
+                          setSelectedCampaigns(new Set());
+                        } else {
+                          setSelectedCampaigns(new Set(relevantRows.filter(r => r.type === 'campaign').map(r => r.id)));
+                        }
+                      } else if (activeTab === 'adsets') {
+                        if (allSelected) {
+                          setSelectedAdsets(new Set());
+                        } else {
+                          setSelectedAdsets(new Set(relevantRows.map(r => r.id)));
+                        }
+                      }
+                    }}
+                  />
+                </TableHead>
+                {columnVisibility.status && (
+                  <TableHead className="w-[50px] text-center p-2 text-[#65676b] text-[11px] font-semibold uppercase">Вкл.</TableHead>
+                )}
+                <TableHead className="min-w-[250px] p-2">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-7 -ml-2 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                    {activeTab === 'campaigns' ? 'Кампания' : activeTab === 'adsets' ? 'Группа объявлений' : 'Объявление'} ↕
                     {getSortIcon('name')}
                   </Button>
                 </TableHead>
-                {columnVisibility.status && (
-                  <TableHead className="w-[80px] text-center p-2 text-muted-foreground border-b border-border">Статус</TableHead>
-                )}
+                <TableHead className="w-[120px] p-2 text-[#65676b] text-[11px] font-semibold uppercase">
+                  Статус показа
+                </TableHead>
                 {columnVisibility.spend && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
-                      Расходы
-                      {getSortIcon('spend')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Расходы {getSortIcon('spend')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.leads && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
-                      Лиды
-                      {getSortIcon('leadsMeta')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Лиды {getSortIcon('leadsMeta')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.cpl && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
-                      CPL
-                      {getSortIcon('cpl')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      CPL {getSortIcon('cpl')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.visits && (
-                  <TableHead className="text-right min-w-[80px] p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="h-8 px-0 hover:bg-muted font-bold text-blue-600 hover:text-blue-700">
-                      Визит
-                      {getSortIcon('visits')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Визиты {getSortIcon('visits')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.visitCost && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('visitCost')} className="h-8 px-0 hover:bg-muted font-bold text-blue-600 hover:text-blue-700">
-                      Цена виз.
-                      {getSortIcon('visitCost')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('visitCost')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Цена виз. {getSortIcon('visitCost')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.sales && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('sales')} className="h-8 px-0 hover:bg-muted font-bold text-emerald-600 hover:text-emerald-700">
-                      Продажи
-                      {getSortIcon('sales')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('sales')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Продажи {getSortIcon('sales')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.revenue && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('revenue')} className="h-8 px-0 hover:bg-muted font-bold text-emerald-600 hover:text-emerald-700">
-                      Выручка
-                      {getSortIcon('revenue')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('revenue')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      Выручка {getSortIcon('revenue')}
                     </Button>
                   </TableHead>
                 )}
                 {columnVisibility.roi && (
-                  <TableHead className="text-right p-2 text-muted-foreground border-b border-border">
-                    <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="h-8 px-0 hover:bg-muted font-bold text-foreground">
-                      ROI
-                      {getSortIcon('roi')}
+                  <TableHead className="text-right p-2">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="h-7 px-1 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
+                      ROI {getSortIcon('roi')}
                     </Button>
                   </TableHead>
                 )}
               </TableRow>
             </TableHeader>
-            <TableBody className="divide-y divide-border">
+            <TableBody>
               {loading ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={10} className="h-40 text-center">
-                    <div className="flex flex-col items-center justify-center gap-3 text-muted-foreground">
-                      <div className="p-3 rounded-full bg-muted">
-                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                      </div>
-                      <span className="text-sm">Загрузка данных...</span>
+                  <TableCell colSpan={12} className="h-40 text-center">
+                    <div className="flex flex-col items-center justify-center gap-3 text-[#65676b]">
+                      <Loader2 className="w-5 h-5 animate-spin text-[#1b74e4]" />
+                      <span className="text-[13px]">Загрузка данных...</span>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : visibleRows.length === 0 ? (
                 <TableRow className="hover:bg-transparent">
-                  <TableCell colSpan={10} className="h-40 text-center text-muted-foreground">
+                  <TableCell colSpan={12} className="h-40 text-center text-[#65676b]">
                     <div className="flex flex-col items-center justify-center gap-2">
-                      <LayoutDashboard className="w-8 h-8 text-muted-foreground/50" />
-                      <span>Нет активных рекламных кампаний</span>
+                      <LayoutDashboard className="w-8 h-8 text-[#bec3c9]" />
+                      <span className="text-[13px]">Нет рекламных кампаний</span>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -1372,81 +1498,32 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   <TableRow
                     key={row.id}
                     className={cn(
-                      "group transition-colors border-border",
-                      row.type === 'campaign' ? "bg-muted/30 hover:bg-muted/50" : "hover:bg-muted/30"
+                      "border-b border-[#dddfe2] transition-colors group",
+                      isRowSelected(row) ? "bg-[#e7f3ff] hover:bg-[#dbeafe]" : "bg-white hover:bg-[#f5f6f7]"
                     )}
                   >
-                    <TableCell className={cn(
-                      "py-3 sticky left-0 z-10 border-r border-border backdrop-blur-md",
-                      row.type === 'campaign' ? "bg-muted/30 group-hover:bg-muted/50" : "bg-card group-hover:bg-muted/30"
-                    )}>
-                      <div
-                        className="flex items-center gap-2 cursor-pointer select-none pl-2"
-                        style={{ paddingLeft: `${(row.level * 24) + 8}px` }}
-                        onClick={() => row.children && row.children.length > 0 && toggleRow(row.id)}
-                      >
-                        {row.children && row.children.length > 0 ? (
-                          <div className={cn(
-                            "w-5 h-5 rounded flex items-center justify-center transition-colors",
-                            expandedRows.has(row.id) ? "bg-muted text-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                          )}>
-                            <ChevronRight className={cn(
-                              "w-3.5 h-3.5 transition-transform duration-200",
-                              expandedRows.has(row.id) && "rotate-90"
-                            )} />
-                          </div>
-                        ) : (
-                          <div className="w-5 h-5" />
-                        )}
-
-                        <div className="relative shrink-0">
-                          {row.type === 'ad' && row.thumbnail ? (
-                            <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-border" />
-                          ) : (
-                            <div className={cn(
-                              "w-2 h-2 rounded-full ring-2 ring-background",
-                              row.status === 'ACTIVE' ? "bg-emerald-500" : "bg-muted-foreground/30"
-                            )} />
-                          )}
-                        </div>
-
-                        <div className="flex flex-col min-w-0 group/name relative">
-                          <div className="flex items-center gap-2">
-                            <span className={cn(
-                              "truncate max-w-[180px] md:max-w-[280px] text-sm",
-                              row.level === 0 ? "font-bold text-foreground" : "font-medium text-foreground/80"
-                            )} title={row.name}>
-                              {row.name}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-5 w-5 opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-muted hover:text-foreground"
-                              onClick={(e) => openEditDialog(row, e)}
-                            >
-                              <Pencil className="w-3 h-3 text-muted-foreground" />
-                            </Button>
-                          </div>
-                          <span className="text-[10px] text-muted-foreground/60 uppercase tracking-wider flex items-center gap-1 font-mono">
-                            {row.type}
-                            <span className="opacity-30">•</span>
-                            {row.id}
-                          </span>
-                        </div>
-                      </div>
+                    {/* Checkbox */}
+                    <TableCell className="w-[40px] p-2 text-center">
+                      <input
+                        type="checkbox"
+                        className="w-[15px] h-[15px] rounded border-[#ccd0d5] accent-[#1b74e4] cursor-pointer"
+                        checked={isRowSelected(row)}
+                        onChange={() => toggleRowSelection(row as any)}
+                      />
                     </TableCell>
 
+                    {/* Toggle ON/OFF */}
                     {columnVisibility.status && (
-                      <TableCell className="text-center p-2">
+                      <TableCell className="w-[50px] text-center p-2">
                         <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
                           {toggling === row.id ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
+                            <Loader2 className="w-4 h-4 animate-spin text-[#65676b]" />
                           ) : (
                             <Switch
                               checked={row.status === 'ACTIVE'}
-                              onCheckedChange={(checked) => handleToggleStatus(row.id, row.status, { stopPropagation: () => { } } as any)}
+                              onCheckedChange={() => handleToggleStatus(row.id, row.status, { stopPropagation: () => { } } as any)}
                               className={cn(
-                                "data-[state=checked]:bg-emerald-500",
+                                "scale-[0.8] data-[state=checked]:bg-[#31a24c]",
                                 row.status !== 'ACTIVE' && "opacity-60"
                               )}
                             />
@@ -1455,59 +1532,102 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                       </TableCell>
                     )}
 
+                    {/* Entity Name — flat, no expand arrows */}
+                    <TableCell className="py-2.5 px-2">
+                      <div className="flex items-center gap-2 select-none">
+                        {row.type === 'ad' && row.thumbnail ? (
+                          <img src={row.thumbnail} alt="" className="w-8 h-8 rounded object-cover border border-[#dddfe2]" />
+                        ) : (
+                          <div className={cn(
+                            "w-2 h-2 rounded-full",
+                            row.status === 'ACTIVE' ? "bg-[#31a24c]" : "bg-[#bec3c9]"
+                          )} />
+                        )}
+
+                        <div className="flex flex-col min-w-0 group/name">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate max-w-[200px] md:max-w-[300px] text-[13px] font-semibold text-[#1c1e21]" title={row.name}>
+                              {row.name}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-5 w-5 opacity-0 group-hover/name:opacity-100 transition-opacity hover:bg-[#e4e6eb]"
+                              onClick={(e) => openEditDialog(row, e)}
+                            >
+                              <Pencil className="w-2.5 h-2.5 text-[#65676b]" />
+                            </Button>
+                          </div>
+                          <span className="text-[11px] text-[#65676b] uppercase tracking-wider">
+                            {row.type === 'campaign' ? 'CAMPAIGN' : row.type === 'adset' ? 'AD SET' : 'AD'} · {row.id}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+
+                    {/* Status with dot + text */}
+                    <TableCell className="p-2">
+                      <div className="flex items-center gap-1.5">
+                        <div className={cn(
+                          "w-2 h-2 rounded-full",
+                          row.status === 'ACTIVE' ? "bg-[#31a24c]" : "bg-[#bec3c9]"
+                        )} />
+                        <span className={cn(
+                          "text-[13px]",
+                          row.status === 'ACTIVE' ? "text-[#1c1e21]" : "text-[#65676b]"
+                        )}>
+                          {row.status === 'ACTIVE' ? 'Активно' : 'Выключено'}
+                        </span>
+                      </div>
+                    </TableCell>
+
+                    {/* Metrics columns */}
                     {columnVisibility.spend && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-foreground/80 p-2">
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#1c1e21] p-2">
                         {formatCurrency(row.spendKZT)}
                       </TableCell>
                     )}
-
                     {columnVisibility.leads && (
                       <TableCell className={cn(
-                        "text-right tabular-nums font-mono text-sm p-2",
+                        "text-right tabular-nums text-[13px] p-2",
                         row.status === 'ACTIVE' && row.leadsMeta === 0 && row.spendKZT > 2000
-                          ? "bg-red-100 text-red-600 font-bold border-l-2 border-red-500"
-                          : "text-foreground font-semibold"
+                          ? "text-red-600 font-semibold"
+                          : "text-[#1c1e21] font-medium"
                       )}>
                         {formatNumber(row.leadsMeta)}
                       </TableCell>
                     )}
-
                     {columnVisibility.cpl && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-muted-foreground p-2">
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#65676b] p-2">
                         {row.leadsMeta === 0 ? '—' : formatCurrency(row.cpl)}
                       </TableCell>
                     )}
-
                     {columnVisibility.visits && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-blue-600 p-2">
-                        {row.visits > 0 ? formatNumber(row.visits) : <span className="text-muted-foreground/30">-</span>}
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#1b74e4] font-medium p-2">
+                        {row.visits > 0 ? formatNumber(row.visits) : <span className="text-[#bec3c9]">—</span>}
                       </TableCell>
                     )}
-
                     {columnVisibility.visitCost && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-blue-600/70 p-2">
-                        {row.visitCost > 0 ? formatCurrency(row.visitCost) : <span className="text-muted-foreground/30">-</span>}
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#65676b] p-2">
+                        {row.visitCost > 0 ? formatCurrency(row.visitCost) : <span className="text-[#bec3c9]">—</span>}
                       </TableCell>
                     )}
-
                     {columnVisibility.sales && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm font-medium text-emerald-600 p-2">
-                        {row.sales > 0 ? formatNumber(row.sales) : <span className="text-muted-foreground/30">-</span>}
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#1a7f37] font-medium p-2">
+                        {row.sales > 0 ? formatNumber(row.sales) : <span className="text-[#bec3c9]">—</span>}
                       </TableCell>
                     )}
-
                     {columnVisibility.revenue && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm text-emerald-600 font-bold p-2">
-                        {row.revenue > 0 ? formatCurrency(row.revenue) : <span className="text-muted-foreground/30">-</span>}
+                      <TableCell className="text-right tabular-nums text-[13px] text-[#1a7f37] font-semibold p-2">
+                        {row.revenue > 0 ? formatCurrency(row.revenue) : <span className="text-[#bec3c9]">—</span>}
                       </TableCell>
                     )}
-
                     {columnVisibility.roi && (
-                      <TableCell className="text-right tabular-nums font-mono text-sm p-2">
+                      <TableCell className="text-right tabular-nums text-[13px] p-2">
                         <span className={cn(
-                          row.roi > 0 ? "text-emerald-600" : row.roi < 0 ? "text-red-500" : "text-muted-foreground/50"
+                          row.roi > 0 ? "text-[#1a7f37]" : row.roi < 0 ? "text-red-500" : "text-[#bec3c9]"
                         )}>
-                          {row.roi !== 0 ? formatPercent(row.roi) : '-'}
+                          {row.roi !== 0 ? formatPercent(row.roi) : '—'}
                         </span>
                       </TableCell>
                     )}
@@ -1517,21 +1637,23 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
               {/* Totals Row */}
               {!loading && processedData.length > 0 && (
-                <TableRow className="bg-card font-bold border-t border-border hover:bg-card sticky bottom-0 z-30 shadow-[0_-5px_20px_rgba(0,0,0,0.05)]">
-                  <TableCell className="sticky left-0 bg-card border-r border-border p-4 text-xs uppercase tracking-widest text-muted-foreground">ИТОГО</TableCell>
-                  {columnVisibility.status && <TableCell />}
-                  {columnVisibility.spend && <TableCell className="text-right p-3 text-foreground">{formatCurrency(totalSpendKZT)}</TableCell>}
-                  {columnVisibility.leads && <TableCell className="text-right p-3 text-foreground">{formatNumber(totalLeadsMeta)}</TableCell>}
-                  {columnVisibility.cpl && <TableCell className="text-right p-3 text-muted-foreground">{formatCurrency(totalCpl)}</TableCell>}
-                  {columnVisibility.visits && <TableCell className="text-right p-3 text-blue-600">{formatNumber(totalVisits)}</TableCell>}
-                  {columnVisibility.visitCost && <TableCell className="text-right p-3 text-blue-600/70">{formatCurrency(totalVisitCost)}</TableCell>}
-                  {columnVisibility.sales && <TableCell className="text-right p-3 text-emerald-600">{formatNumber(totalSales)}</TableCell>}
-                  {columnVisibility.revenue && <TableCell className="text-right p-3 text-emerald-600 font-bold text-base">{formatCurrency(totalRevenue)}</TableCell>}
-                  {columnVisibility.roi && <TableCell className="text-right p-3">
+                <TableRow className="bg-[#f0f2f5] font-semibold border-t-2 border-[#dddfe2] hover:bg-[#f0f2f5]">
+                  <TableCell className="p-2" /> {/* checkbox */}
+                  {columnVisibility.status && <TableCell className="p-2" />} {/* toggle */}
+                  <TableCell className="p-3 text-[11px] uppercase tracking-widest text-[#65676b] font-bold">Итого</TableCell>
+                  <TableCell /> {/* status */}
+                  {columnVisibility.spend && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatCurrency(totalSpendKZT)}</TableCell>}
+                  {columnVisibility.leads && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatNumber(totalLeadsMeta)}</TableCell>}
+                  {columnVisibility.cpl && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totalCpl)}</TableCell>}
+                  {columnVisibility.visits && <TableCell className="text-right p-2 text-[13px] text-[#1b74e4] font-bold">{formatNumber(totalVisits)}</TableCell>}
+                  {columnVisibility.visitCost && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totalVisitCost)}</TableCell>}
+                  {columnVisibility.sales && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatNumber(totalSales)}</TableCell>}
+                  {columnVisibility.revenue && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatCurrency(totalRevenue)}</TableCell>}
+                  {columnVisibility.roi && <TableCell className="text-right p-2 text-[13px]">
                     <span className={cn(
-                      totalRoi > 0 ? "text-emerald-600" : totalRoi < 0 ? "text-red-500" : "text-muted-foreground/50"
+                      totalRoi > 0 ? "text-[#1a7f37] font-bold" : totalRoi < 0 ? "text-red-500 font-bold" : "text-[#bec3c9]"
                     )}>
-                      {totalRoi !== 0 ? formatPercent(totalRoi) : '-'}
+                      {totalRoi !== 0 ? formatPercent(totalRoi) : '—'}
                     </span>
                   </TableCell>}
                 </TableRow>
@@ -1539,6 +1661,15 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             </TableBody>
           </Table>
         </div>
+
+        {/* Meta-style Footer: entity count based on active tab */}
+        {!loading && processedData.length > 0 && (
+          <div className="px-4 py-3 border-t border-[#dddfe2] bg-white">
+            <span className="text-[13px] text-[#65676b]">
+              Результаты {visibleRows.length} {activeTab === 'campaigns' ? 'кампаний' : activeTab === 'adsets' ? 'групп объявлений' : 'объявлений'}
+            </span>
+          </div>
+        )}
       </div>
 
       <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
