@@ -454,7 +454,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
 
       // Success Path
-      const apiData = data.data || [];
+      const apiData = normalizeNodeStatuses(data.data || []);
       setHierarchy(apiData);
 
       // Auto-expand ALL campaigns and adsets to show full hierarchy
@@ -873,7 +873,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
 
       // Use effective_status from Meta API if available, fallback to status
-      const effectiveStatus = node.effective_status || node.status;
+      const effectiveStatus = normalizeStatus(node.effective_status || node.status);
 
       return {
         id: node.id,
@@ -1709,3 +1709,22 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     </div>
   );
 };
+  const normalizeStatus = (value: unknown) => {
+    if (typeof value !== 'string') return value;
+    return value.toUpperCase();
+  };
+
+  const normalizeNodeStatuses = (nodes: any[]): any[] => {
+    return nodes.map((node: any) => {
+      const status = normalizeStatus(node.status);
+      const effective = normalizeStatus(node.effective_status ?? status);
+      const next = { ...node, status, effective_status: effective };
+      if (node.adsets?.data) {
+        next.adsets = { data: normalizeNodeStatuses(node.adsets.data) };
+      }
+      if (node.ads?.data) {
+        next.ads = { data: normalizeNodeStatuses(node.ads.data) };
+      }
+      return next;
+    });
+  };
