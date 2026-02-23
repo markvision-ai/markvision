@@ -260,76 +260,78 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     const derived: Campaign[] = [];
     const processedUtms = new Set<string>();
 
-    // 1. Derive from Leads (CRM)
-    filteredLeads.forEach(lead => {
-      const utm = lead.utm_campaign;
-      if (!utm) return;
+    if (!showActiveOnly) {
+      // 1. Derive from Leads (CRM)
+      filteredLeads.forEach(lead => {
+        const utm = lead.utm_campaign;
+        if (!utm) return;
 
-      // Skip if this UTM is already processed
-      if (processedUtms.has(utm)) return;
+        // Skip if this UTM is already processed
+        if (processedUtms.has(utm)) return;
 
-      // Check if this UTM matches any existing campaign ID or Name (Loose Match)
-      const normUtm = normalize(utm);
+        // Check if this UTM matches any existing campaign ID or Name (Loose Match)
+        const normUtm = normalize(utm);
 
-      const matchFound = hierarchy.some(c => {
-        const normName = normalize(c.name);
-        const normId = normalize(c.id);
+        const matchFound = hierarchy.some(c => {
+          const normName = normalize(c.name);
+          const normId = normalize(c.id);
 
-        // Direct Match
-        if (c.id === utm || normName === normUtm) return true;
+          // Direct Match
+          if (c.id === utm || normName === normUtm) return true;
 
-        // Inclusion Match (if strictly long enough to avoid false positives)
-        // e.g. "implants" matches "implants_january"
-        if (normUtm.length > 3 && normName.length > 3) {
-          if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+          // Inclusion Match (if strictly long enough to avoid false positives)
+          // e.g. "implants" matches "implants_january"
+          if (normUtm.length > 3 && normName.length > 3) {
+            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+          }
+
+          return false;
+        });
+
+        if (!matchFound) {
+          processedUtms.add(utm);
+          derived.push({
+            id: utm, // Use UTM as ID
+            name: utm, // Use UTM as Name
+            status: 'PAUSED', // Default to PAUSED for derived items
+            daily_budget: '0',
+            insights: { data: [] },
+            adsets: { data: [] }
+          });
         }
-
-        return false;
       });
 
-      if (!matchFound) {
-        processedUtms.add(utm);
+      // 2. Derive from Ad Insights (Logs)
+      Object.values(adInsights).forEach(insight => {
+        const campaignId = insight.entity_id;
+
+        // Skip if already in hierarchy
+        if (existingIds.has(campaignId)) return;
+
+        // Skip if already processed via leads
+        if (processedUtms.has(campaignId)) return;
+
+        // Check loose match by Name
+        if (insight.name) {
+          const normName = normalize(insight.name);
+          const matchFound = hierarchy.some(c => normalize(c.name) === normName);
+          if (matchFound) return;
+        }
+
+        processedUtms.add(campaignId);
         derived.push({
-          id: utm, // Use UTM as ID
-          name: utm, // Use UTM as Name
-          status: 'PAUSED', // Default to PAUSED for derived items
+          id: campaignId,
+          name: insight.name || campaignId,
+          status: 'PAUSED',
           daily_budget: '0',
           insights: { data: [] },
           adsets: { data: [] }
         });
-      }
-    });
-
-    // 2. Derive from Ad Insights (Logs)
-    Object.values(adInsights).forEach(insight => {
-      const campaignId = insight.entity_id;
-
-      // Skip if already in hierarchy
-      if (existingIds.has(campaignId)) return;
-
-      // Skip if already processed via leads
-      if (processedUtms.has(campaignId)) return;
-
-      // Check loose match by Name
-      if (insight.name) {
-        const normName = normalize(insight.name);
-        const matchFound = hierarchy.some(c => normalize(c.name) === normName);
-        if (matchFound) return;
-      }
-
-      processedUtms.add(campaignId);
-      derived.push({
-        id: campaignId,
-        name: insight.name || campaignId,
-        status: 'PAUSED',
-        daily_budget: '0',
-        insights: { data: [] },
-        adsets: { data: [] }
       });
-    });
+    }
 
     return [...hierarchy, ...derived];
-  }, [hierarchy, filteredLeads, adInsights]);
+  }, [hierarchy, filteredLeads, adInsights, showActiveOnly]);
 
 
   const fetchAdInsights = useCallback(async () => {
@@ -1043,7 +1045,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
     if (activeTab === 'campaigns') {
       // FLAT list of campaigns only — no children
-      return allRows.filter(r => r.type === 'campaign');
+      const campaigns = allRows.filter(r => r.type === 'campaign');
+      if (!showActiveOnly) return campaigns;
+
+      // When showing only active, dedupe by normalized name and keep highest spend
+      const byName = new Map<string, typeof campaigns[0]>();
+      campaigns.forEach(c => {
+        const key = normalize(c.name);
+        const current = byName.get(key);
+        if (!current || c.spendKZT > current.spendKZT) {
+          byName.set(key, c);
+        }
+      });
+      return Array.from(byName.values());
     } else if (activeTab === 'adsets') {
       // Show adsets belonging to selected campaigns (or all if none selected)
       const adsetRows = allRows.filter(r => r.type === 'adset');
@@ -1060,7 +1074,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
       return adRows;
     }
-  }, [sortedData, flattenAllWithParent, activeTab, selectedCampaigns, selectedAdsets]);
+  }, [sortedData, flattenAllWithParent, activeTab, selectedCampaigns, selectedAdsets, showActiveOnly, normalize]);
 
   const handleSort = (key: keyof RowData) => {
     setSortConfig(current => ({
