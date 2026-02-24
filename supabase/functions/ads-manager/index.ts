@@ -191,9 +191,15 @@ async function processAgentRequest(supabase: any, projectId: string, payload: an
 
 async function executeAgentAction(supabase: any, projectId: string, payload: any, authHeader?: string) {
   const actionId = payload.action_id;
-  const adAccountId = "act_1005197113823722"; // Should be dynamic in production
 
   try {
+    const accessToken = await getAccessToken(supabase, projectId);
+    const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
+
+    if (!adAccountId) {
+      return { message: "Ошибка: Рекламный аккаунт не привязан к этому проекту", type: "error" };
+    }
+
     // Handle Content Factory Actions
     if (actionId.startsWith('create_')) {
       if (!authHeader) {
@@ -268,8 +274,6 @@ async function executeAgentAction(supabase: any, projectId: string, payload: any
         type: "success"
       };
     }
-
-    const accessToken = await getAccessToken(supabase, projectId);
 
     // Fetch active campaigns to act upon
     const campaigns = await fetchActiveCampaigns(accessToken, adAccountId);
@@ -544,9 +548,7 @@ async function getAdAccountId(accessToken: string): Promise<string> {
     console.error("Failed to fetch ad account ID", e);
   }
 
-  // Hard fallback for development/demo
-  console.warn("No active Ad Account found via API, using fallback ID.");
-  return "act_1005197113823722";
+  throw new Error("No active Ad Account found via API, and no ID found in database.");
 }
 
 // --- HELPERS ---
