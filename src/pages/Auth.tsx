@@ -236,13 +236,13 @@ export default function Auth() {
 
   // ── Main Auth form ─────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-[#030712] text-white flex items-center justify-center p-4 relative overflow-hidden">
 
       {/* Ambient glow blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-1/4 -left-40 w-[600px] h-[500px] rounded-full bg-primary/10 blur-[120px]" />
-        <div className="absolute bottom-1/4 -right-40 w-[500px] h-[400px] rounded-full bg-cyan-500/8 blur-[100px]" />
-        <div className="absolute top-3/4 left-1/2 -translate-x-1/2 w-[800px] h-[200px] rounded-full bg-emerald-500/5 blur-[80px]" />
+        <div className="absolute top-1/4 -left-40 w-[600px] h-[500px] rounded-full bg-primary/20 blur-[120px] opacity-40" />
+        <div className="absolute bottom-1/4 -right-40 w-[500px] h-[400px] rounded-full bg-cyan-500/15 blur-[100px] opacity-40" />
+        <div className="absolute top-3/4 left-1/2 -translate-x-1/2 w-[800px] h-[200px] rounded-full bg-emerald-500/10 blur-[80px] opacity-30" />
       </div>
 
       <motion.div
@@ -262,11 +262,11 @@ export default function Auth() {
             <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain scale-110" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            <span className="bg-gradient-to-r from-primary via-cyan-300 to-primary bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
               MarkVision AI
             </span>
           </h1>
-          <p className="text-muted-foreground mt-1.5 text-sm">
+          <p className="text-white/60 mt-1.5 text-sm">
             Умный маркетинг для медицинских клиник
           </p>
         </motion.div>
@@ -277,7 +277,7 @@ export default function Auth() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="interstellar-glass border border-white/[0.07] rounded-3xl p-6 sm:p-8 shadow-2xl">
+          <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/[0.1] rounded-[2.5rem] p-6 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
 
             {/* Back button (forgot-password) */}
             {mode === 'forgot-password' && (
@@ -302,8 +302,8 @@ export default function Auth() {
                     type="button"
                     onClick={() => setMode(m)}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${mode === m
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      : 'text-white/40 hover:text-white hover:bg-white/5'
                       }`}
                   >
                     {m === 'login' ? 'Вход' : 'Регистрация'}
@@ -313,10 +313,10 @@ export default function Auth() {
             )}
 
             {/* Title */}
-            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-1.5 text-foreground">
+            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-1.5 text-white">
               {getTitle()}
             </h2>
-            <p className="text-sm text-muted-foreground text-center mb-6">
+            <p className="text-sm text-white/40 text-center mb-6">
               {getSubtitle()}
             </p>
 
@@ -330,15 +330,15 @@ export default function Auth() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-2"
                 >
-                  <label className="text-sm font-medium text-foreground/80">Имя</label>
-                  <div className="relative">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                  <label className="text-sm font-medium text-white/70 ml-1">Имя</label>
+                  <div className="relative group">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
                     <Input
                       type="text"
                       placeholder="Ваше имя"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+                      className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                     />
                   </div>
                 </motion.div>
@@ -346,15 +346,15 @@ export default function Auth() {
 
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-foreground/80">Email</label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                <label className="text-sm font-medium text-white/70 ml-1">Email</label>
+                <div className="relative group">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
                   <Input
                     type="email"
                     placeholder="email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+                    className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                   />
                 </div>
               </div>
@@ -362,20 +362,20 @@ export default function Auth() {
               {/* Password */}
               {mode !== 'forgot-password' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
-                  <label className="text-sm font-medium text-foreground/80">Пароль</label>
-                  <div className="relative">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground z-10" />
+                  <label className="text-sm font-medium text-white/70 ml-1">Пароль</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-11 h-12 rounded-xl bg-white/5 border-white/10 text-foreground placeholder:text-muted-foreground/60 focus-visible:ring-primary/30 focus-visible:border-primary/40"
+                      className="pl-10 pr-11 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors z-10"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors z-10"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -417,7 +417,7 @@ export default function Auth() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-center text-xs text-muted-foreground/50 mt-6"
+          className="text-center text-xs text-white/20 mt-6"
         >
           © 2026 MarkVision AI. Все права защищены.
         </motion.p>
