@@ -46,6 +46,7 @@ export interface MetaAccountAnalyticsRow {
   leadsMeta: number;
   leadsCrm: number;
   qualifiedLeads: number;
+  cpl: number | null;
   lqr: number | null;
   cpql: number | null;
   visits: number;
@@ -201,6 +202,7 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
 
       const spend = stats.spend * KZT_RATE;
       const totalLeads = stats.leadsMeta > 0 ? Math.max(stats.leadsMeta, crm.total) : crm.total;
+      const cpl = totalLeads > 0 ? spend / totalLeads : null;
       const lqr = totalLeads > 0 ? (crm.qualified / totalLeads) * 100 : null;
       const cpql = crm.qualified > 0 ? spend / crm.qualified : null;
       const cpv = crm.visits > 0 ? spend / crm.visits : null;
@@ -215,6 +217,7 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
         leadsMeta: stats.leadsMeta,
         leadsCrm: crm.total,
         qualifiedLeads: crm.qualified,
+        cpl,
         lqr,
         cpql,
         visits: crm.visits,
@@ -225,6 +228,7 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
         romi,
       } as MetaAccountAnalyticsRow;
     }).sort((a, b) => b.spend - a.spend || b.leads - a.leads);
+
 
     const totals = rows.reduce(
       (acc, row) => {
