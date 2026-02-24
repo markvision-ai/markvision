@@ -162,17 +162,19 @@ export function useLeads(projectId: string | null) {
     } finally {
       setLoading(false);
     }
-    
-    return () => {
-        abortControllerRef.current?.abort();
-    };
   }, [projectId, filters]);
+
+  // Clear stale data on project switch
+  useEffect(() => {
+    setLeads([]);
+    setLoading(!!projectId);
+  }, [projectId]);
 
   // Initial fetch
   useEffect(() => {
-    const cleanup = fetchLeads();
+    fetchLeads();
     return () => {
-        cleanup.then(abortFn => abortFn && abortFn());
+      abortControllerRef.current?.abort();
     };
   }, [fetchLeads]);
 

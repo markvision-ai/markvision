@@ -8,6 +8,7 @@ import { ABStatsOverview } from './ABStatsOverview';
 import { ABBattleView } from './ABBattleView';
 import { ABTestList } from './ABTestList';
 import { CreateTestWizard } from './CreateTestWizard';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 interface ABOptimizerProps {
   projectId: string;
@@ -19,22 +20,22 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [stats, setStats] = useState<TestStats | null>(null);
   const [selectedTestId, setSelectedTestId] = useState<string | null>(null);
+  const isVisible = usePageVisibility();
 
   useEffect(() => {
     fetchTests();
   }, [projectId]);
 
   useEffect(() => {
-    if (tests.length > 0) {
-      if (!selectedTestId) {
-        const running = tests.find(t => t.status === 'running');
-        if (running) setSelectedTestId(running.id);
-      }
-      fetchStats();
-      const interval = setInterval(fetchStats, 5000); // Poll every 5s
-      return () => clearInterval(interval);
+    if (!tests.length || !isVisible) return;
+    if (!selectedTestId) {
+      const running = tests.find(t => t.status === 'running');
+      if (running) setSelectedTestId(running.id);
     }
-  }, [tests, projectId]);
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Poll every 30s (visible only)
+    return () => clearInterval(interval);
+  }, [tests, projectId, selectedTestId, isVisible]);
 
   const fetchTests = async () => {
     try {

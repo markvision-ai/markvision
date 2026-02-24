@@ -155,6 +155,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   const [projectSettings, setProjectSettings] = useState<any>({});
   const [reportChannel, setReportChannel] = useState<'telegram' | 'whatsapp'>('telegram');
   const reportRef = useRef<HTMLDivElement>(null);
+  const planCacheRef = useRef<Record<string, ReportData['planData']>>({});
 
   // Templates state
   const [templates, setTemplates] = useState<ReportTemplate[]>([]);
@@ -319,25 +320,31 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 }
       );
 
-      // Fetch Plan Data
+      // Fetch Plan Data (cached by month)
       const targetMonthDate = startOfMonth(reportDateRange.from);
       const targetMonthStr = format(targetMonthDate, 'yyyy-MM-dd');
-      const { data: planResult } = await supabase
-        .from('plan_data')
-        .select('*')
-        .eq('project_id', data.projectId)
-        .eq('month', targetMonthStr)
-        .maybeSingle();
 
-      const fetchedPlan = planResult ? {
-        spend: Number(planResult.spend) || 0,
-        impressions: Number(planResult.impressions) || 0,
-        clicks: Number(planResult.clicks) || 0,
-        leads: Number(planResult.leads) || 0,
-        visits: Number((planResult as any).visits || planResult.diagnostics || 0),
-        sales: Number(planResult.sales) || 0,
-        revenue: Number(planResult.revenue) || 0,
-      } : { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 };
+      let fetchedPlan = planCacheRef.current[targetMonthStr];
+      if (!fetchedPlan) {
+        const { data: planResult } = await supabase
+          .from('plan_data')
+          .select('*')
+          .eq('project_id', data.projectId)
+          .eq('month', targetMonthStr)
+          .maybeSingle();
+
+        fetchedPlan = planResult ? {
+          spend: Number(planResult.spend) || 0,
+          impressions: Number(planResult.impressions) || 0,
+          clicks: Number(planResult.clicks) || 0,
+          leads: Number(planResult.leads) || 0,
+          visits: Number((planResult as any).visits || planResult.diagnostics || 0),
+          sales: Number(planResult.sales) || 0,
+          revenue: Number(planResult.revenue) || 0,
+        } : { spend: 0, impressions: 0, clicks: 0, leads: 0, visits: 0, sales: 0, revenue: 0 };
+
+        planCacheRef.current[targetMonthStr] = fetchedPlan;
+      }
 
       setReportData({ totals, dailyData, isLoading: false, planData: fetchedPlan });
     };

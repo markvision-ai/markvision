@@ -24,6 +24,7 @@ import { sendStatusChangeWebhook } from '@/lib/webhooks';
 import { triggerSuccessConfetti } from '@/lib/confetti';
 import { toast } from 'sonner';
 import { Loader2, WifiOff, Wifi } from 'lucide-react';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 export interface KanbanStatus {
   id: string;
@@ -88,10 +89,12 @@ export const KanbanBoard = ({
   const [pendingStatusChange, setPendingStatusChange] = useState<{ leadId: string; oldStatus: string } | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isConnected, setIsConnected] = useState(true);
+  const isVisible = usePageVisibility();
 
   // Realtime подписка вынесена в Index.tsx — здесь только UI состояние
   // Статус подключения синхронизируется через глобальный канал
   useEffect(() => {
+    if (!isVisible) return;
     // Проверяем статус realtime соединения
     const checkConnection = () => {
       const channels = supabase.getChannels();
@@ -100,10 +103,10 @@ export const KanbanBoard = ({
     };
 
     checkConnection();
-    const interval = setInterval(checkConnection, 5000);
+    const interval = setInterval(checkConnection, 20000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [isVisible]);
 
   // Улучшенные сенсоры для плавного Drag-and-Drop
   const sensors = useSensors(

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 
@@ -20,6 +20,16 @@ export interface AdPerformanceLog {
 export function useAdPerformance(projectId: string | null, dateRange?: { from: Date; to: Date }) {
   const [performanceLogs, setPerformanceLogs] = useState<AdPerformanceLog[]>([]);
   const [loading, setLoading] = useState(true);
+  const dateRangeRef = useRef(dateRange);
+
+  useEffect(() => {
+    dateRangeRef.current = dateRange;
+  }, [dateRange]);
+
+  const rangeKey = useMemo(() => {
+    if (!dateRange?.from || !dateRange?.to) return '';
+    return `${format(dateRange.from, 'yyyy-MM-dd')}_${format(dateRange.to, 'yyyy-MM-dd')}`;
+  }, [dateRange?.from, dateRange?.to]);
   
   const fetchPerformance = useCallback(async () => {
     if (!projectId) {
@@ -35,11 +45,12 @@ export function useAdPerformance(projectId: string | null, dateRange?: { from: D
         .select('*')
         .eq('project_id', projectId);
 
-      if (dateRange?.from) {
-        query = query.gte('date_start', format(dateRange.from, 'yyyy-MM-dd'));
+      const dr = dateRangeRef.current;
+      if (dr?.from) {
+        query = query.gte('date_start', format(dr.from, 'yyyy-MM-dd'));
       }
-      if (dateRange?.to) {
-        query = query.lte('date_start', format(dateRange.to, 'yyyy-MM-dd'));
+      if (dr?.to) {
+        query = query.lte('date_start', format(dr.to, 'yyyy-MM-dd'));
       }
 
       const { data, error } = await query;
@@ -52,11 +63,16 @@ export function useAdPerformance(projectId: string | null, dateRange?: { from: D
     } finally {
       setLoading(false);
     }
-  }, [projectId, dateRange]);
+  }, [projectId, rangeKey]);
 
   useEffect(() => {
     fetchPerformance();
   }, [fetchPerformance]);
+
+  useEffect(() => {
+    setPerformanceLogs([]);
+    setLoading(!!projectId);
+  }, [projectId]);
 
   return { performanceLogs, loading, refetch: fetchPerformance };
 }

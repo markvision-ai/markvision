@@ -26,6 +26,7 @@ import { cn } from '@/lib/utils';
 import { useProjectData } from '@/hooks/useProjectData';
 import { format } from 'date-fns';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 
 interface RealtimeMetric {
   label: string;
@@ -59,6 +60,7 @@ interface RealtimeDashboardProps {
 
 export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const { dailyData: projectDailyData } = useProjectData(projectId);
+  const isVisible = usePageVisibility();
 
   const [metrics, setMetrics] = useState<RealtimeMetric[]>([
     { label: 'Выручка сегодня', value: 0, previousValue: 0, format: 'currency', icon: <DollarSign className="h-5 w-5" />, color: 'text-emerald-600', bgColor: 'bg-emerald-100/50' },
@@ -188,6 +190,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
   // Check connection
   useEffect(() => {
+    if (!isVisible) return;
     const checkConnection = () => {
       const channels = supabase.getChannels();
       const isActive = channels.some(ch => ch.state === 'joined');
@@ -195,9 +198,9 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     };
 
     checkConnection();
-    const interval = setInterval(checkConnection, 5000);
+    const interval = setInterval(checkConnection, 20000);
     return () => clearInterval(interval);
-  }, []);
+  }, [isVisible]);
 
   // Use Realtime
   useEffect(() => {

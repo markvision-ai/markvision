@@ -92,6 +92,12 @@ export function useCampaigns(projectId: string | null) {
     }
   }, [projectId]);
 
+  // Clear stale data on project switch
+  useEffect(() => {
+    setCampaigns([]);
+    setLoading(!!projectId);
+  }, [projectId]);
+
   useEffect(() => {
     fetchCampaigns();
     return () => {

@@ -44,11 +44,13 @@ export const useProjectData = (projectId: string | null) => {
   const [dailyData, setDailyData] = useState<Record<string, DailyData>>({});
   const [plansMap, setPlansMap] = useState<Record<string, PlanData>>({});
   const [loading, setLoading] = useState(true);
+  const dailyDataRef = useRef<Record<string, DailyData>>({});
 
   // Кэш для предотвращения лишних запросов
   const lastFetchTimeRef = useRef<number>(0);
   const lastProjectIdRef = useRef<string | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
+  const lastRealtimeRefreshRef = useRef<number>(0);
 
   // ПЛАН берётся из записи за 1-е число текущего месяца (или из plansMap)
   const planData = useMemo((): PlanData => {
@@ -70,6 +72,19 @@ export const useProjectData = (projectId: string | null) => {
     return currentPlan;
   }, [plansMap]);
 
+  useEffect(() => {
+    dailyDataRef.current = dailyData;
+  }, [dailyData]);
+
+  // Clear stale data on project switch
+  useEffect(() => {
+    if (!effectiveProjectId) return;
+    setDailyData({});
+    setPlansMap({});
+    lastFetchTimeRef.current = 0;
+    lastProjectIdRef.current = null;
+  }, [effectiveProjectId]);
+
   // Fetch daily data with better caching
   const fetchDailyData = useCallback(async (force = false) => {
     if (!effectiveProjectId) {
@@ -82,7 +97,7 @@ export const useProjectData = (projectId: string | null) => {
     const isStale = now - lastFetchTimeRef.current > STALE_TIME;
 
     // Пропускаем запрос если данные свежие и проект не изменился
-    if (!force && isSameProject && !isStale && Object.keys(dailyData).length > 0) {
+    if (!force && isSameProject && !isStale && Object.keys(dailyDataRef.current).length > 0) {
       console.log('📊 useProjectData | Данные свежие, пропускаем запрос');
       return;
     }
@@ -101,18 +116,24 @@ export const useProjectData = (projectId: string | null) => {
       // Use local date to match UI expectation (ActiveAdsManager uses format(new Date(), 'yyyy-MM-dd'))
       const todayStr = format(new Date(), 'yyyy-MM-dd');
 
-      // AUTO-SYNC META ADS: Trigger sync if not done recently (shared logic with ActiveAdsManager)
-      // This ensures Main Dashboard has fresh data even if user hasn't visited Ads Manager
+      // AUTO-SYNC META ADS (lightweight, throttled)
       const lastSyncKey = `ads_sync_${effectiveProjectId}_${todayStr}`;
-      const lastSyncTime = sessionStorage.getItem(lastSyncKey);
+      const lastSyncTime = localStorage.getItem(lastSyncKey);
       const nowMs = Date.now();
+      const rateLimitUntil = Number(localStorage.getItem('meta_rate_limit_until') || 0);
 
-      // Sync if not synced in last 5 minutes (300000ms)
-      if (!lastSyncTime || (nowMs - parseInt(lastSyncTime)) > 300000) {
+      const isVisible = typeof document === 'undefined' ? true : document.visibilityState === 'visible';
+      const isOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+      const canAutoSync =
+        isVisible &&
+        isOnline &&
+        nowMs >= rateLimitUntil &&
+        (!lastSyncTime || (nowMs - parseInt(lastSyncTime)) > 1800000); // 30 минут
+
+      if (canAutoSync) {
         console.log('🔄 useProjectData | Triggering Auto-Sync for Meta Ads...');
-        sessionStorage.setItem(lastSyncKey, nowMs.toString());
+        localStorage.setItem(lastSyncKey, nowMs.toString());
 
-        // Fire and forget - the realtime subscription will catch the updates
         supabase.functions.invoke('ads-manager', {
           body: {
             action: 'sync_metrics',
@@ -122,10 +143,12 @@ export const useProjectData = (projectId: string | null) => {
             }
           }
         }).then(({ data, error }) => {
+          const message = String(error || data?.error || '');
+          if (message.includes('(#80004)')) {
+            localStorage.setItem('meta_rate_limit_until', String(Date.now() + 60000 * 5));
+          }
           if (error || data?.error) {
             console.warn('⚠️ useProjectData | Auto-sync failed or rate limited:', error || data?.error);
-            // If failed, clear storage so we retry next time (or maybe keep it to avoid spamming?)
-            // Better to keep it for at least a minute to avoid loop
           } else {
             console.log('✅ useProjectData | Auto-sync initiated successfully');
           }
@@ -272,7 +295,7 @@ export const useProjectData = (projectId: string | null) => {
       console.error('❌ useProjectData | Exception:', err);
       toast.error('Критическая ошибка загрузки данных');
     }
-  }, [effectiveProjectId, dailyData]);
+  }, [effectiveProjectId]);
 
   // Fetch ALL plan data
   const fetchPlanData = useCallback(async (force = false) => {
@@ -550,6 +573,14 @@ export const useProjectData = (projectId: string | null) => {
         },
         (payload) => {
           console.log('🔔 useProjectData | Realtime update from ad_performance_logs:', payload.eventType);
+          const now = Date.now();
+          if (now - lastRealtimeRefreshRef.current < 10000) {
+            return;
+          }
+          lastRealtimeRefreshRef.current = now;
+          if (typeof document !== 'undefined' && document.visibilityState !== 'visible') {
+            return;
+          }
           // Refresh daily data (which includes ads merge logic)
           fetchDailyData(true);
         }

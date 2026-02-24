@@ -42,6 +42,7 @@ import { useAIChat, ChatMessage } from '@/hooks/useAIChat';
 import { cn } from '@/lib/utils';
 import ReactMarkdown from 'react-markdown';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePageVisibility } from '@/hooks/usePageVisibility';
 import {
   BarChart,
   Bar,
@@ -82,8 +83,10 @@ const MARK_ONLINE_THRESHOLD_SEC = 300; // 5 min
 
 const useMarkStatus = () => {
   const [isOnline, setIsOnline] = useState<boolean | null>(null);
+  const isVisible = usePageVisibility();
 
   useEffect(() => {
+    if (!isVisible) return;
     const checkStatus = (lastSeenStr: string | null) => {
       if (!lastSeenStr) return false;
       const lastSeen = new Date(lastSeenStr);
@@ -154,7 +157,7 @@ const useMarkStatus = () => {
       supabase.removeChannel(channel);
       clearInterval(interval);
     };
-  }, []);
+  }, [isVisible]);
 
   return isOnline;
 };

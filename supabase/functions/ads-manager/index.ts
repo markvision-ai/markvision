@@ -70,7 +70,9 @@ Deno.serve(async (req: Request) => {
     } else if (action === 'healthcheck') {
       result = await healthcheckAction(supabase, projectId);
     } else if (action === 'get_statuses') {
-      result = await fetchCampaignStatuses(supabase, projectId);
+      result = await fetchCampaignStatuses(supabase, projectId, payload);
+    } else if (action === 'update_entity') {
+      result = await updateEntity(supabase, projectId, payload);
     } else {
       result = { message: "Unknown action" };
     }
@@ -365,14 +367,17 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     insightsQuery = `insights.time_range(${rangeStr}){${insightFields}}`;
   }
 
+  const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
   const statusesList = ["ACTIVE", "PAUSED", "ARCHIVED"];
   const statusesParam = encodeURIComponent(JSON.stringify(statusesList));
+  const baseFields = `id,name,status,effective_status,daily_budget,${insightsQuery}`;
+  const fields = includeChildren
+    ? `${baseFields},adsets{id,name,status,effective_status,${insightsQuery},ads{id,name,status,effective_status,creative{thumbnail_url},${insightsQuery}}}`
+    : baseFields;
 
   const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
-    `fields=id,name,status,effective_status,daily_budget,${insightsQuery},` +
-    `adsets{id,name,status,effective_status,${insightsQuery},` +
-    `ads{id,name,status,effective_status,creative{thumbnail_url},${insightsQuery}}}` +
+    `fields=${fields}` +
     `&effective_status=${statusesParam}` +
     `&limit=100`;
 
@@ -413,16 +418,19 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
 }
 
 // Lightweight status-only fetch — no insights, just current campaign/adset/ad statuses
-async function fetchCampaignStatuses(supabase: any, projectId: string) {
+async function fetchCampaignStatuses(supabase: any, projectId: string, payload: any = {}) {
   const accessToken = await getAccessToken(supabase, projectId);
   const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
+
+  const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
+  const fields = includeChildren
+    ? `id,name,status,effective_status,adsets{id,name,status,effective_status,ads{id,name,status,effective_status}}`
+    : `id,name,status,effective_status`;
 
   // Only request status fields — fast, minimal data
   const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
-    `fields=id,name,status,effective_status,` +
-    `adsets{id,name,status,effective_status,` +
-    `ads{id,name,status,effective_status}}` +
+    `fields=${fields}` +
     `&limit=100`;
 
   console.log(`Fetching statuses only for: ${adAccountId}`);
@@ -451,23 +459,25 @@ async function fetchCampaignStatuses(supabase: any, projectId: string) {
       effective_status: campaign.effective_status || campaign.status,
     };
 
-    (campaign.adsets?.data || []).forEach((adset: any) => {
-      statusMap[adset.id] = {
-        type: 'adset',
-        name: adset.name,
-        status: adset.status,
-        effective_status: adset.effective_status || adset.status,
-      };
-
-      (adset.ads?.data || []).forEach((ad: any) => {
-        statusMap[ad.id] = {
-          type: 'ad',
-          name: ad.name,
-          status: ad.status,
-          effective_status: ad.effective_status || ad.status,
+    if (includeChildren) {
+      (campaign.adsets?.data || []).forEach((adset: any) => {
+        statusMap[adset.id] = {
+          type: 'adset',
+          name: adset.name,
+          status: adset.status,
+          effective_status: adset.effective_status || adset.status,
         };
+
+        (adset.ads?.data || []).forEach((ad: any) => {
+          statusMap[ad.id] = {
+            type: 'ad',
+            name: ad.name,
+            status: ad.status,
+            effective_status: ad.effective_status || ad.status,
+          };
+        });
       });
-    });
+    }
   });
 
   return { statusMap, total: Object.keys(statusMap).length };
@@ -490,6 +500,31 @@ async function updateEntityStatus(supabase: any, projectId: string, payload: any
   }
 
   return { success: true, id: entityId, status };
+}
+
+async function updateEntity(supabase: any, projectId: string, payload: any) {
+  const { entityId, name, daily_budget } = payload || {};
+  if (!entityId) throw new Error("Entity ID is required");
+
+  if (!name && !daily_budget) {
+    return { message: "Nothing to update", type: "info" };
+  }
+
+  const accessToken = await getAccessToken(supabase, projectId);
+  const params = new URLSearchParams({ access_token: accessToken });
+
+  if (name) params.set('name', name);
+  if (daily_budget) params.set('daily_budget', String(daily_budget));
+
+  const url = `https://graph.facebook.com/v21.0/${entityId}?${params.toString()}`;
+  const res = await fetch(url, { method: 'POST' });
+  const data = await res.json();
+
+  if (data.error) {
+    throw new Error(data.error.message);
+  }
+
+  return { success: true, id: entityId, name, daily_budget };
 }
 
 async function getAdAccountId(accessToken: string): Promise<string> {

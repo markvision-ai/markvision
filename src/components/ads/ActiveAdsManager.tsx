@@ -56,7 +56,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { KZT_RATE } from '@/constants/ads';
 
-import { format } from 'date-fns';
+import { format, subDays, differenceInCalendarDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
 interface ActiveAdsManagerProps {
@@ -180,18 +180,36 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   dateRangeRef.current = dateRange;
 
   const [hierarchy, setHierarchy] = useState<Campaign[]>([]);
-  const [liveStatusMap, setLiveStatusMap] = useState<Record<string, { status: string; effective_status: string }>>({});
+  const [liveStatusMap, setLiveStatusMap] = useState<Record<string, { status: string; effective_status: string; name?: string }>>({});
   const [adInsights, setAdInsights] = useState<Record<string, AdInsightRecord>>({});
   const [adAccountId, setAdAccountId] = useState<string | null>(null);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
-  const [metaSourceIds, setMetaSourceIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  // Circuit Breaker for Rate Limits
+  const rateLimitUntilRef = useRef<number>(0);
+  const lastStatusSyncRef = useRef<number>(0);
+  const setRateLimit = useCallback((until: number) => {
+    rateLimitUntilRef.current = until;
+    try {
+      localStorage.setItem('meta_rate_limit_until', String(until));
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      const stored = Number(localStorage.getItem('meta_rate_limit_until') || 0);
+      if (stored > 0) {
+        rateLimitUntilRef.current = stored;
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
   const [toggling, setToggling] = useState<string | null>(null);
   const [showActiveOnly, setShowActiveOnly] = useState(false);
-  const [activeTab, setActiveTab] = useState<'campaigns' | 'adsets' | 'ads'>('campaigns');
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
-  const [selectedAdsets, setSelectedAdsets] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
     status: true,
@@ -210,6 +228,41 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     return value.toUpperCase();
   }, []);
 
+  // Normalization Helper for Loose Matching (stable)
+  const normalize = useCallback((str: string | undefined | null) => {
+    if (!str) return '';
+    let decoded = str;
+    try {
+      decoded = decodeURIComponent(str);
+    } catch {
+      decoded = str;
+    }
+    // Remove emojis, special chars, keep only alphanumeric and cyrillic
+    return decoded.toLowerCase().replace(/[^a-z0-9а-яё]/g, '');
+  }, []);
+
+  const liveStatusByName = useMemo(() => {
+    const map = new Map<string, string>();
+    Object.values(liveStatusMap || {}).forEach((entry) => {
+      const key = normalize(entry?.name);
+      if (key) {
+        map.set(key, normalizeStatus(entry.effective_status ?? entry.status) as string);
+      }
+    });
+    return map;
+  }, [liveStatusMap, normalize, normalizeStatus]);
+
+  // Reset data when switching projects to avoid cross-project leakage
+  useEffect(() => {
+    setHierarchy([]);
+    setLiveStatusMap({});
+    setAdInsights({});
+    setAdAccountId(null);
+    setAccountStatus(null);
+    setSelectedCampaigns(new Set());
+    setLoading(!!pid);
+  }, [pid]);
+
   const normalizeNodeStatuses = useCallback((nodes: any[]): any[] => {
     return nodes.map((node: any) => {
       const status = normalizeStatus(node.status);
@@ -225,11 +278,17 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     });
   }, [normalizeStatus]);
 
-  const getLiveStatus = useCallback((id: string) => {
+  const getLiveStatus = useCallback((id: string, name?: string) => {
     const live = liveStatusMap[id];
-    if (!live) return null;
-    return normalizeStatus(live.effective_status ?? live.status);
-  }, [liveStatusMap, normalizeStatus]);
+    if (live) return normalizeStatus(live.effective_status ?? live.status);
+    // Fallback by name when IDs don't align (e.g., local DB ids)
+    if (name) {
+      const key = normalize(name);
+      const byName = liveStatusByName.get(key);
+      if (byName) return byName;
+    }
+    return null;
+  }, [liveStatusMap, normalizeStatus, normalize, liveStatusByName]);
 
   // Filter leads by date range for accurate CRM metrics
   const filteredLeads = useMemo(() => {
@@ -245,12 +304,40 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     });
   }, [leads, dateRange]);
 
-  // Normalization Helper for Loose Matching
-  const normalize = (str: string | undefined | null) => {
-    if (!str) return '';
-    // Remove emojis, special chars, keep only alphanumeric and cyrillic
-    return decodeURIComponent(str).toLowerCase().replace(/[^a-z0-9а-яё]/g, '');
-  };
+  const leadIndexes = useMemo(() => {
+    const buildIndex = (field: 'utm_campaign' | 'utm_term' | 'utm_content') => {
+      const map = new Map<string, { visits: number; paid: number; revenue: number }>();
+      const keys: string[] = [];
+
+      filteredLeads.forEach((lead) => {
+        const utm = (lead as any)[field] as string | null | undefined;
+        if (!utm) return;
+        const key = normalize(utm);
+        if (!key) return;
+
+        let agg = map.get(key);
+        if (!agg) {
+          agg = { visits: 0, paid: 0, revenue: 0 };
+          map.set(key, agg);
+          keys.push(key);
+        }
+
+        agg.visits += 1;
+        if (lead.status === 'paid') {
+          agg.paid += 1;
+          agg.revenue += lead.deal_amount || 0;
+        }
+      });
+
+      return { map, keys };
+    };
+
+    return {
+      campaign: buildIndex('utm_campaign'),
+      adset: buildIndex('utm_term'),
+      ad: buildIndex('utm_content'),
+    };
+  }, [filteredLeads, normalize]);
 
   // Merge Hierarchy with Derived Campaigns from CRM AND Ad Performance Logs
   const fullHierarchy = useMemo(() => {
@@ -331,7 +418,58 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     }
 
     return [...hierarchy, ...derived];
-  }, [hierarchy, filteredLeads, adInsights, showActiveOnly]);
+  }, [hierarchy, filteredLeads, adInsights, showActiveOnly, normalize]);
+
+  const fetchHierarchyFromDb = useCallback(async () => {
+    if (!pid) return [] as Campaign[];
+
+    let fallbackHierarchy: Campaign[] = [];
+
+    // 1. Try 'campaigns' table (structure source)
+    const { data: localCampaigns } = await (supabase as any)
+      .from('campaigns')
+      .select('*')
+      .eq('project_id', pid)
+      .order('created_at', { ascending: false });
+
+    if (localCampaigns && localCampaigns.length > 0) {
+      fallbackHierarchy = localCampaigns.map((c: any) => ({
+        id: c.external_id || c.id,
+        name: c.name,
+        status: (c.status === 'ACTIVE' || c.status === true || c.status === 1) ? 'ACTIVE' : (c.status === 'PAUSED' ? 'PAUSED' : (c.status ? String(c.status).toUpperCase() : 'ACTIVE')),
+        daily_budget: c.budget ? c.budget.toString() : '0',
+        insights: { data: [] },
+        adsets: { data: [] }
+      }));
+    } else {
+      // 2. Try 'ad_performance_logs' (data source)
+      const { data: logs } = await (supabase as any)
+        .from('ad_performance_logs')
+        .select('entity_id, entity_name, spend')
+        .eq('project_id', pid)
+        .eq('entity_type', 'campaign')
+        .order('date_start', { ascending: false });
+
+      if (logs && logs.length > 0) {
+        const uniqueMap = new Map();
+        logs.forEach((log: any) => {
+          if (!uniqueMap.has(log.entity_id)) {
+            uniqueMap.set(log.entity_id, {
+              id: log.entity_id,
+              name: log.entity_name || `Campaign ${log.entity_id}`,
+              status: 'ACTIVE',
+              daily_budget: '0',
+              insights: { data: [] },
+              adsets: { data: [] }
+            });
+          }
+        });
+        fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
+      }
+    }
+
+    return fallbackHierarchy;
+  }, [pid]);
 
 
   const fetchAdInsights = useCallback(async () => {
@@ -392,31 +530,56 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   // Lightweight: get ONLY real-time status from Meta (no insights, no rate limit concerns)
   const fetchLiveStatuses = useCallback(async () => {
     if (!pid) return;
+    if (Date.now() < rateLimitUntilRef.current) return;
+
+    const now = Date.now();
+    if (now - lastStatusSyncRef.current < 30000) return;
     try {
       const { data, error } = await supabase.functions.invoke('ads-manager', {
-        body: { action: 'get_statuses', payload: { projectId: pid } }
+        body: { action: 'get_statuses', payload: { projectId: pid, include_children: false, level: 'campaign' } }
       });
       if (!error && data?.statusMap) {
         setLiveStatusMap(data.statusMap);
+        lastStatusSyncRef.current = now;
         console.log(`✅ Live status sync: ${data.total} entities from Meta`);
       } else if (error || data?.error) {
+        const message = String(error || data?.error || '');
+        if (message.includes('(#80004)')) {
+          setRateLimit(Date.now() + 60000 * 5);
+        }
         console.warn('Live status fetch failed (non-critical):', error || data?.error);
       }
     } catch (e) {
       console.warn('fetchLiveStatuses error (non-critical):', e);
     }
-  }, [pid]);
-
-  // Circuit Breaker for Rate Limits
-  const [rateLimitUntil, setRateLimitUntil] = useState<number>(0);
+  }, [pid, setRateLimit]);
 
   const fetchHierarchy = useCallback(async (forceApi = false) => {
+    if (!pid) return;
     setLoading(true);
     try {
-      // Always fetch from Meta API to get real statuses.
-      // Local DB is only used as a fallback when API fails.
+      // Prefer local DB when not forced to avoid Meta rate limits
+      if (!forceApi) {
+        const localHierarchy = await fetchHierarchyFromDb();
+        if (localHierarchy.length > 0) {
+          setHierarchy(localHierarchy);
+          setLoading(false);
+          return;
+        }
+      }
 
-      const payload: any = { projectId: pid };
+      if (Date.now() < rateLimitUntilRef.current) {
+        const localHierarchy = await fetchHierarchyFromDb();
+        if (localHierarchy.length > 0) {
+          setHierarchy(localHierarchy);
+        }
+        if (forceApi) {
+          toast.warning('Meta API временно недоступно (лимит запросов).');
+        }
+        return;
+      }
+
+      const payload: any = { projectId: pid, include_children: false, level: 'campaign' };
 
       const dr = dateRangeRef.current;
       if (dr?.from && dr?.to) {
@@ -426,96 +589,33 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         };
       }
 
-      // 1. Try to fetch from Meta API via Edge Function
       const { data, error } = await supabase.functions.invoke('ads-manager', {
         body: { action: 'get_hierarchy', payload }
       });
 
-      // 2. Fallback Logic for Rate Limits or Errors
       if (error || !data || data.error) {
         console.error('Edge Function/Meta API Error:', error || data?.error);
 
-        const isRateLimit = data?.error?.includes('(#80004)') || data?.error?.includes('rate-limiting');
+        const message = String(error || data?.error || '');
+        const isRateLimit = message.includes('(#80004)') || message.includes('rate-limiting');
 
         if (isRateLimit) {
+          setRateLimit(Date.now() + 60000 * 5);
           toast.warning('Meta API: Превышен лимит запросов. Используем локальные данные.');
-        } else if (data?.error?.includes('No active Ad Account')) {
+        } else if (message.includes('No active Ad Account')) {
           toast.error('Рекламный аккаунт не найден.');
           return;
-        } else {
-          console.warn('Using local fallback due to API error');
         }
 
-        // FETCH FALLBACK FROM DB (campaigns table)
-        let fallbackHierarchy: Campaign[] = [];
-
-        // 1. Try 'campaigns' table (structure source)
-        const { data: localCampaigns } = await (supabase as any)
-          .from('campaigns')
-          .select('*')
-          .eq('project_id', pid)
-          .order('created_at', { ascending: false });
-
-        if (localCampaigns && localCampaigns.length > 0) {
-          fallbackHierarchy = localCampaigns.map((c: any) => ({
-            id: c.external_id || c.id,
-            name: c.name,
-            status: (c.status === 'ACTIVE' || c.status === true || c.status === 1) ? 'ACTIVE' : (c.status === 'PAUSED' ? 'PAUSED' : (c.status ? String(c.status).toUpperCase() : 'ACTIVE')),
-            daily_budget: c.budget ? c.budget.toString() : '0',
-            insights: { data: [] },
-            adsets: { data: [] }
-          }));
-        } else {
-          // 2. Try 'ad_performance_logs' (data source)
-          const { data: logs } = await (supabase as any)
-            .from('ad_performance_logs')
-            .select('entity_id, entity_name, spend')
-            .eq('project_id', projectId) // Use projectId from scope or pid
-            .eq('entity_type', 'campaign')
-            .order('date_start', { ascending: false });
-
-          if (logs && logs.length > 0) {
-            const uniqueMap = new Map();
-            logs.forEach((log: any) => {
-              if (!uniqueMap.has(log.entity_id)) {
-                uniqueMap.set(log.entity_id, {
-                  id: log.entity_id,
-                  name: log.entity_name || `Campaign ${log.entity_id}`,
-                  status: 'ACTIVE',
-                  daily_budget: '0',
-                  insights: { data: [] },
-                  adsets: { data: [] }
-                });
-              }
-            });
-            fallbackHierarchy = Array.from(uniqueMap.values()) as Campaign[];
-          }
+        const localHierarchy = await fetchHierarchyFromDb();
+        if (localHierarchy.length > 0) {
+          setHierarchy(localHierarchy);
         }
+      return;
+    }
 
-        if (fallbackHierarchy.length > 0) {
-          setHierarchy(fallbackHierarchy);
-        }
-        // Fallback data does not guarantee real Meta statuses
-        setMetaSourceIds(new Set());
-        return;
-      }
-
-      // Success Path
       const apiData = normalizeNodeStatuses(data.data || []);
       setHierarchy(apiData);
-
-      // Auto-expand ALL campaigns and adsets to show full hierarchy
-      const allIds = new Set<string>();
-      const collectIds = (nodes: any[]) => {
-        nodes.forEach((n: any) => {
-          allIds.add(n.id);
-          if (n.adsets?.data) collectIds(n.adsets.data);
-          if (n.ads?.data) collectIds(n.ads.data);
-        });
-      };
-      collectIds(apiData);
-      setExpandedRows(allIds);
-      setMetaSourceIds(allIds);
 
       if (data.adAccountId) {
         setAdAccountId(data.adAccountId);
@@ -529,7 +629,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     } finally {
       setLoading(false);
     }
-  }, [pid, projectId]); // Only depends on pid/projectId, reads dateRange from ref
+  }, [pid, fetchHierarchyFromDb, normalizeNodeStatuses, setRateLimit]); // Only depends on pid/rate limit, reads dateRange from ref
 
 
 
@@ -541,21 +641,21 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
   useEffect(() => {
     if (pid && dateRangeKey && dateRange?.from) {
-      // Check circuit breaker
-      if (Date.now() < rateLimitUntil) {
-        console.warn('Meta API requests paused due to Rate Limit.');
-        return;
-      }
-
       // 1. Load Local Data Immediately (History + cached Today)
       fetchHierarchy(false);
       fetchAdInsights();
-      fetchLiveStatuses(); // Always get fresh statuses from Meta on every load
+      if (Date.now() >= rateLimitUntilRef.current) {
+        fetchLiveStatuses(); // Statuses are lightweight but still respect rate limits
+      }
 
       // 2. Smart Sync Logic
       // We sync if we haven't synced this specific range recently to ensure data consistency
       const fromStr = format(dateRange.from, 'yyyy-MM-dd');
       const toStr = dateRange.to ? format(dateRange.to, 'yyyy-MM-dd') : fromStr;
+      const toDate = dateRange.to ?? dateRange.from;
+      const rangeDays = differenceInCalendarDays(toDate, dateRange.from) + 1;
+      const yesterday = subDays(new Date(), 1);
+      const includesRecent = toDate >= yesterday;
 
       // Use a unique key for this specific date range
       const lastSyncKey = `ads_sync_${pid}_${fromStr}_${toStr}`;
@@ -565,7 +665,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // Check if we should sync:
       // 1. Not synced recently (5 mins cooldown)
       // 2. Rate limit not active
-      if (!lastSyncTime || (now - parseInt(lastSyncTime)) > 300000) {
+      // 3. Range includes recent dates (avoid syncing old ranges)
+      if (
+        includesRecent &&
+        rangeDays <= 7 &&
+        Date.now() >= rateLimitUntilRef.current &&
+        (!lastSyncTime || (now - parseInt(lastSyncTime)) > 300000)
+      ) {
         console.log(`Auto-syncing range: ${fromStr} to ${toStr}`);
         sessionStorage.setItem(lastSyncKey, now.toString()); // Mark as syncing immediately
 
@@ -582,7 +688,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         }).then(({ data, error }) => {
           if (data?.error?.includes('#80004')) {
             console.warn('Rate Limit hit during auto-sync');
-            setRateLimitUntil(Date.now() + 60000 * 5); // 5 min pause
+            setRateLimit(Date.now() + 60000 * 5); // 5 min pause
             sessionStorage.removeItem(lastSyncKey); // Retry later if failed
             toast.warning('Meta API: Лимит запросов. Пауза 5 мин.');
           } else if (!error && !data?.error) {
@@ -601,21 +707,19 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pid, dateRangeKey, rateLimitUntil]); // Stable deps only — callbacks use refs internally
+  }, [pid, dateRangeKey]); // Stable deps only — callbacks use refs internally
 
   useEffect(() => {
     if (pid && refreshTrigger > 0) {
-      if (Date.now() < rateLimitUntil) {
-        console.warn('Meta API sync skipped due to Rate Limit.');
-        return;
-      }
       // Refresh DB insights + hierarchy to update active statuses
       fetchAdInsights();
       fetchHierarchy(true);
-      fetchLiveStatuses(); // Refresh live statuses on manual refresh too
+      if (Date.now() >= rateLimitUntilRef.current) {
+        fetchLiveStatuses(); // Refresh live statuses on manual refresh too
+      }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [refreshTrigger, rateLimitUntil, pid]);
+  }, [refreshTrigger, pid]);
 
   // Export to CSV
   const handleExportCSV = () => {
@@ -672,6 +776,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // 2. Refresh local insights from DB
       await fetchAdInsights();
       await fetchHierarchy(true);
+      await fetchLiveStatuses();
 
       if (syncData.message) {
         toast.success(syncData.message);
@@ -681,6 +786,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     } catch (e: any) {
       console.error('Sync failed', e);
       if (e.message?.includes('(#80004)')) {
+        setRateLimit(Date.now() + 60000 * 5);
         toast.warning('Meta API: Превышен лимит запросов. Синхронизация пропущена.');
       } else {
         toast.error(`Ошибка синхронизации: ${e.message}`);
@@ -730,16 +836,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     setHierarchy(prev => updateNode(prev));
   };
 
-  const toggleRow = (id: string) => {
-    const newExpanded = new Set(expandedRows);
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id);
-    } else {
-      newExpanded.add(id);
-    }
-    setExpandedRows(newExpanded);
-  };
-
   // Process data into tree structure
   const processedData = useMemo(() => {
     const getMetrics = (id: string, node?: any) => {
@@ -756,14 +852,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       return { spend, leadsMeta, clicks, impressions, spendKZT };
     };
 
-    const shouldShow = (status: string, id: string, metrics: { spend: number, leadsMeta: number, visits: number }) => {
+    const shouldShow = (status: string) => {
       if (status === 'DELETED' || status === 'ARCHIVED') return false;
-
-      // When "Только активные" is ON — show ONLY entities with ACTIVE status from Meta API
-      if (showActiveOnly && (status !== 'ACTIVE' || (!metaSourceIds.has(id) && !liveStatusMap[id]))) return false;
-
-      // When "Все кампании" — show everything (including paused)
-      return true;
+      if (!showActiveOnly) return true;
+      return status === 'ACTIVE';
     };
 
     // Helper to process nodes recursively with bottom-up aggregation
@@ -793,11 +885,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
         // Filter for display based on Status AND Metrics
         children = allProcessedChildren.filter((child: RowData) =>
-          shouldShow(child.status, child.id, {
-            spend: child.spend,
-            leadsMeta: child.leadsMeta,
-            visits: child.visits
-          })
+          shouldShow(child.status)
         );
       }
 
@@ -811,52 +899,48 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       // CRM Metrics Logic
       // Filter leads relevant to this node based on UTM parameters
-      const nodeLeads = filteredLeads.filter(l => {
-        const normId = normalize(node.id);
-        const normName = normalize(node.name);
+      const getLeadAggForNode = (nodeType: 'campaign' | 'adset' | 'ad', nodeId: string, nodeName: string) => {
+        const index = nodeType === 'campaign'
+          ? leadIndexes.campaign
+          : nodeType === 'adset'
+            ? leadIndexes.adset
+            : leadIndexes.ad;
 
-        if (type === 'campaign') {
-          const utm = l.utm_campaign;
-          if (!utm) return false;
-          const normUtm = normalize(utm);
+        const normName = normalize(nodeName);
+        const normId = normalize(nodeId);
+        const keysToInclude = new Set<string>();
 
-          // 1. Exact Match (ID or Name)
-          if (utm === node.id || normUtm === normName) return true;
+        if (normId) keysToInclude.add(normId);
+        if (normName) keysToInclude.add(normName);
 
-          // 2. Loose Match (Inclusion)
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
+        if (normName.length > 3) {
+          for (const key of index.keys) {
+            if (keysToInclude.has(key)) continue;
+            if (key.length > 3 && (key.includes(normName) || normName.includes(key))) {
+              keysToInclude.add(key);
+            }
           }
-          return false;
-
-        } else if (type === 'adset') {
-          const utm = l.utm_term; // Standard UTM for AdSet
-          if (!utm) return false;
-          const normUtm = normalize(utm);
-
-          if (utm === node.id || normUtm === normName) return true;
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
-          }
-          return false;
-
-        } else if (type === 'ad') {
-          const utm = l.utm_content; // Standard UTM for Ad
-          if (!utm) return false;
-          const normUtm = normalize(utm);
-
-          if (utm === node.id || normUtm === normName) return true;
-          if (normUtm.length > 3 && normName.length > 3) {
-            if (normUtm.includes(normName) || normName.includes(normUtm)) return true;
-          }
-          return false;
         }
-        return false;
-      });
+
+        let visits = 0;
+        let paid = 0;
+        let revenue = 0;
+        keysToInclude.forEach((key) => {
+          const agg = index.map.get(key);
+          if (!agg) return;
+          visits += agg.visits;
+          paid += agg.paid;
+          revenue += agg.revenue;
+        });
+
+        return { visits, paid, revenue };
+      };
+
+      const leadAgg = getLeadAggForNode(type, node.id, node.name);
 
       // Leads CRM (now Visits): For campaigns, if direct matching fails (0), try using children sum
       // This handles cases where leads match AdSets (via utm_term) but not Campaign (via utm_campaign)
-      let visits = nodeLeads.length;
+      let visits = leadAgg.visits;
       if (visits === 0 && type === 'campaign' && childrenSum.visits > 0) {
         visits = childrenSum.visits;
       }
@@ -867,9 +951,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // Calculate derivatives (using Smart Leads count)
       const cpl = finalLeadsMeta > 0 ? finalSpendKZT / finalLeadsMeta : 0;
 
-      const paidLeads = nodeLeads.filter(l => l.status === 'paid');
-      const sales = paidLeads.length;
-      const revenue = paidLeads.reduce((sum, l) => sum + (l.deal_amount || 0), 0);
+      const sales = leadAgg.paid;
+      const revenue = leadAgg.revenue;
 
       const visitCost = visits > 0 ? finalSpendKZT / visits : 0;
       const roi = finalSpendKZT > 0 ? (revenue - finalSpendKZT) / finalSpendKZT * 100 : 0;
@@ -922,7 +1005,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
 
       // Prefer live status map (status-only endpoint), fallback to hierarchy status
-      const liveStatus = getLiveStatus(node.id);
+      const liveStatus = getLiveStatus(node.id, node.name);
       const effectiveStatus = liveStatus ?? normalizeStatus(node.effective_status || node.status);
 
       return {
@@ -950,13 +1033,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
     return fullHierarchy
       .map(campaign => processNode(campaign, 'campaign'))
-      .filter(campaign => shouldShow(campaign.status, campaign.id, {
-        spend: campaign.spend,
-        leadsMeta: campaign.leadsMeta,
-        visits: campaign.visits
-      }));
+      .filter(campaign => shouldShow(campaign.status));
 
-  }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly, metaSourceIds]);
+  }, [fullHierarchy, filteredLeads, adInsights, showActiveOnly, getLiveStatus, leadIndexes]);
 
   // Sort Logic
   const sortedData = useMemo(() => {
@@ -982,32 +1061,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     return sortNodes(processedData);
   }, [processedData, sortConfig]);
 
-  // Flatten for rendering — respects activeTab
-  const flattenRows = useCallback((nodes: RowData[], level = 0): (RowData & { level: number })[] => {
-    let result: (RowData & { level: number })[] = [];
-    nodes.forEach(node => {
-      result.push({ ...node, level });
-      if (expandedRows.has(node.id) && node.children) {
-        result = result.concat(flattenRows(node.children, level + 1));
-      }
-    });
-    return result;
-  }, [expandedRows]);
-
-  // Flatten ALL rows with parent tracking (for adsets/ads tabs)
-  const flattenAllWithParent = useCallback((nodes: RowData[], parentCampaignId?: string, parentAdsetId?: string): (RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string })[] => {
-    let result: (RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string })[] = [];
-    nodes.forEach(node => {
-      const campId = node.type === 'campaign' ? node.id : parentCampaignId;
-      const adsetId = node.type === 'adset' ? node.id : parentAdsetId;
-      result.push({ ...node, level: 0, parentCampaignId: campId, parentAdsetId: adsetId });
-      if (node.children) {
-        result = result.concat(flattenAllWithParent(node.children, campId, adsetId));
-      }
-    });
-    return result;
-  }, []);
-
   // Selection helpers
   const toggleCampaignSelection = useCallback((id: string) => {
     setSelectedCampaigns(prev => {
@@ -1017,64 +1070,29 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     });
   }, []);
 
-  const toggleAdsetSelection = useCallback((id: string) => {
-    setSelectedAdsets(prev => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const toggleRowSelection = useCallback((row: RowData & { level: number; parentCampaignId?: string; parentAdsetId?: string }) => {
-    if (activeTab === 'campaigns') {
-      if (row.type === 'campaign') toggleCampaignSelection(row.id);
-    } else if (activeTab === 'adsets') {
-      toggleAdsetSelection(row.id);
-    }
-    // ads tab — no selection needed (it's the leaf level)
-  }, [activeTab, toggleCampaignSelection, toggleAdsetSelection]);
+  const toggleRowSelection = useCallback((row: RowData) => {
+    if (row.type === 'campaign') toggleCampaignSelection(row.id);
+  }, [toggleCampaignSelection]);
 
   const isRowSelected = useCallback((row: RowData) => {
-    if (activeTab === 'campaigns') return selectedCampaigns.has(row.id);
-    if (activeTab === 'adsets') return selectedAdsets.has(row.id);
-    return false;
-  }, [activeTab, selectedCampaigns, selectedAdsets]);
+    return selectedCampaigns.has(row.id);
+  }, [selectedCampaigns]);
 
   const visibleRows = useMemo(() => {
-    const allRows = flattenAllWithParent(sortedData);
+    const campaigns = sortedData.filter(r => r.type === 'campaign');
+    if (!showActiveOnly) return campaigns;
 
-    if (activeTab === 'campaigns') {
-      // FLAT list of campaigns only — no children
-      const campaigns = allRows.filter(r => r.type === 'campaign');
-      if (!showActiveOnly) return campaigns;
-
-      // When showing only active, dedupe by normalized name and keep highest spend
-      const byName = new Map<string, typeof campaigns[0]>();
-      campaigns.forEach(c => {
-        const key = normalize(c.name);
-        const current = byName.get(key);
-        if (!current || c.spendKZT > current.spendKZT) {
-          byName.set(key, c);
-        }
-      });
-      return Array.from(byName.values());
-    } else if (activeTab === 'adsets') {
-      // Show adsets belonging to selected campaigns (or all if none selected)
-      const adsetRows = allRows.filter(r => r.type === 'adset');
-      if (selectedCampaigns.size === 0) return adsetRows;
-      return adsetRows.filter(r => r.parentCampaignId && selectedCampaigns.has(r.parentCampaignId));
-    } else {
-      // Show ads belonging to selected adsets (or selected campaigns if no adsets selected, or all)
-      const adRows = allRows.filter(r => r.type === 'ad');
-      if (selectedAdsets.size > 0) {
-        return adRows.filter(r => r.parentAdsetId && selectedAdsets.has(r.parentAdsetId));
+    // When showing only active, dedupe by normalized name and keep highest spend
+    const byName = new Map<string, typeof campaigns[0]>();
+    campaigns.forEach(c => {
+      const key = normalize(c.name);
+      const current = byName.get(key);
+      if (!current || c.spendKZT > current.spendKZT) {
+        byName.set(key, c);
       }
-      if (selectedCampaigns.size > 0) {
-        return adRows.filter(r => r.parentCampaignId && selectedCampaigns.has(r.parentCampaignId));
-      }
-      return adRows;
-    }
-  }, [sortedData, flattenAllWithParent, activeTab, selectedCampaigns, selectedAdsets, showActiveOnly, normalize]);
+    });
+    return Array.from(byName.values());
+  }, [sortedData, showActiveOnly, normalize]);
 
   const handleSort = (key: keyof RowData) => {
     setSortConfig(current => ({
@@ -1089,15 +1107,24 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   const formatPercent = (val: number) => new Intl.NumberFormat('ru-RU', { style: 'percent', maximumFractionDigits: 1 }).format(val / 100);
 
   // Footer Totals Calculation
-  const totalSpendKZT = processedData.reduce((sum, row) => sum + row.spendKZT, 0);
-  const totalLeadsMeta = processedData.reduce((sum, row) => sum + row.leadsMeta, 0);
-  const totalVisits = processedData.reduce((sum, row) => sum + row.visits, 0);
-  const totalSales = processedData.reduce((sum, row) => sum + row.sales, 0);
-  const totalRevenue = processedData.reduce((sum, row) => sum + row.revenue, 0);
+  const totals = useMemo(() => {
+    const totalSpendKZT = processedData.reduce((sum, row) => sum + row.spendKZT, 0);
+    const totalLeadsMeta = processedData.reduce((sum, row) => sum + row.leadsMeta, 0);
+    const totalVisits = processedData.reduce((sum, row) => sum + row.visits, 0);
+    const totalSales = processedData.reduce((sum, row) => sum + row.sales, 0);
+    const totalRevenue = processedData.reduce((sum, row) => sum + row.revenue, 0);
 
-  const totalCpl = totalLeadsMeta > 0 ? totalSpendKZT / totalLeadsMeta : 0;
-  const totalVisitCost = totalVisits > 0 ? totalSpendKZT / totalVisits : 0;
-  const totalRoi = totalSpendKZT > 0 ? (totalRevenue - totalSpendKZT) / totalSpendKZT * 100 : 0;
+    return {
+      totalSpendKZT,
+      totalLeadsMeta,
+      totalVisits,
+      totalSales,
+      totalRevenue,
+      totalCpl: totalLeadsMeta > 0 ? totalSpendKZT / totalLeadsMeta : 0,
+      totalVisitCost: totalVisits > 0 ? totalSpendKZT / totalVisits : 0,
+      totalRoi: totalSpendKZT > 0 ? (totalRevenue - totalSpendKZT) / totalSpendKZT * 100 : 0,
+    };
+  }, [processedData]);
 
   // Unattributed Logic (Leads that exist in CRM date range but didn't match any campaign)
   // const allCrmLeadsCount = filteredLeads.length;
@@ -1234,66 +1261,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               <RefreshCw className={cn("w-3.5 h-3.5 mr-1.5", loading && "animate-spin")} />
               Обновить
             </Button>
-          </div>
-        </div>
-
-        {/* Meta-style 3-Level Tab Navigation with selection badges */}
-        <div className="border-b border-[#dddfe2] bg-[#f0f2f5]">
-          <div className="flex">
-            <button
-              onClick={() => setActiveTab('campaigns')}
-              className={cn(
-                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
-                activeTab === 'campaigns'
-                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
-                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
-              )}
-            >
-              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M2 3a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H3a1 1 0 01-1-1V3zm7 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1V3zM2 10a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H3a1 1 0 01-1-1v-3zm7 0a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z" /></svg>
-              Кампании
-              {selectedCampaigns.size > 0 && (
-                <span className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full bg-[#1b74e4] text-white text-[11px] font-bold">
-                  {selectedCampaigns.size} выбрано
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setSelectedCampaigns(new Set()); setSelectedAdsets(new Set()); }}
-                    className="ml-0.5 hover:bg-white/20 rounded-full w-3.5 h-3.5 flex items-center justify-center"
-                  >✕</button>
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('adsets')}
-              className={cn(
-                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
-                activeTab === 'adsets'
-                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
-                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
-              )}
-            >
-              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M1 2.5A1.5 1.5 0 012.5 1h3A1.5 1.5 0 017 2.5v3A1.5 1.5 0 015.5 7h-3A1.5 1.5 0 011 5.5v-3zM9 2.5A1.5 1.5 0 0110.5 1h3A1.5 1.5 0 0115 2.5v3A1.5 1.5 0 0113.5 7h-3A1.5 1.5 0 019 5.5v-3zM1 10.5A1.5 1.5 0 012.5 9h3A1.5 1.5 0 017 10.5v3A1.5 1.5 0 015.5 15h-3A1.5 1.5 0 011 13.5v-3zM9 10.5A1.5 1.5 0 0110.5 9h3a1.5 1.5 0 011.5 1.5v3a1.5 1.5 0 01-1.5 1.5h-3A1.5 1.5 0 019 13.5v-3z" /></svg>
-              Группы объяв.
-              {selectedAdsets.size > 0 && (
-                <span className="flex items-center gap-1 ml-1 px-2 py-0.5 rounded-full bg-[#1b74e4] text-white text-[11px] font-bold">
-                  {selectedAdsets.size} выбрано
-                  <button
-                    onClick={(e) => { e.stopPropagation(); setSelectedAdsets(new Set()); }}
-                    className="ml-0.5 hover:bg-white/20 rounded-full w-3.5 h-3.5 flex items-center justify-center"
-                  >✕</button>
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab('ads')}
-              className={cn(
-                "flex items-center gap-2 px-5 py-3 text-[14px] font-semibold border-b-[3px] transition-colors",
-                activeTab === 'ads'
-                  ? "border-[#1b74e4] text-[#1b74e4] bg-white"
-                  : "border-transparent text-[#65676b] hover:bg-[#e4e6eb]"
-              )}
-            >
-              <svg viewBox="0 0 16 16" className="w-4 h-4" fill="currentColor"><path d="M2 2a1 1 0 011-1h10a1 1 0 011 1v12a1 1 0 01-1 1H3a1 1 0 01-1-1V2zm2 1v4h8V3H4zm0 6v4h8V9H4z" /></svg>
-              Объявления
-            </button>
           </div>
         </div>
 
@@ -1451,22 +1418,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   <input
                     type="checkbox"
                     className="w-[15px] h-[15px] rounded border-[#ccd0d5] accent-[#1b74e4] cursor-pointer"
-                    checked={visibleRows.length > 0 && visibleRows.filter(r => activeTab === 'campaigns' ? r.type === 'campaign' : true).every(r => isRowSelected(r))}
+                    checked={visibleRows.length > 0 && visibleRows.every(r => isRowSelected(r))}
                     onChange={() => {
-                      const relevantRows = visibleRows.filter(r => activeTab === 'campaigns' ? r.type === 'campaign' : true);
-                      const allSelected = relevantRows.every(r => isRowSelected(r));
-                      if (activeTab === 'campaigns') {
-                        if (allSelected) {
-                          setSelectedCampaigns(new Set());
-                        } else {
-                          setSelectedCampaigns(new Set(relevantRows.filter(r => r.type === 'campaign').map(r => r.id)));
-                        }
-                      } else if (activeTab === 'adsets') {
-                        if (allSelected) {
-                          setSelectedAdsets(new Set());
-                        } else {
-                          setSelectedAdsets(new Set(relevantRows.map(r => r.id)));
-                        }
+                      const allSelected = visibleRows.every(r => isRowSelected(r));
+                      if (allSelected) {
+                        setSelectedCampaigns(new Set());
+                      } else {
+                        setSelectedCampaigns(new Set(visibleRows.map(r => r.id)));
                       }
                     }}
                   />
@@ -1476,7 +1434,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 )}
                 <TableHead className="min-w-[250px] p-2">
                   <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="h-7 -ml-2 hover:bg-[#e4e6eb] text-[#65676b] text-[11px] font-semibold uppercase">
-                    {activeTab === 'campaigns' ? 'Кампания' : activeTab === 'adsets' ? 'Группа объявлений' : 'Объявление'} ↕
+                    Кампания ↕
                     {getSortIcon('name')}
                   </Button>
                 </TableHead>
@@ -1575,7 +1533,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                         type="checkbox"
                         className="w-[15px] h-[15px] rounded border-[#ccd0d5] accent-[#1b74e4] cursor-pointer"
                         checked={isRowSelected(row)}
-                        onChange={() => toggleRowSelection(row as any)}
+                        onChange={() => toggleRowSelection(row)}
                       />
                     </TableCell>
 
@@ -1626,7 +1584,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                             </Button>
                           </div>
                           <span className="text-[11px] text-[#65676b] uppercase tracking-wider">
-                            {row.type === 'campaign' ? 'CAMPAIGN' : row.type === 'adset' ? 'AD SET' : 'AD'} · {row.id}
+                            CAMPAIGN · {row.id}
                           </span>
                         </div>
                       </div>
@@ -1709,18 +1667,18 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   {columnVisibility.status && <TableCell className="p-2" />} {/* toggle */}
                   <TableCell className="p-3 text-[11px] uppercase tracking-widest text-[#65676b] font-bold">Итого</TableCell>
                   <TableCell /> {/* status */}
-                  {columnVisibility.spend && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatCurrency(totalSpendKZT)}</TableCell>}
-                  {columnVisibility.leads && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatNumber(totalLeadsMeta)}</TableCell>}
-                  {columnVisibility.cpl && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totalCpl)}</TableCell>}
-                  {columnVisibility.visits && <TableCell className="text-right p-2 text-[13px] text-[#1b74e4] font-bold">{formatNumber(totalVisits)}</TableCell>}
-                  {columnVisibility.visitCost && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totalVisitCost)}</TableCell>}
-                  {columnVisibility.sales && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatNumber(totalSales)}</TableCell>}
-                  {columnVisibility.revenue && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatCurrency(totalRevenue)}</TableCell>}
+                  {columnVisibility.spend && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatCurrency(totals.totalSpendKZT)}</TableCell>}
+                  {columnVisibility.leads && <TableCell className="text-right p-2 text-[13px] text-[#1c1e21] font-bold">{formatNumber(totals.totalLeadsMeta)}</TableCell>}
+                  {columnVisibility.cpl && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totals.totalCpl)}</TableCell>}
+                  {columnVisibility.visits && <TableCell className="text-right p-2 text-[13px] text-[#1b74e4] font-bold">{formatNumber(totals.totalVisits)}</TableCell>}
+                  {columnVisibility.visitCost && <TableCell className="text-right p-2 text-[13px] text-[#65676b]">{formatCurrency(totals.totalVisitCost)}</TableCell>}
+                  {columnVisibility.sales && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatNumber(totals.totalSales)}</TableCell>}
+                  {columnVisibility.revenue && <TableCell className="text-right p-2 text-[13px] text-[#1a7f37] font-bold">{formatCurrency(totals.totalRevenue)}</TableCell>}
                   {columnVisibility.roi && <TableCell className="text-right p-2 text-[13px]">
                     <span className={cn(
-                      totalRoi > 0 ? "text-[#1a7f37] font-bold" : totalRoi < 0 ? "text-red-500 font-bold" : "text-[#bec3c9]"
+                      totals.totalRoi > 0 ? "text-[#1a7f37] font-bold" : totals.totalRoi < 0 ? "text-red-500 font-bold" : "text-[#bec3c9]"
                     )}>
-                      {totalRoi !== 0 ? formatPercent(totalRoi) : '—'}
+                      {totals.totalRoi !== 0 ? formatPercent(totals.totalRoi) : '—'}
                     </span>
                   </TableCell>}
                 </TableRow>
@@ -1733,7 +1691,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         {!loading && processedData.length > 0 && (
           <div className="px-4 py-3 border-t border-[#dddfe2] bg-white">
             <span className="text-[13px] text-[#65676b]">
-              Результаты {visibleRows.length} {activeTab === 'campaigns' ? 'кампаний' : activeTab === 'adsets' ? 'групп объявлений' : 'объявлений'}
+              Результаты {visibleRows.length} кампаний
             </span>
           </div>
         )}

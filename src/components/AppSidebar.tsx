@@ -252,6 +252,12 @@ export const AppSidebar = ({
         tab: "e2e-analytics",
       },
       {
+        label: "Meta аналитика",
+        href: "/meta-analytics",
+        icon: <IconChartBar className="h-5 w-5 flex-shrink-0" />,
+        tab: "meta-analytics",
+      },
+      {
         label: "Финансы и прибыль",
         href: "/finance",
         icon: <IconWallet className="h-5 w-5 flex-shrink-0" />,

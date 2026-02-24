@@ -3262,6 +3262,7 @@ export type Database = {
           external_lead_id: string | null
           extra_data: Json | null
           fb_ad_id: string | null
+          fb_ad_account_id: string | null
           fb_adset_id: string | null
           fb_campaign_id: string | null
           fbc: string | null
@@ -3341,6 +3342,7 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           fb_ad_id?: string | null
+          fb_ad_account_id?: string | null
           fb_adset_id?: string | null
           fb_campaign_id?: string | null
           fbc?: string | null
@@ -3420,6 +3422,7 @@ export type Database = {
           external_lead_id?: string | null
           extra_data?: Json | null
           fb_ad_id?: string | null
+          fb_ad_account_id?: string | null
           fb_adset_id?: string | null
           fb_campaign_id?: string | null
           fbc?: string | null
@@ -3537,6 +3540,9 @@ export type Database = {
       }
       marketing_stats: {
         Row: {
+          ad_account_id: string | null
+          campaign_id: string | null
+          campaign_name: string | null
           clicks: number | null
           conversations: number | null
           cpc: number | null
@@ -3547,13 +3553,21 @@ export type Database = {
           id: string
           impressions: number | null
           leads: number | null
+          purchases: number | null
           project_id: string
+          raw_data: Json | null
           reach: number | null
+          revenue: number | null
+          roi: number | null
           source: string
           spend: number | null
+          synced_at: string | null
           updated_at: string | null
         }
         Insert: {
+          ad_account_id?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
           clicks?: number | null
           conversations?: number | null
           cpc?: number | null
@@ -3564,13 +3578,21 @@ export type Database = {
           id?: string
           impressions?: number | null
           leads?: number | null
+          purchases?: number | null
           project_id: string
+          raw_data?: Json | null
           reach?: number | null
+          revenue?: number | null
+          roi?: number | null
           source?: string
           spend?: number | null
+          synced_at?: string | null
           updated_at?: string | null
         }
         Update: {
+          ad_account_id?: string | null
+          campaign_id?: string | null
+          campaign_name?: string | null
           clicks?: number | null
           conversations?: number | null
           cpc?: number | null
@@ -3581,10 +3603,15 @@ export type Database = {
           id?: string
           impressions?: number | null
           leads?: number | null
+          purchases?: number | null
           project_id?: string
+          raw_data?: Json | null
           reach?: number | null
+          revenue?: number | null
+          roi?: number | null
           source?: string
           spend?: number | null
+          synced_at?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -5442,6 +5469,33 @@ export type Database = {
           status?: string | null
           updated_at?: string | null
           workshop?: string | null
+        }
+        Relationships: []
+      }
+      connected_ad_accounts: {
+        Row: {
+          account_name: string | null
+          access_token: string | null
+          fb_ad_account_id: string | null
+          id: string | null
+          project_id: string | null
+          status: boolean | null
+        }
+        Insert: {
+          account_name?: string | null
+          access_token?: string | null
+          fb_ad_account_id?: string | null
+          id?: string | null
+          project_id?: string | null
+          status?: boolean | null
+        }
+        Update: {
+          account_name?: string | null
+          access_token?: string | null
+          fb_ad_account_id?: string | null
+          id?: string | null
+          project_id?: string | null
+          status?: boolean | null
         }
         Relationships: []
       }

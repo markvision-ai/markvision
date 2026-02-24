@@ -73,6 +73,7 @@ const menuSections = [
     title: 'Аналитика',
     items: [
       { id: 'e2e-analytics', label: 'Сквозная аналитика', icon: BarChart3 },
+      { id: 'meta-analytics', label: 'Meta аналитика', icon: BarChart3 },
       { id: 'finance', label: 'Финансы и прибыль', icon: Wallet },
       { id: 'reports', label: 'Отчёты', icon: FileText },
       { id: 'rop', label: 'ИИ-РОП', icon: Activity },

@@ -15,10 +15,10 @@ const Circle = forwardRef<HTMLDivElement, {
   label
 }, ref) => {
   return <div className="flex flex-col items-center gap-2 sm:gap-3">
-    <div ref={ref} className={cn("z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-white/20 bg-white/10 backdrop-blur-xl shadow-lg shadow-blue-500/20 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-500/40 hover:bg-white/20", className)}>
+    <div ref={ref} className={cn("z-10 flex h-12 w-12 sm:h-16 sm:w-16 items-center justify-center rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-lg shadow-blue-500/10 transition-all duration-300 hover:scale-110 hover:shadow-xl hover:shadow-blue-500/20", className)}>
       {children}
     </div>
-    {label && <span className="text-[10px] sm:text-xs font-medium text-gray-400 text-center max-w-[70px] sm:max-w-[90px] leading-tight">
+    {label && <span className="text-[10px] sm:text-xs font-medium text-slate-500 text-center max-w-[70px] sm:max-w-[90px] leading-tight">
       {label}
     </span>}
   </div>;
@@ -37,7 +37,7 @@ export function BeamVisualization({
   const crmRef = useRef<HTMLDivElement>(null);
   const analyticsRef = useRef<HTMLDivElement>(null);
   const financeRef = useRef<HTMLDivElement>(null);
-  return <div className={cn("relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-slate-900/50 to-slate-950/50 backdrop-blur-xl border border-white/10 p-6 sm:p-10 lg:p-14", className)} ref={containerRef}>
+  return <div className={cn("relative flex h-[350px] sm:h-[400px] lg:h-[450px] w-full items-center justify-center overflow-hidden rounded-[28px] bg-gradient-to-b from-white via-slate-50 to-slate-100 border border-slate-200 p-6 sm:p-10 lg:p-14", className)} ref={containerRef}>
     <div className="flex size-full max-w-5xl flex-row items-stretch justify-between gap-4 sm:gap-8 lg:gap-16">
       {/* Left side - Input sources */}
       <div className="flex flex-col justify-center gap-4 sm:gap-6 lg:gap-8">
@@ -94,9 +94,9 @@ export function BeamVisualization({
           {/* Glow effect removed as per request */}
 
           <div ref={centerRef} className="relative z-10 flex h-28 w-28 sm:h-40 sm:w-40 items-center justify-center p-0">
-            <MarkVisionLogo size="100%" type="default" className="scale-125 mix-blend-multiply" />
+            <MarkVisionLogo size="100%" type="default" className="scale-125 mix-blend-normal" />
           </div>
-          <span className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent -mt-6 sm:-mt-8 z-20 relative drop-shadow-[0_0_20px_rgba(59,130,246,0.5)]">
+          <span className="text-2xl sm:text-3xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent -mt-6 sm:-mt-8 z-20 relative drop-shadow-[0_0_12px_rgba(59,130,246,0.35)]">
             MarkVision AI
           </span>
         </motion.div>

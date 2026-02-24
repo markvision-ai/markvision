@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils';
 const TeamManagement = lazy(() => import('./team/TeamManagement').then(m => ({ default: m.TeamManagement })));
 const ReportGenerator = lazy(() => import('./reports/ReportGenerator').then(m => ({ default: m.ReportGenerator })));
 const E2EAnalytics = lazy(() => import('./analytics/E2EAnalytics').then(m => ({ default: m.E2EAnalytics })));
+const MetaAccountAnalytics = lazy(() => import('./analytics/MetaAccountAnalytics').then(m => ({ default: m.MetaAccountAnalytics })));
 const AdminHub = lazy(() => import('./settings/AdminHub').then(m => ({ default: m.AdminHub })));
 const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagementNew'));
 const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
@@ -146,6 +147,7 @@ export const AnalyticsPlatform = () => {
       'factory': '/content-factory',
       'ab-testing': '/ab-tests',
       'e2e-analytics': '/analytics',
+      'meta-analytics': '/meta-analytics',
     };
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
@@ -388,6 +390,7 @@ export const AnalyticsPlatform = () => {
       case 'factory': return '🎬 Центр контента';
       case 'publications': return '🚀 Публикации';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
+      case 'meta-analytics': return '📈 Meta аналитика';
       case 'reports': return '📄 Отчёты';
       case 'team': return '👥 Сотрудники и доступ';
       case 'integrations': return '🔌 Подключения';
@@ -603,6 +606,12 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
+      {activeTab === 'meta-analytics' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <MetaAccountAnalytics projectId={currentProjectId} />
+        </Suspense>
+      )}
+
       {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ReportGenerator data={{
@@ -722,7 +731,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'meta-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />

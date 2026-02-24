@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
 // Standard Imports (Bypassing vite-imagetools due to build error)
 import logoNew from '@/assets/markvision-logo-2.png';
-const logoOld = '/markvision-logo.png';
+import logoOld from '@/assets/markvision-logo.png';
 
 interface MarkVisionLogoProps {
   className?: string;
@@ -25,12 +25,22 @@ export const MarkVisionLogo: React.FC<MarkVisionLogoProps> = ({
   // Select appropriate logo
   const logoSrc = type === 'text' ? logoNew : logoOld;
 
+  const [imgSrc, setImgSrc] = useState(logoSrc);
+
+  useEffect(() => {
+    setImgSrc(logoSrc);
+  }, [logoSrc]);
+
   const logoImg = (
     <img
-      src={logoSrc}
+      src={imgSrc}
       alt="MarkVision AI Logo"
       className={cn("transition-all duration-300 block object-contain", className)}
       style={{ height: iconSize, width: iconSize === '100%' ? '100%' : 'auto' }}
+      onError={() => {
+        if (imgSrc !== logoNew) setImgSrc(logoNew);
+        else if (imgSrc !== logoOld) setImgSrc(logoOld);
+      }}
     />
   );
 

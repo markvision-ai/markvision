@@ -165,6 +165,7 @@ const App = () => (
         <Route path="/visits" element={<Index />} />
         <Route path="/analytics" element={<Index />} />
         <Route path="/e2e-analytics" element={<Index />} />
+        <Route path="/meta-analytics" element={<Index />} />
         <Route path="/finance" element={<Index />} />
         <Route path="/settings" element={<Index />} />
         <Route path="/quantom-ads" element={<Index />} />
