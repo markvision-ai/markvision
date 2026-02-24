@@ -1,4 +1,5 @@
 import { lazy, Suspense, useEffect, useRef } from "react";
+import { Analytics } from '@vercel/analytics/react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/sonner";
@@ -200,6 +201,7 @@ const App = () => (
       </Routes>
     </BrowserRouter>
     <Toaster position="top-right" richColors closeButton />
+    <Analytics />
   </QueryClientProvider>
 );
 
