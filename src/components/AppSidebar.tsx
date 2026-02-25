@@ -168,6 +168,12 @@ export const AppSidebar = ({
         tab: "dashboard",
       },
       {
+        label: "Агентские кабинеты",
+        href: "/agency-accounts",
+        icon: <IconBuildingSkyscraper className="h-5 w-5 flex-shrink-0" />,
+        tab: "agency-accounts",
+      },
+      {
         label: "Живая лента",
         href: "/realtime",
         icon: <IconActivity className="h-5 w-5 flex-shrink-0" />,
