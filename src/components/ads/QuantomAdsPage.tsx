@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
+
 import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -359,7 +360,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     <div className="h-[calc(100vh-4rem)] bg-background text-foreground relative flex flex-col overflow-hidden">
       <Tabs defaultValue="dashboard" className="flex-1 flex flex-col overflow-hidden relative z-10">
         <div className="px-6 py-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-none flex items-center justify-between z-20">
-          <TabsList className="grid w-[320px] grid-cols-2">
+          <TabsList className="grid w-[480px] grid-cols-3">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Командный центр
@@ -567,17 +568,21 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         </TabsContent>
 
         <TabsContent value="analyst" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col relative bg-background">
-          <AdsChatInterface
-            projectId={projectId}
-            contextData={{
-              campaigns: metaCampaigns,
-              leads: leads,
-              contentItems: content,
-              dailyData: dailyData,
-              summary: summaryMetrics
-            }}
-          />
+          <div className="flex-1 h-full w-full">
+            <AdsChatInterface
+              projectId={projectId}
+              contextData={{
+                campaigns: metaCampaigns,
+                leads: leads,
+                contentItems: content,
+                dailyData: dailyData,
+                summary: summaryMetrics
+              }}
+            />
+          </div>
         </TabsContent>
+
+
       </Tabs>
     </div>
   );

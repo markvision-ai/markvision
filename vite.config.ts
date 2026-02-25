@@ -39,18 +39,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       mode === "development" && componentTagger(),
-      mode === "production" && imagetools({
-        defaultDirectives: (url) => {
-          if (url.pathname.includes('/assets/')) {
-            return new URLSearchParams({
-              format: 'webp;png',
-              quality: '85',
-              w: '1920',
-            });
-          }
-          return new URLSearchParams();
-        },
-      }),
+      mode === "production" && imagetools(),
       compression(),
       VitePWA({
         registerType: "autoUpdate",

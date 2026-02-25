@@ -27,6 +27,7 @@ import { useProjectData } from '@/hooks/useProjectData';
 import { format } from 'date-fns';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { usePageVisibility } from '@/hooks/usePageVisibility';
+import { AgencyAccountsDashboard } from '../ads/AgencyAccountsDashboard';
 
 interface RealtimeMetric {
   label: string;
@@ -365,6 +366,9 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           );
         })}
       </div>
+
+      {/* Agency Accounts Widget */}
+      <AgencyAccountsDashboard projectId={projectId} />
 
       {/* Activity Feeds */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
