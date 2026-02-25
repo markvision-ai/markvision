@@ -57,6 +57,7 @@ const AdminHub = lazy(() => import('./settings/AdminHub').then(m => ({ default: 
 const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagementNew'));
 const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
 const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
+const AgencyAccountsDashboard = lazy(() => import('./ads/AgencyAccountsDashboard').then(m => ({ default: m.AgencyAccountsDashboard })));
 const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
 const ContentFactoryPage = lazy(() => import('./factory/ContentFactoryPage').then(m => ({ default: m.ContentFactoryPage })));
 const PublicationsPage = lazy(() => import('./content/PublicationsPage').then(m => ({ default: m.PublicationsPage })));
@@ -128,6 +129,7 @@ export const AnalyticsPlatform = () => {
       'content-factory': 'factory',
       'ab-tests': 'ab-testing',
       'analytics': 'e2e-analytics',
+      'agency-accounts': 'agency-accounts',
     };
     return urlToTab[path] || path;
   };
@@ -148,6 +150,7 @@ export const AnalyticsPlatform = () => {
       'ab-testing': '/ab-tests',
       'e2e-analytics': '/analytics',
       'meta-analytics': '/meta-analytics',
+      'agency-accounts': '/agency-accounts',
     };
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
@@ -385,6 +388,7 @@ export const AnalyticsPlatform = () => {
     switch (activeTab) {
       case 'dashboard': return '🏠 Главная панель';
       case 'table': return '📊 Таблица показателей';
+      case 'agency-accounts': return '🏢 Агентские кабинеты';
       case 'quantom-ads': return '🚀 Управление рекламой';
       case 'crm': return '🤝 CRM';
       case 'factory': return '🎬 Центр контента';
@@ -582,6 +586,12 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
+      {activeTab === 'agency-accounts' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AgencyAccountsDashboard projectId={currentProjectId} />
+        </Suspense>
+      )}
+
       {activeTab === 'factory' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />
@@ -731,7 +741,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'crm', 'e2e-analytics', 'meta-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'agency-accounts', 'crm', 'e2e-analytics', 'meta-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-card border border-border rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
