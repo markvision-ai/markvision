@@ -36,7 +36,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
 
             // Note: dateRange filtering isn't implemented in the pure view yet since it's global, 
             // but we fetch the aggregated view data.
-            const { data, error } = await supabase
+            const { data, error } = await (supabase as any)
                 .from('agency_metrics_view')
                 .select('*')
                 .eq('project_id', projectId);
@@ -134,7 +134,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
         if (!projectId) return;
         try {
             // Check if account already exists in clients_config
-            const { data: existingAccount } = await supabase
+            const { data: existingAccount } = await (supabase as any)
                 .from('clients_config')
                 .select('id')
                 .eq('project_id', projectId)
@@ -144,7 +144,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             let result;
             if (existingAccount) {
                 // Update
-                result = await supabase
+                result = await (supabase as any)
                     .from('clients_config')
                     .update({
                         client_name: accountName,
@@ -154,7 +154,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     .eq('id', existingAccount.id);
             } else {
                 // Insert
-                result = await supabase
+                result = await (supabase as any)
                     .from('clients_config')
                     .insert({
                         project_id: projectId,
