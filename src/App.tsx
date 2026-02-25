@@ -193,6 +193,7 @@ const App = () => (
         <Route path="/automation" element={<Index />} />
         <Route path="/rop" element={<Index />} />
         <Route path="/agency" element={<Index />} />
+        <Route path="/agency-accounts" element={<Index />} />
         <Route path="/agents" element={<Index />} />
         <Route path="/agents/setup/:agentType" element={<Suspense fallback={<PageLoader />}><AgentSetup /></Suspense>} />
 
