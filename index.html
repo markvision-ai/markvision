@@ -13,7 +13,7 @@
   <meta name="application-name" content="MarkVision AI" />
   <meta name="msapplication-TileColor" content="#1a1f2e" />
   <meta name="msapplication-config" content="/browserconfig.xml" />
-  
+
   <!-- Performance Optimizations: preconnect to critical origins -->
   <link rel="preconnect" href="https://pyscczcu.supabase.co">
   <link rel="dns-prefetch" href="https://pyscczcu.supabase.co">
@@ -22,12 +22,13 @@
   <link rel="preconnect" href="https://connect.facebook.net">
 
   <!-- Preload self-hosted critical fonts -->
-  <link rel="preload" href="/fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-500-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="preload" href="/fonts/inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/inter-400-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/inter-500-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="./fonts/inter-600-latin.woff2" as="font" type="font/woff2" crossorigin>
 
   <!-- JetBrains Mono from Google Fonts (code-only, low priority) -->
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=optional" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=optional"
+    rel="stylesheet">
 
   <title>MarkVision AI - Умный маркетинг</title>
   <meta name="description" content="AI-платформа для управления маркетингом медицинских клиник" />
@@ -51,10 +52,177 @@
 
   <!-- Critical CSS - Inline for fast FCP + font-display:swap to eliminate CLS -->
   <style>
-    @font-face{font-family:'Inter';font-style:normal;font-weight:400;font-display:swap;src:url('/fonts/inter-400-latin.woff2') format('woff2')}
-    @font-face{font-family:'Inter';font-style:normal;font-weight:500;font-display:swap;src:url('/fonts/inter-500-latin.woff2') format('woff2')}
-    @font-face{font-family:'Inter';font-style:normal;font-weight:600;font-display:swap;src:url('/fonts/inter-600-latin.woff2') format('woff2')}
-    *,::before,::after{box-sizing:border-box;border:0 solid}html{-webkit-text-size-adjust:100%;tab-size:4;font-family:'Inter',system-ui,-apple-system,sans-serif;line-height:1.5}body{margin:0;line-height:inherit;background:#020617;color:#fff}#root{min-height:100vh;min-height:100dvh}h1,h2,h3{font-size:inherit;font-weight:inherit}a{color:inherit}button{font-family:inherit;font-size:100%;line-height:inherit;color:inherit;margin:0;padding:0;background:0;border:0}img,svg{display:block;vertical-align:middle}img{max-width:100%;height:auto}.min-h-screen{min-height:100vh}.flex{display:flex}.flex-col{flex-direction:column}.items-center{align-items:center}.justify-center{justify-content:center}.gap-2{gap:.5rem}.gap-4{gap:1rem}.p-4{padding:1rem}.p-6{padding:1.5rem}.text-white{color:#fff}.text-5xl{font-size:3rem;line-height:1}.font-black{font-weight:900}.fixed{position:fixed}.relative{position:relative}.absolute{position:absolute}.inset-0{inset:0}.top-0{top:0}.left-0{left:0}.right-0{right:0}.z-50{z-index:50}.backdrop-blur-2xl{backdrop-filter:blur(40px)}.backdrop-blur-xl{backdrop-filter:blur(24px)}
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('./fonts/inter-400-latin.woff2') format('woff2')
+    }
+
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('./fonts/inter-500-latin.woff2') format('woff2')
+    }
+
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('./fonts/inter-600-latin.woff2') format('woff2')
+    }
+
+    *,
+    ::before,
+    ::after {
+      box-sizing: border-box;
+      border: 0 solid
+    }
+
+    html {
+      -webkit-text-size-adjust: 100%;
+      tab-size: 4;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      line-height: 1.5
+    }
+
+    body {
+      margin: 0;
+      line-height: inherit;
+      background: #020617;
+      color: #fff
+    }
+
+    #root {
+      min-height: 100vh;
+      min-height: 100dvh
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-size: inherit;
+      font-weight: inherit
+    }
+
+    a {
+      color: inherit
+    }
+
+    button {
+      font-family: inherit;
+      font-size: 100%;
+      line-height: inherit;
+      color: inherit;
+      margin: 0;
+      padding: 0;
+      background: 0;
+      border: 0
+    }
+
+    img,
+    svg {
+      display: block;
+      vertical-align: middle
+    }
+
+    img {
+      max-width: 100%;
+      height: auto
+    }
+
+    .min-h-screen {
+      min-height: 100vh
+    }
+
+    .flex {
+      display: flex
+    }
+
+    .flex-col {
+      flex-direction: column
+    }
+
+    .items-center {
+      align-items: center
+    }
+
+    .justify-center {
+      justify-content: center
+    }
+
+    .gap-2 {
+      gap: .5rem
+    }
+
+    .gap-4 {
+      gap: 1rem
+    }
+
+    .p-4 {
+      padding: 1rem
+    }
+
+    .p-6 {
+      padding: 1.5rem
+    }
+
+    .text-white {
+      color: #fff
+    }
+
+    .text-5xl {
+      font-size: 3rem;
+      line-height: 1
+    }
+
+    .font-black {
+      font-weight: 900
+    }
+
+    .fixed {
+      position: fixed
+    }
+
+    .relative {
+      position: relative
+    }
+
+    .absolute {
+      position: absolute
+    }
+
+    .inset-0 {
+      inset: 0
+    }
+
+    .top-0 {
+      top: 0
+    }
+
+    .left-0 {
+      left: 0
+    }
+
+    .right-0 {
+      right: 0
+    }
+
+    .z-50 {
+      z-index: 50
+    }
+
+    .backdrop-blur-2xl {
+      backdrop-filter: blur(40px)
+    }
+
+    .backdrop-blur-xl {
+      backdrop-filter: blur(24px)
+    }
   </style>
 
   <!-- Apple Touch Icons -->
@@ -69,6 +237,21 @@
 </head>
 
 <body>
+  <!-- SPA redirect restore: recover original URL after GitHub Pages 404.html redirect -->
+  <script>
+    (function () {
+      var params = new URLSearchParams(window.location.search);
+      var p = params.get('p');
+      if (p) {
+        var q = params.get('q');
+        var h = params.get('h');
+        var url = window.location.pathname.replace(/\/$/, '') + p +
+          (q ? '?' + q : '') +
+          (h ? '#' + h : '');
+        window.history.replaceState(null, '', url);
+      }
+    })();
+  </script>
   <div id="root"></div>
 
   <!-- Facebook SDK — deferred to not block FCP/LCP -->
