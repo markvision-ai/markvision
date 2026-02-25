@@ -6,19 +6,53 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// Helper: Fetch KZT rate from National Bank XML
+async function fetchKZTRate(): Promise<number> {
+    try {
+        // We use today's date or yesterday depending on when bank updates. Today is usually fine.
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        const fdate = `${dd}.${mm}.${yyyy}`;
+
+        const url = `https://nationalbank.kz/rss/get_rates.cfm?fdate=${fdate}`;
+        console.log(`Fetching rates from: ${url}`);
+
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Network response was not ok");
+
+        const text = await response.text();
+
+        // Simple regex to find USD rate block
+        const usdMatch = text.match(/<title>USD<\/title>[\s\S]*?<description>([\d.]+)<\/description>/i);
+        if (usdMatch && usdMatch[1]) {
+            const rate = parseFloat(usdMatch[1]);
+            console.log(`Parsed USD/KZT Rate: ${rate}`);
+            return rate > 0 ? rate : 480;
+        }
+    } catch (error) {
+        console.error("Error fetching KZT rate, using fallback 480:", error);
+    }
+    return 480; // Fallback
+}
+
 serve(async (req) => {
-    // Handle CORS preflight
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
     }
 
     try {
+        // Initialize Supabase Client
         const supabaseClient = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        // 1. Fetch all active accounts from clients_config
+        // 1. Fetch Exchange Rate
+        const exchangeRate = await fetchKZTRate();
+
+        // 2. Fetch all active accounts from clients_config
         const { data: accounts, error: fetchError } = await supabaseClient
             .from('clients_config')
             .select('id, ad_account_id, fb_token')
@@ -34,7 +68,7 @@ serve(async (req) => {
         let successCount = 0;
         let errorCount = 0;
 
-        // 2. Loop through each account and fetch data from Meta API
+        // 3. Loop through each account
         for (const account of accounts) {
             if (!account.ad_account_id || !account.fb_token) {
                 errorCount++;
@@ -42,40 +76,39 @@ serve(async (req) => {
             }
 
             try {
-                // Fetch Insights for the current month
-                const insightsUrl = `https://graph.facebook.com/v18.0/act_${account.ad_account_id}/insights?fields=spend,clicks,impressions&date_preset=this_month&access_token=${account.fb_token}`;
+                // Fetch Meta Graph API v19.0 for current month spend and actions
+                const insightsUrl = `https://graph.facebook.com/v19.0/act_${account.ad_account_id}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.fb_token}`;
 
-                const insightsResponse = await fetch(insightsUrl);
-                const insightsData = await insightsResponse.json();
+                const response = await fetch(insightsUrl);
+                const data = await response.json();
 
-                // Fetch Leads for the current month (or use total leads if insights isn't sufficient)
-                // Meta doesn't return leads directly in basic insights without 'actions' breakdown, so we'll query action_breakdown if needed.
-                // For simplicity, we just request actions as well.
-                const insightsWithActionsUrl = `https://graph.facebook.com/v18.0/act_${account.ad_account_id}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.fb_token}`;
-                const actionsResponse = await fetch(insightsWithActionsUrl);
-                const actionsData = await actionsResponse.json();
-
-                let spend = 0;
+                let spendKZT = 0;
                 let metaLeads = 0;
 
-                if (actionsData.data && actionsData.data.length > 0) {
-                    const row = actionsData.data[0];
-                    spend = parseFloat(row.spend || '0');
+                if (data.data && data.data.length > 0) {
+                    const row = data.data[0];
 
+                    // Parse Spend (convert from USD to KZT)
+                    const spendUSD = parseFloat(row.spend || '0');
+                    spendKZT = spendUSD * exchangeRate;
+
+                    // Parse Actions (lead + messaging_conversation_started_7d)
                     if (row.actions) {
-                        const leadAction = row.actions.find((a: any) => a.action_type === 'lead');
-                        metaLeads = leadAction ? parseInt(leadAction.value, 10) : 0;
+                        let totalLeads = 0;
+                        for (const action of row.actions) {
+                            if (action.action_type === 'lead' || action.action_type === 'messaging_conversation_started_7d') {
+                                totalLeads += parseInt(action.value || '0', 10);
+                            }
+                        }
+                        metaLeads = totalLeads;
                     }
-                } else if (insightsData.data && insightsData.data.length > 0) {
-                    // Backup fallback if actions fetch failed but spend is available
-                    spend = parseFloat(insightsData.data[0].spend || '0');
                 }
 
-                // 3. Update the clients_config table
+                // 4. Update clients_config synchronously
                 const { error: updateError } = await supabaseClient
                     .from('clients_config')
                     .update({
-                        spend: spend,
+                        spend: spendKZT,
                         meta_leads: metaLeads,
                         updated_at: new Date().toISOString()
                     })
@@ -85,6 +118,7 @@ serve(async (req) => {
                     console.error(`Error updating account ${account.ad_account_id}:`, updateError);
                     errorCount++;
                 } else {
+                    console.log(`Account ${account.ad_account_id} | Spend: ${spendKZT} KZT | Leads: ${metaLeads}`);
                     successCount++;
                 }
             } catch (err) {
@@ -95,7 +129,7 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
             success: true,
-            message: `Processed ${accounts.length} accounts`,
+            message: `Processed ${accounts.length} accounts. Exchange Rate: ${exchangeRate}`,
             details: { successful: successCount, failed: errorCount }
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
