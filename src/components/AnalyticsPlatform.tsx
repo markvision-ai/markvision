@@ -127,8 +127,8 @@ export const AnalyticsPlatform = () => {
     const urlToTab: Record<string, string> = {
       'quantum-ads': 'quantom-ads',
       'content-factory': 'factory',
-      'ab-tests': 'ab-testing',
       'analytics': 'e2e-analytics',
+      'agency-accounts': 'agency-accounts',
     };
     return urlToTab[path] || path;
   };
@@ -146,9 +146,9 @@ export const AnalyticsPlatform = () => {
       'dashboard': '/',
       'quantom-ads': '/quantum-ads',
       'factory': '/content-factory',
-      'ab-testing': '/ab-tests',
       'e2e-analytics': '/analytics',
       'meta-analytics': '/meta-analytics',
+      'agency-accounts': '/agency-accounts',
     };
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
@@ -582,6 +582,13 @@ export const AnalyticsPlatform = () => {
           <QuantomAdsPage projectId={currentProjectId} />
         </Suspense>
       )}
+
+      {activeTab === 'agency-accounts' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AgencyAccountsDashboard projectId={currentProjectId} />
+        </Suspense>
+      )}
+
       {activeTab === 'factory' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />
