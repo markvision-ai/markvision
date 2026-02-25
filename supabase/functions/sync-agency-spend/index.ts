@@ -21,7 +21,7 @@ serve(async (req) => {
         // 1. Fetch all active accounts from clients_config
         const { data: accounts, error: fetchError } = await supabaseClient
             .from('clients_config')
-            .select('id, fb_ad_account_id, access_token')
+            .select('id, ad_account_id, fb_token')
 
         if (fetchError) throw fetchError;
         if (!accounts || accounts.length === 0) {
@@ -36,14 +36,14 @@ serve(async (req) => {
 
         // 2. Loop through each account and fetch data from Meta API
         for (const account of accounts) {
-            if (!account.fb_ad_account_id || !account.access_token) {
+            if (!account.ad_account_id || !account.fb_token) {
                 errorCount++;
                 continue;
             }
 
             try {
                 // Fetch Insights for the current month
-                const insightsUrl = `https://graph.facebook.com/v18.0/act_${account.fb_ad_account_id}/insights?fields=spend,clicks,impressions&date_preset=this_month&access_token=${account.access_token}`;
+                const insightsUrl = `https://graph.facebook.com/v18.0/act_${account.ad_account_id}/insights?fields=spend,clicks,impressions&date_preset=this_month&access_token=${account.fb_token}`;
 
                 const insightsResponse = await fetch(insightsUrl);
                 const insightsData = await insightsResponse.json();
@@ -51,7 +51,7 @@ serve(async (req) => {
                 // Fetch Leads for the current month (or use total leads if insights isn't sufficient)
                 // Meta doesn't return leads directly in basic insights without 'actions' breakdown, so we'll query action_breakdown if needed.
                 // For simplicity, we just request actions as well.
-                const insightsWithActionsUrl = `https://graph.facebook.com/v18.0/act_${account.fb_ad_account_id}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.access_token}`;
+                const insightsWithActionsUrl = `https://graph.facebook.com/v18.0/act_${account.ad_account_id}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.fb_token}`;
                 const actionsResponse = await fetch(insightsWithActionsUrl);
                 const actionsData = await actionsResponse.json();
 
@@ -82,13 +82,13 @@ serve(async (req) => {
                     .eq('id', account.id);
 
                 if (updateError) {
-                    console.error(`Error updating account ${account.fb_ad_account_id}:`, updateError);
+                    console.error(`Error updating account ${account.ad_account_id}:`, updateError);
                     errorCount++;
                 } else {
                     successCount++;
                 }
             } catch (err) {
-                console.error(`Exception processing account ${account.fb_ad_account_id}:`, err);
+                console.error(`Exception processing account ${account.ad_account_id}:`, err);
                 errorCount++;
             }
         }

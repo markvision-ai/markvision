@@ -129,7 +129,6 @@ export const AnalyticsPlatform = () => {
       'content-factory': 'factory',
       'ab-tests': 'ab-testing',
       'analytics': 'e2e-analytics',
-      'agency-accounts': 'agency-accounts',
     };
     return urlToTab[path] || path;
   };
@@ -150,7 +149,6 @@ export const AnalyticsPlatform = () => {
       'ab-testing': '/ab-tests',
       'e2e-analytics': '/analytics',
       'meta-analytics': '/meta-analytics',
-      'agency-accounts': '/agency-accounts',
     };
     const path = tabToUrl[tab] || `/${tab}`;
     navigate(path, { replace: true });
@@ -388,7 +386,6 @@ export const AnalyticsPlatform = () => {
     switch (activeTab) {
       case 'dashboard': return '🏠 Главная панель';
       case 'table': return '📊 Таблица показателей';
-      case 'agency-accounts': return '🏢 Агентские кабинеты';
       case 'quantom-ads': return '🚀 Управление рекламой';
       case 'crm': return '🤝 CRM';
       case 'factory': return '🎬 Центр контента';
@@ -585,13 +582,6 @@ export const AnalyticsPlatform = () => {
           <QuantomAdsPage projectId={currentProjectId} />
         </Suspense>
       )}
-
-      {activeTab === 'agency-accounts' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <AgencyAccountsDashboard projectId={currentProjectId} />
-        </Suspense>
-      )}
-
       {activeTab === 'factory' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ContentFactoryPage projectId={currentProjectId} />

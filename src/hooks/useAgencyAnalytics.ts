@@ -138,7 +138,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                 .from('clients_config')
                 .select('id')
                 .eq('project_id', projectId)
-                .eq('fb_ad_account_id', accountId)
+                .eq('ad_account_id', accountId)
                 .maybeSingle();
 
             let result;
@@ -148,7 +148,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     .from('clients_config')
                     .update({
                         client_name: accountName,
-                        access_token: accessToken,
+                        fb_token: accessToken,
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', existingAccount.id);
@@ -158,9 +158,9 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     .from('clients_config')
                     .insert({
                         project_id: projectId,
-                        fb_ad_account_id: accountId,
+                        ad_account_id: accountId,
                         client_name: accountName,
-                        access_token: accessToken
+                        fb_token: accessToken
                     });
             }
 
