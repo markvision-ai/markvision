@@ -18,23 +18,20 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Copy, Plus, RefreshCw, CalendarDays, ChevronDown, CheckCircle2, Activity } from 'lucide-react';
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
+import { format, subDays, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { DateRange, DayPicker } from 'react-day-picker';
+import { ChevronLeft, ChevronRight, Copy, Plus, RefreshCw, CalendarDays, ChevronDown, CheckCircle2, Activity } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
 export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | null }) => {
-    const [dateRange, setDateRange] = useState<DateRange | undefined>({
-        from: startOfMonth(new Date()),
-        to: new Date(),
-    });
-
-    const [activePreset, setActivePreset] = useState<string>('this_month');
-    const [datePickerOpen, setDatePickerOpen] = useState(false);
-    const datePickerRef = useRef<HTMLDivElement>(null);
+    const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+
+    const dateRange = useMemo(() => ({
+        from: startOfMonth(currentMonth),
+        to: endOfMonth(currentMonth)
+    }), [currentMonth]);
 
     // Modal form state
     const [newAccountId, setNewAccountId] = useState('');
@@ -43,61 +40,10 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
     const { metrics, isLoading, syncing, triggerSync, connectAccount } = useAgencyAnalytics(projectId, dateRange || {});
 
-    // Close date picker when clicking outside
-    useEffect(() => {
-        const handleClick = (e: MouseEvent) => {
-            if (datePickerRef.current && !datePickerRef.current.contains(e.target as Node)) {
-                setDatePickerOpen(false);
-            }
-        };
-        if (datePickerOpen) document.addEventListener('mousedown', handleClick);
-        return () => document.removeEventListener('mousedown', handleClick);
-    }, [datePickerOpen]);
+    const prevMonth = () => setCurrentMonth(prev => subMonths(prev, 1));
+    const nextMonth = () => setCurrentMonth(prev => addMonths(prev, 1));
 
-    // Preset definitions
-    const presets = useMemo(() => {
-        const today = new Date();
-        const yesterday = subDays(today, 1);
-        return [
-            { key: 'today', label: 'Сегодня', from: today, to: today },
-            { key: 'yesterday', label: 'Вчера', from: yesterday, to: yesterday },
-            { key: '7days', label: '7 дней', from: subDays(today, 6), to: today },
-            { key: 'this_month', label: 'Этот месяц', from: startOfMonth(today), to: today },
-            { key: 'last_month', label: 'Прошлый месяц', from: startOfMonth(subMonths(today, 1)), to: endOfMonth(subMonths(today, 1)) },
-            { key: 'maximum', label: 'Максимум', from: subDays(today, 365), to: today },
-        ];
-    }, []);
-
-    const currentPresetLabel = useMemo(() => {
-        const p = presets.find(p => p.key === activePreset);
-        return p?.label || 'Период';
-    }, [activePreset, presets]);
-
-    const applyPreset = useCallback((key: string) => {
-        const p = presets.find(pr => pr.key === key);
-        if (p) {
-            setDateRange({ from: p.from, to: p.to });
-            setActivePreset(key);
-            setDatePickerOpen(false);
-        }
-    }, [presets]);
-
-    const applyCustomRange = useCallback((range: DateRange | undefined) => {
-        if (range?.from) {
-            setDateRange(range);
-            setActivePreset('custom');
-        }
-    }, []);
-
-    const dateButtonLabel = useMemo(() => {
-        if (!dateRange?.from) return 'Выберите период';
-        const fromStr = format(dateRange.from, 'd MMM yyyy г.', { locale: ru });
-        if (!dateRange.to || dateRange.from.getTime() === dateRange.to.getTime()) {
-            return `${currentPresetLabel}: ${fromStr}`;
-        }
-        const toStr = format(dateRange.to, 'd MMM yyyy г.', { locale: ru });
-        return `${fromStr} — ${toStr}`;
-    }, [dateRange, currentPresetLabel]);
+    const monthLabel = format(currentMonth, 'LLLL yyyy', { locale: ru });
 
     // Formatting helpers
     const formatMoney = (val: number) => Math.round(val).toLocaleString('ru-RU') + ' ₸';
@@ -139,90 +85,33 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                 </div>
 
                 <div className="flex items-center gap-3">
-                    {/* Date Picker */}
-                    <div className="relative" ref={datePickerRef}>
-                        <button
-                            onClick={() => setDatePickerOpen(prev => !prev)}
-                            className={cn(
-                                "inline-flex items-center gap-2 h-10 px-4 rounded-lg border text-sm font-medium transition-all",
-                                "bg-card border-border hover:border-primary/40 hover:bg-accent",
-                                "text-foreground shadow-sm",
-                                datePickerOpen && "border-primary ring-2 ring-primary/20"
-                            )}
+                    {/* Month Selector */}
+                    <div className="flex items-center bg-card border border-border rounded-lg shadow-sm overflow-hidden h-10">
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-full rounded-none hover:bg-accent border-r border-border"
+                            onClick={prevMonth}
                         >
-                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                            <span>{dateButtonLabel}</span>
-                            <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", datePickerOpen && "rotate-180")} />
-                        </button>
+                            <ChevronLeft className="w-4 h-4" />
+                        </Button>
 
-                        {datePickerOpen && (
-                            <div className="absolute right-0 top-full mt-2 z-[9999] bg-card border border-border rounded-xl shadow-xl flex overflow-hidden min-w-[520px]">
-                                <div className="w-[180px] border-r border-border p-3 space-y-0.5">
-                                    {presets.map(p => (
-                                        <button
-                                            key={p.key}
-                                            onClick={() => applyPreset(p.key)}
-                                            className={cn(
-                                                "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
-                                                activePreset === p.key
-                                                    ? "bg-primary/10 text-primary font-semibold"
-                                                    : "text-foreground hover:bg-accent"
-                                            )}
-                                        >
-                                            {activePreset === p.key && (
-                                                <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
-                                            )}
-                                            {p.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="p-4">
-                                    <DayPicker
-                                        mode="range"
-                                        selected={dateRange}
-                                        onSelect={applyCustomRange}
-                                        numberOfMonths={2}
-                                        locale={ru}
-                                        showOutsideDays
-                                        className="text-sm"
-                                        classNames={{
-                                            months: 'flex gap-4',
-                                            month: 'space-y-3',
-                                            caption: 'flex justify-center items-center h-8 relative',
-                                            caption_label: 'text-sm font-semibold',
-                                            nav: 'flex items-center gap-1',
-                                            nav_button: 'h-7 w-7 bg-transparent border border-border hover:bg-accent rounded-md flex items-center justify-center transition-colors',
-                                            head_row: 'flex',
-                                            head_cell: 'text-muted-foreground w-9 font-medium text-[11px] uppercase',
-                                            row: 'flex mt-0.5',
-                                            cell: 'w-9 h-9 text-center text-sm relative',
-                                            day: 'w-9 h-9 rounded-md hover:bg-accent transition-colors font-normal',
-                                            day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
-                                            day_today: 'border border-primary/30 font-semibold',
-                                            day_outside: 'text-muted-foreground/40',
-                                            day_range_middle: 'bg-primary/10 rounded-none',
-                                            day_range_start: 'rounded-r-none',
-                                            day_range_end: 'rounded-l-none',
-                                        }}
-                                    />
-                                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                                        <span className="text-xs text-muted-foreground">
-                                            {dateRange?.from ? format(dateRange.from, 'd MMMM yyyy', { locale: ru }) : '—'}
-                                            {dateRange?.to && dateRange.to.getTime() !== dateRange.from?.getTime()
-                                                ? ` — ${format(dateRange.to, 'd MMMM yyyy', { locale: ru })}`
-                                                : ''}
-                                        </span>
-                                        <Button
-                                            size="sm"
-                                            onClick={() => setDatePickerOpen(false)}
-                                            className="h-8 px-4 text-xs"
-                                        >
-                                            Применить
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+                        <div className="px-4 flex items-center gap-2 min-w-[140px] justify-center">
+                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
+                            <span className="text-sm font-semibold capitalize">
+                                {monthLabel}
+                            </span>
+                        </div>
+
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-full rounded-none hover:bg-accent border-l border-border"
+                            onClick={nextMonth}
+                            disabled={currentMonth >= startOfMonth(new Date())}
+                        >
+                            <ChevronRight className="w-4 h-4" />
+                        </Button>
                     </div>
 
                     <Button variant="outline" size="icon" onClick={triggerSync} disabled={syncing}>
