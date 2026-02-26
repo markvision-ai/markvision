@@ -12,8 +12,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
+import { CampaignLauncher } from './CampaignLauncher';
 
-import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown } from 'lucide-react';
+import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown, Rocket } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange, DayPicker } from 'react-day-picker';
@@ -43,6 +44,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   const [activePreset, setActivePreset] = useState<string>('today');
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const datePickerRef = useRef<HTMLDivElement>(null);
+  const [isLauncherOpen, setIsLauncherOpen] = useState(false);
 
   // Close date picker when clicking outside
   useEffect(() => {
@@ -371,6 +373,27 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
             </TabsTrigger>
           </TabsList>
 
+          {/* Launch Campaign Button */}
+          <div className="flex items-center gap-4">
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
+              <Button
+                onClick={() => setIsLauncherOpen(true)}
+                className={cn(
+                  "relative group px-6 h-10 rounded-xl font-bold transition-all overflow-hidden",
+                  "bg-gradient-to-r from-primary to-violet-600 text-white border-none",
+                  "shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)]"
+                )}
+              >
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+                <Rocket className="w-4 h-4 mr-2 group-hover:animate-bounce" />
+                🚀 Запустить рекламу
+              </Button>
+            </motion.div>
+          </div>
+
           {/* Minimal Status Indicators */}
           <div className="flex items-center gap-4">
             {autopilotEnabled && (
@@ -584,6 +607,12 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
 
       </Tabs>
+
+      <CampaignLauncher
+        projectId={projectId}
+        isOpen={isLauncherOpen}
+        onClose={() => setIsLauncherOpen(false)}
+      />
     </div>
   );
 };

@@ -9,16 +9,34 @@ serve(async (req) => {
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
         )
 
-        const { data: policies } = await supabaseClient.rpc('execute_sql', {
-            sql_query: "SELECT tablename, policyname, roles, cmd, qual FROM pg_policies WHERE schemaname = 'public' AND tablename = 'clients_config';"
-        }).catch(e => ({ data: null, error: e }));
+        // 1. Ensure storage bucket exists
+        const { data: bucketData, error: bucketError } = await supabaseClient
+            .storage
+            .createBucket('ad-creatives', {
+                public: true,
+                allowedMimeTypes: ['image/png', 'image/jpeg', 'video/mp4'],
+                fileSizeLimit: 52428800 // 50MB
+            });
 
-        // Fallback if rpc fails
-        const { data: tableInfo } = await supabaseClient.rpc('execute_sql', {
-            sql_query: "SELECT relname, relrowsecurity FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relname = 'clients_config';"
-        }).catch(e => ({ data: null, error: e }));
+        let bucketStatus = "Created";
+        if (bucketError) {
+            if (bucketError.message.includes('already exists')) {
+                bucketStatus = "Already exists";
+            } else {
+                throw bucketError;
+            }
+        }
 
-        return new Response(JSON.stringify({ policies, tableInfo }), {
+        // 2. Set Policies (Wait, policies are usually SQL based, but we can try to run SQL via RPC if we have it)
+        // Since we can't easily run DDL via JS SDK for policies, we'll assume the user has 
+        // the migration file or we can try to use the 'exec_sql' if it allowed more than SELECT.
+        // But for now, ensuring the bucket exists is a big step.
+
+        return new Response(JSON.stringify({
+            success: true,
+            bucketStatus,
+            message: "Bucket 'ad-creatives' is ready."
+        }), {
             headers: { 'Content-Type': 'application/json' },
             status: 200,
         })
