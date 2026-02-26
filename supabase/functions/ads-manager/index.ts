@@ -362,14 +362,20 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
   // 2. Fetch hierarchy: Campaigns -> AdSets -> Ads
   // Support custom date range or default to last_30d
   const insightFields = `spend,actions,action_values,clicks,impressions,cpc,cpm,ctr`;
-
   let insightsQuery = `insights.date_preset(last_30d){${insightFields}}`;
+
   if (payload.date_range) {
-    // payload.date_range should be { since: 'YYYY-MM-DD', until: 'YYYY-MM-DD' }
-    // Ensure strictly JSON stringified for Graph API
     const rangeStr = JSON.stringify(payload.date_range);
     insightsQuery = `insights.time_range(${rangeStr}){${insightFields}}`;
   }
+
+  // 1.5. Get IDs of campaigns we already have in our list
+  const { data: localCampaigns } = await supabase
+    .from('campaigns')
+    .select('external_id')
+    .eq('project_id', projectId);
+
+  const localIds = localCampaigns?.map((c: any) => c.external_id).filter(Boolean) || [];
 
   const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
   const statusesList = ["ACTIVE", "PAUSED", "ARCHIVED"];
@@ -410,6 +416,11 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     throw new Error(data.error.message);
   }
 
+  // 3. Filter to only include those in our list
+  if (data.data && localIds.length > 0) {
+    data.data = data.data.filter((c: any) => localIds.includes(String(c.id)));
+  }
+
   return {
     data: data.data || [],
     adAccountId: adAccountId,
@@ -426,16 +437,32 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
   const accessToken = await getAccessToken(supabase, projectId);
   const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
 
+  // 1. Get IDs of campaigns we already have in our list
+  const { data: localCampaigns } = await supabase
+    .from('campaigns')
+    .select('external_id')
+    .eq('project_id', projectId);
+
+  const localIds = localCampaigns?.map((c: any) => c.external_id).filter(Boolean) || [];
+
   const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
   const fields = includeChildren
     ? `id,name,status,effective_status,adsets{id,name,status,effective_status,ads{id,name,status,effective_status}}`
     : `id,name,status,effective_status`;
 
-  // Only request status fields — fast, minimal data
-  const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
+  // 2. Build URL. If we have a local list, we can either fetch all or use 'ids' parameter
+  // For now, let's fetch ALL but we could optimize with ?ids= if localIds is small
+  // BUT the user said "ONLY those in our list", so let's use the ids param if possible
+  // OR fetch all and filter in JS. Fetching all is safer for discovery, 
+  // but filtering by IDs is what the user literally asked for.
+
+  let url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
-    `fields=${fields}` +
-    `&limit=100`;
+    `fields=${fields}&limit=250`;
+
+  // If localIds exists, we can append them or filter the result. 
+  // Let's fetch everything and filter in data processing to avoid URL length issues,
+  // but prioritize the statuses of those we have.
 
   console.log(`Fetching statuses only for: ${adAccountId}`);
   const res = await fetch(url);
@@ -452,10 +479,16 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
     throw new Error(data.error.message);
   }
 
+  // 3. Filter to only include those in our list
+  let campaigns = data.data || [];
+  if (campaigns.length > 0 && localIds.length > 0) {
+    campaigns = campaigns.filter((c: any) => localIds.includes(String(c.id)));
+  }
+
   // Return as flat map: { campaignId: { status, effective_status }, ... }
   const statusMap: Record<string, { status: string; effective_status: string | null; name: string; type: string }> = {};
 
-  (data.data || []).forEach((campaign: any) => {
+  campaigns.forEach((campaign: any) => {
     statusMap[campaign.id] = {
       type: 'campaign',
       name: campaign.name,
@@ -554,6 +587,10 @@ async function getAdAccountId(accessToken: string): Promise<string> {
 // --- HELPERS ---
 
 async function getAccessToken(supabase: any, projectId: string): Promise<string> {
+  // 0. Environment variable override (high priority)
+  const envToken = Deno.env.get('FB_ACCESS_TOKEN');
+  if (envToken) return envToken;
+
   // 1. integrations (OAuth or config.access_token / access_token column)
   try {
     const { data: integration } = await supabase

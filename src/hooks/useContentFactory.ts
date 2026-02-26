@@ -113,8 +113,13 @@ export const useContentFactory = (projectId: string | null) => {
       const typedData = (data || []).map(mapDbToContentItem);
 
       setContent(typedData);
-    } catch (error) {
-      console.error('Error fetching content:', error);
+    } catch (error: any) {
+      console.error('Error fetching content FROM content_factory:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code
+      });
       console.warn('Content factory load failed (non-critical):', error);
     }
   }, [projectId]);

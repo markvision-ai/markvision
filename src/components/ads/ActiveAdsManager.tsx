@@ -229,7 +229,12 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
   const normalizeStatus = useCallback((value: unknown): string => {
     if (typeof value !== 'string') return '';
-    return value.toUpperCase();
+    const val = value.toUpperCase();
+    // Map all Meta-specific paused/inactive variants to a uniform 'PAUSED'
+    if (val === 'PAUSED' || val === 'CAMPAIGN_PAUSED' || val === 'ADSET_PAUSED' || val === 'DISALLOWED' || val === 'DELETED' || val === 'ARCHIVED' || val === 'IN_PROCESS' || val === 'WITH_ISSUES' || val === 'PENDING_REVIEW') {
+      return 'PAUSED';
+    }
+    return val;
   }, []);
 
   // Normalization Helper for Loose Matching (stable)
@@ -438,7 +443,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
     if (localCampaigns && localCampaigns.length > 0) {
       fallbackHierarchy = localCampaigns.map((c: any) => ({
-        id: c.external_id || c.id,
+        id: String(c.external_id || c.id),
         name: c.name,
         status: (c.status === 'ACTIVE' || c.status === true || c.status === 1) ? 'ACTIVE' : (c.status === 'PAUSED' ? 'PAUSED' : (c.status ? String(c.status).toUpperCase() : 'ACTIVE')),
         daily_budget: c.budget ? c.budget.toString() : '0',
@@ -457,9 +462,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       if (logs && logs.length > 0) {
         const uniqueMap = new Map();
         logs.forEach((log: any) => {
-          if (!uniqueMap.has(log.entity_id)) {
-            uniqueMap.set(log.entity_id, {
-              id: log.entity_id,
+          if (!uniqueMap.has(String(log.entity_id))) {
+            uniqueMap.set(String(log.entity_id), {
+              id: String(log.entity_id),
               name: log.entity_name || `Campaign ${log.entity_id}`,
               status: 'ACTIVE',
               daily_budget: '0',
@@ -508,9 +513,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       });
 
       Object.values(uniqueLogs).forEach((item: any) => {
-        if (!insightsMap[item.entity_id]) {
-          insightsMap[item.entity_id] = {
-            entity_id: item.entity_id,
+        const entityId = String(item.entity_id);
+        if (!insightsMap[entityId]) {
+          insightsMap[entityId] = {
+            entity_id: entityId,
             name: item.entity_name,
             spend: 0,
             leads: 0,
@@ -518,7 +524,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             impressions: 0
           };
         }
-        const record = insightsMap[item.entity_id];
+        const record = insightsMap[entityId];
         record.spend += Number(item.spend);
         record.leads += Number(item.leads);
         record.clicks += Number(item.clicks);
@@ -780,7 +786,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       // 2. Refresh local insights from DB
       await fetchAdInsights();
       await fetchHierarchy(true);
-      await fetchLiveStatuses();
+      await fetchLiveStatuses(true);
 
       if (syncData.message) {
         toast.success(syncData.message);
@@ -877,9 +883,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     };
 
     const shouldShow = (status: string) => {
-      if (status === 'DELETED' || status === 'ARCHIVED') return false;
+      const norm = normalizeStatus(status);
+      if (norm === 'DELETED' || norm === 'ARCHIVED') return false;
       if (!showActiveOnly) return true;
-      return status === 'ACTIVE';
+      return norm === 'ACTIVE';
     };
 
     // Helper to process nodes recursively with bottom-up aggregation
@@ -1029,7 +1036,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       }
 
       // Prefer live status map (status-only endpoint), fallback to hierarchy status
-      const liveStatus = getLiveStatus(node.id, node.name);
+      const liveStatus = getLiveStatus(String(node.id), node.name);
       const effectiveStatus: string = liveStatus ?? normalizeStatus(node.effective_status || node.status);
 
       return {
