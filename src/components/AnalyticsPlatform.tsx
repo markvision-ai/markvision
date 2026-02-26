@@ -409,6 +409,7 @@ export const AnalyticsPlatform = () => {
       case 'visits': return '📋 Диагностика';
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
+      case 'agency-accounts': return 'Сводка по кабинетам';
       default: return 'Раздел в разработке';
     }
   };
@@ -782,7 +783,7 @@ export const AnalyticsPlatform = () => {
             {/* Mobile Header */}
             <MobileHeader
               title={getTabTitle()}
-              subtitle={currentProject?.name}
+              subtitle={activeTab === 'agency-accounts' ? 'Сквозная аналитика рекламного трафика' : currentProject?.name}
               onMenuClick={() => setIsMobileSidebarOpen(true)}
               projects={projectsList}
               currentProjectId={currentProjectId}
@@ -794,7 +795,7 @@ export const AnalyticsPlatform = () => {
               <Header
                 onTabChange={handleTabChange}
                 title={getTabTitle()}
-                subtitle={currentProject?.name}
+                subtitle={activeTab === 'agency-accounts' ? 'Сквозная аналитика рекламного трафика' : currentProject?.name}
                 dateRange={dateRange}
                 onDateRangeChange={setDateRange}
                 onPresetChange={(preset) => setActivePreset(preset as PresetKey)}
