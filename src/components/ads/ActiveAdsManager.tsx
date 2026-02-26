@@ -1037,7 +1037,12 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       // Prefer live status map (status-only endpoint), fallback to hierarchy status
       const liveStatus = getLiveStatus(String(node.id), node.name);
-      const effectiveStatus: string = liveStatus ?? normalizeStatus(node.effective_status || node.status);
+      // Logic: If not in live status map AND no spend, default to PAUSED to avoid "No Data" Active rows
+      let effectiveStatus: string = liveStatus ?? normalizeStatus(node.effective_status || node.status);
+
+      if (liveStatus === null && finalSpendKZT === 0 && normalizeStatus(effectiveStatus) === 'ACTIVE') {
+        effectiveStatus = 'PAUSED';
+      }
 
       return {
         id: node.id,
@@ -1255,9 +1260,6 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold tracking-tight text-foreground">Рекламные кампании</h2>
             <div className="flex items-center gap-2">
-              <span className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold rounded border border-primary/20 uppercase tracking-widest">
-                Активно
-              </span>
               {adAccountId && (
                 <span className="px-2 py-1 bg-muted text-muted-foreground font-mono text-[10px] rounded border border-border">
                   ID: {adAccountId}
