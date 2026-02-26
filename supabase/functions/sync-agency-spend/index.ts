@@ -109,8 +109,7 @@ serve(async (req) => {
                     .from('clients_config')
                     .update({
                         spend: spendKZT,
-                        meta_leads: metaLeads,
-                        updated_at: new Date().toISOString()
+                        meta_leads: metaLeads
                     })
                     .eq('id', account.id);
 
