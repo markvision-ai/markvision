@@ -14,7 +14,7 @@ import { AdsChatInterface } from './AdsChatInterface';
 import { ActiveAdsManager } from './ActiveAdsManager';
 import { CampaignLauncher } from './CampaignLauncher';
 
-import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown, Rocket } from 'lucide-react';
+import { RefreshCw, Loader2, Zap, Activity, LayoutDashboard, MessageSquareText, CalendarDays, ChevronDown, Rocket, TrendingUp } from 'lucide-react';
 import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { DateRange, DayPicker } from 'react-day-picker';
@@ -360,253 +360,223 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] bg-background text-foreground relative flex flex-col overflow-hidden">
-      <Tabs defaultValue="dashboard" className="flex-1 flex flex-col overflow-hidden relative z-10">
-        <div className="px-6 py-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-none flex items-center justify-between z-20">
-          <TabsList className="grid w-[400px] grid-cols-2">
-            <TabsTrigger value="dashboard" className="flex items-center gap-2">
-              <LayoutDashboard className="w-4 h-4" />
-              Командный центр
-            </TabsTrigger>
-            <TabsTrigger value="analyst" className="flex items-center gap-2">
-              <MessageSquareText className="w-4 h-4" />
-              AI Аналитик
-            </TabsTrigger>
-          </TabsList>
+    <div className="min-h-screen bg-[#050505] text-slate-100 relative overflow-hidden flex flex-col font-sans">
+      {/* Background Decorative Elements */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] -z-10 animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] -z-10" />
 
-          {/* Launch Campaign Button */}
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            >
+      <Tabs defaultValue="dashboard" className="flex-1 flex flex-col relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 gap-8 overflow-visible">
+        {/* Futuristic Glass Header */}
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-3xl bg-white/[0.03] border border-white/10 backdrop-blur-2xl shadow-2xl">
+          <div className="flex items-center gap-5">
+            <div className="p-4 bg-gradient-to-br from-primary/20 to-violet-600/20 rounded-2xl border border-white/10 shadow-inner">
+              <Zap className="w-8 h-8 text-primary animate-pulse" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">
+                CONTROL CENTER
+              </h1>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-xs font-bold text-primary tracking-[0.2em] uppercase">Quantum Engine v2.0</span>
+                <div className="w-1 h-1 rounded-full bg-slate-600" />
+                <span className="text-xs text-slate-500 font-medium">Meta Ads Statistics</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center flex-wrap gap-4">
+            <TabsList className="bg-black/40 border border-white/5 p-1 h-12 rounded-xl backdrop-blur-md">
+              <TabsTrigger
+                value="dashboard"
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white px-6 rounded-lg transition-all font-bold gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                DASHBOARD
+              </TabsTrigger>
+              <TabsTrigger
+                value="analyst"
+                className="data-[state=active]:bg-white/10 data-[state=active]:text-white px-6 rounded-lg transition-all font-bold gap-2"
+              >
+                <MessageSquareText className="w-4 h-4" />
+                AI ANALYST
+              </TabsTrigger>
+            </TabsList>
+
+            <div className="h-8 w-px bg-white/10 mx-2 hidden sm:block" />
+
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
               <Button
                 onClick={() => setIsLauncherOpen(true)}
                 className={cn(
-                  "relative group px-6 h-10 rounded-xl font-bold transition-all overflow-hidden",
-                  "bg-gradient-to-r from-primary to-violet-600 text-white border-none",
-                  "shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_25px_rgba(124,58,237,0.5)]"
+                  "relative group px-8 h-12 rounded-xl font-black transition-all overflow-hidden uppercase tracking-wider",
+                  "bg-gradient-to-r from-primary via-violet-600 to-primary bg-[length:200%_auto] hover:bg-right text-white border-none",
+                  "shadow-[0_0_30px_rgba(124,58,237,0.4)]"
                 )}
               >
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-                <Rocket className="w-4 h-4 mr-2 group-hover:animate-bounce" />
-                🚀 Запустить рекламу
+                <Rocket className="w-5 h-5 mr-3 group-hover:animate-bounce transition-transform" />
+                Launch Campaign
               </Button>
             </motion.div>
           </div>
+        </div>
 
-          {/* Minimal Status Indicators */}
-          <div className="flex items-center gap-4">
-            {autopilotEnabled && (
-              <div className="flex items-center gap-2 text-[10px] text-emerald-600 font-bold uppercase tracking-wider animate-pulse border border-emerald-200 bg-emerald-50 px-3 py-1.5 rounded-full">
-                <Activity className="w-3 h-3" />
-                Автопилот активен
-              </div>
-            )}
-            <div
-              title={metaStatusMessage || (metaOnline ? 'Connected to Meta Graph API' : 'Connection Lost')}
-              className={cn(
-                "flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider px-3 py-1.5 rounded-full border transition-all",
-                metaOnline === null ? 'text-muted-foreground border-border bg-muted/50' :
-                  metaOnline ? 'text-emerald-600 border-emerald-200 bg-emerald-50' :
-                    'text-red-600 border-red-200 bg-red-50'
-              )}
-            >
-              <div className={cn(
-                "w-2 h-2 rounded-full",
-                metaOnline ? 'bg-emerald-500' : metaOnline === false ? 'bg-red-500' : 'bg-muted-foreground'
-              )} />
-              Meta {metaOnline ? 'Online' : metaOnline === false ? 'Offline' : 'Checking'}
+        {/* Global Status Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-3 bg-white/[0.02] border border-white/10 px-4 py-2 rounded-full">
+              <div className={cn("w-2 h-2 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]", metaOnline ? "bg-emerald-500" : "bg-red-500 animate-pulse")} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                Meta Engine: {metaOnline ? 'Online' : 'Interrupted'}
+              </span>
             </div>
-            <AIStatusIndicator projectId={projectId} />
+
+            <div className="flex items-center gap-3 bg-white/[0.02] border border-white/10 px-4 py-2 rounded-full">
+              <Activity className={cn("w-3.5 h-3.5", autopilotEnabled ? "text-primary animate-spin-slow" : "text-slate-600")} />
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+                AI Autopilot: {autopilotEnabled ? 'Engaged' : 'Manual Mode'}
+              </span>
+              <Switch checked={autopilotEnabled} onCheckedChange={toggleAutopilot} className="scale-75 ml-2 data-[state=checked]:bg-primary" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative group" ref={datePickerRef}>
+              <button
+                onClick={() => setDatePickerOpen(prev => !prev)}
+                className={cn(
+                  "inline-flex items-center gap-3 h-11 px-5 rounded-xl border text-xs font-black uppercase tracking-widest transition-all",
+                  "bg-white/[0.03] border-white/10 hover:border-primary/50 hover:bg-white/[0.06] text-slate-300",
+                  datePickerOpen && "border-primary ring-4 ring-primary/20"
+                )}
+              >
+                <CalendarDays className="w-4 h-4 text-primary" />
+                <span>{dateButtonLabel}</span>
+                <ChevronDown className={cn("w-4 h-4 text-slate-500 transition-transform", datePickerOpen && "rotate-180")} />
+              </button>
+
+              {datePickerOpen && (
+                <div className="absolute top-full right-0 mt-4 z-50 bg-[#0c0c0c] border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex overflow-hidden min-w-[540px] backdrop-blur-3xl">
+                  <div className="w-[180px] border-r border-white/10 p-4 space-y-1">
+                    {presets.map(p => (
+                      <button
+                        key={p.key}
+                        onClick={() => applyPreset(p.key)}
+                        className={cn(
+                          "w-full text-left px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest transition-all",
+                          activePreset === p.key
+                            ? "bg-primary text-white shadow-[0_0_15px_rgba(124,58,237,0.3)]"
+                            : "text-slate-500 hover:bg-white/5 hover:text-slate-300"
+                        )}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className="p-6">
+                    <DayPicker
+                      mode="range"
+                      selected={dateRange}
+                      onSelect={applyCustomRange}
+                      numberOfMonths={2}
+                      locale={ru}
+                      className="text-white ads-calendar"
+                      classNames={{
+                        months: 'flex gap-8',
+                        month: 'space-y-4',
+                        caption: 'flex justify-center items-center h-10 relative mb-4',
+                        caption_label: 'text-sm font-black uppercase tracking-widest text-primary',
+                        nav: 'flex items-center gap-2',
+                        head_cell: 'text-slate-600 w-10 font-black text-[10px] uppercase tracking-tighter pb-2',
+                        cell: 'w-10 h-10 p-0 relative focus-within:z-20',
+                        day: 'w-10 h-10 rounded-xl hover:bg-primary/20 transition-all font-bold text-sm text-slate-400',
+                        day_selected: 'bg-primary text-white shadow-lg shadow-primary/30 rounded-xl',
+                        day_today: 'text-primary border border-primary/30',
+                        day_outside: 'text-slate-800 opacity-20',
+                        day_range_middle: 'bg-primary/10 text-primary rounded-none',
+                        day_range_start: 'rounded-r-none',
+                        day_range_end: 'rounded-l-none',
+                      }}
+                    />
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/10">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                        Range: {dateRange?.from ? format(dateRange.from, 'd MMM yyyy') : '—'}
+                        {dateRange?.to ? ` → ${format(dateRange.to, 'd MMM yyyy')}` : ''}
+                      </span>
+                      <Button
+                        size="sm"
+                        onClick={() => setDatePickerOpen(false)}
+                        className="h-9 px-6 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-xl"
+                      >
+                        Confirm Range
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="h-11 w-11 hover:bg-white/5 rounded-xl border border-white/5 transition-all group"
+            >
+              <RefreshCw className={cn('w-4 h-4 text-slate-400 group-hover:text-primary', refreshing && 'animate-spin text-primary')} />
+            </Button>
           </div>
         </div>
 
-        <TabsContent value="dashboard" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col">
-          <div className="flex-1 overflow-y-auto p-6 space-y-8">
-            {/* Header & Controls */}
-            <div className="flex flex-col gap-6">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                  <div className="p-3 bg-primary/10 rounded-2xl border border-primary/20">
-                    <Zap className="w-8 h-8 text-primary" />
-                  </div>
-                  <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Обзор кампаний</h1>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Управление и статистика Meta Ads
-                    </p>
-                  </div>
-                </div>
+        <TabsContent value="dashboard" className="m-0 space-y-8 pb-10">
+          {/* Metrics Section */}
+          <AdsSummaryCards
+            totalSpent={summaryMetrics.totalSpent}
+            totalLeads={summaryMetrics.totalLeads}
+            avgCpl={summaryMetrics.avgCpl}
+            romi={summaryMetrics.romi}
+          />
 
-                {/* Autopilot Switch */}
-                <div className="flex items-center gap-3 bg-card border border-border p-1.5 pr-4 rounded-full shadow-sm group hover:border-primary/20 transition-all">
-                  <div className={cn(
-                    "w-9 h-9 rounded-full flex items-center justify-center transition-all",
-                    autopilotEnabled ? "bg-emerald-100 text-emerald-600" : "bg-muted text-muted-foreground"
-                  )}>
-                    <Activity className="w-5 h-5" />
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest group-hover:text-foreground transition-colors">AI Autopilot</span>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={autopilotEnabled}
-                        onCheckedChange={toggleAutopilot}
-                        className="scale-75 origin-left"
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Meta-style Date Picker + Refresh */}
-              <div className="flex items-center gap-3 self-start">
-                <div className="relative" ref={datePickerRef}>
-                  {/* Trigger Button — Meta style */}
-                  <button
-                    onClick={() => setDatePickerOpen(prev => !prev)}
-                    className={cn(
-                      "inline-flex items-center gap-2 h-10 px-4 rounded-lg border text-sm font-medium transition-all",
-                      "bg-card border-border hover:border-primary/40 hover:bg-accent",
-                      "text-foreground shadow-sm",
-                      datePickerOpen && "border-primary ring-2 ring-primary/20"
-                    )}
-                  >
-                    <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                    <span>{dateButtonLabel}</span>
-                    <ChevronDown className={cn("w-4 h-4 text-muted-foreground transition-transform", datePickerOpen && "rotate-180")} />
-                  </button>
-
-                  {/* Dropdown Panel */}
-                  {datePickerOpen && (
-                    <div className="absolute top-full left-0 mt-2 z-50 bg-card border border-border rounded-xl shadow-xl flex overflow-hidden min-w-[520px]">
-                      {/* Left: Presets */}
-                      <div className="w-[180px] border-r border-border p-3 space-y-0.5">
-                        {presets.map(p => (
-                          <button
-                            key={p.key}
-                            onClick={() => applyPreset(p.key)}
-                            className={cn(
-                              "w-full text-left px-3 py-2 rounded-lg text-sm transition-all",
-                              activePreset === p.key
-                                ? "bg-primary/10 text-primary font-semibold"
-                                : "text-foreground hover:bg-accent"
-                            )}
-                          >
-                            {activePreset === p.key && (
-                              <span className="inline-block w-2 h-2 rounded-full bg-primary mr-2 align-middle" />
-                            )}
-                            {p.label}
-                          </button>
-                        ))}
-                      </div>
-
-                      {/* Right: Calendar */}
-                      <div className="p-4">
-                        <DayPicker
-                          mode="range"
-                          selected={dateRange}
-                          onSelect={applyCustomRange}
-                          numberOfMonths={2}
-                          locale={ru}
-                          showOutsideDays
-                          className="text-sm"
-                          classNames={{
-                            months: 'flex gap-4',
-                            month: 'space-y-3',
-                            caption: 'flex justify-center items-center h-8 relative',
-                            caption_label: 'text-sm font-semibold',
-                            nav: 'flex items-center gap-1',
-                            nav_button: 'h-7 w-7 bg-transparent border border-border hover:bg-accent rounded-md flex items-center justify-center transition-colors',
-                            head_row: 'flex',
-                            head_cell: 'text-muted-foreground w-9 font-medium text-[11px] uppercase',
-                            row: 'flex mt-0.5',
-                            cell: 'w-9 h-9 text-center text-sm relative',
-                            day: 'w-9 h-9 rounded-md hover:bg-accent transition-colors font-normal',
-                            day_selected: 'bg-primary text-primary-foreground hover:bg-primary/90',
-                            day_today: 'border border-primary/30 font-semibold',
-                            day_outside: 'text-muted-foreground/40',
-                            day_range_middle: 'bg-primary/10 rounded-none',
-                            day_range_start: 'rounded-r-none',
-                            day_range_end: 'rounded-l-none',
-                          }}
-                        />
-                        {/* Footer: current range info */}
-                        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
-                          <span className="text-xs text-muted-foreground">
-                            {dateRange?.from ? format(dateRange.from, 'd MMMM yyyy', { locale: ru }) : '—'}
-                            {dateRange?.to && dateRange.to.getTime() !== dateRange.from?.getTime()
-                              ? ` — ${format(dateRange.to, 'd MMMM yyyy', { locale: ru })}`
-                              : ''}
-                          </span>
-                          <Button
-                            size="sm"
-                            onClick={() => setDatePickerOpen(false)}
-                            className="h-8 px-4 text-xs"
-                          >
-                            Применить
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <Button variant="ghost" size="icon" onClick={handleRefresh} disabled={refreshing} className="h-10 w-10 hover:bg-muted rounded-xl text-muted-foreground hover:text-foreground transition-all">
-                  <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin text-primary')} />
-                </Button>
-              </div>
-            </div>
-
-            {/* Summary Cards */}
-            <AdsSummaryCards
-              totalSpent={summaryMetrics.totalSpent}
-              totalLeads={summaryMetrics.totalLeads}
-              avgCpl={summaryMetrics.avgCpl}
-              romi={summaryMetrics.romi}
-            />
-
-            <div className="grid gap-8 pb-10">
-              <ActiveAdsManager
-                projectId={projectId}
-                dateRange={{
-                  from: dateRange?.from ?? new Date(),
-                  to: dateRange?.to ?? dateRange?.from ?? new Date()
-                }}
-                refreshTrigger={refreshTrigger}
-              />
-
-              <div className="rounded-2xl border border-border bg-card p-1 shadow-sm">
-                <CampaignFunnelChart
-                  projectId={projectId}
-                  dateRange={dateRange}
-                  campaigns={metaCampaigns}
-                  leads={leads}
-                  adPerformance={performanceLogs}
-                  dailyData={dailyData}
-                />
-              </div>
-            </div>
-          </div>
-        </TabsContent>
-
-        <TabsContent value="analyst" className="flex-1 overflow-hidden m-0 data-[state=active]:flex flex-col relative bg-background">
-          <div className="flex-1 h-full w-full">
-            <AdsChatInterface
+          {/* Table Container with Glass Effect */}
+          <div className="rounded-[2.5rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl overflow-hidden shadow-2xl">
+            <ActiveAdsManager
               projectId={projectId}
-              contextData={{
-                campaigns: metaCampaigns,
-                leads: leads,
-                contentItems: content,
-                dailyData: dailyData,
-                summary: summaryMetrics
+              dateRange={{
+                from: dateRange?.from ?? new Date(),
+                to: dateRange?.to ?? dateRange?.from ?? new Date()
               }}
+              refreshTrigger={refreshTrigger}
+            />
+          </div>
+
+          <div className="rounded-[2.5rem] bg-white/[0.02] border border-white/10 backdrop-blur-xl p-8 shadow-2xl">
+            <h3 className="text-xl font-black uppercase tracking-widest mb-8 flex items-center gap-3">
+              <TrendingUp className="w-5 h-5 text-primary" />
+              Campaign Performance Flow
+            </h3>
+            <CampaignFunnelChart
+              projectId={projectId}
+              dateRange={dateRange}
+              campaigns={metaCampaigns}
+              leads={leads}
+              adPerformance={performanceLogs}
+              dailyData={dailyData}
             />
           </div>
         </TabsContent>
 
-
+        <TabsContent value="analyst" className="m-0 h-[700px] border border-white/10 rounded-[2.5rem] overflow-hidden bg-white/[0.01] backdrop-blur-xl shadow-2xl">
+          <AdsChatInterface
+            projectId={projectId}
+            contextData={{
+              campaigns: metaCampaigns,
+              leads: leads,
+              contentItems: content,
+              dailyData: dailyData,
+              summary: summaryMetrics
+            }}
+          />
+        </TabsContent>
       </Tabs>
 
       <CampaignLauncher
@@ -614,6 +584,27 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         isOpen={isLauncherOpen}
         onClose={() => setIsLauncherOpen(false)}
       />
+
+      <style dangerouslySetInnerHTML={{
+        __html: `
+        .ads-calendar .rdp-day_selected:not([disabled]) { 
+          background-color: var(--primary);
+          color: white;
+        }
+        .ads-calendar .rdp-day_range_middle {
+          background-color: rgba(124, 58, 237, 0.1) !important;
+          color: white !important;
+        }
+        @keyframes spin-slow {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+          animation: spin-slow 8s linear infinite;
+        }
+      `}} />
     </div>
   );
 };
+
+export default QuantomAdsPage;

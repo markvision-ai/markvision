@@ -1,9 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
-import { 
-  Send, 
-  Bot, 
-  User, 
-  Sparkles, 
+import {
+  Send,
+  Bot,
+  User,
+  Sparkles,
   Zap,
   RefreshCw,
   Terminal,
@@ -90,29 +90,29 @@ interface AdsChatInterfaceProps {
 
 const AuditWidget = ({ data }: { data: WidgetData }) => {
   return (
-    <div className="mt-2 flex flex-col gap-3 min-w-[300px]">
+    <div className="mt-4 flex flex-col gap-4 min-w-[320px]">
       {data.title && (
-        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <Activity className="w-3 h-3" />
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+          <Activity className="w-3 h-3 text-primary animate-pulse" />
           {data.title}
         </div>
       )}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {data.metrics?.map((metric, idx) => (
-          <div key={idx} className="bg-card/50 border border-border/50 p-3 rounded-xl backdrop-blur-sm">
-            <div className="text-[10px] text-muted-foreground mb-1">{metric.label}</div>
+          <div key={idx} className="bg-white/[0.03] border border-white/5 p-4 rounded-[1.5rem] backdrop-blur-xl group hover:border-primary/30 transition-all duration-300">
+            <div className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-2 group-hover:text-slate-400">{metric.label}</div>
             <div className="flex items-end gap-2">
-              <span className="text-lg font-bold tabular-nums text-foreground">{metric.value}</span>
+              <span className="text-xl font-black tabular-nums text-white tracking-tighter">{metric.value}</span>
               {metric.trend && (
                 <div className={cn(
-                  "text-[10px] px-1.5 py-0.5 rounded-full flex items-center gap-0.5 mb-1",
-                  metric.trend === 'up' || metric.trend === 'good' ? "bg-emerald-500/10 text-emerald-500" :
-                  metric.trend === 'down' || metric.trend === 'bad' ? "bg-red-500/10 text-red-500" :
-                  "bg-muted text-muted-foreground"
+                  "text-[9px] font-black tracking-widest uppercase px-2 py-1 rounded-full flex items-center gap-1 mb-1 transition-all",
+                  metric.trend === 'up' || metric.trend === 'good' ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]" :
+                    metric.trend === 'down' || metric.trend === 'bad' ? "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]" :
+                      "bg-white/5 text-slate-500 border border-white/10"
                 )}>
-                  {metric.trend === 'up' || metric.trend === 'good' ? <TrendingUp className="w-3 h-3" /> :
-                   metric.trend === 'down' || metric.trend === 'bad' ? <TrendingDown className="w-3 h-3" /> :
-                   <Minus className="w-3 h-3" />}
+                  {metric.trend === 'up' || metric.trend === 'good' ? <TrendingUp className="w-2.5 h-2.5" /> :
+                    metric.trend === 'down' || metric.trend === 'bad' ? <TrendingDown className="w-2.5 h-2.5" /> :
+                      <Minus className="w-2.5 h-2.5" />}
                 </div>
               )}
             </div>
@@ -125,20 +125,22 @@ const AuditWidget = ({ data }: { data: WidgetData }) => {
 
 const ActionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actionId: string, label: string) => void }) => {
   return (
-    <div className="mt-2 flex flex-wrap gap-2">
+    <div className="mt-4 flex flex-wrap gap-3">
       {data.actions?.map((action, idx) => (
         <Button
           key={idx}
-          variant={action.style === 'destructive' ? 'destructive' : action.style === 'outline' ? 'outline' : 'default'}
+          variant="outline"
           size="sm"
           onClick={() => onExecute(action.action_id, action.label)}
           className={cn(
-            "text-xs h-8 shadow-sm transition-all active:scale-95",
-            action.style === 'primary' && "bg-emerald-600 hover:bg-emerald-700 text-white shadow-emerald-500/20"
+            "h-10 px-6 rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 group",
+            action.style === 'destructive' ? "border-red-500/20 bg-red-500/5 text-red-400 hover:bg-red-500/10" :
+              action.style === 'primary' ? "bg-primary border-primary/20 text-white hover:bg-primary/90 shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)]" :
+                "border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.08]"
           )}
         >
           {action.label}
-          <ArrowRight className="w-3 h-3 ml-2 opacity-70" />
+          <ArrowRight className="w-3.5 h-3.5 ml-3 transition-transform group-hover:translate-x-1" />
         </Button>
       ))}
     </div>
@@ -149,35 +151,37 @@ const ContentSelectionWidget = ({ data, onExecute }: { data: WidgetData; onExecu
   const getIcon = (action: any) => {
     const id = action.action_id || '';
     const label = action.label || '';
-    
-    if (id.includes('video') || label.includes('Видео')) return <Video className="w-5 h-5 text-blue-400" />;
-    if (id.includes('post') || label.includes('пост')) return <ImageIcon className="w-5 h-5 text-pink-400" />;
-    if (id.includes('carousel') || label.includes('Карусель')) return <Layers className="w-5 h-5 text-purple-400" />;
-    if (id.includes('article') || label.includes('Статья')) return <FileText className="w-5 h-5 text-orange-400" />;
-    
-    return <Sparkles className="w-5 h-5 text-yellow-400" />;
+
+    if (id.includes('video') || label.includes('Видео')) return <Video className="w-6 h-6 text-blue-400" />;
+    if (id.includes('post') || label.includes('пост')) return <ImageIcon className="w-6 h-6 text-pink-400" />;
+    if (id.includes('carousel') || label.includes('Карусель')) return <Layers className="w-6 h-6 text-purple-400" />;
+    if (id.includes('article') || label.includes('Статья')) return <FileText className="w-6 h-6 text-orange-400" />;
+
+    return <Sparkles className="w-6 h-6 text-yellow-400" />;
   };
 
   return (
-    <div className="mt-2 flex flex-col gap-3 min-w-[300px]">
-       {data.title && (
-        <div className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-          <Sparkles className="w-3 h-3" />
+    <div className="mt-4 flex flex-col gap-4 min-w-[320px]">
+      {data.title && (
+        <div className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+          <Sparkles className="w-3 h-3 text-yellow-400 animate-pulse" />
           {data.title}
         </div>
       )}
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         {data.actions?.map((action, idx) => (
-          <button
+          <motion.button
             key={idx}
+            whileHover={{ scale: 1.05, y: -2 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => onExecute(action.action_id, action.label)}
-            className="flex flex-col items-center justify-center gap-2 p-3 bg-card/50 hover:bg-muted/80 border border-border/50 hover:border-emerald-500/50 rounded-xl transition-all active:scale-95 group"
+            className="flex flex-col items-center justify-center gap-3 p-6 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-primary/40 rounded-[2rem] transition-all duration-300 group shadow-lg"
           >
-            <div className="p-2 rounded-full bg-background/50 group-hover:bg-background transition-colors">
+            <div className="p-4 rounded-2xl bg-black/40 border border-white/5 group-hover:border-primary/20 transition-colors shadow-inner">
               {getIcon(action)}
             </div>
-            <span className="text-xs font-medium text-center">{action.label}</span>
-          </button>
+            <span className="text-[10px] font-black uppercase tracking-widest text-white text-center">{action.label}</span>
+          </motion.button>
         ))}
       </div>
     </div>
@@ -190,7 +194,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [loadingText, setLoadingText] = useState('Анализирую данные...');
+  const [loadingText, setLoadingText] = useState('Neural Analysis Engine: Active...');
   const [isSyncing, setIsSyncing] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -210,8 +214,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       if (data) {
         setMessages(data);
       } else if (!error && data === null) {
-          // No messages found, do not add fake welcome message
-          setMessages([]);
+        setMessages([]);
       }
     };
 
@@ -219,15 +222,15 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
     const channel = (supabase as any)
       .channel('ai_chat_messages')
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'ai_chat_messages', 
-        filter: `project_id=eq.${projectId}` 
+      .on('postgres_changes', {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'ai_chat_messages',
+        filter: `project_id=eq.${projectId}`
       }, (payload: any) => {
         setMessages(prev => {
-            if (prev.some(m => m.id === payload.new.id)) return prev;
-            return [...prev, payload.new];
+          if (prev.some(m => m.id === payload.new.id)) return prev;
+          return [...prev, payload.new];
         });
       })
       .subscribe();
@@ -267,7 +270,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       const { error } = await (supabase as any)
         .from('ai_chat_messages')
         .insert(newMessage);
-      
+
       if (error) throw error;
     } catch (e) {
       console.error('Failed to save message', e);
@@ -276,20 +279,19 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
   const handleExecuteAction = async (actionId: string, label: string) => {
     if (!projectId) {
-      toast.error('Выберите проект');
+      toast.error('Connect Project First');
       return;
     }
-    await saveMessage('user', `[Действие] ${label}`);
+    await saveMessage('user', `[COMMAND] Executing: ${label}`);
     setIsLoading(true);
-    setLoadingText('Выполняю действие...');
+    setLoadingText('System Execution Subsystem...');
 
     try {
-       // Create Bridge Task for Action
       const { data: task, error } = await (supabase as any)
         .from('ai_bridge_tasks')
         .insert({
           project_id: projectId,
-          prompt: `[ACTION] ${actionId} ${label}`, // Encoding action in prompt
+          prompt: `[ACTION] ${actionId} ${label}`,
           status: 'pending'
         })
         .select()
@@ -297,15 +299,13 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
       if (error) throw error;
 
-      // Set 30s timeout
       const timeoutId = setTimeout(() => {
         setIsLoading(false);
-        toast.error('Марк не отвечает. Убедитесь, что терминал на Макбуке запущен');
-        saveMessage('system', 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен', 'error');
+        toast.error('System Timeout: No Response from Core');
+        saveMessage('system', 'System Timeout: No response detected from internal neural engine.', 'error');
         supabase.removeChannel(channel);
       }, 30000);
 
-      // Subscribe to task updates
       const channel = supabase.channel(`ai_bridge_action_${task.id}`)
         .on(
           'postgres_changes',
@@ -317,16 +317,15 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           },
           (payload: any) => {
             const newTask = payload.new;
-            
+
             if (newTask.status === 'completed' || newTask.status === 'failed') {
               clearTimeout(timeoutId);
               setIsLoading(false);
               supabase.removeChannel(channel);
-              
+
               if (newTask.status === 'failed') {
-                saveMessage('assistant', 'Ошибка выполнения действия', 'error');
+                saveMessage('assistant', 'System Error: Task execution failed in subsystem.', 'error');
               }
-               // Success handled by ai_chat_messages subscription
             }
           }
         )
@@ -334,62 +333,50 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
     } catch (error) {
       console.error('Action failed:', error);
-      await saveMessage('assistant', 'Ошибка выполнения действия', 'error');
+      await saveMessage('assistant', 'System Initialization Error', 'error');
       setIsLoading(false);
     }
   };
 
   const handleSync = async () => {
     setIsSyncing(true);
-    toast.info('Синхронизация данных с Meta Ads...');
-    
+    toast.info('Initiating External Telemetry Sync...');
+
     try {
       if (projectId) {
         await (supabase as any).from('ai_commands').insert({
-            project_id: projectId,
-            command: 'sync_data',
-            status: 'pending',
-            payload: { source: 'all' }
+          project_id: projectId,
+          command: 'sync_data',
+          status: 'pending',
+          payload: { source: 'all' }
         });
       }
-      
+
       await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Данные успешно обновлены');
-      saveMessage('system', '[Марк: Данные успешно синхронизированы из Meta Ads и Supabase]', 'info');
+      toast.success('Telemetry Synchronized');
+      saveMessage('system', '[CORE: Data synchronized from external sources and internal buffers]', 'info');
     } catch (e) {
-      toast.error('Ошибка синхронизации');
+      toast.error('Link Failure: Sync Error');
     } finally {
       setIsSyncing(false);
-    }
-  };
-
-  const fetchWithRetry = async (fn: () => Promise<any>, retries = 3, delay = 1000): Promise<any> => {
-    try {
-      return await fn();
-    } catch (error) {
-      if (retries <= 0) throw error;
-      await new Promise(resolve => setTimeout(resolve, delay));
-      return fetchWithRetry(fn, retries - 1, delay * 2);
     }
   };
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isLoading) return;
     if (!projectId) {
-      toast.error('Выберите проект');
+      toast.error('Project Link Required');
       return;
     }
 
     const text = inputValue;
     setInputValue('');
     setIsLoading(true);
-    setLoadingText('Ожидаю ответ Марка...');
-    
-    // Save user message immediately
+    setLoadingText('Query Processing: Neural Bridge...');
+
     await saveMessage('user', text);
 
     try {
-      // Create Bridge Task
       const { data: task, error } = await (supabase as any)
         .from('ai_bridge_tasks')
         .insert({
@@ -402,15 +389,13 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
       if (error) throw error;
 
-      // Set 30s timeout
       const timeoutId = setTimeout(() => {
         setIsLoading(false);
-        toast.error('Марк не отвечает. Убедитесь, что терминал на Макбуке запущен');
-        saveMessage('system', 'Марк не отвечает. Убедитесь, что терминал на Макбуке запущен', 'error');
+        toast.error('Neural Engine Offline');
+        saveMessage('system', 'Neural Engine: Connection lost. Ensure local worker is active.', 'error');
         supabase.removeChannel(channel);
       }, 30000);
 
-      // Subscribe to task updates
       const channel = supabase.channel(`ai_bridge_ads_${task.id}`)
         .on(
           'postgres_changes',
@@ -422,26 +407,24 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           },
           (payload: any) => {
             const newTask = payload.new;
-            
+
             if (newTask.status === 'completed' || newTask.status === 'failed') {
               clearTimeout(timeoutId);
               setIsLoading(false);
               supabase.removeChannel(channel);
-              
+
               if (newTask.status === 'failed') {
-                saveMessage('assistant', 'Произошла ошибка при обработке запроса', 'error');
+                saveMessage('assistant', 'Protocol Deviation: Engine encountered an internal exception.', 'error');
               }
-              // Success case: The worker should have written the response to ai_chat_messages, 
-              // which we are already subscribed to in the useEffect.
             }
           }
         )
         .subscribe();
-      
+
     } catch (error) {
       console.error('Failed to process request:', error);
       setIsLoading(false);
-      await saveMessage('assistant', 'Ошибка отправки запроса', 'error');
+      await saveMessage('assistant', 'Link protocol error', 'error');
     }
   };
 
@@ -453,173 +436,219 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
   };
 
   const quickCommands = [
-    { label: 'Аудит аккаунта', icon: Activity },
-    { label: 'Отключи плохие', icon: Zap },
-    { label: 'Проверь бюджет', icon: TrendingUp },
-    { label: 'Контент-Завод', icon: ImageIcon },
+    { label: 'Deep System Audit', icon: Activity },
+    { label: 'Optimize: Low ROI', icon: Zap },
+    { label: 'Verify Budgets', icon: TrendingUp },
+    { label: 'Open Content Hub', icon: ImageIcon },
   ];
 
   return (
-    <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-background">
-      <div className="hidden dark:block">
-        <BackgroundBeams className="absolute inset-0 z-0 opacity-30" />
+    <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-[#0a0a0c]">
+      <div className="absolute inset-0 z-0">
+        <BackgroundBeams className="opacity-10" />
+        <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-black pointer-events-none" />
       </div>
-      
+
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-3 py-1.5 border-b border-border bg-background/80 backdrop-blur-md min-h-[40px]">
-        <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
-          <span className="font-semibold tracking-wide text-[10px] uppercase text-muted-foreground">AI Analyst V2.1</span>
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-black/40 backdrop-blur-2xl min-h-[64px]">
+        <div className="flex items-center gap-4">
+          <div className="p-2 rounded-xl bg-primary/20 border border-primary/20">
+            <Bot className="w-5 h-5 text-primary" />
+          </div>
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2">
+              <span className="font-black tracking-widest text-[11px] uppercase text-white">Neural Assistant</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_10px_#10b981] animate-pulse" />
+            </div>
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-500">System Version 4.0.98</span>
+          </div>
         </div>
-        <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={handleSync}
-            disabled={isSyncing}
-            className="h-6 px-2 text-[10px] text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleSync}
+          disabled={isSyncing}
+          className="h-10 px-6 rounded-2xl border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.08] font-black text-[10px] uppercase tracking-widest shadow-2xl transition-all"
         >
-            <RefreshCw className={`w-3 h-3 mr-1.5 ${isSyncing ? 'animate-spin' : ''}`} />
-            SYNC
+          <RefreshCw className={cn("w-4 h-4 mr-3", isSyncing && "animate-spin")} />
+          Link Sync
         </Button>
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-hidden relative z-10">
-        <ScrollArea ref={scrollRef} className="h-full px-4 py-4">
-            <div className="space-y-6 pb-4">
-                {messages.map((msg, idx) => (
-                    <motion.div 
-                        key={msg.id || idx}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3 }}
-                        className={cn(
-                            "flex gap-3 max-w-[90%]",
-                            msg.role === 'user' ? "ml-auto flex-row-reverse" : ""
-                        )}
-                    >
-                        <div className={cn(
-                            "w-8 h-8 rounded-full flex items-center justify-center shrink-0 border shadow-sm backdrop-blur-md",
-                            msg.role === 'user' 
-                                ? "bg-primary text-primary-foreground border-primary" 
-                                : msg.role === 'system'
-                                    ? "bg-muted border-border text-muted-foreground"
-                                    : "bg-card border-border text-foreground"
-                        )}>
-                            {msg.role === 'user' ? <User className="w-4 h-4" /> : msg.role === 'system' ? <Zap className="w-4 h-4" /> : <Bot className="w-4 h-4" />}
-                        </div>
-                        
-                        <div className="flex flex-col gap-1 w-full">
-                            <div className={cn(
-                                "p-3.5 text-sm backdrop-blur-md shadow-sm border relative overflow-hidden",
-                                msg.role === 'user' 
-                                    ? "bg-primary text-primary-foreground border-primary rounded-2xl rounded-tr-sm" 
-                                    : msg.role === 'system'
-                                        ? "bg-muted/50 border-border rounded-2xl rounded-tl-sm text-muted-foreground font-mono text-xs"
-                                        : "bg-card border-border rounded-2xl rounded-tl-sm text-foreground"
-                            )}>
-                                {msg.role === 'system' ? (
-                                    <div className="flex items-center gap-2">
-                                        <Terminal className="w-3 h-3" />
-                                        {msg.content}
-                                    </div>
-                                ) : (
-                                    <>
-                                      <div className={cn(
-                                        "prose prose-sm max-w-none leading-relaxed prose-invert",
-                                        msg.role === 'user' && "text-primary-foreground"
-                                      )}>
-                                          <ReactMarkdown 
-                                              components={{
-                                                  p: ({node, ...props}) => <p className="mb-1 last:mb-0" {...props} />,
-                                                  strong: ({node, ...props}) => <span className="font-semibold opacity-90" {...props} />,
-                                                  code: ({node, ...props}) => <code className="bg-muted px-1 py-0.5 rounded text-xs font-mono" {...props} />
-                                              }}
-                                          >
-                                              {msg.content}
-                                          </ReactMarkdown>
-                                      </div>
+        <ScrollArea ref={scrollRef} className="h-full px-6 py-8">
+          <div className="space-y-10 pb-8 max-w-4xl mx-auto">
+            {messages.length === 0 && (
+              <div className="flex flex-col items-center justify-center h-[200px] text-center gap-4 opacity-50">
+                <div className="w-16 h-16 rounded-[2rem] border border-white/10 flex items-center justify-center bg-white/[0.02]">
+                  <Sparkles className="w-8 h-8 text-primary/40" />
+                </div>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-slate-500">Awaiting Subconscious Interface Link</p>
+              </div>
+            )}
 
-                                      {/* Widget Rendering */}
-                                      {msg.type === 'widget' && msg.widget_data && (
-                                        <div className="mt-3 pt-3 border-t border-border/50">
-                                          {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
-                                          {msg.widget_type === 'content_selection_card' && (
-                                            <ContentSelectionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
-                                          )}
-                                          {/* Only show generic actions if NOT a specific widget that handles actions internally */}
-                                          {msg.widget_type !== 'content_selection_card' && (msg.widget_data.actions?.length ?? 0) > 0 && (
-                                            <ActionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
-                                          )}
-                                        </div>
-                                      )}
-                                    </>
-                                )}
-                            </div>
-                            <span className="text-[10px] text-muted-foreground px-1">
-                                {format(new Date(msg.created_at || new Date()), 'HH:mm')}
-                            </span>
-                        </div>
-                    </motion.div>
-                ))}
-                
-                {/* Loading Indicator */}
-                {isLoading && (
-                    <motion.div 
-                        initial={{ opacity: 0 }} 
-                        animate={{ opacity: 1 }}
-                        className="flex items-center gap-3 pl-2"
-                    >
-                        <div className="flex gap-1 bg-card border border-border px-3 py-2 rounded-full shadow-sm">
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '0ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '150ms' }} />
-                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-bounce" style={{ animationDelay: '300ms' }} />
-                        </div>
-                        <span className="text-xs text-muted-foreground animate-pulse">{loadingText}</span>
-                    </motion.div>
+            {messages.map((msg, idx) => (
+              <motion.div
+                key={msg.id || idx}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                className={cn(
+                  "flex gap-6",
+                  msg.role === 'user' ? "flex-row-reverse" : "flex-row"
                 )}
-            </div>
+              >
+                <div className={cn(
+                  "w-12 h-12 rounded-[1.2rem] flex items-center justify-center shrink-0 border shadow-2xl backdrop-blur-3xl transition-transform hover:scale-110",
+                  msg.role === 'user'
+                    ? "bg-primary text-white border-primary/20 shadow-primary/20"
+                    : msg.role === 'system'
+                      ? "bg-slate-900 border-white/10 text-slate-400"
+                      : "bg-white/[0.05] border-white/10 text-white"
+                )}>
+                  {msg.role === 'user' ? <User className="w-6 h-6" /> : msg.role === 'system' ? <Terminal className="w-5 h-5" /> : <Bot className="w-6 h-6" />}
+                </div>
+
+                <div className={cn(
+                  "flex flex-col gap-2 w-full",
+                  msg.role === 'user' ? "items-end" : "items-start"
+                )}>
+                  <div className={cn(
+                    "p-6 text-sm backdrop-blur-3xl shadow-3xl border relative overflow-hidden transition-all",
+                    msg.role === 'user'
+                      ? "bg-primary/20 text-white border-primary/30 rounded-[2rem] rounded-tr-none max-w-[80%]"
+                      : msg.role === 'system'
+                        ? "bg-black/80 border-white/5 rounded-[1.5rem] rounded-tl-none text-slate-500 font-mono text-[10px] uppercase tracking-widest p-4"
+                        : "bg-white/[0.03] border-white/10 rounded-[2.5rem] rounded-tl-none text-white max-w-[90%]"
+                  )}>
+                    {msg.role === 'system' ? (
+                      <div className="flex items-center gap-3">
+                        <div className="w-1.5 h-1.5 rounded-full bg-slate-700" />
+                        {msg.content}
+                      </div>
+                    ) : (
+                      <>
+                        <div className={cn(
+                          "prose prose-invert max-w-none leading-relaxed prose-p:my-0 prose-headings:text-white prose-strong:text-white prose-strong:font-black",
+                          "prose-pre:bg-black/50 prose-pre:border prose-pre:border-white/5 prose-pre:rounded-2xl",
+                          msg.role === 'user' ? "text-white font-medium" : "text-slate-200"
+                        )}>
+                          <ReactMarkdown
+                            components={{
+                              p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+                              code: ({ node, ...props }) => <code className="bg-white/10 px-1.5 py-0.5 rounded text-xs font-mono text-primary-foreground" {...props} />
+                            }}
+                          >
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+
+                        {/* Widget Rendering */}
+                        {msg.type === 'widget' && msg.widget_data && (
+                          <div className="mt-8 pt-6 border-t border-white/5 relative">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-black/40 border border-white/5 rounded-full text-[8px] font-black uppercase tracking-[0.2em] text-slate-500">
+                              Interface Extension
+                            </div>
+                            {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
+                            {msg.widget_type === 'content_selection_card' && (
+                              <ContentSelectionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
+                            )}
+                            {msg.widget_type !== 'content_selection_card' && (msg.widget_data.actions?.length ?? 0) > 0 && (
+                              <ActionWidget data={msg.widget_data} onExecute={handleExecuteAction} />
+                            )}
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 px-2">
+                    {format(new Date(msg.created_at || new Date()), 'HH:mm')} System Time
+                  </span>
+                </div>
+              </motion.div>
+            ))}
+
+            {/* Loading Indicator */}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="flex items-center gap-6"
+              >
+                <div className="w-12 h-12 rounded-[1.2rem] border border-primary/40 bg-primary/10 flex items-center justify-center">
+                  <Activity className="w-6 h-6 text-primary animate-pulse" />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2 bg-white/[0.03] border border-white/10 px-6 py-4 rounded-[2rem] rounded-tl-none shadow-2xl">
+                    <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                    <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+                  </div>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-primary animate-pulse pl-2">{loadingText}</span>
+                </div>
+              </motion.div>
+            )}
+          </div>
         </ScrollArea>
       </div>
 
       {/* Input Area */}
-      <div className="relative z-10 p-4 bg-background/80 border-t border-border backdrop-blur-xl">
+      <div className="relative z-10 p-8 pt-4 bg-black/60 border-t border-white/5 backdrop-blur-3xl">
         {/* Quick Commands */}
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1 scrollbar-hide mask-fade-right">
-            {quickCommands.map((cmd, i) => (
-                <button
-                    key={i}
-                    onClick={() => setInputValue(cmd.label)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-border bg-muted/50 hover:bg-muted hover:border-emerald-500/30 transition-all text-xs text-muted-foreground hover:text-emerald-500 whitespace-nowrap active:scale-95"
-                >
-                    <cmd.icon className="w-3.5 h-3.5" />
-                    {cmd.label}
-                </button>
-            ))}
+        <div className="flex gap-4 mb-6 overflow-x-auto pb-2 scrollbar-hide px-2">
+          {quickCommands.map((cmd, i) => (
+            <motion.button
+              key={i}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setInputValue(cmd.label)}
+              className="flex items-center gap-3 px-6 py-2.5 rounded-2xl border border-white/5 bg-white/[0.03] hover:bg-white/[0.08] hover:border-primary/40 transition-all text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white whitespace-nowrap shadow-xl"
+            >
+              <cmd.icon className="w-4 h-4 text-primary/60" />
+              {cmd.label}
+            </motion.button>
+          ))}
         </div>
 
-        <div className="relative flex items-center gap-2">
-            <Input
-                ref={inputRef}
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Спроси Марка о рекламе или контенте..."
-                className="bg-muted/50 border-border focus-visible:ring-emerald-500/30 focus-visible:border-emerald-500/30 text-foreground placeholder:text-muted-foreground pr-10 h-11 rounded-xl transition-all hover:bg-muted"
-                disabled={isLoading}
-            />
-            <Button 
-                onClick={handleSendMessage} 
-                disabled={!inputValue.trim() || isLoading}
-                size="icon" 
-                className="absolute right-1.5 top-1.5 h-8 w-8 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-lg transition-all shadow-lg shadow-emerald-900/20"
-            >
-                <Send className="w-4 h-4" />
-            </Button>
+        <div className="relative flex items-center max-w-5xl mx-auto w-full">
+          <div className="absolute left-4 p-2 rounded-xl bg-white/5 border border-white/5 z-10">
+            <Zap className="w-4 h-4 text-primary" />
+          </div>
+          <Input
+            ref={inputRef}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Neural Bridge: Input query or system instruction..."
+            className="bg-white/[0.02] border-white/10 focus-visible:ring-primary/20 focus-visible:border-primary/40 text-white placeholder:text-slate-600 pl-16 pr-16 h-16 rounded-[2rem] transition-all hover:bg-white/[0.05] font-medium text-base shadow-2xl"
+            disabled={isLoading}
+          />
+          <Button
+            onClick={handleSendMessage}
+            disabled={!inputValue.trim() || isLoading}
+            size="icon"
+            className="absolute right-2 top-2 h-12 w-12 bg-primary hover:bg-primary/90 text-white rounded-2xl transition-all shadow-[0_0_20px_rgba(124,58,237,0.4)] group"
+          >
+            <Send className="w-5 h-5 transition-transform group-hover:translate-x-1 group-hover:-translate-y-1" />
+          </Button>
         </div>
-        <div className="mt-3 flex justify-between items-center text-[10px] text-muted-foreground">
-            <span>Доступ: Leads, Daily Data, Content Items</span>
-            <span className="flex items-center gap-1"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500/50"></div>Online</span>
+
+        <div className="mt-6 flex justify-between items-center max-w-5xl mx-auto w-full px-4">
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Neural Core: Optimized</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Terminal className="w-3 h-3 text-slate-600" />
+              <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">Protocol: ADS-MANAGER-RT</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/5 border border-emerald-500/10">
+            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-[8px] font-black uppercase tracking-[0.2em] text-emerald-500/80">Uplink: Synchronized</span>
+          </div>
         </div>
       </div>
     </div>

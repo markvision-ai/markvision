@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
 import { Badge } from '@/components/ui/badge';
 import { Zap, Loader2, AlertCircle, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
@@ -110,35 +111,52 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
 
   if (status === 'working') {
     return (
-      <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs animate-pulse">
-        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-        AI Generating...
-      </Badge>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 shadow-[0_0_15px_rgba(124,58,237,0.3)] animate-pulse"
+      >
+        <Loader2 className="w-3 h-3 text-primary animate-spin" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Neural Link: Processing</span>
+      </motion.div>
     );
   }
 
   if (status === 'error') {
-     return (
-      <Badge variant="destructive" className="text-xs" title={lastError || 'Error'}>
-        <AlertCircle className="w-3 h-3 mr-1" />
-        AI Error
-      </Badge>
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
+        title={lastError || 'Error'}
+      >
+        <AlertCircle className="w-3 h-3 text-red-500" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-red-500">System Error: Fault Detected</span>
+      </motion.div>
     );
   }
 
   if (status === 'offline') {
     return (
-      <Badge variant="outline" className="text-xs text-muted-foreground border-dashed">
-        <WifiOff className="w-3 h-3 mr-1" />
-        Offline
-      </Badge>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-500/10 border border-slate-500/30"
+      >
+        <WifiOff className="w-3 h-3 text-slate-500" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Uplink: Offline</span>
+      </motion.div>
     );
   }
 
   return (
-    <Badge className="bg-gradient-to-r from-violet-500 to-purple-600 text-white border-0 text-xs">
-      <Zap className="w-3 h-3 mr-1" />
-      AI Active
-    </Badge>
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+    >
+      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
+      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">AI Engine: Standby</span>
+    </motion.div>
   );
 };

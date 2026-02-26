@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAgencyAnalytics } from '@/hooks/useAgencyAnalytics';
 import { toast } from 'sonner';
 import { Upload, X, Loader2, Rocket, Globe, MapPin, Target, DollarSign, Clock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface CampaignLauncherProps {
@@ -137,186 +138,244 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
 
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
-            <SheetContent className="sm:max-w-xl overflow-y-auto bg-background/95 backdrop-blur-xl border-l border-white/10 shadow-2xl">
-                <SheetHeader className="mb-8">
-                    <div className="flex items-center gap-3 mb-2">
-                        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center border border-primary/30">
-                            <Rocket className="w-6 h-6 text-primary" />
-                        </div>
-                        <div>
-                            <SheetTitle className="text-2xl font-bold">Запуск новой кампании</SheetTitle>
-                            <SheetDescription>
-                                Заполните параметры, чтобы отправить креатив в систему запуска.
-                            </SheetDescription>
-                        </div>
-                    </div>
-                </SheetHeader>
+            <SheetContent
+                side="right"
+                className="w-full sm:max-w-xl p-0 border-l border-white/10 bg-[#0a0a0c]/90 backdrop-blur-3xl shadow-[0_0_100px_rgba(124,58,237,0.15)] overflow-hidden flex flex-col"
+            >
+                {/* Decorative Header Background */}
+                <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
-                <form onSubmit={handleSubmit} className="space-y-6">
-                    {/* Account Selection */}
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                            <Globe className="w-3.5 h-3.5" /> Выбор кабинета
-                        </Label>
-                        <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                            <SelectTrigger className="bg-muted/50 border-border/50 h-12 rounded-xl focus:ring-primary/20">
-                                <SelectValue placeholder="Выберите рекламный кабинет" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {accounts.map((acc) => (
-                                    <SelectItem key={acc.accountId} value={acc.accountId}>
-                                        {acc.accountName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                        {/* Objective */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <Target className="w-3.5 h-3.5" /> Цель кампании
-                            </Label>
-                            <Select value={objective} onValueChange={setObjective}>
-                                <SelectTrigger className="bg-muted/50 border-border/50 h-12 rounded-xl">
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="whatsapp">💬 WhatsApp Сообщения</SelectItem>
-                                    <SelectItem value="traffic">🔗 Трафик на сайт</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        {/* Budget */}
-                        <div className="space-y-2">
-                            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                                <DollarSign className="w-3.5 h-3.5" /> Дневной бюджет (₸)
-                            </Label>
-                            <Input
-                                type="number"
-                                placeholder="Напр. 5000"
-                                value={budget}
-                                onChange={(e) => setBudget(e.target.value)}
-                                className="bg-muted/50 border-border/50 h-12 rounded-xl"
-                                min="500"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Geography */}
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                            <MapPin className="w-3.5 h-3.5" /> География / Город
-                        </Label>
-                        <Select value={city} onValueChange={setCity}>
-                            <SelectTrigger className="bg-muted/50 border-border/50 h-12 rounded-xl">
-                                <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="Алматы">Алматы</SelectItem>
-                                <SelectItem value="Астана">Астана</SelectItem>
-                                <SelectItem value="Шымкент">Шымкент</SelectItem>
-                                <SelectItem value="Караганда">Караганда</SelectItem>
-                                <SelectItem value="Весь Казахстан">Весь Казахстан</SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-
-                    {/* Start Time */}
-                    <div className="space-y-3">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                            <Clock className="w-3.5 h-3.5" /> Время старта
-                        </Label>
-                        <RadioGroup value={startTime} onValueChange={setStartTime} className="flex gap-4">
-                            <div className="flex items-center space-x-2 bg-muted/30 px-4 py-3 rounded-xl border border-border/30 hover:bg-muted/50 transition-colors flex-1">
-                                <RadioGroupItem value="now" id="now" />
-                                <Label htmlFor="now" className="cursor-pointer">Сейчас</Label>
+                <div className="relative z-10 flex flex-col h-full">
+                    <SheetHeader className="p-8 pb-4 border-b border-white/5 bg-white/[0.01]">
+                        <div className="flex items-center gap-6">
+                            <motion.div
+                                initial={{ rotate: -20, scale: 0.8 }}
+                                animate={{ rotate: 0, scale: 1 }}
+                                className="w-16 h-16 rounded-[2rem] bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.4)]"
+                            >
+                                <Rocket className="w-8 h-8 text-primary" />
+                            </motion.div>
+                            <div className="flex flex-col gap-1">
+                                <SheetTitle className="text-2xl font-black uppercase tracking-tighter text-white">Campaign Launcher</SheetTitle>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
+                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">System Ready: Neural Uplink Online</span>
+                                </div>
                             </div>
-                            <div className="flex items-center space-x-2 bg-muted/30 px-4 py-3 rounded-xl border border-border/30 hover:bg-muted/50 transition-colors flex-1">
-                                <RadioGroupItem value="midnight" id="midnight" />
-                                <Label htmlFor="midnight" className="cursor-pointer">С 00:00 завтра</Label>
+                        </div>
+                    </SheetHeader>
+
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
+                        <form id="campaign-launch-form" onSubmit={handleSubmit} className="space-y-8">
+                            {/* Account Selection */}
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                    <Globe className="w-3.5 h-3.5 text-primary" /> Signal Destination: Ads Account
+                                </Label>
+                                <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
+                                    <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] transition-all hover:bg-white/[0.08] focus:ring-primary/20 text-white font-medium shadow-inner">
+                                        <SelectValue placeholder="Select Deployment Node" />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl shadow-2xl">
+                                        {accounts.map((acc) => (
+                                            <SelectItem key={acc.accountId} value={acc.accountId} className="py-4 font-bold uppercase text-[10px] tracking-widest">
+                                                {acc.accountName}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
                             </div>
-                        </RadioGroup>
-                    </div>
 
-                    {/* Creative Uploader */}
-                    <div className="space-y-2">
-                        <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
-                            <Upload className="w-3.5 h-3.5" /> Креатив (Фото или Видео)
-                        </Label>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                                {/* Objective */}
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                        <Target className="w-3.5 h-3.5 text-primary" /> Mission Objective
+                                    </Label>
+                                    <Select value={objective} onValueChange={setObjective}>
+                                        <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-white font-medium">
+                                            <SelectValue />
+                                        </SelectTrigger>
+                                        <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl">
+                                            <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-emerald-400">💬 Telegram/WA Direct</SelectItem>
+                                            <SelectItem value="traffic" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-400">🔗 Protocol: Web Traffic</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                </div>
 
-                        <AnimatePresence mode="wait">
-                            {!file ? (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.95 }}
-                                    onClick={() => fileInputRef.current?.click()}
-                                    className="border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 cursor-pointer rounded-2xl p-8 transition-all flex flex-col items-center justify-center gap-3"
-                                >
-                                    <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-                                        <Upload className="w-6 h-6 text-primary" />
+                                {/* Budget */}
+                                <div className="space-y-4">
+                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                        <DollarSign className="w-3.5 h-3.5 text-primary" /> Daily Fuel Allocation (₸)
+                                    </Label>
+                                    <div className="relative">
+                                        <Input
+                                            type="number"
+                                            placeholder="5,000"
+                                            value={budget}
+                                            onChange={(e) => setBudget(e.target.value)}
+                                            className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-xl font-black text-white pl-10 focus:ring-primary/20 pr-4 shadow-inner"
+                                            min="500"
+                                        />
+                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
                                     </div>
-                                    <div className="text-center">
-                                        <p className="text-sm font-semibold">Выберите файл или перетащите</p>
-                                        <p className="text-xs text-muted-foreground mt-1">MP4, JPG или PNG (до 50MB)</p>
-                                    </div>
-                                    <input
-                                        type="file"
-                                        ref={fileInputRef}
-                                        className="hidden"
-                                        accept="video/*,image/*"
-                                        onChange={handleFileChange}
-                                    />
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="relative rounded-2xl overflow-hidden border border-border aspect-video bg-muted flex items-center justify-center"
-                                >
-                                    {file.type.startsWith('image/') ? (
-                                        <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain" />
-                                    ) : (
-                                        <video src={previewUrl!} className="w-full h-full object-contain" controls />
-                                    )}
-                                    <button
-                                        type="button"
-                                        onClick={clearFile}
-                                        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors"
+                                </div>
+                            </div>
+
+                            {/* Geography */}
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                    <MapPin className="w-3.5 h-3.5 text-primary" /> Geospatial Targeting
+                                </Label>
+                                <Select value={city} onValueChange={setCity}>
+                                    <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-white font-medium">
+                                        <SelectValue />
+                                    </SelectTrigger>
+                                    <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl">
+                                        <SelectItem value="Алматы" className="py-4 font-bold uppercase text-[10px] tracking-widest">Almaty (Sector 01)</SelectItem>
+                                        <SelectItem value="Астана" className="py-4 font-bold uppercase text-[10px] tracking-widest">Astana (Capital)</SelectItem>
+                                        <SelectItem value="Шымкент" className="py-4 font-bold uppercase text-[10px] tracking-widest">Shymkent (South)</SelectItem>
+                                        <SelectItem value="Караганда" className="py-4 font-bold uppercase text-[10px] tracking-widest">Karaganda (Central)</SelectItem>
+                                        <SelectItem value="Весь Казахстан" className="py-4 font-bold uppercase text-[10px] tracking-widest text-primary">Full Uplink: KZ (All)</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                            </div>
+
+                            {/* Start Time */}
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-primary" /> Temporal Schedule
+                                </Label>
+                                <RadioGroup value={startTime} onValueChange={setStartTime} className="grid grid-cols-2 gap-4">
+                                    <div
+                                        onClick={() => setStartTime('now')}
+                                        className={cn(
+                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-lg",
+                                            startTime === 'now' ? "bg-primary/20 border-primary/50" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                                        )}
                                     >
-                                        <X className="w-4 h-4" />
-                                    </button>
-                                    <div className="absolute bottom-0 inset-x-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
-                                        <p className="text-xs text-white truncate font-medium">{file.name}</p>
+                                        <RadioGroupItem value="now" id="now" className="border-primary" />
+                                        <div className="flex flex-col">
+                                            <Label htmlFor="now" className="font-black text-[10px] uppercase tracking-widest text-white cursor-pointer group-hover:text-primary transition-colors">Immediate Blast</Label>
+                                            <span className="text-[8px] uppercase tracking-widest text-slate-500">T-Minus 0:00:00</span>
+                                        </div>
                                     </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                                    <div
+                                        onClick={() => setStartTime('midnight')}
+                                        className={cn(
+                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-lg",
+                                            startTime === 'midnight' ? "bg-primary/20 border-primary/50" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                                        )}
+                                    >
+                                        <RadioGroupItem value="midnight" id="midnight" className="border-primary" />
+                                        <div className="flex flex-col">
+                                            <Label htmlFor="midnight" className="font-black text-[10px] uppercase tracking-widest text-white cursor-pointer group-hover:text-primary transition-colors">Scheduled Orbit</Label>
+                                            <span className="text-[8px] uppercase tracking-widest text-slate-500">Starts Tomorrow 00:00</span>
+                                        </div>
+                                    </div>
+                                </RadioGroup>
+                            </div>
+
+                            {/* Creative Uploader */}
+                            <div className="space-y-4">
+                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
+                                    <Upload className="w-3.5 h-3.5 text-primary" /> Visual Payload (Creative)
+                                </Label>
+
+                                <AnimatePresence mode="wait">
+                                    {!file ? (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 10 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.95 }}
+                                            onClick={() => fileInputRef.current?.click()}
+                                            className="group relative overflow-hidden border-2 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 cursor-pointer rounded-[2rem] p-12 transition-all flex flex-col items-center justify-center gap-4 bg-white/[0.01] shadow-inner"
+                                        >
+                                            <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="w-20 h-20 rounded-[2rem] bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                                                <Upload className="w-10 h-10 text-primary animate-bounce" />
+                                            </div>
+                                            <div className="text-center relative z-10">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-white">Initiate Payload Upload</p>
+                                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-2">MP4 / JPG / PNG (Max 50MB)</p>
+                                            </div>
+                                            <input
+                                                type="file"
+                                                ref={fileInputRef}
+                                                className="hidden"
+                                                accept="video/*,image/*"
+                                                onChange={handleFileChange}
+                                            />
+                                        </motion.div>
+                                    ) : (
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.95 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="relative rounded-[2rem] overflow-hidden border border-white/10 aspect-video bg-black flex items-center justify-center shadow-3xl group"
+                                        >
+                                            {file.type.startsWith('image/') ? (
+                                                <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
+                                            ) : (
+                                                <video src={previewUrl!} className="w-full h-full object-contain" controls />
+                                            )}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <motion.button
+                                                whileHover={{ scale: 1.1, rotate: 90 }}
+                                                whileTap={{ scale: 0.9 }}
+                                                type="button"
+                                                onClick={clearFile}
+                                                className="absolute top-4 right-4 w-10 h-10 rounded-2xl bg-red-500 text-white flex items-center justify-center shadow-[0_0_20px_rgba(239,68,68,0.5)] z-20"
+                                            >
+                                                <X className="w-5 h-5" />
+                                            </motion.button>
+                                            <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-white truncate drop-shadow-lg">{file.name}</p>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-black/60 px-2 py-1 rounded backdrop-blur-md">Ready</span>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </form>
                     </div>
 
-                    <SheetFooter className="mt-8">
+                    <div className="p-8 border-t border-white/5 bg-white/[0.01]">
                         <Button
+                            form="campaign-launch-form"
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full h-14 rounded-xl text-lg font-bold gap-3 shadow-lg shadow-primary/20 hover:shadow-primary/30 transition-all"
+                            className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-white shadow-[0_0_40px_rgba(124,58,237,0.4)] hover:shadow-[0_0_60px_rgba(124,58,237,0.6)] transition-all relative overflow-hidden group"
                         >
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+
                             {isSubmitting ? (
-                                <>
-                                    <Loader2 className="w-5 h-5 animate-spin" />
-                                    {uploadProgress < 100 ? `Загрузка... ${uploadProgress}%` : 'Отправка...'}
-                                </>
+                                <div className="flex flex-col items-center gap-1">
+                                    <div className="flex items-center gap-3">
+                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
+                                        <span className="text-xl font-black uppercase tracking-tighter">
+                                            {uploadProgress < 100 ? `Synchronizing Data...` : 'Transmitting Payload...'}
+                                        </span>
+                                    </div>
+                                    <div className="w-32 h-1 bg-white/20 rounded-full mt-2 overflow-hidden">
+                                        <motion.div
+                                            className="h-full bg-white"
+                                            initial={{ width: 0 }}
+                                            animate={{ width: `${uploadProgress}%` }}
+                                        />
+                                    </div>
+                                </div>
                             ) : (
-                                <>
-                                    <Rocket className="w-5 h-5" />
-                                    🚀 Отправить рекламный креатив
-                                </>
+                                <div className="flex items-center gap-6">
+                                    <Rocket className="w-8 h-8 group-hover:animate-bounce" />
+                                    <div className="flex flex-col items-start translate-y-0.5">
+                                        <span className="text-xl font-black uppercase tracking-tighter leading-none">Execute Launch Sequence</span>
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Authorize Production Deployment</span>
+                                    </div>
+                                </div>
                             )}
                         </Button>
-                    </SheetFooter>
-                </form>
+                    </div>
+                </div>
             </SheetContent>
         </Sheet>
     );

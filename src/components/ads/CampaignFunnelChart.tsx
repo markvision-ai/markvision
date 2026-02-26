@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, Tooltip as RechartsTooltip, ResponsiveContainer, Cell, LabelList, PieChart, Pie } from 'recharts';
-import { TrendingUp, Users, CalendarCheck, CreditCard, Eye, MousePointerClick, Download, Info, ArrowRight, Filter, BarChart3 } from 'lucide-react';
+import { TrendingUp, Users, CalendarCheck, CreditCard, Eye, MousePointerClick, Download, Info, ArrowRight, Filter, BarChart3, Zap } from 'lucide-react';
 import { Campaign } from '@/hooks/useCampaigns';
 import { Lead } from '@/hooks/useLeads';
 import { Button } from '@/components/ui/button';
@@ -454,73 +454,76 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
   const sortedPlacements = [...channelData].sort((a, b) => b.value - a.value);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex items-center justify-between px-2">
-        <h2 className="text-xl font-bold flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-primary" />
-          Воронка конверсии
-        </h2>
-        <div className="flex gap-2">
-          {/* Live Data Badge */}
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg border border-border">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-xs font-medium text-muted-foreground">Live Data</span>
+        <div className="flex flex-col gap-1">
+          <h2 className="text-xl font-black uppercase tracking-tighter flex items-center gap-3 text-white">
+            <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+              <TrendingUp className="w-5 h-5 text-primary" />
+            </div>
+            Conversion Pipeline
+          </h2>
+          <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 ml-12">Attributed Signals & Funnel Analytics</p>
+        </div>
+
+        <div className="flex gap-4">
+          <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-white/[0.03] rounded-2xl border border-white/5 backdrop-blur-xl">
+            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)] animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Live Telemetry</span>
           </div>
-          <Button variant="outline" size="sm" onClick={handleExportCSV} className="h-8">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCSV}
+            className="h-10 px-6 rounded-2xl border-white/10 bg-white/[0.03] text-white hover:bg-white/[0.08] font-black text-[10px] uppercase tracking-widest shadow-2xl"
+          >
             <Download className="w-4 h-4 mr-2" />
-            CSV
+            Export Data
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 min-h-[600px]">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:h-[700px]">
         {/* Main Funnel Visualization */}
-        <div className="rounded-xl border border-border bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden">
-          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
+        <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-3xl p-0 flex flex-col overflow-hidden group">
+          <div className="p-8 border-b border-white/10 bg-white/[0.01] flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-3">
               <Filter className="w-4 h-4 text-primary" />
-              Эффективность этапов
+              Stage Efficiency Matrix
             </h3>
-            <span className="text-xs text-muted-foreground">CR: Conversion Rate</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 bg-white/5 px-2 py-1 rounded">System Mode: Real-time</span>
           </div>
 
-          <div className="flex-1 relative flex flex-col items-center justify-center p-6 bg-card">
-            {/* Conversion Path Visualization */}
-            <div className="w-full max-w-md space-y-4 relative z-10">
+          <div className="flex-1 relative flex flex-col items-center justify-center p-12 overflow-y-auto">
+            <div className="w-full max-w-md space-y-6 relative z-10">
               {funnelData.stages.map((step, index) => {
                 const nextStep = funnelData.stages[index + 1];
-                const dropoff = nextStep && step.value > 0 ? 100 - ((nextStep.value / step.value) * 100) : 0;
                 const conversion = nextStep && step.value > 0 ? (nextStep.value / step.value) * 100 : 0;
 
                 return (
                   <div key={step.name} className="relative group">
-                    {/* Connector Line */}
+                    {/* Connector Line with Animation */}
                     {index < funnelData.stages.length - 1 && (
-                      <div className="absolute left-[28px] top-10 bottom-[-16px] w-0.5 bg-border -z-10" />
+                      <div className="absolute left-[36px] top-12 bottom-[-24px] w-px bg-gradient-to-b from-primary/50 to-transparent -z-10 group-hover:from-primary transition-all duration-700" />
                     )}
 
-                    <div className={cn(
-                      "relative overflow-hidden rounded-xl border transition-all duration-300 bg-card hover:shadow-md",
-                      // step.color.replace('text-', 'border-').replace('400', '200') // Simplify colors
-                      "border-border"
-                    )}>
-                      <div className={cn(
-                        "absolute inset-y-0 left-0 w-1",
-                        step.color.replace('text-', 'bg-')
-                      )} />
-
-                      <div className="p-3 pl-5 flex items-center gap-4">
+                    <motion.div
+                      whileHover={{ x: 10, scale: 1.02 }}
+                      className="relative overflow-hidden rounded-[2rem] border border-white/5 bg-white/[0.02] transition-all duration-500 hover:border-primary/30 hover:bg-white/[0.05] p-1 shadow-inner"
+                    >
+                      <div className="p-5 flex items-center gap-6">
                         <div className={cn(
-                          "w-10 h-10 rounded-lg flex items-center justify-center shrink-0 bg-muted",
+                          "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 shadow-2xl transition-transform duration-500 group-hover:rotate-6",
+                          step.color.replace('text-', 'bg-').replace('500', '500/10'),
                           step.color
                         )}>
-                          <step.icon className="w-5 h-5" />
+                          <step.icon className="w-7 h-7" />
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="text-sm font-medium text-foreground">{step.name}</span>
-                            <span className="text-sm font-bold text-foreground font-mono">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 group-hover:text-slate-300 transition-colors">{step.name}</span>
+                            <span className="text-2xl font-black text-white px-3 py-1 bg-white/5 rounded-xl border border-white/5">
                               {step.name === 'Показы' || step.name === 'Клики' || step.name === 'Лиды'
                                 ? formatNumber(step.value)
                                 : step.value
@@ -528,54 +531,54 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">
+                          <div className="flex items-center justify-between">
+                            <span className="text-[9px] font-bold uppercase tracking-tighter text-slate-600 group-hover:text-slate-400">
                               {step.details?.[0]?.label}
                             </span>
                             {index < funnelData.stages.length - 1 && (
                               <div className={cn(
-                                "flex items-center gap-1 font-medium px-1.5 py-0.5 rounded",
-                                conversion > 20 ? "bg-emerald-100 text-emerald-700" : "bg-muted text-muted-foreground"
+                                "flex items-center gap-2 font-black px-3 py-1 rounded-full text-[10px] uppercase tracking-widest border transition-all duration-500",
+                                conversion > 20 ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_10px_rgba(16,185,129,0.1)]" : "bg-white/5 text-slate-500 border-white/10"
                               )}>
                                 {conversion > 0 ? (
                                   <>
                                     <ArrowRight className="w-3 h-3" />
-                                    {conversion.toFixed(1)}%
+                                    {conversion.toFixed(1)}% Yield
                                   </>
                                 ) : (
-                                  <span className="text-muted-foreground">-</span>
+                                  <span className="opacity-30">—</span>
                                 )}
                               </div>
                             )}
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </motion.div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          {/* Footer Stats */}
-          <div className="grid grid-cols-2 divide-x divide-border border-t border-border bg-muted/20">
-            <div className="p-4 flex flex-col items-center">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">Выручка</span>
-              <span className="text-lg font-bold font-mono text-emerald-600">
+          {/* Footer Stats with Glow and High Contrast */}
+          <div className="grid grid-cols-2 divide-x divide-white/5 border-t border-white/10 bg-white/[0.03]">
+            <div className="p-8 flex flex-col items-center group/stat">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2 group-hover/stat:text-primary transition-colors">Cumulative Revenue</span>
+              <span className="text-3xl font-black tracking-tight text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]">
                 {formatCurrency(funnelData.totalRevenue)}
               </span>
             </div>
-            <div className="p-4 flex flex-col items-center">
-              <span className="text-[10px] uppercase tracking-widest text-muted-foreground mb-1">ROMI</span>
+            <div className="p-8 flex flex-col items-center group/stat">
+              <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500 mb-2 group-hover/stat:text-emerald-400 transition-colors">Total Efficiency</span>
               {(() => {
                 const totalSpend = campaignBreakdown.reduce((sum, c) => sum + c.spend, 0);
                 const romi = totalSpend > 0 ? ((funnelData.totalRevenue - totalSpend) / totalSpend) * 100 : 0;
                 return (
                   <span className={cn(
-                    "text-lg font-bold font-mono",
-                    romi > 0 ? "text-emerald-600" : romi < -50 ? "text-red-600" : "text-foreground"
+                    "text-3xl font-black tracking-tight drop-shadow-xl",
+                    romi > 0 ? "text-emerald-400 drop-shadow-[0_0_15px_rgba(52,211,153,0.3)]" : romi < -50 ? "text-red-500" : "text-white"
                   )}>
-                    {Math.round(romi)}%
+                    {Math.round(romi)}% ROMI
                   </span>
                 );
               })()}
@@ -584,66 +587,66 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         {/* Channel Efficiency Chart */}
-        <div className="rounded-xl border border-border bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden">
-          <div className="p-4 border-b border-border bg-muted/30 flex items-center justify-between">
-            <h3 className="font-semibold text-foreground flex items-center gap-2">
+        <div className="rounded-[2.5rem] border border-white/10 bg-white/[0.02] backdrop-blur-3xl shadow-3xl p-0 flex flex-col h-full overflow-hidden group">
+          <div className="p-8 border-b border-white/10 bg-white/[0.01] flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-widest text-slate-400 flex items-center gap-3">
               <BarChart3 className="w-4 h-4 text-primary" />
-              Эффективность размещений
+              Source Distribution Matrix
             </h3>
             <Select value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
-              <SelectTrigger className="w-[140px] h-8 text-xs bg-background border-border">
+              <SelectTrigger className="w-[180px] h-10 text-[10px] font-black uppercase tracking-widest bg-black/40 border-white/10 rounded-xl focus:ring-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cpl">Стоимость лида</SelectItem>
-                <SelectItem value="cpc">Цена клика</SelectItem>
-                <SelectItem value="ctr">CTR %</SelectItem>
-                <SelectItem value="cpm">CPM (1000 пок.)</SelectItem>
+              <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-xl">
+                <SelectItem value="cpl" className="text-[10px] font-black uppercase tracking-widest py-3">Lead Cost Unit</SelectItem>
+                <SelectItem value="cpc" className="text-[10px] font-black uppercase tracking-widest py-3">Engagement Cost</SelectItem>
+                <SelectItem value="ctr" className="text-[10px] font-black uppercase tracking-widest py-3">Interaction CTR</SelectItem>
+                <SelectItem value="cpm" className="text-[10px) font-black uppercase tracking-widest py-3">Impression CPM</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          <div className="flex-1 p-6 flex flex-col justify-center overflow-y-auto">
+          <div className="flex-1 p-10 flex flex-col justify-center overflow-y-auto">
             {sortedPlacements.length > 0 ? (
-              <div className="space-y-6">
+              <div className="space-y-10">
                 {sortedPlacements.map((item, index) => {
                   const val = item[selectedMetric];
                   const maxVal = Math.max(...sortedPlacements.map(i => i[selectedMetric]));
                   const percent = maxVal > 0 ? (val / maxVal) * 100 : 0;
 
                   return (
-                    <div key={item.name} className="space-y-2">
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="font-medium flex items-center gap-2">
+                    <div key={item.name} className="space-y-4 group/bar">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4">
                           <div className={cn(
-                            "w-2 h-2 rounded-full",
-                            index === 0 ? "bg-emerald-500" :
-                              index === 1 ? "bg-blue-500" :
-                                index === 2 ? "bg-indigo-500" : "bg-slate-500"
-                          )} />
-                          {item.name}
-                        </span>
-                        <div className="flex flex-col items-end gap-0.5">
-                          <span className="font-bold text-foreground">
-                            {formatNumber(item.leads)} лидов
-                          </span>
-                          <span className="text-xs text-muted-foreground font-mono">
-                            {formatCurrency(item.spend)}
-                          </span>
+                            "w-12 h-12 rounded-2xl flex items-center justify-center border border-white/10 shadow-2xl transition-all duration-500 group-hover/bar:scale-110",
+                            index === 0 ? "bg-emerald-500/10 text-emerald-400" :
+                              index === 1 ? "bg-blue-500/10 text-blue-400" :
+                                index === 2 ? "bg-indigo-500/10 text-indigo-400" : "bg-slate-500/10"
+                          )}>
+                            {item.rawPlatform === 'facebook' ? <Users className="w-6 h-6" /> : <TrendingUp className="w-6 h-6" />}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">{item.name}</span>
+                            <span className="text-lg font-black text-white uppercase tracking-tight">{item.percentage.toFixed(1)}% Share</span>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-xl font-black text-white tracking-tighter">{formatNumber(item.leads)} LEADS</p>
+                          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{formatCurrency(item.spend)} INVESTED</p>
                         </div>
                       </div>
 
-                      <div className="h-2.5 bg-muted rounded-full overflow-hidden">
+                      <div className="relative h-4 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
                         <motion.div
                           className={cn(
-                            "h-full rounded-full",
-                            index === 0 ? "bg-emerald-500" :
-                              index === 1 ? "bg-blue-500" :
-                                index === 2 ? "bg-indigo-500" : "bg-slate-500"
+                            "h-full rounded-full transition-all duration-1000",
+                            index === 0 ? "bg-gradient-to-r from-emerald-600 to-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]" :
+                              index === 1 ? "bg-gradient-to-r from-blue-600 to-blue-400 shadow-[0_0_15px_rgba(59,130,246,0.3)]" :
+                                index === 2 ? "bg-gradient-to-r from-indigo-600 to-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.3)]" : "bg-slate-600"
                           )}
                           initial={{ width: 0 }}
                           animate={{ width: `${percent}%` }}
-                          transition={{ duration: 1, ease: "easeOut" }}
                         />
                       </div>
                     </div>
@@ -651,23 +654,32 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                 })}
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center text-muted-foreground h-full opacity-50">
-                <PieChart className="w-12 h-12 mb-2" />
-                <p>Нет данных по размещениям</p>
+              <div className="flex flex-col items-center justify-center text-slate-600 h-full gap-4">
+                <PieChart className="w-16 h-16 opacity-10" />
+                <p className="text-xs font-black uppercase tracking-widest opacity-30">Calibration Pending: Insufficient Signals</p>
               </div>
             )}
           </div>
 
-          {/* Recommendation Box */}
-          <div className="p-4 border-t border-border bg-blue-50/50">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />
-              <div className="space-y-1">
-                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-widest">AI Рекомендация</span>
-                <p className="text-xs text-muted-foreground leading-relaxed">
+          {/* AI Insights Engine with Glassmorphism and Neon Accents */}
+          <div className="m-8 p-6 rounded-3xl bg-primary/10 border border-primary/20 backdrop-blur-2xl relative overflow-hidden group/ai">
+            {/* Animated Pulse in Background */}
+            <div className="absolute -right-10 -top-10 w-32 h-32 bg-primary/20 blur-[50px] rounded-full animate-pulse" />
+
+            <div className="flex items-start gap-5 relative z-10">
+              <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-[0_0_20px_rgba(124,58,237,0.3)] shrink-0">
+                <Zap className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-primary">Intelligence Core: Online</span>
+                  <div className="h-px flex-1 bg-primary/20" />
+                </div>
+                <h4 className="text-sm font-black text-white uppercase tracking-tight">Signal Analysis Recommendation</h4>
+                <p className="text-[11px] text-slate-400 leading-relaxed font-medium">
                   {channelData[0]?.platformName === 'Meta Ads'
-                    ? 'Meta Ads показывает лучший ROI. Рекомендуем увеличить бюджет на 20%.'
-                    : 'Рассмотрите диверсификацию каналов для снижения рисков.'}
+                    ? 'Engine detected high efficiency in Meta Ads ecosystem. Neural prediction suggests a 22% yield increase with dynamic budget reallocation.'
+                    : 'Awaiting sufficient throughput for high-confidence optimization signals. Diversify placements to establish baseline metrics.'}
                 </p>
               </div>
             </div>
