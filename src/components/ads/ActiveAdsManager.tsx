@@ -1471,7 +1471,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className={cn(
-                    "group border-b border-border transition-all relative overflow-hidden h-20",
+                    "group border-b border-border transition-all relative overflow-hidden h-14",
                     isRowSelected(row) ? "bg-primary/5" : "hover:bg-muted/50"
                   )}
                 >
@@ -1520,7 +1520,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
                       <div className="flex flex-col min-w-0 group/name max-w-[400px]">
                         <div className="flex items-center gap-2">
-                          <span className="truncate text-sm font-bold text-foreground transition-colors group-hover/name:text-primary uppercase tracking-tight" title={row.name}>
+                          <span className="truncate text-[13px] font-bold text-foreground transition-colors group-hover/name:text-primary uppercase tracking-tight" title={row.name}>
                             {row.name}
                           </span>
                           <button
@@ -1625,25 +1625,25 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       {/* Futuristic Summary Footer */}
       {!loading && visibleRows.length > 0 && (
         <div className="mt-8 p-8 rounded-[2.5rem] bg-card border border-border grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
-            <p className="text-2xl font-bold text-foreground">{formatCurrency(totals.totalSpendKZT)}</p>
+          <div className="space-y-0.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
+            <p className="text-lg font-black text-slate-900">{formatCurrency(totals.totalSpendKZT)}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Всего конверсий</p>
-            <p className="text-2xl font-bold text-emerald-600">{formatNumber(totals.totalLeadsMeta)}</p>
+          <div className="space-y-0.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего конверсий</p>
+            <p className="text-lg font-black text-emerald-600">{formatNumber(totals.totalLeadsMeta)}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Средний CPL</p>
-            <p className="text-2xl font-bold text-primary">{formatCurrency(totals.totalCpl)}</p>
+          <div className="space-y-0.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Средний CPL</p>
+            <p className="text-lg font-black text-primary">{formatCurrency(totals.totalCpl)}</p>
           </div>
-          <div className="space-y-1">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Эффективность ROI</p>
-            <p className="text-2xl font-bold text-foreground">{formatPercent(totals.totalRoi)}</p>
+          <div className="space-y-0.5">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Эффективность ROI</p>
+            <p className="text-lg font-black text-slate-900">{formatPercent(totals.totalRoi)}</p>
           </div>
-          <div className="space-y-1 hidden lg:block">
-            <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Визиты CRM</p>
-            <p className="text-2xl font-bold text-blue-600">{formatNumber(totals.totalVisits)}</p>
+          <div className="space-y-0.5 hidden lg:block">
+            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Визиты CRM</p>
+            <p className="text-lg font-black text-blue-600">{formatNumber(totals.totalVisits)}</p>
           </div>
         </div>
       )}

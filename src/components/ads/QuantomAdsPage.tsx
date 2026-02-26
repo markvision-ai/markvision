@@ -369,11 +369,11 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         {/* Premium Light Header */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-3xl bg-card border border-border shadow-sm">
           <div className="flex items-center gap-5">
-            <div className="p-4 bg-primary/10 rounded-2xl border border-primary/20 shadow-sm">
-              <Zap className="w-8 h-8 text-primary" />
+            <div className="p-3 bg-primary/10 rounded-xl border border-primary/20 shadow-sm">
+              <Zap className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-foreground uppercase">
+              <h1 className="text-xl font-black tracking-tight text-foreground uppercase">
                 Центр управления
               </h1>
               <div className="flex items-center gap-2 mt-1">
@@ -388,14 +388,14 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
             <TabsList className="bg-muted border border-border p-1 h-12 rounded-xl">
               <TabsTrigger
                 value="dashboard"
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 rounded-lg transition-all font-bold gap-2"
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-4 rounded-lg transition-all font-bold gap-2 text-xs"
               >
                 <LayoutDashboard className="w-4 h-4" />
                 ДАШБОРД
               </TabsTrigger>
               <TabsTrigger
                 value="analyst"
-                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-6 rounded-lg transition-all font-bold gap-2"
+                className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-4 rounded-lg transition-all font-bold gap-2 text-xs"
               >
                 <MessageSquareText className="w-4 h-4" />
                 ИИ-АНАЛИТИК
@@ -408,12 +408,12 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               <Button
                 onClick={() => setIsLauncherOpen(true)}
                 className={cn(
-                  "relative group px-8 h-12 rounded-xl font-black transition-all overflow-hidden uppercase tracking-wider",
+                  "relative group px-6 h-10 rounded-xl font-black transition-all overflow-hidden uppercase tracking-wider text-xs",
                   "bg-primary hover:bg-primary/90 text-primary-foreground",
                   "shadow-md shadow-primary/20"
                 )}
               >
-                <Rocket className="w-5 h-5 mr-3 group-hover:animate-bounce transition-transform" />
+                <Rocket className="w-4 h-4 mr-2 group-hover:animate-bounce transition-transform" />
                 Запустить рекламу
               </Button>
             </motion.div>
@@ -521,7 +521,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               size="icon"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="h-11 w-11 hover:bg-accent rounded-xl border border-border transition-all group shadow-sm"
+              className="h-10 w-10 hover:bg-accent rounded-xl border border-border transition-all group shadow-sm"
             >
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground group-hover:text-primary', refreshing && 'animate-spin text-primary')} />
             </Button>
@@ -550,8 +550,8 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           </div>
 
           <div className="rounded-[2.5rem] bg-card border border-border p-8 shadow-sm">
-            <h3 className="text-xl font-black uppercase tracking-widest mb-8 flex items-center gap-3 text-foreground">
-              <TrendingUp className="w-5 h-5 text-primary" />
+            <h3 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-3 text-foreground">
+              <TrendingUp className="w-4 h-4 text-primary" />
               Воронка эффективности кампаний
             </h3>
             <CampaignFunnelChart

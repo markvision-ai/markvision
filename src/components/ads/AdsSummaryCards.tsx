@@ -35,7 +35,7 @@ const GlassMetricCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-[2rem] p-6 bg-card border border-border shadow-sm transition-all duration-300"
+      className="relative group overflow-hidden rounded-[2rem] p-4 bg-card border border-border shadow-sm transition-all duration-300"
     >
       {/* Subtle Background Glow */}
       <div className={cn(
@@ -69,7 +69,7 @@ const GlassMetricCard = ({
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">
             {label}
           </p>
-          <h3 className="text-3xl font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
+          <h3 className="text-2xl font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
             {formatValue(value)}
           </h3>
         </div>
