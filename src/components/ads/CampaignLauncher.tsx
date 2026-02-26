@@ -32,9 +32,40 @@ interface CampaignLauncherProps {
 }
 
 export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLauncherProps) => {
-    const { metrics: accounts } = useAgencyAnalytics(projectId, {});
+    const [accounts, setAccounts] = useState<{ id: string; name: string; adAccountId: string }[]>([]);
+    const [loadingAccounts, setLoadingAccounts] = useState(true);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [uploadProgress, setUploadProgress] = useState(0);
+
+    useEffect(() => {
+        const fetchAccounts = async () => {
+            if (!projectId) return;
+            setLoadingAccounts(true);
+            try {
+                const { data, error } = await supabase
+                    .from('clients_config')
+                    .select('ad_account_id, client_name')
+                    .eq('project_id', projectId);
+
+                if (error) throw error;
+
+                setAccounts((data || []).map(d => ({
+                    id: d.ad_account_id,
+                    name: d.client_name || 'Без названия',
+                    adAccountId: d.ad_account_id
+                })));
+            } catch (err) {
+                console.error('Error fetching accounts:', err);
+                toast.error('Не удалось загрузить рекламные аккаунты');
+            } finally {
+                setLoadingAccounts(false);
+            }
+        };
+
+        if (isOpen) {
+            fetchAccounts();
+        }
+    }, [projectId, isOpen]);
 
     // Form State
     const [selectedAccountId, setSelectedAccountId] = useState<string>('');
@@ -98,10 +129,11 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
             const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
             if (!webhookUrl) throw new Error('VITE_N8N_WEBHOOK_URL is not defined');
 
+            const selectedAccount = accounts.find(a => a.id === selectedAccountId);
             const payload = {
                 projectId,
                 accountId: selectedAccountId,
-                accountName: accounts.find(a => a.accountId === selectedAccountId)?.accountName,
+                accountName: selectedAccount?.name,
                 objective,
                 budget: Number(budget),
                 city,
@@ -146,42 +178,46 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                 <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
-                    <SheetHeader className="p-8 pb-4 border-b border-border bg-muted/30">
+                    <SheetHeader className="p-10 pb-6 border-b border-slate-100 bg-white/40 backdrop-blur-md">
                         <div className="flex items-center gap-6">
                             <motion.div
-                                initial={{ rotate: -20, scale: 0.8 }}
-                                animate={{ rotate: 0, scale: 1 }}
-                                className="w-16 h-16 rounded-[2rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm"
+                                whileHover={{ scale: 1.05, rotate: 5 }}
+                                whileTap={{ scale: 0.95 }}
+                                className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_8px_30px_rgb(16,185,129,0.12)]"
                             >
-                                <Rocket className="w-8 h-8 text-primary" />
+                                <Rocket className="w-10 h-10 text-emerald-600" />
                             </motion.div>
-                            <div className="flex flex-col gap-1">
-                                <SheetTitle className="text-2xl font-bold tracking-tight text-foreground">Запуск кампании</SheetTitle>
+                            <div className="flex flex-col gap-1.5">
+                                <SheetTitle className="text-3xl font-extrabold tracking-tight text-slate-900">Запуск кампании</SheetTitle>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Система готова к запуску</span>
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.6)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600/80">Система готова к запуску</span>
                                 </div>
                             </div>
                         </div>
                     </SheetHeader>
 
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                        <form id="campaign-launch-form" onSubmit={handleSubmit} className="space-y-8">
+                    <div className="flex-1 overflow-y-auto custom-scrollbar p-10 space-y-10">
+                        <form id="campaign-launch-form" onSubmit={handleSubmit} className="space-y-10">
                             {/* Account Selection */}
                             <div className="space-y-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
                                     <Globe className="w-3.5 h-3.5 text-primary" /> Рекламный аккаунт
                                 </Label>
                                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                                    <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] transition-all hover:bg-muted/80 focus:ring-primary/20 text-foreground font-medium shadow-sm">
-                                        <SelectValue placeholder="Выберите аккаунт для запуска" />
+                                    <SelectTrigger className="bg-white/50 border-slate-200/60 h-16 rounded-2xl transition-all hover:bg-white hover:border-primary/30 focus:ring-primary/10 text-foreground font-semibold shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
+                                        <SelectValue placeholder={loadingAccounts ? "Загрузка..." : "Выберите аккаунт для запуска"} />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
-                                        {accounts.map((acc) => (
-                                            <SelectItem key={acc.accountId} value={acc.accountId} className="py-4 font-bold uppercase text-[10px] tracking-widest cursor-pointer">
-                                                {acc.accountName}
-                                            </SelectItem>
-                                        ))}
+                                    <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-2xl backdrop-blur-xl">
+                                        {accounts.length === 0 && !loadingAccounts ? (
+                                            <SelectItem value="none" disabled className="py-4 text-center text-muted-foreground">Аккаунты не найдены</SelectItem>
+                                        ) : (
+                                            accounts.map((acc) => (
+                                                <SelectItem key={acc.id} value={acc.id} className="py-4 font-bold uppercase text-[10px] tracking-widest cursor-pointer hover:bg-primary/5">
+                                                    {acc.name} <span className="ml-2 opacity-40 font-normal">({acc.adAccountId})</span>
+                                                </SelectItem>
+                                            ))
+                                        )}
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -205,19 +241,19 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
 
                                 {/* Budget */}
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                        <DollarSign className="w-3.5 h-3.5 text-primary" /> Дневной бюджет (₸)
+                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                        <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Дневной бюджет ($)
                                     </Label>
-                                    <div className="relative">
+                                    <div className="relative group/budget">
                                         <Input
                                             type="number"
-                                            placeholder="5 000"
+                                            placeholder="50"
                                             value={budget}
                                             onChange={(e) => setBudget(e.target.value)}
-                                            className="bg-muted border-border h-14 rounded-[1.5rem] text-xl font-bold text-foreground pl-10 focus:ring-primary/20 pr-4 shadow-sm"
-                                            min="500"
+                                            className="bg-white border-slate-200/60 h-16 rounded-2xl text-xl font-bold text-slate-900 pl-12 focus:ring-emerald-500/10 focus:border-emerald-500/30 transition-all shadow-[0_2px_15px_rgba(0,0,0,0.02)]"
+                                            min="5"
                                         />
-                                        <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
+                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-emerald-500/40 text-lg transition-colors group-focus-within/budget:text-emerald-500">$</span>
                                     </div>
                                 </div>
                             </div>
@@ -228,15 +264,13 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                     <MapPin className="w-3.5 h-3.5 text-primary" /> География (Город)
                                 </Label>
                                 <Select value={city} onValueChange={setCity}>
-                                    <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
+                                    <SelectTrigger className="bg-white/50 border-slate-200/60 h-16 rounded-2xl text-foreground font-semibold shadow-[0_2px_10px_rgba(0,0,0,0.02)]">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
-                                        <SelectItem value="Алматы" className="py-4 font-bold uppercase text-[10px] tracking-widest">Алматы</SelectItem>
-                                        <SelectItem value="Астана" className="py-4 font-bold uppercase text-[10px] tracking-widest">Астана</SelectItem>
-                                        <SelectItem value="Шымкент" className="py-4 font-bold uppercase text-[10px] tracking-widest">Шымкент</SelectItem>
-                                        <SelectItem value="Караганда" className="py-4 font-bold uppercase text-[10px] tracking-widest">Караганда</SelectItem>
-                                        <SelectItem value="Весь Казахстан" className="py-4 font-bold uppercase text-[10px] tracking-widest text-primary">Весь Казахстан</SelectItem>
+                                    <SelectContent className="bg-white border-slate-200 rounded-2xl shadow-2xl">
+                                        <SelectItem value="Алматы" className="py-4 font-bold uppercase text-[10px] tracking-widest">Алматы (Almaty)</SelectItem>
+                                        <SelectItem value="Астана" className="py-4 font-bold uppercase text-[10px] tracking-widest">Астана (Astana)</SelectItem>
+                                        <SelectItem value="Павлодар" className="py-4 font-bold uppercase text-[10px] tracking-widest">Павлодар (Pavlodar)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -278,8 +312,8 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
 
                             {/* Creative Uploader */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
-                                    <Upload className="w-3.5 h-3.5 text-primary" /> Рекламный креатив
+                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
+                                    <Upload className="w-3.5 h-3.5 text-emerald-500" /> Рекламный креатив
                                 </Label>
 
                                 <AnimatePresence mode="wait">
@@ -339,24 +373,24 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                         </form>
                     </div>
 
-                    <div className="p-8 border-t border-border bg-muted/30">
+                    <div className="p-10 border-t border-slate-100 bg-white/40 backdrop-blur-md">
                         <Button
                             form="campaign-launch-form"
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all relative overflow-hidden group"
+                            className="w-full h-24 rounded-3xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-[0_20px_50px_rgba(16,185,129,0.2)] transition-all relative overflow-hidden group border-0"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
 
                             {isSubmitting ? (
-                                <div className="flex flex-col items-center gap-1">
-                                    <div className="flex items-center gap-3">
-                                        <Loader2 className="w-6 h-6 animate-spin" />
-                                        <span className="text-xl font-bold uppercase tracking-tight">
-                                            {uploadProgress < 100 ? `Синхронизация...` : 'Запуск кампании...'}
+                                <div className="flex flex-col items-center gap-2">
+                                    <div className="flex items-center gap-4">
+                                        <Loader2 className="w-8 h-8 animate-spin" />
+                                        <span className="text-2xl font-black uppercase tracking-tight">
+                                            {uploadProgress < 100 ? `СИНХРОНИЗАЦИЯ...` : 'ЗАПУСК...'}
                                         </span>
                                     </div>
-                                    <div className="w-32 h-1 bg-white/20 rounded-full mt-2 overflow-hidden">
+                                    <div className="w-48 h-1.5 bg-white/20 rounded-full overflow-hidden">
                                         <motion.div
                                             className="h-full bg-white"
                                             initial={{ width: 0 }}
@@ -365,11 +399,16 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex items-center gap-6">
-                                    <Rocket className="w-8 h-8 group-hover:animate-bounce" />
-                                    <div className="flex flex-col items-start translate-y-0.5">
-                                        <span className="text-xl font-bold uppercase tracking-tight leading-none">🚀 ЗАПУСТИТЬ РЕКЛАМУ</span>
-                                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Отправить на проверку</span>
+                                <div className="flex items-center gap-8">
+                                    <motion.div
+                                        animate={{ y: [0, -5, 0] }}
+                                        transition={{ repeat: Infinity, duration: 2 }}
+                                    >
+                                        <Rocket className="w-10 h-10" />
+                                    </motion.div>
+                                    <div className="flex flex-col items-start">
+                                        <span className="text-2xl font-black uppercase tracking-tight leading-none">🚀 ЗАПУСТИТЬ РЕКЛАМУ</span>
+                                        <span className="text-xs font-bold uppercase tracking-widest opacity-70 mt-1">ОТПРАВИТЬ НА ПРОВЕРКУ</span>
                                     </div>
                                 </div>
                             )}
