@@ -18,7 +18,7 @@ WITH crm_metrics AS (
 SELECT 
     cc.id,
     cc.project_id,
-    cc.fb_ad_account_id AS account_id,
+    cc.ad_account_id AS account_id,
     COALESCE(cc.client_name, 'Неизвестный кабинет') AS account_name,
     COALESCE(cc.spend, 0) AS spend,
     COALESCE(cc.meta_leads, 0) AS meta_leads,
@@ -37,4 +37,4 @@ SELECT
 FROM 
     public.clients_config cc
 LEFT JOIN 
-    crm_metrics crm ON cc.fb_ad_account_id = crm.fb_ad_account_id;
+    crm_metrics crm ON cc.ad_account_id = crm.fb_ad_account_id;

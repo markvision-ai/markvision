@@ -38,7 +38,8 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             // but we fetch the aggregated view data.
             const { data, error } = await (supabase as any)
                 .from('agency_metrics_view')
-                .select('*');
+                .select('*')
+                .eq('project_id', projectId);
 
             if (error) throw error;
             return data || [];
