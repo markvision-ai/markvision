@@ -532,12 +532,12 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   }, [pid]); // Only depends on pid, reads dateRange from ref
 
   // Lightweight: get ONLY real-time status from Meta (no insights, no rate limit concerns)
-  const fetchLiveStatuses = useCallback(async () => {
+  const fetchLiveStatuses = useCallback(async (ignoreThrottle = false) => {
     if (!pid) return;
     if (Date.now() < rateLimitUntilRef.current) return;
 
     const now = Date.now();
-    if (now - lastStatusSyncRef.current < 30000) return;
+    if (!ignoreThrottle && now - lastStatusSyncRef.current < 30000) return;
     try {
       const { data, error } = await supabase.functions.invoke('ads-manager', {
         body: { action: 'get_statuses', payload: { projectId: pid, include_children: false, level: 'campaign' } }
@@ -802,10 +802,9 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
   // Added projectId because it was used in fallback logging (line 621 in original)
 
-  const handleToggleStatus = async (id: string, currentStatus: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleToggleStatus = async (id: string, enabled: boolean) => {
     setToggling(id);
-    const newStatus = currentStatus === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    const newStatus = enabled ? 'ACTIVE' : 'PAUSED';
 
     try {
       const { data, error } = await supabase.functions.invoke('ads-manager', {
@@ -820,6 +819,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       updateLocalStatus(id, newStatus);
       toast.success(`Статус обновлен: ${newStatus}`);
+
+      // Background refresh after a short delay to confirm with Meta
+      setTimeout(() => {
+        fetchLiveStatuses(true);
+      }, 3000);
     } catch (e) {
       console.error('Failed to update status', e);
       toast.error('Не удалось обновить статус');
@@ -829,12 +833,28 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   };
 
   const updateLocalStatus = (id: string, status: 'ACTIVE' | 'PAUSED') => {
+    // 1. Update liveStatusMap immediately for UI responsiveness
+    setLiveStatusMap(prev => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        status,
+        effective_status: status
+      }
+    }));
+
+    // 2. Update hierarchy state
     const updateNode = (nodes: any[]): any[] => {
       return nodes.map(node => {
         if (node.id === id) return { ...node, status, effective_status: status };
-        if (node.adsets) return { ...node, adsets: { data: updateNode(node.adsets.data) } };
-        if (node.ads) return { ...node, ads: { data: updateNode(node.ads.data) } };
-        return node;
+        const next = { ...node };
+        if (node.adsets?.data) {
+          next.adsets = { data: updateNode(node.adsets.data) };
+        }
+        if (node.ads?.data) {
+          next.ads = { data: updateNode(node.ads.data) };
+        }
+        return next;
       });
     };
     setHierarchy(prev => updateNode(prev));
@@ -1348,10 +1368,10 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               <ShieldAlert className="w-6 h-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-black uppercase tracking-widest text-red-400">Engine Alert: {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label}</h4>
-              <p className="text-[11px] text-red-3000 opacity-80 truncate">{DISABLE_REASON_MAP[accountStatus.disable_reason] || 'Restricted ad account access detected.'}</p>
+              <h4 className="text-xs font-black uppercase tracking-widest text-red-400">Система: {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label}</h4>
+              <p className="text-[11px] text-red-300 opacity-80 truncate">{DISABLE_REASON_MAP[accountStatus.disable_reason] || 'Обнаружено ограничение доступа к рекламному аккаунту.'}</p>
             </div>
-            <Button variant="outline" size="sm" className="rounded-lg h-8 border-red-500/30 text-red-400 hover:bg-red-500/10">Repair</Button>
+            <Button variant="outline" size="sm" className="rounded-lg h-8 border-red-500/30 text-red-400 hover:bg-red-500/10">Исправить</Button>
           </motion.div>
         </div>
       )}
@@ -1472,7 +1492,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                         ) : (
                           <Switch
                             checked={row.status === 'ACTIVE'}
-                            onCheckedChange={() => handleToggleStatus(row.id, row.status, { stopPropagation: () => { } } as any)}
+                            onCheckedChange={(checked) => handleToggleStatus(row.id, checked)}
                             className="scale-90 data-[state=checked]:bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                           />
                         )}
