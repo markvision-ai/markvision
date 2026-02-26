@@ -76,39 +76,52 @@ serve(async (req) => {
             }
 
             try {
+                // Clean the ID so we don't end up with act_act_
+                const plainAccountId = account.ad_account_id.replace('act_', '');
+
                 // Fetch Meta Graph API v19.0 for current month spend and actions
-                const insightsUrl = `https://graph.facebook.com/v19.0/act_${account.ad_account_id}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.fb_token}`;
+                const insightsUrl = `https://graph.facebook.com/v19.0/act_${plainAccountId}/insights?fields=spend,actions&date_preset=this_month&access_token=${account.fb_token}`;
 
                 const response = await fetch(insightsUrl);
                 const data = await response.json();
 
-                let spendKZT = 0;
+                let spendVal = 0;
                 let metaLeads = 0;
 
                 if (data.data && data.data.length > 0) {
                     const row = data.data[0];
 
-                    // Parse Spend (convert from USD to KZT)
+                    // User requested to STOP KZT conversion. Save raw USD spend.
                     const spendUSD = parseFloat(row.spend || '0');
-                    spendKZT = spendUSD * exchangeRate;
+                    spendVal = spendUSD;
 
-                    // Parse Actions (lead + messaging_conversation_started_7d)
+                    // Parse Actions
                     if (row.actions) {
                         let totalLeads = 0;
                         for (const action of row.actions) {
-                            if (action.action_type === 'lead' || action.action_type === 'messaging_conversation_started_7d') {
+                            const type = action.action_type || '';
+                            if (
+                                type.includes('lead') ||
+                                type.includes('messaging_conversation_started') ||
+                                type.includes('messaging_connection') ||
+                                type.includes('omni_') ||
+                                type === 'onsite_conversion.lead_grouped' ||
+                                type === 'offsite_conversion.fb_pixel_lead'
+                            ) {
                                 totalLeads += parseInt(action.value || '0', 10);
                             }
                         }
                         metaLeads = totalLeads;
                     }
+                } else if (data.error) {
+                    console.error(`FB API Error for account ${account.ad_account_id}:`, data.error.message);
                 }
 
                 // 4. Update clients_config synchronously
                 const { error: updateError } = await supabaseClient
                     .from('clients_config')
                     .update({
-                        spend: spendKZT,
+                        spend: spendVal,
                         meta_leads: metaLeads
                     })
                     .eq('id', account.id);
@@ -117,7 +130,7 @@ serve(async (req) => {
                     console.error(`Error updating account ${account.ad_account_id}:`, updateError);
                     errorCount++;
                 } else {
-                    console.log(`Account ${account.ad_account_id} | Spend: ${spendKZT} KZT | Leads: ${metaLeads}`);
+                    console.log(`Account ${account.ad_account_id} | Spend USD: ${spendVal} | Leads: ${metaLeads}`);
                     successCount++;
                 }
             } catch (err) {
