@@ -139,8 +139,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     project_id: projectId,
                     ad_account_id: accountId,
                     client_name: accountName,
-                    fb_token: accessToken,
-                    updated_at: new Date().toISOString()
+                    fb_token: accessToken
                 }, {
                     onConflict: 'ad_account_id'
                 });
