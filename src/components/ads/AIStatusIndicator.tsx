@@ -114,10 +114,10 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/20 border border-primary/30 shadow-[0_0_15px_rgba(124,58,237,0.3)] animate-pulse"
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/20 shadow-sm"
       >
         <Loader2 className="w-3 h-3 text-primary animate-spin" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-primary">Neural Link: Processing</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-primary">ИИ-Связь: Обработка</span>
       </motion.div>
     );
   }
@@ -127,11 +127,11 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/30 shadow-[0_0_15px_rgba(239,68,68,0.2)]"
-        title={lastError || 'Error'}
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 border border-red-100 shadow-sm"
+        title={lastError || 'Ошибка'}
       >
         <AlertCircle className="w-3 h-3 text-red-500" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-red-500">System Error: Fault Detected</span>
+        <span className="text-[10px] font-bold uppercase tracking-widest text-red-600">Системная ошибка</span>
       </motion.div>
     );
   }
@@ -141,10 +141,10 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-500/10 border border-slate-500/30"
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border"
       >
-        <WifiOff className="w-3 h-3 text-slate-500" />
-        <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Uplink: Offline</span>
+        <WifiOff className="w-3 h-3 text-muted-foreground" />
+        <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Связь: Оффлайн</span>
       </motion.div>
     );
   }
@@ -153,10 +153,10 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]"
+      className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm"
     >
-      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" />
-      <span className="text-[10px] font-black uppercase tracking-widest text-emerald-500">AI Engine: Standby</span>
+      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">ИИ-Ядро: Ожидание</span>
     </motion.div>
   );
 };

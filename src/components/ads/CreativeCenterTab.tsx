@@ -7,12 +7,12 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Upload, 
-  Image as ImageIcon, 
-  Video, 
-  Sparkles, 
-  Wand2, 
+import {
+  Upload,
+  Image as ImageIcon,
+  Video,
+  Sparkles,
+  Wand2,
   Loader2,
   Trash2,
   Play,
@@ -71,7 +71,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFiles(e.dataTransfer.files);
     }
@@ -81,7 +81,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
     for (const file of Array.from(files)) {
       const isImage = file.type.startsWith('image/');
       const isVideo = file.type.startsWith('video/');
-      
+
       if (!isImage && !isVideo) {
         toast.error(`${file.name} не является изображением или видео`);
         continue;
@@ -96,7 +96,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
       // Mock URL - в реальном приложении это будет URL из Storage
       const mockUrl = URL.createObjectURL(file);
-      
+
       if (projectId) {
         const newAsset = await createAsset({
           project_id: projectId,
@@ -113,9 +113,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
           ai_score: Math.floor(Math.random() * 30) + 70,
           status: 'draft',
         });
-        
+
         if (newAsset) {
-          setSelectedAsset(newAsset);
+          setSelectedAsset(newAsset as any);
           toast.success(`${isImage ? 'Изображение' : 'Видео'} загружено`);
         }
       }
@@ -135,7 +135,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
     setGenerating(true);
     abortControllerRef.current = new AbortController();
-    
+
     try {
       // 1. Create AI Command
       const { data: command, error: createError } = await supabase
@@ -186,7 +186,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             toast.success('Контент сгенерирован!');
             return;
           } else if (updatedCommand.status === 'failed') {
-            throw new Error(updatedCommand.error || 'AI generation failed');
+            throw new Error((updatedCommand as any).error || 'AI generation failed');
           }
         }
 
@@ -228,15 +228,15 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
       <Tabs value={platform} onValueChange={(v) => setPlatform(v as any)}>
         <TabsList className="w-full justify-start bg-muted/50 dark:bg-muted/30">
           <TabsTrigger value="facebook" className="gap-2">
-            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center">f</div>
-            Facebook / Instagram
+            <div className="w-4 h-4 bg-[#1877F2] rounded text-[10px] text-white font-bold flex items-center justify-center shadow-sm">f</div>
+            Meta Ads
           </TabsTrigger>
           <TabsTrigger value="google" className="gap-2">
-            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center">G</div>
-            Google Ads
+            <div className="w-4 h-4 bg-[#EA4335] rounded text-[10px] text-white font-bold flex items-center justify-center shadow-sm">G</div>
+            Google Реклама
           </TabsTrigger>
           <TabsTrigger value="tiktok" className="gap-2">
-            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center">T</div>
+            <div className="w-4 h-4 bg-black rounded text-[10px] text-white font-bold flex items-center justify-center shadow-sm">T</div>
             TikTok
           </TabsTrigger>
         </TabsList>
@@ -247,18 +247,17 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         <Card className="border-border bg-background dark:bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
-              <Upload className="w-4 h-4" />
+              <Upload className="w-4 h-4 text-primary" />
               Лаборатория Креатива
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {/* Drag & Drop Zone */}
             <div
-              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${
-                dragActive 
-                  ? 'border-primary bg-primary/5' 
-                  : 'border-border hover:border-muted-foreground bg-muted/20'
-              }`}
+              className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive
+                ? 'border-primary bg-primary/5'
+                : 'border-border hover:border-muted-foreground bg-muted/20'
+                }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
               onDragOver={handleDrag}
@@ -306,11 +305,10 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                     {assets.map(asset => (
                       <div
                         key={asset.id}
-                        className={`relative group aspect-square bg-muted dark:bg-muted/50 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${
-                          selectedAsset?.id === asset.id 
-                            ? 'border-primary ring-2 ring-primary/20' 
-                            : 'border-transparent hover:border-border'
-                        }`}
+                        className={`relative group aspect-square bg-muted dark:bg-muted/50 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedAsset?.id === asset.id
+                          ? 'border-primary ring-2 ring-primary/20'
+                          : 'border-transparent hover:border-border'
+                          }`}
                         onClick={() => setSelectedAsset(asset)}
                       >
                         {asset.asset_type === 'image' ? (
@@ -325,14 +323,14 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             <Play className="w-8 h-8 text-white" />
                           </div>
                         )}
-                        
+
                         {/* AI Score */}
                         {asset.ai_score && (
                           <div className={`absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 rounded text-xs font-bold ${getAIScoreColor(asset.ai_score)}`}>
                             {asset.ai_score}
                           </div>
                         )}
-                        
+
                         {/* Type badge */}
                         <div className="absolute top-1 right-1">
                           {asset.asset_type === 'image' ? (
@@ -341,7 +339,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             <Video className="w-4 h-4 text-white drop-shadow" />
                           )}
                         </div>
-                        
+
                         {/* Delete button */}
                         <button
                           onClick={(e) => {
@@ -369,7 +367,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Wand2 className="w-4 h-4 text-primary" />
-              AI Анализ
+              ИИ-Копирайтер
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -394,7 +392,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
               ) : (
                 <Sparkles className="w-4 h-4" />
               )}
-              Сгенерировать для {platform === 'facebook' ? 'Facebook' : platform === 'google' ? 'Google' : 'TikTok'}
+              Сгенерировать для {platform === 'facebook' ? 'Meta' : platform === 'google' ? 'Google' : 'TikTok'}
             </Button>
 
             {/* Generated Content */}
@@ -419,9 +417,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             onClick={() => copyToClipboard(headline, `h-${i}`)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity"
                           >
-                          {copiedIndex === `h-${i}` ? (
-                            <Check className="w-4 h-4 text-success" />
-                          ) : (
+                            {copiedIndex === `h-${i}` ? (
+                              <Check className="w-4 h-4 text-success" />
+                            ) : (
                               <Copy className="w-4 h-4 text-muted-foreground" />
                             )}
                           </button>
@@ -446,9 +444,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                             onClick={() => copyToClipboard(desc, `d-${i}`)}
                             className="opacity-0 group-hover:opacity-100 transition-opacity ml-2"
                           >
-                          {copiedIndex === `d-${i}` ? (
-                            <Check className="w-4 h-4 text-success" />
-                          ) : (
+                            {copiedIndex === `d-${i}` ? (
+                              <Check className="w-4 h-4 text-success" />
+                            ) : (
                               <Copy className="w-4 h-4 text-muted-foreground" />
                             )}
                           </button>
@@ -539,11 +537,10 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             {/* Preview Frame */}
             <div className="flex flex-col items-center">
               <div
-                className={`relative bg-card rounded-lg overflow-hidden shadow-xl border border-border ${
-                  previewFormat === 'feed' 
-                    ? 'w-full aspect-[4/5]' 
-                    : 'w-[200px] aspect-[9/16]'
-                }`}
+                className={`relative bg-card rounded-lg overflow-hidden shadow-xl border border-border ${previewFormat === 'feed'
+                  ? 'w-full aspect-[4/5]'
+                  : 'w-[200px] aspect-[9/16]'
+                  }`}
               >
                 {selectedAsset ? (
                   <>
@@ -559,7 +556,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                         <Play className="w-12 h-12 text-white" />
                       </div>
                     )}
-                    
+
                     {/* Instagram-like overlay */}
                     <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/70 to-transparent text-white">
                       <p className="text-xs font-semibold mb-1">ваша_клиника</p>
@@ -573,9 +570,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-muted/20 dark:bg-muted/10">
                     <div className="text-center p-4">
-                      <Smartphone className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">
-                        Выберите креатив для предпросмотра
+                      <Smartphone className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+                      <p className="text-xs text-muted-foreground/50">
+                        Выберите файл для предпросмотра
                       </p>
                     </div>
                   </div>

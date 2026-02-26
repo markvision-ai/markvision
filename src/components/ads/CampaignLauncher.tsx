@@ -140,26 +140,26 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
                 side="right"
-                className="w-full sm:max-w-xl p-0 border-l border-white/10 bg-[#0a0a0c]/90 backdrop-blur-3xl shadow-[0_0_100px_rgba(124,58,237,0.15)] overflow-hidden flex flex-col"
+                className="w-full sm:max-w-xl p-0 border-l border-border bg-card shadow-2xl overflow-hidden flex flex-col"
             >
                 {/* Decorative Header Background */}
                 <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
 
                 <div className="relative z-10 flex flex-col h-full">
-                    <SheetHeader className="p-8 pb-4 border-b border-white/5 bg-white/[0.01]">
+                    <SheetHeader className="p-8 pb-4 border-b border-border bg-muted/30">
                         <div className="flex items-center gap-6">
                             <motion.div
                                 initial={{ rotate: -20, scale: 0.8 }}
                                 animate={{ rotate: 0, scale: 1 }}
-                                className="w-16 h-16 rounded-[2rem] bg-primary/20 flex items-center justify-center border border-primary/30 shadow-[0_0_30px_rgba(124,58,237,0.4)]"
+                                className="w-16 h-16 rounded-[2rem] bg-primary/10 flex items-center justify-center border border-primary/20 shadow-sm"
                             >
                                 <Rocket className="w-8 h-8 text-primary" />
                             </motion.div>
                             <div className="flex flex-col gap-1">
-                                <SheetTitle className="text-2xl font-black uppercase tracking-tighter text-white">Campaign Launcher</SheetTitle>
+                                <SheetTitle className="text-2xl font-bold tracking-tight text-foreground">Запуск кампании</SheetTitle>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_#10b981]" />
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-500">System Ready: Neural Uplink Online</span>
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground">Система готова к запуску</span>
                                 </div>
                             </div>
                         </div>
@@ -169,16 +169,16 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                         <form id="campaign-launch-form" onSubmit={handleSubmit} className="space-y-8">
                             {/* Account Selection */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                    <Globe className="w-3.5 h-3.5 text-primary" /> Signal Destination: Ads Account
+                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <Globe className="w-3.5 h-3.5 text-primary" /> Рекламный аккаунт
                                 </Label>
                                 <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
-                                    <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] transition-all hover:bg-white/[0.08] focus:ring-primary/20 text-white font-medium shadow-inner">
-                                        <SelectValue placeholder="Select Deployment Node" />
+                                    <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] transition-all hover:bg-muted/80 focus:ring-primary/20 text-foreground font-medium shadow-sm">
+                                        <SelectValue placeholder="Выберите аккаунт для запуска" />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl shadow-2xl">
+                                    <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
                                         {accounts.map((acc) => (
-                                            <SelectItem key={acc.accountId} value={acc.accountId} className="py-4 font-bold uppercase text-[10px] tracking-widest">
+                                            <SelectItem key={acc.accountId} value={acc.accountId} className="py-4 font-bold uppercase text-[10px] tracking-widest cursor-pointer">
                                                 {acc.accountName}
                                             </SelectItem>
                                         ))}
@@ -189,32 +189,32 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
                                 {/* Objective */}
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                        <Target className="w-3.5 h-3.5 text-primary" /> Mission Objective
+                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <Target className="w-3.5 h-3.5 text-primary" /> Цель кампании
                                     </Label>
                                     <Select value={objective} onValueChange={setObjective}>
-                                        <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-white font-medium">
+                                        <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl">
-                                            <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-emerald-400">💬 Telegram/WA Direct</SelectItem>
-                                            <SelectItem value="traffic" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-400">🔗 Protocol: Web Traffic</SelectItem>
+                                        <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
+                                            <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-emerald-600">💬 Telegram/WA Директ</SelectItem>
+                                            <SelectItem value="traffic" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-600">🔗 Трафик на сайт</SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
 
                                 {/* Budget */}
                                 <div className="space-y-4">
-                                    <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                        <DollarSign className="w-3.5 h-3.5 text-primary" /> Daily Fuel Allocation (₸)
+                                    <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                        <DollarSign className="w-3.5 h-3.5 text-primary" /> Дневной бюджет (₸)
                                     </Label>
                                     <div className="relative">
                                         <Input
                                             type="number"
-                                            placeholder="5,000"
+                                            placeholder="5 000"
                                             value={budget}
                                             onChange={(e) => setBudget(e.target.value)}
-                                            className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-xl font-black text-white pl-10 focus:ring-primary/20 pr-4 shadow-inner"
+                                            className="bg-muted border-border h-14 rounded-[1.5rem] text-xl font-bold text-foreground pl-10 focus:ring-primary/20 pr-4 shadow-sm"
                                             min="500"
                                         />
                                         <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary opacity-50" />
@@ -224,53 +224,53 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
 
                             {/* Geography */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                    <MapPin className="w-3.5 h-3.5 text-primary" /> Geospatial Targeting
+                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <MapPin className="w-3.5 h-3.5 text-primary" /> География (Город)
                                 </Label>
                                 <Select value={city} onValueChange={setCity}>
-                                    <SelectTrigger className="bg-white/5 border-white/5 h-14 rounded-[1.5rem] text-white font-medium">
+                                    <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="bg-[#0c0c0c] border-white/10 rounded-2xl">
-                                        <SelectItem value="Алматы" className="py-4 font-bold uppercase text-[10px] tracking-widest">Almaty (Sector 01)</SelectItem>
-                                        <SelectItem value="Астана" className="py-4 font-bold uppercase text-[10px] tracking-widest">Astana (Capital)</SelectItem>
-                                        <SelectItem value="Шымкент" className="py-4 font-bold uppercase text-[10px] tracking-widest">Shymkent (South)</SelectItem>
-                                        <SelectItem value="Караганда" className="py-4 font-bold uppercase text-[10px] tracking-widest">Karaganda (Central)</SelectItem>
-                                        <SelectItem value="Весь Казахстан" className="py-4 font-bold uppercase text-[10px] tracking-widest text-primary">Full Uplink: KZ (All)</SelectItem>
+                                    <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
+                                        <SelectItem value="Алматы" className="py-4 font-bold uppercase text-[10px] tracking-widest">Алматы</SelectItem>
+                                        <SelectItem value="Астана" className="py-4 font-bold uppercase text-[10px] tracking-widest">Астана</SelectItem>
+                                        <SelectItem value="Шымкент" className="py-4 font-bold uppercase text-[10px] tracking-widest">Шымкент</SelectItem>
+                                        <SelectItem value="Караганда" className="py-4 font-bold uppercase text-[10px] tracking-widest">Караганда</SelectItem>
+                                        <SelectItem value="Весь Казахстан" className="py-4 font-bold uppercase text-[10px] tracking-widest text-primary">Весь Казахстан</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             {/* Start Time */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                    <Clock className="w-3.5 h-3.5 text-primary" /> Temporal Schedule
+                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <Clock className="w-3.5 h-3.5 text-primary" /> Расписание запуска
                                 </Label>
                                 <RadioGroup value={startTime} onValueChange={setStartTime} className="grid grid-cols-2 gap-4">
                                     <div
                                         onClick={() => setStartTime('now')}
                                         className={cn(
-                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-lg",
-                                            startTime === 'now' ? "bg-primary/20 border-primary/50" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-sm",
+                                            startTime === 'now' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-border hover:bg-muted"
                                         )}
                                     >
                                         <RadioGroupItem value="now" id="now" className="border-primary" />
                                         <div className="flex flex-col">
-                                            <Label htmlFor="now" className="font-black text-[10px] uppercase tracking-widest text-white cursor-pointer group-hover:text-primary transition-colors">Immediate Blast</Label>
-                                            <span className="text-[8px] uppercase tracking-widest text-slate-500">T-Minus 0:00:00</span>
+                                            <Label htmlFor="now" className="font-bold text-[10px] uppercase tracking-widest text-foreground cursor-pointer group-hover:text-primary transition-colors">Сразу</Label>
+                                            <span className="text-[8px] uppercase tracking-widest text-muted-foreground">В течение часа</span>
                                         </div>
                                     </div>
                                     <div
                                         onClick={() => setStartTime('midnight')}
                                         className={cn(
-                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-lg",
-                                            startTime === 'midnight' ? "bg-primary/20 border-primary/50" : "bg-white/[0.02] border-white/5 hover:bg-white/[0.05]"
+                                            "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-sm",
+                                            startTime === 'midnight' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-border hover:bg-muted"
                                         )}
                                     >
                                         <RadioGroupItem value="midnight" id="midnight" className="border-primary" />
                                         <div className="flex flex-col">
-                                            <Label htmlFor="midnight" className="font-black text-[10px] uppercase tracking-widest text-white cursor-pointer group-hover:text-primary transition-colors">Scheduled Orbit</Label>
-                                            <span className="text-[8px] uppercase tracking-widest text-slate-500">Starts Tomorrow 00:00</span>
+                                            <Label htmlFor="midnight" className="font-bold text-[10px] uppercase tracking-widest text-foreground cursor-pointer group-hover:text-primary transition-colors">Завтра</Label>
+                                            <span className="text-[8px] uppercase tracking-widest text-muted-foreground">В 00:00 завтра</span>
                                         </div>
                                     </div>
                                 </RadioGroup>
@@ -278,8 +278,8 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
 
                             {/* Creative Uploader */}
                             <div className="space-y-4">
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-2">
-                                    <Upload className="w-3.5 h-3.5 text-primary" /> Visual Payload (Creative)
+                                <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <Upload className="w-3.5 h-3.5 text-primary" /> Рекламный креатив
                                 </Label>
 
                                 <AnimatePresence mode="wait">
@@ -292,12 +292,12 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                             className="group relative overflow-hidden border-2 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 cursor-pointer rounded-[2rem] p-12 transition-all flex flex-col items-center justify-center gap-4 bg-white/[0.01] shadow-inner"
                                         >
                                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <div className="w-20 h-20 rounded-[2rem] bg-white/[0.03] border border-white/5 flex items-center justify-center group-hover:scale-110 transition-transform shadow-2xl">
+                                            <div className="w-20 h-20 rounded-[2rem] bg-muted border border-border flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                                                 <Upload className="w-10 h-10 text-primary animate-bounce" />
                                             </div>
                                             <div className="text-center relative z-10">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-white">Initiate Payload Upload</p>
-                                                <p className="text-[9px] font-bold uppercase tracking-widest text-slate-600 mt-2">MP4 / JPG / PNG (Max 50MB)</p>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-foreground">Загрузить файл</p>
+                                                <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mt-2">MP4 / JPG / PNG (До 50МБ)</p>
                                             </div>
                                             <input
                                                 type="file"
@@ -311,7 +311,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            className="relative rounded-[2rem] overflow-hidden border border-white/10 aspect-video bg-black flex items-center justify-center shadow-3xl group"
+                                            className="relative rounded-[2rem] overflow-hidden border border-border aspect-video bg-black flex items-center justify-center shadow-xl group"
                                         >
                                             {file.type.startsWith('image/') ? (
                                                 <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
@@ -329,8 +329,8 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                                 <X className="w-5 h-5" />
                                             </motion.button>
                                             <div className="absolute bottom-6 left-6 right-6 flex items-center justify-between opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-white truncate drop-shadow-lg">{file.name}</p>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 bg-black/60 px-2 py-1 rounded backdrop-blur-md">Ready</span>
+                                                <p className="text-[10px] font-bold uppercase tracking-widest text-white truncate drop-shadow-md">{file.name}</p>
+                                                <span className="text-[10px] font-bold uppercase tracking-widest text-white bg-black/40 px-2 py-1 rounded backdrop-blur-md">Готово</span>
                                             </div>
                                         </motion.div>
                                     )}
@@ -339,21 +339,21 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                         </form>
                     </div>
 
-                    <div className="p-8 border-t border-white/5 bg-white/[0.01]">
+                    <div className="p-8 border-t border-border bg-muted/30">
                         <Button
                             form="campaign-launch-form"
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-white shadow-[0_0_40px_rgba(124,58,237,0.4)] hover:shadow-[0_0_60px_rgba(124,58,237,0.6)] transition-all relative overflow-hidden group"
+                            className="w-full h-20 rounded-[2rem] bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg transition-all relative overflow-hidden group"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-shimmer" />
 
                             {isSubmitting ? (
                                 <div className="flex flex-col items-center gap-1">
                                     <div className="flex items-center gap-3">
-                                        <Loader2 className="w-6 h-6 animate-spin text-white" />
-                                        <span className="text-xl font-black uppercase tracking-tighter">
-                                            {uploadProgress < 100 ? `Synchronizing Data...` : 'Transmitting Payload...'}
+                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        <span className="text-xl font-bold uppercase tracking-tight">
+                                            {uploadProgress < 100 ? `Синхронизация...` : 'Запуск кампании...'}
                                         </span>
                                     </div>
                                     <div className="w-32 h-1 bg-white/20 rounded-full mt-2 overflow-hidden">
@@ -368,8 +368,8 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                 <div className="flex items-center gap-6">
                                     <Rocket className="w-8 h-8 group-hover:animate-bounce" />
                                     <div className="flex flex-col items-start translate-y-0.5">
-                                        <span className="text-xl font-black uppercase tracking-tighter leading-none">Execute Launch Sequence</span>
-                                        <span className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">Authorize Production Deployment</span>
+                                        <span className="text-xl font-bold uppercase tracking-tight leading-none">🚀 ЗАПУСТИТЬ РЕКЛАМУ</span>
+                                        <span className="text-[10px] font-bold uppercase tracking-widest opacity-80">Отправить на проверку</span>
                                     </div>
                                 </div>
                             )}
