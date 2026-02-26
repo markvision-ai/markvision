@@ -212,7 +212,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
     }
   }, []);
   const [toggling, setToggling] = useState<string | null>(null);
-  const [showActiveOnly, setShowActiveOnly] = useState(false);
+  const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [selectedCampaigns, setSelectedCampaigns] = useState<Set<string>>(new Set());
   const [sortConfig, setSortConfig] = useState<SortConfig>({ key: null, direction: 'asc' });
   const [columnVisibility, setColumnVisibility] = useState<Record<string, boolean>>({
@@ -1287,25 +1287,8 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="flex items-center gap-1 bg-muted p-1 rounded-xl border border-border">
-            <button
-              onClick={() => setShowActiveOnly(false)}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
-                !showActiveOnly ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Все
-            </button>
-            <button
-              onClick={() => setShowActiveOnly(true)}
-              className={cn(
-                "px-4 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all",
-                showActiveOnly ? "bg-background text-primary shadow-sm" : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              Активные
-            </button>
+          <div className="px-4 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold uppercase tracking-widest shadow-sm">
+            Активные
           </div>
 
           <div className="h-8 w-px bg-border" />
