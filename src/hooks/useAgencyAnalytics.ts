@@ -38,8 +38,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             // but we fetch the aggregated view data.
             const { data, error } = await (supabase as any)
                 .from('agency_metrics_view')
-                .select('*')
-                .eq('project_id', projectId);
+                .select('*');
 
             if (error) throw error;
             return data || [];
@@ -58,7 +57,6 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     event: '*',
                     schema: 'public',
                     table: 'clients_config',
-                    filter: `project_id=eq.${projectId}`
                 },
                 (payload) => {
                     console.log('Realtime clients_config update received!', payload);
