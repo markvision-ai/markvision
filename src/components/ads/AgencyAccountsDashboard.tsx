@@ -282,17 +282,6 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                                     <TableRow key={m.accountId} className="group hover:bg-muted/30 transition-colors">
                                         <TableCell>
                                             <div className="font-medium text-foreground">{m.accountName}</div>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <span className="text-xs font-mono text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md flex-1 truncate max-w-[120px]">
-                                                    act_{m.accountId}
-                                                </span>
-                                                <button
-                                                    onClick={() => copyToClipboard(`act_${m.accountId}`)}
-                                                    className="text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-opacity"
-                                                >
-                                                    <Copy className="w-3 h-3" />
-                                                </button>
-                                            </div>
                                         </TableCell>
                                         <TableCell className="text-right font-medium">{formatMoney(m.spend)}</TableCell>
                                         <TableCell className="text-right">
