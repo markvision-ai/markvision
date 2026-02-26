@@ -133,36 +133,19 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
     const connectAccount = useCallback(async (accountId: string, accountName: string, accessToken: string) => {
         if (!projectId) return;
         try {
-            // Check if account already exists in clients_config
-            const { data: existingAccount } = await (supabase as any)
+            // Use upsert to handle both insert and update automatically based on ad_account_id.
+            // This prevents "duplicate key" errors by letting the database handle the conflict.
+            const result = await (supabase as any)
                 .from('clients_config')
-                .select('id')
-                .eq('project_id', projectId)
-                .eq('ad_account_id', accountId)
-                .maybeSingle();
-
-            let result;
-            if (existingAccount) {
-                // Update
-                result = await (supabase as any)
-                    .from('clients_config')
-                    .update({
-                        client_name: accountName,
-                        fb_token: accessToken,
-                        updated_at: new Date().toISOString()
-                    })
-                    .eq('id', existingAccount.id);
-            } else {
-                // Insert
-                result = await (supabase as any)
-                    .from('clients_config')
-                    .insert({
-                        project_id: projectId,
-                        ad_account_id: accountId,
-                        client_name: accountName,
-                        fb_token: accessToken
-                    });
-            }
+                .upsert({
+                    project_id: projectId,
+                    ad_account_id: accountId,
+                    client_name: accountName,
+                    fb_token: accessToken,
+                    updated_at: new Date().toISOString()
+                }, {
+                    onConflict: 'ad_account_id'
+                });
 
             if (result.error) throw result.error;
             toast.success('Рекламный кабинет успешно подключен!');

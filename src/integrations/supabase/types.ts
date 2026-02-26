@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients_config: {
+        Row: {
+          ad_account_id: string
+          client_name: string | null
+          created_at: string | null
+          fb_token: string | null
+          id: string
+          meta_leads: number | null
+          project_id: string | null
+          spend: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          ad_account_id: string
+          client_name?: string | null
+          created_at?: string | null
+          fb_token?: string | null
+          id?: string
+          meta_leads?: number | null
+          project_id?: string | null
+          spend?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          ad_account_id?: string
+          client_name?: string | null
+          created_at?: string | null
+          fb_token?: string | null
+          id?: string
+          meta_leads?: number | null
+          project_id?: string | null
+          spend?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_config_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ab_tests: {
         Row: {
           created_at: string | null
@@ -5376,6 +5420,27 @@ export type Database = {
       }
     }
     Views: {
+      agency_metrics_view: {
+        Row: {
+          account_id: string | null
+          account_name: string | null
+          cac: number | null
+          cpl: number | null
+          cpql: number | null
+          cpv: number | null
+          crm_leads: number | null
+          id: string | null
+          meta_leads: number | null
+          project_id: string | null
+          qualified_leads: number | null
+          revenue: number | null
+          romi: number | null
+          sales: number | null
+          spend: number | null
+          visits: number | null
+        }
+        Relationships: []
+      }
       content_items: {
         Row: {
           ai_analysis_result: Json | null
