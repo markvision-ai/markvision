@@ -39,26 +39,8 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const body = await req.json().catch(() => null);
-    if (!body) {
-      console.error("[ads-manager] Empty request body");
-      return new Response(JSON.stringify({ error: "Empty request body" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const { action, payload } = body;
-    const projectId = payload?.project_id || payload?.projectId;
-
-    console.log(`[ads-manager] Action: ${action}, Project: ${projectId}`);
-
-    if (!projectId && action !== 'healthcheck') {
-      return new Response(JSON.stringify({ error: "Missing projectId" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const { action, payload } = await req.json();
+    const projectId = payload.project_id || payload.projectId;
 
     // Log command
     await supabase.from('ai_commands').insert({
@@ -387,17 +369,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     insightsQuery = `insights.time_range(${rangeStr}){${insightFields}}`;
   }
 
-  // 1.5. Get IDs of campaigns we already have in our list
-  const { data: localCampaigns } = await supabase
-    .from('campaigns')
-    .select('external_id')
-    .eq('project_id', projectId);
-
-  const localIds = localCampaigns?.map((c: any) => c.external_id).filter(Boolean) || [];
-
   const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
-  const statusesList = ["ACTIVE", "PAUSED", "ARCHIVED"];
-  const statusesParam = encodeURIComponent(JSON.stringify(statusesList));
   const baseFields = `id,name,status,effective_status,daily_budget,${insightsQuery}`;
   const fields = includeChildren
     ? `${baseFields},adsets{id,name,status,effective_status,${insightsQuery},ads{id,name,status,effective_status,creative{thumbnail_url},${insightsQuery}}}`
@@ -406,8 +378,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
   const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
     `fields=${fields}` +
-    `&effective_status=${statusesParam}` +
-    `&limit=100`;
+    `&limit=250`;
 
   console.log(`Fetching hierarchy from: ${url.replace(accessToken, '***')}`);
   const res = await fetch(url);
@@ -434,18 +405,14 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     throw new Error(data.error.message);
   }
 
-  // 3. Filter to only include those in our list
-  if (data.data && localIds.length > 0) {
-    data.data = data.data.filter((c: any) => localIds.includes(String(c.id)));
-  }
-
   return {
     data: data.data || [],
     adAccountId: adAccountId,
     accountStatus,
     debug: {
       source: 'live_graph_api',
-      api_version: 'v21.0'
+      api_version: 'v21.0',
+      local_ids: localIds
     }
   };
 }
@@ -455,28 +422,16 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
   const accessToken = await getAccessToken(supabase, projectId);
   const adAccountId = await getEffectiveAdAccountId(supabase, projectId, accessToken);
 
-  // 1. Get IDs of campaigns we already have in our list
-  const { data: localCampaigns } = await supabase
-    .from('campaigns')
-    .select('external_id')
-    .eq('project_id', projectId);
-
-  const localIds = localCampaigns?.map((c: any) => c.external_id).filter(Boolean) || [];
-
   const includeChildren = payload?.include_children !== false && payload?.level !== 'campaign';
   const fields = includeChildren
     ? `id,name,status,effective_status,adsets{id,name,status,effective_status,ads{id,name,status,effective_status}}`
     : `id,name,status,effective_status`;
 
-  // 2. Build URL. If we have a local list, we can either fetch all or use 'ids' parameter
-  // For now, let's fetch ALL but we could optimize with ?ids= if localIds is small
-  // BUT the user said "ONLY those in our list", so let's use the ids param if possible
-  // OR fetch all and filter in JS. Fetching all is safer for discovery, 
-  // but filtering by IDs is what the user literally asked for.
-
+  // 2. Build URL
   let url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
-    `fields=${fields}&limit=250`;
+    `fields=${fields}&` +
+    `limit=250`;
 
   // If localIds exists, we can append them or filter the result. 
   // Let's fetch everything and filter in data processing to avoid URL length issues,
@@ -497,11 +452,7 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
     throw new Error(data.error.message);
   }
 
-  // 3. Filter to only include those in our list
   let campaigns = data.data || [];
-  if (campaigns.length > 0 && localIds.length > 0) {
-    campaigns = campaigns.filter((c: any) => localIds.includes(String(c.id)));
-  }
 
   // Return as flat map: { campaignId: { status, effective_status }, ... }
   const statusMap: Record<string, { status: string; effective_status: string | null; name: string; type: string }> = {};
@@ -665,8 +616,8 @@ async function getAccessToken(supabase: any, projectId: string): Promise<string>
   }
 
   // 5. Env (Supabase Edge Function Secret: META_ACCESS_TOKEN)
-  const envToken = Deno.env.get("META_ACCESS_TOKEN");
-  if (envToken) return envToken;
+  const fallbackEnvToken = Deno.env.get("META_ACCESS_TOKEN");
+  if (fallbackEnvToken) return fallbackEnvToken;
 
   throw new Error("Meta Access Token missing. Проверьте: integrations, ad_accounts, projects.meta_access_token, pixel_configs.fb_access_token или META_ACCESS_TOKEN в секретах.");
 }
