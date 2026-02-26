@@ -22,6 +22,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { KZT_RATE } from '@/constants/ads';
+import { motion } from 'framer-motion';
 
 interface QuantomAdsPageProps {
   projectId: string | null;
@@ -362,7 +363,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
     <div className="h-[calc(100vh-4rem)] bg-background text-foreground relative flex flex-col overflow-hidden">
       <Tabs defaultValue="dashboard" className="flex-1 flex flex-col overflow-hidden relative z-10">
         <div className="px-6 py-4 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 flex-none flex items-center justify-between z-20">
-          <TabsList className="grid w-[480px] grid-cols-3">
+          <TabsList className="grid w-[400px] grid-cols-2">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard className="w-4 h-4" />
               Командный центр

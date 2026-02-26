@@ -10,7 +10,7 @@ serve(async (req) => {
         )
 
         // 1. Ensure storage bucket exists
-        const { data: bucketData, error: bucketError } = await supabaseClient
+        const { error: bucketError } = await supabaseClient
             .storage
             .createBucket('ad-creatives', {
                 public: true,
@@ -18,24 +18,29 @@ serve(async (req) => {
                 fileSizeLimit: 52428800 // 50MB
             });
 
-        let bucketStatus = "Created";
-        if (bucketError) {
-            if (bucketError.message.includes('already exists')) {
-                bucketStatus = "Already exists";
-            } else {
-                throw bucketError;
-            }
-        }
+        // 2. Apply Policies via RPC 'exec_sql' if available, otherwise we assume the user applies migrations.
+        // But we actually have 'exec_sql' in the DB (based on previous logs).
+        const sql = `
+            DO $$
+            BEGIN
+                -- Policies for storage.objects are trickier via RPC if they already exist, so we use IF NOT EXISTS logic
+                IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow authenticated users to upload creatives') THEN
+                    CREATE POLICY "Allow authenticated users to upload creatives" ON storage.objects FOR INSERT TO authenticated WITH CHECK (bucket_id = 'ad-creatives');
+                END IF;
+                
+                IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow public to read creatives') THEN
+                    CREATE POLICY "Allow public to read creatives" ON storage.objects FOR SELECT TO public USING (bucket_id = 'ad-creatives');
+                END IF;
+            END
+            $$;
+        `;
 
-        // 2. Set Policies (Wait, policies are usually SQL based, but we can try to run SQL via RPC if we have it)
-        // Since we can't easily run DDL via JS SDK for policies, we'll assume the user has 
-        // the migration file or we can try to use the 'exec_sql' if it allowed more than SELECT.
-        // But for now, ensuring the bucket exists is a big step.
+        const { error: sqlError } = await supabaseClient.rpc('exec_sql', { sql_text: sql });
 
         return new Response(JSON.stringify({
             success: true,
-            bucketStatus,
-            message: "Bucket 'ad-creatives' is ready."
+            bucketReady: !bucketError || bucketError.message.includes('already exists'),
+            policiesApplied: !sqlError
         }), {
             headers: { 'Content-Type': 'application/json' },
             status: 200,
