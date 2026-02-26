@@ -39,8 +39,26 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const { action, payload } = await req.json();
-    const projectId = payload.project_id || payload.projectId;
+    const body = await req.json().catch(() => null);
+    if (!body) {
+      console.error("[ads-manager] Empty request body");
+      return new Response(JSON.stringify({ error: "Empty request body" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const { action, payload } = body;
+    const projectId = payload?.project_id || payload?.projectId;
+
+    console.log(`[ads-manager] Action: ${action}, Project: ${projectId}`);
+
+    if (!projectId && action !== 'healthcheck') {
+      return new Response(JSON.stringify({ error: "Missing projectId" }), {
+        status: 400,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Log command
     await supabase.from('ai_commands').insert({
