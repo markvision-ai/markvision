@@ -39,7 +39,7 @@ import { PullToRefresh } from './mobile/PullToRefresh';
 const MobileBottomNav = lazy(() => import('./mobile/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
 const MobileMenuDrawer = lazy(() => import('./mobile/MobileMenuDrawer').then(m => ({ default: m.MobileMenuDrawer })));
 const MobileHeader = lazy(() => import('./mobile/MobileHeader').then(m => ({ default: m.MobileHeader })));
-const FloatingChat = lazy(() => import('./analytics/FloatingChat').then(m => ({ default: m.FloatingChat })));
+const FloatingChatReserved = lazy(() => import('./analytics/FloatingChat').then(m => ({ default: m.AIFloatingChat })));
 import { Header as DesktopHeader } from './layout/Header';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
@@ -562,7 +562,7 @@ export const AnalyticsPlatform = () => {
 
       {activeTab === 'dashboard' && (
         <Suspense fallback={null}>
-          <FloatingChat context={{
+          <FloatingChatReserved context={{
             spend: totals.spend,
             impressions: totals.impressions,
             clicks: totals.clicks,

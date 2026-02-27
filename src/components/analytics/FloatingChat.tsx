@@ -19,7 +19,7 @@ interface FloatingChatProps {
   };
 }
 
-export const FloatingChat = ({ context }: FloatingChatProps) => {
+export const AIFloatingChat = ({ context }: FloatingChatProps) => {
   const [open, setOpen] = useState(false);
   return (
     <div className="fixed bottom-6 right-6 z-50">
