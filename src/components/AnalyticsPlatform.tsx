@@ -39,7 +39,7 @@ import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
 import { MobileHeader } from './mobile/MobileHeader';
-import { Header } from './layout/Header';
+import { Header as DesktopHeader } from './layout/Header';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
@@ -798,7 +798,7 @@ export const AnalyticsPlatform = () => {
 
             {/* Desktop Header with interstellar glass */}
             <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
-              <Header
+              <DesktopHeader
                 onTabChange={handleTabChange}
                 title={getTabTitle()}
                 subtitle={activeTab === 'agency-accounts' ? 'Сквозная аналитика рекламного трафика' : currentProject?.name}
