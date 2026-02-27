@@ -24,14 +24,18 @@ import {
   Zap,
   Target,
   Search,
-  MessageSquare
+  MessageSquare,
+  ArrowUpDown,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { useProjectData } from '@/hooks/useProjectData';
-import { format, startOfMonth } from 'date-fns';
+import { useMetaAccountAnalytics } from '@/hooks/useMetaAccountAnalytics';
+import { format, startOfMonth, endOfMonth } from 'date-fns';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { usePageVisibility } from '@/hooks/usePageVisibility';
 
@@ -97,16 +101,25 @@ const SOURCE_CONFIG: Record<string, { label: string, icon: any, color: string }>
 };
 
 export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
+  const currentMonthRange = useMemo(() => ({
+    from: startOfMonth(new Date()),
+    to: endOfMonth(new Date())
+  }), []);
+
   const { dailyData: projectDailyData } = useProjectData(projectId);
+  const { rows: metaRows, loading: metaLoading } = useMetaAccountAnalytics(projectId, currentMonthRange);
   const isVisible = usePageVisibility();
 
   const [metrics, setMetrics] = useState<RealtimeMetric[]>([]);
   const [recentLeads, setRecentLeads] = useState<RealtimeLead[]>([]);
   const [recentTransactions, setRecentTransactions] = useState<RealtimeTransaction[]>([]);
-  const [isConnected, setIsConnected] = useState(false);
   const [todayRevenue, setTodayRevenue] = useState<number>(0);
   const [todaySpend, setTodaySpend] = useState<number>(0);
   const [allLeads, setAllLeads] = useState<RealtimeLead[]>([]);
+
+  // Sorting state
+  const [sourceSortConfig, setSourceSortConfig] = useState<{ key: keyof SourceStat, direction: 'asc' | 'desc' }>({ key: 'leads', direction: 'desc' });
+  const [campaignSortConfig, setCampaignSortConfig] = useState<{ key: keyof CampaignStat, direction: 'asc' | 'desc' }>({ key: 'leads', direction: 'desc' });
 
   // System status states
   const [systemStatus, setSystemStatus] = useState({
@@ -146,7 +159,6 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       if (transactions) setRecentTransactions(transactions);
 
       // 3. System Status
-      const todayStr = format(new Date(), 'yyyy-MM-dd');
       const [metaAccount, n8nFlows, whatsappIntegration] = await Promise.all([
         supabase.from('ad_accounts').select('status').eq('project_id', projectId).eq('platform', 'facebook').eq('status', 'active').maybeSingle(),
         supabase.from('automation_flows').select('status').eq('project_id', projectId).eq('status', 'error').limit(1),
@@ -212,7 +224,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         subValue: `${sales} продаж`
       },
     ]);
-  }, [projectDailyData, todayRevenue, todaySpend]);
+  }, [projectDailyData, todayRevenue]);
 
   // Attribution & Source stats calculation
   const sourceStats = useMemo(() => {
@@ -225,11 +237,29 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       direct: { source: 'direct', label: 'Прямые/Прочие', icon: <Radio className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-indigo-500' },
     };
 
+    // Integrate Meta official data if available
+    if (metaRows && metaRows.length > 0) {
+      const metaTotals = metaRows.reduce((acc, r) => ({
+        leads: acc.leads + (r.leads || 0),
+        revenue: acc.revenue + (r.revenue || 0),
+        paid: acc.paid + (r.paid || 0)
+      }), { leads: 0, revenue: 0, paid: 0 });
+
+      stats.meta.leads = metaTotals.leads;
+      stats.meta.revenue = metaTotals.revenue;
+      stats.meta.sales = metaTotals.paid;
+    }
+
     allLeads.forEach(lead => {
       const src = (lead.utm_source || '').toLowerCase();
       let category = 'direct';
 
-      if (src.includes('fb') || src.includes('meta') || src.includes('facebook')) category = 'meta';
+      if (src.includes('fb') || src.includes('meta') || src.includes('facebook')) {
+        // Only count if not already counted by MetaRows (to avoid total duplication)
+        // If metaRows exists, we trust it more for Meta, but for other platforms we trust leads table
+        if (metaRows && metaRows.length > 0) return;
+        category = 'meta';
+      }
       else if (src.includes('google') || src.includes('gads')) category = 'google';
       else if (src.includes('ig') || src.includes('instagram')) category = 'instagram';
       else if (src.includes('tiktok') || src.includes('tt')) category = 'tiktok';
@@ -245,8 +275,12 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
     return Object.values(stats)
       .map(s => ({ ...s, conversion: s.leads > 0 ? (s.sales / s.leads) * 100 : 0 }))
-      .sort((a, b) => b.leads - a.leads);
-  }, [allLeads]);
+      .sort((a, b) => {
+        const order = sourceSortConfig.direction === 'asc' ? 1 : -1;
+        const key = sourceSortConfig.key;
+        return a[key] < b[key] ? -1 * order : 1 * order;
+      });
+  }, [allLeads, metaRows, sourceSortConfig]);
 
   // Campaign performance calculation
   const campaignStats = useMemo(() => {
@@ -258,8 +292,26 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       }
       campaigns[lead.utm_campaign].leads += 1;
     });
-    return Object.values(campaigns).sort((a, b) => b.leads - a.leads).slice(0, 5);
-  }, [allLeads]);
+    return Object.values(campaigns).sort((a, b) => {
+      const order = campaignSortConfig.direction === 'asc' ? 1 : -1;
+      const key = campaignSortConfig.key;
+      return a[key] < b[key] ? -1 * order : 1 * order;
+    }).slice(0, 5);
+  }, [allLeads, campaignSortConfig]);
+
+  const toggleSourceSort = (key: keyof SourceStat) => {
+    setSourceSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
+
+  const toggleCampaignSort = (key: keyof CampaignStat) => {
+    setCampaignSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
+    }));
+  };
 
   // Real-time PostgreSQL changes
   useEffect(() => {
@@ -292,6 +344,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     }
   };
 
+  const SortIcon = ({ currentKey, configKey, direction }: { currentKey: string, configKey: string, direction: 'asc' | 'desc' }) => {
+    if (currentKey !== configKey) return <ArrowUpDown className="w-3 h-3 opacity-30 ml-1" />;
+    return direction === 'desc' ? <ChevronDown className="w-3 h-3 text-primary ml-1" /> : <ChevronUp className="w-3 h-3 text-primary ml-1" />;
+  };
+
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'new': return 'bg-blue-500';
@@ -305,7 +362,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   if (!projectId) return <div className="p-12 text-center text-muted-foreground">Выберите проект</div>;
 
   return (
-    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700 pb-20">
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -313,7 +370,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
             <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground">Живая лента</h2>
+            <h2 className="text-2xl font-bold tracking-tight text-foreground uppercase">Контроль трафика</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">System Operational</span>
@@ -367,35 +424,59 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         {/* Source Performance */}
         <GlassCard className="lg:col-span-2 p-0 flex flex-col overflow-hidden">
           <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
-            <div className="flex items-center gap-2 font-bold text-foreground">
-              <Target className="w-5 h-5 text-primary" />
-              Эффективность каналов <span className="text-xs font-normal text-muted-foreground font-mono ml-2">(MTD)</span>
+            <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
+              <Target className="w-4 h-4 text-primary" />
+              Эффективность каналов <span className="text-[10px] font-normal text-muted-foreground font-mono ml-2">MTD</span>
             </div>
-            <Badge className="bg-primary/20 text-primary border-primary/20">ATTR</Badge>
+            <Badge className="bg-primary/20 text-primary border-primary/20 text-[10px]">Real-time Attribution</Badge>
           </div>
           <div className="p-0 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/30 text-muted-foreground text-[10px] uppercase font-black">
+              <thead className="bg-muted/30 text-muted-foreground text-[10px] uppercase font-black border-b border-border/50">
                 <tr>
-                  <th className="px-5 py-3 text-left">Источник</th>
-                  <th className="px-5 py-3 text-right">Лиды</th>
-                  <th className="px-5 py-3 text-right">Выручка</th>
-                  <th className="px-5 py-3 text-right">Конверсия</th>
+                  <th
+                    className="px-5 py-3 text-left cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => toggleSourceSort('label')}
+                  >
+                    <div className="flex items-center">Источник <SortIcon currentKey="label" configKey={sourceSortConfig.key} direction={sourceSortConfig.direction} /></div>
+                  </th>
+                  <th
+                    className="px-5 py-3 text-right cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => toggleSourceSort('leads')}
+                  >
+                    <div className="flex items-center justify-end">Лиды <SortIcon currentKey="leads" configKey={sourceSortConfig.key} direction={sourceSortConfig.direction} /></div>
+                  </th>
+                  <th
+                    className="px-5 py-3 text-right cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => toggleSourceSort('revenue')}
+                  >
+                    <div className="flex items-center justify-end">Выручка <SortIcon currentKey="revenue" configKey={sourceSortConfig.key} direction={sourceSortConfig.direction} /></div>
+                  </th>
+                  <th
+                    className="px-5 py-3 text-right cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => toggleSourceSort('conversion')}
+                  >
+                    <div className="flex items-center justify-end">Конверсия <SortIcon currentKey="conversion" configKey={sourceSortConfig.key} direction={sourceSortConfig.direction} /></div>
+                  </th>
+                  <th className="px-5 py-3 text-right">ROAS</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border/50">
                 {sourceStats.map(s => (
                   <tr key={s.source} className="group hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-4 flex items-center gap-3">
-                      <div className={cn("p-1.5 rounded-lg bg-card border border-border", s.color)}>{s.icon}</div>
+                      <div className={cn("p-1.5 rounded-lg bg-card border border-border shadow-sm", s.color)}>{s.icon}</div>
                       <span className="font-bold text-foreground">{s.label}</span>
                     </td>
                     <td className="px-5 py-4 text-right font-mono font-bold text-foreground">{s.leads}</td>
                     <td className="px-5 py-4 text-right font-mono text-emerald-500 font-bold">{s.revenue > 0 ? formatValue(s.revenue, 'currency') : '—'}</td>
                     <td className="px-5 py-4 text-right">
-                      <span className={cn("px-2 py-0.5 rounded-md font-bold text-[10px]", s.conversion > 10 ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground")}>
+                      <span className={cn("px-2 py-1 rounded-lg font-black text-[10px] shadow-sm", s.conversion > 10 ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-muted text-muted-foreground")}>
                         {s.conversion.toFixed(1)}%
                       </span>
+                    </td>
+                    <td className="px-5 py-4 text-right font-bold text-primary">
+                      {s.revenue > 0 && todaySpend > 0 ? ((s.revenue / (todaySpend / sourceStats.length)) * 100).toFixed(0) + '%' : '—'}
                     </td>
                   </tr>
                 ))}
@@ -406,9 +487,17 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
         {/* Top Campaigns */}
         <GlassCard className="p-0 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center gap-2 font-bold text-foreground">
-            <Zap className="w-5 h-5 text-amber-500" />
-            Топ кампаний
+          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
+            <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
+              <Zap className="w-4 h-4 text-amber-500" />
+              Топ кампаний
+            </div>
+            <div
+              className="p-1 hover:bg-muted rounded-md cursor-pointer transition-colors"
+              onClick={() => toggleCampaignSort('leads')}
+            >
+              <SortIcon currentKey="leads" configKey={campaignSortConfig.key} direction={campaignSortConfig.direction} />
+            </div>
           </div>
           <div className="p-5 space-y-4">
             {campaignStats.length === 0 ? (
@@ -423,9 +512,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                     <div className="text-xs font-mono font-bold text-primary">{c.leads} лидов</div>
                   </div>
                   <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                    <div
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${(c.leads / Math.max(...campaignStats.map(s => s.leads))) * 100}%` }}
+                      transition={{ duration: 1, ease: 'easeOut' }}
                       className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full"
-                      style={{ width: `${(c.leads / campaignStats[0].leads) * 100}%` }}
                     />
                   </div>
                 </div>
@@ -438,10 +529,10 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* ACTIVITY FEED */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leads Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
-            <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight">
-              <Users className="w-5 h-5 text-blue-500" />
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm relative">
+          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+            <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
+              <Users className="w-4 h-4 text-blue-500" />
               Поток лидов
             </div>
             <div className="flex items-center gap-2 font-mono text-[10px] text-blue-500">
@@ -452,39 +543,47 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
               LIVE FEED
             </div>
           </div>
-          <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {recentLeads.map(lead => (
-              <div key={lead.id} className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all group">
-                <div className="flex items-center gap-4">
-                  <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm shadow-black/20", getStatusColor(lead.status))} />
-                  <div>
-                    <div className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{lead.name || 'Аноним'}</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <div className="text-[10px] font-bold text-muted-foreground uppercase">{lead.status === 'new' ? 'Новый' : lead.status}</div>
-                      <span className="text-xs text-muted-foreground/30">•</span>
-                      <div className="text-[10px] text-muted-foreground font-mono">{format(new Date(lead.created_at), 'HH:mm')}</div>
-                      {lead.utm_source && (
-                        <>
-                          <span className="text-xs text-muted-foreground/30">•</span>
-                          <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/20 text-primary uppercase font-bold">{lead.utm_source}</Badge>
-                        </>
-                      )}
+          <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin">
+            <AnimatePresence mode="popLayout">
+              {recentLeads.map(lead => (
+                <motion.div
+                  key={lead.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all group shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm shadow-black/20", getStatusColor(lead.status))} />
+                    <div>
+                      <div className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{lead.name || 'Аноним'}</div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className="text-[10px] font-bold text-muted-foreground uppercase">{lead.status === 'new' ? 'Новый' : lead.status}</div>
+                        <span className="text-xs text-muted-foreground/30">•</span>
+                        <div className="text-[10px] text-muted-foreground font-mono">{format(new Date(lead.created_at), 'HH:mm')}</div>
+                        {lead.utm_source && (
+                          <>
+                            <span className="text-xs text-muted-foreground/30">•</span>
+                            <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-primary/20 text-primary uppercase font-bold">{lead.utm_source}</Badge>
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-                {lead.deal_amount > 0 && (
-                  <div className="text-sm font-black text-emerald-500">+{Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸</div>
-                )}
-              </div>
-            ))}
+                  {lead.deal_amount > 0 && (
+                    <div className="text-sm font-black text-emerald-500">+{Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸</div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </GlassCard>
 
         {/* Transactions Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
-            <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight">
-              <DollarSign className="w-5 h-5 text-emerald-500" />
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm relative">
+          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+            <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
+              <DollarSign className="w-4 h-4 text-emerald-500" />
               Транзакции
             </div>
             <div className="flex items-center gap-2 font-mono text-[10px] text-emerald-500">
@@ -496,27 +595,35 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
             </div>
           </div>
           <div className="flex-1 overflow-y-auto p-4 space-y-3">
-            {recentTransactions.map(tx => (
-              <div key={tx.id} className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all">
-                <div className="flex items-center gap-4">
-                  <div className={cn(
-                    "w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm",
-                    tx.type === 'income' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
-                  )}>
-                    {tx.type === 'income' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
-                  </div>
-                  <div>
-                    <div className="text-sm font-black text-foreground uppercase">{tx.category === 'sales' ? 'Продажа' : tx.category}</div>
-                    <div className="text-[10px] text-muted-foreground font-mono mt-1">
-                      {tx.created_at ? format(new Date(tx.created_at), 'HH:mm:ss') : '--:--'}
+            <AnimatePresence mode="popLayout">
+              {recentTransactions.map(tx => (
+                <motion.div
+                  key={tx.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all shadow-sm hover:shadow-md"
+                >
+                  <div className="flex items-center gap-4">
+                    <div className={cn(
+                      "w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm",
+                      tx.type === 'income' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                    )}>
+                      {tx.type === 'income' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
+                    </div>
+                    <div>
+                      <div className="text-sm font-black text-foreground uppercase">{tx.category === 'sales' ? 'Продажа' : tx.category}</div>
+                      <div className="text-[10px] text-muted-foreground font-mono mt-1">
+                        {tx.created_at ? format(new Date(tx.created_at), 'HH:mm:ss') : '--:--'}
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className={cn("text-lg font-black tracking-tighter", tx.type === 'income' ? "text-emerald-500" : "text-red-500")}>
-                  {tx.type === 'income' ? '+' : '-'}{Math.round(tx.amount).toLocaleString('ru-RU')} ₸
-                </div>
-              </div>
-            ))}
+                  <div className={cn("text-lg font-black tracking-tighter", tx.type === 'income' ? "text-emerald-500" : "text-red-500")}>
+                    {tx.type === 'income' ? '+' : '-'}{Math.round(tx.amount).toLocaleString('ru-RU')} ₸
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         </GlassCard>
       </div>
