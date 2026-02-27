@@ -213,12 +213,8 @@ export const AppSidebar = ({
       },
     ],
     sales: [
-      {
-        label: "CRM",
-        href: "/crm",
-        icon: <IconUsers className="h-5 w-5 flex-shrink-0" />,
-        tab: "crm",
-      },
+      //   tab: "crm",
+      // },
       {
         label: "Диагностика",
         href: "/visits",

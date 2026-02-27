@@ -134,8 +134,6 @@ export default defineConfig(({ mode }) => {
             'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
             // Large components
             'reports': ['./src/components/reports/ReportGenerator.tsx'],
-            'crm': ['./src/components/crm/CRMPage.tsx'],
-            'competitors': ['./src/components/competitors/CompetitorsPage.tsx'],
             'agents': ['./src/components/agents/AgentRoster.tsx'],
             'factory': ['./src/components/factory/ContentFactoryPage.tsx'],
           },

@@ -55,7 +55,6 @@ const E2EAnalytics = lazy(() => import('./analytics/E2EAnalytics').then(m => ({ 
 const MetaAccountAnalytics = lazy(() => import('./analytics/MetaAccountAnalytics').then(m => ({ default: m.MetaAccountAnalytics })));
 const AdminHub = lazy(() => import('./settings/AdminHub').then(m => ({ default: m.AdminHub })));
 const IntegrationsManagement = lazy(() => import('./integrations/IntegrationsManagementNew'));
-const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
 const AuditLogViewer = lazy(() => import('./audit/AuditLogViewer').then(m => ({ default: m.AuditLogViewer })));
 const AgencyAccountsDashboard = lazy(() => import('./ads/AgencyAccountsDashboard').then(m => ({ default: m.AgencyAccountsDashboard })));
 const QuantomAdsPage = lazy(() => import('./ads/QuantomAdsPage').then(m => ({ default: m.QuantomAdsPage })));
@@ -608,10 +607,14 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'crm' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <CRMPage projectId={currentProjectId} />
-        </Suspense>
+      {activeTab === 'crm' && (
+        <div className="bg-card border border-border rounded-2xl p-12 text-center">
+          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Target className="w-8 h-8 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold mb-2">CRM в разработке</h3>
+          <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
+        </div>
       )}
 
       {activeTab === 'e2e-analytics' && currentProjectId && (
@@ -688,9 +691,9 @@ export const AnalyticsPlatform = () => {
 
 
 
-      {activeTab === 'ab-testing' && currentProjectId && (
+      {activeTab === 'ab-testing' && (
         <Suspense fallback={<ModuleLoader />}>
-          <ABOptimizer projectId={currentProjectId} />
+          <ABOptimizer projectId={currentProjectId || FALLBACK_PROJECT_ID} />
         </Suspense>
       )}
 
