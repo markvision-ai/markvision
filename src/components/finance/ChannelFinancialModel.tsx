@@ -170,7 +170,7 @@ export const ChannelFinancialModel = ({
                 min={0}
                 max={100}
                 value={data.crVisitToSale ?? ''}
-                onChange={(e) => handleChange('crVisitToSale', Number(e.target.value) ?? 0)}
+                onChange={(e) => handleChange('crVisitToSale', Number(e.target.value) || 0)}
                 placeholder="50"
                 className="h-10 font-mono bg-background"
               />
@@ -182,7 +182,7 @@ export const ChannelFinancialModel = ({
                 min={0}
                 max={100}
                 value={data.crLeadToVisit ?? ''}
-                onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value) ?? 0)}
+                onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value) || 0)}
                 placeholder="50"
                 className="h-10 font-mono bg-background"
               />

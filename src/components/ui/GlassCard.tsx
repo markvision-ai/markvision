@@ -35,6 +35,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       {...rest}
       className={cn(
         "rounded-xl bg-card border border-border shadow-sm", // Solid matte card
+        stripeClass,
         className
       )}
     >

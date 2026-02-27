@@ -80,7 +80,7 @@ export const MetricCard = memo(({
                   {icon}
                 </div>
               )}
-              <span className="text-xs font-semibold text-foreground/80 dark:text-foreground/90 uppercase tracking-wide">
+              <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">
                 {label}
               </span>
             </div>
@@ -97,7 +97,7 @@ export const MetricCard = memo(({
                 {formattedValue}
               </p>
               {subValue && (
-                <p className="text-xs text-foreground/70 dark:text-foreground/80 font-semibold leading-relaxed">
+                <p className="text-xs text-foreground/70 font-semibold leading-relaxed">
                   {subValue}
                 </p>
               )}

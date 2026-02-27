@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import {
   TrendingUp,
+  TrendingDown,
   Wallet,
   CheckCircle2,
   AlertTriangle,
@@ -192,7 +193,7 @@ export const WelcomeHero = ({
               </div>
               <span className="kpi-label">Выручка</span>
             </div>
-            <p className="kpi-value text-emerald-600 dark:text-emerald-400 font-mono">
+            <p className="kpi-value text-emerald-600 font-mono">
               {formatCurrency(keyMetrics.revenue)}
             </p>
           </motion.div>
@@ -206,11 +207,11 @@ export const WelcomeHero = ({
           >
             <div className="flex items-center gap-2 mb-2">
               <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <Wallet className="w-4 h-4 text-red-500" />
+                <TrendingDown className="w-4 h-4 text-red-500" />
               </div>
               <span className="kpi-label">Расходы</span>
             </div>
-            <p className="kpi-value text-red-600 dark:text-red-400 font-mono">
+            <p className="kpi-value text-red-600 font-mono">
               {formatCurrency(keyMetrics.expenses)}
             </p>
           </motion.div>
@@ -231,7 +232,7 @@ export const WelcomeHero = ({
             <p className={cn(
               "kpi-value font-mono",
               keyMetrics.romi !== null && keyMetrics.romi > 0
-                ? "text-purple-600 dark:text-purple-400"
+                ? "text-purple-600"
                 : "text-muted-foreground"
             )}>
               {formatPercent(keyMetrics.romi)}
@@ -261,7 +262,7 @@ export const WelcomeHero = ({
                 onClick={() => onTabChange(action.tab)}
                 className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card border border-border hover:bg-secondary/50 transition-all duration-300 text-left"
               >
-                <div className="p-2 rounded-lg bg-secondary text-foreground group-hover:bg-background transition-colors">
+                <div className={cn("p-2 rounded-lg transition-colors", action.color)}>
                   <Icon className="w-5 h-5" />
                 </div>
                 <div>
