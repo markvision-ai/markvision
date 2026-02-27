@@ -36,14 +36,14 @@ import { useProjects } from '@/hooks/useProjects';
 import { DateRangePicker, type PresetKey } from './dashboard/DateRangePicker';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
-import { MobileBottomNav } from './mobile/MobileBottomNav';
-import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
-import { MobileHeader } from './mobile/MobileHeader';
+const MobileBottomNav = lazy(() => import('./mobile/MobileBottomNav').then(m => ({ default: m.MobileBottomNav })));
+const MobileMenuDrawer = lazy(() => import('./mobile/MobileMenuDrawer').then(m => ({ default: m.MobileMenuDrawer })));
+const MobileHeader = lazy(() => import('./mobile/MobileHeader').then(m => ({ default: m.MobileHeader })));
+const FloatingChat = lazy(() => import('./analytics/FloatingChat').then(m => ({ default: m.FloatingChat })));
 import { Header as DesktopHeader } from './layout/Header';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
-import { FloatingChat } from './analytics/FloatingChat';
 import { DotPatternBackground } from './ui/dot-pattern-background';
 import { cn } from '@/lib/utils';
 
@@ -561,17 +561,19 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'dashboard' && (
-        <FloatingChat context={{
-          spend: totals.spend,
-          impressions: totals.impressions,
-          clicks: totals.clicks,
-          leads: totals.leads,
-          visits: totals.visits,
-          sales: totals.sales,
-          revenue: totals.revenue,
-          romi: romiPercent,
-          projectId: currentProjectId || FALLBACK_PROJECT_ID
-        }} />
+        <Suspense fallback={null}>
+          <FloatingChat context={{
+            spend: totals.spend,
+            impressions: totals.impressions,
+            clicks: totals.clicks,
+            leads: totals.leads,
+            visits: totals.visits,
+            sales: totals.sales,
+            revenue: totals.revenue,
+            romi: romiPercent,
+            projectId: currentProjectId || FALLBACK_PROJECT_ID
+          }} />
+        </Suspense>
       )}
 
       {activeTab === 'table' && currentProjectId && (
@@ -787,14 +789,16 @@ export const AnalyticsPlatform = () => {
           {/* Main Content Area - Takes remaining space, no overlap */}
           <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
             {/* Mobile Header */}
-            <MobileHeader
-              title={getTabTitle()}
-              subtitle={activeTab === 'agency-accounts' ? 'Сквозная аналитика рекламного трафика' : currentProject?.name}
-              onMenuClick={() => setIsMobileSidebarOpen(true)}
-              projects={projectsList}
-              currentProjectId={currentProjectId}
-              onProjectChange={setCurrentProjectId}
-            />
+            <Suspense fallback={<div className="h-16 md:h-0" />}>
+              <MobileHeader
+                title={getTabTitle()}
+                subtitle={activeTab === 'agency-accounts' ? 'Сквозная аналитика рекламного трафика' : currentProject?.name}
+                onMenuClick={() => setIsMobileSidebarOpen(true)}
+                projects={projectsList}
+                currentProjectId={currentProjectId}
+                onProjectChange={setCurrentProjectId}
+              />
+            </Suspense>
 
             {/* Desktop Header with interstellar glass */}
             <header className="hidden md:block sticky top-0 z-30 bg-white/[0.02] backdrop-blur-2xl border-b border-white/[0.06] shadow-[0_1px_0_rgba(255,255,255,0.02)]">
@@ -828,21 +832,25 @@ export const AnalyticsPlatform = () => {
           </main>
 
           {/* Mobile Bottom Navigation */}
-          <MobileBottomNav
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            onMoreClick={() => setIsMobileSidebarOpen(true)}
-          />
+          <Suspense fallback={null}>
+            <MobileBottomNav
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              onMoreClick={() => setIsMobileSidebarOpen(true)}
+            />
+          </Suspense>
 
           {/* Mobile Menu Drawer */}
-          <MobileMenuDrawer
-            open={isMobileSidebarOpen}
-            onOpenChange={setIsMobileSidebarOpen}
-            activeTab={activeTab}
-            onTabChange={handleTabChange}
-            userProfile={profile}
-            currentProjectName={currentProject?.name}
-          />
+          <Suspense fallback={null}>
+            <MobileMenuDrawer
+              open={isMobileSidebarOpen}
+              onOpenChange={setIsMobileSidebarOpen}
+              activeTab={activeTab}
+              onTabChange={handleTabChange}
+              userProfile={profile}
+              currentProjectName={currentProject?.name}
+            />
+          </Suspense>
         </div>
       </SidebarProvider>
     </DotPatternBackground>
