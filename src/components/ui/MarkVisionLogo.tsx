@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 
-// Standard Imports (Bypassing vite-imagetools due to build error)
-import logoNew from '@/assets/markvision-logo-2.png';
-import logoOld from '@/assets/markvision-logo.png';
+// Use ultra-lightweight SVG vectors for maximum performance (2KB vs 2MB)
+const logoNew = '/logo-vector-blue.svg';
+const logoOld = '/logo-vector-blue.svg';
 
 interface MarkVisionLogoProps {
   className?: string;
