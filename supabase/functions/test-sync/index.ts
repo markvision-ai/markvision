@@ -15,7 +15,7 @@ serve(async (req) => {
 
     if (fetchError || !accounts) return new Response(JSON.stringify({ error: fetchError }));
 
-    let results = [];
+    const results = [];
     for (const account of accounts) {
         if (!account.ad_account_id || !account.fb_token) continue;
 

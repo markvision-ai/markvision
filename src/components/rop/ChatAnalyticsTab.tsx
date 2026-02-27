@@ -143,7 +143,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
         from: subDays(new Date(), 7),
         to: new Date(),
     });
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     const [activeFilter, setActiveFilter] = useState('week');
     const [activeTab, setActiveTab] = useState('managers');
 

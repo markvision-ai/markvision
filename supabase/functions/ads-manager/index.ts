@@ -411,8 +411,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
     accountStatus,
     debug: {
       source: 'live_graph_api',
-      api_version: 'v21.0',
-      local_ids: localIds
+      api_version: 'v21.0'
     }
   };
 }
@@ -428,7 +427,7 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
     : `id,name,status,effective_status`;
 
   // 2. Build URL
-  let url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
+  const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
     `fields=${fields}&` +
     `limit=250`;
@@ -452,7 +451,7 @@ async function fetchCampaignStatuses(supabase: any, projectId: string, payload: 
     throw new Error(data.error.message);
   }
 
-  let campaigns = data.data || [];
+  const campaigns = data.data || [];
 
   // Return as flat map: { campaignId: { status, effective_status }, ... }
   const statusMap: Record<string, { status: string; effective_status: string | null; name: string; type: string }> = {};
