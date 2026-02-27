@@ -18,23 +18,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
 
 import { AppSidebar } from './AppSidebar';
-import { DraggableDashboard } from './dashboard/DraggableDashboard';
-import { Header } from './layout/Header';
-import { PresetKey } from '@/components/dashboard/DateRangePicker';
-import { PlanFactCard } from './dashboard/PlanFactCard';
-import { MetricCard } from './dashboard/MetricCard';
-import { QuickStats } from './dashboard/QuickStats';
-import { DataTable } from './dashboard/DataTable';
-import { RevenueChart } from './dashboard/RevenueChart';
-import { ConversionStats } from './dashboard/ConversionStats';
-import { FunnelStandalone } from './widgets/FunnelStandalone';
-import { PerformanceChartWidget } from './widgets/PerformanceChartWidget';
-import { AIAssistant } from '@/components/analytics/AIAssistant';
-import { FloatingChat } from '@/components/analytics/FloatingChat';
-// OnboardingWizard moved to separate /setup page
-import { UpcomingAppointmentsWidget } from './dashboard/UpcomingAppointmentsWidget';
-import { ComputedMetricsWidget } from '@/components/dashboard/ComputedMetricsWidget';
-import { WelcomeHero } from './dashboard/WelcomeHero';
+// Lazy load heavy dashboard components
+const DraggableDashboard = lazy(() => import('./dashboard/DraggableDashboard').then(m => ({ default: m.DraggableDashboard })));
+const PlanFactCard = lazy(() => import('./dashboard/PlanFactCard').then(m => ({ default: m.PlanFactCard })));
+const MetricCard = lazy(() => import('./dashboard/MetricCard').then(m => ({ default: m.MetricCard })));
+const DataTable = lazy(() => import('./dashboard/DataTable').then(m => ({ default: m.DataTable })));
+const RevenueChart = lazy(() => import('./dashboard/RevenueChart').then(m => ({ default: m.RevenueChart })));
+const ConversionStats = lazy(() => import('./dashboard/ConversionStats').then(m => ({ default: m.ConversionStats })));
+const FunnelStandalone = lazy(() => import('./widgets/FunnelStandalone').then(m => ({ default: m.FunnelStandalone })));
+const PerformanceChartWidget = lazy(() => import('./widgets/PerformanceChartWidget').then(m => ({ default: m.PerformanceChartWidget })));
+const AIAssistant = lazy(() => import('@/components/analytics/AIAssistant').then(m => ({ default: m.AIAssistant })));
+const UpcomingAppointmentsWidget = lazy(() => import('./dashboard/UpcomingAppointmentsWidget').then(m => ({ default: m.UpcomingAppointmentsWidget })));
+const ComputedMetricsWidget = lazy(() => import('@/components/dashboard/ComputedMetricsWidget').then(m => ({ default: m.ComputedMetricsWidget })));
+const WelcomeHero = lazy(() => import('./dashboard/WelcomeHero').then(m => ({ default: m.WelcomeHero })));
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
@@ -554,9 +550,11 @@ export const AnalyticsPlatform = () => {
     <div className="w-full max-w-7xl mx-auto px-3 py-4 md:p-6 lg:p-8 pb-24 md:pb-8">
       <div className="mb-2" />
       {activeTab === 'dashboard' && (
-        <DraggableDashboard>
-          {renderDashboardWidgets}
-        </DraggableDashboard>
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DraggableDashboard>
+            {renderDashboardWidgets}
+          </DraggableDashboard>
+        </Suspense>
       )}
 
       {activeTab === 'dashboard' && (
@@ -574,13 +572,15 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'table' && currentProjectId && (
-        <DataTable
-          dailyData={dailyData}
-          onDataChange={handleDataChange}
-          planData={planData}
-          plansMap={plansMap}
-          onPlanChange={handlePlanChange}
-        />
+        <Suspense fallback={<DashboardSkeleton />}>
+          <DataTable
+            dailyData={dailyData}
+            onDataChange={handleDataChange}
+            planData={planData}
+            plansMap={plansMap}
+            onPlanChange={handlePlanChange}
+          />
+        </Suspense>
       )}
 
       {activeTab === 'quantom-ads' && currentProjectId && (

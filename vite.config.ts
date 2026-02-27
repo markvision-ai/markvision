@@ -125,17 +125,22 @@ export default defineConfig(({ mode }) => {
       rollupOptions: {
         output: {
           manualChunks: {
-            // Vendor chunks
+            // Core UI libraries
             'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-            'ui-vendor': ['framer-motion', '@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-dropdown-menu'],
+            'framer-vendor': ['framer-motion'],
+            'radix-vendor': ['@radix-ui/react-dialog', '@radix-ui/react-popover', '@radix-ui/react-dropdown-menu', '@radix-ui/react-tabs', '@radix-ui/react-tooltip'],
+            'lucide-vendor': ['lucide-react'],
+
+            // Analytics and data
             'chart-vendor': ['recharts'],
             'date-vendor': ['date-fns'],
-            'pdf-vendor': ['html2canvas', 'jspdf'],
             'supabase-vendor': ['@supabase/supabase-js', '@tanstack/react-query'],
-            // Large components
-            'reports': ['./src/components/reports/ReportGenerator.tsx'],
-            'agents': ['./src/components/agents/AgentRoster.tsx'],
-            'factory': ['./src/components/factory/ContentFactoryPage.tsx'],
+
+            // Heavy features
+            'pdf-vendor': ['html2canvas', 'jspdf'],
+
+            // Component grouping for better chunking
+            'dashboard-base': ['./src/components/dashboard/MetricCard.tsx', './src/components/dashboard/PlanFactCard.tsx'],
           },
         },
       },
