@@ -875,10 +875,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       const clicks = record?.clicks || 0;
       const impressions = record?.impressions || 0;
 
-      // Fallback removed to prevent mixing Lifetime (API) and Daily (DB) data.
-      // We rely strictly on DB logs for consistent aggregation.
+      const currency = accountStatus?.currency || 'USD';
 
-      const spendKZT = spend * KZT_RATE;
+      // Only apply KZT_RATE if the account currency is USD. 
+      // If it's KZT, spend is already in KZT.
+      const spendKZT = currency === 'USD' ? spend * KZT_RATE : spend;
       return { spend, leadsMeta, clicks, impressions, spendKZT };
     };
 

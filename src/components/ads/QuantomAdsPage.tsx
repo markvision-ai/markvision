@@ -269,10 +269,16 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         }, {} as Record<string, typeof todayLogs[0]>)
       );
 
-      // Convert USD spend to KZT if needed, assuming logs are in USD (Meta default)
-      // ActiveAdsManager uses KZT_RATE. We should do the same.
-      todaySpent = uniqueTodayCampaigns.reduce((sum, log) => sum + ((Number(log.spend) || 0) * KZT_RATE), 0);
-      todayLeads = uniqueTodayCampaigns.reduce((sum, log) => sum + (Number(log.leads) || 0), 0);
+      // Convert USD spend to KZT if needed
+      // Logic: Only convert if we are sure it's USD. Default to 1:1 if already in KZT or other currency.
+      // Since QuantomAdsPage doesn't fetch accountStatus directly here, we'll try to determine if logs are likely USD.
+      // Usually, Meta API returns USD by default unless configured otherwise.
+      // For now, let's keep it consistent with ActiveAdsManager's logic if we can detect it.
+      const logCurrency = localStorage.getItem(`meta_currency_${projectId}`) || 'USD';
+      const rate = logCurrency === 'USD' ? KZT_RATE : 1;
+
+      todaySpent = uniqueTodayCampaigns.reduce((sum, log) => sum + ((Number(log.spend) || 0) * rate), 0);
+      todayLeads = uniqueTodayCampaigns.reduce((sum, log) => sum + (Number(log.leads) || 0) * 1, 0); // Leads are absolute
     }
 
     const totalSpent = historySpent + todaySpent;

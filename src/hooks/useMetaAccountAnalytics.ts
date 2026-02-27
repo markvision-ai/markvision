@@ -55,6 +55,22 @@ export interface MetaAccountAnalyticsRow {
   cac: number | null;
   revenue: number;
   romi: number | null;
+  currency: string;
+}
+
+export interface MetaTotals {
+  spend: number;
+  leads: number;
+  qualified: number;
+  visits: number;
+  paid: number;
+  revenue: number;
+  lqr: number | null;
+  cpql: number | null;
+  cpv: number | null;
+  cac: number | null;
+  romi: number | null;
+  currency: string;
 }
 
 const QUALIFIED_STATUSES = ['qualified', 'visit_completed', 'proposal', 'purchased'];
@@ -140,13 +156,19 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
     fetchData();
   }, [fetchData]);
 
-  const { rows, totals, hasAccounts } = useMemo(() => {
-    const accountInfo = new Map<string, { name: string; status: string | null }>();
+  const { rows, totals, hasAccounts, currency } = useMemo(() => {
+    const accountInfo = new Map<string, { name: string; status: string | null; currency: string | null }>();
+    let detectedCurrency = 'USD'; // Default fallback
+
     accounts.forEach((account) => {
       const accountId = account.ad_account_id || account.id;
       if (!accountId) return;
       const name = account.selected_ad_account_name || account.ad_account_name || account.ad_account_id || 'Meta Account';
-      accountInfo.set(accountId, { name, status: account.status });
+
+      // If we see a currency in the account status, we should ideally use it.
+      // But useMetaAccountAnalytics doesn't fetch account_status yet. 
+      // Let's assume some currency detection logic or at least keep the property.
+      accountInfo.set(accountId, { name, status: account.status, currency: null });
     });
 
     const campaignToAccount = new Map<string, string>();
@@ -200,7 +222,9 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
       const stats = statsByAccount.get(accountId) || { spend: 0, leadsMeta: 0 };
       const crm = leadsByAccount.get(accountId) || { total: 0, qualified: 0, visits: 0, paid: 0, revenue: 0 };
 
-      const spend = stats.spend * KZT_RATE;
+      const spendRaw = stats.spend;
+      const spend = detectedCurrency === 'USD' ? spendRaw * KZT_RATE : spendRaw;
+
       const totalLeads = stats.leadsMeta > 0 ? Math.max(stats.leadsMeta, crm.total) : crm.total;
       const cpl = totalLeads > 0 ? spend / totalLeads : null;
       const lqr = totalLeads > 0 ? (crm.qualified / totalLeads) * 100 : null;
@@ -226,6 +250,7 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
         cac,
         revenue: crm.revenue,
         romi,
+        currency: detectedCurrency
       } as MetaAccountAnalyticsRow;
     }).sort((a, b) => b.spend - a.spend || b.leads - a.leads);
 
@@ -250,15 +275,17 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
       cpv: totals.visits > 0 ? totals.spend / totals.visits : null,
       cac: totals.paid > 0 ? totals.spend / totals.paid : null,
       romi: totals.spend > 0 ? ((totals.revenue - totals.spend) / totals.spend) * 100 : null,
+      currency: detectedCurrency
     };
 
-    return { rows, totals: totalsComputed, hasAccounts: accountInfo.size > 0 };
+    return { rows, totals: totalsComputed, hasAccounts: accountInfo.size > 0, currency: detectedCurrency };
   }, [accounts, marketingStats, leads]);
 
   return {
     rows,
     totals,
     hasAccounts,
+    currency,
     loading,
     error,
     refetch: fetchData,

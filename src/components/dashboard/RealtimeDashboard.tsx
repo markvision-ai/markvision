@@ -133,14 +133,18 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
     if (!projectId) return;
 
     const fetchInitialData = async () => {
-      const startOfMo = format(startOfMonth(new Date()), "yyyy-MM-dd'T'HH:mm:ssXXX");
-
       // 1. Leads
+      // Use simpler date filter to avoid TZ issues
+      const startOfMoMonth = new Date();
+      startOfMoMonth.setDate(1);
+      startOfMoMonth.setHours(0, 0, 0, 0);
+      const startOfMoStr = startOfMoMonth.toISOString();
+
       const { data: leads } = await supabase
         .from('leads')
         .select('id, name, status, created_at, deal_amount, utm_source, utm_campaign')
         .eq('project_id', projectId)
-        .gte('created_at', startOfMo)
+        .gte('created_at', startOfMoStr)
         .order('created_at', { ascending: false });
 
       if (leads) {
@@ -255,9 +259,10 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       let category = 'direct';
 
       if (src.includes('fb') || src.includes('meta') || src.includes('facebook')) {
-        // Only count if not already counted by MetaRows (to avoid total duplication)
-        // If metaRows exists, we trust it more for Meta, but for other platforms we trust leads table
-        if (metaRows && metaRows.length > 0) return;
+        // If metaRows exists but is empty, we still want to show Meta leads from CRM
+        // We only return (skip) if metaRows actually has data for Meta
+        const hasOfficialMetaData = metaRows && metaRows.length > 0;
+        if (hasOfficialMetaData) return;
         category = 'meta';
       }
       else if (src.includes('google') || src.includes('gads')) category = 'google';
