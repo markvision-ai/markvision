@@ -35,11 +35,19 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             if (!projectId) return [];
 
             // Note: dateRange filtering isn't implemented in the pure view yet since it's global, 
-            // but we fetch the aggregated view data.
-            const { data, error } = await (supabase as any)
+            let query = (supabase as any)
                 .from('agency_metrics_view')
                 .select('*')
                 .eq('project_id', projectId);
+
+            if (dateRange?.from) {
+                const year = dateRange.from.getFullYear();
+                const month = String(dateRange.from.getMonth() + 1).padStart(2, '0');
+                const monthStr = `${year}-${month}-01`;
+                query = query.eq('month_start', monthStr);
+            }
+
+            const { data, error } = await query;
 
             if (error) throw error;
             return data || [];

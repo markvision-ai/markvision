@@ -24,9 +24,13 @@ import { ChevronLeft, ChevronRight, Copy, Plus, RefreshCw, CalendarDays, Chevron
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
+import { AgencyMetrics } from '@/hooks/useAgencyAnalytics';
+
 export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | null }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+    const [sortField, setSortField] = useState<keyof AgencyMetrics | null>('spend');
+    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
     const dateRange = useMemo(() => ({
         from: startOfMonth(currentMonth),
@@ -66,6 +70,55 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
     const copyToClipboard = (text: string) => {
         navigator.clipboard.writeText(text);
         toast.success('Скопировано в буфер обмена');
+    };
+
+    const handleSort = (field: keyof AgencyMetrics) => {
+        if (sortField === field) {
+            setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+        } else {
+            setSortField(field);
+            setSortDirection('desc');
+        }
+    };
+
+    const sortedMetrics = useMemo(() => {
+        if (!sortField) return metrics;
+        return [...metrics].sort((a, b) => {
+            let aValue = a[sortField];
+            let bValue = b[sortField];
+
+            if (typeof aValue === 'string' && typeof bValue === 'string') {
+                return sortDirection === 'asc'
+                    ? aValue.localeCompare(bValue)
+                    : bValue.localeCompare(aValue);
+            }
+
+            aValue = Number(aValue) || 0;
+            bValue = Number(bValue) || 0;
+
+            return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+        });
+    }, [metrics, sortField, sortDirection]);
+
+    const SortableTableHead = ({ field, label, align = 'right' }: { field: keyof AgencyMetrics, label: string, align?: 'left' | 'right' }) => {
+        const isActive = sortField === field;
+        return (
+            <TableHead
+                className={cn("font-semibold cursor-pointer select-none hover:bg-muted/50 transition-colors whitespace-nowrap", align === 'right' && "text-right")}
+                onClick={() => handleSort(field)}
+            >
+                <div className={cn("flex items-center gap-1", align === 'right' ? "justify-end" : "justify-start")}>
+                    {label}
+                    <div className="flex flex-col">
+                        {isActive ? (
+                            <ChevronDown className={cn("w-4 h-4 transition-transform", sortDirection === 'asc' && "rotate-180")} />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-muted-foreground/30" />
+                        )}
+                    </div>
+                </div>
+            </TableHead>
+        );
     };
 
     return (
@@ -130,17 +183,17 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50">
-                            <TableHead className="w-[200px] font-semibold">Название кабинета</TableHead>
-                            <TableHead className="text-right font-semibold">Расходы (Spend)</TableHead>
-                            <TableHead className="text-right font-semibold">Лиды</TableHead>
-                            <TableHead className="text-right font-semibold">CPL</TableHead>
-                            <TableHead className="text-right font-semibold">LQR</TableHead>
-                            <TableHead className="text-right font-semibold">CPQL</TableHead>
-                            <TableHead className="text-right font-semibold">Визиты</TableHead>
-                            <TableHead className="text-right font-semibold">CPV</TableHead>
-                            <TableHead className="text-right font-semibold">CAC</TableHead>
-                            <TableHead className="text-right font-semibold">Выручка</TableHead>
-                            <TableHead className="text-right font-semibold">ROMI</TableHead>
+                            <SortableTableHead field="accountName" label="Название кабинета" align="left" />
+                            <SortableTableHead field="spend" label="Расходы (Spend)" />
+                            <SortableTableHead field="metaLeads" label="Лиды (Meta)" />
+                            <SortableTableHead field="cpl" label="CPL" />
+                            <SortableTableHead field="lqr" label="LQR" />
+                            <SortableTableHead field="cpql" label="CPQL" />
+                            <SortableTableHead field="visits" label="Визиты" />
+                            <SortableTableHead field="cpv" label="CPV" />
+                            <SortableTableHead field="cac" label="CAC" />
+                            <SortableTableHead field="revenue" label="Выручка" />
+                            <SortableTableHead field="romi" label="ROMI" />
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -165,7 +218,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                                 </TableCell>
                             </TableRow>
                         ) : (
-                            metrics.map((m) => {
+                            sortedMetrics.map((m) => {
                                 const isRomiNegative = m.romi < 100;
                                 return (
                                     <TableRow key={m.accountId} className="group hover:bg-muted/30 transition-colors">
