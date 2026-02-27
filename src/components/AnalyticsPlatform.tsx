@@ -33,14 +33,17 @@ const ComputedMetricsWidget = lazy(() => import('@/components/dashboard/Computed
 const WelcomeHero = lazy(() => import('./dashboard/WelcomeHero').then(m => ({ default: m.WelcomeHero })));
 import { useProjectData, type DailyData, type PlanData } from '@/hooks/useProjectData';
 import { useProjects } from '@/hooks/useProjects';
+import { DateRangePicker, type PresetKey } from './dashboard/DateRangePicker';
 import { FALLBACK_PROJECT_ID } from '@/integrations/supabase/client';
 import { PullToRefresh } from './mobile/PullToRefresh';
 import { MobileBottomNav } from './mobile/MobileBottomNav';
 import { MobileMenuDrawer } from './mobile/MobileMenuDrawer';
 import { MobileHeader } from './mobile/MobileHeader';
+import { Header } from './layout/Header';
 import { DashboardSkeleton } from './dashboard/DashboardSkeleton';
 import { AnalyticsSkeleton } from './analytics/AnalyticsSkeleton';
 import { SidebarProvider } from './ui/aceternity-sidebar';
+import { FloatingChat } from './analytics/FloatingChat';
 import { DotPatternBackground } from './ui/dot-pattern-background';
 import { cn } from '@/lib/utils';
 
