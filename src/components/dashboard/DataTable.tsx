@@ -1,11 +1,11 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { 
-  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay, 
+import {
+  format, startOfMonth, endOfMonth, eachDayOfInterval, getDay,
   subMonths, addMonths
 } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { 
-  Download, Target, Loader2, 
+import {
+  Download, Target, Loader2,
   ShoppingCart, Users, TrendingUp,
   ChevronLeft, ChevronRight
 } from 'lucide-react';
@@ -71,12 +71,12 @@ interface DataTableProps {
 }
 
 // Editable cell component that only saves on blur
-const EditableCell = ({ 
-  value, 
-  onSave, 
-  className 
-}: { 
-  value: number | undefined; 
+const EditableCell = ({
+  value,
+  onSave,
+  className
+}: {
+  value: number | undefined;
   onSave: (value: number) => void;
   className?: string;
 }) => {
@@ -94,7 +94,7 @@ const EditableCell = ({
   const handleBlur = useCallback(async () => {
     const numValue = parseFloat(localValue) || 0;
     const initialNum = parseFloat(initialValueRef.current) || 0;
-    
+
     // Only save if value actually changed
     if (numValue !== initialNum) {
       setIsSaving(true);
@@ -181,7 +181,7 @@ export const DataTable = React.memo(({
   const totals = useMemo(() => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
     const rangeData = rangeDays.map(date => dailyData[date]).filter(Boolean);
-    
+
     return {
       spend: rangeData.reduce((sum, day) => sum + (day.spend || 0), 0),
       impressions: rangeData.reduce((sum, day) => sum + (day.impressions || 0), 0),
@@ -203,7 +203,7 @@ export const DataTable = React.memo(({
       const monthKey = format(startOfMonth(dateRange.from), 'yyyy-MM-dd');
       return plansMap[monthKey] || null;
     }
-    
+
     return planData;
   }, [plansMap, dateRange, planData]);
 
@@ -214,7 +214,7 @@ export const DataTable = React.memo(({
   const impressionToLeadConv = totals.impressions > 0 ? (totals.leads / totals.impressions) * 100 : null;
   const leadToVisitConv = totals.leads > 0 ? (totals.visits / totals.leads) * 100 : null;
   const visitToSaleConv = totals.visits > 0 ? (totals.sales / totals.visits) * 100 : null;
-  
+
   // Average revenue for heatmap
   const averageRevenue = useMemo(() => {
     const rangeDays = daysInRange.map(d => format(d, 'yyyy-MM-dd'));
@@ -237,17 +237,17 @@ export const DataTable = React.memo(({
       const daySpend = data?.spend || 0;
       const dayCpl = dayLeads > 0 ? Math.round(daySpend / dayLeads) : 0;
       return [
-        format(day, 'dd.MM.yyyy'), 
-        WEEKDAYS[getWeekDay(day)], 
-        data?.spend || 0, 
-        data?.impressions || 0, 
-        dayClicks, 
-        dayCtr, 
-        dayLeads, 
-        dayFollowers, 
-        dayCpl, 
-        data?.visits || 0, 
-        data?.sales || 0, 
+        format(day, 'dd.MM.yyyy'),
+        WEEKDAYS[getWeekDay(day)],
+        data?.spend || 0,
+        data?.impressions || 0,
+        dayClicks,
+        dayCtr,
+        dayLeads,
+        dayFollowers,
+        dayCpl,
+        data?.visits || 0,
+        data?.sales || 0,
         data?.revenue || 0,
       ].join(',');
     });
@@ -298,83 +298,84 @@ export const DataTable = React.memo(({
           subtitle={impressionToLeadConv !== null ? 'Лиды / показы' : 'Нет данных'}
         />
         <SummaryCard
-            title="CR (Лид→Диагностика)"
-            icon={Target}
-            value={leadToVisitConv !== null ? (
-              <>
-                {formatCR(leadToVisitConv).replace('%', '')}
-                <span className="text-muted-foreground">%</span>
-              </>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-            subtitle={leadToVisitConv !== null ? 'Диагностика / лиды' : 'Нет данных'}
-          />
-          <SummaryCard
-            title="CR (Диагностика→Продажа)"
-            icon={ShoppingCart}
-            value={visitToSaleConv !== null ? (
-              <>
-                {formatCR(visitToSaleConv).replace('%', '')}
-                <span className="text-muted-foreground">%</span>
-              </>
-            ) : (
-              <span className="text-muted-foreground">—</span>
-            )}
-            subtitle={visitToSaleConv !== null ? 'Продажи / диагностика' : 'Нет данных'}
-          />
+          title="CR (Лид→Диагностика)"
+          icon={Target}
+          value={leadToVisitConv !== null ? (
+            <>
+              {formatCR(leadToVisitConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={leadToVisitConv !== null ? 'Диагностика / лиды' : 'Нет данных'}
+        />
+        <SummaryCard
+          title="CR (Диагностика→Продажа)"
+          icon={ShoppingCart}
+          value={visitToSaleConv !== null ? (
+            <>
+              {formatCR(visitToSaleConv).replace('%', '')}
+              <span className="text-muted-foreground">%</span>
+            </>
+          ) : (
+            <span className="text-muted-foreground">—</span>
+          )}
+          subtitle={visitToSaleConv !== null ? 'Продажи / диагностика' : 'Нет данных'}
+        />
       </div>
 
-      <div className="rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group mb-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
+      <div className="rounded-[2.5rem] border border-white/5 bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar relative overflow-hidden group mb-6 transition-all duration-500 hover:bg-[#020617]/60">
         {/* Header with Date Range Selection */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 md:p-6 border-b border-white/80 bg-slate-50/50 backdrop-blur-md gap-3 lg:gap-2 relative z-10">
-          
-          {/* Controls Container */}
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handlePrevMonth}
-              className="h-8 w-8"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            
-            <div className="text-sm font-medium capitalize min-w-[120px] text-center">
-              {dateRange?.from ? format(dateRange.from, 'LLLL yyyy', { locale: ru }) : ''}
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-6 md:p-8 border-b border-white/5 bg-white/[0.02] backdrop-blur-md gap-4 relative z-10">
+
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2 bg-[#020617]/40 p-1.5 rounded-2xl border border-white/5 shadow-inner">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handlePrevMonth}
+                className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+              >
+                <ChevronLeft className="h-5 w-5" />
+              </Button>
+
+              <div className="text-sm font-black uppercase tracking-[0.2em] min-w-[140px] text-center text-white">
+                {dateRange?.from ? format(dateRange.from, 'LLLL yyyy', { locale: ru }) : ''}
+              </div>
+
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleNextMonth}
+                className="h-10 w-10 text-white/40 hover:text-white hover:bg-white/5 rounded-xl transition-all"
+              >
+                <ChevronRight className="h-5 w-5" />
+              </Button>
             </div>
-            
-            <Button 
-              variant="outline" 
-              size="icon" 
-              onClick={handleNextMonth}
-              className="h-8 w-8"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
           </div>
-          
-          <Button onClick={exportToCSV} className="gap-2 self-end lg:self-auto h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 rounded-xl transition-all">
-            <Download className="w-4 h-4" />
-            <span className="hidden sm:inline">Экспорт CSV</span>
+
+          <Button onClick={exportToCSV} className="gap-3 h-14 px-8 bg-primary hover:bg-primary/90 text-white shadow-interstellar rounded-2xl transition-all font-black uppercase tracking-[0.2em] text-[10px] border-0">
+            <Download className="w-5 h-5" />
+            <span className="hidden sm:inline">Экспорт Системы</span>
           </Button>
         </div>
 
         {/* Table */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none" />
-        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative z-10">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-primary/5 rounded-full blur-[100px] group-hover:bg-primary/10 transition-all duration-700 pointer-events-none" />
+        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative z-10 custom-scrollbar">
           <table className="w-full text-xs md:text-sm border-collapse">
-            <thead className="sticky top-0 z-50 bg-slate-50/80 backdrop-blur-xl">
-              <tr className="border-b border-slate-200/60">
-                <th className="text-left p-4 font-bold text-slate-600 sticky left-0 bg-slate-50/80 backdrop-blur-xl min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] uppercase text-[10px] tracking-wider">Дата</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[80px] md:min-w-[100px]">Диагностика</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[90px] md:min-w-[120px]">Выручка</th>
+            <thead className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-3xl">
+              <tr className="border-b border-white/5">
+                <th className="text-left p-5 font-black text-white/30 sticky left-0 bg-[#020617]/90 backdrop-blur-3xl min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(255,255,255,0.05)] uppercase text-[10px] tracking-[0.2em]">Временная Метка</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[110px]">Ресурс</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[70px] md:min-w-[100px]">Охват</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Интеракции</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Лидогенерация</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Аудитория</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Диагностика</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[70px] md:min-w-[80px]">Транзакции</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[120px]">Капитал</th>
               </tr>
             </thead>
             <tbody>
@@ -398,9 +399,9 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={effectivePlanData[field]}
                           onSave={(val) => {
-                             // Pass the specific month key for the update
-                             const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
-                             onPlanChange(field, val, monthKey);
+                            // Pass the specific month key for the update
+                            const monthKey = dateRange?.from ? format(startOfMonth(dateRange.from), 'yyyy-MM-dd') : undefined;
+                            onPlanChange(field, val, monthKey);
                           }}
                           className="w-full text-right bg-primary/5 border border-primary/20 hover:border-primary/40 focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary/20 rounded-lg px-1.5 md:px-3 py-1.5 md:py-2 transition-all text-xs md:text-sm font-semibold"
                         />
@@ -434,7 +435,7 @@ export const DataTable = React.memo(({
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
-                    
+
                     const percent = plan > 0 ? fact / plan * 100 : 0;
                     // Heatmap colors: >= 100% - bright green, 80-99% - yellow, < 80% - soft red
                     let colorClass = '';
@@ -482,10 +483,10 @@ export const DataTable = React.memo(({
                 const dayData = dailyData[dateKey];
                 const dayRevenue = dayData?.revenue || 0;
                 const isRevenueAboveAverage = dayRevenue > averageRevenue && averageRevenue > 0;
-                
+
                 return (
-                  <tr 
-                    key={dateKey} 
+                  <tr
+                    key={dateKey}
                     className={cn("border-b border-slate-100 hover:bg-white/80 transition-all hover:shadow-sm group", isToday && "bg-blue-50/50", isWeekend && "bg-slate-50/50")}
                   >
                     <td className={cn("p-2 md:p-4 sticky left-0 z-20 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.05)] transition-all", isToday ? "bg-blue-50/80" : isWeekend ? "bg-slate-50/80" : "bg-white/60 group-hover:bg-white/90")}>

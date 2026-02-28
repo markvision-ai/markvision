@@ -75,8 +75,17 @@ const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.A
 
 // Loading fallback component
 const ModuleLoader = () => (
-  <div className="flex items-center justify-center py-20">
-    <Loader2 className="w-8 h-8 animate-spin text-primary" />
+  <div className="flex flex-col items-center justify-center py-40 gap-6">
+    <div className="relative">
+      <div className="w-20 h-20 rounded-3xl border-2 border-primary/20 animate-spin" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Loader2 className="w-10 h-10 text-primary animate-pulse" />
+      </div>
+    </div>
+    <div className="flex flex-col items-center gap-2">
+      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary animate-pulse">Neural Link Established</p>
+      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Calibrating Architecture...</p>
+    </div>
   </div>
 );
 
@@ -542,8 +551,17 @@ export const AnalyticsPlatform = () => {
   // CRITICAL: Super admin NEVER sees loading screen
   if ((projectsLoading || dataLoading) && !isSuperAdminUser) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center gap-8">
+        <div className="relative">
+          <div className="w-24 h-24 rounded-[2rem] border-2 border-primary/20 animate-spin" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <Loader2 className="w-12 h-12 text-primary animate-pulse" />
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <h2 className="text-xl font-black text-white uppercase tracking-[0.3em]">MarkVision <span className="text-primary italic">OS</span></h2>
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20 animate-pulse">Initializing Neural Core...</p>
+        </div>
       </div>
     );
   }
@@ -759,9 +777,9 @@ export const AnalyticsPlatform = () => {
   );
 
   return (
-    <DotPatternBackground>
+    <DotPatternBackground className="bg-[#020617]">
       <SidebarProvider>
-        <div className="h-screen overflow-hidden flex w-full relative bg-slate-50">
+        <div className="h-screen overflow-hidden flex w-full relative bg-[#020617]">
 
           {/* Premium Animated Sidebar - Fixed left, sticky */}
           <AppSidebar

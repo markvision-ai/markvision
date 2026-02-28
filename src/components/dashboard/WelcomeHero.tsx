@@ -143,22 +143,22 @@ export const WelcomeHero = ({
   };
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
+    <div
       className={cn(
-        "relative overflow-hidden rounded-2xl p-6 md:p-8",
-        "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm",
+        "relative overflow-hidden rounded-[2.5rem] p-8 md:p-10",
+        "bg-[#020617]/40 backdrop-blur-3xl border border-white/5 shadow-interstellar transition-all duration-700",
         className
       )}
     >
+      {/* Decorative gradient orbs */}
+      <div className="absolute -top-24 -right-24 w-64 h-64 bg-primary/10 rounded-full blur-[80px] opacity-50 transition-all duration-1000" />
+      <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-blue-600/10 rounded-full blur-[80px] opacity-30 transition-all duration-1000" />
       <div className="relative z-10">
         {/* Title */}
-        <h2 className="text-xl md:text-2xl font-bold text-foreground mb-1">
-          MarkVision Online
+        <h2 className="text-xl md:text-2xl font-bold bg-gradient-to-r from-primary via-blue-400 to-secondary bg-clip-text text-transparent mb-1">
+          MarkVision Universal OS
         </h2>
-        <p className="text-muted-foreground text-base md:text-lg mb-4">
+        <p className="text-muted-foreground/80 text-base md:text-lg mb-4">
           {greeting}
         </p>
 
@@ -188,12 +188,12 @@ export const WelcomeHero = ({
             className="welcome-hero-kpi"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <Wallet className="w-4 h-4 text-blue-500" />
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-primary" />
               </div>
               <span className="kpi-label">Выручка</span>
             </div>
-            <p className="kpi-value text-blue-600 font-mono">
+            <p className="kpi-value text-primary font-mono tracking-tighter">
               {formatCurrency(keyMetrics.revenue)}
             </p>
           </motion.div>
@@ -206,12 +206,12 @@ export const WelcomeHero = ({
             className="welcome-hero-kpi"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-red-500/10 flex items-center justify-center">
-                <TrendingDown className="w-4 h-4 text-red-500" />
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <TrendingDown className="w-4 h-4 text-blue-500" />
               </div>
               <span className="kpi-label">Расходы</span>
             </div>
-            <p className="kpi-value text-red-600 font-mono">
+            <p className="kpi-value text-blue-400 font-mono tracking-tighter">
               {formatCurrency(keyMetrics.expenses)}
             </p>
           </motion.div>
@@ -230,9 +230,9 @@ export const WelcomeHero = ({
               <span className="kpi-label">ROMI</span>
             </div>
             <p className={cn(
-              "kpi-value font-mono",
+              "kpi-value font-mono tracking-tighter",
               keyMetrics.romi !== null && keyMetrics.romi > 0
-                ? "text-purple-600"
+                ? "text-blue-400"
                 : "text-muted-foreground"
             )}>
               {formatPercent(keyMetrics.romi)}
@@ -260,7 +260,7 @@ export const WelcomeHero = ({
                 animate="visible"
                 transition={{ delay: 0.5 + (index * 0.05) }}
                 onClick={() => onTabChange(action.tab)}
-                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 hover:bg-secondary/50 transition-all duration-300 text-left"
+                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card/40 backdrop-blur-2xl border border-white/10 hover:border-primary/30 hover:bg-white/5 transition-all duration-300 text-left shadow-interstellar"
               >
                 <div className={cn("p-2 rounded-lg transition-colors", action.color)}>
                   <Icon className="w-5 h-5" />
@@ -274,7 +274,7 @@ export const WelcomeHero = ({
           })}
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

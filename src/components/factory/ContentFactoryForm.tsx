@@ -217,22 +217,22 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
     };
 
     return (
-        <div className="relative min-h-full w-full bg-slate-50 font-sans text-slate-800 p-4 sm:p-8 pt-24 overflow-y-auto">
-            {/* Ambient Background Glow for Premium Bright Glassmorphism Feel */}
-            <div className="absolute top-[-10%] left-[20%] w-[60%] h-[400px] bg-blue-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
-            <div className="absolute bottom-[-20%] right-[10%] w-[50%] h-[400px] bg-cyan-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
+        <div className="relative min-h-full w-full bg-[#020617] font-sans text-white p-4 sm:p-8 pt-24 overflow-y-auto">
+            {/* Ambient Background Glow for Super-Level Premium Feel */}
+            <div className="absolute top-[-10%] left-[20%] w-[60%] h-[400px] bg-blue-500/10 blur-[150px] rounded-full pointer-events-none z-0" />
+            <div className="absolute bottom-[-20%] right-[10%] w-[50%] h-[400px] bg-primary/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
             <div className="relative z-10 max-w-[1200px] mx-auto space-y-8 pb-32">
                 {/* Header Section */}
-                <div className="flex flex-col space-y-3 pb-4">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-white/80 shadow-sm backdrop-blur-md w-fit">
-                        <Rocket className="w-4 h-4 text-blue-500" />
-                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Контент-Завод 3.0</span>
+                <div className="flex flex-col space-y-4 pb-8">
+                    <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 shadow-interstellar backdrop-blur-md w-fit">
+                        <Rocket className="w-4 h-4 text-primary" />
+                        <span className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Контент-Завод 3.0</span>
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm">
-                        Пульт управления <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">AI</span>
+                    <h1 className="text-5xl md:text-7xl font-black tracking-tighter text-white">
+                        Пульт управления <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">AI</span>
                     </h1>
-                    <p className="text-slate-500 max-w-2xl text-lg leading-relaxed">
+                    <p className="text-white/40 max-w-2xl text-xl leading-relaxed font-medium">
                         Спроектируйте ваш следующий виральный пост. Выберите формат, настройте дизайн и отправьте задачу на наш автоматизированный AI-завод.
                     </p>
                 </div>
@@ -242,15 +242,15 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                     <div className="xl:col-span-8 space-y-8">
 
                         {/* Block A: Source */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/60 flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:shadow-md hover:bg-white/80">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                                    <Type className="w-5 h-5 text-blue-600" />
+                        <section className="bg-card/40 backdrop-blur-3xl rounded-[2.5rem] p-8 md:p-10 border border-white/10 flex flex-col gap-8 shadow-interstellar transition-all hover:bg-white/[0.03]">
+                            <div className="flex items-center gap-5">
+                                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+                                    <Type className="w-6 h-6 text-primary" />
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-800 tracking-wide">1. Источник контента</h2>
+                                <h2 className="text-2xl font-black text-white tracking-tighter uppercase tracking-[0.05em]">1. Источник контента</h2>
                             </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
                                 {(['description', 'link', 'photo'] as const).map((type) => {
                                     const active = sourceType === type;
                                     return (
@@ -258,23 +258,23 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             key={type}
                                             onClick={() => setSourceType(type)}
                                             className={cn(
-                                                "relative flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-300 gap-4 group outline-none",
+                                                "relative flex flex-col items-center justify-center p-8 rounded-[2rem] transition-all duration-500 gap-5 group outline-none overflow-hidden",
                                                 active
-                                                    ? "border border-blue-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-blue-50/50"
-                                                    : "border border-slate-200/60 bg-white/50 hover:bg-white hover:border-slate-300 hover:shadow-sm"
+                                                    ? "border border-primary/50 shadow-[0_0_30px_rgba(249,115,22,0.15)] bg-primary/10"
+                                                    : "border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20"
                                             )}
                                         >
                                             <div className={cn(
-                                                "p-3.5 rounded-full transition-colors duration-300 border",
-                                                active ? "bg-blue-100 text-blue-600 border-blue-200" : "bg-slate-50 text-slate-400 border-slate-100 group-hover:text-slate-600 group-hover:bg-slate-100"
+                                                "p-5 rounded-full transition-all duration-500 border",
+                                                active ? "bg-primary text-white border-primary/50 shadow-lg shadow-primary/20 scale-110" : "bg-white/5 text-white/40 border-white/10 group-hover:text-white group-hover:bg-white/10"
                                             )}>
-                                                {type === 'description' && <Type className="w-6 h-6 stroke-[1.5]" />}
-                                                {type === 'link' && <LinkIcon className="w-6 h-6 stroke-[1.5]" />}
-                                                {type === 'photo' && <ImageIcon className="w-6 h-6 stroke-[1.5]" />}
+                                                {type === 'description' && <Type className="w-8 h-8 stroke-[1.5]" />}
+                                                {type === 'link' && <LinkIcon className="w-8 h-8 stroke-[1.5]" />}
+                                                {type === 'photo' && <ImageIcon className="w-8 h-8 stroke-[1.5]" />}
                                             </div>
                                             <span className={cn(
-                                                "text-sm font-semibold transition-colors duration-300 tracking-wide",
-                                                active ? "text-blue-700 font-bold" : "text-slate-500 group-hover:text-slate-700"
+                                                "text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-500",
+                                                active ? "text-white" : "text-white/40 group-hover:text-white/80"
                                             )}>
                                                 {type === 'description' ? 'По описанию' : type === 'link' ? 'По ссылке' : 'По фото'}
                                             </span>
@@ -285,15 +285,15 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                         </section>
 
                         {/* Block B: Format */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/60 flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:shadow-md hover:bg-white/80">
-                            <div className="flex items-center gap-4">
-                                <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                                    <Layout className="w-5 h-5 text-indigo-500" />
+                        <section className="bg-card/40 backdrop-blur-3xl rounded-[2.5rem] p-8 md:p-10 border border-white/10 flex flex-col gap-8 shadow-interstellar transition-all hover:bg-white/[0.03]">
+                            <div className="flex items-center gap-5">
+                                <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+                                    <Layout className="w-6 h-6 text-secondary" />
                                 </div>
-                                <h2 className="text-xl font-bold text-slate-800 tracking-wide">2. Выбор формата</h2>
+                                <h2 className="text-2xl font-black text-white tracking-tighter uppercase tracking-[0.05em]">2. Выбор формата</h2>
                             </div>
 
-                            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                            <div className="grid grid-cols-2 lg:grid-cols-5 gap-5">
                                 {FORMATS.map((f) => {
                                     const Icon = f.icon;
                                     const active = format === f.id;
@@ -302,27 +302,27 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             key={f.id}
                                             onClick={() => setFormat(f.id)}
                                             className={cn(
-                                                "relative flex flex-col items-center justify-center p-5 rounded-2xl transition-all duration-300 text-center gap-4 group outline-none",
+                                                "relative flex flex-col items-center justify-center p-6 rounded-[1.5rem] transition-all duration-500 text-center gap-5 group outline-none",
                                                 active
-                                                    ? "border border-blue-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-blue-50/50"
-                                                    : "border border-slate-200/60 bg-white/50 hover:bg-white hover:border-slate-300 hover:shadow-sm"
+                                                    ? "border border-secondary/50 shadow-[0_0_30px_rgba(59,130,246,0.15)] bg-secondary/10"
+                                                    : "border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/20"
                                             )}
                                         >
                                             <div className={cn(
-                                                "p-3 rounded-xl transition-all duration-300",
-                                                active ? "bg-blue-50 border border-blue-200/50 scale-110 shadow-sm" : "bg-slate-50 border border-slate-100 group-hover:scale-105"
+                                                "p-4 rounded-[1.2rem] transition-all duration-500",
+                                                active ? "bg-secondary text-white scale-110 shadow-lg shadow-secondary/20" : "bg-white/5 border border-white/10 group-hover:scale-105"
                                             )}>
-                                                <Icon className={cn("w-6 h-6 stroke-[1.5]", active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} />
+                                                <Icon className={cn("w-7 h-7 stroke-[1.5]", active ? "text-white" : "text-white/40 group-hover:text-white/80")} />
                                             </div>
                                             <span className={cn(
-                                                "text-[11px] font-bold uppercase tracking-wider leading-tight",
-                                                active ? "text-blue-700" : "text-slate-500 group-hover:text-slate-700"
+                                                "text-[9px] font-black uppercase tracking-[0.15em] leading-tight",
+                                                active ? "text-white" : "text-white/40 group-hover:text-white/80"
                                             )}>
                                                 {f.label}
                                             </span>
                                             {active && (
-                                                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-md border-2 border-white">
-                                                    <CheckCircle2 className="w-3.5 h-3.5 text-white" />
+                                                <div className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-secondary flex items-center justify-center shadow-lg border-4 border-[#020617]">
+                                                    <CheckCircle2 className="w-4 h-4 text-white" />
                                                 </div>
                                             )}
                                         </button>
@@ -332,29 +332,29 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                         </section>
 
                         {/* Block C: Content (Dynamic) */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
-                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-slate-100 pb-5">
-                                <div className="flex items-center gap-4">
-                                    <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                                        <Wand2 className="w-5 h-5 text-sky-500" />
+                        <section className="bg-card/40 backdrop-blur-3xl rounded-[2.5rem] p-8 md:p-10 border border-white/10 flex flex-col gap-8 shadow-interstellar transition-all hover:bg-white/[0.03]">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-5 border-b border-white/5 pb-8">
+                                <div className="flex items-center gap-5">
+                                    <div className="p-4 bg-white/5 rounded-2xl border border-white/10 shadow-lg">
+                                        <Wand2 className="w-6 h-6 text-sky-400" />
                                     </div>
-                                    <h2 className="text-xl font-bold text-slate-800 tracking-wide">3. Сценарий и Текст</h2>
+                                    <h2 className="text-2xl font-black text-white tracking-tighter uppercase tracking-[0.05em]">3. Сценарий и Текст</h2>
                                 </div>
 
                                 {sourceType === 'description' && (
                                     <button
                                         onClick={() => setMagicGenerationNeeded(!magicGenerationNeeded)}
                                         className={cn(
-                                            "relative overflow-hidden flex items-center gap-2.5 px-6 py-2.5 rounded-full transition-all duration-300 font-bold text-xs uppercase tracking-widest outline-none shadow-sm",
+                                            "relative overflow-hidden flex items-center gap-3 px-8 py-4 rounded-full transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] outline-none shadow-lg",
                                             magicGenerationNeeded
-                                                ? "border border-indigo-200 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-700 shadow-md shadow-indigo-100"
-                                                : "border border-slate-200 bg-white text-slate-500 hover:text-slate-700 hover:bg-slate-50 hover:shadow-sm"
+                                                ? "border border-primary/50 bg-primary/20 text-primary shadow-primary/20"
+                                                : "border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:shadow-xl"
                                         )}
                                     >
                                         {magicGenerationNeeded && (
-                                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-100/30 to-purple-100/30 opacity-50 animate-pulse pointer-events-none" />
+                                            <div className="absolute inset-0 bg-primary/10 opacity-50 animate-pulse pointer-events-none" />
                                         )}
-                                        <Sparkles className={cn("w-4 h-4 z-10", magicGenerationNeeded ? "text-indigo-600 animate-pulse" : "text-slate-400 group-hover:text-slate-600")} />
+                                        <Sparkles className={cn("w-5 h-5 z-10", magicGenerationNeeded ? "text-primary animate-pulse" : "text-white/40 group-hover:text-white/80")} />
                                         <span className="z-10">{magicGenerationNeeded ? "Магия AI Активна" : "Магия AI ✨"}</span>
                                     </button>
                                 )}
@@ -370,18 +370,18 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                         value={mainText}
                                         onChange={(e) => setMainText(e.target.value)}
                                         className={cn(
-                                            "min-h-[200px] p-6 text-base leading-relaxed resize-none rounded-2xl transition-all duration-300 text-slate-800 outline-none shadow-inner",
+                                            "min-h-[250px] p-8 text-lg leading-relaxed resize-none rounded-[1.5rem] transition-all duration-500 text-white outline-none shadow-inner",
                                             magicGenerationNeeded
-                                                ? "bg-indigo-50/30 border-indigo-200/60 focus-visible:ring-indigo-100 focus-visible:border-indigo-400 placeholder:text-indigo-300"
-                                                : "bg-slate-50/50 border-slate-200/80 focus-visible:ring-blue-50 focus-visible:border-blue-500 placeholder:text-slate-400"
+                                                ? "bg-primary/5 border-primary/20 focus-visible:ring-primary/20 focus-visible:border-primary/50 placeholder:text-primary/30"
+                                                : "bg-white/[0.03] border-white/10 focus-visible:ring-secondary/20 focus-visible:border-secondary/50 placeholder:text-white/10"
                                         )}
                                     />
                                 )}
 
                                 {sourceType === 'link' && (
                                     <div className="relative">
-                                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                                            <LinkIcon className="h-5 w-5 text-slate-400" />
+                                        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                            <LinkIcon className="h-6 w-6 text-white/20" />
                                         </div>
                                         <Input
                                             type="url"
@@ -389,8 +389,8 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             value={linkUrl}
                                             onChange={(e) => setLinkUrl(e.target.value)}
                                             className={cn(
-                                                "pl-12 h-16 text-base rounded-2xl transition-all duration-300 text-slate-800 outline-none shadow-inner",
-                                                "bg-slate-50/50 border-slate-200/80 focus-visible:ring-blue-50 focus-visible:border-blue-500 placeholder:text-slate-400"
+                                                "pl-16 h-20 text-lg rounded-[1.5rem] transition-all duration-500 text-white outline-none shadow-inner",
+                                                "bg-white/[0.03] border-white/10 focus-visible:ring-primary/20 focus-visible:border-primary/50 placeholder:text-white/10"
                                             )}
                                         />
                                     </div>
@@ -399,10 +399,10 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                 {sourceType === 'photo' && (
                                     <div
                                         className={cn(
-                                            "relative flex flex-col items-center justify-center p-12 lg:p-16 border-2 border-dashed rounded-3xl transition-all duration-300 cursor-pointer overflow-hidden group",
+                                            "relative flex flex-col items-center justify-center p-16 lg:p-24 border-2 border-dashed rounded-[2.5rem] transition-all duration-500 cursor-pointer overflow-hidden group",
                                             fileUrl
-                                                ? "border-blue-300 bg-blue-50/30"
-                                                : "border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300"
+                                                ? "border-primary/50 bg-primary/5"
+                                                : "border-white/10 bg-white/[0.02] hover:bg-white/[0.05] hover:border-primary/30"
                                         )}
                                         onClick={() => fileInputRef.current?.click()}
                                         onDrop={handleDrop}
@@ -417,30 +417,30 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                         />
 
                                         {isUploading ? (
-                                            <div className="flex flex-col items-center gap-4">
-                                                <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
-                                                <p className="text-blue-600 font-medium">Загрузка в облако...</p>
+                                            <div className="flex flex-col items-center gap-6">
+                                                <Loader2 className="w-12 h-12 animate-spin text-primary" />
+                                                <p className="text-primary font-black uppercase tracking-widest text-xs">Загрузка в облако...</p>
                                             </div>
                                         ) : fileUrl ? (
-                                            <div className="flex flex-col items-center gap-4 z-10 w-full">
-                                                <div className="relative w-full max-w-sm rounded-xl overflow-hidden border border-slate-200 shadow-md">
+                                            <div className="flex flex-col items-center gap-6 z-10 w-full">
+                                                <div className="relative w-full max-w-md rounded-[2rem] overflow-hidden border border-white/20 shadow-2xl">
                                                     <img src={fileUrl} alt="Uploaded preview" className="w-full h-auto object-cover" />
-                                                    <div className="absolute inset-0 bg-white/40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity backdrop-blur-[2px]">
-                                                        <span className="text-slate-800 font-medium bg-white/90 px-4 py-2 rounded-lg border border-slate-200 shadow-sm">Заменить фото</span>
+                                                    <div className="absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity backdrop-blur-[4px]">
+                                                        <span className="text-white font-black uppercase tracking-widest text-xs bg-white/10 px-6 py-3 rounded-full border border-white/20 shadow-lg">Заменить фото</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-blue-600 font-medium flex items-center gap-2">
-                                                    <CheckCircle2 className="w-5 h-5" /> Фото успешно загружено
+                                                <p className="text-primary font-black uppercase tracking-widest text-[10px] flex items-center gap-3">
+                                                    <CheckCircle2 className="w-6 h-6" /> Фото успешно загружено
                                                 </p>
                                             </div>
                                         ) : (
-                                            <div className="flex flex-col items-center gap-5 z-10">
-                                                <div className="p-4 bg-white rounded-full border border-slate-100 shadow-sm group-hover:scale-110 transition-transform">
-                                                    <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                                            <div className="flex flex-col items-center gap-8 z-10">
+                                                <div className="p-8 bg-white/5 rounded-full border border-white/10 shadow-xl group-hover:scale-110 group-hover:bg-primary/10 group-hover:border-primary/30 transition-all duration-500">
+                                                    <UploadCloud className="w-12 h-12 text-white/20 group-hover:text-primary transition-colors" />
                                                 </div>
-                                                <div className="text-center space-y-2">
-                                                    <p className="text-lg font-bold text-slate-700">Перетащите фото сюда</p>
-                                                    <p className="text-sm text-slate-400">или нажмите для загрузки (PNG, JPG)</p>
+                                                <div className="text-center space-y-3">
+                                                    <p className="text-2xl font-black text-white tracking-tighter uppercase tracking-[0.05em]">Перетащите фото сюда</p>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">или нажмите для загрузки (PNG, JPG)</p>
                                                 </div>
                                             </div>
                                         )}
@@ -452,62 +452,62 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
                     {/* Sidebar Settings Area */}
                     <div className="xl:col-span-4 space-y-6">
-                        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/50 border border-white flex flex-col gap-8 sticky top-6">
-                            <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
-                                    <Settings2 className="w-5 h-5 text-blue-600" />
+                        <div className="bg-card/40 backdrop-blur-3xl rounded-[2.5rem] p-8 md:p-10 shadow-interstellar border border-white/10 flex flex-col gap-10 sticky top-10">
+                            <div className="flex items-center gap-5 pb-8 border-b border-white/5">
+                                <div className="p-4 bg-secondary/10 rounded-2xl border border-secondary/20 shadow-lg">
+                                    <Settings2 className="w-6 h-6 text-secondary" />
                                 </div>
-                                <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">
+                                <h3 className="text-[11px] font-black text-white uppercase tracking-[0.2em]">
                                     Параметры дизайна
                                 </h3>
                             </div>
 
                             {/* Aspect Ratio */}
                             <div className="space-y-4">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
                                     Пропорции
                                 </label>
                                 <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                                    <SelectTrigger className="bg-white shadow-sm border-slate-200 h-14 rounded-xl text-slate-800 font-semibold focus:ring-blue-100 focus:border-blue-400 hover:border-slate-300 transition-colors">
+                                    <SelectTrigger className="bg-white/5 border-white/10 h-16 rounded-2xl text-white font-black uppercase tracking-widest text-[10px] focus:ring-secondary/20 focus:border-secondary/50 hover:bg-white/10 transition-all duration-300">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white text-slate-800">
-                                        <SelectItem value="1:1" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">1:1 (Квадратный)</SelectItem>
-                                        <SelectItem value="9:16" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">9:16 (Stories/Reels)</SelectItem>
-                                        <SelectItem value="4:5" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">4:5 (Портретный)</SelectItem>
-                                        <SelectItem value="16:9" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">16:9 (Горизонтальный)</SelectItem>
+                                    <SelectContent className="rounded-2xl border-white/10 shadow-interstellar bg-[#0f172a] text-white overflow-hidden">
+                                        <SelectItem value="1:1" className="cursor-pointer font-black uppercase tracking-widest text-[9px] py-4 rounded-xl mx-2 my-1 focus:bg-white/10 focus:text-white transition-all">1:1 (Квадратный)</SelectItem>
+                                        <SelectItem value="9:16" className="cursor-pointer font-black uppercase tracking-widest text-[9px] py-4 rounded-xl mx-2 my-1 focus:bg-white/10 focus:text-white transition-all">9:16 (Stories/Reels)</SelectItem>
+                                        <SelectItem value="4:5" className="cursor-pointer font-black uppercase tracking-widest text-[9px] py-4 rounded-xl mx-2 my-1 focus:bg-white/10 focus:text-white transition-all">4:5 (Портретный)</SelectItem>
+                                        <SelectItem value="16:9" className="cursor-pointer font-black uppercase tracking-widest text-[9px] py-4 rounded-xl mx-2 my-1 focus:bg-white/10 focus:text-white transition-all">16:9 (Горизонтальный)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
 
                             {/* Design Template */}
                             <div className="space-y-4">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest">
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] ml-2">
                                     Шаблон стиля
                                 </label>
-                                <div className="grid grid-cols-1 gap-3">
+                                <div className="grid grid-cols-1 gap-4">
                                     {[
-                                        { id: 'template_1', label: 'Минимализм (Clean)', color: 'bg-white border-slate-200' },
-                                        { id: 'template_2', label: 'Премиум Голд', color: 'bg-gradient-to-br from-amber-200 to-amber-500 border-amber-300' },
-                                        { id: 'template_3', label: '3D Футуризм', color: 'bg-gradient-to-br from-blue-400 to-indigo-500 border-indigo-300' },
+                                        { id: 'template_1', label: 'Минимализм (Clean)', color: 'bg-white/80 border-white/20' },
+                                        { id: 'template_2', label: 'Премиум Голд', color: 'bg-gradient-to-br from-amber-200 to-amber-500 border-amber-300/50' },
+                                        { id: 'template_3', label: '3D Футуризм', color: 'bg-gradient-to-br from-secondary to-indigo-600 border-white/20' },
                                     ].map((t) => (
                                         <button
                                             key={t.id}
                                             onClick={() => setDesignTemplateId(t.id)}
                                             className={cn(
-                                                "flex items-center gap-4 p-4 rounded-xl transition-all duration-300 outline-none backdrop-blur-md",
+                                                "flex items-center gap-5 p-5 rounded-2xl transition-all duration-500 outline-none backdrop-blur-md",
                                                 designTemplateId === t.id
-                                                    ? "bg-blue-50 border border-blue-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                                                    : "bg-white/50 border border-slate-200 hover:border-slate-300 hover:bg-white hover:shadow-sm"
+                                                    ? "bg-secondary/20 border border-secondary/50 shadow-[0_0_30px_rgba(59,130,246,0.15)]"
+                                                    : "bg-white/[0.03] border border-white/10 hover:border-white/20 hover:bg-white/[0.06]"
                                             )}
                                         >
-                                            <div className={cn("w-6 h-6 rounded-md border", t.color)} />
+                                            <div className={cn("w-7 h-7 rounded-lg border shadow-lg", t.color)} />
                                             <span className={cn(
-                                                "text-sm font-bold tracking-wide",
-                                                designTemplateId === t.id ? "text-blue-700" : "text-slate-600"
+                                                "text-[10px] font-black uppercase tracking-[0.1em]",
+                                                designTemplateId === t.id ? "text-white" : "text-white/40"
                                             )}>{t.label}</span>
                                             {designTemplateId === t.id && (
-                                                <CheckCircle2 className="w-5 h-5 ml-auto text-blue-500 animate-in zoom-in duration-200" />
+                                                <CheckCircle2 className="w-5 h-5 ml-auto text-secondary animate-in zoom-in duration-300" />
                                             )}
                                         </button>
                                     ))}
@@ -516,50 +516,50 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
                             {/* Visual Instructions */}
                             <div className="space-y-4 pt-2">
-                                <label className="text-[11px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
-                                    <Palette className="w-4 h-4 text-slate-400" /> Доп. инструкции (Фон, цвета)
+                                <label className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] flex items-center gap-2 ml-2">
+                                    <Palette className="w-4 h-4 text-secondary" /> Доп. инструкции
                                 </label>
                                 <Textarea
                                     placeholder="Опишите желаемый фон, цвета или специфичные элементы дизайна..."
                                     value={visualInstructions}
                                     onChange={(e) => setVisualInstructions(e.target.value)}
-                                    className="bg-white border border-slate-200 text-slate-800 p-5 focus-visible:ring-blue-100 focus-visible:border-blue-400 transition-all resize-none rounded-xl text-sm min-h-[120px] placeholder:text-slate-400 shadow-inner"
+                                    className="bg-white/[0.03] border border-white/10 text-white p-6 focus-visible:ring-secondary/20 focus-visible:border-secondary/50 transition-all duration-500 resize-none rounded-2xl text-[11px] font-black uppercase tracking-widest min-h-[140px] placeholder:text-white/5 shadow-inner"
                                 />
                             </div>
 
                             {/* Main CTA */}
-                            <div className="pt-8 space-y-4 border-t border-slate-100">
+                            <div className="pt-10 space-y-6 border-t border-white/5">
                                 <Button
                                     onClick={handleSubmit}
                                     disabled={isLoading}
                                     className={cn(
-                                        "relative overflow-hidden w-full h-16 rounded-2xl text-base font-extrabold uppercase tracking-widest transition-all duration-300 group shadow-2xl shadow-blue-900/5 text-white border-none cursor-pointer",
+                                        "relative overflow-hidden w-full h-20 rounded-[1.5rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 group shadow-interstellar text-white border-none cursor-pointer",
                                         isLoading
-                                            ? "bg-slate-200 cursor-not-allowed text-slate-400 shadow-none"
-                                            : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30 hover:shadow-[0_8px_25px_rgba(16,185,129,0.3)] hover:brightness-105 hover:-translate-y-0.5"
+                                            ? "bg-white/10 cursor-not-allowed text-white/20 shadow-none"
+                                            : "bg-gradient-to-r from-primary to-secondary shadow-primary/30 hover:shadow-primary/50 hover:brightness-110 hover:-translate-y-1"
                                     )}
                                 >
                                     {/* Subtle shine effect on hover */}
                                     {!isLoading && (
-                                        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/20 to-transparent skew-x-12" />
+                                        <div className="absolute inset-0 -translate-x-full group-hover:animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/30 to-transparent skew-x-12" />
                                     )}
 
                                     {isLoading ? (
-                                        <div className="flex items-center justify-center gap-3">
-                                            <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
+                                        <div className="flex items-center justify-center gap-4">
+                                            <Loader2 className="w-6 h-6 animate-spin text-white/40" />
                                             <span>Обработка...</span>
                                         </div>
                                     ) : (
-                                        <div className="flex items-center justify-center gap-3 z-10 relative">
-                                            <span className="drop-shadow-sm font-bold tracking-widest">Сгенерировать</span>
-                                            <Rocket className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform duration-300 drop-shadow-sm" />
+                                        <div className="flex items-center justify-center gap-4 z-10 relative">
+                                            <span className="drop-shadow-lg font-black tracking-[0.2em]">Запустить конвейер</span>
+                                            <Rocket className="w-6 h-6 group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform duration-500 drop-shadow-lg" />
                                         </div>
                                     )}
                                 </Button>
 
-                                <div className="flex items-center justify-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                                <div className="flex items-center justify-center gap-3">
+                                    <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_15px_rgba(249,115,22,0.6)] animate-pulse" />
+                                    <p className="text-[9px] text-white/30 uppercase tracking-[0.3em] font-black">
                                         Будет использован 1 кредит
                                     </p>
                                 </div>

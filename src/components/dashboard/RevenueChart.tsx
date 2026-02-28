@@ -107,7 +107,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="interstellar-card border border-slate-200 rounded-2xl p-0 relative overflow-hidden flex flex-col min-h-[420px] bg-[#0B0C15]">
+    <div className="interstellar-card border border-white/5 rounded-[2rem] p-0 relative overflow-hidden flex flex-col min-h-[420px] bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar transition-all duration-700">
       {/* Ambient Background */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[80px] pointer-events-none" />

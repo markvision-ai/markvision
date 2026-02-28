@@ -144,33 +144,37 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
   return (
     <div className="space-y-6 w-full overflow-x-hidden pb-8 relative">
       {/* Month Selection Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-3 shadow-sm">
-        <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1">
-          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="rounded-lg w-8 h-8">
-            <ChevronLeft className="h-4 w-4" />
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-card/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[2.5rem] p-4">
+        <div className="flex items-center gap-4 bg-white/5 rounded-2xl p-1.5 border border-white/5">
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="rounded-xl w-10 h-10 hover:bg-white/10 text-white/60">
+            <ChevronLeft className="h-5 w-5" />
           </Button>
           <AnimatePresence mode="wait">
             <motion.span
               key={selectedMonth.toISOString()}
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 10 }}
-              className="text-sm font-semibold min-w-[140px] text-center capitalize text-foreground"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 1.1 }}
+              className="text-xs font-black min-w-[160px] text-center uppercase tracking-[0.2em] text-white/80"
             >
               {format(selectedMonth, 'LLLL yyyy', { locale: ru })}
             </motion.span>
           </AnimatePresence>
-          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')} className="rounded-lg w-8 h-8">
-            <ChevronRight className="h-4 w-4" />
+          <Button variant="ghost" size="icon" onClick={() => handleMonthChange('next')} className="rounded-xl w-10 h-10 hover:bg-white/10 text-white/60">
+            <ChevronRight className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="hidden sm:flex" disabled>
+        <div className="flex items-center gap-3">
+          <Button variant="outline" size="sm" className="hidden sm:flex rounded-2xl h-12 border-white/10 bg-white/5 hover:bg-white/10 text-white/60 font-black uppercase tracking-widest text-[10px]">
             <Share2 className="w-4 h-4 mr-2" />
             Поделиться
           </Button>
-          <Button onClick={handleSaveAndAnalyze} disabled={saveLoading} className="gap-2">
+          <Button
+            onClick={handleSaveAndAnalyze}
+            disabled={saveLoading}
+            className="rounded-2xl h-12 bg-primary hover:bg-primary/90 text-white font-black uppercase tracking-widest text-[10px] shadow-interstellar gap-3"
+          >
             {saveLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
             Сохранить модель
           </Button>

@@ -210,8 +210,8 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 
   return (
     <div className={cn(
-      "transition-all duration-300 ease-in-out",
-      isExpanded ? "fixed inset-4 z-50 bg-slate-50 rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
+      "transition-all duration-500 ease-in-out shadow-interstellar",
+      isExpanded ? "fixed inset-4 z-50 bg-[#020617]/95 backdrop-blur-3xl rounded-[2.5rem] border border-white/5 p-8 overflow-y-auto" : "w-full"
     )}>
       <div className="flex flex-col gap-6">
         {/* Header Section */}
@@ -482,19 +482,22 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 // --- Subcomponents ---
 
 const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <Card className="border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm hover:shadow-md transition-shadow">
-    <CardContent className="p-4">
-      <div className="flex justify-between items-start mb-2">
-        <div className={cn("p-1.5 rounded-lg bg-slate-50 border", color)}>
-          <Icon className="w-4 h-4" />
+  <Card className="bg-[#020617]/40 backdrop-blur-3xl border border-white/5 rounded-3xl shadow-interstellar transition-all duration-500 hover:bg-[#020617]/60 group overflow-hidden">
+    <CardContent className="p-5">
+      <div className="flex justify-between items-start mb-4">
+        <div className={cn("p-2 rounded-xl bg-white/5 border border-white/5 transition-transform group-hover:scale-110 group-hover:rotate-3", color)}>
+          <Icon className="w-5 h-5" />
         </div>
-        <Badge variant={trendUp ? "default" : "destructive"} className="text-[10px] px-1.5 h-5">
+        <div className={cn(
+          "px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border transition-all",
+          trendUp ? "bg-primary/20 text-primary border-primary/20 glow-primary" : "bg-red-500/20 text-red-400 border-red-500/20"
+        )}>
           {trend}
-        </Badge>
+        </div>
       </div>
       <div className="space-y-1">
-        <p className="text-xs text-muted-foreground">{title}</p>
-        <p className="text-xl font-bold tracking-tight">{value}</p>
+        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{title}</p>
+        <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
       </div>
     </CardContent>
   </Card>

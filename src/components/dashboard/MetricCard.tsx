@@ -76,11 +76,11 @@ export const MetricCard = memo(({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {icon && (
-                <div className="text-muted-foreground/70 w-4 h-4">
+                <div className="text-primary/80 w-4 h-4">
                   {icon}
                 </div>
               )}
-              <span className="text-xs font-semibold text-foreground/80 uppercase tracking-wide">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
                 {label}
               </span>
             </div>
@@ -93,11 +93,11 @@ export const MetricCard = memo(({
           {/* Main Content */}
           <div className="flex items-end justify-between gap-3">
             <div className="space-y-0.5 flex-1 min-w-0">
-              <p className="text-2xl font-semibold text-foreground tracking-tight leading-none font-mono">
+              <p className="text-3xl font-bold text-foreground tracking-tighter leading-none font-mono group-hover:text-primary transition-colors">
                 {formattedValue}
               </p>
               {subValue && (
-                <p className="text-xs text-foreground/70 font-semibold leading-relaxed">
+                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider opacity-60">
                   {subValue}
                 </p>
               )}

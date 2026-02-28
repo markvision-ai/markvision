@@ -13,17 +13,17 @@ const cardVariants = cva(
           "bg-transparent border-0 shadow-none",
         ].join(" "),
         interstellar: [
-          "bg-white/[0.03] backdrop-blur-2xl",
-          "border border-white/[0.08]",
-          "shadow-[inset_0_1px_0_rgba(255,255,255,0.05),0_8px_32px_rgba(0,0,0,0.4)]",
-          "hover:bg-white/[0.05] hover:border-primary/30",
-          "hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_12px_40px_rgba(0,0,0,0.5),0_0_30px_hsl(192_100%_50%/0.15)]",
-          "hover:-translate-y-0.5",
+          "bg-white/[0.03] backdrop-blur-xl",
+          "border border-white/10",
+          "shadow-interstellar",
+          "hover:bg-white/[0.05] hover:border-primary/40",
+          "hover:shadow-interstellar-elevated",
+          "hover:-translate-y-1",
         ].join(" "),
         "interstellar-elevated": [
-          "bg-white/[0.04] backdrop-blur-3xl",
-          "border border-slate-200",
-          "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_48px_rgba(0,0,0,0.5),0_0_40px_hsl(192_100%_50%/0.1)]",
+          "bg-white/[0.05] backdrop-blur-2xl",
+          "border border-white/20",
+          "shadow-interstellar-elevated",
         ].join(" "),
         ghost: "bg-transparent border-0 shadow-none",
       },
@@ -36,7 +36,7 @@ const cardVariants = cva(
 
 export interface CardProps
   extends React.HTMLAttributes<HTMLDivElement>,
-    VariantProps<typeof cardVariants> {}
+  VariantProps<typeof cardVariants> { }
 
 const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className, variant, ...props }, ref) => (

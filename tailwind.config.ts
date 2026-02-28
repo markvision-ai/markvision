@@ -72,26 +72,27 @@ export default {
           blue: "hsl(var(--medical-blue))",
           teal: "hsl(var(--medical-teal))",
         },
-        // Interstellar Glass colors
+        // Super-Level Platform Design Tokens
         space: {
-          void: "hsl(var(--space-void))",
-          nebula: "hsl(var(--space-nebula))",
-          dust: "hsl(var(--space-dust))",
+          void: "#020617",
+          nebula: "hsl(222 47% 11%)",
+          dust: "hsl(217 33% 17%)",
         },
         glow: {
-          cyan: "hsl(var(--glow-cyan))",
-          purple: "hsl(var(--glow-purple))",
-          blue: "hsl(var(--glow-blue))",
+          cyan: "hsl(180 100% 50%)",
+          purple: "hsl(270 100% 60%)",
+          blue: "#3b82f6",
+          orange: "#f97316",
         },
         glass: {
-          DEFAULT: "hsl(var(--glass-bg))",
-          elevated: "hsl(var(--glass-elevated))",
-          border: "hsl(var(--glass-border))",
-          "border-hover": "hsl(var(--glass-border-hover))",
+          DEFAULT: "rgba(255, 255, 255, 0.03)",
+          elevated: "rgba(255, 255, 255, 0.08)",
+          border: "rgba(255, 255, 255, 0.1)",
+          "border-hover": "rgba(255, 255, 255, 0.2)",
         },
       },
       fontFamily: {
-        sans: ['Inter', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['JetBrains Mono', 'Roboto Mono', 'monospace'],
       },
       borderRadius: {

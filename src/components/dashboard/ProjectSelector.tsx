@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { cn } from '@/lib/utils';
 import { ChevronDown, Plus, Check, FolderOpen } from 'lucide-react';
 import {
   DropdownMenu,
@@ -65,50 +66,58 @@ export const ProjectSelector = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="gap-2 min-w-[180px] max-w-[300px] justify-between bg-black/5 dark:bg-white/[0.05] border border-white/50 hover:bg-black/10 dark:hover:bg-white/[0.08] hover:border-primary/30 transition-all duration-300 rounded-xl px-4 py-2.5 h-auto text-sm font-medium group"
+            className="gap-3 min-w-[220px] max-w-[340px] justify-between bg-[#020617]/40 backdrop-blur-3xl border border-white/5 hover:bg-[#020617]/60 hover:border-white/10 transition-all duration-500 rounded-[1.25rem] px-6 py-4 h-auto text-[10px] font-black uppercase tracking-[0.2em] group shadow-interstellar"
           >
-            <div className="flex items-center gap-2 truncate">
-              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
-              <span className="truncate text-foreground/90 group-hover:text-foreground transition-colors">
-                {currentProject?.name || 'Выберите проект'}
+            <div className="flex items-center gap-3 truncate">
+              <div className="w-2.5 h-2.5 rounded-full bg-primary shadow-[0_0_15px_rgba(249,115,22,0.4)] animate-pulse" />
+              <span className="truncate text-white transition-colors">
+                {currentProject?.name || 'ВЫБОР КОНФИГУРАЦИИ'}
               </span>
             </div>
-            <ChevronDown className="w-4 h-4 shrink-0 opacity-40 group-hover:opacity-70 group-hover:text-primary transition-all" />
+            <ChevronDown className="w-4 h-4 shrink-0 text-white/20 group-hover:text-primary transition-all duration-500 group-hover:rotate-180" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[280px] bg-popover/95 backdrop-blur-lg border-white/50 shadow-2xl">
+        <DropdownMenuContent align="start" className="w-[300px] bg-[#020617]/90 backdrop-blur-3xl border border-white/5 shadow-interstellar rounded-[1.5rem] p-2">
           {projects.length === 0 ? (
-            <div className="px-2 py-4 text-center text-muted-foreground text-sm">
-              Нет доступных проектов
+            <div className="px-4 py-8 text-center">
+              <FolderOpen className="w-10 h-10 text-white/5 mx-auto mb-3" />
+              <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Конфигурации отсутствуют</p>
             </div>
           ) : (
-            projects.map((project) => (
-              <DropdownMenuItem
-                key={project.id}
-                onClick={() => onProjectChange(project.id)}
-                className="cursor-pointer flex items-center justify-between gap-2 py-2.5 px-3"
-              >
-                <div className="flex items-center gap-2 truncate">
-                  {project.id === currentProjectId ? (
-                    <Check className="w-4 h-4 text-primary shrink-0" />
-                  ) : (
-                    <div className="w-4 h-4" />
-                  )}
-                  <span className="truncate">{project.name}</span>
-                </div>
-              </DropdownMenuItem>
-            ))
+            <div className="space-y-1">
+              {projects.map((project) => (
+                <DropdownMenuItem
+                  key={project.id}
+                  onClick={() => onProjectChange(project.id)}
+                  className="cursor-pointer flex items-center justify-between gap-3 py-3 px-4 rounded-xl hover:bg-white/5 focus:bg-white/10 transition-all group/item border border-transparent hover:border-white/5"
+                >
+                  <div className="flex items-center gap-3 truncate">
+                    {project.id === currentProjectId ? (
+                      <div className="w-5 h-5 flex items-center justify-center bg-primary/20 rounded-md">
+                        <Check className="w-3 h-3 text-primary shrink-0" />
+                      </div>
+                    ) : (
+                      <div className="w-5 h-5 border border-white/5 rounded-md group-hover/item:border-white/20 transition-colors" />
+                    )}
+                    <span className={cn(
+                      "truncate text-sm font-medium transition-colors",
+                      project.id === currentProjectId ? "text-white" : "text-white/40 group-hover/item:text-white/70"
+                    )}>{project.name}</span>
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </div>
           )}
 
           {onCreateProject && (
             <>
-              <DropdownMenuSeparator className="bg-border/50" />
+              <DropdownMenuSeparator className="bg-white/5 mx-2 my-2" />
               <DropdownMenuItem
                 onClick={() => setIsCreateDialogOpen(true)}
-                className="cursor-pointer text-primary py-2.5 px-3"
+                className="cursor-pointer py-3 px-4 rounded-xl bg-primary/10 text-primary hover:bg-primary transition-all hover:text-white border border-primary/20 font-black uppercase tracking-[0.2em] text-[10px] flex items-center justify-center gap-2"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Создать новый проект
+                <Plus className="w-4 h-4" />
+                Новый Проект
               </DropdownMenuItem>
             </>
           )}

@@ -63,6 +63,36 @@ import { KZT_RATE } from '@/constants/ads';
 import { format, subDays, differenceInCalendarDays } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 
+const COLUMN_LABELS: Record<string, string> = {
+  status: 'Сигнал',
+  spend: 'Затраты',
+  leads: 'Лиды (Meta)',
+  cpl: 'Цена цели',
+  visits: 'Визиты CRM',
+  visitCost: 'Цена визита',
+  sales: 'Продажи',
+  revenue: 'Выручка',
+  roi: 'ROMI'
+};
+
+const ACCOUNT_STATUS_MAP: Record<number, { label: string; color: string }> = {
+  1: { label: 'АКТИВЕН', color: 'bg-green-500' },
+  2: { label: 'ОТКЛЮЧЕН', color: 'bg-red-500' },
+  3: { label: 'В ОЧЕРЕДИ', color: 'bg-amber-500' },
+  7: { label: 'ПРОВЕРКА', color: 'bg-blue-500' },
+  8: { label: 'ОГРАНИЧЕН', color: 'bg-red-500' }, // Correct status for restricted
+};
+
+const DISABLE_REASON_MAP: Record<number, string> = {
+  0: 'NONE',
+  1: 'ADS_INTEGRITY_POLICY',
+  2: 'ADS_IP_REVIEW',
+  3: 'RISK_PAYMENT',
+  4: 'GRAY_ACCOUNT_SHUT_DOWN',
+  5: 'ADS_OFF_BOARDING',
+  6: 'OVER_QUOTA',
+};
+
 interface ActiveAdsManagerProps {
   projectId: string | null;
   dateRange: DateRange | undefined;
@@ -150,30 +180,7 @@ interface AccountStatus {
   funding_type?: number | null;
 }
 
-// Facebook account_status codes
-const ACCOUNT_STATUS_MAP: Record<number, { label: string; severity: 'ok' | 'warning' | 'error' }> = {
-  1: { label: 'Активен', severity: 'ok' },
-  2: { label: 'Отключён', severity: 'error' },
-  3: { label: 'Проблема с оплатой', severity: 'error' },
-  7: { label: 'На проверке (риски)', severity: 'warning' },
-  8: { label: 'Ожидание расчёта', severity: 'warning' },
-  9: { label: 'Льготный период', severity: 'warning' },
-  100: { label: 'Закрытие в процессе', severity: 'error' },
-  101: { label: 'Закрыт', severity: 'error' },
-};
-
-const DISABLE_REASON_MAP: Record<number, string> = {
-  0: '',
-  1: 'Нарушение рекламной политики',
-  2: 'Проверка IP рекламы',
-  3: 'Проблема с оплатой (риск платежа)',
-  4: 'Аккаунт заблокирован',
-  5: 'Проверка AFC рекламы',
-  6: 'Нарушение бизнес-целостности',
-  7: 'Аккаунт закрыт навсегда',
-  8: 'Неиспользуемый реселлерский аккаунт',
-  9: 'Неиспользуемый аккаунт',
-};
+// Constants moved to top for organization
 
 export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: ActiveAdsManagerProps) => {
   const pid = projectId ?? null;
@@ -1254,93 +1261,87 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
 
   return (
-    <div className="relative overflow-visible">
-      {/* Meta-style Top Bar */}
-      <div className="px-8 py-6 border-b border-white/50 flex items-center justify-between bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
-        <div className="flex items-center gap-6">
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold tracking-tight text-foreground">Рекламные кампании</h2>
-            <div className="flex items-center gap-2">
-              {adAccountId && (
-                <span className="px-2 py-1 bg-muted text-muted-foreground font-mono text-[10px] rounded border border-white/50">
-                  ID: {adAccountId}
-                </span>
-              )}
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-1000 font-sans pb-20 bg-[#020617] min-h-screen relative overflow-visible">
+      {/* Header & Controls */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8 px-2">
+        <div className="flex items-center gap-8">
+          <div>
+            <h2 className="text-5xl font-black tracking-widest uppercase text-white">
+              Active <span className="text-primary italic">Intelligence</span>
+            </h2>
+            <div className="flex items-center gap-4 mt-3 ml-1">
+              <span className="h-0.5 w-12 bg-primary rounded-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+              <p className="text-[11px] font-black text-white/30 uppercase tracking-[0.4em]">Omnichannel Ad Management</p>
             </div>
           </div>
 
-          <div className="h-6 w-px bg-border mx-2" />
+          <div className="h-12 w-px bg-white/10 mx-2 hidden lg:block" />
 
-          {accountStatus && accountStatus.account_status !== 1 ? (
-            <div className={cn(
-              "flex items-center gap-2.5 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-widest",
-              accountStatus.account_status === 3 ? "bg-red-50 text-red-600 border border-red-100" : "bg-amber-50 text-amber-600 border border-amber-100"
-            )}>
-              <div className={cn("w-1.5 h-1.5 rounded-full", accountStatus.account_status === 3 ? "bg-red-500" : "bg-amber-500")} />
-              {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold uppercase tracking-widest">
-              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
-              Meta Engine готов
-            </div>
-          )}
+          <div className="flex flex-col gap-2">
+            {adAccountId && (
+              <div className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em]">Account Matrix: {adAccountId}</div>
+            )}
+            {accountStatus && accountStatus.account_status !== 1 ? (
+              <div className={cn(
+                "flex items-center gap-3 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest border",
+                accountStatus.account_status === 3 ? "bg-red-500/10 text-red-500 border-red-500/20" : "bg-amber-500/10 text-amber-500 border-amber-500/20"
+              )}>
+                <div className={cn("w-2 h-2 rounded-full animate-pulse", accountStatus.account_status === 3 ? "bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" : "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]")} />
+                {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Error'}
+              </div>
+            ) : (
+              <div className="flex items-center gap-3 px-5 py-2.5 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest shadow-[0_0_20px_rgba(59,130,246,0.1)]">
+                <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_12px_rgba(59,130,246,0.6)] animate-pulse" />
+                Neural Engine Active
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
-          <div className="px-4 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold uppercase tracking-widest shadow-sm">
-            Активные
+        <div className="flex flex-wrap items-center gap-5">
+          <div className="px-6 py-3 rounded-2xl bg-primary/10 text-primary border border-primary/20 text-[10px] font-black uppercase tracking-widest shadow-interstellar">
+            Active Nodes
           </div>
 
-          <div className="h-8 w-px bg-border" />
+          <div className="h-10 w-px bg-white/10 hidden sm:block" />
 
           <Button
             variant="outline"
-            size="sm"
             onClick={handleForceSync}
             disabled={loading}
-            className="h-10 px-6 rounded-xl border-white/50 bg-slate-50 text-foreground hover:bg-accent font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
+            className="h-14 px-8 rounded-[1.5rem] bg-card/40 backdrop-blur-3xl border border-white/10 text-white hover:bg-white/10 transition-all font-black uppercase tracking-widest text-[11px] gap-3 shadow-interstellar"
           >
-            <RefreshCw className={cn("w-3.5 h-3.5 mr-2", loading && "animate-spin")} />
-            Обновить
+            <RefreshCw className={cn("w-5 h-5 text-primary", loading && "animate-spin")} />
+            Architecture Sync
           </Button>
 
           <Button
             variant="outline"
-            size="sm"
             onClick={handleExportCSV}
             disabled={loading || visibleRows.length === 0}
-            className="h-10 w-10 p-0 rounded-xl border-white/50 bg-slate-50 text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm"
+            className="h-14 w-14 p-0 rounded-[1.5rem] bg-card/40 backdrop-blur-3xl border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all shadow-interstellar"
           >
-            <Download className="w-4 h-4" />
+            <Download className="w-5 h-5" />
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="h-10 w-10 p-0 rounded-xl hover:bg-accent text-muted-foreground">
-                <Settings2 className="w-4 h-4" />
+              <Button variant="ghost" className="h-14 w-14 p-0 rounded-[1.5rem] bg-card/40 backdrop-blur-3xl border border-white/10 text-white/40 hover:text-white hover:bg-white/10 transition-all shadow-interstellar">
+                <Settings2 className="w-5 h-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-white/70 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-              <DropdownMenuLabel className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Видимость колонок</DropdownMenuLabel>
-              <DropdownMenuSeparator className="bg-white/5" />
-              <div className="p-2 space-y-1">
+            <DropdownMenuContent align="end" className="w-72 bg-[#020617]/90 backdrop-blur-3xl border border-white/10 rounded-[2rem] shadow-interstellar p-4">
+              <DropdownMenuLabel className="px-4 py-3 text-[10px] font-black uppercase tracking-widest text-white/30">Matrix Configuration</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-white/5 mx-4" />
+              <div className="p-2 space-y-2">
                 {Object.keys(columnVisibility).map(key => (
                   <DropdownMenuCheckboxItem
                     key={key}
                     checked={columnVisibility[key]}
                     onCheckedChange={(checked) => setColumnVisibility(prev => ({ ...prev, [key]: checked }))}
-                    className="rounded-lg py-2 focus:bg-primary/10 focus:text-primary text-xs font-bold uppercase tracking-widest"
+                    className="rounded-xl py-3 focus:bg-primary/20 focus:text-white text-[10px] font-black uppercase tracking-widest text-white/50 cursor-pointer"
                   >
-                    {key === 'status' ? 'Статус' :
-                      key === 'spend' ? 'Затраты' :
-                        key === 'leads' ? 'Лиды (Meta)' :
-                          key === 'cpl' ? 'Цена лида' :
-                            key === 'visits' ? 'Визиты CRM' :
-                              key === 'visitCost' ? 'Цена визита' :
-                                key === 'sales' ? 'Продажи' :
-                                  key === 'revenue' ? 'Выручка' :
-                                    key === 'roi' ? 'ROI' : key}
+                    {COLUMN_LABELS[key] || key}
                   </DropdownMenuCheckboxItem>
                 ))}
               </div>
@@ -1351,352 +1352,354 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Account Alerts Area */}
       {accountStatus && accountStatus.account_status !== 1 && (
-        <div className="absolute top-24 left-1/2 -translate-x-1/2 z-50 w-full max-w-2xl px-6">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="p-4 rounded-2xl bg-red-500/10 border border-red-500/20 backdrop-blur-xl flex items-center gap-4 shadow-2xl"
-          >
-            <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center text-red-500 shrink-0">
-              <ShieldAlert className="w-6 h-6" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-xs font-black uppercase tracking-widest text-red-400">Система: {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label}</h4>
-              <p className="text-[11px] text-red-300 opacity-80 truncate">{DISABLE_REASON_MAP[accountStatus.disable_reason] || 'Обнаружено ограничение доступа к рекламному аккаунту.'}</p>
-            </div>
-            <Button variant="outline" size="sm" className="rounded-lg h-8 border-red-500/30 text-red-400 hover:bg-red-500/10">Исправить</Button>
-          </motion.div>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mx-2 p-8 rounded-[2.5rem] bg-red-500/5 border border-red-500/20 backdrop-blur-3xl flex items-center gap-8 shadow-interstellar"
+        >
+          <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center text-red-500 shadow-lg shadow-red-500/10">
+            <ShieldAlert className="w-8 h-8" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-red-400 mb-2">Architectural Interruption: {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label}</h4>
+            <p className="text-sm font-black text-red-200/60 uppercase tracking-tight">{DISABLE_REASON_MAP[accountStatus.disable_reason] || 'Unauthorized restriction detected on the advertisement account.'}</p>
+          </div>
+          <Button variant="outline" className="rounded-2xl h-12 px-8 border-red-500/30 text-red-400 hover:bg-red-500/10 font-black uppercase tracking-widest text-[10px]">Initialize Recovery</Button>
+        </motion.div>
       )}
 
       {/* Main Table Content */}
-      <div className="overflow-x-auto min-h-[400px]">
-        <Table className="border-collapse">
-          <TableHeader>
-            <TableRow className="border-b border-white/50 hover:bg-transparent h-16">
-              <TableHead className="w-16 text-center">
-                <input
-                  type="checkbox"
-                  className="w-4 h-4 rounded-md border-white/50 bg-muted accent-primary cursor-pointer"
-                  checked={visibleRows.length > 0 && visibleRows.every(r => isRowSelected(r))}
-                  onChange={() => {
-                    const allSelected = visibleRows.every(r => isRowSelected(r));
-                    setSelectedCampaigns(new Set(allSelected ? [] : visibleRows.map(r => r.id)));
-                  }}
-                />
-              </TableHead>
-              {columnVisibility.status && (
-                <TableHead className="w-20 text-center font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Вкл</TableHead>
-              )}
-              <TableHead className="min-w-[300px]">
-                <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                  Название
-                  {getSortIcon('name')}
-                </Button>
-              </TableHead>
-              <TableHead className="w-40 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Статус</TableHead>
-              {columnVisibility.spend && (
-                <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Затраты {getSortIcon('spend')}
+      <div className="mx-2 rounded-[2.5rem] bg-card/40 backdrop-blur-3xl border border-white/10 shadow-interstellar overflow-hidden p-1">
+        <div className="overflow-x-auto min-h-[400px]">
+          <Table className="border-collapse">
+            <TableHeader>
+              <TableRow className="border-b border-white/50 hover:bg-transparent h-16">
+                <TableHead className="w-16 text-center">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded-md border-white/50 bg-muted accent-primary cursor-pointer"
+                    checked={visibleRows.length > 0 && visibleRows.every(r => isRowSelected(r))}
+                    onChange={() => {
+                      const allSelected = visibleRows.every(r => isRowSelected(r));
+                      setSelectedCampaigns(new Set(allSelected ? [] : visibleRows.map(r => r.id)));
+                    }}
+                  />
+                </TableHead>
+                {columnVisibility.status && (
+                  <TableHead className="w-20 text-center font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Вкл</TableHead>
+                )}
+                <TableHead className="min-w-[300px]">
+                  <Button variant="ghost" size="sm" onClick={() => handleSort('name')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                    Название
+                    {getSortIcon('name')}
                   </Button>
                 </TableHead>
-              )}
-              {columnVisibility.leads && (
-                <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Конверсии {getSortIcon('leadsMeta')}
-                  </Button>
-                </TableHead>
-              )}
-              {columnVisibility.cpl && (
-                <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Цена лида {getSortIcon('cpl')}
-                  </Button>
-                </TableHead>
-              )}
-              {columnVisibility.visits && (
-                <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                    Визиты CRM {getSortIcon('visits')}
-                  </Button>
-                </TableHead>
-              )}
-              {columnVisibility.roi && (
-                <TableHead className="text-right">
-                  <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
-                    ROMI {getSortIcon('roi')}
-                  </Button>
-                </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow className="hover:bg-transparent border-none">
-                <TableCell colSpan={10} className="h-80 text-center">
-                  <div className="flex flex-col items-center justify-center gap-4">
-                    <div className="relative">
-                      <div className="w-12 h-12 rounded-2xl border-2 border-primary/20 animate-spin" />
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <Activity className="w-5 h-5 text-primary animate-pulse" />
+                <TableHead className="w-40 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">Статус</TableHead>
+                {columnVisibility.spend && (
+                  <TableHead className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('spend')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Затраты {getSortIcon('spend')}
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.leads && (
+                  <TableHead className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('leadsMeta')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Конверсии {getSortIcon('leadsMeta')}
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.cpl && (
+                  <TableHead className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('cpl')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Цена лида {getSortIcon('cpl')}
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.visits && (
+                  <TableHead className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('visits')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                      Визиты CRM {getSortIcon('visits')}
+                    </Button>
+                  </TableHead>
+                )}
+                {columnVisibility.roi && (
+                  <TableHead className="text-right">
+                    <Button variant="ghost" size="sm" onClick={() => handleSort('roi')} className="hover:bg-transparent p-0 font-bold text-[10px] uppercase tracking-widest text-muted-foreground">
+                      ROMI {getSortIcon('roi')}
+                    </Button>
+                  </TableHead>
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableCell colSpan={10} className="h-80 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4">
+                      <div className="relative">
+                        <div className="w-12 h-12 rounded-2xl border-2 border-primary/20 animate-spin" />
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <Activity className="w-5 h-5 text-primary animate-pulse" />
+                        </div>
                       </div>
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">Синхронизация данных...</span>
                     </div>
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground animate-pulse">Синхронизация данных...</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : visibleRows.length === 0 ? (
-              <TableRow className="hover:bg-transparent border-none">
-                <TableCell colSpan={10} className="h-80 text-center">
-                  <div className="flex flex-col items-center justify-center gap-4 opacity-30">
-                    <Zap className="w-12 h-12 text-muted-foreground" />
-                    <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Сигналы не обнаружены в этом диапазоне.</span>
-                  </div>
-                </TableCell>
-              </TableRow>
-            ) : (
-              visibleRows.map((row) => (
-                <motion.tr
-                  key={row.id}
-                  layout
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className={cn(
-                    "group border-b border-white/50 transition-all relative overflow-hidden h-14",
-                    isRowSelected(row) ? "bg-primary/5" : "hover:bg-muted/50"
-                  )}
-                >
-                  <TableCell className="text-center relative z-10">
-                    <input
-                      type="checkbox"
-                      className="w-4 h-4 rounded-md border-white/50 bg-slate-50 accent-primary cursor-pointer"
-                      checked={isRowSelected(row)}
-                      onChange={() => toggleRowSelection(row)}
-                    />
                   </TableCell>
-
-                  {columnVisibility.status && (
+                </TableRow>
+              ) : visibleRows.length === 0 ? (
+                <TableRow className="hover:bg-transparent border-none">
+                  <TableCell colSpan={10} className="h-80 text-center">
+                    <div className="flex flex-col items-center justify-center gap-4 opacity-30">
+                      <Zap className="w-12 h-12 text-muted-foreground" />
+                      <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Сигналы не обнаружены в этом диапазоне.</span>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                visibleRows.map((row) => (
+                  <motion.tr
+                    key={row.id}
+                    layout
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={cn(
+                      "group border-b border-white/5 transition-all relative overflow-hidden h-16",
+                      isRowSelected(row) ? "bg-primary/5" : "hover:bg-white/[0.02]"
+                    )}
+                  >
                     <TableCell className="text-center relative z-10">
-                      <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
-                        {toggling === row.id ? (
-                          <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                      <input
+                        type="checkbox"
+                        className="w-4 h-4 rounded-md border-white/20 bg-white/5 accent-primary cursor-pointer"
+                        checked={isRowSelected(row)}
+                        onChange={() => toggleRowSelection(row)}
+                      />
+                    </TableCell>
+
+                    {columnVisibility.status && (
+                      <TableCell className="text-center relative z-10">
+                        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+                          {toggling === row.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                          ) : (
+                            <Switch
+                              checked={row.status === 'ACTIVE'}
+                              onCheckedChange={(checked) => handleToggleStatus(row.id, checked)}
+                              className="scale-90 data-[state=checked]:bg-secondary transition-all"
+                            />
+                          )}
+                        </div>
+                      </TableCell>
+                    )}
+
+                    <TableCell className="relative z-10">
+                      <div className="flex items-center gap-4">
+                        {row.type === 'ad' && row.thumbnail ? (
+                          <div className="relative group/thumb">
+                            <img src={row.thumbnail} alt="" className="w-12 h-12 rounded-xl object-cover border border-white/50" />
+                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl" />
+                          </div>
                         ) : (
-                          <Switch
-                            checked={row.status === 'ACTIVE'}
-                            onCheckedChange={(checked) => handleToggleStatus(row.id, checked)}
-                            className="scale-90 data-[state=checked]:bg-blue-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
-                          />
+                          <div className={cn(
+                            "w-12 h-12 rounded-2xl flex items-center justify-center transition-all border",
+                            row.status === 'ACTIVE'
+                              ? "bg-primary/10 border-primary/20 text-primary shadow-lg shadow-primary/5"
+                              : "bg-white/5 border-white/10 text-white/20"
+                          )}>
+                            <LayoutDashboard className="w-5 h-5" />
+                          </div>
                         )}
+
+                        <div className="flex flex-col min-w-0 group/name max-w-[400px]">
+                          <div className="flex items-center gap-2">
+                            <span className="truncate text-sm font-black text-white/90 transition-colors group-hover/name:text-primary uppercase tracking-tight" title={row.name}>
+                              {row.name}
+                            </span>
+                            <button
+                              className="opacity-0 group-hover/name:opacity-100 p-1.5 hover:bg-muted rounded-lg transition-all"
+                              onClick={(e) => openEditDialog(row, e)}
+                            >
+                              <Pencil className="w-3 h-3 text-muted-foreground" />
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2 mt-1">
+                            <span className="text-[9px] font-bold uppercase tracking-[0.2em] text-white/40 bg-white/5 px-2 py-0.5 rounded-lg border border-white/10">
+                              {row.type === 'campaign' ? 'КАМПАНИЯ' : (row.type === 'adset' ? 'ГРУППА' : 'ОБЪЯВЛЕНИЕ')}
+                            </span>
+                            <span className="text-[9px] font-mono text-white/20">#{row.id}</span>
+                          </div>
+                        </div>
                       </div>
                     </TableCell>
-                  )}
 
-                  <TableCell className="relative z-10">
-                    <div className="flex items-center gap-4">
-                      {row.type === 'ad' && row.thumbnail ? (
-                        <div className="relative group/thumb">
-                          <img src={row.thumbnail} alt="" className="w-12 h-12 rounded-xl object-cover border border-white/50" />
-                          <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl" />
-                        </div>
-                      ) : (
+                    <TableCell className="relative z-10">
+                      <div className="flex items-center gap-3">
                         <div className={cn(
-                          "w-12 h-12 rounded-2xl flex items-center justify-center transition-all border",
-                          row.status === 'ACTIVE'
-                            ? "bg-primary/10 border-primary/20 text-primary shadow-sm"
-                            : "bg-muted border-white/50 text-muted-foreground"
+                          "w-2 h-2 rounded-full",
+                          row.status === 'ACTIVE' ? "bg-secondary shadow-[0_0_12px_#3b82f6]" : "bg-white/10"
+                        )} />
+                        <span className={cn(
+                          "text-[10px] font-black uppercase tracking-widest",
+                          row.status === 'ACTIVE' ? "text-secondary" : "text-white/20"
                         )}>
-                          <LayoutDashboard className="w-6 h-6" />
+                          {row.status === 'ACTIVE' ? 'АКТИВНА' : 'ПАУЗА'}
+                        </span>
+                      </div>
+                      {row.type === 'campaign' && row.spendKZT === 0 && !loading && (
+                        <div className="mt-1 text-[9px] text-amber-600 font-bold uppercase tracking-tighter flex items-center gap-1">
+                          <AlertTriangle className="w-3 h-3" /> Нет данных
                         </div>
                       )}
+                    </TableCell>
 
-                      <div className="flex flex-col min-w-0 group/name max-w-[400px]">
-                        <div className="flex items-center gap-2">
-                          <span className="truncate text-[13px] font-bold text-foreground transition-colors group-hover/name:text-primary uppercase tracking-tight" title={row.name}>
-                            {row.name}
-                          </span>
-                          <button
-                            className="opacity-0 group-hover/name:opacity-100 p-1.5 hover:bg-muted rounded-lg transition-all"
-                            onClick={(e) => openEditDialog(row, e)}
-                          >
-                            <Pencil className="w-3 h-3 text-muted-foreground" />
-                          </button>
+                    {columnVisibility.spend && (
+                      <TableCell className="text-right relative z-10">
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="text-sm font-black text-white/90">{formatCurrency(row.spendKZT)}</span>
+                          <span className="text-[9px] text-white/30 font-mono tracking-tighter uppercase">{row.spend.toFixed(2)} USD</span>
                         </div>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-white/50">
-                            {row.type === 'campaign' ? 'КАМПАНИЯ' : (row.type === 'adset' ? 'ГРУППА ОБЪЯВЛЕНИЙ' : 'ОБЪЯВЛЕНИЕ')}
-                          </span>
-                          <span className="text-[9px] font-mono text-muted-foreground opacity-70">ID: {row.id}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-
-                  <TableCell className="relative z-10">
-                    <div className="flex items-center gap-3">
-                      <div className={cn(
-                        "w-2 h-2 rounded-full",
-                        row.status === 'ACTIVE' ? "bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30"
-                      )} />
-                      <span className={cn(
-                        "text-[10px] font-bold uppercase tracking-widest",
-                        row.status === 'ACTIVE' ? "text-blue-600" : "text-muted-foreground"
-                      )}>
-                        {row.status === 'ACTIVE' ? 'АКТИВНА' : 'ПАУЗА'}
-                      </span>
-                    </div>
-                    {row.type === 'campaign' && row.spendKZT === 0 && !loading && (
-                      <div className="mt-1 text-[9px] text-amber-600 font-bold uppercase tracking-tighter flex items-center gap-1">
-                        <AlertTriangle className="w-3 h-3" /> Нет данных
-                      </div>
+                      </TableCell>
                     )}
-                  </TableCell>
 
-                  {columnVisibility.spend && (
-                    <TableCell className="text-right relative z-10">
-                      <div className="flex flex-col items-end">
-                        <span className="text-sm font-bold text-foreground">{formatCurrency(row.spendKZT)}</span>
-                        <span className="text-[10px] text-muted-foreground font-mono tracking-tighter">Бюджет: {row.spend.toFixed(2)} USD</span>
-                      </div>
-                    </TableCell>
-                  )}
-
-                  {columnVisibility.leads && (
-                    <TableCell className="text-right relative z-10">
-                      <div className="flex flex-col items-end">
-                        <div className="flex items-center gap-2">
-                          {row.leadsMeta > 0 && <ArrowUpRight className="w-3 h-3 text-blue-500" />}
-                          <span className="text-sm font-bold text-foreground">{formatNumber(row.leadsMeta)}</span>
+                    {columnVisibility.leads && (
+                      <TableCell className="text-right relative z-10">
+                        <div className="flex flex-col items-end gap-0.5">
+                          <div className="flex items-center gap-2">
+                            {row.leadsMeta > 0 && <ArrowUpRight className="w-3 h-3 text-secondary animate-pulse" />}
+                            <span className="text-sm font-black text-white/90">{formatNumber(row.leadsMeta)}</span>
+                          </div>
+                          <span className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">ЛИДЫ META</span>
                         </div>
-                        <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.1em]">Лиды Meta</span>
-                      </div>
-                    </TableCell>
-                  )}
+                      </TableCell>
+                    )}
 
-                  {columnVisibility.cpl && (
-                    <TableCell className="text-right relative z-10">
-                      <div className="p-2 inline-flex flex-col items-end rounded-xl bg-muted/50 border border-white/50">
-                        <span className={cn("text-xs font-bold", row.cpl > 5000 ? "text-red-600" : "text-primary")}>
-                          {formatCurrency(row.cpl)}
-                        </span>
-                        <span className="text-[8px] font-bold uppercase text-muted-foreground tracking-widest">ЦЕЛЕВАЯ ЦЕНА</span>
-                      </div>
-                    </TableCell>
-                  )}
-
-                  {columnVisibility.visits && (
-                    <TableCell className="text-right relative z-10">
-                      <div className="flex flex-col items-end">
-                        <span className="text-sm font-bold text-foreground">{formatNumber(row.visits)}</span>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <div className="w-1 h-1 rounded-full bg-blue-500" />
-                          <span className="text-[9px] text-muted-foreground font-bold uppercase tracking-widest">CRM FLOW</span>
+                    {columnVisibility.cpl && (
+                      <TableCell className="text-right relative z-10">
+                        <div className="p-3 inline-flex flex-col items-end rounded-2xl bg-white/5 border border-white/10 shadow-interstellar">
+                          <span className={cn("text-xs font-black", row.cpl > 5000 ? "text-red-500" : "text-primary")}>
+                            {formatCurrency(row.cpl)}
+                          </span>
+                          <span className="text-[8px] font-black uppercase text-white/30 tracking-[0.2em] mt-1">ЦЕНА ЦЕЛИ</span>
                         </div>
-                      </div>
-                    </TableCell>
-                  )}
+                      </TableCell>
+                    )}
 
-                  {columnVisibility.roi && (
-                    <TableCell className="text-right relative z-10">
-                      <div className={cn(
-                        "inline-flex flex-col items-end px-3 py-1.5 rounded-2xl border",
-                        row.roi > 0 ? "bg-blue-50 border-blue-100 text-blue-600" : "bg-red-50 border-red-100 text-red-600"
-                      )}>
-                        <span className="text-sm font-bold tracking-tight">{formatPercent(row.roi)}</span>
-                        <span className="text-[8px] font-bold uppercase tracking-widest opacity-60">ROMI</span>
-                      </div>
-                    </TableCell>
-                  )}
-                </motion.tr>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                    {columnVisibility.visits && (
+                      <TableCell className="text-right relative z-10">
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className="text-sm font-black text-white/90">{formatNumber(row.visits)}</span>
+                          <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-secondary shadow-[0_0_8px_#3b82f6]" />
+                            <span className="text-[9px] text-white/30 font-black uppercase tracking-[0.2em]">CRM FLOW</span>
+                          </div>
+                        </div>
+                      </TableCell>
+                    )}
 
-      {/* Futuristic Summary Footer */}
-      {!loading && visibleRows.length > 0 && (
-        <div className="mt-8 p-8 rounded-[2.5rem] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
-            <p className="text-lg font-black text-slate-900">{formatCurrency(totals.totalSpendKZT)}</p>
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего конверсий</p>
-            <p className="text-lg font-black text-blue-600">{formatNumber(totals.totalLeadsMeta)}</p>
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Средний CPL</p>
-            <p className="text-lg font-black text-primary">{formatCurrency(totals.totalCpl)}</p>
-          </div>
-          <div className="space-y-0.5">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Эффективность ROI</p>
-            <p className="text-lg font-black text-slate-900">{formatPercent(totals.totalRoi)}</p>
-          </div>
-          <div className="space-y-0.5 hidden lg:block">
-            <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Визиты CRM</p>
-            <p className="text-lg font-black text-blue-600">{formatNumber(totals.totalVisits)}</p>
-          </div>
+                    {columnVisibility.roi && (
+                      <TableCell className="text-right relative z-10">
+                        <div className={cn(
+                          "inline-flex flex-col items-end px-4 py-2 rounded-2xl border transition-colors",
+                          row.roi > 0 ? "bg-secondary/10 border-secondary/20 text-secondary" : "bg-red-500/10 border-red-500/20 text-red-500"
+                        )}>
+                          <span className="text-sm font-black tracking-tight">{formatPercent(row.roi)}</span>
+                          <span className="text-[8px] font-black uppercase tracking-[0.2em] opacity-40 mt-1">ROMI</span>
+                        </div>
+                      </TableCell>
+                    )}
+                  </motion.tr>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </div>
-      )}
 
-      {/* Facebook-style Edit Modal (Light themed) */}
-      <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
-        <DialogContent className="bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
-          <DialogHeader className="px-2">
-            <DialogTitle className="text-2xl font-bold uppercase tracking-widest text-foreground">
-              Редактировать
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground font-bold uppercase tracking-wider">
-              {editingEntity?.type === 'campaign' ? 'КАМПАНИЯ' : (editingEntity?.type === 'adset' ? 'ГРУППА' : 'ОБЪЯВЛЕНИЕ')} · ID: {editingEntity?.id}
-            </DialogDescription>
-          </DialogHeader>
+        {/* Futuristic Summary Footer */}
+        {
+          !loading && visibleRows.length > 0 && (
+            <div className="mt-8 p-10 rounded-[3rem] bg-card/40 backdrop-blur-xl shadow-interstellar border border-white/10 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-10">
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Всего затрат</p>
+                <p className="text-xl font-black text-white">{formatCurrency(totals.totalSpendKZT)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Всего конверсий</p>
+                <p className="text-xl font-black text-secondary">{formatNumber(totals.totalLeadsMeta)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Средний CPL</p>
+                <p className="text-xl font-black text-primary">{formatCurrency(totals.totalCpl)}</p>
+              </div>
+              <div className="space-y-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">ROMI</p>
+                <p className="text-xl font-black text-white">{formatPercent(totals.totalRoi)}</p>
+              </div>
+              <div className="space-y-1 hidden lg:block">
+                <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/30">Визиты CRM</p>
+                <p className="text-xl font-black text-secondary">{formatNumber(totals.totalVisits)}</p>
+              </div>
+            </div>
+          )
+        }
 
-          <div className="space-y-6 py-6 px-2">
-            <div className="space-y-2">
-              <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Название</Label>
-              <Input
-                value={editName}
-                onChange={(e) => setEditName(e.target.value)}
-                className="bg-muted border-white/50 rounded-xl h-12 focus:ring-primary focus:border-primary text-sm font-bold"
-              />
+        {/* Facebook-style Edit Modal (Light themed) */}
+        <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
+          <DialogContent className="bg-[#020617]/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-interstellar text-white max-w-md">
+            <DialogHeader className="px-2">
+              <DialogTitle className="text-2xl font-black uppercase tracking-widest text-white">
+                Редактировать
+              </DialogTitle>
+              <DialogDescription className="text-[10px] text-white/40 font-black uppercase tracking-[0.2em]">
+                {editingEntity?.type === 'campaign' ? 'КАМПАНИЯ' : (editingEntity?.type === 'adset' ? 'ГРУППА' : 'ОБЪЯВЛЕНИЕ')} · ID: {editingEntity?.id}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-6 px-2">
+              <div className="space-y-2">
+                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Название</Label>
+                <Input
+                  value={editName}
+                  onChange={(e) => setEditName(e.target.value)}
+                  className="bg-white/5 border-white/10 rounded-2xl h-14 focus:ring-primary focus:border-primary text-sm font-bold text-white"
+                />
+              </div>
+
+              {editingEntity?.type === 'campaign' && (
+                <div className="space-y-2">
+                  <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Дневной бюджет (USD)</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      value={editBudget}
+                      onChange={(e) => setEditBudget(e.target.value)}
+                      className="bg-white/5 border-white/10 rounded-2xl h-14 pl-12 focus:ring-primary focus:border-primary text-sm font-bold text-white"
+                    />
+                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                  </div>
+                </div>
+              )}
             </div>
 
-            {editingEntity?.type === 'campaign' && (
-              <div className="space-y-2">
-                <Label className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Дневной бюджет (USD)</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    value={editBudget}
-                    onChange={(e) => setEditBudget(e.target.value)}
-                    className="bg-muted border-white/50 rounded-xl h-12 pl-10 focus:ring-primary focus:border-primary text-sm font-bold"
-                  />
-                  <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                </div>
-              </div>
-            )}
-          </div>
-
-          <DialogFooter className="px-2 pb-2 mt-4">
-            <Button
-              variant="ghost"
-              onClick={() => setEditingEntity(null)}
-              className="rounded-xl h-12 uppercase text-[10px] font-bold tracking-widest hover:bg-muted"
-            >
-              Отмена
-            </Button>
-            <Button
-              onClick={handleSaveEdit}
-              disabled={saving}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-8 uppercase text-[10px] font-bold tracking-widest shadow-2xl shadow-blue-900/5"
-            >
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить изменения'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <DialogFooter className="px-2 pb-4 mt-6">
+              <Button
+                variant="ghost"
+                onClick={() => setEditingEntity(null)}
+                className="rounded-2xl h-14 uppercase text-[10px] font-black tracking-[0.2em] text-white/40 hover:bg-white/5"
+              >
+                Отмена
+              </Button>
+              <Button
+                onClick={handleSaveEdit}
+                disabled={saving}
+                className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 px-10 uppercase text-[10px] font-black tracking-[0.2em] shadow-interstellar"
+              >
+                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

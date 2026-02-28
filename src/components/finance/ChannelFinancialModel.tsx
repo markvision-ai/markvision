@@ -37,19 +37,19 @@ const formatCurrency = (val: number) =>
 
 const SCENARIO_STYLES = {
   best: {
-    row: 'bg-blue-500/5 border-l-4 border-l-blue-500',
-    label: 'text-blue-700 dark:text-blue-400 font-semibold',
-    romi: 'text-blue-600 dark:text-blue-400',
+    row: 'bg-secondary/5 border-l-4 border-l-secondary',
+    label: 'text-secondary font-black uppercase tracking-widest text-[10px]',
+    romi: 'text-secondary',
   },
   avg: {
-    row: 'bg-slate-500/5 dark:bg-slate-500/10 border-l-4 border-l-slate-500 dark:border-l-slate-400',
-    label: 'text-slate-700 dark:text-slate-300 font-semibold',
-    romi: 'text-slate-600 dark:text-slate-400',
+    row: 'bg-white/5 border-l-4 border-l-white/20',
+    label: 'text-white/60 font-black uppercase tracking-widest text-[10px]',
+    romi: 'text-white/80',
   },
   worst: {
-    row: 'bg-red-500/5 border-l-4 border-l-red-500',
-    label: 'text-red-700 dark:text-red-400 font-semibold',
-    romi: 'text-red-600 dark:text-red-400',
+    row: 'bg-primary/5 border-l-4 border-l-primary',
+    label: 'text-primary font-black uppercase tracking-widest text-[10px]',
+    romi: 'text-primary',
   },
 } as const;
 
@@ -86,32 +86,32 @@ export const ChannelFinancialModel = ({
     const styles = SCENARIO_STYLES[rowType];
     return (
       <>
-        <TableRow className={cn('border-b border-white/50', styles.row)}>
-          <TableCell className={cn('w-[100px] pl-4 pr-3 py-3 align-middle', styles.label)}>{name}</TableCell>
-          <TableCell className="text-right py-3 px-2 align-middle w-[100px]">
+        <TableRow className={cn('border-b border-white/5', styles.row)}>
+          <TableCell className={cn('w-[120px] pl-6 pr-3 py-5 align-middle', styles.label)}>{name}</TableCell>
+          <TableCell className="text-right py-5 px-2 align-middle w-[120px]">
             <Input
               type="number"
               min={0}
               value={cpl || ''}
               onChange={(e) => onCplChange(Number(e.target.value) || 0)}
               placeholder="0"
-              className="h-9 text-right text-sm font-mono w-full min-w-[72px] bg-slate-50 border-white/50"
+              className="h-10 text-right text-sm font-black tabular-nums w-full min-w-[80px] bg-white/5 border-white/10 rounded-xl focus:border-primary/50 text-white"
             />
           </TableCell>
-          <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{leadsNeeded}</TableCell>
-          <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{visitsNeeded}</TableCell>
-          <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{salesNeeded}</TableCell>
-          <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{formatCurrency(budget)}</TableCell>
-          <TableCell className="text-right py-3 px-3 font-mono text-sm font-medium tabular-nums text-foreground align-middle">{formatCurrency(revenueFromGoal)}</TableCell>
-          <TableCell className={cn('text-right py-3 px-3 font-mono text-sm font-semibold tabular-nums align-middle', styles.romi)}>{Math.round(romi)}%</TableCell>
+          <TableCell className="text-right py-5 px-4 font-black text-sm tabular-nums text-white/60 align-middle">{leadsNeeded}</TableCell>
+          <TableCell className="text-right py-5 px-4 font-black text-sm tabular-nums text-white/60 align-middle">{visitsNeeded}</TableCell>
+          <TableCell className="text-right py-5 px-4 font-black text-sm tabular-nums text-white/60 align-middle">{salesNeeded}</TableCell>
+          <TableCell className="text-right py-5 px-4 font-black text-sm tabular-nums text-white/60 align-middle">{formatCurrency(budget)}</TableCell>
+          <TableCell className="text-right py-5 px-4 font-black text-sm tabular-nums text-white align-middle">{formatCurrency(revenueFromGoal)}</TableCell>
+          <TableCell className={cn('text-right py-5 px-6 font-black text-lg tabular-nums align-middle shadow-sm', styles.romi)}>{Math.round(romi)}%</TableCell>
         </TableRow>
-        <TableRow className={cn('border-b border-white/50', styles.row)}>
+        <TableRow className={cn('border-b border-white/5', styles.row)}>
           <TableCell colSpan={8} className="px-4 pb-3 pt-0 align-top">
             <Textarea
               placeholder={`Обоснование сценария «${name}» (необязательно)`}
               value={rationale || ''}
               onChange={(e) => onRationaleChange(e.target.value)}
-              className="min-h-[28px] max-h-20 text-xs bg-background/50 border-white/50 rounded-md resize-y w-full placeholder:text-muted-foreground/60"
+              className="min-h-[40px] max-h-32 text-[10px] font-black uppercase tracking-wider bg-white/5 border-white/10 rounded-xl resize-y w-full placeholder:text-white/20 text-white/50 p-4"
             />
           </TableCell>
         </TableRow>
@@ -120,23 +120,23 @@ export const ChannelFinancialModel = ({
   };
 
   return (
-    <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
+    <Card className="bg-card/40 backdrop-blur-xl shadow-interstellar border border-white/10 rounded-[3rem] overflow-hidden">
       <CardContent className="p-0">
         {/* Параметры */}
-        <div className="p-5 sm:p-6 border-b border-white/50 bg-muted/20">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Calculator className="w-5 h-5 text-primary" />
+        <div className="p-10 border-b border-white/5 bg-white/[0.02]">
+          <div className="flex items-center gap-4 mb-10">
+            <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5">
+              <Calculator className="w-6 h-6 text-primary" />
             </div>
             <div>
-              <h3 className="text-base font-semibold text-foreground">Декомпозиция от цели</h3>
-              <p className="text-xs text-muted-foreground">Измените параметры — таблица пересчитается</p>
+              <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Декомпозиция от цели</h3>
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mt-1">Измените параметры — таблица пересчитается</p>
             </div>
           </div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                <Target className="w-3.5 h-3.5" /> Целевая выручка
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40 ml-1 flex items-center gap-2">
+                <Target className="w-3.5 h-3.5 text-primary" /> Целевая выручка
               </Label>
               <Input
                 type="number"
@@ -147,12 +147,12 @@ export const ChannelFinancialModel = ({
                   handleChange('calcMode', 'goal');
                 }}
                 placeholder="500 000"
-                className="h-10 font-mono bg-slate-50"
+                className="h-12 font-black tabular-nums bg-white/5 border-white/10 rounded-2xl text-white text-lg focus:border-primary/50"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground flex items-center gap-1.5">
-                <CreditCard className="w-3.5 h-3.5" /> Средний чек
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40 ml-1 flex items-center gap-2">
+                <CreditCard className="w-3.5 h-3.5 text-secondary" /> Средний чек
               </Label>
               <Input
                 type="number"
@@ -160,11 +160,11 @@ export const ChannelFinancialModel = ({
                 value={data.avgCheck || ''}
                 onChange={(e) => handleChange('avgCheck', Number(e.target.value) || 0)}
                 placeholder="100 000"
-                className="h-10 font-mono bg-slate-50"
+                className="h-12 font-black tabular-nums bg-white/5 border-white/10 rounded-2xl text-white text-lg focus:border-secondary/50"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">Конверсия визит → продажа, %</Label>
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40 ml-1">Конверсия визит → продажа, %</Label>
               <Input
                 type="number"
                 min={0}
@@ -172,11 +172,11 @@ export const ChannelFinancialModel = ({
                 value={data.crVisitToSale ?? ''}
                 onChange={(e) => handleChange('crVisitToSale', Number(e.target.value) || 0)}
                 placeholder="50"
-                className="h-10 font-mono bg-slate-50"
+                className="h-12 font-black tabular-nums bg-white/5 border-white/10 rounded-2xl text-white text-lg focus:border-white/30"
               />
             </div>
-            <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-muted-foreground">Конверсия лид → визит, %</Label>
+            <div className="space-y-3">
+              <Label className="text-[10px] font-black uppercase tracking-[0.15em] text-white/40 ml-1">Конверсия лид → визит, %</Label>
               <Input
                 type="number"
                 min={0}
@@ -184,7 +184,7 @@ export const ChannelFinancialModel = ({
                 value={data.crLeadToVisit ?? ''}
                 onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value) || 0)}
                 placeholder="50"
-                className="h-10 font-mono bg-slate-50"
+                className="h-12 font-black tabular-nums bg-white/5 border-white/10 rounded-2xl text-white text-lg focus:border-white/30"
               />
             </div>
           </div>
@@ -194,15 +194,15 @@ export const ChannelFinancialModel = ({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-white/50 bg-muted/40">
-                <TableHead className="w-[100px] pl-4 py-3 text-xs font-semibold text-foreground uppercase tracking-wider">Сценарий</TableHead>
-                <TableHead className="text-right py-3 px-2 w-[100px] text-xs font-semibold text-foreground uppercase tracking-wider">CPL, ₸</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Лиды</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Визиты</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Продажи</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Бюджет</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Выручка</TableHead>
-                <TableHead className="text-right py-3 px-3 text-xs font-semibold text-foreground uppercase tracking-wider">ROMI</TableHead>
+              <TableRow className="hover:bg-transparent border-b border-white/5 bg-white/[0.02]">
+                <TableHead className="w-[120px] pl-6 py-5 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Сценарий</TableHead>
+                <TableHead className="text-right py-5 px-2 w-[120px] text-[10px] font-black uppercase tracking-[0.2em] text-white/30">CPL, ₸</TableHead>
+                <TableHead className="text-right py-5 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Лиды</TableHead>
+                <TableHead className="text-right py-5 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Визиты</TableHead>
+                <TableHead className="text-right py-5 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Продажи</TableHead>
+                <TableHead className="text-right py-5 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Бюджет</TableHead>
+                <TableHead className="text-right py-5 px-4 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">Выручка</TableHead>
+                <TableHead className="text-right py-5 px-6 text-[10px] font-black uppercase tracking-[0.2em] text-white/30">ROMI</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

@@ -118,14 +118,16 @@ const KpiCard = ({ label, value, icon, glow }: KpiCardProps) => {
 
   return (
     <div className={cn(
-      'bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl rounded-2xl p-4 border transition-all duration-300',
+      'bg-[#020617]/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-6 shadow-interstellar transition-all duration-500 hover:bg-[#020617]/60 group',
       glowClass
     )}>
-      <div className="flex items-center gap-2 text-white/50 text-xs mb-2">
-        <span className="text-slate-500">{icon}</span>
+      <div className="flex items-center gap-3 text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
+        <div className={cn("p-2 rounded-lg bg-white/5", textClass.replace('text-', 'bg-').replace('400', '500/20'))}>
+          {icon}
+        </div>
         {label}
       </div>
-      <div className={cn('text-xl font-bold tracking-tight', textClass)}>{value}</div>
+      <div className={cn('text-2xl font-black tracking-tighter', textClass)}>{value}</div>
     </div>
   );
 };
@@ -252,7 +254,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
       </div>
 
       {/* Table Card */}
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-3xl overflow-hidden">
+      <div className="bg-[#020617]/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] overflow-hidden shadow-interstellar transition-all duration-700 hover:bg-[#020617]/60">
         {/* Table Header Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 border-b border-white/5">
           <div className="flex items-start gap-3">

@@ -23,23 +23,23 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
+    <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans bg-[#020617]">
 
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between px-6 py-4 bg-transparent absolute top-0 w-full z-20">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
-          <TabsList className="bg-white/50 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full p-1 h-auto">
-            <TabsTrigger value="v4" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
-              <Rocket className="w-4 h-4 mr-2" />
+      <div className="flex items-center justify-between px-8 py-6 bg-transparent absolute top-0 w-full z-20">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-2xl">
+          <TabsList className="bg-card/40 backdrop-blur-3xl border border-white/10 shadow-interstellar rounded-full p-1.5 h-auto">
+            <TabsTrigger value="v4" className="rounded-full px-8 py-3 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[10px] gap-2">
+              <Rocket className="w-4 h-4" />
               Контент-Завод
             </TabsTrigger>
-            <TabsTrigger value="competitors" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
-              <Eye className="w-4 h-4 mr-2" />
-              Мониторинг конкурентов
+            <TabsTrigger value="competitors" className="rounded-full px-8 py-3 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[10px] gap-2">
+              <Eye className="w-4 h-4" />
+              Мониторинг
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
-              <Sparkles className="w-4 h-4 mr-2" />
-              Анализ по ссылке
+            <TabsTrigger value="analysis" className="rounded-full px-8 py-3 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[10px] gap-2">
+              <Sparkles className="w-4 h-4" />
+              Анализ
             </TabsTrigger>
           </TabsList>
         </Tabs>
@@ -47,7 +47,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         <Button
           onClick={() => setIsCreateDialogOpen(true)}
           variant="default"
-          className="shadow-sm"
+          className="rounded-full h-12 px-8 bg-secondary hover:bg-secondary/90 text-white font-black uppercase tracking-widest text-[10px] shadow-interstellar border-none"
         >
           <Plus className="w-4 h-4 mr-2" />
           Создать контент

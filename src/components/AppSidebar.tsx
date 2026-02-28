@@ -279,7 +279,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-white/60 backdrop-blur-2xl border-r border-white/50 h-screen sticky top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-500">
+        <SidebarBody className="justify-between gap-4 bg-[#020617]/40 backdrop-blur-3xl border-r border-white/5 h-screen sticky top-0 shadow-interstellar transition-all duration-500">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
@@ -372,7 +372,7 @@ export const AppSidebar = ({
           </div>
 
           {/* User Profile & Logout */}
-          <div className="border-t border-white/50 pt-4">
+          <div className="border-t border-white/10 pt-4">
             <SidebarLink
               link={{
                 label: userProfile?.name || "Профиль",
@@ -399,26 +399,33 @@ export const AppSidebar = ({
         </SidebarBody>
       </Sidebar>
 
-      {/* Create Project Dialog - still kept for Header access if needed via logic, but UI hidden from Sidebar */}
+      {/* Create Project Dialog */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-slate-50 border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
-          <DialogHeader>
-            <DialogTitle className="text-foreground">Создать новый проект</DialogTitle>
+        <DialogContent className="bg-[#020617]/90 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-interstellar text-white max-w-md">
+          <DialogHeader className="px-2">
+            <DialogTitle className="text-2xl font-black uppercase tracking-widest text-white">
+              Инициализировать архитектуру
+            </DialogTitle>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-6 px-2 space-y-2">
+            <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Название проекта / Домен</Label>
             <Input
-              placeholder="Название проекта (медицинская клиника)"
+              placeholder="Медицинская клиника Альянс"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              className="interstellar-input"
+              className="interstellar-input h-14 rounded-2xl bg-white/5 border-white/10 text-white placeholder:text-white/20"
             />
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-slate-200 hover:bg-white/5">
+          <DialogFooter className="px-2 pb-2">
+            <Button variant="ghost" onClick={() => setIsCreateDialogOpen(false)} className="rounded-2xl h-14 uppercase text-[10px] font-black tracking-[0.2em] text-white/40 hover:bg-white/5">
               Отмена
             </Button>
-            <Button onClick={handleCreateProject} disabled={isCreating || !newProjectName.trim()}>
-              {isCreating ? "Создание..." : "Создать"}
+            <Button
+              onClick={handleCreateProject}
+              disabled={isCreating || !newProjectName.trim()}
+              className="bg-primary hover:bg-primary/90 text-white rounded-2xl h-14 px-10 uppercase text-[10px] font-black tracking-[0.2em] shadow-interstellar"
+            >
+              {isCreating ? "Синхронизация..." : "Развернуть"}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -436,26 +443,27 @@ const Logo = ({ hasErrors }: LogoProps) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="font-bold flex items-center gap-3 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
+      className="font-bold flex items-center gap-4 text-sm text-sidebar-foreground py-4 relative z-20 px-4"
     >
-      <div className="relative">
-        <MarkVisionLogo size={36} />
+      <div className="relative group">
+        <div className="absolute -inset-2 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
+        <MarkVisionLogo size={42} />
         {/* Global Health Indicator */}
         <div className={cn(
-          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
-          hasErrors ? "bg-red-500" : "bg-green-500"
+          "absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#020617] shadow-lg",
+          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-primary shadow-primary/50"
         )}>
           {!hasErrors && (
-            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
           )}
         </div>
       </div>
       <div className="flex flex-col">
-        <span className="bg-gradient-to-r from-primary via-cyan-300 to-primary bg-clip-text text-transparent font-bold text-base">
-          MarkVision AI
+        <span className="text-xl font-black text-white uppercase tracking-[0.2em]">
+          MARK<span className="text-primary italic">VISION</span>
         </span>
-        <span className="text-xs font-medium text-sidebar-foreground/70 leading-relaxed">
-          Умный маркетинг
+        <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-0.5">
+          Neural OS
         </span>
       </div>
     </motion.div>
@@ -467,17 +475,18 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-1 relative z-20 px-2"
+      className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-2 relative z-20 px-4"
     >
-      <div className="relative">
+      <div className="relative group">
+        <div className="absolute -inset-2 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
         <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
-          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-sidebar",
-          hasErrors ? "bg-red-500" : "bg-green-500"
+          "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#020617]",
+          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-primary shadow-primary/50"
         )}>
           {!hasErrors && (
-            <div className="absolute inset-0 rounded-full bg-green-500 animate-ping opacity-75" />
+            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
           )}
         </div>
       </div>

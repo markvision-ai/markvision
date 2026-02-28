@@ -1,4 +1,5 @@
 import { ArrowUpRight, ArrowDownRight, Minus } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface StatItem {
   label: string;
@@ -37,66 +38,65 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
     if (l.includes('aov') || l.includes('ср чек')) return 'Средний чек';
     return 'Ключевой показатель';
   };
+
   return (
-    <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-4 shadow-sm">
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <h3 className="font-semibold text-xs sm:text-sm text-foreground">Сравнение с прошлой неделей</h3>
-          <p className="text-xs font-medium text-foreground/70  mt-0.5 leading-relaxed">Динамика ключевых показателей</p>
+    <div className="bg-[#020617]/40 backdrop-blur-3xl border border-white/5 rounded-[2rem] p-6 shadow-interstellar">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-1 h-6 bg-primary rounded-full" />
+          <div>
+            <h3 className="text-[10px] font-black text-primary uppercase tracking-[0.4em]">Сравнение Фаз</h3>
+            <p className="text-xs font-medium text-white/30 uppercase tracking-[0.1em] mt-0.5">Динамика ключевых векторов</p>
+          </div>
         </div>
       </div>
-      
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
+
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {stats.map((stat) => {
-          const change = stat.previous > 0 
-            ? ((stat.current - stat.previous) / stat.previous) * 100 
+          const change = stat.previous > 0
+            ? ((stat.current - stat.previous) / stat.previous) * 100
             : 0;
           const isPositive = change > 0;
           const isNeutral = Math.abs(change) < 0.5;
-          
+
           return (
-            <div 
-              key={stat.label} 
-              className="relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-lg p-3 overflow-hidden border border-white/50 transition-all duration-200 hover:border-primary/30 hover:shadow-sm group"
+            <div
+              key={stat.label}
+              className="relative bg-white/5 backdrop-blur-xl border border-white/5 rounded-[1.5rem] p-5 overflow-hidden transition-all duration-500 hover:bg-white/10 hover:border-white/10 group"
             >
-              {/* Accent bar */}
-              <div 
-                className={`absolute top-0 left-0 right-0 h-0.5 transition-all duration-200 ${
-                  isPositive 
-                    ? 'bg-success' 
-                    : isNeutral 
-                      ? 'bg-muted-foreground/30' 
-                      : 'bg-destructive'
-                }`}
-              />
-              
-              <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-foreground/80  truncate leading-relaxed">{stat.label}</p>
-                
-                <p className="text-base sm:text-lg font-bold text-foreground tracking-tight">
+              {/* Trend Glow */}
+              <div className={cn(
+                "absolute -right-4 -top-4 w-12 h-12 rounded-full blur-2xl opacity-20 transition-opacity group-hover:opacity-40",
+                isPositive ? "bg-primary" : isNeutral ? "bg-white" : "bg-red-500"
+              )} />
+
+              <div className="relative z-10 space-y-3">
+                <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">{stat.label}</p>
+
+                <p className="text-xl font-black text-white tracking-tight">
                   {formatValue(stat.current, stat.format)}
                 </p>
-                
-                <div className="flex items-center justify-between gap-1.5">
-                  <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${
-                    isPositive 
-                      ? 'bg-blue-500/10 text-blue-500' 
-                      : isNeutral 
-                        ? 'bg-muted text-muted-foreground'
-                        : 'bg-red-500/10 text-red-500'
-                  }`}>
+
+                <div className="flex items-center justify-between pt-1">
+                  <div className={cn(
+                    "flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-black uppercase tracking-widest",
+                    isPositive
+                      ? "bg-primary/20 text-primary shadow-[0_0_15px_rgba(249,115,22,0.1)]"
+                      : isNeutral
+                        ? "bg-white/10 text-white/40"
+                        : "bg-red-500/20 text-red-500 shadow-[0_0_15px_rgba(239,68,68,0.1)]"
+                  )}>
                     {isPositive ? (
-                      <ArrowUpRight className="w-2.5 h-2.5" />
+                      <ArrowUpRight className="w-3 h-3" />
                     ) : isNeutral ? (
-                      <Minus className="w-2.5 h-2.5" />
+                      <Minus className="w-3 h-3" />
                     ) : (
-                      <ArrowDownRight className="w-2.5 h-2.5" />
+                      <ArrowDownRight className="w-3 h-3" />
                     )}
                     {Math.abs(Math.round(change))}%
                   </div>
 
-                  {/* Previous value */}
-                  <div className="text-[9px] text-muted-foreground/50 truncate" title={getHint(stat.label)}>
+                  <div className="text-[10px] font-bold text-white/10 group-hover:text-white/20 transition-colors" title={getHint(stat.label)}>
                     {formatValue(stat.previous, stat.format)}
                   </div>
                 </div>

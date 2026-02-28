@@ -8,22 +8,22 @@ interface DotPatternBackgroundProps {
 export const DotPatternBackground = ({ className, children }: DotPatternBackgroundProps) => {
   return (
     <div className={cn("relative w-full min-h-screen overflow-hidden", className)}>
-      {/* Background - адаптивный для ОБЕИХ тем */}
-      <div className="absolute inset-0 bg-slate-50" />
-      
+      {/* Background - Deep Dark */}
+      <div className="absolute inset-0 bg-[#020617]" />
+
       {/* Dot Pattern - адаптивный */}
-      <div 
+      <div
         className="absolute inset-0 opacity-[0.15] "
         style={{
           backgroundImage: `radial-gradient(circle, hsl(var(--muted-foreground) / 0.3) 1px, transparent 1px)`,
           backgroundSize: '24px 24px'
         }}
       />
-      
+
       {/* Glow Spots - адаптивные для темы */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {/* Blue Glow - Top Left */}
-        <div 
+        <div
           className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--primary) / 0.5) 0%, transparent 70%)',
@@ -31,9 +31,9 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
             left: '-200px'
           }}
         />
-        
+
         {/* Purple/Secondary Glow - Bottom Right */}
-        <div 
+        <div
           className="absolute w-[600px] h-[600px] rounded-full blur-3xl opacity-20 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--secondary) / 0.5) 0%, transparent 70%)',
@@ -43,7 +43,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
         />
 
         {/* Accent Glow - Center */}
-        <div 
+        <div
           className="absolute w-[400px] h-[400px] rounded-full blur-3xl opacity-10 "
           style={{
             background: 'radial-gradient(circle, hsl(var(--accent) / 0.5) 0%, transparent 70%)',
@@ -53,7 +53,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
           }}
         />
       </div>
-      
+
       {/* Content */}
       <div className="relative z-10">
         {children}

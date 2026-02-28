@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Building2, 
-  Megaphone, 
-  MessageCircle, 
-  Users, 
+import {
+  Building2,
+  Megaphone,
+  MessageCircle,
+  Users,
   Brain,
   ChevronRight,
   ChevronLeft,
@@ -52,28 +52,28 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [launching, setLaunching] = useState(false);
-  
+
   // Step 1: Clinic
   const [clinicName, setClinicName] = useState(projectName || '');
-  
+
   // Step 2: Ads
   const [integrations, setIntegrations] = useState<IntegrationData>({
     facebook: { connected: false },
     google: { token: '' },
     tiktok: { token: '' },
   });
-  
+
   // Step 3: WhatsApp
   const [whatsappConfig, setWhatsappConfig] = useState({
     instanceId: '',
     token: '',
   });
-  
+
   // Step 4: Team
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([
     { name: '', position: 'Менеджер' }
   ]);
-  
+
   // Step 5: AI Context
   const [aiContext, setAiContext] = useState('');
 
@@ -81,7 +81,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 
   const handleNext = async () => {
     setLoading(true);
-    
+
     try {
       if (currentStep === 1 && clinicName) {
         await supabase
@@ -89,7 +89,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
           .update({ name: clinicName })
           .eq('id', projectId);
       }
-      
+
       if (currentStep === 2) {
         if (integrations.google.token) {
           await supabase.from('integrations').upsert({
@@ -110,22 +110,22 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
           }, { onConflict: 'project_id,type' });
         }
       }
-      
+
       if (currentStep === 3) {
         if (whatsappConfig.instanceId && whatsappConfig.token) {
           await supabase.from('integrations').upsert({
             project_id: projectId,
             name: 'WhatsApp (GreenAPI)',
             type: 'whatsapp',
-            config: { 
-              instance_id: whatsappConfig.instanceId, 
-              token: whatsappConfig.token 
+            config: {
+              instance_id: whatsappConfig.instanceId,
+              token: whatsappConfig.token
             },
             status: 'pending',
           }, { onConflict: 'project_id,type' });
         }
       }
-      
+
       if (currentStep === 4) {
         const validStaff = staffMembers.filter(s => s.name.trim());
         if (validStaff.length > 0) {
@@ -139,7 +139,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
           }
         }
       }
-      
+
       if (currentStep < STEPS.length) {
         setCurrentStep(currentStep + 1);
       }
@@ -159,7 +159,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 
   const handleLaunch = async () => {
     setLaunching(true);
-    
+
     try {
       if (aiContext.trim()) {
         await supabase.from('project_context').upsert({
@@ -167,12 +167,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
           content: aiContext,
         }, { onConflict: 'project_id' });
       }
-      
+
       await supabase
         .from('projects')
         .update({ onboarding_status: 'completed' })
         .eq('id', projectId);
-      
+
       // Send webhook (placeholder URL)
       try {
         await fetch('https://webhook.n8n.markvision.ai/onboarding-complete', {
@@ -191,16 +191,16 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             has_ai_context: !!aiContext.trim(),
             timestamp: new Date().toISOString(),
           }),
-        }).catch(() => {});
+        }).catch(() => { });
       } catch { void 0; }
-      
+
       triggerConfetti();
       toast.success('🚀 MarkVision AI успешно запущен!');
-      
+
       setTimeout(() => {
         onComplete();
       }, 1500);
-      
+
     } catch (error) {
       console.error('Error completing onboarding:', error);
       toast.error('Ошибка завершения настройки');
@@ -216,7 +216,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
         redirectTo: `${window.location.origin}/`,
       },
     });
-    
+
     if (error) {
       toast.error('Ошибка подключения Facebook');
     }
@@ -255,7 +255,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <h2 className="text-2xl font-bold text-foreground">Как называется ваша клиника?</h2>
               <p className="text-muted-foreground mt-2">Это название будет отображаться в системе</p>
             </div>
-            
+
             <div className="max-w-md mx-auto">
               <Input
                 value={clinicName}
@@ -266,7 +266,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
           </motion.div>
         );
-        
+
       case 2:
         return (
           <motion.div
@@ -282,7 +282,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <h2 className="text-2xl font-bold text-foreground">Подключите рекламные площадки</h2>
               <p className="text-muted-foreground mt-2">Мы автоматически синхронизируем расходы и лиды</p>
             </div>
-            
+
             <div className="max-w-lg mx-auto space-y-4">
               {/* Facebook */}
               <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
@@ -312,7 +312,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                   </Button>
                 </div>
               </div>
-              
+
               {/* Google */}
               <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
@@ -334,7 +334,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                   className="rounded-xl bg-slate-50 border-white/50"
                 />
               </div>
-              
+
               {/* TikTok */}
               <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
@@ -359,7 +359,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
           </motion.div>
         );
-        
+
       case 3:
         return (
           <motion.div
@@ -375,7 +375,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <h2 className="text-2xl font-bold text-foreground">Настройте WhatsApp</h2>
               <p className="text-muted-foreground mt-2">Ваш ИИ-бот Марк будет общаться здесь</p>
             </div>
-            
+
             <div className="max-w-md mx-auto space-y-4">
               <div className="bg-white/70 rounded-2xl p-6 border border-white/50">
                 <div className="flex items-center gap-3 mb-4">
@@ -387,7 +387,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     <p className="text-sm text-muted-foreground">Подключение WhatsApp Business</p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-muted-foreground mb-1 block">Instance ID</label>
@@ -416,14 +416,14 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                   </div>
                 </div>
               </div>
-              
+
               <p className="text-center text-sm text-muted-foreground">
                 Получите данные на <a href="https://green-api.com" target="_blank" rel="noopener noreferrer" className="text-green-500 hover:underline">green-api.com</a>
               </p>
             </div>
           </motion.div>
         );
-        
+
       case 4:
         return (
           <motion.div
@@ -439,7 +439,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <h2 className="text-2xl font-bold text-foreground">Добавьте вашу команду</h2>
               <p className="text-muted-foreground mt-2">Менеджеры, которые будут работать с лидами</p>
             </div>
-            
+
             <div className="max-w-md mx-auto space-y-3">
               {staffMembers.map((member, index) => (
                 <div key={index} className="flex gap-2 items-center">
@@ -470,7 +470,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                   </Button>
                 </div>
               ))}
-              
+
               <Button
                 variant="outline"
                 onClick={addStaffMember}
@@ -482,7 +482,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
           </motion.div>
         );
-        
+
       case 5:
         return (
           <motion.div
@@ -498,7 +498,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <h2 className="text-2xl font-bold text-foreground">Обучите вашего ИИ-ассистента</h2>
               <p className="text-muted-foreground mt-2">Расскажите о вашем продукте, ценах и скриптах</p>
             </div>
-            
+
             <div className="max-w-2xl mx-auto">
               <Textarea
                 value={aiContext}
@@ -525,21 +525,25 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
           </motion.div>
         );
-        
+
       default:
         return null;
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background Orbs */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/10 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px] pointer-events-none" />
+
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-3xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-white/50"
+        className="w-full max-w-3xl bg-[#020617]/40 backdrop-blur-3xl border border-white/5 rounded-[2.5rem] shadow-interstellar overflow-hidden relative z-10"
       >
         {/* Header */}
-        <div className="p-6 border-b border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
+        <div className="p-8 border-b border-white/5 bg-white/[0.02] backdrop-blur-2xl transition-all duration-700">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -551,25 +555,23 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               Шаг {currentStep} из {STEPS.length}
             </span>
           </div>
-          
+
           <Progress value={progress} className="h-2" />
-          
+
           <div className="flex justify-between mt-4">
             {STEPS.map((step) => {
               const Icon = step.icon;
               const isActive = step.id === currentStep;
               const isCompleted = step.id < currentStep;
-              
+
               return (
                 <div
                   key={step.id}
-                  className={`flex flex-col items-center gap-1 ${
-                    isActive ? 'text-blue-400' : isCompleted ? 'text-green-400' : 'text-muted-foreground/40'
-                  }`}
+                  className={`flex flex-col items-center gap-1 ${isActive ? 'text-blue-400' : isCompleted ? 'text-green-400' : 'text-muted-foreground/40'
+                    }`}
                 >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                    isActive ? 'bg-blue-500/20' : isCompleted ? 'bg-green-500/20' : 'bg-muted'
-                  }`}>
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${isActive ? 'bg-blue-500/20' : isCompleted ? 'bg-green-500/20' : 'bg-muted'
+                    }`}>
                     {isCompleted ? (
                       <CheckCircle2 className="w-4 h-4" />
                     ) : (
@@ -582,14 +584,14 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             })}
           </div>
         </div>
-        
+
         {/* Content */}
         <div className="p-8">
           <AnimatePresence mode="wait">
             {renderStepContent()}
           </AnimatePresence>
         </div>
-        
+
         {/* Footer */}
         <div className="p-6 border-t bg-muted/10 flex justify-between">
           <Button
@@ -601,7 +603,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             <ChevronLeft className="w-4 h-4 mr-2" />
             Назад
           </Button>
-          
+
           {currentStep < STEPS.length ? (
             <Button
               onClick={handleNext}

@@ -28,6 +28,7 @@ import { AIAssistant } from './AIAssistant';
 import { CustomerJourneyFlow } from './CustomerJourneyFlow';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { GlassCard } from '@/components/ui/GlassCard';
 
 // ... (interfaces remain similar, but kept concise here)
 
@@ -131,7 +132,7 @@ const SALE_STATUSES = ['purchased'];
 
 export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
   const pid = projectId ?? null;
-  const [activeTab, setActiveTab] = useState<'sales-roi' | 'split-tests' | 'sources'>('sales-roi');
+  const [activeTab, setActiveTab] = useState<'overview' | 'sources' | 'journey' | 'ai'>('overview');
   const [leads, setLeads] = useState<Lead[]>([]);
   const [dailyData, setDailyData] = useState<DailyData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -276,15 +277,15 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
       {/* Header & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h2 className="text-3xl font-black tracking-tighter text-foreground uppercase italic bg-clip-text text-transparent bg-gradient-to-r from-slate-800 to-slate-500">
+          <h2 className="text-3xl font-black tracking-tighter text-white uppercase italic">
             Сквозная аналитика
           </h2>
-          <p className="text-sm text-muted-foreground mt-1 font-medium">Эффективность каналов и путь клиента от рекламы до продажи</p>
+          <p className="text-sm text-white/40 mt-1 font-medium tracking-wide">Эффективность каналов и путь клиента от рекламы до продажи</p>
         </div>
-        <div className="flex items-center gap-3 bg-white/70 backdrop-blur-2xl p-2 rounded-2xl border border-white shadow-sm">
+        <div className="flex items-center gap-4 bg-white/5 backdrop-blur-xl p-2.5 rounded-[2rem] border border-white/10 shadow-interstellar">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
-          <Button variant="ghost" size="icon" onClick={() => { fetchLeads(); fetchDailyData(); }} className="rounded-xl h-10 w-10 hover:bg-white text-muted-foreground hover:text-foreground shadow-sm bg-white/50" title="Обновить">
-            <Loader2 className={cn("w-4 h-4", loading && "animate-spin")} />
+          <Button variant="outline" size="icon" onClick={() => { fetchLeads(); fetchDailyData(); }} className="rounded-2xl h-12 w-12 border border-white/10 hover:bg-white/10 text-white/40 hover:text-white transition-all shadow-interstellar bg-white/5" title="Обновить">
+            <Loader2 className={cn("w-5 h-5", loading && "animate-spin")} />
           </Button>
         </div>
       </div>
@@ -297,33 +298,35 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             value: metaMetrics ? formatCurrencyShort(metaMetrics.spend) : 'Не активно',
             sub: metaMetrics ? `${formatNumber(metaMetrics.clicks)} кликов` : 'Синхронизация...',
             icon: Globe,
-            color: 'text-blue-400',
-            bg: 'bg-blue-500/10',
-            action: <Button variant="outline" size="sm" onClick={syncMeta} disabled={metaLoading} className="h-7 text-xs ml-auto">{metaLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Sync'}</Button>
+            color: 'text-secondary',
+            bg: 'bg-secondary/10 border-secondary/20',
+            action: <Button variant="outline" size="sm" onClick={syncMeta} disabled={metaLoading} className="h-8 text-[10px] font-black uppercase tracking-widest ml-auto border-white/10 hover:bg-white/5 text-white/60">
+              {metaLoading ? <Loader2 className="w-3 h-3 animate-spin" /> : 'Синхронизировать'}
+            </Button>
           },
           {
             label: 'Расходы (РК)',
             value: formatCurrencyShort(totalSpend),
             sub: 'Бюджет кампаний',
             icon: DollarSign,
-            color: 'text-blue-400',
-            bg: 'bg-blue-500/10'
+            color: 'text-secondary',
+            bg: 'bg-secondary/10 border-secondary/20'
           },
           {
             label: 'Лиды',
             value: formatNumber(filteredTotals.leads),
             sub: `CPL: ${formatCurrency(cpl)}`,
             icon: Users,
-            color: 'text-violet-400',
-            bg: 'bg-violet-500/10'
+            color: 'text-primary',
+            bg: 'bg-primary/10 border-primary/20'
           },
           {
             label: 'Выручка',
             value: formatCurrencyShort(revenueSum),
             sub: `ROI: ${(roi * 100).toFixed(0)}%`,
             icon: ShoppingCart,
-            color: 'text-amber-400',
-            bg: 'bg-amber-500/10'
+            color: 'text-white',
+            bg: 'bg-white/10 border-white/20'
           }
         ].map((card, idx) => (
           <motion.div
@@ -332,20 +335,20 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className="bg-white/70 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white/80 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:-translate-y-1 group relative overflow-hidden rounded-[24px]">
-              <div className="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none" />
-              <CardContent className="p-6 relative z-10">
-                <div className="flex justify-between items-start mb-4">
-                  <div className={cn("p-3 rounded-2xl shadow-sm border", card.bg, card.bg.replace('/10', '/20').replace('bg-', 'border-'))}>
+            <Card className="bg-card/40 backdrop-blur-xl shadow-interstellar border border-white/10 transition-all duration-500 hover:border-primary/40 hover:-translate-y-1 group relative overflow-hidden rounded-[2.5rem]">
+              <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
+              <CardContent className="p-8 relative z-10">
+                <div className="flex justify-between items-start mb-6">
+                  <div className={cn("p-4 rounded-2xl shadow-lg border backdrop-blur-md transition-all duration-500 group-hover:scale-110", card.bg)}>
                     <card.icon className={cn("w-6 h-6", card.color)} />
                   </div>
                   {card.action}
                 </div>
-                <div className="space-y-1">
-                  <h3 className="text-2xl font-black tracking-tighter text-foreground">{card.value}</h3>
-                  <div className="flex items-center justify-between gap-2 mt-2">
-                    <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{card.label}</p>
-                    <span className="text-[10px] text-muted-foreground font-mono bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">{card.sub}</span>
+                <div className="space-y-2">
+                  <h3 className="text-3xl font-black tracking-tighter text-white/90 group-hover:text-white transition-colors">{card.value}</h3>
+                  <div className="flex items-center justify-between gap-2 mt-3">
+                    <p className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em]">{card.label}</p>
+                    <span className="text-[10px] text-white/60 font-black uppercase tracking-widest bg-white/5 px-2.5 py-1 rounded-full border border-white/10 group-hover:bg-white/10 transition-colors">{card.sub}</span>
                   </div>
                 </div>
               </CardContent>
@@ -368,61 +371,68 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* Analytics Tabs Section */}
       <Tabs defaultValue="sales-roi" className="w-full" onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="w-full sm:w-auto bg-slate-100/50 backdrop-blur-md p-1.5 rounded-[20px] border border-slate-200 shadow-inner">
-          {[
-            { id: 'sales-roi', label: 'ROI и Продажи', icon: TrendingUp },
-            { id: 'split-tests', label: 'Сплит-тесты', icon: SplitSquareVertical },
-            { id: 'sources', label: 'Распределение', icon: PieChartIcon },
-          ].map(tab => (
-            <TabsTrigger
-              key={tab.id}
-              value={tab.id}
-              className="rounded-2xl px-6 py-3 gap-2 data-[state=active]:bg-white data-[state=active]:text-foreground data-[state=active]:shadow-sm border border-transparent data-[state=active]:border-slate-200 transition-all font-bold uppercase tracking-wider text-xs text-muted-foreground hover:text-foreground"
-            >
-              <tab.icon className="w-4 h-4" />
-              {tab.label}
-            </TabsTrigger>
-          ))}
+        <TabsList className="bg-card/40 backdrop-blur-3xl border border-white/10 shadow-interstellar rounded-[2rem] p-2 h-auto inline-flex">
+          <TabsTrigger value="overview" className="rounded-[1.5rem] px-10 py-4 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[11px] gap-3">
+            <BarChart3 className="w-4 h-4" />
+            Architecture
+          </TabsTrigger>
+          <TabsTrigger value="sources" className="rounded-[1.5rem] px-10 py-4 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[11px] gap-3">
+            <Globe className="w-4 h-4" />
+            Global Channels
+          </TabsTrigger>
+          <TabsTrigger value="journey" className="rounded-[1.5rem] px-10 py-4 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[11px] gap-3">
+            <Users className="w-4 h-4" />
+            User Path
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="rounded-[1.5rem] px-10 py-4 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[11px] gap-3">
+            <Sparkles className="w-4 h-4" />
+            Cognitive Layer
+          </TabsTrigger>
         </TabsList>
 
         <AnimatePresence mode="wait">
-          {/* Content: Sales ROI Table */}
-          <TabsContent value="sales-roi" className="mt-6">
+          {/* Content: Architecture (Overview) */}
+          <TabsContent value="overview" className="mt-10">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
-                  <CardTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-tight text-foreground">
-                    <div className="p-2 rounded-xl bg-primary/10 text-primary">
-                      <Globe className="w-5 h-5" />
+              <Card className="bg-card/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[3rem] overflow-hidden">
+                <CardHeader className="bg-white/5 border-b border-white/10 p-12">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="flex items-center gap-5 text-2xl font-black uppercase tracking-widest text-white">
+                        <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-lg shadow-primary/10">
+                          <Target className="w-6 h-6" />
+                        </div>
+                        Funnel Performance Matrix
+                      </CardTitle>
+                      <CardDescription className="text-white/30 font-black uppercase tracking-widest ml-[4.5rem] mt-2 text-[10px]">Statistical breakdown by campaign and landing architecture</CardDescription>
                     </div>
-                    Эффективность посадочных страниц
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground font-medium ml-12">Статистика по URL и кампаниям за период</CardDescription>
+                    <Badge variant="outline" className="px-5 py-2 border-white/10 bg-white/5 text-white/40 font-black uppercase tracking-[0.15em] text-[10px] rounded-full">LIVE MTD VIEW</Badge>
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
-                      <thead className="bg-slate-50 text-slate-500 text-[10px] font-bold uppercase tracking-widest border-b border-slate-100">
+                      <thead className="bg-white/[0.02] text-white/20 text-[10px] font-black uppercase tracking-widest border-b border-white/5">
                         <tr>
-                          <th className="px-8 py-4 text-left">Страница / Кампания</th>
-                          <th className="px-8 py-4 text-right">Лиды</th>
-                          <th className="px-8 py-4 text-right">Визиты</th>
-                          <th className="px-8 py-4 text-right">Продажи</th>
-                          <th className="px-8 py-4 text-right">Выручка</th>
+                          <th className="px-12 py-7 text-left">Entity / Architecture</th>
+                          <th className="px-12 py-7 text-right">Leads</th>
+                          <th className="px-12 py-7 text-right">Visits</th>
+                          <th className="px-12 py-7 text-right">Sales</th>
+                          <th className="px-12 py-7 text-right">Revenue</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-100">
+                      <tbody className="divide-y divide-white/5">
                         {siteStats.map((site, i) => (
-                          <tr key={i} className="hover:bg-slate-50/80 transition-colors group">
-                            <td className="px-8 py-4 font-bold max-w-[250px] truncate text-foreground">{site.name}</td>
-                            <td className="px-8 py-4 text-right font-mono text-foreground">{site.leads}</td>
-                            <td className="px-8 py-4 text-right font-mono text-muted-foreground">{site.visits}</td>
-                            <td className="px-8 py-4 text-right font-mono text-foreground font-semibold">{site.sales}</td>
-                            <td className="px-8 py-4 text-right font-black text-foreground">{formatCurrencyShort(site.revenue)}</td>
+                          <tr key={i} className="hover:bg-white/[0.03] transition-colors group">
+                            <td className="px-12 py-8 font-black uppercase tracking-widest text-[11px] max-w-[400px] truncate text-white/80 group-hover:text-primary transition-colors">{site.name}</td>
+                            <td className="px-12 py-8 text-right font-black text-white/60 tabular-nums">{site.leads}</td>
+                            <td className="px-12 py-8 text-right font-black text-white/40 tabular-nums">{site.visits}</td>
+                            <td className="px-12 py-8 text-right font-black text-secondary tabular-nums text-lg">{site.sales}</td>
+                            <td className="px-12 py-8 text-right font-black text-white tabular-nums text-xl">{formatCurrencyShort(site.revenue)}</td>
                           </tr>
                         ))}
                         {siteStats.length === 0 && (
-                          <tr><td colSpan={5} className="px-8 py-16 text-center text-muted-foreground font-medium">Нет данных за выбранный период</td></tr>
+                          <tr><td colSpan={5} className="px-12 py-24 text-center text-white/20 font-black uppercase tracking-[0.3em] text-xs">Awaiting analytical input...</td></tr>
                         )}
                       </tbody>
                     </table>
@@ -432,37 +442,37 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             </motion.div>
           </TabsContent>
 
-          {/* Content: Split Tests */}
-          <TabsContent value="split-tests" className="mt-6">
+          {/* Content: Global Channels (Sources) */}
+          <TabsContent value="sources" className="mt-10">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
-                  <CardTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-tight text-foreground">
-                    <div className="p-2 rounded-xl bg-orange-500/10 text-orange-500">
-                      <SplitSquareVertical className="w-5 h-5" />
+              <Card className="bg-card/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[3rem] overflow-hidden">
+                <CardHeader className="bg-white/5 border-b border-white/10 p-12">
+                  <CardTitle className="flex items-center gap-5 text-2xl font-black uppercase tracking-widest text-white">
+                    <div className="p-4 rounded-2xl bg-secondary/10 border border-secondary/20 text-secondary shadow-lg shadow-secondary/10">
+                      <SplitSquareVertical className="w-6 h-6" />
                     </div>
-                    Анализ по источникам
+                    Global Channel Matrix
                   </CardTitle>
-                  <CardDescription className="text-muted-foreground font-medium ml-12">Лиды и выручка по каналам</CardDescription>
+                  <CardDescription className="text-white/30 font-black uppercase tracking-widest ml-[4.5rem] mt-2 text-[10px]">Distribution analysis across all traffic origins</CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4 p-8">
+                <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-10 p-12">
                   {sourceStats.map((source, i) => (
-                    <div key={i} className="flex items-center justify-between p-5 rounded-2xl bg-white border border-slate-100 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group">
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-slate-50/80 text-2xl border border-slate-100 shadow-sm group-hover:scale-110 transition-transform">
+                    <div key={i} className="flex items-center justify-between p-6 rounded-[2rem] bg-white/5 border border-white/10 shadow-interstellar hover:border-primary/40 hover:-translate-y-1 transition-all duration-500 group">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center bg-white/5 text-3xl border border-white/10 shadow-lg group-hover:scale-110 transition-transform">
                           {source.icon}
                         </div>
                         <div>
-                          <h4 className="font-bold text-foreground text-base tracking-tight">{source.name}</h4>
-                          <div className="flex items-center gap-2 mt-1">
-                            <Badge variant="secondary" className="text-[10px] font-bold uppercase tracking-widest bg-slate-100 text-slate-600 border-slate-200">{source.leads} лидов</Badge>
-                            <span className="text-[10px] text-muted-foreground font-mono font-medium">{source.leads ? ((source.visits / source.leads) * 100).toFixed(0) : 0}% conv</span>
+                          <h4 className="font-black text-white/90 text-lg tracking-tight uppercase">{source.name}</h4>
+                          <div className="flex items-center gap-3 mt-1.5">
+                            <Badge className="text-[10px] font-black uppercase tracking-[0.1em] bg-primary/10 text-primary border-primary/20 px-3 py-1">{source.leads} лидов</Badge>
+                            <span className="text-[10px] text-white/30 font-black uppercase tracking-widest">{source.leads ? ((source.visits / source.leads) * 100).toFixed(0) : 0}% conv</span>
                           </div>
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-lg font-black text-foreground tracking-tighter">{formatCurrencyShort(source.revenue)}</div>
-                        <div className="text-xs text-muted-foreground font-medium">{source.sales} продаж</div>
+                        <div className="text-xl font-black text-white tracking-tighter">{formatCurrencyShort(source.revenue)}</div>
+                        <div className="text-[10px] text-white/30 font-black uppercase tracking-widest mt-1">{source.sales} продаж</div>
                       </div>
                     </div>
                   ))}
@@ -474,67 +484,121 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             </motion.div>
           </TabsContent>
 
-          {/* Content: Sources Pie */}
-          <TabsContent value="sources" className="mt-6">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden h-[450px]">
-                <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
-                  <CardTitle className="flex items-center gap-3 text-xl font-black uppercase tracking-tight text-foreground">
-                    <div className="p-2 rounded-xl bg-purple-500/10 text-purple-500">
-                      <PieChartIcon className="w-5 h-5" />
+          {/* Content: Global Channels Distribution (Pie) */}
+          <TabsContent value="sources" className="mt-10">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              <div className="lg:col-span-2">
+                <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+                  <Card className="bg-card/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[3rem] overflow-hidden h-[600px]">
+                    <CardHeader className="bg-white/5 border-b border-white/10 p-12">
+                      <CardTitle className="flex items-center gap-5 text-2xl font-black uppercase tracking-widest text-white">
+                        <div className="p-4 rounded-2xl bg-secondary/10 border border-secondary/20 text-secondary shadow-lg shadow-secondary/10">
+                          <PieChartIcon className="w-6 h-6" />
+                        </div>
+                        Channel Distribution
+                      </CardTitle>
+                      <CardDescription className="text-white/30 font-black uppercase tracking-widest ml-[4.5rem] mt-2 text-[10px]">Lead volume share by source</CardDescription>
+                    </CardHeader>
+                    <CardContent className="h-[400px] pt-12 relative">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <PieChart>
+                          <Pie
+                            data={pieData}
+                            cx="50%" cy="50%"
+                            innerRadius={100}
+                            outerRadius={150}
+                            paddingAngle={8}
+                            dataKey="value"
+                            stroke="none"
+                            cornerRadius={12}
+                          >
+                            {pieData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} className="filter drop-shadow-[0_0_15px_rgba(var(--primary-rgb),0.3)]" />
+                            ))}
+                          </Pie>
+                          <Tooltip
+                            contentStyle={{
+                              backgroundColor: 'rgba(2, 6, 23, 0.8)',
+                              backdropFilter: 'blur(20px)',
+                              border: '1px solid rgba(255,255,255,0.1)',
+                              borderRadius: '24px',
+                              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
+                              padding: '20px'
+                            }}
+                            itemStyle={{ color: 'white', fontWeight: '900', textTransform: 'uppercase', fontSize: '10px' }}
+                          />
+                          <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{ fontSize: '10px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)', paddingLeft: '40px' }} />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              </div>
+
+              {/* Source Stats List */}
+              <div className="space-y-6">
+                {sourceStats.slice(0, 4).map((s, i) => (
+                  <GlassCard key={i} className="p-8 rounded-[2rem] border border-white/10 bg-card/20 backdrop-blur-3xl shadow-interstellar group">
+                    <div className="flex justify-between items-start">
+                      <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-white/5 border border-white/10 text-2xl group-hover:scale-110 transition-transform">
+                        {s.icon}
+                      </div>
+                      <div className="text-right">
+                        <div className="text-[10px] font-black text-white/30 uppercase tracking-widest mb-1">{s.name}</div>
+                        <div className="text-2xl font-black text-white tabular-nums">{s.leads}</div>
+                      </div>
                     </div>
-                    Распределение трафика
-                  </CardTitle>
-                  <CardDescription className="text-muted-foreground font-medium ml-12">Лиды по источникам за период</CardDescription>
+                  </GlassCard>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Content: User Path (Journey) */}
+          <TabsContent value="journey" className="mt-10">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
+              <CustomerJourneyFlow metrics={{
+                ...filteredTotals,
+                profit: profit
+              }} />
+            </motion.div>
+          </TabsContent>
+
+          {/* Content: Cognitive Layer (AI) */}
+          <TabsContent value="ai" className="mt-10">
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
+              <Card className="bg-card/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[3rem] overflow-hidden">
+                <CardHeader className="bg-white/5 border-b border-white/10 p-12">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="flex items-center gap-5 text-2xl font-black uppercase tracking-widest text-white">
+                      <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20 text-primary shadow-[0_0_20px_rgba(59,130,246,0.2)]">
+                        <Sparkles className="w-6 h-6 animate-pulse" />
+                      </div>
+                      Cognitive Engine v4.0
+                    </CardTitle>
+                    <Badge className="bg-primary/20 text-primary border border-primary/20 px-4 py-1.5 font-black uppercase tracking-widest text-[10px] rounded-full">Active Inference</Badge>
+                  </div>
                 </CardHeader>
-                <CardContent className="h-[320px] pt-6 relative">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%" cy="50%"
-                        innerRadius={80}
-                        outerRadius={120}
-                        paddingAngle={4}
-                        dataKey="value"
-                        stroke="none"
-                        cornerRadius={8}
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        contentStyle={{ backgroundColor: 'white', border: '1px solid #e2e8f0', borderRadius: '16px', boxShadow: '0 10px 25px rgba(0,0,0,0.05)', fontWeight: 'bold' }}
-                        itemStyle={{ color: 'black' }}
-                      />
-                      <Legend verticalAlign="middle" align="right" layout="vertical" iconType="circle" wrapperStyle={{ fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase' }} />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <CardContent className="p-0 h-[700px]">
+                  <AIAssistant
+                    context={{
+                      projectId: pid ?? undefined,
+                      revenue: revenueSum,
+                      spend: totalSpend,
+                      leads: filteredTotals.leads,
+                      sales: filteredTotals.sales,
+                      impressions: filteredTotals.impressions,
+                      clicks: filteredTotals.clicks,
+                      cpl: filteredTotals.leads ? totalSpend / filteredTotals.leads : 0,
+                      romi: totalSpend ? (revenueSum / totalSpend) * 100 : 0,
+                    }}
+                  />
                 </CardContent>
               </Card>
             </motion.div>
           </TabsContent>
         </AnimatePresence>
       </Tabs>
-
-      {/* AI Assistant */}
-      <div className="pt-4">
-        <AIAssistant
-          context={{
-            projectId: pid ?? undefined,
-            revenue: revenueSum,
-            spend: totalSpend,
-            leads: filteredTotals.leads,
-            sales: filteredTotals.sales,
-            impressions: filteredTotals.impressions,
-            clicks: filteredTotals.clicks,
-            cpl: filteredTotals.leads ? totalSpend / filteredTotals.leads : 0,
-            romi: totalSpend ? (revenueSum / totalSpend) * 100 : 0,
-          }}
-        />
-      </div>
-
     </div>
   );
 };

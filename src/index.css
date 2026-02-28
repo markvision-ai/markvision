@@ -7,69 +7,53 @@
 
 @layer base {
   :root {
-    /* Clean Enterprise Light - Astana Hub Style */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    /* Super-Level Universal Dark Design */
+    --background: 222 47% 4%;
+    /* #020617 */
+    --foreground: 210 40% 98%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 222 47% 4%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 222 47% 4%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
-    /* Apple Glass Blue */
+    /* Dual Accents */
+    --primary: 24 95% 53%;
+    /* Omni Orange #f97316 */
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 217 91% 60%;
+    /* Mark Blue #3b82f6 */
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 217 91% 60%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 24 95% 53%;
 
     --radius: 0.75rem;
 
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-muted: 240 4.8% 95.9%;
+    --sidebar: 222 47% 4%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-muted: 217 33% 17%;
   }
 
   .dark {
-    /* Dark Mode Disabled - Forcing Light Mode Variables if somehow activated, 
-       but typically this class should not be present. 
-       Mapping to Light Mode values just in case. */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 142 76% 36%;
-    --sidebar: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-muted: 240 4.8% 95.9%;
+    --background: 222 47% 4%;
+    --foreground: 210 40% 98%;
+    --primary: 24 95% 53%;
+    --secondary: 217 91% 60%;
+    --border: 217 33% 17%;
+    --ring: 24 95% 53%;
   }
 }
 
@@ -82,18 +66,35 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
     font-family: 'Inter', sans-serif;
+    background-image:
+      radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+      radial-gradient(circle at 100% 100%, rgba(249, 115, 22, 0.05) 0%, transparent 50%);
+    background-attachment: fixed;
   }
 }
 
 @layer components {
 
-  /* Clean Card Styles */
+  /* Premium Glassmorphism */
+  .glass-morphism {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-interstellar;
+  }
+
+  .glass-morphism-elevated {
+    @apply bg-white/10 backdrop-blur-2xl border border-white/20 shadow-interstellar-glow;
+  }
+
+  .glass-header {
+    @apply sticky top-0 z-50 w-full bg-background/60 backdrop-blur-xl border-b border-white/10;
+  }
+
+  /* Clean Card Styles - Upgraded */
   .card-clean {
-    @apply bg-card text-card-foreground rounded-xl border border-border shadow-sm;
+    @apply bg-card/40 backdrop-blur-lg text-card-foreground rounded-2xl border border-white/10 shadow-interstellar transition-all duration-300;
   }
 
   .card-clean:hover {
-    @apply shadow-md transition-shadow duration-200;
+    @apply border-primary/30 shadow-interstellar-glow -translate-y-1;
   }
 
   /* Utility Classes */
@@ -101,18 +102,18 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8;
   }
 
-  /* Glow effects - Simplified */
+  /* Glow effects - Upgraded */
   .glow-primary {
-    @apply shadow-sm;
+    @apply shadow-interstellar-glow;
   }
 
   .glow-primary-strong {
-    @apply shadow-md;
+    @apply shadow-interstellar-glow-strong;
   }
 
-  /* Gradient text - Simplified */
+  /* Gradient text - Upgraded */
   .gradient-text-primary {
-    @apply text-primary font-semibold;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-400 font-bold;
   }
 }
 
@@ -126,13 +127,13 @@
 
 .welcome-hero-kpi {
   @apply relative overflow-hidden rounded-xl p-4 md:p-5;
-  @apply bg-card border border-border shadow-sm;
-  @apply transition-all duration-200;
+  @apply bg-card/40 backdrop-blur-md border border-white/10 shadow-sm;
+  @apply transition-all duration-300;
 }
 
 .welcome-hero-kpi:hover {
-  @apply shadow-md border-primary/20;
-  transform: translateY(-2px);
+  @apply shadow-interstellar-glow border-primary/40;
+  transform: translateY(-4px);
 }
 
 .welcome-hero-kpi .kpi-value {
@@ -152,13 +153,13 @@
   @apply relative overflow-hidden rounded-xl p-4;
   @apply flex flex-col items-center justify-center gap-2;
   @apply cursor-pointer;
-  @apply bg-card border border-border shadow-sm;
-  @apply transition-all duration-200;
+  @apply bg-card/40 backdrop-blur-md border border-white/10 shadow-sm;
+  @apply transition-all duration-300;
 }
 
 .quick-action-card:hover {
-  @apply bg-muted/50 shadow-md border-primary/20;
-  transform: translateY(-2px);
+  @apply bg-white/10 shadow-interstellar-glow border-primary/40;
+  transform: translateY(-4px);
 }
 
 .quick-action-card:active {
@@ -281,19 +282,19 @@ body {
    ============================================ */
 
 .crm-card-glass {
-  @apply bg-card border border-border rounded-xl shadow-sm;
+  @apply bg-card/40 backdrop-blur-md border border-white/10 rounded-xl shadow-sm;
 }
 
 .crm-column-glass {
-  @apply bg-muted/30 border border-border rounded-xl;
+  @apply bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl;
 }
 
 .premium-hover {
-  @apply transition-transform duration-200;
+  @apply transition-transform duration-300;
 }
 
 .premium-hover:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px);
 }
 
 /* ============================================

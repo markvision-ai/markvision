@@ -34,41 +34,41 @@ const GlassMetricCard = ({
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -5, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-[2rem] p-6 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 transition-all duration-300"
+      whileHover={{ y: -5, scale: 1.01 }}
+      className="relative group overflow-hidden rounded-[2.5rem] p-6 bg-card/40 backdrop-blur-xl border border-white/10 shadow-interstellar transition-all duration-500"
     >
       <div className={cn(
-        "absolute -right-10 -top-10 w-40 h-40 blur-[50px] opacity-10 group-hover:opacity-30 transition-opacity duration-500 rounded-full",
-        gradient === 'red' && "bg-red-500",
-        gradient === 'blue' && "bg-blue-500",
-        gradient === 'purple' && "bg-purple-500",
-        gradient === 'emerald' && "bg-emerald-500"
+        "absolute -right-10 -top-10 w-48 h-48 blur-[80px] opacity-10 group-hover:opacity-20 transition-opacity duration-700 rounded-full",
+        gradient === 'red' && "bg-[#f97316]",
+        gradient === 'blue' && "bg-[#3b82f6]",
+        gradient === 'purple' && "bg-[#8b5cf6]",
+        gradient === 'emerald' && "bg-[#10b981]"
       )} />
 
       <div className="relative z-10 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className={cn(
-            "p-3.5 rounded-2xl border shadow-sm backdrop-blur-md",
-            gradient === 'red' && "bg-red-50/50 border-red-100 text-red-500",
-            gradient === 'blue' && "bg-blue-50/50 border-blue-100 text-blue-500",
-            gradient === 'purple' && "bg-purple-50/50 border-purple-100 text-purple-600",
-            gradient === 'emerald' && "bg-emerald-50/50 border-emerald-100 text-emerald-500"
+            "p-3.5 rounded-2xl border shadow-sm backdrop-blur-md transition-all duration-500",
+            gradient === 'red' && "bg-[#f97316]/10 border-[#f97316]/20 text-[#f97316]",
+            gradient === 'blue' && "bg-[#3b82f6]/10 border-[#3b82f6]/20 text-[#3b82f6]",
+            gradient === 'purple' && "bg-[#8b5cf6]/10 border-[#8b5cf6]/20 text-[#8b5cf6]",
+            gradient === 'emerald' && "bg-[#10b981]/10 border-[#10b981]/20 text-[#10b981]"
           )}>
-            <Icon className="w-5 h-5" />
+            <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
           </div>
           {trend && (
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest">
-              <ArrowUpRight className="w-3 h-3" />
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/70 border border-white/10 text-[10px] font-black uppercase tracking-widest group-hover:bg-white/10 transition-colors">
+              <ArrowUpRight className="w-3 h-3 text-secondary" />
               {trend}
             </div>
           )}
         </div>
 
         <div>
-          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 flex items-center gap-2">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-white/40 mb-2 flex items-center gap-2">
             {label}
           </p>
-          <h3 className="text-3xl font-black tracking-tighter text-slate-800 transition-colors duration-300">
+          <h3 className="text-3xl font-black tracking-tighter text-white/90 group-hover:text-white transition-colors duration-300">
             {formatValue(value)}
           </h3>
         </div>
