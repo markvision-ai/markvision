@@ -185,7 +185,7 @@ export default function Signup() {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md bg-white/60 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center"
+          className="w-full max-w-md bg-white/80 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-center"
         >
           <div className="w-20 h-20 rounded-full bg-success/10 flex items-center justify-center mx-auto mb-6">
             <CheckCircle2 className="w-10 h-10 text-success" />
@@ -235,10 +235,10 @@ export default function Signup() {
         </button>
 
         {/* Form Card */}
-        <div className="bg-white/60 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div className="bg-white/80 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/10 mx-auto flex items-center justify-center mb-4 shadow-2xl shadow-blue-900/5">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-4 shadow-xl shadow-primary/10">
               <MarkVisionLogo className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900">Создайте аккаунт</h1>

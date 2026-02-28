@@ -98,7 +98,7 @@ export default function ResetPassword() {
         </div>
 
         {/* Form Card */}
-        <div className="bg-white/60 backdrop-blur-3xl border rounded-2xl p-6 shadow-2xl shadow-blue-900/5">
+        <div className="bg-white/80 backdrop-blur-3xl border rounded-2xl p-6 shadow-2xl shadow-blue-900/5">
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-success/10 mx-auto flex items-center justify-center mb-4">

@@ -195,7 +195,7 @@ export default function Auth() {
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-slate-200">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-white shadow-xl shadow-slate-200/50 border border-slate-100">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
           <p className="text-slate-500 text-sm">Подключение к базе данных…</p>
@@ -258,7 +258,7 @@ export default function Auth() {
           transition={{ delay: 0.1, duration: 0.5 }}
           className="text-center mb-8"
         >
-          <div className="w-20 h-20 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-slate-200 shadow-2xl mb-4">
+          <div className="w-20 h-20 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-2xl shadow-slate-900/20 mb-4">
             <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain scale-110" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -277,7 +277,7 @@ export default function Auth() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="bg-white/60 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-6 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
+          <div className="bg-white/80 backdrop-blur-3xl border border-white/60 rounded-[2.5rem] p-6 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)]">
 
             {/* Back button (forgot-password) */}
             {mode === 'forgot-password' && (
