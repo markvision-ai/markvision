@@ -227,14 +227,14 @@ export const LeadCard = ({
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
         'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-200',
-        'bg-card border border-border shadow-sm hover:shadow-md',
+        'bg-card border border-white/50 shadow-sm hover:shadow-md',
         needsAttention && 'border-red-300 ring-1 ring-red-200',
         isMegaTier && !needsAttention && 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20',
         hasHighScore && !needsAttention && 'border-red-200 ring-1 ring-red-100',
         isGoldenLead && !needsAttention && 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/15',
 
         selectionMode ? 'cursor-pointer' : 'cursor-pointer active:cursor-grabbing',
-        showDragging && 'shadow-lg z-50 scale-[1.02] border-primary',
+        showDragging && 'shadow-2xl shadow-blue-900/5 z-50 scale-[1.02] border-primary',
         isSelected && 'ring-2 ring-primary ring-offset-2 bg-primary/5 border-primary',
         !isGoldenLead && !needsAttention && scoreTier.color
       )}
@@ -294,7 +294,7 @@ export const LeadCard = ({
           scoreTier.tier === 'WARM' && "bg-amber-500/10 border-amber-500/20",
           scoreTier.tier === 'COLD' && "bg-blue-500/10 border-blue-500/20",
           scoreTier.tier === 'MEGA' && "bg-amber-500/15 border-amber-500/30",
-          (scoreTier.tier === 'HIGH' || scoreTier.tier === 'MEDIUM') && "bg-muted/50 border-border"
+          (scoreTier.tier === 'HIGH' || scoreTier.tier === 'MEDIUM') && "bg-muted/50 border-white/50"
         )}>
           {scoreTier.icon}
           <span className={cn(
@@ -319,7 +319,7 @@ export const LeadCard = ({
       <div className="flex items-start gap-3 mb-3 relative z-10">
         {selectionMode ? (
           <div
-            className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-border"
+            className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-white/50"
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
@@ -329,7 +329,7 @@ export const LeadCard = ({
             />
           </div>
         ) : (
-          <div className="w-9 h-9 rounded-lg bg-muted/50 border border-border flex items-center justify-center flex-shrink-0 group-hover:bg-muted transition-colors">
+          <div className="w-9 h-9 rounded-lg bg-muted/50 border border-white/50 flex items-center justify-center flex-shrink-0 group-hover:bg-muted transition-colors">
             <GripVertical className="w-4 h-4 text-muted-foreground" />
           </div>
         )}
@@ -344,7 +344,7 @@ export const LeadCard = ({
               {displayName}
             </h4>
             {lead.ltv && lead.ltv > 0 && (
-              <Badge variant="secondary" className="text-[10px] font-semibold px-1.5 py-0 h-5 flex-shrink-0 bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border-0">
+              <Badge variant="secondary" className="text-[10px] font-semibold px-1.5 py-0 h-5 flex-shrink-0 bg-blue-500/15 text-blue-700 dark:text-blue-400 border-0">
                 <DollarSign className="w-2.5 h-3 mr-0.5" />
                 {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.ltv)}
               </Badge>
@@ -370,7 +370,7 @@ export const LeadCard = ({
         </div>
 
         {selectedDate && (
-          <div className="flex items-center gap-2 text-[11px] text-emerald-600 dark:text-emerald-400 px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+          <div className="flex items-center gap-2 text-[11px] text-blue-600 dark:text-blue-400 px-2 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
             <Sparkles className="w-3.5 h-3.5 flex-shrink-0" />
             <span className="truncate font-semibold uppercase tracking-wide">
               Записан: {selectedDate}
@@ -419,7 +419,7 @@ export const LeadCard = ({
             "p-3 rounded-xl border",
             isGoldenLead
               ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
-              : "bg-muted/50 border-border"
+              : "bg-muted/50 border-white/50"
           )}>
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className={cn(
@@ -437,7 +437,7 @@ export const LeadCard = ({
                   {new Intl.NumberFormat('ru-RU').format(Math.round(marketingBudget))} ₸
                 </p>
               </div>
-              <div className="text-right border-l border-border pl-3">
+              <div className="text-right border-l border-white/50 pl-3">
                 <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Потенциал x3</p>
                 <p className="text-sm font-semibold text-primary">
                   {new Intl.NumberFormat('ru-RU').format(Math.round(growthPotential))} ₸
@@ -450,7 +450,7 @@ export const LeadCard = ({
 
       {/* Quick Actions */}
       <div
-        className="flex gap-2 mt-auto pt-2 border-t border-border relative z-10"
+        className="flex gap-2 mt-auto pt-2 border-t border-white/50 relative z-10"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <TooltipProvider delayDuration={300}>
@@ -462,7 +462,7 @@ export const LeadCard = ({
                 className={cn(
                   "h-9 flex-1 rounded-lg border",
                   lead.phone
-                    ? "bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border-emerald-500/30"
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
                     : "opacity-50 cursor-not-allowed"
                 )}
                 onClick={(e) => {

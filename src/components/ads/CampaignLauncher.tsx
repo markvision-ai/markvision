@@ -172,7 +172,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
                 side="right"
-                className="w-full sm:max-w-xl p-0 border-l border-border bg-card shadow-2xl overflow-hidden flex flex-col"
+                className="w-full sm:max-w-xl p-0 border-l border-white/50 bg-card shadow-2xl overflow-hidden flex flex-col"
             >
                 {/* Decorative Header Background */}
                 <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
@@ -183,15 +183,15 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                             <motion.div
                                 whileHover={{ scale: 1.05, rotate: 5 }}
                                 whileTap={{ scale: 0.95 }}
-                                className="w-20 h-20 rounded-3xl bg-emerald-500/10 flex items-center justify-center border border-emerald-500/20 shadow-[0_8px_30px_rgb(16,185,129,0.12)]"
+                                className="w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center border border-blue-500/20 shadow-[0_8px_30px_rgb(16,185,129,0.12)]"
                             >
-                                <Rocket className="w-10 h-10 text-emerald-600" />
+                                <Rocket className="w-10 h-10 text-blue-600" />
                             </motion.div>
                             <div className="flex flex-col gap-1.5">
                                 <SheetTitle className="text-3xl font-extrabold tracking-tight text-slate-900">Запуск кампании</SheetTitle>
                                 <div className="flex items-center gap-3">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.6)]" />
-                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-emerald-600/80">Система готова к запуску</span>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse shadow-[0_0_12px_rgba(16,185,129,0.6)]" />
+                                    <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-blue-600/80">Система готова к запуску</span>
                                 </div>
                             </div>
                         </div>
@@ -229,11 +229,11 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         <Target className="w-3.5 h-3.5 text-primary" /> Цель кампании
                                     </Label>
                                     <Select value={objective} onValueChange={setObjective}>
-                                        <SelectTrigger className="bg-muted border-border h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
+                                        <SelectTrigger className="bg-muted border-white/50 h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-card border-border rounded-2xl shadow-xl">
-                                            <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-emerald-600">💬 Telegram/WA Директ</SelectItem>
+                                        <SelectContent className="bg-card border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                            <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-600">💬 Telegram/WA Директ</SelectItem>
                                             <SelectItem value="traffic" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-600">🔗 Трафик на сайт</SelectItem>
                                         </SelectContent>
                                     </Select>
@@ -242,7 +242,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                 {/* Budget */}
                                 <div className="space-y-4">
                                     <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                                        <DollarSign className="w-3.5 h-3.5 text-emerald-500" /> Дневной бюджет ($)
+                                        <DollarSign className="w-3.5 h-3.5 text-blue-500" /> Дневной бюджет ($)
                                     </Label>
                                     <div className="relative group/budget">
                                         <Input
@@ -250,10 +250,10 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                             placeholder="50"
                                             value={budget}
                                             onChange={(e) => setBudget(e.target.value)}
-                                            className="bg-white border-slate-200/60 h-16 rounded-2xl text-xl font-bold text-slate-900 pl-12 focus:ring-emerald-500/10 focus:border-emerald-500/30 transition-all shadow-[0_2px_15px_rgba(0,0,0,0.02)]"
+                                            className="bg-white border-slate-200/60 h-16 rounded-2xl text-xl font-bold text-slate-900 pl-12 focus:ring-blue-500/10 focus:border-blue-500/30 transition-all shadow-[0_2px_15px_rgba(0,0,0,0.02)]"
                                             min="5"
                                         />
-                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-emerald-500/40 text-lg transition-colors group-focus-within/budget:text-emerald-500">$</span>
+                                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-black text-blue-500/40 text-lg transition-colors group-focus-within/budget:text-blue-500">$</span>
                                     </div>
                                 </div>
                             </div>
@@ -285,7 +285,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         onClick={() => setStartTime('now')}
                                         className={cn(
                                             "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-sm",
-                                            startTime === 'now' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-border hover:bg-muted"
+                                            startTime === 'now' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-white/50 hover:bg-muted"
                                         )}
                                     >
                                         <RadioGroupItem value="now" id="now" className="border-primary" />
@@ -298,7 +298,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         onClick={() => setStartTime('midnight')}
                                         className={cn(
                                             "flex items-center space-x-3 px-6 py-5 rounded-[1.5rem] border transition-all cursor-pointer group shadow-sm",
-                                            startTime === 'midnight' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-border hover:bg-muted"
+                                            startTime === 'midnight' ? "bg-primary/5 border-primary/30" : "bg-muted/50 border-white/50 hover:bg-muted"
                                         )}
                                     >
                                         <RadioGroupItem value="midnight" id="midnight" className="border-primary" />
@@ -313,7 +313,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                             {/* Creative Uploader */}
                             <div className="space-y-4">
                                 <Label className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 flex items-center gap-2">
-                                    <Upload className="w-3.5 h-3.5 text-emerald-500" /> Рекламный креатив
+                                    <Upload className="w-3.5 h-3.5 text-blue-500" /> Рекламный креатив
                                 </Label>
 
                                 <AnimatePresence mode="wait">
@@ -326,7 +326,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                             className="group relative overflow-hidden border-2 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 cursor-pointer rounded-[2rem] p-12 transition-all flex flex-col items-center justify-center gap-4 bg-white/[0.01] shadow-inner"
                                         >
                                             <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            <div className="w-20 h-20 rounded-[2rem] bg-muted border border-border flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+                                            <div className="w-20 h-20 rounded-[2rem] bg-muted border border-white/50 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
                                                 <Upload className="w-10 h-10 text-primary animate-bounce" />
                                             </div>
                                             <div className="text-center relative z-10">
@@ -345,7 +345,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         <motion.div
                                             initial={{ opacity: 0, scale: 0.95 }}
                                             animate={{ opacity: 1, scale: 1 }}
-                                            className="relative rounded-[2rem] overflow-hidden border border-border aspect-video bg-black flex items-center justify-center shadow-xl group"
+                                            className="relative rounded-[2rem] overflow-hidden border border-white/50 aspect-video bg-black flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.04)] group"
                                         >
                                             {file.type.startsWith('image/') ? (
                                                 <img src={previewUrl!} alt="Preview" className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
@@ -378,7 +378,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                             form="campaign-launch-form"
                             type="submit"
                             disabled={isSubmitting}
-                            className="w-full h-24 rounded-3xl bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white shadow-[0_20px_50px_rgba(16,185,129,0.2)] transition-all relative overflow-hidden group border-0"
+                            className="w-full h-24 rounded-3xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white shadow-[0_20px_50px_rgba(16,185,129,0.2)] transition-all relative overflow-hidden group border-0"
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
 

@@ -104,14 +104,14 @@ interface KpiCardProps {
 const KpiCard = ({ label, value, icon, glow }: KpiCardProps) => {
   const glowClass =
     glow === 'green'
-      ? 'border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.2)]'
+      ? 'border-blue-500/30 shadow-[0_0_18px_rgba(16,185,129,0.2)]'
       : glow === 'red'
         ? 'border-rose-500/30 shadow-[0_0_18px_rgba(244,63,94,0.15)]'
         : 'border-white/5';
 
   const textClass =
     glow === 'green'
-      ? 'text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.55)]'
+      ? 'text-blue-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.55)]'
       : glow === 'red'
         ? 'text-rose-400 drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]'
         : 'text-white';
@@ -159,7 +159,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
   const romiClass = (value: number | null) => {
     if (value === null) return 'text-muted-foreground';
     if (value >= 100)
-      return 'text-emerald-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.55)]';
+      return 'text-blue-400 font-bold drop-shadow-[0_0_8px_rgba(16,185,129,0.55)]';
     return 'text-rose-400 font-bold drop-shadow-[0_0_8px_rgba(244,63,94,0.5)]';
   };
 
@@ -275,7 +275,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
               className={cn(
                 'text-xs',
                 hasAccounts
-                  ? 'bg-emerald-500/15 border-emerald-500/30 text-emerald-400'
+                  ? 'bg-blue-500/15 border-blue-500/30 text-blue-400'
                   : 'bg-white/5 border-white/10 text-white/50'
               )}
             >

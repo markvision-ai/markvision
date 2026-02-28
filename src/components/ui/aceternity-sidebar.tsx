@@ -104,7 +104,7 @@ export const DesktopSidebar = ({
     <motion.aside
       className={cn(
         "h-screen px-4 py-4 hidden md:flex md:flex-col flex-shrink-0 sticky top-0 left-0 z-50",
-        "bg-sidebar border-r border-border",
+        "bg-sidebar border-r border-white/50",
         className
       )}
       animate={{
@@ -156,18 +156,18 @@ export const SidebarLink = ({
       className={cn(
         "relative flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
         isActive 
-          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/30 shadow-[0_0_18px_rgba(16,185,129,0.25)] ring-1 ring-emerald-500/20" 
+          ? "bg-blue-500/10 text-blue-500 border border-blue-500/30 shadow-[0_0_18px_rgba(16,185,129,0.25)] ring-1 ring-blue-500/20" 
           : "hover:bg-sidebar-muted text-sidebar-foreground/70 hover:text-sidebar-foreground",
         className
       )}
       {...props}
     >
       {isActive && (
-        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.6)]" />
+        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-blue-500 shadow-[0_0_20px_rgba(16,185,129,0.6)]" />
       )}
       <div className={cn(
         "flex-shrink-0 transition-colors duration-200",
-        isActive ? "text-emerald-500" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
+        isActive ? "text-blue-500" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
       )}>
         {link.icon}
       </div>
@@ -179,7 +179,7 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium whitespace-pre transition-colors duration-200",
-          isActive ? "text-emerald-500" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
+          isActive ? "text-blue-500" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
         )}
       >
         {link.label}

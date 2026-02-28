@@ -163,7 +163,7 @@ export const AgencyAnalytics = () => {
           title="Чистая прибыль"
           value={formatCurrency(totals.profit)}
           icon={Wallet}
-          color="bg-gradient-to-br from-emerald-600/20 to-emerald-900/20 border-emerald-500/20"
+          color="bg-gradient-to-br from-blue-600/20 to-emerald-900/20 border-blue-500/20"
           delay={0.1}
         />
         <KPICard
@@ -209,7 +209,7 @@ export const AgencyAnalytics = () => {
             </div>
             <Button
               onClick={() => { setEditingProject(null); setIsAddDialogOpen(true); }}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/20"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground shadow-2xl shadow-blue-900/5 shadow-primary/20"
             >
               <Plus className="w-4 h-4 mr-2" />
               Добавить проект
@@ -243,7 +243,7 @@ export const AgencyAnalytics = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="group relative rounded-2xl bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/5 p-5 hover:border-white/10 transition-all hover:shadow-lg hover:shadow-black/20"
+                  className="group relative rounded-2xl bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/5 p-5 hover:border-white/10 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-black/20"
                 >
                   <div className="flex flex-col md:flex-row items-center gap-6">
                     {/* Project Identity */}
@@ -282,14 +282,14 @@ export const AgencyAnalytics = () => {
                       </div>
                       <div className="text-center md:text-left">
                         <p className="text-xs text-muted-foreground mb-1">Прибыль (Net)</p>
-                        <p className={cn("font-mono font-bold text-lg", profit > 0 ? "text-emerald-400" : "text-red-400")}>
+                        <p className={cn("font-mono font-bold text-lg", profit > 0 ? "text-blue-400" : "text-red-400")}>
                           {formatCurrency(profit)}
                         </p>
                       </div>
                       <div className="hidden md:block">
                         <p className="text-xs text-muted-foreground mb-1">Маржинальность</p>
                         <div className="flex items-center gap-2">
-                          <Progress value={margin} className="h-2 w-16 bg-white/10" indicatorClassName={margin > 40 ? "bg-emerald-500" : "bg-amber-500"} />
+                          <Progress value={margin} className="h-2 w-16 bg-white/10" indicatorClassName={margin > 40 ? "bg-blue-500" : "bg-amber-500"} />
                           <span className="text-xs font-medium text-white/70">{margin.toFixed(0)}%</span>
                         </div>
                       </div>
@@ -306,7 +306,7 @@ export const AgencyAnalytics = () => {
                               <span className={cn(
                                 "text-xs font-bold",
                                 paymentStatus === 'overdue' ? "text-red-400" :
-                                  paymentStatus === 'urgent' ? "text-amber-400" : "text-emerald-400"
+                                  paymentStatus === 'urgent' ? "text-amber-400" : "text-blue-400"
                               )}>
                                 {paymentStatus === 'overdue' ? `Просрочено ${Math.abs(daysLeft)} дн.` :
                                   daysLeft === 0 ? 'Сегодня' : `Через ${daysLeft} дней`}
@@ -437,9 +437,9 @@ export const AgencyAnalytics = () => {
               </div>
             </div>
 
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-3 flex justify-between items-center">
-              <span className="text-sm font-medium text-emerald-400">Расчетная прибыль:</span>
-              <span className="text-lg font-bold text-emerald-400">
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 flex justify-between items-center">
+              <span className="text-sm font-medium text-blue-400">Расчетная прибыль:</span>
+              <span className="text-lg font-bold text-blue-400">
                 {formatCurrency(formData.revenue - (formData.team_salaries + formData.software_costs + formData.other_expenses))}
               </span>
             </div>

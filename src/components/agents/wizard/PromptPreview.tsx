@@ -27,7 +27,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
         >
             {/* Header */}
             <div className="text-center space-y-3">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-xs font-bold uppercase tracking-widest">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 text-xs font-bold uppercase tracking-widest">
                     <Sparkles className="w-4 h-4" />
                     Промпт готов
                 </div>
@@ -40,13 +40,13 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
             {/* Prompt Display */}
             <div className="relative bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-8 space-y-4">
                 {/* Animated glow effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-green-600 opacity-20 blur-xl rounded-2xl animate-pulse" />
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 opacity-20 blur-xl rounded-2xl animate-pulse" />
 
                 {/* Content */}
                 <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2 text-sm text-white/40">
-                            <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                             Системный промпт
                         </div>
                         <Button
@@ -55,7 +55,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
                             onClick={handleCopy}
                             className={cn(
                                 'text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all',
-                                copied && 'text-emerald-400'
+                                copied && 'text-blue-400'
                             )}
                         >
                             {copied ? (

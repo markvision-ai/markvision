@@ -84,7 +84,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
 
   if (loading) {
     return (
-      <Card className="bg-card border border-border">
+      <Card className="bg-card border border-white/50">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-primary" />
@@ -173,7 +173,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-card/50 border border-border">
+    <Card className="backdrop-blur-sm bg-white/70 border border-white/50">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <motion.div
@@ -198,7 +198,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="backdrop-blur-sm bg-card/50 border border-border rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -229,7 +229,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="backdrop-blur-sm bg-card/50 border border-border rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -260,7 +260,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="backdrop-blur-sm bg-card/50 border border-border rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
@@ -317,7 +317,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: index * 0.05 }}
                         className={cn(
-                          "p-4 rounded-xl border backdrop-blur-sm bg-card/50 border-border",
+                          "p-4 rounded-xl border backdrop-blur-sm bg-white/70 border-white/50",
                           "hover:border-primary/30 hover:bg-card/70 transition-all",
                           rule.is_active && "border-primary/20 bg-primary/5"
                         )}
@@ -405,7 +405,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className="p-3 rounded-lg border backdrop-blur-sm bg-card/50 border-border text-sm"
+                      className="p-3 rounded-lg border backdrop-blur-sm bg-white/70 border-white/50 text-sm"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">

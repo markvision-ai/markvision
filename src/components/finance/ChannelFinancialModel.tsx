@@ -37,9 +37,9 @@ const formatCurrency = (val: number) =>
 
 const SCENARIO_STYLES = {
   best: {
-    row: 'bg-emerald-500/5 border-l-4 border-l-emerald-500',
-    label: 'text-emerald-700 dark:text-emerald-400 font-semibold',
-    romi: 'text-emerald-600 dark:text-emerald-400',
+    row: 'bg-blue-500/5 border-l-4 border-l-blue-500',
+    label: 'text-blue-700 dark:text-blue-400 font-semibold',
+    romi: 'text-blue-600 dark:text-blue-400',
   },
   avg: {
     row: 'bg-slate-500/5 dark:bg-slate-500/10 border-l-4 border-l-slate-500 dark:border-l-slate-400',
@@ -86,7 +86,7 @@ export const ChannelFinancialModel = ({
     const styles = SCENARIO_STYLES[rowType];
     return (
       <>
-        <TableRow className={cn('border-b border-border', styles.row)}>
+        <TableRow className={cn('border-b border-white/50', styles.row)}>
           <TableCell className={cn('w-[100px] pl-4 pr-3 py-3 align-middle', styles.label)}>{name}</TableCell>
           <TableCell className="text-right py-3 px-2 align-middle w-[100px]">
             <Input
@@ -95,7 +95,7 @@ export const ChannelFinancialModel = ({
               value={cpl || ''}
               onChange={(e) => onCplChange(Number(e.target.value) || 0)}
               placeholder="0"
-              className="h-9 text-right text-sm font-mono w-full min-w-[72px] bg-background border-border"
+              className="h-9 text-right text-sm font-mono w-full min-w-[72px] bg-background border-white/50"
             />
           </TableCell>
           <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{leadsNeeded}</TableCell>
@@ -105,13 +105,13 @@ export const ChannelFinancialModel = ({
           <TableCell className="text-right py-3 px-3 font-mono text-sm font-medium tabular-nums text-foreground align-middle">{formatCurrency(revenueFromGoal)}</TableCell>
           <TableCell className={cn('text-right py-3 px-3 font-mono text-sm font-semibold tabular-nums align-middle', styles.romi)}>{Math.round(romi)}%</TableCell>
         </TableRow>
-        <TableRow className={cn('border-b border-border', styles.row)}>
+        <TableRow className={cn('border-b border-white/50', styles.row)}>
           <TableCell colSpan={8} className="px-4 pb-3 pt-0 align-top">
             <Textarea
               placeholder={`Обоснование сценария «${name}» (необязательно)`}
               value={rationale || ''}
               onChange={(e) => onRationaleChange(e.target.value)}
-              className="min-h-[28px] max-h-20 text-xs bg-background/50 border-border rounded-md resize-y w-full placeholder:text-muted-foreground/60"
+              className="min-h-[28px] max-h-20 text-xs bg-background/50 border-white/50 rounded-md resize-y w-full placeholder:text-muted-foreground/60"
             />
           </TableCell>
         </TableRow>
@@ -120,10 +120,10 @@ export const ChannelFinancialModel = ({
   };
 
   return (
-    <Card className="bg-card border border-border shadow-sm overflow-hidden">
+    <Card className="bg-card border border-white/50 shadow-sm overflow-hidden">
       <CardContent className="p-0">
         {/* Параметры */}
-        <div className="p-5 sm:p-6 border-b border-border bg-muted/20">
+        <div className="p-5 sm:p-6 border-b border-white/50 bg-muted/20">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 rounded-lg bg-primary/10">
               <Calculator className="w-5 h-5 text-primary" />
@@ -194,7 +194,7 @@ export const ChannelFinancialModel = ({
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-b border-border bg-muted/40">
+              <TableRow className="border-b border-white/50 bg-muted/40">
                 <TableHead className="w-[100px] pl-4 py-3 text-xs font-semibold text-foreground uppercase tracking-wider">Сценарий</TableHead>
                 <TableHead className="text-right py-3 px-2 w-[100px] text-xs font-semibold text-foreground uppercase tracking-wider">CPL, ₸</TableHead>
                 <TableHead className="text-right py-3 px-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">Лиды</TableHead>

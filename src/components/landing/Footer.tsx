@@ -80,7 +80,7 @@ export const Footer = () => {
         <div className="lg:col-span-4">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-12 h-12 relative flex items-center justify-center">
-              <MarkVisionLogo className="w-full h-full drop-shadow-lg" />
+              <MarkVisionLogo className="w-full h-full drop-shadow-2xl shadow-blue-900/5" />
             </div>
             <span className="font-semibold text-xl">
               <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>
@@ -160,7 +160,7 @@ export const Footer = () => {
     </div>
 
     {/* Divider */}
-    <div className="border-t border-border" />
+    <div className="border-t border-white/50" />
 
     {/* Bottom Bar */}
     <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5">

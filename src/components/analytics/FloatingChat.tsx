@@ -25,7 +25,7 @@ export const AIFloatingChat = ({ context }: FloatingChatProps) => {
     <div className="fixed bottom-6 right-6 z-50">
       <Sheet open={open} onOpenChange={setOpen}>
         <SheetTrigger asChild>
-          <Button variant="default" size="lg" className={cn("gap-2 rounded-full shadow-md hover:shadow-lg transition-all")}>
+          <Button variant="default" size="lg" className={cn("gap-2 rounded-full shadow-md hover:shadow-2xl shadow-blue-900/5 transition-all")}>
             <Bot className="w-5 h-5" />
             AI Ассистент
           </Button>

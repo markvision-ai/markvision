@@ -45,8 +45,8 @@ const statusConfig = {
   converted: {
     label: 'Пришёл',
     icon: CheckCircle,
-    color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
-    iconColor: 'text-emerald-500'
+    color: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+    iconColor: 'text-blue-500'
   },
   cancelled: {
     label: 'Отменено',
@@ -168,7 +168,7 @@ export const ReferralsList = ({ leadId, projectId }: ReferralsListProps) => {
                 <div className={cn(
                   "w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all",
                   referral.status === 'converted' 
-                    ? "bg-gradient-to-br from-emerald-500 to-teal-600 shadow-lg shadow-emerald-500/30"
+                    ? "bg-gradient-to-br from-blue-500 to-cyan-500 shadow-2xl shadow-blue-900/5 shadow-blue-500/30"
                     : "bg-gradient-to-br from-blue-500/20 to-indigo-500/20"
                 )}>
                   <Icon className={cn(
@@ -204,7 +204,7 @@ export const ReferralsList = ({ leadId, projectId }: ReferralsListProps) => {
                     </div>
                     <div>
                       {referral.converted_at ? (
-                        <span className="text-emerald-500 font-medium">
+                        <span className="text-blue-500 font-medium">
                           Пришёл {format(new Date(referral.converted_at), 'd MMM', { locale: ru })}
                         </span>
                       ) : referral.sent_at ? (

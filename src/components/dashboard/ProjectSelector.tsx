@@ -65,10 +65,10 @@ export const ProjectSelector = ({
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="gap-2 min-w-[180px] max-w-[300px] justify-between bg-black/5 dark:bg-white/[0.05] border border-border/10 hover:bg-black/10 dark:hover:bg-white/[0.08] hover:border-primary/30 transition-all duration-300 rounded-xl px-4 py-2.5 h-auto text-sm font-medium group"
+            className="gap-2 min-w-[180px] max-w-[300px] justify-between bg-black/5 dark:bg-white/[0.05] border border-white/50 hover:bg-black/10 dark:hover:bg-white/[0.08] hover:border-primary/30 transition-all duration-300 rounded-xl px-4 py-2.5 h-auto text-sm font-medium group"
           >
             <div className="flex items-center gap-2 truncate">
-              <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+              <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
               <span className="truncate text-foreground/90 group-hover:text-foreground transition-colors">
                 {currentProject?.name || 'Выберите проект'}
               </span>
@@ -76,7 +76,7 @@ export const ProjectSelector = ({
             <ChevronDown className="w-4 h-4 shrink-0 opacity-40 group-hover:opacity-70 group-hover:text-primary transition-all" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="start" className="w-[280px] bg-popover/95 backdrop-blur-lg border-border/10 shadow-2xl">
+        <DropdownMenuContent align="start" className="w-[280px] bg-popover/95 backdrop-blur-lg border-white/50 shadow-2xl">
           {projects.length === 0 ? (
             <div className="px-2 py-4 text-center text-muted-foreground text-sm">
               Нет доступных проектов

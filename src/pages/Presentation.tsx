@@ -108,7 +108,7 @@ const ModuleCard = ({
       <div className="relative h-full rounded-2xl border border-white/[0.08] bg-[#0a0d14]/80 backdrop-blur-2xl p-6 sm:p-8 flex flex-col">
         {/* Icon */}
         <div
-          className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-5 shadow-lg`}
+          className={`w-12 h-12 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center mb-5 shadow-2xl shadow-blue-900/5`}
         >
           <Icon className="w-6 h-6 text-white" />
         </div>
@@ -469,7 +469,7 @@ export default function Presentation() {
                 {[
                   { icon: BarChart3, label: "Аналитика", color: "from-cyan-500 to-blue-500" },
                   { icon: Factory, label: "Контент", color: "from-purple-500 to-pink-500" },
-                  { icon: Brain, label: "Стратегия", color: "from-emerald-500 to-teal-500" },
+                  { icon: Brain, label: "Стратегия", color: "from-blue-500 to-cyan-400" },
                 ].map((item) => (
                   <motion.div
                     key={item.label}
@@ -534,7 +534,7 @@ export default function Presentation() {
               icon={TrendingUp}
               title="Финансовый Терминал"
               subtitle="Декомпозиция целей и юнит-экономика"
-              gradient="from-emerald-500 to-teal-500"
+              gradient="from-blue-500 to-cyan-400"
               delay={0}
               features={[
                 "От цели в тенге — до каждого клика. Полная декомпозиция воронки.",
@@ -599,7 +599,7 @@ export default function Presentation() {
           <div className="text-center mb-14">
             <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
               Цифры, которые{" "}
-              <span className="bg-gradient-to-r from-cyan-400 to-emerald-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
                 говорят сами
               </span>
             </h2>
@@ -664,15 +664,15 @@ export default function Presentation() {
            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */}
         <Section className="py-32" id="tech">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/[0.06] mb-6">
-              <Shield className="w-3 h-3 text-emerald-400" />
-              <span className="text-xs text-emerald-400 font-medium uppercase tracking-wide">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-blue-500/20 bg-blue-500/[0.06] mb-6">
+              <Shield className="w-3 h-3 text-blue-400" />
+              <span className="text-xs text-blue-400 font-medium uppercase tracking-wide">
                 Astana Hub Ready
               </span>
             </div>
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-4">
               Технологический{" "}
-              <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
                 стек
               </span>
             </h2>
@@ -699,9 +699,9 @@ export default function Presentation() {
                 whileHover={{ scale: 1.05, y: -4 }}
                 className="relative group cursor-default"
               >
-                <div className="absolute -inset-0.5 bg-gradient-to-b from-emerald-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg" />
+                <div className="absolute -inset-0.5 bg-gradient-to-b from-blue-500/20 to-cyan-500/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 blur-lg" />
                 <div className="relative rounded-xl border border-white/[0.06] bg-[#0a0d14]/80 backdrop-blur-xl p-4 text-center h-full">
-                  <tech.icon className="w-5 h-5 text-emerald-400 mx-auto mb-2" />
+                  <tech.icon className="w-5 h-5 text-blue-400 mx-auto mb-2" />
                   <p className="text-sm font-semibold text-white font-mono">{tech.name}</p>
                   <p className="text-[11px] text-gray-500 mt-1">{tech.desc}</p>
                 </div>
@@ -717,11 +717,11 @@ export default function Presentation() {
             transition={{ delay: 0.4 }}
             className="mt-12 text-center"
           >
-            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl border border-emerald-500/10 bg-emerald-500/[0.03]">
-              <Shield className="w-4 h-4 text-emerald-400" />
+            <div className="inline-flex items-center gap-3 px-6 py-3 rounded-xl border border-blue-500/10 bg-blue-500/[0.03]">
+              <Shield className="w-4 h-4 text-blue-400" />
               <span className="text-sm text-gray-400">
                 Резидент{" "}
-                <span className="text-emerald-400 font-semibold">Astana Hub</span>{" "}
+                <span className="text-blue-400 font-semibold">Astana Hub</span>{" "}
                 — IT-парк Казахстана. Налоговые льготы. Международная экспертиза.
               </span>
             </div>

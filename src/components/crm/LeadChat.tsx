@@ -253,7 +253,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center shadow-2xl shadow-primary/20">
               <MessageSquare className="w-6 h-6 text-white drop-shadow-md" />
             </div>
-            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 border-2 border-[#0A0A0B] shadow-lg animate-pulse" />
+            <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-blue-500 border-2 border-[#0A0A0B] shadow-2xl shadow-blue-900/5 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -370,7 +370,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                                 variant="ghost"
                                 size="icon"
                                 onClick={() => deleteMessage(msg.id)}
-                                className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive shadow-lg"
+                                className="h-8 w-8 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive shadow-2xl shadow-blue-900/5"
                               >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </Button>
@@ -479,7 +479,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
 
           <div className="flex items-center justify-center gap-6 opacity-30">
             <div className="flex items-center gap-2 font-black text-[9px] uppercase tracking-[0.2em]">
-              <ShieldCheck className="w-3 h-3 text-emerald-500" />
+              <ShieldCheck className="w-3 h-3 text-blue-500" />
               END-TO-END ENCRYPTED
             </div>
             <div className="flex items-center gap-2 font-black text-[9px] uppercase tracking-[0.2em]">

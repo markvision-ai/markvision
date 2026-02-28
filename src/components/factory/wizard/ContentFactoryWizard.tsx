@@ -419,7 +419,7 @@ export const ContentFactoryWizard = () => {
                                         }}
                                         disabled={state.isEnhancing || !state.mainDescription}
                                         className={cn(
-                                            "text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
+                                            "text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 transition-all rounded-lg font-bold text-[10px] uppercase tracking-widest",
                                             state.isEnhancing && "animate-pulse"
                                         )}
                                     >
@@ -429,14 +429,14 @@ export const ContentFactoryWizard = () => {
                                 </div>
                                 <div className="relative group overflow-hidden rounded-xl">
                                     <div className={cn(
-                                        "absolute -inset-0.5 bg-gradient-to-r from-emerald-600 to-green-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
+                                        "absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-green-600 opacity-10 group-focus-within:opacity-40 transition duration-500 blur-md",
                                         state.isEnhancing && "opacity-100 animate-pulse"
                                     )} />
                                     <Textarea
                                         placeholder="Основная идея дизайна или текст поста..."
                                         value={state.mainDescription}
                                         onChange={(e) => updateState({ mainDescription: e.target.value })}
-                                        className="relative min-h-[200px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-emerald-500/30 transition-all resize-none rounded-xl leading-relaxed text-base backdrop-blur-xl"
+                                        className="relative min-h-[200px] bg-[#050505]/80 border-white/5 text-white p-6 focus:border-blue-500/30 transition-all resize-none rounded-xl leading-relaxed text-base backdrop-blur-xl"
                                     />
                                     <div className="absolute bottom-4 right-4 text-[10px] text-white/15 select-none">
                                         {state.mainDescription?.length || 0} символов
@@ -536,7 +536,7 @@ export const ContentFactoryWizard = () => {
                                     "relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 group hover:shadow-md bg-card",
                                     state.aspectRatio === ratio
                                         ? "border-primary bg-primary/5 ring-1 ring-primary"
-                                        : "border-border hover:border-primary/50"
+                                        : "border-white/50 hover:border-primary/50"
                                 )}
                             >
                                 <div className="text-center space-y-3">
@@ -559,7 +559,7 @@ export const ContentFactoryWizard = () => {
                                     </div>
                                 </div>
                                 {state.aspectRatio === ratio && (
-                                    <div className="absolute top-2 right-2 p-1.5 bg-primary rounded-full shadow-lg">
+                                    <div className="absolute top-2 right-2 p-1.5 bg-primary rounded-full shadow-2xl shadow-blue-900/5">
                                         <Check className="w-3 h-3 text-primary-foreground" />
                                     </div>
                                 )}
@@ -576,7 +576,7 @@ export const ContentFactoryWizard = () => {
                         onClick={nextStep}
                         disabled={!state.aspectRatio}
                         size="lg"
-                        className="w-full text-lg py-7 rounded-2xl shadow-lg transition-all duration-300 disabled:opacity-50"
+                        className="w-full text-lg py-7 rounded-2xl shadow-2xl shadow-blue-900/5 transition-all duration-300 disabled:opacity-50"
                     >
                         Продолжить
                         <ArrowRight className="w-6 h-6 ml-3" />
@@ -603,7 +603,7 @@ export const ContentFactoryWizard = () => {
                 <div className="flex items-center gap-3">
                     <div className="flex -space-x-2">
                         {[1, 2, 3].map(i => (
-                            <div key={i} className="w-8 h-8 rounded-full border border-border bg-muted flex items-center justify-center overflow-hidden">
+                            <div key={i} className="w-8 h-8 rounded-full border border-white/50 bg-muted flex items-center justify-center overflow-hidden">
                                 <span className="text-[10px] text-muted-foreground">{i}</span>
                             </div>
                         ))}
@@ -701,8 +701,8 @@ export const ContentFactoryWizard = () => {
 
                 {/* Right Column: Parameters */}
                 <div className="lg:col-span-5 flex flex-col">
-                    <div className="bg-card rounded-3xl p-8 border border-border flex-1 flex flex-col shadow-sm">
-                        <h3 className="text-sm font-bold text-foreground uppercase tracking-[0.3em] border-b border-border pb-6 mb-8 flex items-center gap-3">
+                    <div className="bg-card rounded-3xl p-8 border border-white/50 flex-1 flex flex-col shadow-sm">
+                        <h3 className="text-sm font-bold text-foreground uppercase tracking-[0.3em] border-b border-white/50 pb-6 mb-8 flex items-center gap-3">
                             <Cpu className="w-4 h-4 text-primary" />
                             Настройки
                         </h3>
@@ -746,7 +746,7 @@ export const ContentFactoryWizard = () => {
                                             <SelectTrigger className="bg-background border-input h-10 rounded-xl focus:ring-primary/50">
                                                 <SelectValue />
                                             </SelectTrigger>
-                                            <SelectContent className="bg-popover border-border text-popover-foreground">
+                                            <SelectContent className="bg-popover border-white/50 text-popover-foreground">
                                                 <SelectItem value="3">⚡️ 3 карточки (Экспресс)</SelectItem>
                                                 <SelectItem value="5">🔥 5 карточек (Стандарт)</SelectItem>
                                                 <SelectItem value="7">💎 7 карточек (Прогрев)</SelectItem>
@@ -763,7 +763,7 @@ export const ContentFactoryWizard = () => {
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'feed'
                                                         ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                        : "bg-background border-border text-muted-foreground hover:bg-accent"
+                                                        : "bg-background border-white/50 text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'feed' })}
                                             >
@@ -775,7 +775,7 @@ export const ContentFactoryWizard = () => {
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'story'
                                                         ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                        : "bg-background border-border text-muted-foreground hover:bg-accent"
+                                                        : "bg-background border-white/50 text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'story' })}
                                             >
@@ -815,7 +815,7 @@ export const ContentFactoryWizard = () => {
                         onClick={handleGenerate}
                         disabled={state.isGenerating || !state.category}
                         className={cn(
-                            "h-12 px-6 rounded-xl font-bold shadow-lg transition-all",
+                            "h-12 px-6 rounded-xl font-bold shadow-2xl shadow-blue-900/5 transition-all",
                             !state.isGenerating && state.category
                                 ? ""
                                 : "opacity-50"
@@ -911,8 +911,8 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
                             className={cn(
                                 "w-20 h-20 rounded-2xl flex items-center justify-center transition-all duration-700 border",
                                 i < currentStep ? "bg-primary/10 border-primary text-primary" :
-                                    i === currentStep ? "bg-primary text-primary-foreground shadow-lg scale-110 ring-4 ring-primary/20" :
-                                        "bg-muted border-border text-muted-foreground"
+                                    i === currentStep ? "bg-primary text-primary-foreground shadow-2xl shadow-blue-900/5 scale-110 ring-4 ring-primary/20" :
+                                        "bg-muted border-white/50 text-muted-foreground"
                             )}
                         >
                             {React.cloneElement(step.icon as React.ReactElement, { className: "w-8 h-8" })}
@@ -937,7 +937,7 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
             </div>
 
             {/* Production Console */}
-            <div className="w-full max-w-2xl bg-card border border-border rounded-3xl p-8 shadow-sm relative overflow-hidden">
+            <div className="w-full max-w-2xl bg-card border border-white/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
                 <div className="flex items-center justify-between mb-6">
@@ -990,7 +990,7 @@ const VisualTemplateOption = ({ label, color, active, onClick }: { label: string
             "aspect-[4/5] rounded-xl border cursor-pointer relative overflow-hidden group transition-all duration-300",
             active
                 ? "border-primary shadow-sm"
-                : "border-border hover:border-primary/50"
+                : "border-white/50 hover:border-primary/50"
         )}
     >
         <div className={cn("absolute inset-0 transition-opacity opacity-20", color)} />
@@ -1004,7 +1004,7 @@ const VisualTemplateOption = ({ label, color, active, onClick }: { label: string
         </div>
 
         {active && (
-            <div className="absolute top-1 right-1 p-1 bg-primary rounded-full shadow-lg z-20">
+            <div className="absolute top-1 right-1 p-1 bg-primary rounded-full shadow-2xl shadow-blue-900/5 z-20">
                 <Check className="w-2 h-2 text-primary-foreground" />
             </div>
         )}
@@ -1022,7 +1022,7 @@ const SourceCard = ({ icon, title, description, color, active, onClick }: any) =
             onClick={onClick}
             className={cn(
                 "group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden bg-card hover:shadow-md",
-                active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-border hover:border-primary/50",
+                active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-white/50 hover:border-primary/50",
                 "h-[320px]"
             )}
         >
@@ -1066,7 +1066,7 @@ const TypeSelectionCard = ({ icon, title, description, active, onClick, color }:
                 "flex items-center gap-4 p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group cursor-pointer bg-card",
                 active
                     ? "border-primary bg-primary/5 shadow-sm"
-                    : "border-border hover:border-primary/50 hover:bg-muted/50"
+                    : "border-white/50 hover:border-primary/50 hover:bg-muted/50"
             )}
         >
             <div className={cn(

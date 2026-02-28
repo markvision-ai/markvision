@@ -183,7 +183,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
 
         {/* Diagnostic Port Input */}
         <div className="max-w-2xl mx-auto">
-          <div className="relative bg-card border border-border rounded-[1.5rem] p-2 flex items-center shadow-lg overflow-hidden transition-all hover:shadow-xl hover:border-primary/50">
+          <div className="relative bg-card border border-white/50 rounded-[1.5rem] p-2 flex items-center shadow-2xl shadow-blue-900/5 overflow-hidden transition-all hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-primary/50">
             <div className="flex-1 flex items-center px-4 relative z-10">
               <Search className="w-5 h-5 text-muted-foreground mr-3" />
               <input
@@ -230,9 +230,9 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="max-w-xl mx-auto bg-card border border-border rounded-2xl p-6 font-mono text-xs space-y-2 shadow-sm"
+              className="max-w-xl mx-auto bg-card border border-white/50 rounded-2xl p-6 font-mono text-xs space-y-2 shadow-sm"
             >
-              <div className="flex items-center justify-between mb-4 pb-2 border-b border-border">
+              <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/50">
                 <div className="flex items-center gap-2 text-primary">
                   <Terminal className="w-4 h-4" />
                   <span className="font-bold uppercase tracking-widest">Scanning Mode</span>
@@ -282,11 +282,11 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                   <h3 className="font-bold text-sm uppercase tracking-widest text-foreground">ДНК Видео</h3>
                 </div>
 
-                <Card className="bg-card border-border rounded-3xl overflow-hidden h-full flex flex-col shadow-sm hover:shadow-md transition-all">
+                <Card className="bg-card border-white/50 rounded-3xl overflow-hidden h-full flex flex-col shadow-sm hover:shadow-md transition-all">
                   <CardContent className="p-6 space-y-6 flex-1">
                     <div className="space-y-3">
                       <div className="text-[10px] font-bold text-muted-foreground uppercase font-mono tracking-tighter">Transcription</div>
-                      <p className="text-sm text-foreground italic leading-relaxed font-mono bg-muted/50 p-4 rounded-2xl border border-border">
+                      <p className="text-sm text-foreground italic leading-relaxed font-mono bg-muted/50 p-4 rounded-2xl border border-white/50">
                         "{result.dna.transcription}"
                       </p>
                     </div>
@@ -295,7 +295,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                       <div className="text-[10px] font-bold text-muted-foreground uppercase font-mono tracking-tighter">Extracted Hooks</div>
                       <div className="space-y-2">
                         {result.dna.hooks.map((hook, i) => (
-                          <div key={i} className="flex items-start gap-3 p-3 rounded-2xl bg-muted border border-border">
+                          <div key={i} className="flex items-start gap-3 p-3 rounded-2xl bg-muted border border-white/50">
                             <Zap className="w-4 h-4 text-primary mt-0.5 shrink-0" />
                             <span className="text-sm font-bold text-foreground">{hook}</span>
                           </div>
@@ -303,7 +303,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                       </div>
                     </div>
 
-                    <div className="mt-auto pt-6 border-t border-border">
+                    <div className="mt-auto pt-6 border-t border-white/50">
                       <div className="text-[10px] font-bold text-primary uppercase font-mono tracking-tighter mb-2">Final Call to Action</div>
                       <div className="flex items-start gap-3">
                         <Target className="w-5 h-5 text-primary shrink-0 mt-1" />
@@ -330,7 +330,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                   <h3 className="font-bold text-sm uppercase tracking-widest text-foreground">Виральные триггеры</h3>
                 </div>
 
-                <Card className="bg-card border-border rounded-3xl overflow-hidden h-full shadow-sm hover:shadow-md transition-all">
+                <Card className="bg-card border-white/50 rounded-3xl overflow-hidden h-full shadow-sm hover:shadow-md transition-all">
                   <CardContent className="p-6 space-y-8">
                     <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10">
                       <h4 className="text-xs font-bold text-primary mb-3 uppercase tracking-wider">Главный секрет успеха</h4>
@@ -351,7 +351,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                       </div>
                     </div>
 
-                    <div className="space-y-4 pt-6 border-t border-border">
+                    <div className="space-y-4 pt-6 border-t border-white/50">
                       <div className="flex items-center gap-2">
                         <ShieldCheck className="w-4 h-4 text-primary" />
                         <h4 className="text-[10px] font-bold text-primary uppercase font-mono tracking-tighter">Technical Fidelity Analysis</h4>
@@ -383,7 +383,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                     <motion.div
                       key={i}
                       whileHover={{ scale: 1.02 }}
-                      className="group relative bg-card border border-border rounded-2xl p-4 transition-all hover:shadow-md"
+                      className="group relative bg-card border border-white/50 rounded-2xl p-4 transition-all hover:shadow-md"
                     >
                       <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
@@ -408,7 +408,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                         </p>
                       </div>
 
-                      <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
+                      <div className="mt-4 pt-4 border-t border-white/50 flex items-center justify-between">
                         <div className="text-[9px] font-bold text-muted-foreground uppercase font-mono tracking-widest flex items-center gap-1.5">
                           <Binary className="w-3 h-3" /> Ready for production
                         </div>

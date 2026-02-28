@@ -17,9 +17,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
 
-    --primary: 142 76% 36%;
-    /* Astana Hub Green */
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 217 91% 60%;
+    /* Apple Glass Blue */
+    --primary-foreground: 0 0% 100%;
 
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -35,7 +35,7 @@
 
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 142 76% 36%;
+    --ring: 217 91% 60%;
 
     --radius: 0.75rem;
 

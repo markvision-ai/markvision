@@ -295,7 +295,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 relative z-10">
-              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-muted/50 border border-border h-12">
+              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-muted/50 border border-white/50 h-12">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-2">Сортировка:</span>
                 <select
                   value={sortBy}
@@ -318,7 +318,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 </Button>
               </div>
 
-              <div className="p-1 rounded-2xl bg-muted/50 border border-border flex items-center gap-1">
+              <div className="p-1 rounded-2xl bg-muted/50 border border-white/50 flex items-center gap-1">
                 <Button
                   onClick={() => setIsCreatorOpen(true)}
                   className="h-12 px-8 bg-cyan-500 text-black hover:bg-cyan-400 font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] active:scale-95"
@@ -372,8 +372,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 className={cn(
                   "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-bold uppercase tracking-widest text-[10px]",
                   selectedChannel === channel.id
-                    ? "bg-muted border-border text-foreground shadow-lg"
-                    : "bg-muted/50 border-border/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-muted border-white/50 text-foreground shadow-2xl shadow-blue-900/5"
+                    : "bg-muted/50 border-white/50 text-muted-foreground hover:bg-muted hover:text-foreground"
                 )}
               >
                 {channel.id === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel.id} className="w-4 h-4" />}
@@ -386,10 +386,10 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
 
-            <div className="relative w-full overflow-hidden rounded-[32px] border border-border bg-card/80 backdrop-blur-2xl shadow-2xl">
+            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-card/80 backdrop-blur-2xl shadow-2xl">
 
               {/* Table Header Container */}
-              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-border bg-muted/30 items-center">
+              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-white/50 bg-muted/30 items-center">
                 <div className="flex items-center gap-3">
                   <BarChart3 className="w-4 h-4 text-cyan-500" />
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Контент</span>
@@ -431,7 +431,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Content */}
                         <div className="flex items-center gap-6 min-w-0 relative z-10">
-                          <div className="h-16 w-16 rounded-2xl bg-muted/50 border border-border overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-xl">
+                          <div className="h-16 w-16 rounded-2xl bg-muted/50 border border-white/50 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                             {post.media_url ? (
                               <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
                             ) : (
@@ -440,7 +440,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                               </div>
                             )}
                             <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
-                            <div className="absolute bottom-1 right-1 bg-background/90 backdrop-blur-md rounded-lg p-1 border border-border">
+                            <div className="absolute bottom-1 right-1 bg-background/90 backdrop-blur-md rounded-lg p-1 border border-white/50">
                               {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-cyan-400" /> : <FileImage className="w-3 h-3 text-purple-400" />}
                             </div>
                           </div>
@@ -457,7 +457,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Node (Channel) */}
                         <div className="flex justify-center relative z-10">
-                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-muted/50 border border-border min-w-[80px] group-hover:border-border transition-all">
+                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-muted/50 border border-white/50 min-w-[80px] group-hover:border-white/50 transition-all">
                             <ChannelIcon channel={post.channel} className="w-5 h-5 mb-1" />
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">{post.channel}</span>
                           </div>
@@ -476,12 +476,12 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Funnel Matrix */}
                         <div className="relative z-10">
-                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/10 border border-border group-hover:bg-cyan-500/15 transition-all">
+                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/10 border border-white/50 group-hover:bg-cyan-500/15 transition-all">
                             <div className="space-y-0.5">
                               <div className="text-[14px] font-black text-foreground">{post.leads_count}</div>
                               <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Лиды</div>
                             </div>
-                            <div className="space-y-0.5 border-l border-border">
+                            <div className="space-y-0.5 border-l border-white/50">
                               <div className="text-[14px] font-black text-foreground">{post.visits_count}</div>
                               <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Визиты</div>
                             </div>
@@ -491,10 +491,10 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         {/* Revenue */}
                         <div className="text-right relative z-10">
                           <div className="flex flex-col items-end">
-                            <span className="text-sm font-black text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+                            <span className="text-sm font-black text-blue-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
                               {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
                             </span>
-                            <div className="flex items-center gap-1 text-[10px] text-emerald-400/40 font-mono">
+                            <div className="flex items-center gap-1 text-[10px] text-blue-400/40 font-mono">
                               <Target className="w-2.5 h-2.5" />
                               {post.sales_count} ПРОДАЖИ
                             </div>
@@ -536,7 +536,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
       {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-card border-border text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
+        <DialogContent className="sm:max-w-[480px] bg-card border-white/50 text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
           <DialogHeader className="space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
               <Rocket className="w-8 h-8" />
@@ -550,8 +550,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
           </DialogHeader>
 
           <div className="py-6 space-y-6">
-            <div className="p-5 rounded-[24px] bg-muted/50 border border-border flex gap-5 items-center">
-              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-border relative">
+            <div className="p-5 rounded-[24px] bg-muted/50 border border-white/50 flex gap-5 items-center">
+              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-white/50 relative">
                 {selectedPost?.media_url && (
                   <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
                 )}
@@ -563,7 +563,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                   <div className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[9px] font-black uppercase font-mono">
                     ПОТЕНЦИАЛ: ВЫСОКИЙ
                   </div>
-                  <div className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase font-mono">
+                  <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-black uppercase font-mono">
                     CTR: 4.8%
                   </div>
                 </div>
@@ -571,12 +571,12 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[24px] bg-cyan-500/10 border border-border text-center space-y-1">
+              <div className="p-6 rounded-[24px] bg-cyan-500/10 border border-white/50 text-center space-y-1">
                 <div className="text-[10px] text-cyan-500 font-black uppercase tracking-widest">Прогноз лидов</div>
                 <div className="text-3xl font-black text-foreground">+50</div>
                 <div className="text-[9px] text-muted-foreground uppercase">Ожидается</div>
               </div>
-              <div className="p-6 rounded-[24px] bg-purple-500/10 border border-border text-center space-y-1">
+              <div className="p-6 rounded-[24px] bg-purple-500/10 border border-white/50 text-center space-y-1">
                 <div className="text-[10px] text-purple-500 font-black uppercase tracking-widest">Бюджет</div>
                 <div className="text-3xl font-black text-foreground">20к</div>
                 <div className="text-[9px] text-muted-foreground uppercase text-center ml-4">₸</div>

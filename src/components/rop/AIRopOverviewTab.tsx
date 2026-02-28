@@ -58,14 +58,14 @@ const formatTenge = (value: number) => {
 };
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color }: any) => (
-    <Card className="bg-card/50 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">{title}</p>
                     <h3 className="text-2xl font-bold mt-2">{value}</h3>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs",
-                        trend === 'up' ? "text-emerald-500" : "text-red-500"
+                        trend === 'up' ? "text-blue-500" : "text-red-500"
                     )}>
                         {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                         <span>{change}</span>
@@ -227,7 +227,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
             change: "за период",
             trend: "up" as const,
             icon: DollarSign,
-            color: "bg-gradient-to-br from-emerald-500 to-green-600"
+            color: "bg-gradient-to-br from-blue-500 to-green-600"
         },
         {
             title: "Конверсия",
@@ -265,7 +265,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
+                    <div className="flex bg-muted/50 p-1 rounded-lg border border-white/50">
                         <Button
                             variant={activeFilter === 'today' ? 'secondary' : 'ghost'}
                             size="sm"
@@ -302,7 +302,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-[36px] gap-2 border-border/50">
+                            <Button variant="outline" size="sm" className="h-[36px] gap-2 border-white/50">
                                 <CalendarIcon className="w-4 h-4" />
                                 {date?.from ? (
                                     date.to ? (
@@ -334,7 +334,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                         </PopoverContent>
                     </Popover>
 
-                    <Button onClick={onRefresh} variant="outline" size="sm" className="gap-2 border-border/50 h-[36px]">
+                    <Button onClick={onRefresh} variant="outline" size="sm" className="gap-2 border-white/50 h-[36px]">
                         <RefreshCw className="w-4 h-4" />
                     </Button>
                 </div>
@@ -358,7 +358,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Activity Chart — реальные лиды и продажи по дням */}
-                <Card className="lg:col-span-2 bg-card border border-border">
+                <Card className="lg:col-span-2 bg-card border border-white/50">
                     <CardHeader>
                         <CardTitle className="text-foreground">Лиды и продажи по дням</CardTitle>
                         <CardDescription className="text-muted-foreground">Динамика за выбранный период по данным CRM</CardDescription>
@@ -397,7 +397,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                 </Card>
 
                 {/* Sales Funnel — по статусам лидов */}
-                <Card className="bg-card border border-border">
+                <Card className="bg-card border border-white/50">
                     <CardHeader>
                         <CardTitle className="text-foreground">Воронка продаж</CardTitle>
                         <CardDescription className="text-muted-foreground">По статусам лидов за период</CardDescription>

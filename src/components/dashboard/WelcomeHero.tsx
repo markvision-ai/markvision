@@ -69,7 +69,7 @@ const defaultActions: QuickAction[] = [
     icon: Wallet,
     tab: 'finance',
     description: 'Прибыль',
-    color: 'text-emerald-500 bg-emerald-500/10 group-hover:bg-emerald-500/20'
+    color: 'text-blue-500 bg-blue-500/10 group-hover:bg-blue-500/20'
   },
   {
     label: 'Отчёты',
@@ -116,8 +116,8 @@ export const WelcomeHero = ({
   const statusConfig = {
     healthy: {
       icon: CheckCircle2,
-      color: 'text-emerald-500',
-      bg: 'bg-emerald-500/10',
+      color: 'text-blue-500',
+      bg: 'bg-blue-500/10',
       label: 'Все системы онлайн',
     },
     warning: {
@@ -149,7 +149,7 @@ export const WelcomeHero = ({
       transition={{ duration: 0.5 }}
       className={cn(
         "relative overflow-hidden rounded-2xl p-6 md:p-8",
-        "bg-card border border-border shadow-sm",
+        "bg-card border border-white/50 shadow-sm",
         className
       )}
     >
@@ -188,12 +188,12 @@ export const WelcomeHero = ({
             className="welcome-hero-kpi"
           >
             <div className="flex items-center gap-2 mb-2">
-              <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                <Wallet className="w-4 h-4 text-emerald-500" />
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <Wallet className="w-4 h-4 text-blue-500" />
               </div>
               <span className="kpi-label">Выручка</span>
             </div>
-            <p className="kpi-value text-emerald-600 font-mono">
+            <p className="kpi-value text-blue-600 font-mono">
               {formatCurrency(keyMetrics.revenue)}
             </p>
           </motion.div>
@@ -260,7 +260,7 @@ export const WelcomeHero = ({
                 animate="visible"
                 transition={{ delay: 0.5 + (index * 0.05) }}
                 onClick={() => onTabChange(action.tab)}
-                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card border border-border hover:bg-secondary/50 transition-all duration-300 text-left"
+                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card border border-white/50 hover:bg-secondary/50 transition-all duration-300 text-left"
               >
                 <div className={cn("p-2 rounded-lg transition-colors", action.color)}>
                   <Icon className="w-5 h-5" />

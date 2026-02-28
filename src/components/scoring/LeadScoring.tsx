@@ -246,7 +246,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: rule.id });
     const style: React.CSSProperties = { transform: CSS.Transform.toString(transform), transition };
     return (
-      <div ref={setNodeRef} style={style} className="flex items-center justify-between p-3 rounded-xl bg-muted/10 border border-border/40">
+      <div ref={setNodeRef} style={style} className="flex items-center justify-between p-3 rounded-xl bg-muted/10 border border-white/50">
         <div className="flex items-center gap-3">
           <div {...listeners} {...attributes} className="w-6 h-6 rounded-md bg-muted flex items-center justify-center cursor-grab">
             <span className="text-xs text-muted-foreground">⋮⋮</span>
@@ -516,25 +516,25 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* KPI */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="bg-card border border-border shadow-sm overflow-hidden">
+        <Card className="bg-card border border-white/50 shadow-sm overflow-hidden">
           <CardContent className="p-4">
             <p className="text-2xl font-bold tabular-nums text-foreground">{scoreStats.avg}</p>
             <p className="text-xs font-medium text-muted-foreground">Средний балл</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-red-500">
+        <Card className="bg-card border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-red-500">
           <CardContent className="p-4">
             <p className="text-2xl font-bold tabular-nums text-red-600 dark:text-red-400">{scoreStats.hot}</p>
             <p className="text-xs font-medium text-muted-foreground">Горячие (80–100)</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-amber-500">
+        <Card className="bg-card border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-amber-500">
           <CardContent className="p-4">
             <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{scoreStats.warm}</p>
             <p className="text-xs font-medium text-muted-foreground">Тёплые (50–79)</p>
           </CardContent>
         </Card>
-        <Card className="bg-card border border-border shadow-sm overflow-hidden border-l-4 border-l-blue-500">
+        <Card className="bg-card border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-blue-500">
           <CardContent className="p-4">
             <p className="text-2xl font-bold tabular-nums text-blue-600 dark:text-blue-400">{scoreStats.cold}</p>
             <p className="text-xs font-medium text-muted-foreground">Холодные (0–49)</p>
@@ -543,7 +543,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       </div>
 
       {/* Distribution & Filters */}
-      <Card className="bg-card border border-border shadow-sm">
+      <Card className="bg-card border border-white/50 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold text-foreground">Распределение и фильтры</CardTitle>
           <CardDescription className="text-sm text-muted-foreground">Фильтруйте по источнику и статусу</CardDescription>
@@ -577,7 +577,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-foreground">Источник</Label>
                 <Select value={selectedSource || 'all'} onValueChange={(v) => setSelectedSource(v || 'all')}>
-                  <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectTrigger className="bg-background border-white/50 text-foreground">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
                   <SelectContent>
@@ -593,7 +593,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
               <div className="space-y-1.5">
                 <Label className="text-sm font-medium text-foreground">Статус</Label>
                 <Select value={selectedStatus || 'all'} onValueChange={(v) => setSelectedStatus(v || 'all')}>
-                  <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectTrigger className="bg-background border-white/50 text-foreground">
                     <SelectValue placeholder="Все" />
                   </SelectTrigger>
                   <SelectContent>
@@ -610,7 +610,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* Score Legend */}
       <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-card px-4 py-2.5">
           <div className="p-1.5 rounded-full bg-red-500/15">
             <Flame className="w-4 h-4 text-red-500" />
           </div>
@@ -619,7 +619,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
             <p className="text-xs text-muted-foreground">80–100</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-card px-4 py-2.5">
           <div className="p-1.5 rounded-full bg-amber-500/15">
             <ThermometerSun className="w-4 h-4 text-amber-500" />
           </div>
@@ -628,7 +628,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
             <p className="text-xs text-muted-foreground">50–79</p>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2.5">
+        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-card px-4 py-2.5">
           <div className="p-1.5 rounded-full bg-blue-500/15">
             <Snowflake className="w-4 h-4 text-blue-500" />
           </div>
@@ -644,13 +644,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Упрощение: убрана визуализация весов */}
 
       {/* Rules Table */}
-      <Card className="bg-card border border-border shadow-sm">
+      <Card className="bg-card border border-white/50 shadow-sm">
         <CardHeader className="pb-2">
           <CardTitle className="text-base font-semibold text-foreground">Правила скоринга</CardTitle>
           <CardDescription className="text-sm text-muted-foreground">Настройте правила для автоматической оценки лидов</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="rounded-lg border border-border overflow-hidden">
+          <div className="rounded-lg border border-white/50 overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50 hover:bg-muted/50">
@@ -736,7 +736,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* Add Rule Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg border-border bg-card">
+        <DialogContent className="max-w-lg border-white/50 bg-card">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold text-foreground">Добавить правило скоринга</DialogTitle>
           </DialogHeader>
@@ -747,7 +747,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                 value={newRule.name}
                 onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                 placeholder="Например: Лид с Google Ads"
-                className="bg-background border-border text-foreground"
+                className="bg-background border-white/50 text-foreground"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -757,7 +757,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                   value={newRule.field}
                   onValueChange={(value) => setNewRule({ ...newRule, field: value })}
                 >
-                  <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectTrigger className="bg-background border-white/50 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -773,7 +773,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                   value={newRule.operator}
                   onValueChange={(value) => setNewRule({ ...newRule, operator: value })}
                 >
-                  <SelectTrigger className="bg-background border-border text-foreground">
+                  <SelectTrigger className="bg-background border-white/50 text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -790,7 +790,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                 value={newRule.value}
                 onChange={(e) => setNewRule({ ...newRule, value: e.target.value })}
                 placeholder="google"
-                className="bg-background border-border text-foreground"
+                className="bg-background border-white/50 text-foreground"
                 disabled={newRule.operator === 'is_not_empty' || newRule.operator === 'is_empty'}
               />
             </div>
@@ -801,7 +801,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                 value={newRule.score_delta}
                 onChange={(e) => setNewRule({ ...newRule, score_delta: Number(e.target.value) })}
                 placeholder="10"
-                className="bg-background border-border text-foreground"
+                className="bg-background border-white/50 text-foreground"
               />
             </div>
           </div>

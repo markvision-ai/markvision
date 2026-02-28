@@ -77,7 +77,7 @@ export const RejectionDialog = ({ open, onClose, onConfirm, leadName }: Rejectio
                   'hover:border-destructive/50 hover:bg-destructive/5',
                   selectedReason === reason.id 
                     ? 'border-destructive bg-destructive/10' 
-                    : 'border-border'
+                    : 'border-white/50'
                 )}
               >
                 {selectedReason === reason.id && (

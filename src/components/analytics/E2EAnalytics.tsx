@@ -279,7 +279,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           <h2 className="text-2xl font-bold tracking-tight text-foreground">Сквозная аналитика</h2>
           <p className="text-sm text-muted-foreground mt-1">Эффективность каналов и путь клиента от рекламы до продажи</p>
         </div>
-        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-lg border border-border">
+        <div className="flex items-center gap-2 bg-muted/50 p-1.5 rounded-lg border border-white/50">
           <DateRangePicker dateRange={dateRange} onDateRangeChange={setDateRange} />
           <Button variant="ghost" size="icon" onClick={() => { fetchLeads(); fetchDailyData(); }} className="rounded-lg h-9 w-9" title="Обновить">
             <Loader2 className={cn("w-4 h-4", loading && "animate-spin")} />
@@ -304,8 +304,8 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             value: formatCurrencyShort(totalSpend),
             sub: 'Бюджет кампаний',
             icon: DollarSign,
-            color: 'text-emerald-400',
-            bg: 'bg-emerald-500/10'
+            color: 'text-blue-400',
+            bg: 'bg-blue-500/10'
           },
           {
             label: 'Лиды',
@@ -330,7 +330,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className="bg-card border border-border shadow-sm hover:shadow-md transition-shadow group">
+            <Card className="bg-card border border-white/50 shadow-sm hover:shadow-md transition-shadow group">
               <CardContent className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div className={cn("p-2 rounded-lg", card.bg)}>
@@ -365,7 +365,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
 
       {/* Analytics Tabs Section */}
       <Tabs defaultValue="sales-roi" className="w-full" onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="w-full sm:w-auto bg-muted/50 p-1 rounded-xl border border-border">
+        <TabsList className="w-full sm:w-auto bg-muted/50 p-1 rounded-xl border border-white/50">
           {[
             { id: 'sales-roi', label: 'ROI и Продажи', icon: TrendingUp },
             { id: 'split-tests', label: 'Сплит-тесты', icon: SplitSquareVertical },
@@ -386,7 +386,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sales ROI Table */}
           <TabsContent value="sales-roi" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-card border border-border shadow-sm">
+              <Card className="bg-card border border-white/50 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <Globe className="w-5 h-5 text-primary" />
@@ -395,7 +395,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                   <CardDescription className="text-muted-foreground">Статистика по URL и кампаниям за период</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="rounded-lg border border-border overflow-hidden">
+                  <div className="rounded-lg border border-white/50 overflow-hidden">
                     <table className="w-full text-sm">
                       <thead className="bg-muted/50 text-muted-foreground text-xs uppercase font-medium">
                         <tr>
@@ -430,7 +430,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Split Tests */}
           <TabsContent value="split-tests" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-card border border-border shadow-sm">
+              <Card className="bg-card border border-white/50 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <SplitSquareVertical className="w-5 h-5 text-primary" />
@@ -440,9 +440,9 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                 </CardHeader>
                 <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {sourceStats.map((source, i) => (
-                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-border hover:bg-muted/50 transition-colors">
+                    <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-white/50 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background text-xl border border-border">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background text-xl border border-white/50">
                           {source.icon}
                         </div>
                         <div>
@@ -467,7 +467,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sources Pie */}
           <TabsContent value="sources" className="mt-6">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className="bg-card border border-border h-[400px]">
+              <Card className="bg-card border border-white/50 h-[400px]">
                 <CardHeader>
                   <CardTitle className="text-foreground">Распределение трафика</CardTitle>
                   <CardDescription className="text-muted-foreground">Лиды по источникам за период</CardDescription>

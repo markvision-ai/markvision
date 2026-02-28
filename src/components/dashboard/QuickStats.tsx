@@ -38,7 +38,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
     return 'Ключевой показатель';
   };
   return (
-    <div className="bg-card border border-border/50 rounded-xl p-4 shadow-sm">
+    <div className="bg-card border border-white/50 rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="font-semibold text-xs sm:text-sm text-foreground">Сравнение с прошлой неделей</h3>
@@ -57,7 +57,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
           return (
             <div 
               key={stat.label} 
-              className="relative bg-card rounded-lg p-3 overflow-hidden border border-border/50 transition-all duration-200 hover:border-primary/30 hover:shadow-sm group"
+              className="relative bg-card rounded-lg p-3 overflow-hidden border border-white/50 transition-all duration-200 hover:border-primary/30 hover:shadow-sm group"
             >
               {/* Accent bar */}
               <div 
@@ -80,7 +80,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
                 <div className="flex items-center justify-between gap-1.5">
                   <div className={`flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-xs font-bold ${
                     isPositive 
-                      ? 'bg-emerald-500/10 text-emerald-500' 
+                      ? 'bg-blue-500/10 text-blue-500' 
                       : isNeutral 
                         ? 'bg-muted text-muted-foreground'
                         : 'bg-red-500/10 text-red-500'

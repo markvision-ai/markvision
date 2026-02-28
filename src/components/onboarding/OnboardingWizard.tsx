@@ -261,7 +261,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                 value={clinicName}
                 onChange={(e) => setClinicName(e.target.value)}
                 placeholder="Клиника «Здоровье»"
-                className="h-14 text-lg rounded-2xl text-center bg-background border-border"
+                className="h-14 text-lg rounded-2xl text-center bg-background border-white/50"
               />
             </div>
           </motion.div>
@@ -285,7 +285,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             
             <div className="max-w-lg mx-auto space-y-4">
               {/* Facebook */}
-              <div className="bg-card/50 rounded-2xl p-4 border border-border">
+              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-2xl">
@@ -314,7 +314,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               </div>
               
               {/* Google */}
-              <div className="bg-card/50 rounded-2xl p-4 border border-border">
+              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 via-green-500 to-yellow-500 flex items-center justify-center text-white text-2xl">
                     🔍
@@ -331,12 +331,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     google: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-background border-border"
+                  className="rounded-xl bg-background border-white/50"
                 />
               </div>
               
               {/* TikTok */}
-              <div className="bg-card/50 rounded-2xl p-4 border border-border">
+              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white text-2xl">
                     🎵
@@ -353,7 +353,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     tiktok: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-background border-border"
+                  className="rounded-xl bg-background border-white/50"
                 />
               </div>
             </div>
@@ -369,7 +369,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-500 to-emerald-600 mx-auto flex items-center justify-center mb-4">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-green-500 to-blue-600 mx-auto flex items-center justify-center mb-4">
                 <MessageCircle className="w-10 h-10 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-foreground">Настройте WhatsApp</h2>
@@ -377,7 +377,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
             
             <div className="max-w-md mx-auto space-y-4">
-              <div className="bg-card/50 rounded-2xl p-6 border border-border">
+              <div className="bg-white/70 rounded-2xl p-6 border border-white/50">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white text-2xl">
                     💬
@@ -398,7 +398,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                         instanceId: e.target.value
                       })}
                       placeholder="1101234567"
-                      className="rounded-xl bg-background border-border"
+                      className="rounded-xl bg-background border-white/50"
                     />
                   </div>
                   <div>
@@ -411,7 +411,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                       })}
                       placeholder="abc123def456..."
                       type="password"
-                      className="rounded-xl bg-background border-border"
+                      className="rounded-xl bg-background border-white/50"
                     />
                   </div>
                 </div>
@@ -447,12 +447,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     value={member.name}
                     onChange={(e) => updateStaffMember(index, 'name', e.target.value)}
                     placeholder="Имя менеджера"
-                    className="rounded-xl flex-1 bg-background border-border"
+                    className="rounded-xl flex-1 bg-background border-white/50"
                   />
                   <select
                     value={member.position}
                     onChange={(e) => updateStaffMember(index, 'position', e.target.value)}
-                    className="h-10 px-3 rounded-xl border border-border bg-background text-foreground"
+                    className="h-10 px-3 rounded-xl border border-white/50 bg-background text-foreground"
                   >
                     <option value="Менеджер">Менеджер</option>
                     <option value="Администратор">Администратор</option>
@@ -474,7 +474,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               <Button
                 variant="outline"
                 onClick={addStaffMember}
-                className="w-full rounded-xl border-dashed border-border text-muted-foreground hover:text-foreground"
+                className="w-full rounded-xl border-dashed border-white/50 text-muted-foreground hover:text-foreground"
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Добавить менеджера
@@ -517,7 +517,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 2. Уточнить проблему
 3. Предложить бесплатный визит
 4. Записать на удобное время`}
-                className="min-h-[300px] rounded-2xl text-base bg-background border-border"
+                className="min-h-[300px] rounded-2xl text-base bg-background border-white/50"
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 Чем больше информации вы предоставите, тем умнее будет ваш ИИ
@@ -536,10 +536,10 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-3xl bg-card rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-border/10"
+        className="w-full max-w-3xl bg-card rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-white/50"
       >
         {/* Header */}
-        <div className="p-6 border-b border-border bg-card">
+        <div className="p-6 border-b border-white/50 bg-card">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
@@ -618,7 +618,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             <Button
               onClick={handleLaunch}
               disabled={launching}
-              className="rounded-xl bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 px-8"
+              className="rounded-xl bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 px-8"
             >
               {launching ? (
                 <>

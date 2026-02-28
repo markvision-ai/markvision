@@ -35,7 +35,7 @@ const GlassMetricCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-[2rem] p-4 bg-card border border-border shadow-sm transition-all duration-300"
+      className="relative group overflow-hidden rounded-[2rem] p-4 bg-card border border-white/50 shadow-sm transition-all duration-300"
     >
       {/* Subtle Background Glow */}
       <div className={cn(
@@ -43,7 +43,7 @@ const GlassMetricCard = ({
         gradient === 'red' && "bg-red-500",
         gradient === 'blue' && "bg-blue-500",
         gradient === 'purple' && "bg-purple-500",
-        gradient === 'emerald' && "bg-emerald-500"
+        gradient === 'emerald' && "bg-blue-500"
       )} />
 
       <div className="relative z-10 flex flex-col gap-4">
@@ -53,12 +53,12 @@ const GlassMetricCard = ({
             gradient === 'red' && "bg-red-50 border-red-100 text-red-500",
             gradient === 'blue' && "bg-blue-50 border-blue-100 text-blue-500",
             gradient === 'purple' && "bg-purple-50 border-purple-100 text-purple-500",
-            gradient === 'emerald' && "bg-emerald-50 border-emerald-100 text-emerald-500"
+            gradient === 'emerald' && "bg-blue-50 border-blue-100 text-blue-500"
           )}>
             <Icon className="w-5 h-5" />
           </div>
           {trend && (
-            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-black uppercase tracking-widest">
+            <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-black uppercase tracking-widest">
               <ArrowUpRight className="w-3 h-3" />
               {trend}
             </div>

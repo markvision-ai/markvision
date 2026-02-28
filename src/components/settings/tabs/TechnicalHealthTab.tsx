@@ -66,7 +66,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'operational': return 'bg-emerald-500';
+      case 'operational': return 'bg-blue-500';
       case 'degraded': return 'bg-amber-500';
       case 'error': return 'bg-red-500';
       default: return 'bg-muted';
@@ -76,7 +76,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'operational':
-        return <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/20">Работает</Badge>;
+        return <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20 hover:bg-blue-500/20">Работает</Badge>;
       case 'degraded':
         return <Badge className="bg-amber-500/10 text-amber-600 border-amber-500/20 hover:bg-amber-500/20">Замедлен</Badge>;
       case 'error':
@@ -116,16 +116,16 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
         <Card className={cn(
           "relative overflow-hidden border-2 transition-all duration-500",
           "bg-gradient-to-br from-background via-background to-background",
-          hasErrors ? "border-red-500/50 shadow-lg shadow-red-500/20" :
-            hasDegraded ? "border-amber-500/50 shadow-lg shadow-amber-500/20" :
-              "border-emerald-500/50 shadow-lg shadow-emerald-500/20"
+          hasErrors ? "border-red-500/50 shadow-2xl shadow-blue-900/5 shadow-red-500/20" :
+            hasDegraded ? "border-amber-500/50 shadow-2xl shadow-blue-900/5 shadow-amber-500/20" :
+              "border-blue-500/50 shadow-2xl shadow-blue-900/5 shadow-blue-500/20"
         )}>
           {/* Gradient Overlay */}
           <div className={cn(
             "absolute inset-0 opacity-10",
             hasErrors ? "bg-gradient-to-br from-red-500 to-red-600" :
               hasDegraded ? "bg-gradient-to-br from-amber-500 to-amber-600" :
-                "bg-gradient-to-br from-emerald-500 to-cyan-500"
+                "bg-gradient-to-br from-blue-500 to-cyan-500"
           )} />
 
           <CardContent className="relative py-8">
@@ -137,7 +137,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                     "relative p-4 rounded-2xl backdrop-blur-xl",
                     hasErrors ? "bg-red-500/10" :
                       hasDegraded ? "bg-amber-500/10" :
-                        "bg-emerald-500/10"
+                        "bg-blue-500/10"
                   )}
                   animate={{
                     scale: [1, 1.05, 1],
@@ -153,13 +153,13 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                   ) : hasDegraded ? (
                     <AlertTriangle className="h-10 w-10 text-amber-500" />
                   ) : (
-                    <CheckCircle2 className="h-10 w-10 text-emerald-500" />
+                    <CheckCircle2 className="h-10 w-10 text-blue-500" />
                   )}
 
                   {/* Pulsing Ring */}
                   {allOperational && (
                     <motion.div
-                      className="absolute inset-0 rounded-2xl border-2 border-emerald-500"
+                      className="absolute inset-0 rounded-2xl border-2 border-blue-500"
                       animate={{
                         scale: [1, 1.2, 1],
                         opacity: [0.5, 0, 0.5],
@@ -186,8 +186,8 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                       Последняя проверка: {lastCheckTime ? format(lastCheckTime, 'd MMM HH:mm', { locale: ru }) : 'Никогда'}
                     </p>
                     {allOperational && (
-                      <Badge className="bg-emerald-500/10 text-emerald-600 border-emerald-500/20">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 mr-2 animate-pulse" />
+                      <Badge className="bg-blue-500/10 text-blue-600 border-blue-500/20">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mr-2 animate-pulse" />
                         Защищено
                       </Badge>
                     )}
@@ -210,7 +210,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                   size="sm"
                   onClick={handleRunChecks}
                   disabled={refreshing}
-                  className="gap-2 bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600"
+                  className="gap-2 bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600"
                 >
                   <Activity className="h-4 w-4" />
                   Проверить сейчас
@@ -225,7 +225,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
       {services.length > 0 && (
         <div>
           <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <ShieldCheck className="h-5 w-5 text-emerald-500" />
+            <ShieldCheck className="h-5 w-5 text-blue-500" />
             Статус сервисов
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -238,7 +238,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
                   <Card className={cn(
-                    "relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer",
+                    "relative overflow-hidden transition-all duration-300 hover:shadow-2xl shadow-blue-900/5 cursor-pointer",
                     "bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5",
                     expandedService === service.id && "ring-2 ring-primary/50"
                   )}
@@ -249,7 +249,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                         <div className="flex items-center gap-3 flex-1">
                           <div className={cn(
                             "p-3 rounded-xl backdrop-blur-xl transition-colors",
-                            service.status === 'operational' ? "bg-emerald-500/10 text-emerald-600" :
+                            service.status === 'operational' ? "bg-blue-500/10 text-blue-600" :
                               service.status === 'degraded' ? "bg-amber-500/10 text-amber-600" :
                                 "bg-red-500/10 text-red-600"
                           )}>
@@ -344,10 +344,10 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
           Недавние инциденты
         </h3>
         {alerts.length === 0 ? (
-          <Card className="bg-gradient-to-br from-emerald-500/5 to-cyan-500/5 border-emerald-500/20">
+          <Card className="bg-gradient-to-br from-blue-500/5 to-cyan-500/5 border-blue-500/20">
             <CardContent className="py-8 text-center">
-              <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-emerald-500/50" />
-              <p className="font-medium text-emerald-600">Нет активных инцидентов</p>
+              <CheckCircle2 className="h-12 w-12 mx-auto mb-3 text-blue-500/50" />
+              <p className="font-medium text-blue-600">Нет активных инцидентов</p>
               <p className="text-sm text-muted-foreground mt-1">Все системы работают стабильно</p>
             </CardContent>
           </Card>
@@ -362,7 +362,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-500/5 to-transparent hover:shadow-lg transition-shadow">
+                  <Card className="border-l-4 border-l-red-500 bg-gradient-to-r from-red-500/5 to-transparent hover:shadow-2xl shadow-blue-900/5 transition-shadow">
                     <CardContent className="p-5">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex-1">
@@ -383,7 +383,7 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
                           variant="outline"
                           size="sm"
                           onClick={() => handleResolveAlert(alert.id)}
-                          className="shrink-0 hover:bg-emerald-500/10 hover:text-emerald-600 hover:border-emerald-500/20"
+                          className="shrink-0 hover:bg-blue-500/10 hover:text-blue-600 hover:border-blue-500/20"
                         >
                           Решено
                         </Button>
@@ -401,23 +401,23 @@ export function TechnicalHealthTab({ projectId }: TechnicalHealthTabProps) {
       <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-emerald-500" />
+            <TrendingUp className="h-5 w-5 text-blue-500" />
             Статистика доступности
           </CardTitle>
           <CardDescription>За последние 30 дней</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div className="text-center p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl border border-emerald-500/20">
-              <div className="text-3xl font-bold text-emerald-600">99.9%</div>
+            <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/20">
+              <div className="text-3xl font-bold text-blue-600">99.9%</div>
               <div className="text-sm text-muted-foreground mt-1">Uptime</div>
             </div>
             <div className="text-center p-4 bg-gradient-to-br from-cyan-500/10 to-cyan-500/5 rounded-xl border border-cyan-500/20">
               <div className="text-3xl font-bold text-cyan-600">45ms</div>
               <div className="text-sm text-muted-foreground mt-1">Avg Response</div>
             </div>
-            <div className="text-center p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl border border-emerald-500/20">
-              <div className="text-3xl font-bold text-emerald-600">
+            <div className="text-center p-4 bg-gradient-to-br from-blue-500/10 to-blue-500/5 rounded-xl border border-blue-500/20">
+              <div className="text-3xl font-bold text-blue-600">
                 {services.filter(s => s.status === 'operational').length}
               </div>
               <div className="text-sm text-muted-foreground mt-1">Активных</div>

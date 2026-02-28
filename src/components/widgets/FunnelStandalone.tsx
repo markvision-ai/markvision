@@ -88,7 +88,7 @@ export const FunnelStandalone = ({ steps, onStageClick }: FunnelStandaloneProps)
                   <ArrowRight className="w-4 h-4 text-muted-foreground" />
                   <span className="text-sm font-medium text-foreground">{c.to}</span>
                 </div>
-                <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${good ? 'bg-emerald-500/15 text-emerald-600' : 'bg-amber-500/15 text-amber-600'}`}>
+                <div className={`px-2 py-0.5 rounded-full text-xs font-semibold ${good ? 'bg-blue-500/15 text-blue-600' : 'bg-amber-500/15 text-amber-600'}`}>
                   {c.rate.toFixed(1)}%
                 </div>
               </div>

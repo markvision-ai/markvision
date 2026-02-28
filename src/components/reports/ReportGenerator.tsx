@@ -422,7 +422,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
   }, [reportData.dailyData, comparisonData.dailyData, isComparisonEnabled]);
 
   const funnelSteps = useMemo(() => [
-    { label: 'Показы', value: reportData.totals.impressions, color: 'bg-emerald-500' },
+    { label: 'Показы', value: reportData.totals.impressions, color: 'bg-blue-500' },
     { label: 'Клики', value: reportData.totals.clicks, color: 'bg-blue-500' },
     { label: 'Лиды', value: reportData.totals.leads, color: 'bg-violet-500' },
     { label: 'Диагностика', value: reportData.totals.visits, color: 'bg-orange-500' },
@@ -680,7 +680,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 shadow-lg shadow-primary/20">
+              <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 shadow-2xl shadow-blue-900/5 shadow-primary/20">
                 <FileText className="w-6 h-6 text-white" />
               </div>
               <h2 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">
@@ -791,7 +791,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                       metric.fmt === 'decimal' ? metric.current.toFixed(2) :
                         formatNumber(metric.current)}
                   </p>
-                  <div className={cn("text-xs flex items-center justify-center gap-1 mt-1 font-medium", isGood ? "text-emerald-400" : "text-red-400")}>
+                  <div className={cn("text-xs flex items-center justify-center gap-1 mt-1 font-medium", isGood ? "text-blue-400" : "text-red-400")}>
                     {change > 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
                     {Math.abs(change).toFixed(1)}%
                   </div>
@@ -836,7 +836,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
               {/* Report Header */}
               <div className="flex items-center justify-between border-b border-white/10 pb-8 mb-8 relative z-10">
                 <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
+                  <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-2xl shadow-blue-900/5 shadow-primary/20">
                     <BarChart3 className="w-8 h-8 text-white" />
                   </div>
                   <div>
@@ -890,7 +890,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                             <td className="p-5 text-center">
                               <Badge variant="outline" className={cn(
                                 "bg-transparent border-white/10 font-mono text-xs px-2 py-0.5",
-                                status.percent >= 100 ? "text-emerald-400 border-emerald-500/30 bg-emerald-500/10" :
+                                status.percent >= 100 ? "text-blue-400 border-blue-500/30 bg-blue-500/10" :
                                   status.percent >= 80 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" :
                                     "text-red-400 border-red-500/30 bg-red-500/10"
                               )}>
@@ -918,7 +918,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                     { title: 'CAC (Клиент)', value: computedMetrics.customerCost, format: formatCurrency, icon: Users, color: 'text-blue-400' },
                     { title: 'CPV (Визит)', value: computedMetrics.visitCost, format: formatCurrency, icon: ArrowDownRight, color: 'text-orange-400' },
                     { title: 'CPL (Лид)', value: computedMetrics.leadCost, format: formatCurrency, icon: Target, color: 'text-violet-400' },
-                    { title: 'ROAS', value: computedMetrics.roas, format: (v: number) => v?.toFixed(2) + 'x', icon: TrendingUp, color: 'text-emerald-400' },
+                    { title: 'ROAS', value: computedMetrics.roas, format: (v: number) => v?.toFixed(2) + 'x', icon: TrendingUp, color: 'text-blue-400' },
                   ].map((m, i) => (
                     <Card key={i} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <CardHeader className="p-5 pb-2">
@@ -983,7 +983,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   {topAds.length > 0 ? topAds.map((ad: any, i: number) => (
-                    <div key={i} className="group relative aspect-video bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all hover:shadow-lg hover:shadow-primary/5">
+                    <div key={i} className="group relative aspect-video bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-primary/5">
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all">
                         <ImageIcon className="w-10 h-10 text-white/20 group-hover:text-white/40 transition-colors" />
                       </div>
@@ -1035,7 +1035,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                     </div>
                     <div className="p-4 rounded-xl border border-white/10 bg-white/5">
                       <p className="text-xs text-white/40 mb-2">ROAS</p>
-                      <p className="text-2xl font-bold text-emerald-400 font-mono">{computedMetrics.roas.toFixed(2)}x</p>
+                      <p className="text-2xl font-bold text-blue-400 font-mono">{computedMetrics.roas.toFixed(2)}x</p>
                     </div>
                     <div className="p-4 rounded-xl border border-white/10 bg-white/5">
                       <p className="text-xs text-white/40 mb-2">Конверсия (Л - П)</p>
@@ -1108,7 +1108,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         onClick={() => setReportChannel('telegram')}
                         className={cn(
                           "flex-1 py-1.5 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
-                          reportChannel === 'telegram' ? "bg-primary text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                          reportChannel === 'telegram' ? "bg-primary text-white shadow-2xl shadow-blue-900/5" : "text-muted-foreground hover:text-white"
                         )}
                       >
                         <Send className="w-3.5 h-3.5" /> Telegram
@@ -1117,7 +1117,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         onClick={() => setReportChannel('whatsapp')}
                         className={cn(
                           "flex-1 py-1.5 text-sm font-medium rounded-md transition-all flex items-center justify-center gap-2",
-                          reportChannel === 'whatsapp' ? "bg-green-600 text-white shadow-lg" : "text-muted-foreground hover:text-white"
+                          reportChannel === 'whatsapp' ? "bg-green-600 text-white shadow-2xl shadow-blue-900/5" : "text-muted-foreground hover:text-white"
                         )}
                       >
                         <MessageCircle className="w-3.5 h-3.5" /> WhatsApp

@@ -48,7 +48,7 @@ export const AnalyticsSkeleton = () => {
       <Card className="p-6">
         <Skeleton className="h-6 w-48 mb-4" />
         <div className="space-y-3">
-          <div className="flex gap-4 py-2 border-b border-border/50">
+          <div className="flex gap-4 py-2 border-b border-white/50">
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-1/4" />
             <Skeleton className="h-4 w-1/4" />

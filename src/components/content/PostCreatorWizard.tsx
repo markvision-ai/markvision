@@ -42,7 +42,7 @@ const platforms = [
     { id: 'youtube', name: 'Ютуб', icon: Youtube, color: 'text-red-500', glow: 'shadow-red-500/20' },
     { id: 'threads', name: 'Тредс', icon: ({ className }: any) => <div className={cn("font-bold text-lg", className)}>@</div>, color: 'text-white', glow: 'shadow-white/20' },
     { id: 'telegram', name: 'Телеграм', icon: Send, color: 'text-sky-500', glow: 'shadow-sky-500/20' },
-    { id: 'site', name: 'Сайт', icon: Globe, color: 'text-emerald-500', glow: 'shadow-emerald-500/20' },
+    { id: 'site', name: 'Сайт', icon: Globe, color: 'text-blue-500', glow: 'shadow-blue-500/20' },
 ];
 
 const contentTypes = [
@@ -111,7 +111,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                     <div className={cn(
                                         "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-500",
                                         isActive ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 scale-110 shadow-[0_0_20px_rgba(6,182,212,0.3)]" :
-                                            isCompleted ? "bg-emerald-500/20 border-emerald-500/50 text-emerald-400" :
+                                            isCompleted ? "bg-blue-500/20 border-blue-500/50 text-blue-400" :
                                                 "bg-white/5 border-white/10 text-white/30"
                                     )}>
                                         {isCompleted ? <Check className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
@@ -119,7 +119,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                     <div className="flex flex-col">
                                         <span className={cn(
                                             "text-[10px] uppercase tracking-[0.2em] font-bold",
-                                            isActive ? "text-cyan-400" : isCompleted ? "text-emerald-400" : "text-white/20"
+                                            isActive ? "text-cyan-400" : isCompleted ? "text-blue-400" : "text-white/20"
                                         )}>Шаг 0{idx + 1}</span>
                                         <span className={cn(
                                             "text-sm font-bold tracking-tight",
@@ -176,7 +176,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                     className={cn(
                                                         "p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-4 group relative overflow-hidden",
                                                         selectedPlatform === p.id
-                                                            ? "bg-white/10 border-white/20 shadow-xl"
+                                                            ? "bg-white/10 border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                                                             : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
                                                     )}
                                                 >
@@ -298,7 +298,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2 px-2">
-                                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                                                <div className="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" />
                                                 <span className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Прямая синхронизация активна</span>
                                             </div>
                                         </div>

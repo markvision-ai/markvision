@@ -53,7 +53,7 @@ export const ABStatsOverview: React.FC<ABStatsOverviewProps> = ({ tests, stats, 
             {statCards.map((stat, index) => {
                 const Icon = stat.icon;
                 return (
-                    <Card key={index} className="border-border bg-card shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
+                    <Card key={index} className="border-white/50 bg-card shadow-sm relative overflow-hidden group hover:shadow-md transition-all">
                         {/* Glow effect on hover - Removed for clean style */
                         /* <div className={cn("absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none bg-gradient-to-br from-white/5 to-transparent")} /> */}
 

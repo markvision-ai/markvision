@@ -123,7 +123,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   return (
     <div className="space-y-8">
       {/* Visit Types Selection */}
-      <div className="bg-card border border-border/50 rounded-2xl p-6">
+      <div className="bg-card border border-white/50 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-primary/10">
             <FileText className="w-6 h-6 text-primary" />
@@ -138,7 +138,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       </div>
 
       {/* Results Table */}
-      <div className="bg-card border border-border/50 rounded-2xl p-6">
+      <div className="bg-card border border-white/50 rounded-2xl p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты визитов</h3>
         
         {!visitResults || visitResults.length === 0 ? (
@@ -155,7 +155,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border">
+                <tr className="border-b border-white/50">
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Клиент</th>
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Тип</th>
                   <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Дата</th>
@@ -169,7 +169,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
                   const statusConfig = getStatusConfig(lead.status);
                   
                   return (
-                    <tr key={result.id} className="border-b border-border/50 hover:bg-muted/30 transition-colors">
+                    <tr key={result.id} className="border-b border-white/50 hover:bg-muted/30 transition-colors">
                       <td className="py-3 px-4 text-foreground font-medium">
                         {lead.name || lead.phone || 'Без имени'}
                       </td>

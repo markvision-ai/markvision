@@ -119,14 +119,14 @@ export const LeadTasks = ({ leadId }: LeadTasksProps) => {
               onChange={(e) => setNewTaskTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleCreateTask()}
               autoFocus
-              className="bg-background/50 border-border/50"
+              className="bg-background/50 border-white/50"
             />
             <div className="flex gap-2">
               <Input
                 type="datetime-local"
                 value={newTaskDueDate}
                 onChange={(e) => setNewTaskDueDate(e.target.value)}
-                className="flex-1 bg-background/50 border-border/50"
+                className="flex-1 bg-background/50 border-white/50"
               />
               <Button 
                 size="sm" 
@@ -160,7 +160,7 @@ export const LeadTasks = ({ leadId }: LeadTasksProps) => {
                     'flex items-start gap-3 p-3 rounded-xl border transition-all',
                     status === 'overdue' && 'border-destructive/50 bg-gradient-to-r from-destructive/10 to-destructive/5',
                     status === 'today' && 'border-warning/50 bg-gradient-to-r from-warning/10 to-warning/5',
-                    status === 'normal' && 'border-border/50 bg-gradient-to-r from-muted/30 to-transparent'
+                    status === 'normal' && 'border-white/50 bg-gradient-to-r from-muted/30 to-transparent'
                   )}
                 >
                   <Checkbox

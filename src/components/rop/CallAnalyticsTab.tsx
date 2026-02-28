@@ -48,7 +48,7 @@ const CallTypeIcon = ({ type }: { type: 'incoming' | 'outgoing' | 'missed' }) =>
 
     const colors = {
         incoming: 'text-cyan-500',
-        outgoing: 'text-emerald-500',
+        outgoing: 'text-blue-500',
         missed: 'text-red-500',
     };
 
@@ -57,7 +57,7 @@ const CallTypeIcon = ({ type }: { type: 'incoming' | 'outgoing' | 'missed' }) =>
 
 const ScoreBadge = ({ score }: { score: number }) => {
     const getColor = () => {
-        if (score >= 80) return 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20';
+        if (score >= 80) return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
         if (score >= 60) return 'bg-amber-500/10 text-amber-500 border-amber-500/20';
         return 'bg-red-500/10 text-red-500 border-red-500/20';
     };
@@ -168,8 +168,8 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
                             </CardHeader>
                             <CardContent>
                                 <div className="grid grid-cols-3 gap-4">
-                                    <div className="text-center p-3 rounded-lg bg-emerald-500/10">
-                                        <p className="text-2xl font-bold text-emerald-500">{call.sentiment_data.positive}%</p>
+                                    <div className="text-center p-3 rounded-lg bg-blue-500/10">
+                                        <p className="text-2xl font-bold text-blue-500">{call.sentiment_data.positive}%</p>
                                         <p className="text-xs text-muted-foreground mt-1">Позитив</p>
                                     </div>
                                     <div className="text-center p-3 rounded-lg bg-slate-500/10">
@@ -249,14 +249,14 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                 <Card className={cn(
                     "relative overflow-hidden border-2 transition-all duration-500",
                     "bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5",
-                    "border-cyan-500/50 shadow-lg shadow-cyan-500/20"
+                    "border-cyan-500/50 shadow-2xl shadow-blue-900/5 shadow-cyan-500/20"
                 )}>
-                    <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-cyan-500 to-emerald-500" />
+                    <div className="absolute inset-0 opacity-10 bg-gradient-to-br from-cyan-500 to-blue-500" />
 
                     <CardHeader className="relative">
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
-                                <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-emerald-500/20 border border-cyan-500/30">
+                                <div className="p-3 rounded-xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30">
                                     <Phone className="w-6 h-6 text-cyan-500" />
                                 </div>
                                 <div>
@@ -280,7 +280,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-lg transition-shadow">
+                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-2xl shadow-blue-900/5 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -288,7 +288,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                     <p className="text-3xl font-bold">{stats.totalCalls}</p>
                                     <div className="flex gap-2 mt-2 text-xs">
                                         <span className="text-cyan-500">↓ {stats.incomingCalls}</span>
-                                        <span className="text-emerald-500">↑ {stats.outgoingCalls}</span>
+                                        <span className="text-blue-500">↑ {stats.outgoingCalls}</span>
                                         <span className="text-red-500">✕ {stats.missedCalls}</span>
                                     </div>
                                 </div>
@@ -303,7 +303,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-lg transition-shadow">
+                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-2xl shadow-blue-900/5 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -322,7 +322,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.3 }}
                 >
-                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-lg transition-shadow">
+                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-2xl shadow-blue-900/5 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
@@ -333,7 +333,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                         <span className="text-xs text-muted-foreground">из 100</span>
                                     </div>
                                 </div>
-                                <BarChart3 className="w-10 h-10 text-emerald-500/30" />
+                                <BarChart3 className="w-10 h-10 text-blue-500/30" />
                             </div>
                         </CardContent>
                     </Card>
@@ -344,18 +344,18 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
                 >
-                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-lg transition-shadow">
+                    <Card className="bg-gradient-to-br from-card/50 to-card backdrop-blur-xl border-white/5 hover:shadow-2xl shadow-blue-900/5 transition-shadow">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-muted-foreground mb-1">Конверсия</p>
                                     <p className="text-3xl font-bold">{stats.conversionRate}%</p>
-                                    <div className="flex items-center gap-1 mt-2 text-emerald-500">
+                                    <div className="flex items-center gap-1 mt-2 text-blue-500">
                                         <TrendingUp className="w-3 h-3" />
                                         <span className="text-xs">+5% за неделю</span>
                                     </div>
                                 </div>
-                                <TrendingUp className="w-10 h-10 text-emerald-500/30" />
+                                <TrendingUp className="w-10 h-10 text-blue-500/30" />
                             </div>
                         </CardContent>
                     </Card>
@@ -390,7 +390,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                     exit={{ opacity: 0, x: 20 }}
                                     transition={{ duration: 0.3, delay: index * 0.05 }}
                                 >
-                                    <Card className="hover:shadow-lg transition-all duration-300 cursor-pointer bg-gradient-to-r from-card/50 to-transparent border-l-4 border-l-transparent hover:border-l-primary"
+                                    <Card className="hover:shadow-2xl shadow-blue-900/5 transition-all duration-300 cursor-pointer bg-gradient-to-r from-card/50 to-transparent border-l-4 border-l-transparent hover:border-l-primary"
                                         onClick={() => handleViewCall(call)}
                                     >
                                         <CardContent className="p-4">

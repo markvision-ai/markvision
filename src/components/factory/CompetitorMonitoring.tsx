@@ -147,7 +147,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
       {/* Scanner Input Section */}
       <div className="max-w-2xl mx-auto w-full">
         <div className="relative group">
-          <div className="relative flex items-center bg-card rounded-xl shadow-lg border border-border p-2 pl-4 h-16 transition-all duration-300">
+          <div className="relative flex items-center bg-card rounded-xl shadow-2xl shadow-blue-900/5 border border-white/50 p-2 pl-4 h-16 transition-all duration-300">
 
             {/* Platform Icon Indicator */}
             <div className={cn(
@@ -210,7 +210,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  "group relative bg-card rounded-2xl border border-border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
+                  "group relative bg-card rounded-2xl border border-white/50 shadow-sm hover:shadow-2xl shadow-blue-900/5 transition-all duration-300 overflow-hidden flex flex-col"
                 )}
               >
                 {/* Node Status Line */}
@@ -246,14 +246,14 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
 
                   {hasAnalysis && (
                     <div className="space-y-4 mb-4">
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                      <div className="p-3 bg-muted/50 rounded-lg border border-white/50">
                         <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
                           <Target className="w-3 h-3" />
                           Niche Detected
                         </div>
                         <div className="text-sm text-foreground truncate">{analysis.niche}</div>
                       </div>
-                      <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                      <div className="p-3 bg-muted/50 rounded-lg border border-white/50">
                         <div className="flex items-center gap-2 text-[10px] font-bold text-primary uppercase tracking-wider mb-1">
                           <Users className="w-3 h-3" />
                           Audience Profile
@@ -263,7 +263,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                     </div>
                   )}
 
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-border">
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-white/50">
                     <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase">
                       <Zap className="w-3 h-3 text-yellow-500/50" />
                       <span>{comp.last_scanned_at ? `SCAN: ${new Date(comp.last_scanned_at).toLocaleDateString()}` : 'NO DATA'}</span>
@@ -272,12 +272,12 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 </div>
 
                 {/* Actions Footer */}
-                <div className="bg-muted/30 p-4 border-t border-border flex items-center gap-3 relative z-10">
+                <div className="bg-muted/30 p-4 border-t border-white/50 flex items-center gap-3 relative z-10">
                   <Button
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "flex-1 gap-2 font-bold uppercase tracking-wider text-xs border border-border hover:bg-muted transition-all",
+                      "flex-1 gap-2 font-bold uppercase tracking-wider text-xs border border-white/50 hover:bg-muted transition-all",
                       isAnalyzing && "opacity-80 cursor-wait"
                     )}
                     onClick={() => handleAnalyze(comp)}
@@ -304,9 +304,9 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                           Report
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-background border border-border p-0 gap-0 shadow-xl">
+                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-background border border-white/50 p-0 gap-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                         {/* Header */}
-                        <DialogHeader className="p-6 border-b border-border bg-muted/20">
+                        <DialogHeader className="p-6 border-b border-white/50 bg-muted/20">
                           <DialogTitle className="flex items-center gap-3 text-xl text-foreground font-mono">
                             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                               <Sparkles className="w-5 h-5 text-primary" />
@@ -323,14 +323,14 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
 
                             {/* Strategy Core */}
                             <div className="grid grid-cols-2 gap-4">
-                              <div className="bg-muted/30 p-5 rounded-2xl border border-border">
+                              <div className="bg-muted/30 p-5 rounded-2xl border border-white/50">
                                 <h4 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
                                   <Target className="w-3 h-3 text-primary" />
                                   Core Niche
                                 </h4>
                                 <p className="text-lg text-foreground font-medium leading-tight">{analysis.niche}</p>
                               </div>
-                              <div className="bg-muted/30 p-5 rounded-2xl border border-border">
+                              <div className="bg-muted/30 p-5 rounded-2xl border border-white/50">
                                 <h4 className="text-xs font-bold text-muted-foreground mb-3 uppercase tracking-wider flex items-center gap-2">
                                   <Users className="w-3 h-3 text-primary" />
                                   Audience Segment
@@ -358,8 +358,8 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                               </h4>
                               <div className="grid grid-cols-1 gap-3">
                                 {analysis.ideas?.map((idea: any, i: number) => (
-                                  <div key={i} className="group bg-card p-4 rounded-xl border border-border hover:border-primary/50 hover:bg-muted/30 transition-all flex gap-4">
-                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-muted border border-border w-12 h-12 text-muted-foreground font-mono font-bold text-lg group-hover:text-primary transition-colors">
+                                  <div key={i} className="group bg-card p-4 rounded-xl border border-white/50 hover:border-primary/50 hover:bg-muted/30 transition-all flex gap-4">
+                                    <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-muted border border-white/50 w-12 h-12 text-muted-foreground font-mono font-bold text-lg group-hover:text-primary transition-colors">
                                       {i + 1}
                                     </div>
                                     <div className="flex-1">
@@ -396,7 +396,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
         </AnimatePresence>
 
         {competitors.length === 0 && !loading && (
-          <div className="col-span-full flex flex-col items-center justify-center py-32 text-muted-foreground/30 border border-dashed border-border rounded-3xl bg-card/50">
+          <div className="col-span-full flex flex-col items-center justify-center py-32 text-muted-foreground/30 border border-dashed border-white/50 rounded-3xl bg-white/70">
             <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
               <Radar className="w-10 h-10 opacity-20" />
             </div>

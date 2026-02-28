@@ -100,7 +100,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl bg-background border-border sm:max-w-[700px]">
+            <DialogContent className="max-w-2xl bg-background border-white/50 sm:max-w-[700px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
                         <FlaskConical className="w-5 h-5 text-primary" />
@@ -139,7 +139,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                             "p-4 rounded-xl border-2 transition-all text-left flex flex-col gap-3 group hover:scale-[1.02]",
                                             isSelected
                                                 ? "border-primary bg-primary/10 shadow-sm"
-                                                : "border-border bg-card hover:bg-accent hover:border-border"
+                                                : "border-white/50 bg-card hover:bg-accent hover:border-white/50"
                                         )}
                                     >
                                         <div className={cn("p-2 rounded-lg w-fit transition-colors", isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground group-hover:bg-muted/80")}>
@@ -188,7 +188,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="grid grid-cols-2 gap-6">
                                 {/* Variant A */}
-                                <div className="space-y-4 p-4 rounded-xl border border-border bg-card">
+                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-card">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-6 h-6 rounded bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs font-bold border border-blue-500/20">A</div>
                                         <h4 className="font-bold text-foreground">Контроль</h4>
@@ -225,7 +225,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                 </div>
 
                                 {/* Variant B */}
-                                <div className="space-y-4 p-4 rounded-xl border border-border bg-card">
+                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-card">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-6 h-6 rounded bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs font-bold border border-purple-500/20">B</div>
                                         <h4 className="font-bold text-foreground">Вариант</h4>
@@ -304,9 +304,9 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
 
                 </div>
 
-                <DialogFooter className="border-t border-border pt-4">
+                <DialogFooter className="border-t border-white/50 pt-4">
                     {step > 0 && (
-                        <Button variant="outline" onClick={handleBack} className="mr-auto border-border text-foreground hover:bg-accent">
+                        <Button variant="outline" onClick={handleBack} className="mr-auto border-white/50 text-foreground hover:bg-accent">
                             <ChevronLeft className="w-4 h-4 mr-1" /> Назад
                         </Button>
                     )}

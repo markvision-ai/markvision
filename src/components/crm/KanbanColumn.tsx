@@ -53,7 +53,7 @@ export const KanbanColumn = ({
   const getColumnBg = () => {
     if (status.color === 'success') return 'bg-success/5 border-success/30';
     if (status.color === 'destructive') return 'bg-destructive/5 border-destructive/30';
-    return 'bg-muted/30 border-border';
+    return 'bg-muted/30 border-white/50';
   };
 
   const getHeaderBg = () => {
@@ -68,14 +68,14 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-border bg-card shadow-sm flex flex-col transition-all duration-200',
+        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/50 bg-card shadow-sm flex flex-col transition-all duration-200',
         isHighlighted && 'ring-2 ring-primary/30 ring-offset-2 scale-[1.01]'
       )}
     >
       {/* Column Header */}
       <div className={cn(
         "p-4 rounded-t-2xl flex flex-col gap-2",
-        status.color === 'success' && "bg-emerald-500/10",
+        status.color === 'success' && "bg-blue-500/10",
         status.color === 'destructive' && "bg-destructive/10",
         !status.color && "bg-muted/30"
       )}>
@@ -106,7 +106,7 @@ export const KanbanColumn = ({
             <div className={cn(
               "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold",
               status.color === 'success'
-                ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400'
+                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400'
                 : 'bg-primary/10 text-primary'
             )}>
               <DollarSign className="w-3 h-3" />
@@ -159,7 +159,7 @@ export const KanbanColumn = ({
         </AnimatePresence>
 
         {leads.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground rounded-xl border border-dashed border-border bg-muted/20">
+          <div className="flex flex-col items-center justify-center py-10 text-muted-foreground rounded-xl border border-dashed border-white/50 bg-muted/20">
             <span className="text-2xl mb-1">📭</span>
             <span className="text-sm font-medium">Нет лидов</span>
           </div>

@@ -227,7 +227,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
                   "ml-2 transition-colors h-5 text-[10px] px-1.5",
                   isMarkOnline === true && "bg-green-500/10 text-green-500 border-green-500/20",
                   isMarkOnline === false && "bg-red-500/10 text-red-500 border-red-500/20",
-                  isMarkOnline === null && "bg-muted text-muted-foreground border-border"
+                  isMarkOnline === null && "bg-muted text-muted-foreground border-white/50"
                 )}>
                   Марка: {isMarkOnline === true ? 'Online' : isMarkOnline === false ? 'Offline' : 'Проверка…'}
                 </Badge>
@@ -404,7 +404,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </div>
 
               {/* Main Chart */}
-              <Card className="flex-1 border-border/50 bg-card shadow-sm">
+              <Card className="flex-1 border-white/50 bg-card shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <BarChart3 className="w-4 h-4 text-primary" />
@@ -447,7 +447,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </Card>
 
               {/* Insights Block */}
-              <Card className="border-border bg-muted/30">
+              <Card className="border-white/50 bg-muted/30">
                 <CardContent className="p-4 flex items-start gap-4">
                   <div className="p-2 bg-primary/10 rounded-full mt-1">
                     <Lightbulb className="w-5 h-5 text-primary" />
@@ -482,7 +482,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 // --- Subcomponents ---
 
 const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <Card className="border-border/50 bg-card shadow-sm hover:shadow-md transition-shadow">
+  <Card className="border-white/50 bg-card shadow-sm hover:shadow-md transition-shadow">
     <CardContent className="p-4">
       <div className="flex justify-between items-start mb-2">
         <div className={cn("p-1.5 rounded-lg bg-background border", color)}>
@@ -532,7 +532,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
   };
 
   return (
-    <Card className="ai-chat-card h-full flex flex-col border-border shadow-sm">
+    <Card className="ai-chat-card h-full flex flex-col border-white/50 shadow-sm">
       <CardHeader className="px-4 py-3 border-b flex flex-row items-center justify-between space-y-0">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
@@ -655,7 +655,7 @@ const LogViewer = ({ logs }: { logs: string[] }) => {
     <div className="w-full mb-2">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg border border-border/50 cursor-pointer hover:bg-muted/50 transition-colors w-fit"
+        className="flex items-center gap-2 px-3 py-1.5 bg-muted/30 rounded-lg border border-white/50 cursor-pointer hover:bg-muted/50 transition-colors w-fit"
       >
         <Terminal className="w-3 h-3 text-muted-foreground" />
         <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
@@ -710,7 +710,7 @@ const StatsCard = ({ data }: { data: any }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
       {metrics.map((m, i) => (
-        <div key={i} className="relative overflow-hidden group bg-card border border-border rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
+        <div key={i} className="relative overflow-hidden group bg-card border border-white/50 rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
           <span className="text-lg font-bold text-foreground relative z-10">{formatValue(m.value, m.format)}</span>
         </div>
@@ -852,7 +852,7 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
                     </ReactMarkdown>
                   )}
 
-                  <div className="mt-4 pt-2 border-t border-border/50 flex justify-end">
+                  <div className="mt-4 pt-2 border-t border-white/50 flex justify-end">
                     <Button
                       variant="ghost"
                       size="sm"

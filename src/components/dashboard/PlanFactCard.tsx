@@ -92,7 +92,7 @@ export const PlanFactCard = ({
                 className={cn(
                   "text-[10px] font-semibold px-1.5 py-0 h-5",
                   isOnTrack
-                    ? "bg-emerald-500/10 text-emerald-600  border-emerald-500/20"
+                    ? "bg-blue-500/10 text-blue-600  border-blue-500/20"
                     : "bg-amber-500/10 text-amber-600  border-amber-500/20"
                 )}
                 variant="outline"
@@ -125,7 +125,7 @@ export const PlanFactCard = ({
                   isOverPerforming
                     ? "bg-amber-500"
                     : isOnTrack
-                      ? "bg-emerald-500"
+                      ? "bg-blue-500"
                       : "bg-primary"
                 )}
                 style={{ width: `${Math.min(percentage, 100)}%` }}

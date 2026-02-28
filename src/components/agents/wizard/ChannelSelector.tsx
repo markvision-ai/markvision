@@ -27,7 +27,7 @@ const channels = [
         id: 'whatsapp',
         name: 'WhatsApp',
         icon: MessageCircle,
-        color: 'from-emerald-600 to-green-600',
+        color: 'from-blue-600 to-green-600',
         description: 'Green-API интеграция',
     },
     {

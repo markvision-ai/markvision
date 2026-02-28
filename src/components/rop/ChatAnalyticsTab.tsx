@@ -94,14 +94,14 @@ const STATIC_RECOMMENDATIONS = [
 // --- Subcomponents ---
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }: any) => (
-    <Card className="bg-card/50 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div>
                     <p className="text-sm font-medium text-muted-foreground">{title}</p>
                     <h3 className="text-2xl font-bold mt-2">{value}{suffix}</h3>
                     <div className={cn("flex items-center gap-1 mt-1 text-xs",
-                        trend === 'up' ? "text-emerald-500" :
+                        trend === 'up' ? "text-blue-500" :
                             trend === 'down' ? "text-red-500" : "text-muted-foreground"
                     )}>
                         {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
@@ -118,7 +118,7 @@ const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }
 
 const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
     const configs: any = {
-        positive: { label: 'Pozitiv', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+        positive: { label: 'Pozitiv', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
         neutral: { label: 'Neutral', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
         negative: { label: 'Negative', color: 'bg-red-500/10 text-red-500 border-red-500/20' },
     };
@@ -128,7 +128,7 @@ const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
 
 const StatusBadge = ({ status }: { status: string }) => {
     const configs: any = {
-        deal: { label: 'Сделка', color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+        deal: { label: 'Сделка', color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
         meeting: { label: 'Встреча', color: 'bg-purple-500/10 text-purple-500 border-purple-500/20' },
         pending: { label: 'В работе', color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
         closed: { label: 'Закрыто', color: 'bg-gray-500/10 text-gray-500 border-gray-500/20' },
@@ -166,7 +166,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex bg-muted/50 p-1 rounded-lg border border-border/50">
+                    <div className="flex bg-muted/50 p-1 rounded-lg border border-white/50">
                         <Button variant="ghost" size="sm" className="h-8 px-3 text-xs">Сегодня</Button>
                         <Button variant="ghost" size="sm" className="h-8 px-3 text-xs">Вчера</Button>
                         <Button variant="secondary" size="sm" className="h-8 px-3 text-xs">7 дней</Button>
@@ -175,7 +175,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-[36px] gap-2 border-border/50">
+                            <Button variant="outline" size="sm" className="h-[36px] gap-2 border-white/50">
                                 <CalendarIcon className="w-4 h-4" />
                                 {date?.from ? (
                                     date.to ? (
@@ -214,7 +214,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <KPICard title="Всего диалогов" value="142" change="+12%" trend="up" icon={MessageSquare} color="bg-blue-500" />
                         <KPICard title="Ср. время ответа" value="45" suffix="с" change="-5%" trend="up" icon={Clock} color="bg-purple-500" />
-                        <KPICard title="Конверсия в сделку" value="18" suffix="%" change="+2.4%" trend="up" icon={Target} color="bg-emerald-500" />
+                        <KPICard title="Конверсия в сделку" value="18" suffix="%" change="+2.4%" trend="up" icon={Target} color="bg-blue-500" />
                     </div>
 
                     {/* Charts */}
@@ -264,7 +264,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                     </div>
 
                     {/* Dialogs Table */}
-                    <Card className="bg-card/50 backdrop-blur-xl border-white/5">
+                    <Card className="bg-white/70 backdrop-blur-xl border-white/5">
                         <CardHeader>
                             <div className="flex justify-between items-center">
                                 <CardTitle>Активные диалоги</CardTitle>
@@ -328,7 +328,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                     {/* Bot KPIs */}
                     <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                         <KPICard title="Всего диалогов" value="450" change="+12%" trend="up" icon={Bot} color="bg-blue-500" />
-                        <KPICard title="Успешность (Goal)" value="85" suffix="%" change="+5%" trend="up" icon={CheckCircle2} color="bg-emerald-500" />
+                        <KPICard title="Успешность (Goal)" value="85" suffix="%" change="+5%" trend="up" icon={CheckCircle2} color="bg-blue-500" />
                         <KPICard title="Передано людям" value="12" suffix="%" change="-2%" trend="up" icon={User} color="bg-amber-500" />
                         <KPICard title="Ошибки" value="3" suffix="%" change="-1%" trend="up" icon={AlertTriangle} color="bg-red-500" />
                     </div>
@@ -372,7 +372,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                             </CardHeader>
                             <CardContent className="space-y-3">
                                 {STATIC_RECOMMENDATIONS.map((rec, i) => (
-                                    <div key={i} className="flex gap-3 p-3 rounded-lg bg-card/40 border border-primary/10 hover:border-primary/30 transition-all cursor-pointer">
+                                    <div key={i} className="flex gap-3 p-3 rounded-lg bg-white/60 border border-primary/10 hover:border-primary/30 transition-all cursor-pointer">
                                         <Zap className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
                                         <p className="text-sm font-medium leading-tight">{rec}</p>
                                     </div>
@@ -393,11 +393,11 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                         <CardContent>
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                                 {STATIC_ERRORS.map((err, i) => (
-                                    <Card key={i} className="bg-card/50 border-white/5 hover:border-red-500/30 transition-all">
+                                    <Card key={i} className="bg-white/70 border-white/5 hover:border-red-500/30 transition-all">
                                         <CardContent className="p-4">
                                             <div className="flex justify-between items-start mb-2">
                                                 <Badge variant="outline" className="border-red-500/30 text-red-500">{err.count} случаев</Badge>
-                                                <span className={cn("text-xs", err.trend.startsWith('+') ? "text-red-500" : "text-emerald-500")}>
+                                                <span className={cn("text-xs", err.trend.startsWith('+') ? "text-red-500" : "text-blue-500")}>
                                                     {err.trend} на этой неделе
                                                 </span>
                                             </div>

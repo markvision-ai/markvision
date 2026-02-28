@@ -99,16 +99,16 @@ const AuditWidget = ({ data }: { data: WidgetData }) => {
       )}
       <div className="grid grid-cols-2 gap-3">
         {data.metrics?.map((metric, idx) => (
-          <div key={idx} className="bg-muted/50 border border-border p-4 rounded-[1.5rem] group hover:border-primary/30 transition-all duration-300">
+          <div key={idx} className="bg-muted/50 border border-white/50 p-4 rounded-[1.5rem] group hover:border-primary/30 transition-all duration-300">
             <div className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground mb-2 group-hover:text-foreground">{metric.label}</div>
             <div className="flex items-end gap-2">
               <span className="text-xl font-bold tabular-nums text-foreground tracking-tighter">{metric.value}</span>
               {metric.trend && (
                 <div className={cn(
                   "text-[9px] font-bold tracking-widest uppercase px-2 py-1 rounded-full flex items-center gap-1 mb-1 transition-all",
-                  metric.trend === 'up' || metric.trend === 'good' ? "bg-emerald-50 text-emerald-600 border border-emerald-100" :
+                  metric.trend === 'up' || metric.trend === 'good' ? "bg-blue-50 text-blue-600 border border-blue-100" :
                     metric.trend === 'down' || metric.trend === 'bad' ? "bg-red-50 text-red-600 border border-red-100" :
-                      "bg-muted text-muted-foreground border border-border"
+                      "bg-muted text-muted-foreground border border-white/50"
                 )}>
                   {metric.trend === 'up' || metric.trend === 'good' ? <TrendingUp className="w-2.5 h-2.5" /> :
                     metric.trend === 'down' || metric.trend === 'bad' ? <TrendingDown className="w-2.5 h-2.5" /> :
@@ -136,7 +136,7 @@ const ActionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actio
             "h-10 px-6 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 group shadow-sm",
             action.style === 'destructive' ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100" :
               action.style === 'primary' ? "bg-primary border-primary/20 text-primary-foreground hover:bg-primary/90 shadow-md" :
-                "border-border bg-background text-foreground hover:bg-muted"
+                "border-white/50 bg-background text-foreground hover:bg-muted"
           )}
         >
           {action.label}
@@ -175,9 +175,9 @@ const ContentSelectionWidget = ({ data, onExecute }: { data: WidgetData; onExecu
             whileHover={{ scale: 1.05, y: -2 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => onExecute(action.action_id, action.label)}
-            className="flex flex-col items-center justify-center gap-3 p-6 bg-muted hover:bg-muted/80 border border-border hover:border-primary/40 rounded-[2rem] transition-all duration-300 group shadow-sm"
+            className="flex flex-col items-center justify-center gap-3 p-6 bg-muted hover:bg-muted/80 border border-white/50 hover:border-primary/40 rounded-[2rem] transition-all duration-300 group shadow-sm"
           >
-            <div className="p-4 rounded-2xl bg-card border border-border group-hover:border-primary/20 transition-colors shadow-sm">
+            <div className="p-4 rounded-2xl bg-card border border-white/50 group-hover:border-primary/20 transition-colors shadow-sm">
               {getIcon(action)}
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-foreground text-center">{action.label}</span>
@@ -450,7 +450,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-border bg-card shadow-sm min-h-[64px]">
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/50 bg-card shadow-sm min-h-[64px]">
         <div className="flex items-center gap-4">
           <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
             <Bot className="w-5 h-5 text-primary" />
@@ -458,7 +458,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
               <span className="font-bold tracking-widest text-[11px] uppercase text-foreground">ИИ-АССТЕНТ</span>
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
             </div>
             <span className="text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground">Версия системы 4.0.98</span>
           </div>
@@ -468,7 +468,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           size="sm"
           onClick={handleSync}
           disabled={isSyncing}
-          className="h-10 px-6 rounded-2xl border-border bg-background text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm transition-all"
+          className="h-10 px-6 rounded-2xl border-white/50 bg-background text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm transition-all"
         >
           <RefreshCw className={cn("w-4 h-4 mr-3", isSyncing && "animate-spin")} />
           СИНХРОНИЗАЦИЯ
@@ -481,7 +481,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           <div className="space-y-10 pb-8 max-w-4xl mx-auto">
             {messages.length === 0 && (
               <div className="flex flex-col items-center justify-center h-[200px] text-center gap-4 opacity-50">
-                <div className="w-16 h-16 rounded-[2rem] border border-border flex items-center justify-center bg-muted">
+                <div className="w-16 h-16 rounded-[2rem] border border-white/50 flex items-center justify-center bg-muted">
                   <Sparkles className="w-8 h-8 text-primary/40" />
                 </div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.4em] text-muted-foreground">Ожидание подключения к ИИ...</p>
@@ -504,8 +504,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                   msg.role === 'user'
                     ? "bg-primary text-primary-foreground border-primary/20 shadow-primary/10"
                     : msg.role === 'system'
-                      ? "bg-muted border-border text-muted-foreground"
-                      : "bg-card border-border text-foreground"
+                      ? "bg-muted border-white/50 text-muted-foreground"
+                      : "bg-card border-white/50 text-foreground"
                 )}>
                   {msg.role === 'user' ? <User className="w-6 h-6" /> : msg.role === 'system' ? <Terminal className="w-5 h-5" /> : <Bot className="w-6 h-6" />}
                 </div>
@@ -519,8 +519,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                     msg.role === 'user'
                       ? "bg-primary text-primary-foreground border-primary/10 rounded-[2rem] rounded-tr-none max-w-[80%]"
                       : msg.role === 'system'
-                        ? "bg-muted/50 border-border rounded-[1.5rem] rounded-tl-none text-muted-foreground font-mono text-[10px] uppercase tracking-widest p-4"
-                        : "bg-card border-border rounded-[2.5rem] rounded-tl-none text-foreground max-w-[90%]"
+                        ? "bg-muted/50 border-white/50 rounded-[1.5rem] rounded-tl-none text-muted-foreground font-mono text-[10px] uppercase tracking-widest p-4"
+                        : "bg-card border-white/50 rounded-[2.5rem] rounded-tl-none text-foreground max-w-[90%]"
                   )}>
                     {msg.role === 'system' ? (
                       <div className="flex items-center gap-3">
@@ -531,7 +531,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                       <>
                         <div className={cn(
                           "prose prose-slate dark:prose-invert max-w-none leading-relaxed prose-p:my-0 prose-headings:text-foreground prose-strong:text-foreground prose-strong:font-bold",
-                          "prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-pre:rounded-2xl",
+                          "prose-pre:bg-muted prose-pre:border prose-pre:border-white/50 prose-pre:rounded-2xl",
                           msg.role === 'user' ? "text-primary-foreground font-medium" : "text-foreground"
                         )}>
                           <ReactMarkdown
@@ -546,8 +546,8 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
 
                         {/* Widget Rendering */}
                         {msg.type === 'widget' && msg.widget_data && (
-                          <div className="mt-8 pt-6 border-t border-border relative">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-card border border-border rounded-full text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                          <div className="mt-8 pt-6 border-t border-white/50 relative">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-card border border-white/50 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                               Инструмент ИИ
                             </div>
                             {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
@@ -580,7 +580,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                   <Activity className="w-6 h-6 text-primary animate-pulse" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2 bg-card border border-border px-6 py-4 rounded-[2rem] rounded-tl-none shadow-sm">
+                  <div className="flex gap-2 bg-card border border-white/50 px-6 py-4 rounded-[2rem] rounded-tl-none shadow-sm">
                     <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-2 h-2 rounded-full bg-primary/20 animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -594,7 +594,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
       </div>
 
       {/* Input Area */}
-      <div className="relative z-10 p-8 pt-4 bg-background/80 border-t border-border backdrop-blur-xl">
+      <div className="relative z-10 p-8 pt-4 bg-background/80 border-t border-white/50 backdrop-blur-xl">
         {/* Quick Commands */}
         <div className="flex gap-4 mb-6 overflow-x-auto pb-2 scrollbar-hide px-2">
           {quickCommands.map((cmd, i) => (
@@ -603,7 +603,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setInputValue(cmd.label)}
-              className="flex items-center gap-3 px-6 py-2.5 rounded-2xl border border-border bg-card hover:bg-muted hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground whitespace-nowrap shadow-sm"
+              className="flex items-center gap-3 px-6 py-2.5 rounded-2xl border border-white/50 bg-card hover:bg-muted hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground whitespace-nowrap shadow-sm"
             >
               <cmd.icon className="w-4 h-4 text-primary/60" />
               {cmd.label}
@@ -612,7 +612,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
         </div>
 
         <div className="relative flex items-center max-w-5xl mx-auto w-full">
-          <div className="absolute left-4 p-2 rounded-xl bg-muted border border-border z-10">
+          <div className="absolute left-4 p-2 rounded-xl bg-muted border border-white/50 z-10">
             <Zap className="w-4 h-4 text-primary" />
           </div>
           <Input
@@ -621,7 +621,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Введите ваш вопрос или команду..."
-            className="bg-muted border-border focus-visible:ring-primary/20 focus-visible:border-primary/40 text-foreground placeholder:text-muted-foreground pl-16 pr-16 h-16 rounded-[2rem] transition-all hover:bg-muted/80 font-medium text-base shadow-inner"
+            className="bg-muted border-white/50 focus-visible:ring-primary/20 focus-visible:border-primary/40 text-foreground placeholder:text-muted-foreground pl-16 pr-16 h-16 rounded-[2rem] transition-all hover:bg-muted/80 font-medium text-base shadow-inner"
             disabled={isLoading}
           />
           <Button
@@ -645,9 +645,9 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
               <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Протокол: РЕКЛАМА-RT</span>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100">
-            <div className="w-1 h-1 rounded-full bg-emerald-500 shadow-sm" />
-            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-emerald-600">Связь: Активна</span>
+          <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100">
+            <div className="w-1 h-1 rounded-full bg-blue-500 shadow-sm" />
+            <span className="text-[8px] font-bold uppercase tracking-[0.2em] text-blue-600">Связь: Активна</span>
           </div>
         </div>
       </div>

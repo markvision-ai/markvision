@@ -122,7 +122,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
     };
 
     return (
-        <div className="rounded-2xl border border-border bg-card p-6 space-y-6 shadow-sm mb-6">
+        <div className="rounded-2xl border border-white/50 bg-card p-6 space-y-6 shadow-sm mb-6">
             {/* HEADER */}
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -139,11 +139,11 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
                 <div className="flex items-center gap-3">
                     {/* Month Selector */}
-                    <div className="flex items-center bg-card border border-border rounded-lg shadow-sm overflow-hidden h-10">
+                    <div className="flex items-center bg-card border border-white/50 rounded-lg shadow-sm overflow-hidden h-10">
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-full rounded-none hover:bg-accent border-r border-border"
+                            className="h-full rounded-none hover:bg-accent border-r border-white/50"
                             onClick={prevMonth}
                         >
                             <ChevronLeft className="w-4 h-4" />
@@ -159,7 +159,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-full rounded-none hover:bg-accent border-l border-border"
+                            className="h-full rounded-none hover:bg-accent border-l border-white/50"
                             onClick={nextMonth}
                             disabled={currentMonth >= startOfMonth(new Date())}
                         >
@@ -179,7 +179,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             </div>
 
             {/* METRICS TABLE */}
-            <div className="rounded-2xl border border-border bg-card shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-white/50 bg-card shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50">
@@ -232,7 +232,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                                         </TableCell>
                                         <TableCell className="text-right">{formatMoney(m.cpl)}</TableCell>
                                         <TableCell className="text-right">
-                                            <div className={cn("px-2 py-0.5 rounded-full inline-block text-xs font-semibold", m.lqr > 30 ? "bg-emerald-500/10 text-emerald-500" : "bg-muted text-muted-foreground")}>
+                                            <div className={cn("px-2 py-0.5 rounded-full inline-block text-xs font-semibold", m.lqr > 30 ? "bg-blue-500/10 text-blue-500" : "bg-muted text-muted-foreground")}>
                                                 {formatPercent(m.lqr)}
                                             </div>
                                             <div className="text-[10px] text-muted-foreground mt-0.5">{m.qualifiedLeads} квал.</div>
@@ -241,13 +241,13 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                                         <TableCell className="text-right text-muted-foreground">{m.visits}</TableCell>
                                         <TableCell className="text-right text-muted-foreground">{formatMoney(m.cpv)}</TableCell>
                                         <TableCell className="text-right font-medium">{formatMoney(m.cac)}</TableCell>
-                                        <TableCell className="text-right font-bold text-emerald-500">{formatMoney(m.revenue)}</TableCell>
+                                        <TableCell className="text-right font-bold text-blue-500">{formatMoney(m.revenue)}</TableCell>
                                         <TableCell className="text-right">
                                             <div className={cn(
                                                 "font-bold text-sm px-2.5 py-1 rounded-md inline-block",
                                                 isRomiNegative
                                                     ? "bg-red-500/10 text-red-500"
-                                                    : "bg-emerald-500/10 text-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] border border-emerald-500/20"
+                                                    : "bg-blue-500/10 text-blue-500 shadow-[0_0_10px_rgba(16,185,129,0.2)] border border-blue-500/20"
                                             )}>
                                                 {formatPercent(m.romi)}
                                             </div>

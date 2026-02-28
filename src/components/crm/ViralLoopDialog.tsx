@@ -115,7 +115,7 @@ export const ViralLoopDialog = ({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 200 }}
-              className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-blue-500/30"
+              className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-2xl shadow-blue-900/5 shadow-blue-500/30"
             >
               <Gift className="w-6 h-6 text-white" />
             </motion.div>
@@ -227,7 +227,7 @@ export const ViralLoopDialog = ({
           <Button
             onClick={handleSubmit}
             disabled={loading}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/30"
+            className="flex-1 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white shadow-2xl shadow-blue-900/5 shadow-blue-500/30"
           >
             {loading ? (
               <>

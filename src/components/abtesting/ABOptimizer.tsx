@@ -152,7 +152,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
             AI-аналитика конверсии
           </p>
         </div>
-        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-lg transition-all hover:scale-105">
+        <Button onClick={() => setIsAddDialogOpen(true)} className="shadow-2xl shadow-blue-900/5 transition-all hover:scale-105">
           <Plus className="w-4 h-4 mr-2" />
           Новый тест
         </Button>
@@ -174,7 +174,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
 
       {/* Tests List */}
       <div className="animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-        <h3 className="text-lg font-bold text-foreground uppercase tracking-wider mb-4 border-b border-border pb-2">История экспериментов</h3>
+        <h3 className="text-lg font-bold text-foreground uppercase tracking-wider mb-4 border-b border-white/50 pb-2">История экспериментов</h3>
         <ABTestList
           tests={tests}
           onStart={handleStartTest}

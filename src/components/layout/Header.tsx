@@ -65,7 +65,7 @@ export const Header = ({
   const [isSearching, setIsSearching] = useState(false);
 
   return (
-    <header className="h-16 md:h-20 border-b border-border/5 bg-card/40 dark:bg-slate-900/30 backdrop-blur-xl flex items-center justify-between px-3 md:px-8 sticky top-0 z-50 transition-all duration-300 shadow-sm">
+    <header className="h-16 md:h-20 border-b border-white/50 bg-white/60 backdrop-blur-2xl flex items-center justify-between px-3 md:px-8 sticky top-0 z-50 transition-all duration-300 shadow-sm">
       <div className="flex items-center gap-3">
         {/* Mobile Menu Button */}
         <button
@@ -125,7 +125,7 @@ export const Header = ({
                   setShowResults(true);
                 }
               }}
-              className="pl-10 pr-10 py-2 backdrop-blur-sm bg-card/50 border border-border rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30"
+              className="pl-10 pr-10 py-2 backdrop-blur-md bg-white/50 border border-white/60 shadow-inner rounded-xl text-sm w-64 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all"
             />
             {searchQuery && (
               <button
@@ -151,7 +151,7 @@ export const Header = ({
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -10 }}
-                className="absolute top-full mt-2 w-96 backdrop-blur-sm bg-card/50 border border-border rounded-xl shadow-lg z-50 max-h-[400px] overflow-hidden"
+                className="absolute top-full mt-2 w-96 backdrop-blur-2xl bg-white/70 border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] z-50 max-h-[400px] overflow-hidden"
               >
                 <div className="overflow-y-auto max-h-[400px]">
                   {/* Пациенты */}
@@ -182,7 +182,7 @@ export const Header = ({
 
                   {/* Контент */}
                   {searchResults.filter(r => r.type === 'content').length > 0 && (
-                    <div className="p-2 border-t border-border">
+                    <div className="p-2 border-t border-white/50">
                       <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase">
                         Контент
                       </div>

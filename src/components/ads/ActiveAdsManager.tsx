@@ -1256,13 +1256,13 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   return (
     <div className="relative overflow-visible">
       {/* Meta-style Top Bar */}
-      <div className="px-8 py-6 border-b border-border flex items-center justify-between bg-card">
+      <div className="px-8 py-6 border-b border-white/50 flex items-center justify-between bg-card">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold tracking-tight text-foreground">Рекламные кампании</h2>
             <div className="flex items-center gap-2">
               {adAccountId && (
-                <span className="px-2 py-1 bg-muted text-muted-foreground font-mono text-[10px] rounded border border-border">
+                <span className="px-2 py-1 bg-muted text-muted-foreground font-mono text-[10px] rounded border border-white/50">
                   ID: {adAccountId}
                 </span>
               )}
@@ -1280,15 +1280,15 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               {ACCOUNT_STATUS_MAP[accountStatus.account_status]?.label || 'Ошибка'}
             </div>
           ) : (
-            <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold uppercase tracking-widest">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
+            <div className="flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold uppercase tracking-widest">
+              <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" />
               Meta Engine готов
             </div>
           )}
         </div>
 
         <div className="flex items-center gap-4">
-          <div className="px-4 py-1.5 rounded-lg bg-emerald-50 text-emerald-600 border border-emerald-100 text-[10px] font-bold uppercase tracking-widest shadow-sm">
+          <div className="px-4 py-1.5 rounded-lg bg-blue-50 text-blue-600 border border-blue-100 text-[10px] font-bold uppercase tracking-widest shadow-sm">
             Активные
           </div>
 
@@ -1299,7 +1299,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             size="sm"
             onClick={handleForceSync}
             disabled={loading}
-            className="h-10 px-6 rounded-xl border-border bg-background text-foreground hover:bg-accent font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
+            className="h-10 px-6 rounded-xl border-white/50 bg-background text-foreground hover:bg-accent font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
           >
             <RefreshCw className={cn("w-3.5 h-3.5 mr-2", loading && "animate-spin")} />
             Обновить
@@ -1310,7 +1310,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             size="sm"
             onClick={handleExportCSV}
             disabled={loading || visibleRows.length === 0}
-            className="h-10 w-10 p-0 rounded-xl border-border bg-background text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm"
+            className="h-10 w-10 p-0 rounded-xl border-white/50 bg-background text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm"
           >
             <Download className="w-4 h-4" />
           </Button>
@@ -1321,7 +1321,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 <Settings2 className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-card border border-border rounded-2xl shadow-xl">
+            <DropdownMenuContent align="end" className="w-64 bg-card border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <DropdownMenuLabel className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Видимость колонок</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-white/5" />
               <div className="p-2 space-y-1">
@@ -1373,11 +1373,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
       <div className="overflow-x-auto min-h-[400px]">
         <Table className="border-collapse">
           <TableHeader>
-            <TableRow className="border-b border-border hover:bg-transparent h-16">
+            <TableRow className="border-b border-white/50 hover:bg-transparent h-16">
               <TableHead className="w-16 text-center">
                 <input
                   type="checkbox"
-                  className="w-4 h-4 rounded-md border-border bg-muted accent-primary cursor-pointer"
+                  className="w-4 h-4 rounded-md border-white/50 bg-muted accent-primary cursor-pointer"
                   checked={visibleRows.length > 0 && visibleRows.every(r => isRowSelected(r))}
                   onChange={() => {
                     const allSelected = visibleRows.every(r => isRowSelected(r));
@@ -1464,14 +1464,14 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   className={cn(
-                    "group border-b border-border transition-all relative overflow-hidden h-14",
+                    "group border-b border-white/50 transition-all relative overflow-hidden h-14",
                     isRowSelected(row) ? "bg-primary/5" : "hover:bg-muted/50"
                   )}
                 >
                   <TableCell className="text-center relative z-10">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded-md border-border bg-background accent-primary cursor-pointer"
+                      className="w-4 h-4 rounded-md border-white/50 bg-background accent-primary cursor-pointer"
                       checked={isRowSelected(row)}
                       onChange={() => toggleRowSelection(row)}
                     />
@@ -1486,7 +1486,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                           <Switch
                             checked={row.status === 'ACTIVE'}
                             onCheckedChange={(checked) => handleToggleStatus(row.id, checked)}
-                            className="scale-90 data-[state=checked]:bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
+                            className="scale-90 data-[state=checked]:bg-blue-500 shadow-[0_0_10px_rgba(16,185,129,0.2)]"
                           />
                         )}
                       </div>
@@ -1497,7 +1497,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     <div className="flex items-center gap-4">
                       {row.type === 'ad' && row.thumbnail ? (
                         <div className="relative group/thumb">
-                          <img src={row.thumbnail} alt="" className="w-12 h-12 rounded-xl object-cover border border-border" />
+                          <img src={row.thumbnail} alt="" className="w-12 h-12 rounded-xl object-cover border border-white/50" />
                           <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover/thumb:opacity-100 transition-opacity rounded-xl" />
                         </div>
                       ) : (
@@ -1505,7 +1505,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                           "w-12 h-12 rounded-2xl flex items-center justify-center transition-all border",
                           row.status === 'ACTIVE'
                             ? "bg-primary/10 border-primary/20 text-primary shadow-sm"
-                            : "bg-muted border-border text-muted-foreground"
+                            : "bg-muted border-white/50 text-muted-foreground"
                         )}>
                           <LayoutDashboard className="w-6 h-6" />
                         </div>
@@ -1524,7 +1524,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                           </button>
                         </div>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-border">
+                          <span className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground bg-muted px-1.5 py-0.5 rounded border border-white/50">
                             {row.type === 'campaign' ? 'КАМПАНИЯ' : (row.type === 'adset' ? 'ГРУППА ОБЪЯВЛЕНИЙ' : 'ОБЪЯВЛЕНИЕ')}
                           </span>
                           <span className="text-[9px] font-mono text-muted-foreground opacity-70">ID: {row.id}</span>
@@ -1537,11 +1537,11 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     <div className="flex items-center gap-3">
                       <div className={cn(
                         "w-2 h-2 rounded-full",
-                        row.status === 'ACTIVE' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30"
+                        row.status === 'ACTIVE' ? "bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-muted-foreground/30"
                       )} />
                       <span className={cn(
                         "text-[10px] font-bold uppercase tracking-widest",
-                        row.status === 'ACTIVE' ? "text-emerald-600" : "text-muted-foreground"
+                        row.status === 'ACTIVE' ? "text-blue-600" : "text-muted-foreground"
                       )}>
                         {row.status === 'ACTIVE' ? 'АКТИВНА' : 'ПАУЗА'}
                       </span>
@@ -1566,7 +1566,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     <TableCell className="text-right relative z-10">
                       <div className="flex flex-col items-end">
                         <div className="flex items-center gap-2">
-                          {row.leadsMeta > 0 && <ArrowUpRight className="w-3 h-3 text-emerald-500" />}
+                          {row.leadsMeta > 0 && <ArrowUpRight className="w-3 h-3 text-blue-500" />}
                           <span className="text-sm font-bold text-foreground">{formatNumber(row.leadsMeta)}</span>
                         </div>
                         <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-[0.1em]">Лиды Meta</span>
@@ -1576,7 +1576,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
                   {columnVisibility.cpl && (
                     <TableCell className="text-right relative z-10">
-                      <div className="p-2 inline-flex flex-col items-end rounded-xl bg-muted/50 border border-border">
+                      <div className="p-2 inline-flex flex-col items-end rounded-xl bg-muted/50 border border-white/50">
                         <span className={cn("text-xs font-bold", row.cpl > 5000 ? "text-red-600" : "text-primary")}>
                           {formatCurrency(row.cpl)}
                         </span>
@@ -1601,7 +1601,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     <TableCell className="text-right relative z-10">
                       <div className={cn(
                         "inline-flex flex-col items-end px-3 py-1.5 rounded-2xl border",
-                        row.roi > 0 ? "bg-emerald-50 border-emerald-100 text-emerald-600" : "bg-red-50 border-red-100 text-red-600"
+                        row.roi > 0 ? "bg-blue-50 border-blue-100 text-blue-600" : "bg-red-50 border-red-100 text-red-600"
                       )}>
                         <span className="text-sm font-bold tracking-tight">{formatPercent(row.roi)}</span>
                         <span className="text-[8px] font-bold uppercase tracking-widest opacity-60">ROMI</span>
@@ -1617,14 +1617,14 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Futuristic Summary Footer */}
       {!loading && visibleRows.length > 0 && (
-        <div className="mt-8 p-8 rounded-[2.5rem] bg-card border border-border grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
+        <div className="mt-8 p-8 rounded-[2.5rem] bg-card border border-white/50 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
             <p className="text-lg font-black text-slate-900">{formatCurrency(totals.totalSpendKZT)}</p>
           </div>
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего конверсий</p>
-            <p className="text-lg font-black text-emerald-600">{formatNumber(totals.totalLeadsMeta)}</p>
+            <p className="text-lg font-black text-blue-600">{formatNumber(totals.totalLeadsMeta)}</p>
           </div>
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Средний CPL</p>
@@ -1643,7 +1643,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Facebook-style Edit Modal (Light themed) */}
       <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
-        <DialogContent className="bg-card border border-border rounded-3xl shadow-xl text-foreground max-w-md">
+        <DialogContent className="bg-card border border-white/50 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
           <DialogHeader className="px-2">
             <DialogTitle className="text-2xl font-bold uppercase tracking-widest text-foreground">
               Редактировать
@@ -1659,7 +1659,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
               <Input
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
-                className="bg-muted border-border rounded-xl h-12 focus:ring-primary focus:border-primary text-sm font-bold"
+                className="bg-muted border-white/50 rounded-xl h-12 focus:ring-primary focus:border-primary text-sm font-bold"
               />
             </div>
 
@@ -1671,7 +1671,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                     type="number"
                     value={editBudget}
                     onChange={(e) => setEditBudget(e.target.value)}
-                    className="bg-muted border-border rounded-xl h-12 pl-10 focus:ring-primary focus:border-primary text-sm font-bold"
+                    className="bg-muted border-white/50 rounded-xl h-12 pl-10 focus:ring-primary focus:border-primary text-sm font-bold"
                   />
                   <DollarSign className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 </div>
@@ -1690,7 +1690,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             <Button
               onClick={handleSaveEdit}
               disabled={saving}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-8 uppercase text-[10px] font-bold tracking-widest shadow-lg"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl h-12 px-8 uppercase text-[10px] font-bold tracking-widest shadow-2xl shadow-blue-900/5"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Сохранить изменения'}
             </Button>

@@ -22,7 +22,7 @@ export default function HealthCheck() {
       <div className="space-y-2">
         <div>Client ENV: URL {env.VITE_SUPABASE_URL ? 'OK' : 'Missing'} / KEY {env.VITE_SUPABASE_ANON_KEY ? 'OK' : 'Missing'}</div>
         <div>Server API: {api?.status || (error || 'Loading...')}</div>
-        {api?.env && <pre className="text-xs bg-muted p-3 rounded-lg border border-border">{JSON.stringify(api.env, null, 2)}</pre>}
+        {api?.env && <pre className="text-xs bg-muted p-3 rounded-lg border border-white/50">{JSON.stringify(api.env, null, 2)}</pre>}
       </div>
     </div>
   );

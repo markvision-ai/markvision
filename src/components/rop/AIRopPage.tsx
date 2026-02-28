@@ -107,7 +107,7 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
 };
 
 const TaskCard = ({ task }: { task: AIRopTask }) => (
-  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+  <Card className="bg-white/70 backdrop-blur-sm border-white/50">
     <CardContent className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -141,7 +141,7 @@ const TaskCard = ({ task }: { task: AIRopTask }) => (
 );
 
 const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
-  <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+  <Card className="bg-white/70 backdrop-blur-sm border-white/50">
     <CardHeader className="pb-2">
       <div className="flex items-center justify-between">
         <CardTitle className="text-base">
@@ -205,7 +205,7 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
     : 0;
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Bot className="w-5 h-5 text-primary" />
@@ -279,7 +279,7 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
   };
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
       <CardHeader>
         <div className="flex items-center gap-2">
           <Users className="w-5 h-5 text-primary" />
@@ -342,7 +342,7 @@ const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
       <CardContent className="space-y-4">
         {growthPoints.length > 0 ? (
           growthPoints.map((point, idx) => (
-            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-colors">
+            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-white/70 border border-white/50 hover:border-primary/30 transition-colors">
               <div className="shrink-0 text-primary">
                 <Target className="w-5 h-5" />
               </div>
@@ -403,7 +403,7 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
   };
 
   return (
-    <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
       <CardHeader>
         <div className="flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-primary" />
@@ -503,7 +503,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
       </div>
 
       {/* Task Input */}
-      <Card className="bg-card/50 backdrop-blur-sm border-border/50">
+      <Card className="bg-white/70 backdrop-blur-sm border-white/50">
         <CardHeader>
           <CardTitle className="text-lg flex items-center gap-2">
             <Bot className="w-5 h-5" />

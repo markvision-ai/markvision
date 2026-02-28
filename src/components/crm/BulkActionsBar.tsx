@@ -37,7 +37,7 @@ const statusOptions = [
   { id: 'in_progress', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
   { id: 'no_answer', label: 'Недозвон', color: 'from-orange-500 to-red-500' },
   { id: 'appointment', label: 'Записан', color: 'from-purple-500 to-pink-500' },
-  { id: 'paid', label: 'Оплачено', color: 'from-emerald-500 to-green-500' },
+  { id: 'paid', label: 'Оплачено', color: 'from-blue-500 to-green-500' },
   { id: 'cancelled', label: 'Отказ', color: 'from-red-500 to-rose-500' },
 ];
 
@@ -79,7 +79,7 @@ export const BulkActionsBar = ({
       initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.98 }}
-      className="rounded-2xl p-4 bg-card border border-border shadow-md"
+      className="rounded-2xl p-4 bg-card border border-white/50 shadow-md"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Selection Info */}
@@ -142,7 +142,7 @@ export const BulkActionsBar = ({
                 Изменить статус
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
+            <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
               <DropdownMenuLabel className="font-bold">Новый статус</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {statusOptions.map((status) => (
@@ -195,7 +195,7 @@ export const BulkActionsBar = ({
                 )}
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-card border border-border">
+            <AlertDialogContent className="bg-card border border-white/50">
               <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center">

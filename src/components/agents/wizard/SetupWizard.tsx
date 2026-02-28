@@ -325,7 +325,7 @@ ${Object.entries(answers.knowledge_base || {}).map(([key, value]) => `- ${key}: 
                                         <Button
                                             onClick={handleDeploy}
                                             disabled={isDeploying}
-                                            className="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-500 hover:to-green-500 text-white font-bold rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+                                            className="bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500 text-white font-bold rounded-xl shadow-[0_0_30px_rgba(16,185,129,0.3)]"
                                         >
                                             {isDeploying ? (
                                                 <>

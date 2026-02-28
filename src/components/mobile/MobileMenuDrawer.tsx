@@ -118,9 +118,9 @@ export const MobileMenuDrawer = ({
         className="w-[300px] p-0 flex flex-col"
       >
         {/* Header with Logo */}
-        <SheetHeader className="p-4 border-b border-border">
+        <SheetHeader className="p-4 border-b border-white/50">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-background border border-border flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 rounded-xl bg-background border border-white/50 flex items-center justify-center shadow-sm">
               <MarkVisionLogo className="w-7 h-7" />
             </div>
             <div>
@@ -173,7 +173,7 @@ export const MobileMenuDrawer = ({
         </ScrollArea>
 
         {/* User profile and logout - Fixed at bottom */}
-        <div className="p-4 border-t border-border bg-background mt-auto space-y-3">
+        <div className="p-4 border-t border-white/50 bg-background mt-auto space-y-3">
           {/* Theme Toggle */}
           <div className="flex items-center justify-between px-1">
             <span className="text-sm text-muted-foreground">Тема оформления</span>

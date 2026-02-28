@@ -25,7 +25,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       : stripe === "cyan"
         ? "border-l-4 border-l-cyan-500"
         : stripe === "emerald"
-          ? "border-l-4 border-l-emerald-500"
+          ? "border-l-4 border-l-blue-500"
           : stripe === "gold"
             ? "border-l-4 border-l-amber-500"
             : "";
@@ -34,7 +34,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
     <div
       {...rest}
       className={cn(
-        "rounded-xl bg-card border border-border shadow-sm", // Solid matte card
+        "rounded-xl bg-card border border-white/50 shadow-sm", // Solid matte card
         stripeClass,
         className
       )}

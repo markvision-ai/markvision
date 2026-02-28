@@ -26,9 +26,9 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
 
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center justify-between px-6 py-3 border-b border-white/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
-          <TabsList className="bg-muted border border-border">
+          <TabsList className="bg-muted border border-white/50">
             <TabsTrigger value="v4" className="data-[state=active]:bg-background data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
               <Rocket className="w-4 h-4 mr-2" />
               Контент-Завод

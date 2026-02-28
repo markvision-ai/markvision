@@ -81,7 +81,7 @@ export const ConnectionStatus = () => {
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-md animate-in slide-in-from-bottom-2">
       {!isOnline && (
-        <Alert variant="destructive" className="mb-2 shadow-lg bg-destructive text-destructive-foreground border-none">
+        <Alert variant="destructive" className="mb-2 shadow-2xl shadow-blue-900/5 bg-destructive text-destructive-foreground border-none">
           <WifiOff className="h-4 w-4" />
           <AlertTitle>Нет интернета</AlertTitle>
           <AlertDescription>
@@ -91,7 +91,7 @@ export const ConnectionStatus = () => {
       )}
       
       {isOnline && !isSupabaseReachable && (
-        <Alert variant="destructive" className="shadow-lg bg-destructive text-destructive-foreground border-none">
+        <Alert variant="destructive" className="shadow-2xl shadow-blue-900/5 bg-destructive text-destructive-foreground border-none">
           <AlertTriangle className="h-4 w-4" />
           <AlertTitle>Ошибка подключения к серверу</AlertTitle>
           <AlertDescription>

@@ -613,7 +613,7 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'crm' && (
-        <div className="bg-card border border-border rounded-2xl p-12 text-center">
+        <div className="bg-card border border-white/50 rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
           </div>
@@ -745,7 +745,7 @@ export const AnalyticsPlatform = () => {
       )}
 
       {activeTab === 'help' && (
-        <div className="bg-card border border-border rounded-2xl p-8">
+        <div className="bg-card border border-white/50 rounded-2xl p-8">
           <h3 className="text-xl font-bold mb-4">🆘 Центр помощи MarkVision AI Medical</h3>
           <p className="text-muted-foreground">
             Платформа сквозной аналитики и CRM для владельцев медицинских клиник. Документация в разработке.
@@ -754,7 +754,7 @@ export const AnalyticsPlatform = () => {
       )}
 
       {!['dashboard', 'table', 'quantom-ads', 'agency-accounts', 'crm', 'e2e-analytics', 'meta-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
-        <div className="bg-card border border-border rounded-2xl p-12 text-center">
+        <div className="bg-card border border-white/50 rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
           </div>

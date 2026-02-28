@@ -148,7 +148,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none -mr-48 -mt-48" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5">
-            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 shadow-xl shadow-primary/20 ring-1 ring-white/20">
+            <div className="p-4 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-primary/20 ring-1 ring-white/20">
               <SettingsIcon className="w-8 h-8 text-white" />
             </div>
             <div>
@@ -156,7 +156,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                 Административный хаб
               </h1>
               <p className="text-muted-foreground flex items-center gap-2 mt-1">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                 Полное управление проектом {currentProject?.name}
               </p>
             </div>
@@ -179,7 +179,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
               value={tab.id}
               className={cn(
                 "gap-2 px-5 py-3 rounded-xl transition-all duration-300",
-                "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20",
+                "data-[state=active]:bg-primary data-[state=active]:text-white data-[state=active]:shadow-2xl shadow-blue-900/5 data-[state=active]:shadow-primary/20",
                 "text-white/40 hover:text-white/80"
               )}
             >
@@ -268,7 +268,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                         {projectSettings.logoUrl && (
                           <button
                             onClick={() => setProjectSettings(prev => ({ ...prev, logoUrl: '' }))}
-                            className="absolute -top-2 -right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                            className="absolute -top-2 -right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity shadow-2xl shadow-blue-900/5"
                           >
                             <Trash2 className="w-3 h-3" />
                           </button>
@@ -305,7 +305,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                     <Button
                       onClick={handleSaveGeneral}
                       disabled={loading}
-                      className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 gap-2 min-w-[200px]"
+                      className="h-12 px-8 rounded-xl bg-primary hover:bg-primary/90 text-white shadow-2xl shadow-blue-900/5 shadow-primary/20 gap-2 min-w-[200px]"
                     >
                       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                       Сохранить изменения

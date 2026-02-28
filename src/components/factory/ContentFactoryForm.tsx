@@ -85,7 +85,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
             setFileUrl(data.publicUrl);
             toast.success('Фото успешно загружено!', {
-                icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />
             });
         } catch (error: any) {
             console.error('Upload Error:', error);
@@ -129,7 +129,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
             setFileUrl(data.publicUrl);
             toast.success('Фото успешно загружено!', {
-                icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />
             });
         } catch (error: any) {
             console.error('Upload Error:', error);
@@ -195,7 +195,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
             toast.success('Задание отправлено на Контент-Завод!', {
                 description: 'Генерация займет 1-2 минуты. Вы получите уведомление по готовности.',
-                icon: <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                icon: <CheckCircle2 className="w-5 h-5 text-blue-500" />
             });
 
             // Clear form
@@ -219,18 +219,18 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
     return (
         <div className="relative min-h-full w-full bg-slate-50/50 font-sans text-slate-800 p-4 sm:p-8 overflow-hidden rounded-3xl border border-slate-200/50 shadow-sm">
             {/* Ambient Background Glow for Premium Bright Glassmorphism Feel */}
-            <div className="absolute top-[-10%] left-[20%] w-[60%] h-[400px] bg-emerald-200/30 blur-[120px] rounded-full pointer-events-none z-0" />
-            <div className="absolute bottom-[-20%] right-[10%] w-[50%] h-[400px] bg-sky-200/30 blur-[150px] rounded-full pointer-events-none z-0" />
+            <div className="absolute top-[-10%] left-[20%] w-[60%] h-[400px] bg-blue-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
+            <div className="absolute bottom-[-20%] right-[10%] w-[50%] h-[400px] bg-cyan-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
 
             <div className="relative z-10 max-w-[1200px] mx-auto space-y-8">
                 {/* Header Section */}
                 <div className="flex flex-col space-y-3 pb-4">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-white/80 shadow-sm backdrop-blur-md w-fit">
-                        <Rocket className="w-4 h-4 text-emerald-500" />
-                        <span className="text-xs font-bold text-emerald-600 uppercase tracking-widest">Контент-Завод 3.0</span>
+                        <Rocket className="w-4 h-4 text-blue-500" />
+                        <span className="text-xs font-bold text-blue-600 uppercase tracking-widest">Контент-Завод 3.0</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 drop-shadow-sm">
-                        Пульт управления <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-600">AI</span>
+                        Пульт управления <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-cyan-500">AI</span>
                     </h1>
                     <p className="text-slate-500 max-w-2xl text-lg leading-relaxed">
                         Спроектируйте ваш следующий виральный пост. Выберите формат, настройте дизайн и отправьте задачу на наш автоматизированный AI-завод.
@@ -242,10 +242,10 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                     <div className="xl:col-span-8 space-y-8">
 
                         {/* Block A: Source */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-xl shadow-slate-200/40 transition-all hover:bg-white/90">
+                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
-                                    <Type className="w-5 h-5 text-emerald-600" />
+                                    <Type className="w-5 h-5 text-blue-600" />
                                 </div>
                                 <h2 className="text-xl font-bold text-slate-800 tracking-wide">1. Источник контента</h2>
                             </div>
@@ -260,13 +260,13 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             className={cn(
                                                 "relative flex flex-col items-center justify-center p-6 rounded-2xl transition-all duration-300 gap-4 group outline-none",
                                                 active
-                                                    ? "border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-emerald-50/50"
+                                                    ? "border border-blue-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-blue-50/50"
                                                     : "border border-slate-200/60 bg-white/50 hover:bg-white hover:border-slate-300 hover:shadow-sm"
                                             )}
                                         >
                                             <div className={cn(
                                                 "p-3.5 rounded-full transition-colors duration-300 border",
-                                                active ? "bg-emerald-100 text-emerald-600 border-emerald-200" : "bg-slate-50 text-slate-400 border-slate-100 group-hover:text-slate-600 group-hover:bg-slate-100"
+                                                active ? "bg-blue-100 text-blue-600 border-blue-200" : "bg-slate-50 text-slate-400 border-slate-100 group-hover:text-slate-600 group-hover:bg-slate-100"
                                             )}>
                                                 {type === 'description' && <Type className="w-6 h-6 stroke-[1.5]" />}
                                                 {type === 'link' && <LinkIcon className="w-6 h-6 stroke-[1.5]" />}
@@ -274,7 +274,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             </div>
                                             <span className={cn(
                                                 "text-sm font-semibold transition-colors duration-300 tracking-wide",
-                                                active ? "text-emerald-700 font-bold" : "text-slate-500 group-hover:text-slate-700"
+                                                active ? "text-blue-700 font-bold" : "text-slate-500 group-hover:text-slate-700"
                                             )}>
                                                 {type === 'description' ? 'По описанию' : type === 'link' ? 'По ссылке' : 'По фото'}
                                             </span>
@@ -285,7 +285,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                         </section>
 
                         {/* Block B: Format */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-xl shadow-slate-200/40 transition-all hover:bg-white/90">
+                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                                     <Layout className="w-5 h-5 text-indigo-500" />
@@ -304,24 +304,24 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             className={cn(
                                                 "relative flex flex-col items-center justify-center p-5 rounded-2xl transition-all duration-300 text-center gap-4 group outline-none",
                                                 active
-                                                    ? "border border-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-emerald-50/50"
+                                                    ? "border border-blue-500 shadow-[0_0_15px_rgba(16,185,129,0.15)] bg-blue-50/50"
                                                     : "border border-slate-200/60 bg-white/50 hover:bg-white hover:border-slate-300 hover:shadow-sm"
                                             )}
                                         >
                                             <div className={cn(
                                                 "p-3 rounded-xl transition-all duration-300",
-                                                active ? "bg-emerald-50 border border-emerald-200/50 scale-110 shadow-sm" : "bg-slate-50 border border-slate-100 group-hover:scale-105"
+                                                active ? "bg-blue-50 border border-blue-200/50 scale-110 shadow-sm" : "bg-slate-50 border border-slate-100 group-hover:scale-105"
                                             )}>
-                                                <Icon className={cn("w-6 h-6 stroke-[1.5]", active ? "text-emerald-600" : "text-slate-400 group-hover:text-slate-600")} />
+                                                <Icon className={cn("w-6 h-6 stroke-[1.5]", active ? "text-blue-600" : "text-slate-400 group-hover:text-slate-600")} />
                                             </div>
                                             <span className={cn(
                                                 "text-[11px] font-bold uppercase tracking-wider leading-tight",
-                                                active ? "text-emerald-700" : "text-slate-500 group-hover:text-slate-700"
+                                                active ? "text-blue-700" : "text-slate-500 group-hover:text-slate-700"
                                             )}>
                                                 {f.label}
                                             </span>
                                             {active && (
-                                                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shadow-md border-2 border-white">
+                                                <div className="absolute -top-2 -right-2 w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center shadow-md border-2 border-white">
                                                     <CheckCircle2 className="w-3.5 h-3.5 text-white" />
                                                 </div>
                                             )}
@@ -332,7 +332,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                         </section>
 
                         {/* Block C: Content (Dynamic) */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-xl shadow-slate-200/40 transition-all hover:bg-white/90">
+                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
                             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-b border-slate-100 pb-5">
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
@@ -373,7 +373,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             "min-h-[200px] p-6 text-base leading-relaxed resize-none rounded-2xl transition-all duration-300 text-slate-800 outline-none shadow-inner",
                                             magicGenerationNeeded
                                                 ? "bg-indigo-50/30 border-indigo-200/60 focus-visible:ring-indigo-100 focus-visible:border-indigo-400 placeholder:text-indigo-300"
-                                                : "bg-slate-50/50 border-slate-200/80 focus-visible:ring-emerald-50 focus-visible:border-emerald-500 placeholder:text-slate-400"
+                                                : "bg-slate-50/50 border-slate-200/80 focus-visible:ring-blue-50 focus-visible:border-blue-500 placeholder:text-slate-400"
                                         )}
                                     />
                                 )}
@@ -390,7 +390,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             onChange={(e) => setLinkUrl(e.target.value)}
                                             className={cn(
                                                 "pl-12 h-16 text-base rounded-2xl transition-all duration-300 text-slate-800 outline-none shadow-inner",
-                                                "bg-slate-50/50 border-slate-200/80 focus-visible:ring-emerald-50 focus-visible:border-emerald-500 placeholder:text-slate-400"
+                                                "bg-slate-50/50 border-slate-200/80 focus-visible:ring-blue-50 focus-visible:border-blue-500 placeholder:text-slate-400"
                                             )}
                                         />
                                     </div>
@@ -401,8 +401,8 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                         className={cn(
                                             "relative flex flex-col items-center justify-center p-12 lg:p-16 border-2 border-dashed rounded-3xl transition-all duration-300 cursor-pointer overflow-hidden group",
                                             fileUrl
-                                                ? "border-emerald-300 bg-emerald-50/30"
-                                                : "border-slate-200 bg-slate-50 hover:bg-white hover:border-emerald-300"
+                                                ? "border-blue-300 bg-blue-50/30"
+                                                : "border-slate-200 bg-slate-50 hover:bg-white hover:border-blue-300"
                                         )}
                                         onClick={() => fileInputRef.current?.click()}
                                         onDrop={handleDrop}
@@ -418,8 +418,8 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
                                         {isUploading ? (
                                             <div className="flex flex-col items-center gap-4">
-                                                <Loader2 className="w-10 h-10 animate-spin text-emerald-500" />
-                                                <p className="text-emerald-600 font-medium">Загрузка в облако...</p>
+                                                <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+                                                <p className="text-blue-600 font-medium">Загрузка в облако...</p>
                                             </div>
                                         ) : fileUrl ? (
                                             <div className="flex flex-col items-center gap-4 z-10 w-full">
@@ -429,14 +429,14 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                                         <span className="text-slate-800 font-medium bg-white/90 px-4 py-2 rounded-lg border border-slate-200 shadow-sm">Заменить фото</span>
                                                     </div>
                                                 </div>
-                                                <p className="text-emerald-600 font-medium flex items-center gap-2">
+                                                <p className="text-blue-600 font-medium flex items-center gap-2">
                                                     <CheckCircle2 className="w-5 h-5" /> Фото успешно загружено
                                                 </p>
                                             </div>
                                         ) : (
                                             <div className="flex flex-col items-center gap-5 z-10">
                                                 <div className="p-4 bg-white rounded-full border border-slate-100 shadow-sm group-hover:scale-110 transition-transform">
-                                                    <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-emerald-500 transition-colors" />
+                                                    <UploadCloud className="w-8 h-8 text-slate-400 group-hover:text-blue-500 transition-colors" />
                                                 </div>
                                                 <div className="text-center space-y-2">
                                                     <p className="text-lg font-bold text-slate-700">Перетащите фото сюда</p>
@@ -452,10 +452,10 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
                     {/* Sidebar Settings Area */}
                     <div className="xl:col-span-4 space-y-6">
-                        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 shadow-xl shadow-slate-200/50 border border-white flex flex-col gap-8 sticky top-6">
+                        <div className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/50 border border-white flex flex-col gap-8 sticky top-6">
                             <div className="flex items-center gap-4 pb-6 border-b border-slate-100">
-                                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-100 shadow-sm">
-                                    <Settings2 className="w-5 h-5 text-emerald-600" />
+                                <div className="p-3 bg-blue-50 rounded-xl border border-blue-100 shadow-sm">
+                                    <Settings2 className="w-5 h-5 text-blue-600" />
                                 </div>
                                 <h3 className="text-sm font-bold text-slate-800 uppercase tracking-widest">
                                     Параметры дизайна
@@ -468,14 +468,14 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                     Пропорции
                                 </label>
                                 <Select value={aspectRatio} onValueChange={setAspectRatio}>
-                                    <SelectTrigger className="bg-white shadow-sm border-slate-200 h-14 rounded-xl text-slate-800 font-semibold focus:ring-emerald-100 focus:border-emerald-400 hover:border-slate-300 transition-colors">
+                                    <SelectTrigger className="bg-white shadow-sm border-slate-200 h-14 rounded-xl text-slate-800 font-semibold focus:ring-blue-100 focus:border-blue-400 hover:border-slate-300 transition-colors">
                                         <SelectValue />
                                     </SelectTrigger>
-                                    <SelectContent className="rounded-xl border-slate-100 shadow-xl bg-white text-slate-800">
-                                        <SelectItem value="1:1" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-emerald-700">1:1 (Квадратный)</SelectItem>
-                                        <SelectItem value="9:16" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-emerald-700">9:16 (Stories/Reels)</SelectItem>
-                                        <SelectItem value="4:5" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-emerald-700">4:5 (Портретный)</SelectItem>
-                                        <SelectItem value="16:9" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-emerald-700">16:9 (Горизонтальный)</SelectItem>
+                                    <SelectContent className="rounded-xl border-slate-100 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white text-slate-800">
+                                        <SelectItem value="1:1" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">1:1 (Квадратный)</SelectItem>
+                                        <SelectItem value="9:16" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">9:16 (Stories/Reels)</SelectItem>
+                                        <SelectItem value="4:5" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">4:5 (Портретный)</SelectItem>
+                                        <SelectItem value="16:9" className="cursor-pointer font-medium py-3 rounded-lg mx-1 my-0.5 focus:bg-slate-50 focus:text-blue-700">16:9 (Горизонтальный)</SelectItem>
                                     </SelectContent>
                                 </Select>
                             </div>
@@ -497,17 +497,17 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                             className={cn(
                                                 "flex items-center gap-4 p-4 rounded-xl transition-all duration-300 outline-none backdrop-blur-md",
                                                 designTemplateId === t.id
-                                                    ? "bg-emerald-50 border border-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
+                                                    ? "bg-blue-50 border border-blue-400 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                                                     : "bg-white/50 border border-slate-200 hover:border-slate-300 hover:bg-white hover:shadow-sm"
                                             )}
                                         >
                                             <div className={cn("w-6 h-6 rounded-md border", t.color)} />
                                             <span className={cn(
                                                 "text-sm font-bold tracking-wide",
-                                                designTemplateId === t.id ? "text-emerald-700" : "text-slate-600"
+                                                designTemplateId === t.id ? "text-blue-700" : "text-slate-600"
                                             )}>{t.label}</span>
                                             {designTemplateId === t.id && (
-                                                <CheckCircle2 className="w-5 h-5 ml-auto text-emerald-500 animate-in zoom-in duration-200" />
+                                                <CheckCircle2 className="w-5 h-5 ml-auto text-blue-500 animate-in zoom-in duration-200" />
                                             )}
                                         </button>
                                     ))}
@@ -523,7 +523,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                     placeholder="Опишите желаемый фон, цвета или специфичные элементы дизайна..."
                                     value={visualInstructions}
                                     onChange={(e) => setVisualInstructions(e.target.value)}
-                                    className="bg-white border border-slate-200 text-slate-800 p-5 focus-visible:ring-emerald-100 focus-visible:border-emerald-400 transition-all resize-none rounded-xl text-sm min-h-[120px] placeholder:text-slate-400 shadow-inner"
+                                    className="bg-white border border-slate-200 text-slate-800 p-5 focus-visible:ring-blue-100 focus-visible:border-blue-400 transition-all resize-none rounded-xl text-sm min-h-[120px] placeholder:text-slate-400 shadow-inner"
                                 />
                             </div>
 
@@ -533,10 +533,10 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                     onClick={handleSubmit}
                                     disabled={isLoading}
                                     className={cn(
-                                        "relative overflow-hidden w-full h-16 rounded-2xl text-base font-extrabold uppercase tracking-widest transition-all duration-300 group shadow-lg text-white border-none cursor-pointer",
+                                        "relative overflow-hidden w-full h-16 rounded-2xl text-base font-extrabold uppercase tracking-widest transition-all duration-300 group shadow-2xl shadow-blue-900/5 text-white border-none cursor-pointer",
                                         isLoading
                                             ? "bg-slate-200 cursor-not-allowed text-slate-400 shadow-none"
-                                            : "bg-gradient-to-r from-emerald-500 to-teal-600 shadow-emerald-500/30 hover:shadow-[0_8px_25px_rgba(16,185,129,0.3)] hover:brightness-105 hover:-translate-y-0.5"
+                                            : "bg-gradient-to-r from-blue-500 to-cyan-500 shadow-blue-500/30 hover:shadow-[0_8px_25px_rgba(16,185,129,0.3)] hover:brightness-105 hover:-translate-y-0.5"
                                     )}
                                 >
                                     {/* Subtle shine effect on hover */}
@@ -558,7 +558,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                 </Button>
 
                                 <div className="flex items-center justify-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.6)] animate-pulse" />
                                     <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">
                                         Будет использован 1 кредит
                                     </p>

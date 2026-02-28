@@ -111,10 +111,10 @@ const getSourceInfo = (source: string): { label: string; color: string; icon: st
     return { label: 'Telegram', color: 'bg-sky-500/20 text-sky-500 border-sky-500/30', icon: '✈️' };
   }
   if (s.includes('email') || s.includes('mail')) {
-    return { label: 'Email', color: 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30', icon: '✉️' };
+    return { label: 'Email', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30', icon: '✉️' };
   }
   
-  return { label: source, color: 'bg-muted text-muted-foreground border-border', icon: '🔗' };
+  return { label: source, color: 'bg-muted text-muted-foreground border-white/50', icon: '🔗' };
 };
 
 const SourceBadge = ({ source }: { source: string }) => {
@@ -459,10 +459,10 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       </div>
 
       {/* Table - Glassmorphism */}
-      <div className="backdrop-blur-sm bg-card/50 border border-border rounded-xl overflow-hidden">
+      <div className="backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-border">
+            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-white/50">
               <tr>
                 <th 
                   className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
@@ -552,7 +552,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                 </tr>
               ) : (
                 sortedLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-foreground/[0.05] transition-colors border-b border-border">
+                  <tr key={lead.id} className="hover:bg-foreground/[0.05] transition-colors border-b border-white/50">
                     {/* Имя */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -648,8 +648,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <td className="p-4 text-right">
                       {lead.ltv && lead.ltv > 0 ? (
                         <div className="flex items-center justify-end gap-1.5">
-                          <DollarSign className="w-4 h-4 text-emerald-500" />
-                          <span className="font-semibold text-emerald-500">
+                          <DollarSign className="w-4 h-4 text-blue-500" />
+                          <span className="font-semibold text-blue-500">
                             {formatCurrency(lead.ltv)}
                           </span>
                         </div>
@@ -752,7 +752,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       {/* Detail Dialog - Glassmorphism */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-border">
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-white/70 border border-white/50">
           <DialogHeader>
             <DialogTitle>Карточка клиента</DialogTitle>
           </DialogHeader>

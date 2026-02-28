@@ -234,7 +234,7 @@ export const LandingPage = () => {
           <div className="relative">
             <img
               alt="MarkVision AI"
-              className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-lg shadow-blue-500/20"
+              className="w-7 h-7 sm:w-10 sm:h-10 rounded-lg sm:rounded-2xl object-cover shadow-2xl shadow-blue-900/5 shadow-blue-500/20"
               src={markvisionLogo}
               width="40"
               height="40"
@@ -260,7 +260,7 @@ export const LandingPage = () => {
           <Button variant="ghost" onClick={() => navigate("/auth")} className="text-slate-700 hover:text-slate-900 font-medium rounded-xl px-3 lg:px-4 text-sm lg:text-base hover:bg-slate-100">
             Войти
           </Button>
-          <Button onClick={() => scrollToSection("signup")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-4 lg:px-5 font-medium text-sm lg:text-base shadow-lg shadow-blue-500/25 hover:shadow-xl hover:shadow-blue-500/30 transition-all">
+          <Button onClick={() => scrollToSection("signup")} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-xl px-4 lg:px-5 font-medium text-sm lg:text-base shadow-2xl shadow-blue-900/5 shadow-blue-500/25 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-blue-500/30 transition-all">
             Начать бесплатно
           </Button>
         </div>
@@ -278,7 +278,7 @@ export const LandingPage = () => {
       }} animate={{
         opacity: 1,
         y: 0
-      }} className="md:hidden bg-white border-t border-slate-200 px-3 py-4 space-y-1 shadow-lg">
+      }} className="md:hidden bg-white border-t border-slate-200 px-3 py-4 space-y-1 shadow-2xl shadow-blue-900/5">
         <button onClick={() => scrollToSection("brand")} className="block w-full text-left py-2 px-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg font-medium text-sm transition-colors">
           О проекте
         </button>
@@ -289,7 +289,7 @@ export const LandingPage = () => {
           <Button variant="outline" onClick={() => navigate("/auth")} className="w-full rounded-lg h-10 text-sm font-medium border-slate-200 text-slate-700 hover:bg-slate-50 hover:text-slate-900">
             Войти в систему
           </Button>
-          <Button onClick={() => scrollToSection("signup")} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg h-10 text-sm font-medium shadow-lg shadow-blue-500/25">
+          <Button onClick={() => scrollToSection("signup")} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-lg h-10 text-sm font-medium shadow-2xl shadow-blue-900/5 shadow-blue-500/25">
             Начать бесплатно
           </Button>
         </div>
@@ -394,7 +394,7 @@ export const LandingPage = () => {
                   }} animate={{
                     scale: 1,
                     opacity: 1
-                  }} className="flex items-center gap-2 sm:gap-3 text-emerald-400 px-4">
+                  }} className="flex items-center gap-2 sm:gap-3 text-blue-400 px-4">
                     <CheckCircle2 className="w-6 h-6 sm:w-10 sm:h-10" />
                     <span className="text-sm sm:text-xl font-semibold">Видео просмотрено!</span>
                   </motion.div>}
@@ -499,7 +499,7 @@ export const LandingPage = () => {
                 scale: 1.02
               }} transition={{
                 duration: 0.3
-              }} className="h-full p-5 sm:p-6 lg:p-7 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200 shadow-md hover:shadow-xl hover:border-red-200 transition-all cursor-default group">
+              }} className="h-full p-5 sm:p-6 lg:p-7 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200 shadow-md hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-red-200 transition-all cursor-default group">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl bg-red-500/10 border border-red-400/20 flex items-center justify-center text-red-500 shrink-0">
                     {point.icon}
@@ -572,7 +572,7 @@ export const LandingPage = () => {
           once: true
         }} transition={{
           duration: 0.7
-        }} className="rounded-[32px] overflow-hidden border border-slate-200 shadow-xl bg-white">
+        }} className="rounded-[32px] overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white">
           <BeamVisualization />
         </motion.div>
       </div>
@@ -590,7 +590,7 @@ export const LandingPage = () => {
             }} transition={{
               duration: 0.3
             }} className="relative">
-              <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-slate-200 shadow-xl bg-white">
+              <div className="aspect-[4/5] rounded-2xl sm:rounded-[32px] overflow-hidden border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)] bg-white">
                 <img src={founderImg} alt="Юрий с сыном Марком" className="w-full h-full object-cover" fetchPriority="high" />
               </div>
               <div className="absolute -top-6 -right-6 w-32 h-32 bg-blue-400/15 rounded-full blur-3xl" />
@@ -631,7 +631,7 @@ export const LandingPage = () => {
 
             {/* Founder signature */}
             <motion.div initial={{ opacity: 0, y: 10 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: 0.4, duration: 0.5 }} className="flex items-center gap-4 pt-3 sm:pt-4 border-t border-slate-200">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-lg shadow-blue-500/25">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-sm sm:text-base shadow-2xl shadow-blue-900/5 shadow-blue-500/25">
                 Ю
               </div>
               <div>
@@ -701,7 +701,7 @@ export const LandingPage = () => {
                 <div className="absolute -inset-[1px] bg-gradient-to-r from-blue-400/0 via-cyan-400/0 to-indigo-400/0 group-hover:from-blue-400/30 group-hover:via-cyan-400/30 group-hover:to-indigo-400/30 rounded-2xl sm:rounded-[28px] opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
                 <div
-                  className="relative h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200 shadow-md group-hover:shadow-xl group-hover:border-blue-200 transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
+                  className="relative h-full p-5 sm:p-6 lg:p-8 rounded-2xl sm:rounded-[28px] bg-white border border-slate-200 shadow-md group-hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] group-hover:border-blue-200 transition-all duration-500 focus:outline-none focus:ring-2 focus:ring-blue-400/30"
                   tabIndex={0}
                 >
                   <div className="absolute top-4 right-4 sm:top-5 sm:right-6 text-xs font-['JetBrains_Mono',monospace] tracking-wider text-slate-400 group-hover:text-blue-500 transition-all duration-500">
@@ -721,7 +721,7 @@ export const LandingPage = () => {
                   <div className="mt-auto pt-3 sm:pt-4 border-t border-slate-200">
                     <div className="flex items-center gap-2 text-xs text-slate-500">
                       <div className="relative">
-                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                       </div>
                       <span className="font-medium">Активен 24/7</span>
                     </div>
@@ -754,7 +754,7 @@ export const LandingPage = () => {
         }}>
           <div className="text-center mb-6 sm:mb-10">
             <div className="relative w-14 h-14 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-8">
-              <div className="relative w-full h-full rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 flex items-center justify-center shadow-lg shadow-blue-500/25">
+              <div className="relative w-full h-full rounded-2xl sm:rounded-3xl bg-gradient-to-br from-cyan-500 via-blue-500 to-purple-500 flex items-center justify-center shadow-2xl shadow-blue-900/5 shadow-blue-500/25">
                 <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 text-white" />
               </div>
             </div>
@@ -768,7 +768,7 @@ export const LandingPage = () => {
           </div>
 
           <div className="relative">
-            <div className="relative bg-white rounded-xl sm:rounded-[32px] p-4 sm:p-8 md:p-10 border border-slate-200 shadow-xl">
+            <div className="relative bg-white rounded-xl sm:rounded-[32px] p-4 sm:p-8 md:p-10 border border-slate-200 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-5">
                 <div className="space-y-1 sm:space-y-2">
                   <label className="text-xs sm:text-sm font-medium text-slate-700">Название клиники</label>
@@ -804,16 +804,16 @@ export const LandingPage = () => {
                   <label className="text-xs sm:text-sm font-medium text-slate-700">Промокод</label>
                   <div className="relative">
                     <Gift className="absolute left-3 sm:left-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-400" />
-                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-10 sm:pl-14 rounded-lg sm:rounded-2xl h-11 sm:h-14 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${promoValid === true ? 'border-emerald-500 bg-emerald-50' : ''}`} />
-                    {promoValid === true && <CheckCircle2 className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />}
+                    <Input type="text" placeholder="MARK7" value={formData.promoCode} onChange={e => handleChange('promoCode', e.target.value.toUpperCase())} className={`pl-10 sm:pl-14 rounded-lg sm:rounded-2xl h-11 sm:h-14 bg-slate-50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 text-sm sm:text-base ${promoValid === true ? 'border-blue-500 bg-blue-50' : ''}`} />
+                    {promoValid === true && <CheckCircle2 className="absolute right-3 sm:right-5 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-blue-500" />}
                   </div>
-                  {promoValid === true && <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs sm:text-sm text-emerald-600 font-medium flex items-center gap-1 sm:gap-2 ml-1">
+                  {promoValid === true && <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-xs sm:text-sm text-blue-600 font-medium flex items-center gap-1 sm:gap-2 ml-1">
                     <span>🎉</span> Активирован доступ на 7 дней
                   </motion.p>}
                 </div>
 
                 <div className="mt-3 sm:mt-5">
-                  <Button type="submit" className="relative w-full h-11 sm:h-14 rounded-lg sm:rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600 hover:from-blue-700 hover:via-cyan-700 hover:to-indigo-700 text-white font-semibold text-sm sm:text-lg shadow-lg shadow-blue-500/25 transition-all border-0" disabled={loading}>
+                  <Button type="submit" className="relative w-full h-11 sm:h-14 rounded-lg sm:rounded-2xl bg-gradient-to-r from-blue-600 via-cyan-600 to-indigo-600 hover:from-blue-700 hover:via-cyan-700 hover:to-indigo-700 text-white font-semibold text-sm sm:text-lg shadow-2xl shadow-blue-900/5 shadow-blue-500/25 transition-all border-0" disabled={loading}>
                     {loading ? <>
                       <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin mr-2" />
                       Регистрация...

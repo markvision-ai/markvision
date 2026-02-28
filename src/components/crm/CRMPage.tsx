@@ -57,7 +57,7 @@ const statusOptions = [
   { id: 'В работе', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
   { id: 'Счет выставлен', label: 'Счет выставлен', color: 'from-indigo-500 to-purple-500' },
   { id: 'Записан', label: 'Записан', color: 'from-purple-500 to-pink-500' },
-  { id: 'Оплачен', label: 'Оплачен', color: 'from-emerald-500 to-green-500' },
+  { id: 'Оплачен', label: 'Оплачен', color: 'from-blue-500 to-green-500' },
   { id: 'Отказ', label: 'Отказ', color: 'from-red-500 to-rose-500' },
 ];
 
@@ -353,7 +353,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
       {/* Header — чёткий блок */}
       <motion.div
-        className="rounded-2xl bg-card border border-border shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+        className="rounded-2xl bg-card border border-white/50 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
@@ -367,7 +367,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               CRM
             </h2>
             <p className="text-muted-foreground text-sm flex items-center gap-2 mt-0.5">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="flex h-2 w-2 rounded-full bg-blue-500" />
               {filteredLeads.length} из {leads.length} лидов
             </p>
           </div>
@@ -483,8 +483,8 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               }
             }}
             className={cn(
-              "rounded-full h-8 px-4 text-xs font-medium border-dashed border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300",
-              selectedStatuses.includes('new') && selectedStatuses.length === 1 && "bg-emerald-500/10 border-solid border-emerald-500 text-emerald-300"
+              "rounded-full h-8 px-4 text-xs font-medium border-dashed border-blue-500/30 text-blue-400 hover:bg-blue-500/10 hover:text-blue-300",
+              selectedStatuses.includes('new') && selectedStatuses.length === 1 && "bg-blue-500/10 border-solid border-blue-500 text-blue-300"
             )}
           >
             <Target className="w-3 h-3 mr-1.5" />
@@ -500,7 +500,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Поиск по имени, телефону, источнику..."
-              className="pl-12 h-12 text-base bg-background border-border focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl"
+              className="pl-12 h-12 text-base bg-background border-white/50 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl"
             />
             {searchQuery && (
               <button
@@ -519,7 +519,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-border hover:border-primary/50 transition-all rounded-xl",
+                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedStatuses.length > 0 && "border-primary bg-primary/10"
                   )}
                 >
@@ -532,7 +532,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
+              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по статусу</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {statusOptions.map((status) => (
@@ -556,7 +556,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-border hover:border-primary/50 transition-all rounded-xl",
+                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedSources.length > 0 && "border-primary bg-primary/10"
                   )}
                 >
@@ -569,7 +569,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
+              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по источнику</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {sourceOptions.map((source) => (
@@ -591,20 +591,20 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-border hover:border-primary/50 transition-all rounded-xl",
-                    selectedDatePreset && "border-emerald-500 bg-emerald-500/10"
+                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
+                    selectedDatePreset && "border-blue-500 bg-blue-500/10"
                   )}
                 >
                   <Calendar className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Дата</span>
                   {selectedDatePreset && (
-                    <Badge className="ml-2 bg-gradient-to-r from-emerald-500 to-green-500 text-white border-0">
+                    <Badge className="ml-2 bg-gradient-to-r from-blue-500 to-green-500 text-white border-0">
                       {datePresets.find(p => p.id === selectedDatePreset)?.label}
                     </Badge>
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-border">
+              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по дате</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {datePresets.map((preset) => (
@@ -625,7 +625,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               variant="outline"
               onClick={toggleLtvSort}
               className={cn(
-                "h-12 px-4 bg-background border-border hover:border-primary/50 transition-all rounded-xl",
+                "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
                 sortByLtv && "border-amber-500 bg-amber-500/10"
               )}
             >
@@ -697,7 +697,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               {selectedDatePreset && (
                 <Badge
                   variant="secondary"
-                  className="bg-emerald-500/10 text-emerald-600 gap-1 cursor-pointer hover:bg-emerald-500/20"
+                  className="bg-blue-500/10 text-blue-600 gap-1 cursor-pointer hover:bg-blue-500/20"
                   onClick={() => setSelectedDatePreset(null)}
                 >
                   <Calendar className="w-3 h-3" />
@@ -739,7 +739,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex justify-center sm:justify-start"
         >
-          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex p-1.5 gap-1.5 rounded-2xl bg-muted/50 border border-border">
+          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex p-1.5 gap-1.5 rounded-2xl bg-muted/50 border border-white/50">
             <TabsTrigger
               value="kanban"
               className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
@@ -851,7 +851,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               <motion.div
                 key={tab}
                 className={`h-1.5 rounded-full transition-all duration-300 ${activeTab === tab
-                  ? 'w-8 bg-gradient-to-r from-primary to-accent shadow-lg shadow-primary/30'
+                  ? 'w-8 bg-gradient-to-r from-primary to-accent shadow-2xl shadow-blue-900/5 shadow-primary/30'
                   : 'w-1.5 bg-muted-foreground/30'
                   }`}
                 layoutId="tabIndicator"
@@ -868,7 +868,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            className="flex flex-col items-center justify-center py-16 text-center rounded-2xl bg-card border border-border"
+            className="flex flex-col items-center justify-center py-16 text-center rounded-2xl bg-card border border-white/50"
           >
             <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <Search className="w-8 h-8 text-muted-foreground" />

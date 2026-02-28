@@ -332,7 +332,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
             else setIsInviteOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button className="h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] px-6">
+              <Button className="h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20 transition-all active:scale-[0.98] px-6">
                 <UserPlus className="w-4 h-4 mr-2" />
                 Добавить сотрудника
               </Button>
@@ -354,8 +354,8 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                 {createdCredentials ? (
                   <div className="p-8 space-y-6">
                     <div className="flex flex-col items-center justify-center py-4">
-                      <div className="w-20 h-20 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-                        <CheckCircle className="w-10 h-10 text-emerald-500" />
+                      <div className="w-20 h-20 rounded-full bg-blue-500/10 border border-blue-500/20 flex items-center justify-center mb-4">
+                        <CheckCircle className="w-10 h-10 text-blue-500" />
                       </div>
                       <p className="text-lg font-bold text-white">Выполнено успешно</p>
                     </div>
@@ -392,7 +392,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                     </div>
 
                     {createdCredentials.emailSent ? (
-                      <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/5 border border-emerald-500/10 text-sm text-emerald-500 justify-center font-medium">
+                      <div className="flex items-center gap-3 p-4 rounded-xl bg-blue-500/5 border border-blue-500/10 text-sm text-blue-500 justify-center font-medium">
                         <Mail className="w-4 h-4" />
                         Данные отправлены на email сотрудника
                       </div>
@@ -513,7 +513,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       <Button variant="outline" onClick={handleCloseDialog} className="flex-1 h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10">
                         Отмена
                       </Button>
-                      <Button onClick={handleCreateUser} disabled={isCreating} className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20">
+                      <Button onClick={handleCreateUser} disabled={isCreating} className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20">
                         {isCreating ? (
                           <Loader2 className="w-4 h-4 animate-spin mr-2" />
                         ) : (
@@ -559,7 +559,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                   <tr key={member.id} className="hover:bg-white/[0.02] transition-colors group">
                     <td className="p-6">
                       <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center ring-1 ring-white/10 shadow-lg group-hover:ring-primary/30 transition-all">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 via-primary/10 to-transparent flex items-center justify-center ring-1 ring-white/10 shadow-2xl shadow-blue-900/5 group-hover:ring-primary/30 transition-all">
                           <span className="text-base font-bold text-primary">
                             {(member.name || 'U').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                           </span>
@@ -596,13 +596,13 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       <div className="flex items-center gap-2">
                         <span className={cn(
                           "w-2 h-2 rounded-full",
-                          member.status === 'active' ? "bg-emerald-500 pulse-emerald" :
+                          member.status === 'active' ? "bg-blue-500 pulse-emerald" :
                             member.status === 'pending' ? "bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]" :
                               "bg-white/20"
                         )} />
                         <span className={cn(
                           "text-xs font-bold uppercase tracking-wider",
-                          member.status === 'active' ? "text-emerald-500" :
+                          member.status === 'active' ? "text-blue-500" :
                             member.status === 'pending' ? "text-amber-500" :
                               "text-white/20"
                         )}>
@@ -690,7 +690,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                                 onClick={() => handleOpenPermissionsDialog(member)}
                                 className="rounded-xl focus:bg-white/5 focus:text-white gap-2 p-3 text-sm"
                               >
-                                <Settings2 className="w-4 h-4 text-emerald-500" />
+                                <Settings2 className="w-4 h-4 text-blue-500" />
                                 Настроить права
                               </DropdownMenuItem>
                             )}
@@ -719,7 +719,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
         <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-lg shadow-primary/10 transition-transform group-hover:scale-110">
+            <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-2xl shadow-blue-900/5 shadow-primary/10 transition-transform group-hover:scale-110">
               <Shield className="w-6 h-6" />
             </div>
             <div>
@@ -735,15 +735,15 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
         </div>
 
         <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10 transition-transform group-hover:scale-110">
+            <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shadow-2xl shadow-blue-900/5 shadow-blue-500/10 transition-transform group-hover:scale-110">
               <Users className="w-6 h-6" />
             </div>
             <div>
               <div className="flex items-center gap-3 mb-2">
                 <h3 className="text-xl font-bold text-white">Менеджер</h3>
-                <Badge variant="outline" className="border-emerald-500/30 text-emerald-500 text-[10px] font-black uppercase tracking-widest px-2">Scoped Access</Badge>
+                <Badge variant="outline" className="border-blue-500/30 text-blue-500 text-[10px] font-black uppercase tracking-widest px-2">Scoped Access</Badge>
               </div>
               <p className="text-sm text-white/40 leading-relaxed">
                 Доступ только к назначенным проектам. Права на чтение, запись или экспорт настраиваются индивидуально для каждой маркетинговой единицы.
@@ -786,7 +786,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
         <DialogContent className="max-w-2xl bg-black/90 backdrop-blur-3xl border-white/5 shadow-2xl rounded-3xl p-0 overflow-hidden">
           <div className="p-8 border-b border-white/5 bg-white/5">
             <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 flex items-center justify-center text-emerald-500 shadow-lg shadow-emerald-500/10">
+              <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shadow-2xl shadow-blue-900/5 shadow-blue-500/10">
                 <Settings2 className="w-6 h-6" />
               </div>
               <div>
@@ -864,7 +864,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
             <Button variant="outline" onClick={() => setPermissionsDialogOpen(false)} className="h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10 px-6">
               Отмена
             </Button>
-            <Button onClick={handleSavePermissions} disabled={loadingPermissions} className="h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-lg shadow-primary/20 px-10 font-bold tracking-tight">
+            <Button onClick={handleSavePermissions} disabled={loadingPermissions} className="h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20 px-10 font-bold tracking-tight">
               {loadingPermissions ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5 mr-2" />}
               Сохранить изменения
             </Button>

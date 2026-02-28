@@ -176,8 +176,8 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
           className={cn(
             "gap-2 h-12 px-5 rounded-xl font-semibold",
             "bg-gradient-to-r from-primary via-accent to-primary bg-[length:200%_100%]",
-            "text-primary-foreground shadow-lg shadow-primary/25",
-            "hover:shadow-xl hover:shadow-primary/30 hover:scale-[1.02]",
+            "text-primary-foreground shadow-2xl shadow-blue-900/5 shadow-primary/25",
+            "hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-primary/30 hover:scale-[1.02]",
             "active:scale-[0.98] transition-all duration-300",
             "animate-gradient-shift"
           )}
@@ -187,14 +187,14 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
           <span className="sm:hidden">Добавить</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-background border border-border/10 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-background border border-white/50 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl">
             <motion.div
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 400 }}
-              className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shadow-lg shadow-primary/20"
+              className="w-10 h-10 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center shadow-2xl shadow-blue-900/5 shadow-primary/20"
             >
               <Sparkles className="w-5 h-5 text-primary" />
             </motion.div>
@@ -228,7 +228,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Введите имя..."
-              className="h-12 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </motion.div>
 
@@ -248,7 +248,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+7 (999) 000-00-00"
                 className={cn(
-                  "h-12 rounded-xl bg-muted/50 border-border/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all",
+                  "h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all",
                   phoneError ? "border-destructive/50 focus:border-destructive focus:ring-destructive/20" : ""
                 )}
               />
@@ -271,10 +271,10 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
               value={formData.source}
               onValueChange={(value) => setFormData(prev => ({ ...prev, source: value }))}
             >
-              <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-border/50 text-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
+              <SelectTrigger className="h-12 rounded-xl bg-muted/50 border-white/50 text-foreground focus:border-primary/50 focus:ring-2 focus:ring-primary/20">
                 <SelectValue placeholder="Выберите источник" />
               </SelectTrigger>
-              <SelectContent className="bg-popover border-border text-popover-foreground">
+              <SelectContent className="bg-popover border-white/50 text-popover-foreground">
                 {sourceOptions.map((option) => (
                   <SelectItem 
                     key={option.id} 
@@ -298,7 +298,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              className="flex-1 h-11 rounded-xl border-border/50 hover:bg-muted"
+              className="flex-1 h-11 rounded-xl border-white/50 hover:bg-muted"
             >
               Отмена
             </Button>
@@ -308,8 +308,8 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
               className={cn(
                 "flex-1 h-11 rounded-xl font-semibold",
                 "bg-gradient-to-r from-primary to-accent",
-                "text-primary-foreground shadow-lg",
-                "hover:shadow-xl hover:scale-[1.02]",
+                "text-primary-foreground shadow-2xl shadow-blue-900/5",
+                "hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:scale-[1.02]",
                 "active:scale-[0.98] transition-all"
               )}
             >

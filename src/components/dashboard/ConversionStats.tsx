@@ -37,7 +37,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
   }, [steps]);
 
   return (
-    <div className="group bg-card/80 backdrop-blur-xl border border-border/50 hover:border-primary/30 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-lg hover:shadow-primary/10 transition-all duration-500">
+    <div className="group bg-card/80 backdrop-blur-xl border border-white/50 hover:border-primary/30 rounded-2xl p-4 sm:p-6 shadow-sm hover:shadow-2xl shadow-blue-900/5 hover:shadow-primary/10 transition-all duration-500">
       {/* Background gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-primary/[0.02] via-transparent to-secondary/[0.02] opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-2xl pointer-events-none" />
 
@@ -61,7 +61,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1, duration: 0.4 }}
-                className="relative bg-muted/30 rounded-xl p-4 overflow-hidden border border-border/30"
+                className="relative bg-muted/30 rounded-xl p-4 overflow-hidden border border-white/50"
               >
                 {/* Background gradient */}
                 <div 
@@ -76,7 +76,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0 shadow-lg"
+                        className="w-3 h-3 rounded-full flex-shrink-0 shadow-2xl shadow-blue-900/5"
                         style={{ 
                           backgroundColor: conv.fromColor,
                           boxShadow: `0 0 12px ${conv.fromColor}80`
@@ -91,7 +91,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
 
                   {/* Arrow with conversion rate */}
                   <div className="flex flex-col items-center px-2 sm:px-4 flex-shrink-0">
-                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-lg ${
+                    <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs sm:text-sm font-semibold shadow-2xl shadow-blue-900/5 ${
                       isGoodRate 
                         ? 'bg-success/20 text-success border border-success/30 shadow-success/30' 
                         : 'bg-warning/20 text-warning border border-warning/30'
@@ -111,7 +111,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
                     <div className="flex items-center gap-2 justify-end mb-1">
                       <span className="text-xs sm:text-sm text-muted-foreground truncate">{conv.to}</span>
                       <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0 shadow-lg"
+                        className="w-3 h-3 rounded-full flex-shrink-0 shadow-2xl shadow-blue-900/5"
                         style={{ 
                           backgroundColor: conv.toColor,
                           boxShadow: `0 0 12px ${conv.toColor}80`
@@ -148,7 +148,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="mt-6 pt-4 border-t border-border/30"
+            className="mt-6 pt-4 border-t border-white/50"
           >
             <div className="flex items-center justify-between gap-3 bg-muted/20 rounded-xl p-4">
               <div className="text-sm text-muted-foreground truncate">
@@ -156,7 +156,7 @@ export const ConversionStats = ({ steps }: ConversionStatsProps) => {
                 <span className="sm:hidden">Общая конверсия</span>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
-                <span className="text-lg sm:text-2xl font-bold text-primary shadow-lg">
+                <span className="text-lg sm:text-2xl font-bold text-primary shadow-2xl shadow-blue-900/5">
                   {overallConversionRate.toFixed(2)}%
                 </span>
               </div>

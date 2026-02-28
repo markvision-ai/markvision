@@ -158,7 +158,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
         {[
           { label: 'Всего лидов', value: stats.totalLeads, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
           { label: 'Конверсия', value: `${stats.conversionRate.toFixed(1)}%`, icon: TrendingUp, color: 'text-purple-500', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
-          { label: 'Оплачено', value: stats.paidLeads, icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+          { label: 'Оплачено', value: stats.paidLeads, icon: Target, color: 'text-blue-500', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
           { label: 'Выручка', value: formatMoney(stats.totalRevenue), icon: DollarSign, color: 'text-amber-500', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
         ].map((stat, idx) => (
           <motion.div
@@ -167,7 +167,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className={cn("backdrop-blur-xl bg-card/50 border shadow-sm", stat.border)}>
+            <Card className={cn("backdrop-blur-xl bg-white/70 border shadow-sm", stat.border)}>
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
@@ -184,7 +184,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Funnel Visualization */}
-        <Card className="lg:col-span-2 bg-card border border-border shadow-sm overflow-hidden">
+        <Card className="lg:col-span-2 bg-card border border-white/50 shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <Sparkles className="w-5 h-5 text-primary" />
@@ -313,7 +313,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                 className="flex items-center gap-4 p-3 rounded-xl border border-transparent hover:border-white/10 transition-colors cursor-pointer"
               >
                 <div
-                  className={cn("w-10 h-10 rounded-lg flex items-center justify-center shadow-lg")}
+                  className={cn("w-10 h-10 rounded-lg flex items-center justify-center shadow-2xl shadow-blue-900/5")}
                   style={{ background: step.color }}
                 >
                   <step.icon className="w-5 h-5 text-white" />
@@ -328,7 +328,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                       {step.percentage}% от общего
                     </p>
                     {step.amount > 0 && (
-                      <span className="text-xs font-medium text-emerald-500">
+                      <span className="text-xs font-medium text-blue-500">
                         {formatMoney(step.amount)}
                       </span>
                     )}

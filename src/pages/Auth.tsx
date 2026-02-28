@@ -211,7 +211,7 @@ export default function Auth() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md interstellar-glass border border-rose-500/20 rounded-3xl p-6 shadow-xl"
+          className="w-full max-w-md interstellar-glass border border-rose-500/20 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
         >
           <div className="flex items-center gap-3 mb-4">
             <AlertTriangle className="w-7 h-7 text-rose-400" />
@@ -242,7 +242,7 @@ export default function Auth() {
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-1/4 -left-40 w-[600px] h-[500px] rounded-full bg-primary/20 blur-[120px] opacity-40" />
         <div className="absolute bottom-1/4 -right-40 w-[500px] h-[400px] rounded-full bg-cyan-500/15 blur-[100px] opacity-40" />
-        <div className="absolute top-3/4 left-1/2 -translate-x-1/2 w-[800px] h-[200px] rounded-full bg-emerald-500/10 blur-[80px] opacity-30" />
+        <div className="absolute top-3/4 left-1/2 -translate-x-1/2 w-[800px] h-[200px] rounded-full bg-blue-500/10 blur-[80px] opacity-30" />
       </div>
 
       <motion.div
@@ -262,7 +262,7 @@ export default function Auth() {
             <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain scale-110" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">
-            <span className="bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent">
               MarkVision AI
             </span>
           </h1>
@@ -302,7 +302,7 @@ export default function Auth() {
                     type="button"
                     onClick={() => setMode(m)}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${mode === m
-                      ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                      ? 'bg-primary text-white shadow-2xl shadow-blue-900/5 shadow-primary/20'
                       : 'text-white/40 hover:text-white hover:bg-white/5'
                       }`}
                   >
@@ -399,7 +399,7 @@ export default function Auth() {
               {/* Submit button */}
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white border-0 shadow-lg shadow-primary/25 transition-all duration-300 mt-2"
+                className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white border-0 shadow-2xl shadow-blue-900/5 shadow-primary/25 transition-all duration-300 mt-2"
                 disabled={loading}
               >
                 {loading

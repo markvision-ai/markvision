@@ -244,7 +244,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Media Uploader - Цех 1 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-white/50 bg-background dark:bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Upload className="w-4 h-4 text-primary" />
@@ -256,7 +256,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             <div
               className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${dragActive
                 ? 'border-primary bg-primary/5'
-                : 'border-border hover:border-muted-foreground bg-muted/20'
+                : 'border-white/50 hover:border-muted-foreground bg-muted/20'
                 }`}
               onDragEnter={handleDrag}
               onDragLeave={handleDrag}
@@ -307,7 +307,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                         key={asset.id}
                         className={`relative group aspect-square bg-muted dark:bg-muted/50 rounded-lg overflow-hidden cursor-pointer border-2 transition-all ${selectedAsset?.id === asset.id
                           ? 'border-primary ring-2 ring-primary/20'
-                          : 'border-transparent hover:border-border'
+                          : 'border-transparent hover:border-white/50'
                           }`}
                         onClick={() => setSelectedAsset(asset)}
                       >
@@ -363,7 +363,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         </Card>
 
         {/* AI Copywriter - Цех 2 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-white/50 bg-background dark:bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Wand2 className="w-4 h-4 text-primary" />
@@ -378,7 +378,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                 value={productDescription}
                 onChange={(e) => setProductDescription(e.target.value)}
                 rows={3}
-                className="bg-background dark:bg-muted/20 text-foreground border-border"
+                className="bg-background dark:bg-muted/20 text-foreground border-white/50"
               />
             </div>
 
@@ -397,20 +397,20 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
 
             {/* Generated Content */}
             {generatedContent && (
-              <ScrollArea className="h-[280px] border border-border rounded-lg p-4 bg-muted/10 dark:bg-muted/5">
+              <ScrollArea className="h-[280px] border border-white/50 rounded-lg p-4 bg-muted/10 dark:bg-muted/5">
                 <div className="space-y-4">
                   {/* Headlines */}
                   {generatedContent.headlines.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium flex items-center gap-2 text-foreground">
-                        <Badge variant="outline" className="text-xs border-border">
+                        <Badge variant="outline" className="text-xs border-white/50">
                           {platform === 'google' ? '15 заголовков' : 'Заголовки'}
                         </Badge>
                       </h4>
                       {generatedContent.headlines.map((headline, i) => (
                         <div
                           key={i}
-                          className="flex items-center justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-border/50"
+                          className="flex items-center justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-white/50"
                         >
                           <span className="text-sm text-foreground">{headline}</span>
                           <button
@@ -432,12 +432,12 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                   {generatedContent.descriptions.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-foreground">
-                        <Badge variant="outline" className="text-xs border-border">Описания</Badge>
+                        <Badge variant="outline" className="text-xs border-white/50">Описания</Badge>
                       </h4>
                       {generatedContent.descriptions.map((desc, i) => (
                         <div
                           key={i}
-                          className="flex items-start justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-border/50"
+                          className="flex items-start justify-between p-2 bg-background dark:bg-muted/20 rounded-lg group border border-white/50"
                         >
                           <span className="text-sm text-foreground">{desc}</span>
                           <button
@@ -459,9 +459,9 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                   {generatedContent.primaryText && (
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-foreground">
-                        <Badge variant="outline" className="text-xs border-border">Основной текст</Badge>
+                        <Badge variant="outline" className="text-xs border-white/50">Основной текст</Badge>
                       </h4>
-                      <div className="p-3 bg-background dark:bg-muted/20 rounded-lg group relative border border-border/50">
+                      <div className="p-3 bg-background dark:bg-muted/20 rounded-lg group relative border border-white/50">
                         <pre className="text-sm whitespace-pre-wrap font-sans text-foreground">
                           {generatedContent.primaryText}
                         </pre>
@@ -483,7 +483,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
                   {generatedContent.hashtags.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-sm font-medium text-foreground">
-                        <Badge variant="outline" className="text-xs border-border">Хэштеги</Badge>
+                        <Badge variant="outline" className="text-xs border-white/50">Хэштеги</Badge>
                       </h4>
                       <div className="flex flex-wrap gap-2">
                         {generatedContent.hashtags.map((tag, i) => (
@@ -506,7 +506,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
         </Card>
 
         {/* Live Preview - Цех 3 */}
-        <Card className="border-border bg-background dark:bg-card">
+        <Card className="border-white/50 bg-background dark:bg-card">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base text-foreground">
               <Smartphone className="w-4 h-4" />
@@ -537,7 +537,7 @@ export const CreativeCenterTab = ({ projectId }: CreativeCenterTabProps) => {
             {/* Preview Frame */}
             <div className="flex flex-col items-center">
               <div
-                className={`relative bg-card rounded-lg overflow-hidden shadow-xl border border-border ${previewFormat === 'feed'
+                className={`relative bg-card rounded-lg overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 ${previewFormat === 'feed'
                   ? 'w-full aspect-[4/5]'
                   : 'w-[200px] aspect-[9/16]'
                   }`}

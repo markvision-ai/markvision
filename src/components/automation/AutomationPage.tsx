@@ -372,9 +372,9 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.05 }}
                       className={cn(
-                        'p-4 rounded-xl border bg-card/50 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-lg',
-                        isError && 'border-red-500/50 bg-red-500/5 animate-pulse shadow-lg shadow-red-500/20',
-                        isActive && 'border-emerald-500/30 bg-emerald-500/5 shadow-lg shadow-emerald-500/20 ring-2 ring-emerald-500/20',
+                        'p-4 rounded-xl border bg-white/70 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-2xl shadow-blue-900/5',
+                        isError && 'border-red-500/50 bg-red-500/5 animate-pulse shadow-2xl shadow-blue-900/5 shadow-red-500/20',
+                        isActive && 'border-blue-500/30 bg-blue-500/5 shadow-2xl shadow-blue-900/5 shadow-blue-500/20 ring-2 ring-blue-500/20',
                       )}
                     >
                       <div className="flex items-start justify-between gap-4">
@@ -387,7 +387,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                             <Badge
                               className={cn(
                                 'text-[14px] shrink-0',
-                                isActive ? 'bg-emerald-500/15 text-emerald-600  border-emerald-500/30' : 'bg-muted text-muted-foreground border-border',
+                                isActive ? 'bg-blue-500/15 text-blue-600  border-blue-500/30' : 'bg-muted text-muted-foreground border-white/50',
                               )}
                             >
                               {isActive ? 'ВКЛ' : 'ВЫКЛ'}

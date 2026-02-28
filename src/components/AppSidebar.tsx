@@ -285,7 +285,7 @@ export const AppSidebar = ({
   return (
     <>
       <Sidebar open={open} setOpen={setOpen}>
-        <SidebarBody className="justify-between gap-4 bg-sidebar/40 backdrop-blur-xl border-r border-sidebar-border/[0.05] h-screen sticky top-0 shadow-2xl transition-all duration-500">
+        <SidebarBody className="justify-between gap-4 bg-white/60 backdrop-blur-2xl border-r border-white/50 h-screen sticky top-0 shadow-[4px_0_24px_rgba(0,0,0,0.02)] transition-all duration-500">
           <div className="flex flex-col flex-1 overflow-y-auto overflow-x-hidden -mx-2 px-2">
             {/* Logo */}
             <AnimatePresence>
@@ -378,13 +378,13 @@ export const AppSidebar = ({
           </div>
 
           {/* User Profile & Logout */}
-          <div className="border-t border-border/10 pt-4">
+          <div className="border-t border-white/50 pt-4">
             <SidebarLink
               link={{
                 label: userProfile?.name || "Профиль",
                 href: "#",
                 icon: (
-                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-emerald-500 to-lime-500 flex items-center justify-center text-white text-sm font-medium">
+                  <div className="h-7 w-7 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-lime-500 flex items-center justify-center text-white text-sm font-medium">
                     {userProfile?.name?.charAt(0).toUpperCase() ||
                       userProfile?.email?.charAt(0).toUpperCase() || "U"}
                   </div>
@@ -407,7 +407,7 @@ export const AppSidebar = ({
 
       {/* Create Project Dialog - still kept for Header access if needed via logic, but UI hidden from Sidebar */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-background border-border shadow-xl">
+        <DialogContent className="bg-background border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <DialogHeader>
             <DialogTitle className="text-foreground">Создать новый проект</DialogTitle>
           </DialogHeader>

@@ -39,7 +39,7 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
                   variant="outline"
                   size="icon"
                   className={cn(
-                    "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
+                    "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-white/50 shadow-sm",
                     isFirst && "opacity-30 cursor-not-allowed"
                   )}
                   onClick={(e) => {
@@ -65,7 +65,7 @@ const WidgetWrapper = React.forwardRef<HTMLDivElement, WidgetWrapperProps>(
                   variant="outline"
                   size="icon"
                   className={cn(
-                    "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-border/50 shadow-sm",
+                    "h-7 w-7 rounded-md bg-background/80 backdrop-blur-sm border-white/50 shadow-sm",
                     isLast && "opacity-30 cursor-not-allowed"
                   )}
                   onClick={(e) => {

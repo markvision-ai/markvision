@@ -357,7 +357,7 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
                     return (
                       <div
                         key={member.id}
-                        className="p-4 rounded-xl border bg-card/50 hover:bg-card/80 transition-colors"
+                        className="p-4 rounded-xl border bg-white/70 hover:bg-card/80 transition-colors"
                       >
                         <div className="flex items-start gap-4">
                           <Avatar className="h-12 w-12">

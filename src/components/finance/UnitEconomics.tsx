@@ -131,7 +131,7 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
         {trend && (
           <div className="flex items-center" aria-label={trend === 'up' ? "Trending up" : "Trending down"}>
             {trend === 'up' 
-              ? <ArrowUpRight className="h-4 w-4 text-emerald-600" aria-hidden="true" /> 
+              ? <ArrowUpRight className="h-4 w-4 text-blue-600" aria-hidden="true" /> 
               : <ArrowDownRight className="h-4 w-4 text-red-600" aria-hidden="true" />
             }
           </div>
@@ -147,8 +147,8 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
   );
 
   return (
-    <Card className="border-border/50 shadow-sm h-full flex flex-col">
-      <CardHeader className="py-4 px-6 bg-muted/30 flex flex-row items-center gap-3 border-b border-border/50">
+    <Card className="border-white/50 shadow-sm h-full flex flex-col">
+      <CardHeader className="py-4 px-6 bg-muted/30 flex flex-row items-center gap-3 border-b border-white/50">
         <div className="p-2 bg-primary/10 rounded-lg">
           <Calculator className="h-5 w-5 text-primary" />
         </div>
@@ -256,8 +256,8 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
             value={`${roi.toFixed(0)}%`} 
             subtitle={t.roiDesc} 
             icon={TrendingUp}
-            colorClass={roi > 0 ? "text-emerald-600" : "text-red-600"}
-            bgClass={roi > 0 ? "bg-emerald-500/10" : "bg-red-500/10"}
+            colorClass={roi > 0 ? "text-blue-600" : "text-red-600"}
+            bgClass={roi > 0 ? "bg-blue-500/10" : "bg-red-500/10"}
             trend={roi > 0 ? 'up' : 'down'}
           />
           <ResultCard 
@@ -265,8 +265,8 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
             value={`${ratio.toFixed(1)}:1`} 
             subtitle={t.ratioDesc} 
             icon={TrendingUp}
-            colorClass={ratio >= 3 ? "text-emerald-600" : ratio >= 1 ? "text-yellow-600" : "text-red-600"}
-            bgClass={ratio >= 3 ? "bg-emerald-500/10" : ratio >= 1 ? "bg-yellow-500/10" : "bg-red-500/10"}
+            colorClass={ratio >= 3 ? "text-blue-600" : ratio >= 1 ? "text-yellow-600" : "text-red-600"}
+            bgClass={ratio >= 3 ? "bg-blue-500/10" : ratio >= 1 ? "bg-yellow-500/10" : "bg-red-500/10"}
             trend={ratio >= 1 ? 'up' : 'down'}
           />
           <ResultCard 
@@ -289,7 +289,7 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
           />
         </div>
 
-        <div className="mt-4 p-3 rounded-lg bg-muted/40 border border-border/50 text-center">
+        <div className="mt-4 p-3 rounded-lg bg-muted/40 border border-white/50 text-center">
           <p className="text-sm text-muted-foreground">
             {t.calcFor} <span className="font-medium text-foreground">CAC = {formatCurrency(cac)}</span> {lang === 'ru' ? 'и' : 'and'} <span className="font-medium text-foreground">{t.avgCheck} = {formatCurrency(avgCheck)}</span>
           </p>

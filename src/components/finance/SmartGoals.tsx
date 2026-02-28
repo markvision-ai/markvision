@@ -302,8 +302,8 @@ export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps
   };
 
   return (
-    <Card className="border-border/50 shadow-sm h-full flex flex-col">
-      <CardHeader className="py-4 px-6 bg-muted/30 flex flex-row items-center justify-between border-b border-border/50">
+    <Card className="border-white/50 shadow-sm h-full flex flex-col">
+      <CardHeader className="py-4 px-6 bg-muted/30 flex flex-row items-center justify-between border-b border-white/50">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-primary/10 rounded-lg">
             <Target className="h-5 w-5 text-primary" />
@@ -513,7 +513,7 @@ export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps
                 </div>
                 <div className="flex justify-between pt-4">
                   <Button variant="outline" onClick={() => setActiveTab('relevant')}>{t.back}</Button>
-                  <Button onClick={handleCreate} className="bg-emerald-600 hover:bg-emerald-700 text-white">
+                  <Button onClick={handleCreate} className="bg-blue-600 hover:bg-blue-700 text-white">
                     <Check className="mr-2 h-4 w-4" />
                     {t.createButton}
                   </Button>
@@ -548,7 +548,7 @@ export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps
                     <div className="space-y-1">
                       <div className="flex items-center gap-2">
                         <h4 className="font-semibold text-base">{goal.title}</h4>
-                        {goal.status === 'completed' && <Badge className="bg-emerald-500 hover:bg-emerald-600">{t.completed}</Badge>}
+                        {goal.status === 'completed' && <Badge className="bg-blue-500 hover:bg-blue-600">{t.completed}</Badge>}
                         {isOverdue && <Badge variant="destructive">{t.overdue}</Badge>}
                         {daysLeft <= 3 && daysLeft >= 0 && goal.status !== 'completed' && (
                           <Badge variant="outline" className="text-orange-500 border-orange-200 bg-orange-50">
@@ -578,7 +578,7 @@ export const SmartGoals = ({ lang = 'ru', channel = 'default' }: SmartGoalsProps
                         </div>
                       </div>
                       <div className={`flex items-center gap-1.5 text-xs font-medium ${
-                        isOverdue ? 'text-red-500' : daysLeft < 7 ? 'text-orange-500' : 'text-emerald-600'
+                        isOverdue ? 'text-red-500' : daysLeft < 7 ? 'text-orange-500' : 'text-blue-600'
                       }`}>
                         <Clock className="h-3.5 w-3.5" />
                         {isOverdue ? `Просрочено на ${Math.abs(daysLeft)} дн.` : `Осталось ${daysLeft} дн.`}

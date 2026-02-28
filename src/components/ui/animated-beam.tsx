@@ -146,7 +146,7 @@ export const Circle = forwardRef<
     <div
       ref={ref}
       className={cn(
-        "z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-border bg-card shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]",
+        "z-10 flex h-14 w-14 items-center justify-center rounded-full border-2 border-white/50 bg-card shadow-[0_0_20px_-12px_rgba(0,0,0,0.8)]",
         className
       )}
     >

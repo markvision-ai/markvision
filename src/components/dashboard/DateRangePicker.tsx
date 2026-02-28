@@ -153,10 +153,10 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange, onPresetChange, 
           <ChevronDown className="h-4 w-4 opacity-50 ml-2" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0 bg-popover border-border shadow-xl rounded-xl overflow-hidden" align={align}>
+      <PopoverContent className="w-auto p-0 bg-popover border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-xl overflow-hidden" align={align}>
         <div className="flex flex-col md:flex-row h-full">
           {/* Left Sidebar - Presets */}
-          <div className="flex flex-col border-b md:border-b-0 md:border-r border-border bg-muted/10 p-2 md:w-48 gap-1">
+          <div className="flex flex-col border-b md:border-b-0 md:border-r border-white/50 bg-muted/10 p-2 md:w-48 gap-1">
             <span className="text-xs font-semibold text-muted-foreground px-3 py-2 mb-1">
               Быстрый выбор
             </span>
@@ -191,7 +191,7 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange, onPresetChange, 
             </div>
             
             {/* Footer Actions */}
-            <div className="flex items-center justify-end gap-2 p-3 border-t border-border bg-muted/5">
+            <div className="flex items-center justify-end gap-2 p-3 border-t border-white/50 bg-muted/5">
               <Button 
                 variant="ghost" 
                 size="sm" 

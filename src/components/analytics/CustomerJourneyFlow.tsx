@@ -21,7 +21,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
         { id: 'clicks', label: 'Клики', value: metrics.clicks, icon: MousePointer, color: 'text-cyan-400', bg: 'bg-cyan-500/10', border: 'border-cyan-500/20' },
         { id: 'leads', label: 'Лиды', value: metrics.leads, icon: Users, color: 'text-violet-400', bg: 'bg-violet-500/10', border: 'border-violet-500/20' },
         { id: 'visits', label: 'Диагностика', value: metrics.visits, icon: Target, color: 'text-fuchsia-400', bg: 'bg-fuchsia-500/10', border: 'border-fuchsia-500/20' },
-        { id: 'sales', label: 'Продажи', value: metrics.sales, icon: ShoppingCart, color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },
+        { id: 'sales', label: 'Продажи', value: metrics.sales, icon: ShoppingCart, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
         { id: 'profit', label: 'Прибыль', value: metrics.profit, isCurrency: true, icon: Wallet, color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
     ];
 
@@ -33,7 +33,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
     };
 
     return (
-        <Card className="bg-card border border-border overflow-hidden shadow-sm relative">
+        <Card className="bg-card border border-white/50 overflow-hidden shadow-sm relative">
             <CardHeader className="pb-6">
                 <CardTitle className="text-lg font-bold text-foreground">
                     Путь клиента: Показы → Прибыль
@@ -52,7 +52,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: index * 0.1 }}
                                     className={cn(
-                                        "flex flex-col items-center justify-center p-4 rounded-xl border border-border transition-all w-28 h-28 sm:w-32 sm:h-32 hover:shadow-md",
+                                        "flex flex-col items-center justify-center p-4 rounded-xl border border-white/50 transition-all w-28 h-28 sm:w-32 sm:h-32 hover:shadow-md",
                                         step.bg
                                     )}
                                 >

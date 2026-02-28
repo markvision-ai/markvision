@@ -76,7 +76,7 @@ const statusLabels: Record<string, string> = {
 const statusStyles: Record<string, { bg: string; text: string; gradient: string; glow: string }> = {
   new: { bg: 'bg-blue-600/20', text: 'text-blue-400', gradient: 'from-blue-600 to-cyan-500', glow: 'shadow-blue-500/20' },
   invoiced: { bg: 'bg-indigo-600/20', text: 'text-indigo-400', gradient: 'from-indigo-600 to-violet-500', glow: 'shadow-indigo-500/20' },
-  paid: { bg: 'bg-emerald-600/20', text: 'text-emerald-400', gradient: 'from-emerald-500 to-green-500', glow: 'shadow-emerald-500/20' },
+  paid: { bg: 'bg-blue-600/20', text: 'text-blue-400', gradient: 'from-blue-500 to-green-500', glow: 'shadow-blue-500/20' },
   appointment: { bg: 'bg-purple-600/20', text: 'text-purple-400', gradient: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/20' },
   visit_completed: { bg: 'bg-fuchsia-600/20', text: 'text-fuchsia-400', gradient: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/20' },
   in_progress: { bg: 'bg-yellow-600/20', text: 'text-yellow-400', gradient: 'from-yellow-500 to-orange-500', glow: 'shadow-yellow-500/20' },
@@ -261,9 +261,9 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     currentStatusStyle.gradient,
                     currentStatusStyle.glow
                   )}>
-                    <User className="w-8 h-8 text-white drop-shadow-lg" />
+                    <User className="w-8 h-8 text-white drop-shadow-2xl shadow-blue-900/5" />
                   </div>
-                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-emerald-500 border-2 border-background flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-lg bg-blue-500 border-2 border-background flex items-center justify-center">
                     <Zap className="w-3 h-3 text-white fill-current" />
                   </div>
                 </div>
@@ -274,13 +274,13 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                       {lead.name || 'Анонимный клиент'}
                     </h1>
                     {lead.ltv && lead.ltv > 0 && (
-                      <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/40 font-black px-3 py-1">
+                      <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/40 font-black px-3 py-1">
                         VIP • {new Intl.NumberFormat('ru-RU').format(lead.ltv)} ₸
                       </Badge>
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge className={cn('font-black uppercase tracking-[0.1em] text-[10px] px-3 py-1 rounded-lg border-white/10 shadow-lg', currentStatusStyle.bg, currentStatusStyle.text)}>
+                    <Badge className={cn('font-black uppercase tracking-[0.1em] text-[10px] px-3 py-1 rounded-lg border-white/10 shadow-2xl shadow-blue-900/5', currentStatusStyle.bg, currentStatusStyle.text)}>
                       {statusLabels[formData.status]}
                     </Badge>
                     <span className="text-muted-foreground/60 text-xs font-bold px-2">•</span>
@@ -382,7 +382,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     className="interstellar-glass p-8 rounded-[2.5rem] border-white/5"
                   >
                     <div className="flex items-center gap-4 mb-8">
-                      <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500">
+                      <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
                         <DollarSign className="w-6 h-6" />
                       </div>
                       <div>
@@ -405,7 +405,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                             {Object.entries(statusLabels).map(([key, label]) => (
                               <SelectItem key={key} value={key} className="focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">
                                 <div className="flex items-center gap-3">
-                                  <div className={cn('w-2.5 h-2.5 rounded-full shadow-lg', statusStyles[key]?.gradient)} />
+                                  <div className={cn('w-2.5 h-2.5 rounded-full shadow-2xl shadow-blue-900/5', statusStyles[key]?.gradient)} />
                                   <span className="font-bold">{label}</span>
                                 </div>
                               </SelectItem>
@@ -421,9 +421,9 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                             type="number"
                             value={formData.deal_amount}
                             onChange={(e) => setFormData({ ...formData, deal_amount: Number(e.target.value) })}
-                            className="interstellar-input h-14 text-xl font-black pr-12 text-emerald-400"
+                            className="interstellar-input h-14 text-xl font-black pr-12 text-blue-400"
                           />
-                          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-emerald-500/80 font-black text-lg">₸</span>
+                          <span className="absolute right-5 top-1/2 -translate-y-1/2 text-blue-500/80 font-black text-lg">₸</span>
                         </div>
                       </div>
 
@@ -445,7 +445,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                         <Button
                           onClick={() => setViralLoopOpen(true)}
                           disabled={isVisitDisabled}
-                          className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 font-black uppercase tracking-widest shadow-xl shadow-indigo-600/20 hover:scale-[1.02] transition-transform"
+                          className="h-14 rounded-2xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 font-black uppercase tracking-widest shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-indigo-600/20 hover:scale-[1.02] transition-transform"
                         >
                           <Gift className="w-5 h-5 mr-3" />
                           Виральная петля 🔥
@@ -503,7 +503,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                       ].map(item => (
                         <div key={item.key} className={cn(
                           "p-4 rounded-[1.5rem] transition-all duration-500",
-                          item.value ? "bg-white/5 border border-white/10 shadow-lg" : "bg-black/20 border border-white/5 opacity-40"
+                          item.value ? "bg-white/5 border border-white/10 shadow-2xl shadow-blue-900/5" : "bg-black/20 border border-white/5 opacity-40"
                         )}>
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground">

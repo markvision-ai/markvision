@@ -123,8 +123,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             <h3 className="text-base font-bold text-white/90 tracking-tight flex items-center gap-2">
               Динамика показателей
               <span className="flex h-2 w-2 relative">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
             </h3>
             <p className="text-[10px] uppercase tracking-widest text-white/40 font-semibold mt-0.5">Live Analytics • 24h Update</p>
@@ -165,8 +165,8 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
         {activeTab === 'finance' ? (
           <>
             <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-emerald-400 transition-colors">Выручка</div>
-              <div className="text-xl font-bold font-mono text-emerald-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
+              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-blue-400 transition-colors">Выручка</div>
+              <div className="text-xl font-bold font-mono text-blue-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
                 {formatCurrency(totals.revenue)} <span className="text-xs text-white/30">₸</span>
               </div>
             </div>
@@ -176,9 +176,9 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                 {formatCurrency(totals.spend)} <span className="text-xs text-white/30">₸</span>
               </div>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-br from-emerald-500/10 to-transparent border border-emerald-500/20 col-span-2 md:col-span-1 hover:border-emerald-500/40 transition-colors">
-              <div className="text-[10px] text-emerald-300/60 uppercase tracking-wider font-bold mb-1">Чистая прибыль</div>
-              <div className="text-xl font-bold font-mono text-emerald-300">
+            <div className="p-3 rounded-xl bg-gradient-to-br from-blue-500/10 to-transparent border border-blue-500/20 col-span-2 md:col-span-1 hover:border-blue-500/40 transition-colors">
+              <div className="text-[10px] text-blue-300/60 uppercase tracking-wider font-bold mb-1">Чистая прибыль</div>
+              <div className="text-xl font-bold font-mono text-blue-300">
                 {profit > 0 ? '+' : ''}{formatCurrency(profit)} <span className="text-xs opacity-50">₸</span>
               </div>
             </div>

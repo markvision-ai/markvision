@@ -120,7 +120,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
       const item = payload[0].payload;
       const percent = totalSpend > 0 ? ((item.value / totalSpend) * 100).toFixed(1) : '0';
       return (
-        <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
+        <div className="bg-card border border-white/50 rounded-xl p-4 shadow-2xl shadow-blue-900/5">
           <p className="font-medium flex items-center gap-2 mb-2 text-foreground">
             <span className="text-xl">{item.icon}</span>
             <span className="text-lg">{item.label}</span>
@@ -168,7 +168,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Pie Chart */}
-      <Card className="bg-card border border-border shadow-sm lg:col-span-2">
+      <Card className="bg-card border border-white/50 shadow-sm lg:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <span className="w-2 h-6 bg-primary rounded-full" />
@@ -217,7 +217,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
               </div>
             </div>
           ) : (
-            <div className="h-[400px] flex items-center justify-center text-muted-foreground rounded-2xl border border-dashed border-border bg-muted/20">
+            <div className="h-[400px] flex items-center justify-center text-muted-foreground rounded-2xl border border-dashed border-white/50 bg-muted/20">
               <div className="text-center">
                 <p>Нет данных о расходах</p>
                 <p className="text-xs mt-1">Подключите рекламные кабинеты в Интеграциях</p>
@@ -239,7 +239,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={cn("bg-card border border-border transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
+              <Card className={cn("bg-card border border-white/50 transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">
@@ -248,7 +248,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
                       </div>
                       <div>
                         <p className="font-semibold text-base text-foreground">{platform.label}</p>
-                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-border text-muted-foreground">
+                        <Badge variant="outline" className="text-[10px] h-5 px-1.5 border-white/50 text-muted-foreground">
                           {platform.key === 'facebook' ? 'из кабинета Meta' : 'Ad Spend'}
                         </Badge>
                       </div>
@@ -277,7 +277,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
         })}
 
         {platformTotals.length === 0 && (
-          <div className="p-6 text-center text-muted-foreground text-sm border border-border rounded-xl bg-muted/20">
+          <div className="p-6 text-center text-muted-foreground text-sm border border-white/50 rounded-xl bg-muted/20">
             Нет данных. Подключите Meta в Интеграциях и синхронизируйте расходы.
           </div>
         )}

@@ -425,7 +425,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
                     "w-1.5 h-1.5 rounded-full pulse-emerald",
-                    (selectedPageName || selectedAdAccountName) ? "bg-emerald-500" : "bg-white/20"
+                    (selectedPageName || selectedAdAccountName) ? "bg-blue-500" : "bg-white/20"
                   )} />
                   <span className="text-xs text-muted-foreground">
                     {(selectedPageName || selectedAdAccountName) ? 'Активно' : 'Ожидает настройки'}
@@ -434,7 +434,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               </div>
             </div>
             {(selectedPageName || selectedAdAccountName) && (
-              <Badge variant="outline" className="bg-emerald-500/10 border-emerald-500/20 text-emerald-500 px-3 py-1">
+              <Badge variant="outline" className="bg-blue-500/10 border-blue-500/20 text-blue-500 px-3 py-1">
                 Connected
               </Badge>
             )}
@@ -447,7 +447,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               </p>
               <Button
                 onClick={() => handleOpenModal('facebook')}
-                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-lg shadow-blue-600/20 transition-all active:scale-[0.98]"
+                className="w-full h-12 bg-blue-600 hover:bg-blue-700 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-blue-600/20 transition-all active:scale-[0.98]"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Настроить подключение
@@ -467,7 +467,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                         <p className="text-sm font-semibold text-white">{selectedPageName}</p>
                       </div>
                     </div>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
                   </div>
                 ) : null}
                 {selectedAdAccountName ? (
@@ -481,7 +481,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                         <p className="text-sm font-semibold text-white">{selectedAdAccountName}</p>
                       </div>
                     </div>
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                    <CheckCircle2 className="w-4 h-4 text-blue-500" />
                   </div>
                 ) : null}
               </div>
@@ -511,7 +511,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                 <div className="flex items-center gap-2 mt-1">
                   <span className={cn(
                     "w-1.5 h-1.5 rounded-full pulse-emerald",
-                    selectedInstagramHandle ? "bg-emerald-500" : "bg-white/20"
+                    selectedInstagramHandle ? "bg-blue-500" : "bg-white/20"
                   )} />
                   <span className="text-xs text-muted-foreground">
                     {selectedInstagramHandle ? 'Синхронизация Reels' : 'Ожидает настройки'}
@@ -533,7 +533,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               </p>
               <Button
                 onClick={() => handleOpenModal('instagram')}
-                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl shadow-lg shadow-purple-600/20 transition-all active:scale-[0.98]"
+                className="w-full h-12 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-purple-600/20 transition-all active:scale-[0.98]"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Настроить подключение
@@ -547,14 +547,14 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                     <img
                       src={selectedInstagramAvatar}
                       alt={selectedInstagramHandle ?? ''}
-                      className="w-16 h-16 rounded-2xl object-cover ring-2 ring-purple-500/20 shadow-xl"
+                      className="w-16 h-16 rounded-2xl object-cover ring-2 ring-purple-500/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
                     />
                   ) : (
                     <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                       <Instagram className="w-8 h-8 text-white" />
                     </div>
                   )}
-                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-emerald-500 border-2 border-black flex items-center justify-center">
+                  <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-blue-500 border-2 border-black flex items-center justify-center">
                     <Check className="w-3 h-3 text-white" />
                   </div>
                 </div>
@@ -566,11 +566,11 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/10">
-                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                  <Zap className="w-4 h-4 text-emerald-500" />
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-blue-500/5 border border-blue-500/10">
+                <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                  <Zap className="w-4 h-4 text-blue-500" />
                 </div>
-                <span className="text-xs font-medium text-emerald-400">
+                <span className="text-xs font-medium text-blue-400">
                   Автоматическая публикация Reels готова
                 </span>
               </div>
@@ -630,7 +630,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             name: 'WhatsApp Business',
             status: 'Setup',
             icon: <MessageCircle className="w-5 h-5" />,
-            color: 'from-green-500/20 to-emerald-600/20',
+            color: 'from-green-500/20 to-blue-600/20',
             border: 'border-green-500/30',
             iconColor: 'text-green-500'
           },
@@ -731,7 +731,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
         <DialogContent className="max-w-2xl bg-black/90 backdrop-blur-3xl border-white/5 shadow-2xl rounded-3xl p-0 overflow-hidden">
           <div className="p-8 border-b border-white/5 bg-white/5 flex items-center gap-4">
             <div className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg",
+              "w-12 h-12 rounded-2xl flex items-center justify-center shadow-2xl shadow-blue-900/5",
               modalType === 'facebook' ? "bg-blue-600/20 text-blue-500" : "bg-purple-600/20 text-purple-400"
             )}>
               {modalType === 'facebook' ? <Facebook className="w-6 h-6" /> : <Instagram className="w-6 h-6" />}
@@ -912,7 +912,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             <Button variant="outline" onClick={() => setIsModalOpen(false)} className="bg-white/5 border-white/10 hover:bg-white/10 text-white min-w-[120px] rounded-xl">
               Отмена
             </Button>
-            <Button onClick={handleSaveModal} className="bg-primary hover:bg-primary/90 text-white min-w-[150px] rounded-xl shadow-lg shadow-primary/20">
+            <Button onClick={handleSaveModal} className="bg-primary hover:bg-primary/90 text-white min-w-[150px] rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20">
               <Save className="w-4 h-4 mr-2" />
               Сохранить
             </Button>

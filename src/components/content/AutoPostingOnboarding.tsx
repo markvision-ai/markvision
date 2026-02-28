@@ -29,7 +29,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
         { name: 'YouTube', icon: <Youtube className="w-5 h-5 text-red-500" />, color: 'from-red-500/20 to-orange-500/20' },
         { name: 'Threads', icon: <div className="text-white font-bold text-lg">@</div>, color: 'from-slate-700/20 to-black/20' },
         { name: 'Telegram', icon: <Send className="w-5 h-5 text-sky-500" />, color: 'from-sky-500/20 to-blue-600/20' },
-        { name: 'Site Blog', icon: <Globe className="w-5 h-5 text-emerald-500" />, color: 'from-emerald-500/20 to-teal-600/20' },
+        { name: 'Site Blog', icon: <Globe className="w-5 h-5 text-blue-500" />, color: 'from-blue-500/20 to-cyan-500/20' },
     ];
 
     const steps = [
@@ -141,7 +141,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
 
                                 <Button
                                     onClick={step.action.onClick}
-                                    className="w-full h-14 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl group/btn overflow-hidden relative shadow-lg"
+                                    className="w-full h-14 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl group/btn overflow-hidden relative shadow-2xl shadow-blue-900/5"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
                                     <span className="relative z-10 flex items-center font-bold uppercase tracking-wider">

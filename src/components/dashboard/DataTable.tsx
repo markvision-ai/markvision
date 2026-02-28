@@ -364,7 +364,7 @@ export const DataTable = React.memo(({
         <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
           <table className="w-full text-xs md:text-sm border-collapse">
             <thead className="sticky top-0 z-50 glass-card">
-              <tr className="border-b border-border">
+              <tr className="border-b border-white/50">
                 <th className="text-left p-2 md:p-3 font-semibold text-muted-foreground sticky left-0 bg-card/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>
                 <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
@@ -414,8 +414,8 @@ export const DataTable = React.memo(({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-card/60 backdrop-blur-sm font-semibold border-b border-border">
-                <td className="p-2 md:p-4 sticky left-0 bg-card/60 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
+              <tr className="bg-white/80 backdrop-blur-sm font-semibold border-b border-white/50">
+                <td className="p-2 md:p-4 sticky left-0 bg-white/80 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatCurrency(totals.spend)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.clicks)}</td>
@@ -423,12 +423,12 @@ export const DataTable = React.memo(({
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.followers)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.visits)}</td>
                 <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-emerald-500 font-mono">{formatCurrency(totals.revenue)}</td>
+                <td className="p-2 md:p-4 text-right text-blue-500 font-mono">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
               {effectivePlanData && (
-                <tr className="bg-muted/90 backdrop-blur-sm border-b border-border shadow-sm">
+                <tr className="bg-muted/90 backdrop-blur-sm border-b border-white/50 shadow-sm">
                   <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80  text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
@@ -439,10 +439,10 @@ export const DataTable = React.memo(({
                     let colorClass = '';
                     if (field === 'spend') {
                       // For spend, <= 100% is good
-                      colorClass = percent <= 100 ? 'text-emerald-600' : percent <= 120 ? 'text-yellow-600' : 'text-red-500/80'
+                      colorClass = percent <= 100 ? 'text-blue-600' : percent <= 120 ? 'text-yellow-600' : 'text-red-500/80'
                     } else {
                       // For other metrics, >= 100% is good
-                      colorClass = percent >= 100 ? 'text-emerald-600' : percent >= 80 ? 'text-yellow-600' : 'text-red-500/80'
+                      colorClass = percent >= 100 ? 'text-blue-600' : percent >= 80 ? 'text-yellow-600' : 'text-red-500/80'
                     }
                     return (
                       <td key={field} className="p-2 md:p-4">
@@ -486,7 +486,7 @@ export const DataTable = React.memo(({
                   <tr 
                     key={dateKey} 
                     className={cn(
-                      "border-b border-border/40 hover:bg-muted/30 transition-colors",
+                      "border-b border-white/50 hover:bg-muted/30 transition-colors",
                       isToday && "bg-primary/5",
                       isWeekend && "bg-muted/10"
                     )}
@@ -572,7 +572,7 @@ export const DataTable = React.memo(({
                     </td>
                     <td className={cn(
                       "p-2 md:p-3 text-right font-semibold",
-                      isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
+                      isRevenueAboveAverage ? "text-blue-600" : "text-foreground"
                     )}>
                       {onDataChange ? (
                         <EditableCell
@@ -580,7 +580,7 @@ export const DataTable = React.memo(({
                           onSave={(val) => onDataChange(dateKey, 'revenue', val)}
                           className={cn(
                             "w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-semibold",
-                            isRevenueAboveAverage ? "text-emerald-600" : "text-foreground"
+                            isRevenueAboveAverage ? "text-blue-600" : "text-foreground"
                           )}
                         />
                       ) : formatCurrency(dayData?.revenue || 0)}

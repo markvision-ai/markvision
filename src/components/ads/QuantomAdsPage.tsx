@@ -373,7 +373,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
 
       <Tabs defaultValue="dashboard" className="flex-1 flex flex-col relative z-10 w-full max-w-7xl mx-auto px-6 pt-8 gap-8 overflow-visible">
         {/* Premium Light Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-3xl bg-card border border-border shadow-sm">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 p-6 rounded-3xl bg-card border border-white/50 shadow-sm">
           <div className="flex items-center gap-5">
             <div className="p-3 bg-primary/10 rounded-xl border border-primary/20 shadow-sm">
               <Zap className="w-5 h-5 text-primary" />
@@ -391,7 +391,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           </div>
 
           <div className="flex items-center flex-wrap gap-4">
-            <TabsList className="bg-muted border border-border p-1 h-12 rounded-xl">
+            <TabsList className="bg-muted border border-white/50 p-1 h-12 rounded-xl">
               <TabsTrigger
                 value="dashboard"
                 className="data-[state=active]:bg-background data-[state=active]:text-primary data-[state=active]:shadow-sm px-4 rounded-lg transition-all font-bold gap-2 text-xs"
@@ -429,14 +429,14 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
         {/* Global Status Bar */}
         <div className="flex flex-wrap items-center justify-between gap-4 px-4">
           <div className="flex items-center gap-6">
-            <div className="flex items-center gap-3 bg-card border border-border px-4 py-2 rounded-full shadow-sm">
-              <div className={cn("w-2 h-2 rounded-full", metaOnline ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-red-500 animate-pulse")} />
+            <div className="flex items-center gap-3 bg-card border border-white/50 px-4 py-2 rounded-full shadow-sm">
+              <div className={cn("w-2 h-2 rounded-full", metaOnline ? "bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.3)]" : "bg-red-500 animate-pulse")} />
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 Meta Engine: {metaOnline ? 'В сети' : 'Прервано'}
               </span>
             </div>
 
-            <div className="flex items-center gap-3 bg-card border border-border px-4 py-2 rounded-full shadow-sm">
+            <div className="flex items-center gap-3 bg-card border border-white/50 px-4 py-2 rounded-full shadow-sm">
               <Activity className={cn("w-3.5 h-3.5", autopilotEnabled ? "text-primary animate-spin-slow" : "text-muted-foreground")} />
               <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                 ИИ-Автопилот: {autopilotEnabled ? 'Работает' : 'Ручной режим'}
@@ -451,7 +451,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                 onClick={() => setDatePickerOpen(prev => !prev)}
                 className={cn(
                   "inline-flex items-center gap-3 h-11 px-5 rounded-xl border text-xs font-black uppercase tracking-widest transition-all shadow-sm",
-                  "bg-card border-border hover:border-primary/50 hover:bg-accent text-foreground",
+                  "bg-card border-white/50 hover:border-primary/50 hover:bg-accent text-foreground",
                   datePickerOpen && "border-primary ring-2 ring-primary/10"
                 )}
               >
@@ -461,8 +461,8 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </button>
 
               {datePickerOpen && (
-                <div className="absolute top-full right-0 mt-4 z-50 bg-card border border-border rounded-2xl shadow-xl flex overflow-hidden min-w-[540px]">
-                  <div className="w-[180px] border-r border-border p-4 space-y-1 bg-muted/30">
+                <div className="absolute top-full right-0 mt-4 z-50 bg-card border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex overflow-hidden min-w-[540px]">
+                  <div className="w-[180px] border-r border-white/50 p-4 space-y-1 bg-muted/30">
                     {presets.map(p => (
                       <button
                         key={p.key}
@@ -504,7 +504,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                         day_range_end: 'rounded-l-none',
                       }}
                     />
-                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-border">
+                    <div className="flex items-center justify-between mt-6 pt-6 border-t border-white/50">
                       <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
                         Период: {dateRange?.from ? format(dateRange.from, 'd MMM yyyy', { locale: ru }) : '—'}
                         {dateRange?.to ? ` → ${format(dateRange.to, 'd MMM yyyy', { locale: ru })}` : ''}
@@ -527,7 +527,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               size="icon"
               onClick={handleRefresh}
               disabled={refreshing}
-              className="h-10 w-10 hover:bg-accent rounded-xl border border-border transition-all group shadow-sm"
+              className="h-10 w-10 hover:bg-accent rounded-xl border border-white/50 transition-all group shadow-sm"
             >
               <RefreshCw className={cn('w-4 h-4 text-muted-foreground group-hover:text-primary', refreshing && 'animate-spin text-primary')} />
             </Button>
@@ -544,7 +544,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           />
 
           {/* Table Container */}
-          <div className="rounded-[2.5rem] bg-card border border-border shadow-sm overflow-hidden">
+          <div className="rounded-[2.5rem] bg-card border border-white/50 shadow-sm overflow-hidden">
             <ActiveAdsManager
               projectId={projectId}
               dateRange={{
@@ -555,7 +555,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
             />
           </div>
 
-          <div className="rounded-[2.5rem] bg-card border border-border p-8 shadow-sm">
+          <div className="rounded-[2.5rem] bg-card border border-white/50 p-8 shadow-sm">
             <h3 className="text-lg font-black uppercase tracking-widest mb-6 flex items-center gap-3 text-foreground">
               <TrendingUp className="w-4 h-4 text-primary" />
               Воронка эффективности кампаний
@@ -571,7 +571,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
           </div>
         </TabsContent>
 
-        <TabsContent value="analyst" className="m-0 h-[700px] border border-border rounded-[2.5rem] overflow-hidden bg-card shadow-sm">
+        <TabsContent value="analyst" className="m-0 h-[700px] border border-white/50 rounded-[2.5rem] overflow-hidden bg-card shadow-sm">
           <AdsChatInterface
             projectId={projectId}
             contextData={{

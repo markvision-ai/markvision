@@ -141,7 +141,7 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-border"
+        className="flex items-center gap-2 px-3 py-1 rounded-full bg-muted border border-white/50"
       >
         <WifiOff className="w-3 h-3 text-muted-foreground" />
         <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Связь: Оффлайн</span>
@@ -153,10 +153,10 @@ export const AIStatusIndicator = ({ projectId }: { projectId: string | null }) =
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-100 shadow-sm"
+      className="flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 shadow-sm"
     >
-      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-      <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">ИИ-Ядро: Ожидание</span>
+      <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+      <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">ИИ-Ядро: Ожидание</span>
     </motion.div>
   );
 };

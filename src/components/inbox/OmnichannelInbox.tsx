@@ -339,7 +339,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
 
   if (!projectId) {
     return (
-      <div className="flex items-center justify-center h-64 backdrop-blur-sm bg-card/50 border border-border rounded-xl">
+      <div className="flex items-center justify-center h-64 backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl">
         <p className="text-muted-foreground">Выберите проект для просмотра сообщений</p>
       </div>
     );
@@ -363,7 +363,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
               key={channel} 
               variant="outline" 
               size="icon" 
-              className="relative backdrop-blur-sm bg-card/50 border border-border"
+              className="relative backdrop-blur-sm bg-white/70 border border-white/50"
             >
               <div className={`absolute -top-1 -right-1 w-2 h-2 rounded-full ${channelColors[channel]}`} />
               {channelIcons[channel]}
@@ -375,7 +375,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
       {/* Chat Interface - Glassmorphism */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 h-[600px]">
         {/* Conversations List */}
-        <Card className="lg:col-span-1 backdrop-blur-sm bg-card/50 border border-border">
+        <Card className="lg:col-span-1 backdrop-blur-sm bg-white/70 border border-white/50">
           <CardHeader className="pb-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -383,7 +383,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                 placeholder="Поиск диалогов..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 backdrop-blur-sm bg-card/50 border border-border"
+                className="pl-9 backdrop-blur-sm bg-white/70 border border-white/50"
               />
             </div>
           </CardHeader>
@@ -403,7 +403,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                       exit={{ opacity: 0, y: -10 }}
                       onClick={() => setSelectedThread(thread)}
                       className={cn(
-                        "flex items-center gap-3 p-4 cursor-pointer border-b border-border hover:bg-foreground/[0.05] transition-colors",
+                        "flex items-center gap-3 p-4 cursor-pointer border-b border-white/50 hover:bg-foreground/[0.05] transition-colors",
                         selectedThread?.id === thread.id && 'bg-foreground/[0.08]'
                       )}
                     >
@@ -449,16 +449,16 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
         {/* Chat Window + Quick Info */}
         <div className="lg:col-span-3 flex gap-4">
           {/* Chat Window */}
-          <Card className="flex-1 flex flex-col backdrop-blur-sm bg-card/50 border border-border">
+          <Card className="flex-1 flex flex-col backdrop-blur-sm bg-white/70 border border-white/50">
             {selectedThread ? (
               <>
               {/* AI Summarize Button */}
-              <div className="p-3 border-b border-border">
+              <div className="p-3 border-b border-white/50">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleSummarizeChat}
-                  className="w-full backdrop-blur-sm bg-card/50 border border-border hover:bg-card/70"
+                  className="w-full backdrop-blur-sm bg-white/70 border border-white/50 hover:bg-card/70"
                 >
                   <Brain className="w-4 h-4 mr-2" />
                   🤖 Пересказать чат
@@ -466,7 +466,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
               </div>
 
               {/* Chat Header */}
-              <CardHeader className="border-b border-border">
+              <CardHeader className="border-b border-white/50">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
@@ -483,10 +483,10 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-border">
+                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-white/70 border border-white/50">
                       <PhoneCall className="w-4 h-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-border">
+                    <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-white/70 border border-white/50">
                       <MoreVertical className="w-4 h-4" />
                     </Button>
                   </div>
@@ -516,7 +516,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                               "max-w-[70%] rounded-2xl px-4 py-2 backdrop-blur-sm",
                               msg.direction === 'outbound' 
                                 ? 'bg-primary/80 text-primary-foreground rounded-br-md' 
-                                : 'bg-muted/50 rounded-bl-md border border-border'
+                                : 'bg-muted/50 rounded-bl-md border border-white/50'
                             )}>
                               <p className="text-sm">{msg.content}</p>
                               <div className={`flex items-center gap-1 mt-1 ${
@@ -539,9 +539,9 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
               </CardContent>
 
               {/* Message Input */}
-              <div className="p-4 border-t border-border">
+              <div className="p-4 border-t border-white/50">
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-card/50 border border-border">
+                  <Button variant="ghost" size="icon" className="backdrop-blur-sm bg-white/70 border border-white/50">
                     <Paperclip className="w-4 h-4" />
                   </Button>
                   <Input
@@ -549,7 +549,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
-                    className="flex-1 backdrop-blur-sm bg-card/50 border border-border"
+                    className="flex-1 backdrop-blur-sm bg-white/70 border border-white/50"
                   />
                   <Button 
                     onClick={handleSendMessage} 
@@ -570,7 +570,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
 
         {/* Quick Info - справа от чата */}
         {selectedThread && selectedThread.lead && (
-          <Card className="w-64 backdrop-blur-sm bg-card/50 border border-border">
+          <Card className="w-64 backdrop-blur-sm bg-white/70 border border-white/50">
             <CardHeader>
               <CardTitle className="text-sm">Информация о лиде</CardTitle>
             </CardHeader>
@@ -616,7 +616,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
 
       {/* AI Summary Dialog */}
       <Dialog open={isSummaryOpen} onOpenChange={setIsSummaryOpen}>
-        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-card/50 border border-border">
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-white/70 border border-white/50">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Brain className="w-5 h-5 text-primary" />
@@ -624,7 +624,7 @@ export const OmnichannelInbox = ({ projectId }: OmnichannelInboxProps) => {
             </DialogTitle>
           </DialogHeader>
           <div className="mt-4">
-            <div className="p-4 rounded-lg backdrop-blur-sm bg-card/50 border border-border">
+            <div className="p-4 rounded-lg backdrop-blur-sm bg-white/70 border border-white/50">
               <pre className="whitespace-pre-wrap text-sm text-foreground font-sans">
                 {chatSummary || 'Генерация саммари...'}
               </pre>

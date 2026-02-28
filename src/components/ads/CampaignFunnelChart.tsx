@@ -236,7 +236,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         {
           name: 'Оплаты',
           value: paidLeads,
-          color: 'text-emerald-500',
+          color: 'text-blue-500',
           icon: CreditCard,
           percentage: totalLeads > 0 ? (paidLeads / totalLeads) * 100 : 0,
           details: [
@@ -467,15 +467,15 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         <div className="flex gap-4">
-          <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-2xl border border-border">
-            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">Real-time данные</span>
+          <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-2xl border border-white/50">
+            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Real-time данные</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="h-10 px-6 rounded-2xl border-border bg-card text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm"
+            className="h-10 px-6 rounded-2xl border-white/50 bg-card text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm"
           >
             <Download className="w-4 h-4 mr-2" />
             Экспорт данных
@@ -485,8 +485,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:h-[700px]">
         {/* Main Funnel Visualization */}
-        <div className="rounded-[2.5rem] border border-border bg-card shadow-sm p-0 flex flex-col overflow-hidden group">
-          <div className="p-8 border-b border-border bg-muted/30 flex items-center justify-between">
+        <div className="rounded-[2.5rem] border border-white/50 bg-card shadow-sm p-0 flex flex-col overflow-hidden group">
+          <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <Filter className="w-4 h-4 text-primary" />
               Эффективность этапов
@@ -509,11 +509,11 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
                     <motion.div
                       whileHover={{ x: 10, scale: 1.02 }}
-                      className="relative overflow-hidden rounded-[2rem] border border-border bg-background transition-all duration-500 hover:border-primary/30 hover:bg-muted p-1 shadow-sm"
+                      className="relative overflow-hidden rounded-[2rem] border border-white/50 bg-background transition-all duration-500 hover:border-primary/30 hover:bg-muted p-1 shadow-sm"
                     >
                       <div className="p-5 flex items-center gap-6">
                         <div className={cn(
-                          "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-border shadow-sm transition-transform duration-500 group-hover:rotate-6",
+                          "w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 border border-white/50 shadow-sm transition-transform duration-500 group-hover:rotate-6",
                           step.color.replace('text-', 'bg-').replace('500', '500/10'),
                           step.color
                         )}>
@@ -523,7 +523,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
                             <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">{step.name}</span>
-                            <span className="text-2xl font-bold text-foreground px-3 py-1 bg-muted rounded-xl border border-border">
+                            <span className="text-2xl font-bold text-foreground px-3 py-1 bg-muted rounded-xl border border-white/50">
                               {step.name === 'Показы' || step.name === 'Клики' || step.name === 'Лиды'
                                 ? formatNumber(step.value)
                                 : step.value
@@ -538,7 +538,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                             {index < funnelData.stages.length - 1 && (
                               <div className={cn(
                                 "flex items-center gap-2 font-bold px-3 py-1 rounded-full text-[10px] uppercase tracking-widest border transition-all duration-500",
-                                conversion > 20 ? "bg-emerald-50 text-emerald-600 border-emerald-100 shadow-sm" : "bg-muted text-muted-foreground border-border"
+                                conversion > 20 ? "bg-blue-50 text-blue-600 border-blue-100 shadow-sm" : "bg-muted text-muted-foreground border-white/50"
                               )}>
                                 {conversion > 0 ? (
                                   <>
@@ -561,7 +561,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
           </div>
 
           {/* Footer Stats with Glow and High Contrast */}
-          <div className="grid grid-cols-2 divide-x divide-border border-t border-border bg-muted/20">
+          <div className="grid grid-cols-2 divide-x divide-border border-t border-white/50 bg-muted/20">
             <div className="p-8 flex flex-col items-center group/stat">
               <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-2 group-hover/stat:text-primary transition-colors">Общая выручка</span>
               <span className="text-3xl font-bold tracking-tight text-foreground">
@@ -569,14 +569,14 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
               </span>
             </div>
             <div className="p-8 flex flex-col items-center group/stat">
-              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-2 group-hover/stat:text-emerald-600 transition-colors">Общая эффективность</span>
+              <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-muted-foreground mb-2 group-hover/stat:text-blue-600 transition-colors">Общая эффективность</span>
               {(() => {
                 const totalSpend = campaignBreakdown.reduce((sum, c) => sum + c.spend, 0);
                 const romi = totalSpend > 0 ? ((funnelData.totalRevenue - totalSpend) / totalSpend) * 100 : 0;
                 return (
                   <span className={cn(
                     "text-3xl font-bold tracking-tight",
-                    romi > 0 ? "text-emerald-600" : romi < -50 ? "text-red-500" : "text-foreground"
+                    romi > 0 ? "text-blue-600" : romi < -50 ? "text-red-500" : "text-foreground"
                   )}>
                     {Math.round(romi)}% ROMI
                   </span>
@@ -587,17 +587,17 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         {/* Channel Efficiency Chart */}
-        <div className="rounded-[2.5rem] border border-border bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden group">
-          <div className="p-8 border-b border-border bg-muted/30 flex items-center justify-between">
+        <div className="rounded-[2.5rem] border border-white/50 bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden group">
+          <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <BarChart3 className="w-4 h-4 text-primary" />
               Распределение источников
             </h3>
             <Select value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
-              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-background border-border rounded-xl focus:ring-primary">
+              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-background border-white/50 rounded-xl focus:ring-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-card border-border rounded-xl">
+              <SelectContent className="bg-card border-white/50 rounded-xl">
                 <SelectItem value="cpl" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость лида (CPL)</SelectItem>
                 <SelectItem value="cpc" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость клика (CPC)</SelectItem>
                 <SelectItem value="ctr" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Кликабельность (CTR)</SelectItem>
@@ -619,8 +619,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4">
                           <div className={cn(
-                            "w-12 h-12 rounded-2xl flex items-center justify-center border border-border shadow-sm transition-all duration-500 group-hover/bar:scale-110",
-                            index === 0 ? "bg-emerald-50 text-emerald-600" :
+                            "w-12 h-12 rounded-2xl flex items-center justify-center border border-white/50 shadow-sm transition-all duration-500 group-hover/bar:scale-110",
+                            index === 0 ? "bg-blue-50 text-blue-600" :
                               index === 1 ? "bg-blue-50 text-blue-600" :
                                 index === 2 ? "bg-indigo-50 text-indigo-600" : "bg-muted"
                           )}>
@@ -637,11 +637,11 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                         </div>
                       </div>
 
-                      <div className="relative h-4 bg-muted rounded-full overflow-hidden p-0.5 border border-border">
+                      <div className="relative h-4 bg-muted rounded-full overflow-hidden p-0.5 border border-white/50">
                         <motion.div
                           className={cn(
                             "h-full rounded-full transition-all duration-1000 shadow-sm",
-                            index === 0 ? "bg-gradient-to-r from-emerald-600 to-emerald-400" :
+                            index === 0 ? "bg-gradient-to-r from-blue-600 to-blue-400" :
                               index === 1 ? "bg-gradient-to-r from-blue-600 to-blue-400" :
                                 index === 2 ? "bg-gradient-to-r from-indigo-600 to-indigo-400" : "bg-slate-500"
                           )}

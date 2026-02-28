@@ -34,7 +34,7 @@ const Blog = () => {
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-3">
                         <div className="w-10 h-10 relative flex items-center justify-center">
-                            <MarkVisionLogo className="w-full h-full drop-shadow-lg" />
+                            <MarkVisionLogo className="w-full h-full drop-shadow-2xl shadow-blue-900/5" />
                         </div>
                         <span className="font-semibold text-lg">
                             <AuroraText colors={["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]}>MarkVision AI</AuroraText>

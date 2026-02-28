@@ -95,7 +95,7 @@ const SOURCE_CONFIG: Record<string, { label: string, icon: any, color: string }>
   instagram: { label: 'Instagram', icon: Instagram, color: 'text-pink-500' },
   google: { label: 'Google Ads', icon: Search, color: 'text-red-500' },
   tiktok: { label: 'TikTok', icon: Zap, color: 'text-slate-900' },
-  organic: { label: 'Органика', icon: Globe, color: 'text-emerald-500' },
+  organic: { label: 'Органика', icon: Globe, color: 'text-blue-500' },
   whatsapp: { label: 'WhatsApp', icon: MessageSquare, color: 'text-green-500' },
   direct: { label: 'Прямой заход', icon: Radio, color: 'text-indigo-500' },
 };
@@ -203,8 +203,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         previousValue: 0,
         format: 'currency',
         icon: <DollarSign className="h-5 w-5" />,
-        color: 'text-emerald-500',
-        bgColor: 'bg-emerald-500/10',
+        color: 'text-blue-500',
+        bgColor: 'bg-blue-500/10',
         subValue: spend > 0 ? `ROI: ${(((revenue - spend) / spend) * 100).toFixed(0)}%` : 'ROI: —'
       },
       {
@@ -237,7 +237,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       google: { source: 'google', label: 'Google Ads', icon: <Search className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-red-500' },
       instagram: { source: 'instagram', label: 'Instagram', icon: <Instagram className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-pink-500' },
       tiktok: { source: 'tiktok', label: 'TikTok Ads', icon: <Zap className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-slate-900' },
-      organic: { source: 'organic', label: 'Органика', icon: <Globe className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-emerald-500' },
+      organic: { source: 'organic', label: 'Органика', icon: <Globe className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-blue-500' },
       direct: { source: 'direct', label: 'Прямые/Прочие', icon: <Radio className="w-4 h-4" />, leads: 0, sales: 0, revenue: 0, conversion: 0, color: 'text-indigo-500' },
     };
 
@@ -357,7 +357,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
   const getStatusColor = (status: string | null) => {
     switch (status) {
       case 'new': return 'bg-blue-500';
-      case 'paid': case 'success': case 'purchased': return 'bg-emerald-500';
+      case 'paid': case 'success': case 'purchased': return 'bg-blue-500';
       case 'appointment': return 'bg-purple-500';
       case 'cancelled': case 'rejected': return 'bg-red-500';
       default: return 'bg-amber-500';
@@ -377,27 +377,27 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           <div>
             <h2 className="text-2xl font-bold tracking-tight text-foreground uppercase">Контроль трафика</h2>
             <div className="flex items-center gap-2 mt-1">
-              <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping" />
+              <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-ping" />
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">System Operational</span>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 px-4 py-2 bg-card/50 backdrop-blur-md border border-border rounded-xl shadow-sm">
+          <div className="flex items-center gap-3 px-4 py-2 bg-white/70 backdrop-blur-md border border-white/50 rounded-xl shadow-sm">
             {[
               { icon: Facebook, key: 'meta', label: 'Meta' },
               { icon: Webhook, key: 'n8n', label: 'n8n' },
               { icon: MessageCircle, key: 'whatsapp', label: 'WA' }
             ].map((s) => (
               <div key={s.key} className="flex items-center gap-2" title={s.label}>
-                <div className={cn("w-2 h-2 rounded-full", systemStatus[s.key] ? "bg-emerald-500" : "bg-red-500")} />
+                <div className={cn("w-2 h-2 rounded-full", systemStatus[s.key] ? "bg-blue-500" : "bg-red-500")} />
                 <s.icon className="w-4 h-4 text-muted-foreground" />
               </div>
             ))}
           </div>
 
-          <Badge variant="outline" className={cn("px-3 py-1 border-emerald-500/20 bg-emerald-500/5 text-emerald-500 font-mono gap-1.5")}>
+          <Badge variant="outline" className={cn("px-3 py-1 border-blue-500/20 bg-blue-500/5 text-blue-500 font-mono gap-1.5")}>
             <Clock className="w-3.5 h-3.5" />
             {new Date().toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' })}
           </Badge>
@@ -407,7 +407,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* TOP METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {metrics.map((m, idx) => (
-          <GlassCard key={m.label} className="p-6 transition-all hover:translate-y-[-2px] hover:shadow-lg border-border/50">
+          <GlassCard key={m.label} className="p-6 transition-all hover:translate-y-[-2px] hover:shadow-2xl shadow-blue-900/5 border-white/50">
             <div className="flex justify-between items-start mb-4">
               <div className={cn("p-2.5 rounded-xl shadow-sm", m.bgColor)}>
                 <div className={cn(m.color)}>{m.icon}</div>
@@ -428,7 +428,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Source Performance */}
         <GlassCard className="lg:col-span-2 p-0 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
+          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
               <Target className="w-4 h-4 text-primary" />
               Эффективность каналов <span className="text-[10px] font-normal text-muted-foreground font-mono ml-2">MTD</span>
@@ -437,7 +437,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
           </div>
           <div className="p-0 overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-muted/30 text-muted-foreground text-[10px] uppercase font-black border-b border-border/50">
+              <thead className="bg-muted/30 text-muted-foreground text-[10px] uppercase font-black border-b border-white/50">
                 <tr>
                   <th
                     className="px-5 py-3 text-left cursor-pointer hover:text-primary transition-colors"
@@ -470,13 +470,13 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                 {sourceStats.map(s => (
                   <tr key={s.source} className="group hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-4 flex items-center gap-3">
-                      <div className={cn("p-1.5 rounded-lg bg-card border border-border shadow-sm", s.color)}>{s.icon}</div>
+                      <div className={cn("p-1.5 rounded-lg bg-card border border-white/50 shadow-sm", s.color)}>{s.icon}</div>
                       <span className="font-bold text-foreground">{s.label}</span>
                     </td>
                     <td className="px-5 py-4 text-right font-mono font-bold text-foreground">{s.leads}</td>
-                    <td className="px-5 py-4 text-right font-mono text-emerald-500 font-bold">{s.revenue > 0 ? formatValue(s.revenue, 'currency') : '—'}</td>
+                    <td className="px-5 py-4 text-right font-mono text-blue-500 font-bold">{s.revenue > 0 ? formatValue(s.revenue, 'currency') : '—'}</td>
                     <td className="px-5 py-4 text-right">
-                      <span className={cn("px-2 py-1 rounded-lg font-black text-[10px] shadow-sm", s.conversion > 10 ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20" : "bg-muted text-muted-foreground")}>
+                      <span className={cn("px-2 py-1 rounded-lg font-black text-[10px] shadow-sm", s.conversion > 10 ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" : "bg-muted text-muted-foreground")}>
                         {s.conversion.toFixed(1)}%
                       </span>
                     </td>
@@ -492,7 +492,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
 
         {/* Top Campaigns */}
         <GlassCard className="p-0 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between">
+          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between">
             <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
               <Zap className="w-4 h-4 text-amber-500" />
               Топ кампаний
@@ -534,8 +534,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* ACTIVITY FEED */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leads Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm relative">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-white/50 shadow-sm relative">
+          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
             <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
               <Users className="w-4 h-4 text-blue-500" />
               Поток лидов
@@ -556,7 +556,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all group shadow-sm hover:shadow-md"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-white/50 bg-card/30 backdrop-blur-sm hover:bg-white/70 transition-all group shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm shadow-black/20", getStatusColor(lead.status))} />
@@ -576,7 +576,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                     </div>
                   </div>
                   {lead.deal_amount > 0 && (
-                    <div className="text-sm font-black text-emerald-500">+{Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸</div>
+                    <div className="text-sm font-black text-blue-500">+{Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸</div>
                   )}
                 </motion.div>
               ))}
@@ -585,16 +585,16 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         </GlassCard>
 
         {/* Transactions Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-border/50 shadow-sm relative">
-          <div className="p-5 border-b border-border bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-white/50 shadow-sm relative">
+          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
             <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
-              <DollarSign className="w-4 h-4 text-emerald-500" />
+              <DollarSign className="w-4 h-4 text-blue-500" />
               Транзакции
             </div>
-            <div className="flex items-center gap-2 font-mono text-[10px] text-emerald-500">
+            <div className="flex items-center gap-2 font-mono text-[10px] text-blue-500">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
               CASHFLOW
             </div>
@@ -607,12 +607,12 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between p-4 rounded-2xl border border-border/50 bg-card/30 backdrop-blur-sm hover:bg-card/50 transition-all shadow-sm hover:shadow-md"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-white/50 bg-card/30 backdrop-blur-sm hover:bg-white/70 transition-all shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center border shadow-sm",
-                      tx.type === 'income' ? "bg-emerald-500/10 text-emerald-500 border-emerald-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
+                      tx.type === 'income' ? "bg-blue-500/10 text-blue-500 border-blue-500/20" : "bg-red-500/10 text-red-500 border-red-500/20"
                     )}>
                       {tx.type === 'income' ? <ArrowUpRight className="w-5 h-5" /> : <ArrowDownRight className="w-5 h-5" />}
                     </div>
@@ -623,7 +623,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       </div>
                     </div>
                   </div>
-                  <div className={cn("text-lg font-black tracking-tighter", tx.type === 'income' ? "text-emerald-500" : "text-red-500")}>
+                  <div className={cn("text-lg font-black tracking-tighter", tx.type === 'income' ? "text-blue-500" : "text-red-500")}>
                     {tx.type === 'income' ? '+' : '-'}{Math.round(tx.amount).toLocaleString('ru-RU')} ₸
                   </div>
                 </motion.div>

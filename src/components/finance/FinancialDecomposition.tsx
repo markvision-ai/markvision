@@ -144,7 +144,7 @@ export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProp
   return (
     <div className="space-y-6 w-full overflow-x-hidden pb-8 relative">
       {/* Month Selection Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-border rounded-2xl p-3 shadow-sm">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-white/50 rounded-2xl p-3 shadow-sm">
         <div className="flex items-center gap-2 bg-muted/50 rounded-xl p-1">
           <Button variant="ghost" size="icon" onClick={() => handleMonthChange('prev')} className="rounded-lg w-8 h-8">
             <ChevronLeft className="h-4 w-4" />

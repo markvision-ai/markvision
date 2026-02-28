@@ -369,12 +369,12 @@ export const CreateContentDialog = ({
           </Button>
           
           {step < 3 ? (
-            <Button onClick={handleNext} className="gap-2 bg-black hover:bg-slate-800 text-white shadow-lg shadow-slate-200">
+            <Button onClick={handleNext} className="gap-2 bg-black hover:bg-slate-800 text-white shadow-2xl shadow-blue-900/5 shadow-slate-200">
               Далее
               <ChevronRight className="w-4 h-4" />
             </Button>
           ) : (
-            <Button onClick={handleCreate} disabled={isCreating} className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg shadow-purple-200">
+            <Button onClick={handleCreate} disabled={isCreating} className="gap-2 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-2xl shadow-blue-900/5 shadow-purple-200">
               {isCreating ? 'Создаем...' : 'Запустить создание'}
               <Sparkles className="w-4 h-4" />
             </Button>

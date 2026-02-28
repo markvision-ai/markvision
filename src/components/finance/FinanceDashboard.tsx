@@ -336,7 +336,7 @@ export const FinanceDashboard = ({ projectId }: FinanceDashboardProps) => {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
+        <div className="bg-card border border-white/50 rounded-lg p-3 shadow-2xl shadow-blue-900/5">
           <p className="font-medium mb-2">{label}</p>
           {payload.map((entry: any, index: number) => (
             <p key={index} className="text-sm" style={{ color: entry.color }}>
