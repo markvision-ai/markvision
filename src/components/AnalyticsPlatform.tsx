@@ -71,8 +71,8 @@ const RealtimeDashboard = lazy(() => import('./dashboard/RealtimeDashboard').the
 const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ default: m.CalendarPage })));
 const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default: m.VisitsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
-const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 const AdLibraryPage = lazy(() => import('./ads/AdLibraryPage').then(m => ({ default: m.AdLibraryPage })));
+const CompetitorMonitoring = lazy(() => import('./factory/CompetitorMonitoring').then(m => ({ default: m.CompetitorMonitoring })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -680,7 +680,7 @@ export const AnalyticsPlatform = () => {
       )}
       {activeTab === 'competitors' && (
         <Suspense fallback={<ModuleLoader />}>
-          <CompetitorsPage />
+          <CompetitorMonitoring />
         </Suspense>
       )}
 

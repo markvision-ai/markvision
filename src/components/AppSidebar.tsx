@@ -212,6 +212,12 @@ export const AppSidebar = ({
         icon: <IconTable className="h-5 w-5 flex-shrink-0" />,
         tab: "publications",
       },
+      {
+        label: "Библиотека рекламы",
+        href: "/ad-library",
+        icon: <IconTarget className="h-5 w-5 flex-shrink-0" />,
+        tab: "ad-library",
+      },
     ],
     sales: [
       //   tab: "crm",
