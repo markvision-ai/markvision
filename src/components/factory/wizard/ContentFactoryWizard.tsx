@@ -148,32 +148,49 @@ export const ContentFactoryWizard = () => {
         }, 1200);
     };
 
+    // Format mapping: ContentCategory → n8n format string
+    const FORMAT_MAP: Record<NonNullable<ContentCategory>, string> = {
+        'carousel':         'insta-carousel',
+        'avatar_video':     'neuro-photo',
+        'viral_video':      'reels-cover',
+        'article_threads':  'instagram-stories',
+        'article_telegram': 'instagram-stories',
+        'article_seo':      'fb-target',
+    };
+
     // Handle Generation Initiation
     const handleGenerate = async () => {
-        // Use mainDescription if source is 'description', otherwise use description from Step 3
-        const taskDescription = state.source === 'description' ? state.mainDescription : state.description;
-
-        if (!taskDescription || !state.category) return;
+        if (!state.category) return;
 
         updateState({ isGenerating: true });
 
-        // Prepare Payload
+        const mainText = (state.mainDescription?.trim() || state.description?.trim()) || 'magic_generation_needed';
+
         const payload = {
-            task_description: taskDescription,
-            content_type: state.category,
-            style: state.designStyle,
-            format: state.carouselFormat,
-            count: state.carouselCount,
-            source: state.source,
-            timestamp: new Date().toISOString()
+            source_type: state.source,
+            format: FORMAT_MAP[state.category],
+            main_text: mainText,
+            visual_instructions: state.additionalInstructions || '',
+            aspect_ratio: state.aspectRatio || '1:1',
+            design_template_id: state.designStyle || 'default',
         };
 
-        console.log('🚀 [LAUNCH]: ПЕРЕДАЧА В РАБОТУ...', payload);
+        try {
+            const res = await fetch('https://n8n.zapoinov.com/webhook/content-factory-v2', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
 
-        // Simulation of Webhook call
-        setTimeout(() => {
-            updateState({ isGenerating: false, step: 3 });
-        }, 2000);
+            if (!res.ok) throw new Error(`n8n error: ${res.status}`);
+
+            updateState({ isGenerating: false, step: 4 });
+            toast.success('Контент отправлен в генерацию!');
+        } catch (err) {
+            console.error(err);
+            toast.error('Ошибка отправки задания');
+            updateState({ isGenerating: false });
+        }
     };
 
     // STEP 1: SOURCE SELECTION + INPUT
@@ -795,11 +812,11 @@ export const ContentFactoryWizard = () => {
                         Назад
                     </Button>
                     <Button
-                        onClick={nextStep}
-                        disabled={!state.description || !state.category}
+                        onClick={handleGenerate}
+                        disabled={state.isGenerating || !state.category}
                         className={cn(
                             "h-12 px-6 rounded-xl font-bold shadow-lg transition-all",
-                            state.description && state.category
+                            !state.isGenerating && state.category
                                 ? ""
                                 : "opacity-50"
                         )}
@@ -807,7 +824,7 @@ export const ContentFactoryWizard = () => {
                         {state.isGenerating ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin mr-2" />
-                                Готовлю...
+                                Отправляю...
                             </>
                         ) : (
                             <>
