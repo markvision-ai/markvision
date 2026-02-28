@@ -189,16 +189,16 @@ export default function Auth() {
   // ── Loading state ──────────────────────────────────────────────────────────
   if (checkingConnection) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="text-center"
         >
-          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 interstellar-glass border border-white/10">
+          <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-slate-200">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-          <p className="text-muted-foreground text-sm">Подключение к базе данных…</p>
+          <p className="text-slate-500 text-sm">Подключение к базе данных…</p>
         </motion.div>
       </div>
     );
@@ -207,18 +207,18 @@ export default function Auth() {
   // ── Connection error ───────────────────────────────────────────────────────
   if (connectionError) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md interstellar-glass border border-rose-500/20 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
+          className="w-full max-w-md bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-rose-500/20 rounded-3xl p-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
         >
           <div className="flex items-center gap-3 mb-4">
             <AlertTriangle className="w-7 h-7 text-rose-400" />
             <h2 className="text-xl font-semibold text-rose-400">Ошибка подключения</h2>
           </div>
-          <p className="text-sm text-muted-foreground mb-3">Не удалось подключиться к базе данных. Возможные причины:</p>
-          <ul className="text-sm text-muted-foreground list-disc list-inside mb-4 space-y-1">
+          <p className="text-sm text-slate-500 mb-3">Не удалось подключиться к базе данных. Возможные причины:</p>
+          <ul className="text-sm text-slate-500 list-disc list-inside mb-4 space-y-1">
             <li>Неверный VITE_SUPABASE_URL</li>
             <li>Неверный VITE_SUPABASE_ANON_KEY</li>
             <li>База данных недоступна</li>
@@ -226,7 +226,7 @@ export default function Auth() {
           <div className="rounded-xl p-3 font-mono text-xs break-all text-rose-300 bg-rose-500/10 border border-rose-500/20 mb-4">
             {connectionError}
           </div>
-          <Button onClick={() => window.location.reload()} variant="outline" className="w-full border-white/10 hover:bg-white/5">
+          <Button onClick={() => window.location.reload()} variant="outline" className="w-full border-slate-200 hover:bg-white/50">
             Попробовать снова
           </Button>
         </motion.div>
@@ -236,7 +236,7 @@ export default function Auth() {
 
   // ── Main Auth form ─────────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-[#030712] text-white flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 text-slate-900 flex items-center justify-center p-4 relative overflow-hidden">
 
       {/* Ambient glow blobs */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -258,7 +258,7 @@ export default function Auth() {
           transition={{ delay: 0.1, duration: 0.5 }}
           className="text-center mb-8"
         >
-          <div className="w-20 h-20 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl interstellar-glass border border-white/10 shadow-2xl mb-4">
+          <div className="w-20 h-20 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-slate-200 shadow-2xl mb-4">
             <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain scale-110" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">
@@ -266,7 +266,7 @@ export default function Auth() {
               MarkVision AI
             </span>
           </h1>
-          <p className="text-white/60 mt-1.5 text-sm">
+          <p className="text-slate-600 mt-1.5 text-sm">
             Умный маркетинг для медицинских клиник
           </p>
         </motion.div>
@@ -277,7 +277,7 @@ export default function Auth() {
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ delay: 0.2, duration: 0.5 }}
         >
-          <div className="bg-white/[0.03] backdrop-blur-2xl border border-white/[0.1] rounded-[2.5rem] p-6 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
+          <div className="bg-white/60 backdrop-blur-2xl border border-white/60 rounded-[2.5rem] p-6 sm:p-8 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.6)]">
 
             {/* Back button (forgot-password) */}
             {mode === 'forgot-password' && (
@@ -286,7 +286,7 @@ export default function Auth() {
                 animate={{ opacity: 1, x: 0 }}
                 type="button"
                 onClick={() => setMode('login')}
-                className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
+                className="flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-900 mb-5 transition-colors"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Назад ко входу
@@ -295,15 +295,15 @@ export default function Auth() {
 
             {/* Tab switcher */}
             {mode !== 'forgot-password' && (
-              <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/5 border border-white/[0.06]">
+              <div className="flex gap-1 mb-6 p-1 rounded-xl bg-white/50 border border-white/50">
                 {(['login', 'signup'] as const).map((m) => (
                   <button
                     key={m}
                     type="button"
                     onClick={() => setMode(m)}
                     className={`flex-1 py-2.5 px-4 rounded-lg text-sm font-medium transition-all duration-300 ${mode === m
-                      ? 'bg-primary text-white shadow-2xl shadow-blue-900/5 shadow-primary/20'
-                      : 'text-white/40 hover:text-white hover:bg-white/5'
+                      ? 'bg-primary text-slate-900 shadow-2xl shadow-blue-900/5 shadow-primary/20'
+                      : 'text-slate-500 hover:text-slate-900 hover:bg-white/50'
                       }`}
                   >
                     {m === 'login' ? 'Вход' : 'Регистрация'}
@@ -313,10 +313,10 @@ export default function Auth() {
             )}
 
             {/* Title */}
-            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-1.5 text-white">
+            <h2 className="text-xl sm:text-2xl font-semibold text-center mb-1.5 text-slate-900">
               {getTitle()}
             </h2>
-            <p className="text-sm text-white/40 text-center mb-6">
+            <p className="text-sm text-slate-500 text-center mb-6">
               {getSubtitle()}
             </p>
 
@@ -330,15 +330,15 @@ export default function Auth() {
                   animate={{ opacity: 1, height: 'auto' }}
                   className="space-y-2"
                 >
-                  <label className="text-sm font-medium text-white/70 ml-1">Имя</label>
+                  <label className="text-sm font-medium text-slate-700 ml-1">Имя</label>
                   <div className="relative group">
-                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10" />
                     <Input
                       type="text"
                       placeholder="Ваше имя"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
-                      className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
+                      className="pl-10 h-12 rounded-xl bg-white/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                     />
                   </div>
                 </motion.div>
@@ -346,15 +346,15 @@ export default function Auth() {
 
               {/* Email */}
               <div className="space-y-2">
-                <label className="text-sm font-medium text-white/70 ml-1">Email</label>
+                <label className="text-sm font-medium text-slate-700 ml-1">Email</label>
                 <div className="relative group">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10" />
                   <Input
                     type="email"
                     placeholder="email@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
+                    className="pl-10 h-12 rounded-xl bg-white/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                   />
                 </div>
               </div>
@@ -362,20 +362,20 @@ export default function Auth() {
               {/* Password */}
               {mode !== 'forgot-password' && (
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-2">
-                  <label className="text-sm font-medium text-white/70 ml-1">Пароль</label>
+                  <label className="text-sm font-medium text-slate-700 ml-1">Пароль</label>
                   <div className="relative group">
-                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30 group-focus-within:text-primary z-10" />
+                    <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary z-10" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="••••••••"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
-                      className="pl-10 pr-11 h-12 rounded-xl bg-white/5 border-white/10 text-white placeholder:text-white/20 focus-visible:ring-primary/20 focus-visible:border-primary/50"
+                      className="pl-10 pr-11 h-12 rounded-xl bg-white/50 border-slate-200 text-slate-900 placeholder:text-slate-400 focus-visible:ring-primary/20 focus-visible:border-primary/50"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/30 hover:text-white/60 transition-colors z-10"
+                      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors z-10"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -399,7 +399,7 @@ export default function Auth() {
               {/* Submit button */}
               <Button
                 type="submit"
-                className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-white border-0 shadow-2xl shadow-blue-900/5 shadow-primary/25 transition-all duration-300 mt-2"
+                className="w-full h-12 rounded-xl text-base font-semibold bg-gradient-to-r from-primary to-cyan-500 hover:from-primary/90 hover:to-cyan-500/90 text-slate-900 border-0 shadow-2xl shadow-blue-900/5 shadow-primary/25 transition-all duration-300 mt-2"
                 disabled={loading}
               >
                 {loading
@@ -417,7 +417,7 @@ export default function Auth() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="text-center text-xs text-white/20 mt-6"
+          className="text-center text-xs text-slate-400 mt-6"
         >
           © 2026 MarkVision AI. Все права защищены.
         </motion.p>

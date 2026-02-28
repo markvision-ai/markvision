@@ -1256,7 +1256,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
   return (
     <div className="relative overflow-visible">
       {/* Meta-style Top Bar */}
-      <div className="px-8 py-6 border-b border-white/50 flex items-center justify-between bg-card">
+      <div className="px-8 py-6 border-b border-white/50 flex items-center justify-between bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-3">
             <h2 className="text-xl font-bold tracking-tight text-foreground">Рекламные кампании</h2>
@@ -1299,7 +1299,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             size="sm"
             onClick={handleForceSync}
             disabled={loading}
-            className="h-10 px-6 rounded-xl border-white/50 bg-background text-foreground hover:bg-accent font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
+            className="h-10 px-6 rounded-xl border-white/50 bg-slate-50 text-foreground hover:bg-accent font-bold text-[10px] uppercase tracking-widest transition-all shadow-sm"
           >
             <RefreshCw className={cn("w-3.5 h-3.5 mr-2", loading && "animate-spin")} />
             Обновить
@@ -1310,7 +1310,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
             size="sm"
             onClick={handleExportCSV}
             disabled={loading || visibleRows.length === 0}
-            className="h-10 w-10 p-0 rounded-xl border-white/50 bg-background text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm"
+            className="h-10 w-10 p-0 rounded-xl border-white/50 bg-slate-50 text-muted-foreground hover:text-foreground hover:bg-accent shadow-sm"
           >
             <Download className="w-4 h-4" />
           </Button>
@@ -1321,7 +1321,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 <Settings2 className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-card border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <DropdownMenuContent align="end" className="w-64 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <DropdownMenuLabel className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Видимость колонок</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-white/5" />
               <div className="p-2 space-y-1">
@@ -1471,7 +1471,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                   <TableCell className="text-center relative z-10">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded-md border-white/50 bg-background accent-primary cursor-pointer"
+                      className="w-4 h-4 rounded-md border-white/50 bg-slate-50 accent-primary cursor-pointer"
                       checked={isRowSelected(row)}
                       onChange={() => toggleRowSelection(row)}
                     />
@@ -1617,7 +1617,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Futuristic Summary Footer */}
       {!loading && visibleRows.length > 0 && (
-        <div className="mt-8 p-8 rounded-[2.5rem] bg-card border border-white/50 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
+        <div className="mt-8 p-8 rounded-[2.5rem] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
             <p className="text-lg font-black text-slate-900">{formatCurrency(totals.totalSpendKZT)}</p>
@@ -1643,7 +1643,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Facebook-style Edit Modal (Light themed) */}
       <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
-        <DialogContent className="bg-card border border-white/50 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
+        <DialogContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
           <DialogHeader className="px-2">
             <DialogTitle className="text-2xl font-bold uppercase tracking-widest text-foreground">
               Редактировать

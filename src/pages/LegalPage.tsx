@@ -58,7 +58,7 @@ const LegalPage = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black">
       {/* Header */}
-      <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center">
@@ -85,9 +85,9 @@ const LegalPage = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full mb-6 border border-white/10">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-sm rounded-full mb-6 border border-slate-200">
               {page.icon}
-              <span className="text-sm font-medium text-white/80">Юридическая информация</span>
+              <span className="text-sm font-medium text-slate-700">Юридическая информация</span>
             </div>
 
             <h1 className="text-3xl sm:text-4xl font-bold text-white mb-8">
@@ -112,7 +112,7 @@ const LegalPage = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.6, duration: 0.4 }}
-              className="mt-12 p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10"
+              className="mt-12 p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-slate-200"
             >
               <p className="text-sm text-gray-300">
                 Последнее обновление: Февраль 2025

@@ -58,7 +58,7 @@ const formatTenge = (value: number) => {
 };
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color }: any) => (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-slate-200 transition-colors">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div>
@@ -358,7 +358,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                 {/* Activity Chart — реальные лиды и продажи по дням */}
-                <Card className="lg:col-span-2 bg-card border border-white/50">
+                <Card className="lg:col-span-2 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
                     <CardHeader>
                         <CardTitle className="text-foreground">Лиды и продажи по дням</CardTitle>
                         <CardDescription className="text-muted-foreground">Динамика за выбранный период по данным CRM</CardDescription>
@@ -397,7 +397,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                 </Card>
 
                 {/* Sales Funnel — по статусам лидов */}
-                <Card className="bg-card border border-white/50">
+                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
                     <CardHeader>
                         <CardTitle className="text-foreground">Воронка продаж</CardTitle>
                         <CardDescription className="text-muted-foreground">По статусам лидов за период</CardDescription>

@@ -187,7 +187,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
           <span className="sm:hidden">Добавить</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md bg-background border border-white/50 shadow-2xl">
+      <DialogContent className="sm:max-w-md bg-slate-50 border border-white/50 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-3 text-xl">
             <motion.div
@@ -228,7 +228,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
               value={formData.name}
               onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
               placeholder="Введите имя..."
-              className="h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all"
+              className="h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-slate-50 focus:ring-2 focus:ring-primary/20 transition-all"
             />
           </motion.div>
 
@@ -248,7 +248,7 @@ export function AddLeadDialog({ projectId, onLeadAdded, onDuplicateFound }: AddL
                 onChange={(e) => handlePhoneChange(e.target.value)}
                 placeholder="+7 (999) 000-00-00"
                 className={cn(
-                  "h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-background focus:ring-2 focus:ring-primary/20 transition-all",
+                  "h-12 rounded-xl bg-muted/50 border-white/50 text-foreground placeholder:text-muted-foreground focus:border-primary/50 focus:bg-slate-50 focus:ring-2 focus:ring-primary/20 transition-all",
                   phoneError ? "border-destructive/50 focus:border-destructive focus:ring-destructive/20" : ""
                 )}
               />

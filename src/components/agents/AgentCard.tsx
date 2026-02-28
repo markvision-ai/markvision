@@ -82,7 +82,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                     <h3 className="text-xl font-black text-white tracking-tight">
                         {agentType.name}
                     </h3>
-                    <p className="text-sm text-white/40 leading-relaxed">
+                    <p className="text-sm text-slate-500 leading-relaxed">
                         {agentType.description}
                     </p>
                 </div>
@@ -96,7 +96,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                                 'font-bold text-[10px] uppercase tracking-widest',
                                 isActive
                                     ? `${colors.bg} ${colors.text} ${colors.border}`
-                                    : 'bg-white/5 text-white/40 border-white/10'
+                                    : 'bg-white/5 text-slate-500 border-slate-200'
                             )}
                         >
                             {isActive ? (
@@ -111,7 +111,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                     ) : (
                         <Badge
                             variant="outline"
-                            className="bg-white/5 text-white/30 border-white/10 font-bold text-[10px] uppercase tracking-widest"
+                            className="bg-white/5 text-white/30 border-slate-200 font-bold text-[10px] uppercase tracking-widest"
                         >
                             Не настроен
                         </Badge>
@@ -123,7 +123,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                     className={cn(
                         'w-full font-bold text-sm rounded-xl transition-all duration-300',
                         isConfigured
-                            ? 'bg-white/5 hover:bg-white/10 text-white border border-white/10'
+                            ? 'bg-white/5 hover:bg-white/10 text-white border border-slate-200'
                             : `bg-gradient-to-r ${colors.text} text-white ${colors.glow} ${colors.hoverGlow}`,
                         agentType.color === 'cyan' && !isConfigured && 'from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500',
                         agentType.color === 'purple' && !isConfigured && 'from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500',

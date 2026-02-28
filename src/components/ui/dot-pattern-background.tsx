@@ -9,7 +9,7 @@ export const DotPatternBackground = ({ className, children }: DotPatternBackgrou
   return (
     <div className={cn("relative w-full min-h-screen overflow-hidden", className)}>
       {/* Background - адаптивный для ОБЕИХ тем */}
-      <div className="absolute inset-0 bg-background" />
+      <div className="absolute inset-0 bg-slate-50" />
       
       {/* Dot Pattern - адаптивный */}
       <div 

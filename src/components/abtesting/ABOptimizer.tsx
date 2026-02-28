@@ -139,7 +139,7 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const activeTest = tests.find(t => t.id === selectedTestId);
 
   return (
-    <div className="space-y-8 min-h-screen bg-background p-6"> {/* Ensure background matches if not inherited */}
+    <div className="space-y-8 min-h-screen bg-slate-50 p-6"> {/* Ensure background matches if not inherited */}
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between gap-4 items-end sm:items-center">
         <div>

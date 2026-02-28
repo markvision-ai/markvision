@@ -120,7 +120,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
       const item = payload[0].payload;
       const percent = totalSpend > 0 ? ((item.value / totalSpend) * 100).toFixed(1) : '0';
       return (
-        <div className="bg-card border border-white/50 rounded-xl p-4 shadow-2xl shadow-blue-900/5">
+        <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-4 shadow-2xl shadow-blue-900/5">
           <p className="font-medium flex items-center gap-2 mb-2 text-foreground">
             <span className="text-xl">{item.icon}</span>
             <span className="text-lg">{item.label}</span>
@@ -168,7 +168,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Pie Chart */}
-      <Card className="bg-card border border-white/50 shadow-sm lg:col-span-2">
+      <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm lg:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <span className="w-2 h-6 bg-primary rounded-full" />
@@ -239,7 +239,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={cn("bg-card border border-white/50 transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
+              <Card className={cn("bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">

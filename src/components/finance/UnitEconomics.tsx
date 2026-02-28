@@ -179,7 +179,7 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               type="number" 
               value={margin} 
               onChange={(e) => setMargin(Number(e.target.value))}
-              className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              className="h-10 font-mono text-base bg-muted/20 focus:bg-slate-50 transition-colors"
               aria-describedby="margin-desc"
             />
             <span id="margin-desc" className="sr-only">{t.marginDesc}</span>
@@ -206,7 +206,7 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               type="number" 
               value={freq} 
               onChange={(e) => setFreq(Number(e.target.value))}
-              className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              className="h-10 font-mono text-base bg-muted/20 focus:bg-slate-50 transition-colors"
               aria-describedby="freq-desc"
             />
             <span id="freq-desc" className="sr-only">{t.freqDesc}</span>
@@ -233,7 +233,7 @@ export const UnitEconomics = ({ avgCheck, cac, lang = 'ru' }: UnitEconomicsProps
               type="number" 
               value={lifetime} 
               onChange={(e) => setLifetime(Number(e.target.value))}
-              className="h-10 font-mono text-base bg-muted/20 focus:bg-background transition-colors"
+              className="h-10 font-mono text-base bg-muted/20 focus:bg-slate-50 transition-colors"
               aria-describedby="lifetime-desc"
             />
             <span id="lifetime-desc" className="sr-only">{t.lifetimeDesc}</span>

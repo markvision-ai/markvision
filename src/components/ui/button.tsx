@@ -11,7 +11,7 @@ const buttonVariants = cva(
       variant: {
         default: "interstellar-button",
         destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-        outline: "border border-input bg-background hover:bg-accent hover:text-accent-foreground",
+        outline: "border border-input bg-slate-50 hover:bg-accent hover:text-accent-foreground",
         secondary: "bg-white/80 text-foreground border border-primary/30 hover:border-primary/50 hover:bg-card/70 shadow-[0_0_12px_hsl(var(--primary)/0.25)]",
         ghost: "hover:bg-accent hover:text-accent-foreground",
         link: "text-primary underline-offset-4 hover:underline",

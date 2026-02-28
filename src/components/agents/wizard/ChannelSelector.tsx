@@ -101,7 +101,7 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                                         <Icon
                                             className={cn(
                                                 'w-6 h-6 transition-colors',
-                                                isSelected ? 'text-white' : 'text-white/40'
+                                                isSelected ? 'text-white' : 'text-slate-500'
                                             )}
                                         />
                                     </div>
@@ -121,12 +121,12 @@ export const ChannelSelector: React.FC<ChannelSelectorProps> = ({
                                     <h3
                                         className={cn(
                                             'text-lg font-bold transition-colors',
-                                            isSelected ? 'text-white' : 'text-white/60'
+                                            isSelected ? 'text-white' : 'text-slate-600'
                                         )}
                                     >
                                         {channel.name}
                                     </h3>
-                                    <p className="text-sm text-white/40">{channel.description}</p>
+                                    <p className="text-sm text-slate-500">{channel.description}</p>
                                 </div>
                             </div>
                         </motion.div>

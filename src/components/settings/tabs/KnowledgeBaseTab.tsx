@@ -51,7 +51,7 @@ interface KnowledgeBaseTabProps {
 }
 
 const categories = [
-  { id: 'all', label: 'Все', icon: Folder, color: 'text-white/40' },
+  { id: 'all', label: 'Все', icon: Folder, color: 'text-slate-500' },
   { id: 'scripts', label: 'Скрипты продаж', icon: MessageSquare, color: 'text-blue-500' },
   { id: 'prompts', label: 'Промты для ИИ', icon: Terminal, color: 'text-amber-500' },
   { id: 'instructions', label: 'Инструкции', icon: Zap, color: 'text-purple-500' },
@@ -187,7 +187,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
         <div className="flex items-center gap-3">
           <Button
             variant="outline"
-            className="h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10 px-6 gap-2"
+            className="h-12 bg-white/5 border-slate-200 text-white rounded-xl hover:bg-white/10 px-6 gap-2"
           >
             <Upload className="w-4 h-4" />
             Загрузить
@@ -208,7 +208,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="interstellar-glass border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -216,7 +216,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               <FileText className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Всего документов</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Всего документов</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-white tracking-tighter">{documents.length}</span>
                 <span className="text-xs text-white/20 font-medium">файлов</span>
@@ -229,7 +229,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="interstellar-glass border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -237,7 +237,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               <Brain className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Обучено ИИ</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Обучено ИИ</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-white tracking-tighter">{trainedCount}</span>
                 <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20">
@@ -253,7 +253,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="interstellar-glass border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -261,7 +261,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               <Sparkles className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white/40 uppercase tracking-widest">Категорий</p>
+              <p className="text-sm font-medium text-slate-500 uppercase tracking-widest">Категорий</p>
               <div className="flex items-baseline gap-2">
                 <span className="text-3xl font-bold text-white tracking-tighter">{new Set(documents.map(d => d.category)).size || 0}</span>
                 <span className="text-xs text-white/20 font-medium">типов</span>
@@ -296,7 +296,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                 "gap-2 px-5 py-2.5 rounded-xl transition-all duration-300 whitespace-nowrap",
                 selectedCategory === cat.id
                   ? "bg-primary text-white shadow-2xl shadow-blue-900/5 shadow-primary/20"
-                  : "text-white/40 hover:text-white/80 hover:bg-white/5"
+                  : "text-slate-500 hover:text-slate-700 hover:bg-white/5"
               )}
             >
               <cat.icon className={cn("w-4 h-4", selectedCategory === cat.id ? "text-white" : cat.color)} />
@@ -316,7 +316,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               exit={{ opacity: 0 }}
               className="col-span-full"
             >
-              <div className="interstellar-glass border border-white/5 border-dashed rounded-3xl py-20 text-center">
+              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 border-dashed rounded-3xl py-20 text-center">
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
                   <FileText className="w-10 h-10 text-white/20" />
                 </div>
@@ -343,13 +343,13 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
 
-                  <div className="interstellar-glass border border-white/5 p-6 rounded-3xl relative h-full flex flex-col group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
+                  <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative h-full flex flex-col group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
                     {/* Background decoration */}
                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-primary/5 blur-2xl rounded-full group-hover:bg-primary/10 transition-colors" />
 
                     <div className="flex items-start justify-between mb-4 relative z-10">
                       <div className={cn(
-                        "p-3 rounded-2xl bg-white/5 border border-white/10 group-hover:scale-110 transition-transform duration-500",
+                        "p-3 rounded-2xl bg-white/5 border border-slate-200 group-hover:scale-110 transition-transform duration-500",
                         category.color
                       )}>
                         <Icon className="w-5 h-5" />
@@ -361,7 +361,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                             <span className="text-[10px] text-blue-500 font-bold uppercase">AI Trained</span>
                           </div>
                         )}
-                        <Badge variant="outline" className="bg-white/5 border-white/10 text-white/40 group-hover:text-white/60 text-[10px] uppercase font-bold tracking-tight">
+                        <Badge variant="outline" className="bg-white/5 border-slate-200 text-slate-500 group-hover:text-slate-600 text-[10px] uppercase font-bold tracking-tight">
                           {category.label}
                         </Badge>
                       </div>
@@ -372,14 +372,14 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                         {doc.title}
                         <ChevronRight className="w-4 h-4 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all" />
                       </h3>
-                      <p className="text-sm text-white/40 line-clamp-3 leading-relaxed">
+                      <p className="text-sm text-slate-500 line-clamp-3 leading-relaxed">
                         {doc.content || "Нет содержимого"}
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-1.5 mb-6 relative z-10">
                       {doc.tags?.slice(0, 3).map((tag, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[10px] text-white/60">
+                        <span key={i} className="px-2 py-0.5 rounded-md bg-white/5 border border-slate-200 text-[10px] text-slate-600">
                           #{tag}
                         </span>
                       ))}
@@ -406,7 +406,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="w-8 h-8 rounded-lg hover:bg-white/10 text-white/40 hover:text-white transition-colors"
+                          className="w-8 h-8 rounded-lg hover:bg-white/10 text-slate-500 hover:text-white transition-colors"
                         >
                           <ExternalLink className="w-4 h-4" />
                         </Button>
@@ -414,7 +414,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDelete(doc.id)}
-                          className="w-8 h-8 rounded-lg hover:bg-red-500/10 text-white/40 hover:text-red-500 transition-colors"
+                          className="w-8 h-8 rounded-lg hover:bg-red-500/10 text-slate-500 hover:text-red-500 transition-colors"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -440,7 +440,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               </div>
               <div>
                 <DialogTitle className="text-2xl font-bold text-white tracking-tight">Создать документ</DialogTitle>
-                <DialogDescription className="text-white/40 mt-1">
+                <DialogDescription className="text-slate-500 mt-1">
                   Добавьте новый скрипт, промт или инструкцию в базу знаний проекта.
                 </DialogDescription>
               </div>
@@ -450,7 +450,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           <div className="p-8 space-y-6 relative z-10">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="space-y-2.5">
-                <Label className="text-white/60 text-xs font-bold uppercase tracking-widest pl-1">Название документа</Label>
+                <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest pl-1">Название документа</Label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <FileText className="w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
@@ -459,19 +459,19 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                     value={newDoc.title}
                     onChange={(e) => setNewDoc({ ...newDoc, title: e.target.value })}
                     placeholder="Напр: Скрипт закрытия возражений"
-                    className="pl-10 h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50"
+                    className="pl-10 h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50"
                   />
                 </div>
               </div>
 
               <div className="space-y-2.5">
-                <Label className="text-white/60 text-xs font-bold uppercase tracking-widest pl-1">Категория</Label>
+                <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest pl-1">Категория</Label>
                 <div className="relative group">
                   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                     <Filter className="w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
                   </div>
                   <select
-                    className="flex h-12 w-full pl-10 rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:ring-2 focus:ring-primary/50 outline-none appearance-none transition-all"
+                    className="flex h-12 w-full pl-10 rounded-xl border border-slate-200 bg-white/5 px-4 py-2 text-sm text-white focus:ring-2 focus:ring-primary/50 outline-none appearance-none transition-all"
                     value={newDoc.category}
                     onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value })}
                   >
@@ -486,17 +486,17 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
             </div>
 
             <div className="space-y-2.5">
-              <Label className="text-white/60 text-xs font-bold uppercase tracking-widest pl-1">Содержимое</Label>
+              <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest pl-1">Содержимое</Label>
               <Textarea
                 value={newDoc.content}
                 onChange={(e) => setNewDoc({ ...newDoc, content: e.target.value })}
                 placeholder="Вставьте текст скрипта или промта здесь..."
-                className="min-h-[200px] bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50 p-4 leading-relaxed resize-none"
+                className="min-h-[200px] bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50 p-4 leading-relaxed resize-none"
               />
             </div>
 
             <div className="space-y-2.5">
-              <Label className="text-white/60 text-xs font-bold uppercase tracking-widest pl-1">Теги (через запятую)</Label>
+              <Label className="text-slate-600 text-xs font-bold uppercase tracking-widest pl-1">Теги (через запятую)</Label>
               <div className="relative group">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Sparkles className="w-4 h-4 text-white/20 group-focus-within:text-primary transition-colors" />
@@ -505,7 +505,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                   value={newDoc.tags}
                   onChange={(e) => setNewDoc({ ...newDoc, tags: e.target.value })}
                   placeholder="продажи, холодные, скрипт"
-                  className="pl-10 h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50"
+                  className="pl-10 h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50"
                 />
               </div>
             </div>
@@ -515,7 +515,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
             <Button
               variant="ghost"
               onClick={() => setIsAddDialogOpen(false)}
-              className="h-12 px-6 rounded-xl text-white/40 hover:text-white hover:bg-white/5 font-medium"
+              className="h-12 px-6 rounded-xl text-slate-500 hover:text-white hover:bg-white/5 font-medium"
             >
               Отмена
             </Button>

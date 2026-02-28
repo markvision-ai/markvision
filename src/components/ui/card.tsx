@@ -22,7 +22,7 @@ const cardVariants = cva(
         ].join(" "),
         "interstellar-elevated": [
           "bg-white/[0.04] backdrop-blur-3xl",
-          "border border-white/[0.1]",
+          "border border-slate-200",
           "shadow-[inset_0_1px_0_rgba(255,255,255,0.08),0_16px_48px_rgba(0,0,0,0.5),0_0_40px_hsl(192_100%_50%/0.1)]",
         ].join(" "),
         ghost: "bg-transparent border-0 shadow-none",

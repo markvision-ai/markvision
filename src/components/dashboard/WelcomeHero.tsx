@@ -149,7 +149,7 @@ export const WelcomeHero = ({
       transition={{ duration: 0.5 }}
       className={cn(
         "relative overflow-hidden rounded-2xl p-6 md:p-8",
-        "bg-card border border-white/50 shadow-sm",
+        "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm",
         className
       )}
     >
@@ -260,7 +260,7 @@ export const WelcomeHero = ({
                 animate="visible"
                 transition={{ delay: 0.5 + (index * 0.05) }}
                 onClick={() => onTabChange(action.tab)}
-                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-card border border-white/50 hover:bg-secondary/50 transition-all duration-300 text-left"
+                className="group relative flex flex-col items-start justify-between h-32 p-4 rounded-xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 hover:bg-secondary/50 transition-all duration-300 text-left"
               >
                 <div className={cn("p-2 rounded-lg transition-colors", action.color)}>
                   <Icon className="w-5 h-5" />

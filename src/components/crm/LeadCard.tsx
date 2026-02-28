@@ -227,7 +227,7 @@ export const LeadCard = ({
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
         'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-200',
-        'bg-card border border-white/50 shadow-sm hover:shadow-md',
+        'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm hover:shadow-md',
         needsAttention && 'border-red-300 ring-1 ring-red-200',
         isMegaTier && !needsAttention && 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20',
         hasHighScore && !needsAttention && 'border-red-200 ring-1 ring-red-100',

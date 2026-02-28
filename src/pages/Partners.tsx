@@ -27,7 +27,7 @@ const Partners = () => {
     return (
         <div className="min-h-screen bg-gradient-to-b from-black via-slate-950 to-black">
             {/* Header */}
-            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-white/10">
+            <header className="fixed top-0 left-0 right-0 z-50 bg-black/40 backdrop-blur-xl border-b border-slate-200">
                 <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
                     <Link to="/" className="flex items-center gap-3">
                         <div className="w-10 h-10 relative flex items-center justify-center">
@@ -76,7 +76,7 @@ const Partners = () => {
                                     initial={{ opacity: 0, y: 20 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     transition={{ delay: 0.1 * index, duration: 0.4 }}
-                                    className="p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 hover:border-primary/30 transition-all"
+                                    className="p-6 bg-white/5 backdrop-blur-sm rounded-2xl border border-slate-200 hover:border-primary/30 transition-all"
                                 >
                                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4">
                                         {benefit.icon}
@@ -92,7 +92,7 @@ const Partners = () => {
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: 0.4, duration: 0.4 }}
-                            className="bg-white/5 backdrop-blur-sm rounded-2xl border border-white/10 p-8 mb-8"
+                            className="bg-white/5 backdrop-blur-sm rounded-2xl border border-slate-200 p-8 mb-8"
                         >
                             <h2 className="text-2xl font-bold text-white mb-6">Требования к партнерам</h2>
                             <ul className="space-y-3">

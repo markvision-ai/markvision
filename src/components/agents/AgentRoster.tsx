@@ -71,7 +71,7 @@ export const AgentRoster: React.FC = () => {
             <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="text-center space-y-4">
                     <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin mx-auto" />
-                    <p className="text-white/40 text-sm">Загрузка агентов...</p>
+                    <p className="text-slate-500 text-sm">Загрузка агентов...</p>
                 </div>
             </div>
         );
@@ -120,7 +120,7 @@ export const AgentRoster: React.FC = () => {
                     <div className="text-3xl font-black text-cyan-400">
                         {agentStatuses.filter(a => a.isActive).length}
                     </div>
-                    <div className="text-sm text-white/40 uppercase tracking-widest font-bold mt-1">
+                    <div className="text-sm text-slate-500 uppercase tracking-widest font-bold mt-1">
                         Активных
                     </div>
                 </div>
@@ -128,15 +128,15 @@ export const AgentRoster: React.FC = () => {
                     <div className="text-3xl font-black text-purple-400">
                         {agentStatuses.filter(a => a.isConfigured).length}
                     </div>
-                    <div className="text-sm text-white/40 uppercase tracking-widest font-bold mt-1">
+                    <div className="text-sm text-slate-500 uppercase tracking-widest font-bold mt-1">
                         Настроено
                     </div>
                 </div>
                 <div className="bg-white/[0.02] backdrop-blur-xl border border-white/5 rounded-2xl p-6 text-center aspect-square flex flex-col items-center justify-center">
-                    <div className="text-3xl font-black text-white/60">
+                    <div className="text-3xl font-black text-slate-600">
                         {AGENT_TYPES.length}
                     </div>
-                    <div className="text-sm text-white/40 uppercase tracking-widest font-bold mt-1">
+                    <div className="text-sm text-slate-500 uppercase tracking-widest font-bold mt-1">
                         Доступно
                     </div>
                 </div>

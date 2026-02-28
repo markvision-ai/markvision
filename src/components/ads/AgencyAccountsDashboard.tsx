@@ -122,7 +122,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
     };
 
     return (
-        <div className="rounded-2xl border border-white/50 bg-card p-6 space-y-6 shadow-sm mb-6">
+        <div className="rounded-2xl border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 p-6 space-y-6 shadow-sm mb-6">
             {/* HEADER */}
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
                 <div className="flex items-center gap-3">
@@ -139,7 +139,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
                 <div className="flex items-center gap-3">
                     {/* Month Selector */}
-                    <div className="flex items-center bg-card border border-white/50 rounded-lg shadow-sm overflow-hidden h-10">
+                    <div className="flex items-center bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-lg shadow-sm overflow-hidden h-10">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -179,7 +179,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             </div>
 
             {/* METRICS TABLE */}
-            <div className="rounded-2xl border border-white/50 bg-card shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
                         <TableRow className="bg-muted/50">

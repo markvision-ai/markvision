@@ -64,7 +64,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
                 icon: <Plus className="w-4 h-4 mr-2" />
             },
             visual: (
-                <div className="relative mt-4 h-24 w-full bg-white/5 rounded-xl border border-white/10 overflow-hidden flex items-center justify-center">
+                <div className="relative mt-4 h-24 w-full bg-white/5 rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center">
                     <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-transparent animate-pulse" />
                     <Sparkles className="w-8 h-8 text-white/20 animate-bounce" />
                 </div>
@@ -114,13 +114,13 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 + idx * 0.1, duration: 0.6, type: "spring" }}
                     >
-                        <Card className="group relative h-full bg-black/40 border border-white/10 backdrop-blur-xl overflow-hidden hover:border-cyan-500/30 transition-all duration-500 shadow-2xl">
+                        <Card className="group relative h-full bg-black/40 border border-slate-200 backdrop-blur-xl overflow-hidden hover:border-cyan-500/30 transition-all duration-500 shadow-2xl">
                             {/* Corner Glow */}
                             <div className="absolute -top-12 -right-12 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-500" />
 
                             <CardContent className="p-8 flex flex-col h-full space-y-6">
                                 <div className="flex items-start justify-between">
-                                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
+                                    <div className="w-16 h-16 rounded-2xl bg-white/5 border border-slate-200 flex items-center justify-center group-hover:scale-110 group-hover:rotate-3 transition-transform duration-500">
                                         {step.icon}
                                     </div>
                                     <span className="text-5xl font-black text-white/5 select-none">{step.id}</span>
@@ -141,7 +141,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
 
                                 <Button
                                     onClick={step.action.onClick}
-                                    className="w-full h-14 bg-white/5 hover:bg-white/10 text-white border border-white/10 rounded-xl group/btn overflow-hidden relative shadow-2xl shadow-blue-900/5"
+                                    className="w-full h-14 bg-white/5 hover:bg-white/10 text-white border border-slate-200 rounded-xl group/btn overflow-hidden relative shadow-2xl shadow-blue-900/5"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
                                     <span className="relative z-10 flex items-center font-bold uppercase tracking-wider">

@@ -330,7 +330,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className="bg-card border border-white/50 shadow-sm hover:shadow-md transition-shadow group">
+            <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm hover:shadow-md transition-shadow group">
               <CardContent className="p-5">
                 <div className="flex justify-between items-start mb-3">
                   <div className={cn("p-2 rounded-lg", card.bg)}>
@@ -386,7 +386,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sales ROI Table */}
           <TabsContent value="sales-roi" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-card border border-white/50 shadow-sm">
+              <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <Globe className="w-5 h-5 text-primary" />
@@ -430,7 +430,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Split Tests */}
           <TabsContent value="split-tests" className="mt-6">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
-              <Card className="bg-card border border-white/50 shadow-sm">
+              <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-foreground">
                     <SplitSquareVertical className="w-5 h-5 text-primary" />
@@ -442,7 +442,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
                   {sourceStats.map((source, i) => (
                     <div key={i} className="flex items-center justify-between p-4 rounded-xl bg-muted/30 border border-white/50 hover:bg-muted/50 transition-colors">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-background text-xl border border-white/50">
+                        <div className="w-10 h-10 rounded-lg flex items-center justify-center bg-slate-50 text-xl border border-white/50">
                           {source.icon}
                         </div>
                         <div>
@@ -467,7 +467,7 @@ export const E2EAnalytics = ({ totals, projectId }: E2EAnalyticsProps) => {
           {/* Content: Sources Pie */}
           <TabsContent value="sources" className="mt-6">
             <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}>
-              <Card className="bg-card border border-white/50 h-[400px]">
+              <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 h-[400px]">
                 <CardHeader>
                   <CardTitle className="text-foreground">Распределение трафика</CardTitle>
                   <CardDescription className="text-muted-foreground">Лиды по источникам за период</CardDescription>

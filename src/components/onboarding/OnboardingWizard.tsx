@@ -261,7 +261,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                 value={clinicName}
                 onChange={(e) => setClinicName(e.target.value)}
                 placeholder="Клиника «Здоровье»"
-                className="h-14 text-lg rounded-2xl text-center bg-background border-white/50"
+                className="h-14 text-lg rounded-2xl text-center bg-slate-50 border-white/50"
               />
             </div>
           </motion.div>
@@ -331,7 +331,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     google: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-background border-white/50"
+                  className="rounded-xl bg-slate-50 border-white/50"
                 />
               </div>
               
@@ -353,7 +353,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     tiktok: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-background border-white/50"
+                  className="rounded-xl bg-slate-50 border-white/50"
                 />
               </div>
             </div>
@@ -398,7 +398,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                         instanceId: e.target.value
                       })}
                       placeholder="1101234567"
-                      className="rounded-xl bg-background border-white/50"
+                      className="rounded-xl bg-slate-50 border-white/50"
                     />
                   </div>
                   <div>
@@ -411,7 +411,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                       })}
                       placeholder="abc123def456..."
                       type="password"
-                      className="rounded-xl bg-background border-white/50"
+                      className="rounded-xl bg-slate-50 border-white/50"
                     />
                   </div>
                 </div>
@@ -447,12 +447,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     value={member.name}
                     onChange={(e) => updateStaffMember(index, 'name', e.target.value)}
                     placeholder="Имя менеджера"
-                    className="rounded-xl flex-1 bg-background border-white/50"
+                    className="rounded-xl flex-1 bg-slate-50 border-white/50"
                   />
                   <select
                     value={member.position}
                     onChange={(e) => updateStaffMember(index, 'position', e.target.value)}
-                    className="h-10 px-3 rounded-xl border border-white/50 bg-background text-foreground"
+                    className="h-10 px-3 rounded-xl border border-white/50 bg-slate-50 text-foreground"
                   >
                     <option value="Менеджер">Менеджер</option>
                     <option value="Администратор">Администратор</option>
@@ -517,7 +517,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 2. Уточнить проблему
 3. Предложить бесплатный визит
 4. Записать на удобное время`}
-                className="min-h-[300px] rounded-2xl text-base bg-background border-white/50"
+                className="min-h-[300px] rounded-2xl text-base bg-slate-50 border-white/50"
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 Чем больше информации вы предоставите, тем умнее будет ваш ИИ
@@ -532,14 +532,14 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
   };
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-3xl bg-card rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-white/50"
+        className="w-full max-w-3xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl shadow-2xl shadow-black/50 overflow-hidden border border-white/50"
       >
         {/* Header */}
-        <div className="p-6 border-b border-white/50 bg-card">
+        <div className="p-6 border-b border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">

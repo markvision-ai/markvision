@@ -305,7 +305,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Admin-only notice */}
       {!isAdmin && (
-        <Alert className="interstellar-glass border-amber-500/20 bg-amber-500/5">
+        <Alert className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-amber-500/20 bg-amber-500/5">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <AlertTitle className="text-amber-500 font-bold">Ограниченный доступ</AlertTitle>
           <AlertDescription className="text-amber-500/80">
@@ -345,7 +345,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                   </div>
                   {createdCredentials ? 'Сотрудник создан' : 'Добавить сотрудника'}
                 </DialogTitle>
-                <DialogDescription className="text-white/40 mt-1">
+                <DialogDescription className="text-slate-500 mt-1">
                   {createdCredentials ? 'Пользователь успешно зарегистрирован' : 'Введите данные нового участника команды'}
                 </DialogDescription>
               </div>
@@ -360,15 +360,15 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       <p className="text-lg font-bold text-white">Выполнено успешно</p>
                     </div>
 
-                    <div className="interstellar-glass border border-white/5 p-6 rounded-2xl space-y-4">
+                    <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl space-y-4">
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-white/40">Email:</span>
+                        <span className="text-sm text-slate-500">Email:</span>
                         <div className="flex items-center gap-2">
-                          <code className="bg-white/5 px-2 py-1 rounded-md text-sm font-mono text-white/80">{createdCredentials.email}</code>
+                          <code className="bg-white/5 px-2 py-1 rounded-md text-sm font-mono text-slate-700">{createdCredentials.email}</code>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-white/40 hover:text-white"
+                            className="h-8 w-8 text-slate-500 hover:text-white"
                             onClick={() => copyToClipboard(createdCredentials.email, 'Email')}
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -376,13 +376,13 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                         </div>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-sm text-white/40">Пароль:</span>
+                        <span className="text-sm text-slate-500">Пароль:</span>
                         <div className="flex items-center gap-2">
-                          <code className="bg-white/5 px-2 py-1 rounded-md text-sm font-mono text-white/80">{createdCredentials.password}</code>
+                          <code className="bg-white/5 px-2 py-1 rounded-md text-sm font-mono text-slate-700">{createdCredentials.password}</code>
                           <Button
                             size="icon"
                             variant="ghost"
-                            className="h-8 w-8 text-white/40 hover:text-white"
+                            className="h-8 w-8 text-slate-500 hover:text-white"
                             onClick={() => copyToClipboard(createdCredentials.password, 'Пароль')}
                           >
                             <Copy className="w-3.5 h-3.5" />
@@ -411,28 +411,28 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                   <div className="p-8 space-y-6">
                     <div className="space-y-4">
                       <div className="space-y-2">
-                        <Label className="text-white/60 text-xs uppercase tracking-widest font-bold">Полное имя</Label>
+                        <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Полное имя</Label>
                         <Input
                           placeholder="Иван Петров"
                           value={newMember.name}
                           onChange={(e) => handleNameChange(e.target.value)}
-                          className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50"
+                          className="h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-white/60 text-xs uppercase tracking-widest font-bold">Email адрес</Label>
+                        <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Email адрес</Label>
                         <Input
                           type="email"
                           placeholder="email@company.kz"
                           value={newMember.email}
                           onChange={(e) => setNewMember(prev => ({ ...prev, email: e.target.value }))}
-                          className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50"
+                          className="h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50"
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-white/60 text-xs uppercase tracking-widest font-bold">Пароль доступа</Label>
+                        <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Пароль доступа</Label>
                         <div className="flex gap-2">
                           <div className="relative flex-1">
                             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
@@ -441,7 +441,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                               placeholder="Минимум 6 символов"
                               value={newMember.password}
                               onChange={(e) => setNewMember(prev => ({ ...prev, password: e.target.value }))}
-                              className="pl-11 pr-11 h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50"
+                              className="pl-11 pr-11 h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50"
                             />
                             <button
                               type="button"
@@ -455,7 +455,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                             type="button"
                             variant="outline"
                             onClick={handleGeneratePassword}
-                            className="h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10"
+                            className="h-12 bg-white/5 border-slate-200 text-white rounded-xl hover:bg-white/10"
                           >
                             <Settings2 className="w-4 h-4" />
                           </Button>
@@ -463,15 +463,15 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label className="text-white/60 text-xs uppercase tracking-widest font-bold">Роль в системе</Label>
+                        <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Роль в системе</Label>
                         <Select
                           value={newMember.role}
                           onValueChange={(value: 'admin' | 'manager') => setNewMember(prev => ({ ...prev, role: value }))}
                         >
-                          <SelectTrigger className="h-12 bg-white/5 border-white/10 text-white rounded-xl focus:ring-primary/50">
+                          <SelectTrigger className="h-12 bg-white/5 border-slate-200 text-white rounded-xl focus:ring-primary/50">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                          <SelectContent className="bg-neutral-900 border-slate-200 text-white">
                             <SelectItem value="admin">Администратор (Полный доступ)</SelectItem>
                             <SelectItem value="manager">Менеджер (Ограниченный доступ)</SelectItem>
                           </SelectContent>
@@ -480,8 +480,8 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
 
                       {newMember.role === 'manager' && (
                         <div className="space-y-3">
-                          <Label className="text-white/60 text-xs uppercase tracking-widest font-bold">Доступ к проектам</Label>
-                          <div className="space-y-2 max-h-48 overflow-y-auto interstellar-glass border border-white/5 rounded-2xl p-4 custom-scrollbar">
+                          <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Доступ к проектам</Label>
+                          <div className="space-y-2 max-h-48 overflow-y-auto bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-2xl p-4 custom-scrollbar">
                             {projects.map(project => (
                               <label key={project.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors group">
                                 <Checkbox
@@ -489,7 +489,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                                   onCheckedChange={() => handleProjectToggle(project.id)}
                                   className="border-white/20 data-[state=checked]:bg-primary"
                                 />
-                                <span className="text-sm text-white/60 group-hover:text-white">{project.name}</span>
+                                <span className="text-sm text-slate-600 group-hover:text-white">{project.name}</span>
                               </label>
                             ))}
                           </div>
@@ -503,14 +503,14 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                           onCheckedChange={(checked) => setSendEmailOnCreate(checked === true)}
                           className="border-white/20 data-[state=checked]:bg-primary"
                         />
-                        <label htmlFor="sendEmail" className="text-sm text-white/60 cursor-pointer">
+                        <label htmlFor="sendEmail" className="text-sm text-slate-600 cursor-pointer">
                           Отправить данные для входа на email
                         </label>
                       </div>
                     </div>
 
                     <div className="flex gap-3 pt-4">
-                      <Button variant="outline" onClick={handleCloseDialog} className="flex-1 h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10">
+                      <Button variant="outline" onClick={handleCloseDialog} className="flex-1 h-12 bg-white/5 border-slate-200 text-white rounded-xl hover:bg-white/10">
                         Отмена
                       </Button>
                       <Button onClick={handleCreateUser} disabled={isCreating} className="flex-1 h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20">
@@ -531,17 +531,17 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
       </div>
 
       {/* Team Member List */}
-      <div className="interstellar-glass border border-white/5 rounded-3xl overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-3xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-white/5 bg-white/5">
-                <th className="p-6 text-xs uppercase tracking-widest font-bold text-white/40">Сотрудник</th>
-                <th className="p-6 text-xs uppercase tracking-widest font-bold text-white/40">Роль</th>
-                <th className="p-6 text-xs uppercase tracking-widest font-bold text-white/40">Статус</th>
-                <th className="p-6 text-xs uppercase tracking-widest font-bold text-white/40">Проекты</th>
-                <th className="p-6 text-xs uppercase tracking-widest font-bold text-white/40">Дата добавления</th>
-                {isAdmin && <th className="p-6 text-right text-xs uppercase tracking-widest font-bold text-white/40">Действия</th>}
+                <th className="p-6 text-xs uppercase tracking-widest font-bold text-slate-500">Сотрудник</th>
+                <th className="p-6 text-xs uppercase tracking-widest font-bold text-slate-500">Роль</th>
+                <th className="p-6 text-xs uppercase tracking-widest font-bold text-slate-500">Статус</th>
+                <th className="p-6 text-xs uppercase tracking-widest font-bold text-slate-500">Проекты</th>
+                <th className="p-6 text-xs uppercase tracking-widest font-bold text-slate-500">Дата добавления</th>
+                {isAdmin && <th className="p-6 text-right text-xs uppercase tracking-widest font-bold text-slate-500">Действия</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/5">
@@ -566,7 +566,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                         </div>
                         <div>
                           <p className="font-bold text-white group-hover:text-primary transition-colors">{member.name || 'Без имени'}</p>
-                          <p className="text-xs text-white/40 font-medium">{member.email || 'Нет email'}</p>
+                          <p className="text-xs text-slate-500 font-medium">{member.email || 'Нет email'}</p>
                         </div>
                       </div>
                     </td>
@@ -576,10 +576,10 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                           value={member.role}
                           onValueChange={(value: 'admin' | 'manager') => handleRoleChange(member.user_id, value)}
                         >
-                          <SelectTrigger className="w-36 bg-white/5 border-white/10 text-white rounded-xl h-10">
+                          <SelectTrigger className="w-36 bg-white/5 border-slate-200 text-white rounded-xl h-10">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="bg-neutral-900 border-white/10 text-white">
+                          <SelectContent className="bg-neutral-900 border-slate-200 text-white">
                             <SelectItem value="admin">Администратор</SelectItem>
                             <SelectItem value="manager">Менеджер</SelectItem>
                           </SelectContent>
@@ -588,7 +588,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                         <div className="flex">
                           {member.role === 'admin'
                             ? <Badge className="bg-primary/20 text-primary border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.1)] px-3 py-1">Админ</Badge>
-                            : <Badge variant="outline" className="text-white/40 border-white/10 px-3 py-1">Менеджер</Badge>}
+                            : <Badge variant="outline" className="text-slate-500 border-slate-200 px-3 py-1">Менеджер</Badge>}
                         </div>
                       )}
                     </td>
@@ -622,7 +622,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                                   onCheckedChange={() => handleEditProjectToggle(project.id)}
                                   className="border-white/20 data-[state=checked]:bg-primary"
                                 />
-                                <span className="text-white/60 group-hover/p:text-white">{project.name}</span>
+                                <span className="text-slate-600 group-hover/p:text-white">{project.name}</span>
                               </label>
                             ))}
                           </div>
@@ -630,7 +630,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                             <Button size="sm" onClick={() => handleSaveProjectAccess(member.user_id)} className="flex-1 bg-primary h-8 rounded-lg text-xs">
                               Ок
                             </Button>
-                            <Button size="sm" variant="ghost" onClick={() => setEditingMember(null)} className="h-8 rounded-lg text-white/40 text-xs">
+                            <Button size="sm" variant="ghost" onClick={() => setEditingMember(null)} className="h-8 rounded-lg text-slate-500 text-xs">
                               Отмена
                             </Button>
                           </div>
@@ -638,7 +638,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       ) : (
                         <div className="flex flex-wrap gap-2">
                           {member.role === 'admin' ? (
-                            <Badge variant="outline" className="bg-white/5 border-white/10 text-white/60 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5">
+                            <Badge variant="outline" className="bg-white/5 border-slate-200 text-slate-600 text-[10px] uppercase font-bold tracking-widest px-2 py-0.5">
                               Все проекты
                             </Badge>
                           ) : member.projectAccess.length === 0 ? (
@@ -648,7 +648,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                               {member.projectAccess.slice(0, 2).map(projectId => {
                                 const project = projects.find(p => p.id === projectId);
                                 return project ? (
-                                  <Badge key={projectId} variant="outline" className="bg-white/5 border-white/10 text-white/60 text-[10px] font-bold px-2 py-0.5">
+                                  <Badge key={projectId} variant="outline" className="bg-white/5 border-slate-200 text-slate-600 text-[10px] font-bold px-2 py-0.5">
                                     {project.name.length > 20 ? project.name.slice(0, 20) + '...' : project.name}
                                   </Badge>
                                 ) : null;
@@ -664,7 +664,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       )}
                     </td>
                     <td className="p-6">
-                      <p className="text-sm font-medium text-white/40">{member.createdAt}</p>
+                      <p className="text-sm font-medium text-slate-500">{member.createdAt}</p>
                     </td>
                     {isAdmin && (
                       <td className="p-6 text-right">
@@ -716,7 +716,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
 
       {/* Access Cards Legend */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
             <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-2xl shadow-blue-900/5 shadow-primary/10 transition-transform group-hover:scale-110">
@@ -727,14 +727,14 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                 <h3 className="text-xl font-bold text-white">Администратор</h3>
                 <Badge className="bg-primary/20 text-primary border-primary/30 text-[10px] font-black uppercase tracking-widest ring-1 ring-primary/20">Full Access</Badge>
               </div>
-              <p className="text-sm text-white/40 leading-relaxed">
+              <p className="text-sm text-slate-500 leading-relaxed">
                 Неограниченный уровень доступа ко всем проектам системы. Возможность управления сотрудниками, финансовой аналитикой и системными настройками безопасности.
               </p>
             </div>
           </div>
         </div>
 
-        <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shadow-2xl shadow-blue-900/5 shadow-blue-500/10 transition-transform group-hover:scale-110">
@@ -745,7 +745,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                 <h3 className="text-xl font-bold text-white">Менеджер</h3>
                 <Badge variant="outline" className="border-blue-500/30 text-blue-500 text-[10px] font-black uppercase tracking-widest px-2">Scoped Access</Badge>
               </div>
-              <p className="text-sm text-white/40 leading-relaxed">
+              <p className="text-sm text-slate-500 leading-relaxed">
                 Доступ только к назначенным проектам. Права на чтение, запись или экспорт настраиваются индивидуально для каждой маркетинговой единицы.
               </p>
             </div>
@@ -754,9 +754,9 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
       </div>
 
       {/* Permissions List Legend */}
-      <div className="interstellar-glass border border-white/5 p-8 rounded-3xl">
+      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl">
         <div className="flex items-center gap-3 mb-6">
-          <h4 className="text-sm font-bold text-white/60 uppercase tracking-widest">Детальные возможности менеджера</h4>
+          <h4 className="text-sm font-bold text-slate-600 uppercase tracking-widest">Детальные возможности менеджера</h4>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-6 gap-6">
@@ -769,11 +769,11 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
             { label: 'Экспорт', desc: 'reporting' }
           ].map(p => (
             <div key={p.label} className="group cursor-default">
-              <div className="flex items-center gap-2 text-white/80 hover:text-primary transition-colors">
+              <div className="flex items-center gap-2 text-slate-700 hover:text-primary transition-colors">
                 <CheckCircle className="w-3.5 h-3.5 text-primary opacity-50 transition-opacity group-hover:opacity-100" />
                 <span className="text-sm font-bold">{p.label}</span>
               </div>
-              <p className="text-[10px] text-white/20 uppercase font-black tracking-tighter ml-5 group-hover:text-white/40 transition-colors">
+              <p className="text-[10px] text-white/20 uppercase font-black tracking-tighter ml-5 group-hover:text-slate-500 transition-colors">
                 {p.desc}
               </p>
             </div>
@@ -791,7 +791,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
               </div>
               <div>
                 <p className="text-2xl leading-tight">Права доступа</p>
-                <p className="text-sm text-white/40 font-medium">{selectedMemberForPermissions?.name}</p>
+                <p className="text-sm text-slate-500 font-medium">{selectedMemberForPermissions?.name}</p>
               </div>
             </DialogTitle>
           </div>
@@ -805,7 +805,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
             ) : selectedMemberForPermissions?.projectAccess.length === 0 ? (
               <div className="text-center py-20">
                 <Shield className="w-12 h-12 text-white/5 mx-auto mb-4" />
-                <p className="text-white/40 font-medium">Сначала назначьте проекты сотруднику</p>
+                <p className="text-slate-500 font-medium">Сначала назначьте проекты сотруднику</p>
               </div>
             ) : (
               <Tabs defaultValue={selectedMemberForPermissions?.projectAccess[0]} className="w-full">
@@ -816,7 +816,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       <TabsTrigger
                         key={projectId}
                         value={projectId}
-                        className="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-tight data-[state=active]:bg-white/10 data-[state=active]:text-white text-white/40 whitespace-nowrap"
+                        className="px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-tight data-[state=active]:bg-white/10 data-[state=active]:text-white text-slate-500 whitespace-nowrap"
                       >
                         {project?.name || 'Проект'}
                       </TabsTrigger>
@@ -838,10 +838,10 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                             { id: 'can_manage_leads', label: 'Управление лидами', desc: 'Возможность изменять статусы и данные лидов в CRM' },
                             { id: 'can_export_data', label: 'Экспорт данных', desc: 'Выгрузка отчетов в Excel/PDF и внешний API экспорт' }
                           ].map(item => (
-                            <div key={item.id} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-white/10 hover:bg-white/[0.07] transition-all group">
+                            <div key={item.id} className="flex items-center justify-between p-5 rounded-2xl bg-white/5 border border-white/5 hover:border-slate-200 hover:bg-white/[0.07] transition-all group">
                               <div className="flex-1">
                                 <Label htmlFor={`${projectId}-${item.id}`} className="text-base font-bold text-white group-hover:text-primary transition-colors cursor-pointer block">{item.label}</Label>
-                                <p className="text-xs text-white/40 mt-1">{item.desc}</p>
+                                <p className="text-xs text-slate-500 mt-1">{item.desc}</p>
                               </div>
                               <Switch
                                 id={`${projectId}-${item.id}`}
@@ -861,7 +861,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
           </div>
 
           <div className="p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex justify-end gap-4 shadow-2xl">
-            <Button variant="outline" onClick={() => setPermissionsDialogOpen(false)} className="h-12 bg-white/5 border-white/10 text-white rounded-xl hover:bg-white/10 px-6">
+            <Button variant="outline" onClick={() => setPermissionsDialogOpen(false)} className="h-12 bg-white/5 border-slate-200 text-white rounded-xl hover:bg-white/10 px-6">
               Отмена
             </Button>
             <Button onClick={handleSavePermissions} disabled={loadingPermissions} className="h-12 bg-primary hover:bg-primary/90 text-white rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20 px-10 font-bold tracking-tight">

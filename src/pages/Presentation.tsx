@@ -282,7 +282,7 @@ export default function Presentation() {
               </button>
               <a
                 href="#problem"
-                className="px-6 py-3 rounded-xl border border-white/10 text-gray-300 text-sm hover:border-white/20 hover:text-white transition-all duration-300"
+                className="px-6 py-3 rounded-xl border border-slate-200 text-gray-300 text-sm hover:border-white/20 hover:text-white transition-all duration-300"
               >
                 Смотреть презентацию
               </a>
@@ -769,7 +769,7 @@ export default function Presentation() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={() => navigate("/")}
-                className="px-10 py-4 rounded-xl border border-white/10 text-gray-300 font-semibold text-base hover:border-white/20 hover:text-white transition-all duration-300"
+                className="px-10 py-4 rounded-xl border border-slate-200 text-gray-300 font-semibold text-base hover:border-white/20 hover:text-white transition-all duration-300"
               >
                 На главную
               </motion.button>

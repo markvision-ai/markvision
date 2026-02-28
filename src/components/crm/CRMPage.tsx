@@ -353,7 +353,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
       {/* Header — чёткий блок */}
       <motion.div
-        className="rounded-2xl bg-card border border-white/50 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+        className="rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
@@ -500,7 +500,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Поиск по имени, телефону, источнику..."
-              className="pl-12 h-12 text-base bg-background border-white/50 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl"
+              className="pl-12 h-12 text-base bg-slate-50 border-white/50 focus:border-primary focus:ring-2 focus:ring-primary/20 rounded-xl"
             />
             {searchQuery && (
               <button
@@ -519,7 +519,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
+                    "h-12 px-4 bg-slate-50 border-white/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedStatuses.length > 0 && "border-primary bg-primary/10"
                   )}
                 >
@@ -532,7 +532,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
+              <DropdownMenuContent align="end" className="w-56 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по статусу</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {statusOptions.map((status) => (
@@ -556,7 +556,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
+                    "h-12 px-4 bg-slate-50 border-white/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedSources.length > 0 && "border-primary bg-primary/10"
                   )}
                 >
@@ -569,7 +569,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
+              <DropdownMenuContent align="end" className="w-56 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по источнику</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {sourceOptions.map((source) => (
@@ -591,7 +591,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                 <Button
                   variant="outline"
                   className={cn(
-                    "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
+                    "h-12 px-4 bg-slate-50 border-white/50 hover:border-primary/50 transition-all rounded-xl",
                     selectedDatePreset && "border-blue-500 bg-blue-500/10"
                   )}
                 >
@@ -604,7 +604,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
                   )}
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
+              <DropdownMenuContent align="end" className="w-56 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
                 <DropdownMenuLabel className="font-semibold">Фильтр по дате</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {datePresets.map((preset) => (
@@ -625,7 +625,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               variant="outline"
               onClick={toggleLtvSort}
               className={cn(
-                "h-12 px-4 bg-background border-white/50 hover:border-primary/50 transition-all rounded-xl",
+                "h-12 px-4 bg-slate-50 border-white/50 hover:border-primary/50 transition-all rounded-xl",
                 sortByLtv && "border-amber-500 bg-amber-500/10"
               )}
             >
@@ -742,7 +742,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex p-1.5 gap-1.5 rounded-2xl bg-muted/50 border border-white/50">
             <TabsTrigger
               value="kanban"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
             >
               <Kanban className="w-4 h-4" />
               <span className="hidden sm:inline">Канбан</span>
@@ -750,21 +750,21 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
 
             <TabsTrigger
               value="clients"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
             >
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">База клиентов</span>
             </TabsTrigger>
             <TabsTrigger
               value="funnel"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
             >
               <TrendingUp className="w-4 h-4" />
               <span className="hidden sm:inline">Воронка</span>
             </TabsTrigger>
             <TabsTrigger
               value="automation"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-card data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
             >
               <Bot className="w-4 h-4" />
               <span className="hidden sm:inline">Автоматизация</span>
@@ -868,7 +868,7 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.98 }}
-            className="flex flex-col items-center justify-center py-16 text-center rounded-2xl bg-card border border-white/50"
+            className="flex flex-col items-center justify-center py-16 text-center rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50"
           >
             <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
               <Search className="w-8 h-8 text-muted-foreground" />

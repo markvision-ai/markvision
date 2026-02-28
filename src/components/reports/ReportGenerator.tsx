@@ -675,7 +675,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     <div className="space-y-6 animate-in fade-in duration-700">
 
       {/* Premium Header */}
-      <div className="interstellar-glass border border-white/5 p-6 rounded-2xl relative overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
           <div>
@@ -695,12 +695,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           <div className="flex flex-wrap gap-2">
             <Dialog open={isSaveTemplateOpen} onOpenChange={setIsSaveTemplateOpen}>
               <DialogTrigger asChild>
-                <Button variant="outline" className="border-white/10 hover:bg-white/5 text-muted-foreground hover:text-white">
+                <Button variant="outline" className="border-slate-200 hover:bg-white/5 text-muted-foreground hover:text-white">
                   <Save className="w-4 h-4 mr-2" />
                   Сохранить шаблон
                 </Button>
               </DialogTrigger>
-              <DialogContent className="interstellar-glass border-white/10 bg-black/50 backdrop-blur-xl">
+              <DialogContent className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/50 backdrop-blur-xl">
                 <DialogHeader>
                   <DialogTitle>Сохранить шаблон</DialogTitle>
                 </DialogHeader>
@@ -708,7 +708,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   placeholder="Название шаблона"
                   value={newTemplateName}
                   onChange={e => setNewTemplateName(e.target.value)}
-                  className="bg-white/5 border-white/10"
+                  className="bg-white/5 border-slate-200"
                 />
                 <DialogFooter>
                   <Button onClick={handleSaveTemplate} disabled={isSavingTemplate} className="bg-primary hover:bg-primary/90">
@@ -722,12 +722,12 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
             {templates.length > 0 && (
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="outline" className="border-white/10 hover:bg-white/5 text-muted-foreground hover:text-white">
+                  <Button variant="outline" className="border-slate-200 hover:bg-white/5 text-muted-foreground hover:text-white">
                     <FolderOpen className="w-4 h-4 mr-2" />
                     Загрузить ({templates.length})
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-64 bg-black/90 border-white/10 backdrop-blur-xl text-white">
+                <PopoverContent className="w-64 bg-black/90 border-slate-200 backdrop-blur-xl text-white">
                   <div className="space-y-1">
                     {templates.map(t => (
                       <button key={t.id} onClick={() => handleLoadTemplate(t)} className="w-full text-left px-3 py-2 hover:bg-white/10 rounded-md text-sm transition-colors">
@@ -757,10 +757,10 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
             </Label>
             {isComparisonEnabled && (
               <Select value={comparisonPreset} onValueChange={(v) => handleComparisonPresetChange(v as PresetKey)}>
-                <SelectTrigger className="h-8 w-[140px] bg-white/5 border-white/10 text-xs">
+                <SelectTrigger className="h-8 w-[140px] bg-white/5 border-slate-200 text-xs">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-black/90 border-white/10">
+                <SelectContent className="bg-black/90 border-slate-200">
                   {presets.map(p => <SelectItem key={p.key} value={p.key}>{p.label}</SelectItem>)}
                 </SelectContent>
               </Select>
@@ -817,7 +817,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
 
         <TabsContent value="preview" className="mt-6 space-y-6">
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={dummyAI} className="border-white/10 hover:bg-white/5 text-xs h-9">
+            <Button variant="outline" onClick={dummyAI} className="border-slate-200 hover:bg-white/5 text-xs h-9">
               <Sparkles className="w-3.5 h-3.5 mr-2 text-violet-400" />
               AI-анализ
             </Button>
@@ -828,30 +828,30 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
           </div>
 
           {/* The Report Sheet */}
-          <div className="bg-[#0A0A0A] rounded-2xl border border-white/10 shadow-2xl overflow-hidden max-w-5xl mx-auto shadow-black/50">
+          <div className="bg-[#0A0A0A] rounded-2xl border border-slate-200 shadow-2xl overflow-hidden max-w-5xl mx-auto shadow-black/50">
             <div ref={reportRef} className="p-10 text-white min-h-[1000px] relative bg-gradient-to-b from-[#0A0A0A] to-[#111]">
               {/* Decorative Elements for PDF */}
               <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
               {/* Report Header */}
-              <div className="flex items-center justify-between border-b border-white/10 pb-8 mb-8 relative z-10">
+              <div className="flex items-center justify-between border-b border-slate-200 pb-8 mb-8 relative z-10">
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-2xl shadow-blue-900/5 shadow-primary/20">
                     <BarChart3 className="w-8 h-8 text-white" />
                   </div>
                   <div>
                     <h1 className="text-3xl font-bold tracking-tight">AdMetrics</h1>
-                    <p className="text-white/40 font-light">Аналитический отчёт</p>
+                    <p className="text-slate-500 font-light">Аналитический отчёт</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-white/40">Проект</p>
+                  <p className="text-sm text-slate-500">Проект</p>
                   <p className="font-semibold text-lg">{data.projectName}</p>
                 </div>
               </div>
 
               {/* Report Meta */}
-              <div className="flex items-center gap-6 text-sm text-white/40 mb-10 p-4 rounded-xl bg-white/5 border border-white/5 w-fit backdrop-blur-md">
+              <div className="flex items-center gap-6 text-sm text-slate-500 mb-10 p-4 rounded-xl bg-white/5 border border-white/5 w-fit backdrop-blur-md">
                 <span className="flex items-center gap-2"><Calendar className="w-4 h-4 text-primary" /> {format(reportDateRange.from, 'd MMM')} — {format(reportDateRange.to, 'd MMM yyyy', { locale: ru })}</span>
                 <span className="w-px h-4 bg-white/10" />
                 <span className="flex items-center gap-2"><Clock className="w-4 h-4 text-primary" /> Сформировано: {format(new Date(), 'd MMM yyyy, HH:mm')}</span>
@@ -865,14 +865,14 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
                   План / Факт
                 </h3>
-                <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5 backdrop-blur-sm">
+                <div className="rounded-xl border border-slate-200 overflow-hidden bg-white/5 backdrop-blur-sm">
                   <table className="w-full">
                     <thead className="bg-white/5">
                       <tr className="border-b border-white/5">
-                        <th className="text-left p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Показатель</th>
-                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">План</th>
-                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Факт</th>
-                        <th className="text-center p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Выполнение</th>
+                        <th className="text-left p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Показатель</th>
+                        <th className="text-right p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">План</th>
+                        <th className="text-right p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Факт</th>
+                        <th className="text-center p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Выполнение</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -880,8 +880,8 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                         const status = getPlanFactStatus(m.value, m.plan);
                         return (
                           <tr key={i} className="hover:bg-white/5 transition-colors group">
-                            <td className="p-5 font-medium text-white/80 group-hover:text-white transition-colors">{m.label}</td>
-                            <td className="p-5 text-right text-white/40 font-mono text-sm">
+                            <td className="p-5 font-medium text-slate-700 group-hover:text-white transition-colors">{m.label}</td>
+                            <td className="p-5 text-right text-slate-500 font-mono text-sm">
                               {m.format === 'currency' ? formatCurrency(m.plan) : formatNumber(m.plan)}
                             </td>
                             <td className="p-5 text-right font-bold text-white font-mono text-sm">
@@ -889,7 +889,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                             </td>
                             <td className="p-5 text-center">
                               <Badge variant="outline" className={cn(
-                                "bg-transparent border-white/10 font-mono text-xs px-2 py-0.5",
+                                "bg-transparent border-slate-200 font-mono text-xs px-2 py-0.5",
                                 status.percent >= 100 ? "text-blue-400 border-blue-500/30 bg-blue-500/10" :
                                   status.percent >= 80 ? "text-yellow-400 border-yellow-500/30 bg-yellow-500/10" :
                                     "text-red-400 border-red-500/30 bg-red-500/10"
@@ -920,9 +920,9 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                     { title: 'CPL (Лид)', value: computedMetrics.leadCost, format: formatCurrency, icon: Target, color: 'text-violet-400' },
                     { title: 'ROAS', value: computedMetrics.roas, format: (v: number) => v?.toFixed(2) + 'x', icon: TrendingUp, color: 'text-blue-400' },
                   ].map((m, i) => (
-                    <Card key={i} className="bg-white/5 border-white/10 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                    <Card key={i} className="bg-white/5 border-slate-200 backdrop-blur-sm hover:bg-white/10 transition-colors">
                       <CardHeader className="p-5 pb-2">
-                        <CardTitle className="text-xs font-medium text-white/40 uppercase tracking-wider flex items-center justify-between">
+                        <CardTitle className="text-xs font-medium text-slate-500 uppercase tracking-wider flex items-center justify-between">
                           {m.title}
                           <m.icon className={cn("w-4 h-4 opacity-50", m.color)} />
                         </CardTitle>
@@ -945,23 +945,23 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   </div>
                   Топ Кампании
                 </h3>
-                <div className="rounded-xl border border-white/10 overflow-hidden bg-white/5 backdrop-blur-sm">
+                <div className="rounded-xl border border-slate-200 overflow-hidden bg-white/5 backdrop-blur-sm">
                   <table className="w-full">
                     <thead className="bg-white/5">
                       <tr className="border-b border-white/5">
-                        <th className="text-left p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Кампания</th>
-                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Расход</th>
-                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">Лиды</th>
-                        <th className="text-right p-5 font-medium text-white/40 text-xs uppercase tracking-wider">CPL (факт)</th>
+                        <th className="text-left p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Кампания</th>
+                        <th className="text-right p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Расход</th>
+                        <th className="text-right p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">Лиды</th>
+                        <th className="text-right p-5 font-medium text-slate-500 text-xs uppercase tracking-wider">CPL (факт)</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
                       {topCampaigns.length > 0 ? topCampaigns.map((c: any, i: number) => (
                         <tr key={i} className="hover:bg-white/5 transition-colors group">
                           <td className="p-5 font-medium text-white/90 truncate max-w-[200px] group-hover:text-white transition-colors" title={c.name}>{c.name}</td>
-                          <td className="p-5 text-right font-mono text-sm text-white/80">{formatCurrency(c.spend)}</td>
-                          <td className="p-5 text-right font-mono text-sm text-white/80">{c.leads}</td>
-                          <td className="p-5 text-right font-mono text-sm text-white/50 group-hover:text-white/80 transition-colors">
+                          <td className="p-5 text-right font-mono text-sm text-slate-700">{formatCurrency(c.spend)}</td>
+                          <td className="p-5 text-right font-mono text-sm text-slate-700">{c.leads}</td>
+                          <td className="p-5 text-right font-mono text-sm text-white/50 group-hover:text-slate-700 transition-colors">
                             {c.leads > 0 ? formatCurrency(c.spend / c.leads) : '—'}
                           </td>
                         </tr>
@@ -983,20 +983,20 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
                   {topAds.length > 0 ? topAds.map((ad: any, i: number) => (
-                    <div key={i} className="group relative aspect-video bg-white/5 rounded-xl border border-white/10 overflow-hidden hover:border-primary/50 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-primary/5">
+                    <div key={i} className="group relative aspect-video bg-white/5 rounded-xl border border-slate-200 overflow-hidden hover:border-primary/50 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-primary/5">
                       <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/20 transition-all">
-                        <ImageIcon className="w-10 h-10 text-white/20 group-hover:text-white/40 transition-colors" />
+                        <ImageIcon className="w-10 h-10 text-white/20 group-hover:text-slate-500 transition-colors" />
                       </div>
                       <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/90 via-black/60 to-transparent backdrop-blur-[2px]">
                         <p className="text-xs font-medium text-white truncate mb-1.5">{ad.name}</p>
-                        <div className="flex items-center justify-between text-[10px] text-white/60">
+                        <div className="flex items-center justify-between text-[10px] text-slate-600">
                           <span className="font-mono">{formatCurrency(ad.spend)}</span>
                           <span className="bg-primary/20 text-primary px-1.5 py-0.5 rounded text-[9px] font-medium">{ad.leads} лидов</span>
                         </div>
                       </div>
                     </div>
                   )) : (
-                    <div className="col-span-3 text-center py-12 text-muted-foreground border border-dashed border-white/10 rounded-xl bg-white/5">Нет данных по креативам</div>
+                    <div className="col-span-3 text-center py-12 text-muted-foreground border border-dashed border-slate-200 rounded-xl bg-white/5">Нет данных по креативам</div>
                   )}
                 </div>
               </div>
@@ -1013,7 +1013,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                       return (
                         <div key={i} className="relative">
                           <div className="flex justify-between text-sm mb-1 px-1">
-                            <span className="text-white/60">{step.label}</span>
+                            <span className="text-slate-600">{step.label}</span>
                             <span className="font-bold">{formatNumber(step.value)}</span>
                           </div>
                           <div className="h-8 bg-white/5 rounded-lg overflow-hidden relative border border-white/5">
@@ -1029,22 +1029,22 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 <div>
                   <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><Sparkles className="w-5 h-5 text-primary" /> Эффективность</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-4 rounded-xl border border-white/10 bg-white/5">
-                      <p className="text-xs text-white/40 mb-2">Стоимость клиента</p>
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white/5">
+                      <p className="text-xs text-slate-500 mb-2">Стоимость клиента</p>
                       <p className="text-2xl font-bold text-white font-mono">{computedMetrics.customerCost ? formatCurrency(computedMetrics.customerCost) : '—'}</p>
                     </div>
-                    <div className="p-4 rounded-xl border border-white/10 bg-white/5">
-                      <p className="text-xs text-white/40 mb-2">ROAS</p>
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white/5">
+                      <p className="text-xs text-slate-500 mb-2">ROAS</p>
                       <p className="text-2xl font-bold text-blue-400 font-mono">{computedMetrics.roas.toFixed(2)}x</p>
                     </div>
-                    <div className="p-4 rounded-xl border border-white/10 bg-white/5">
-                      <p className="text-xs text-white/40 mb-2">Конверсия (Л - П)</p>
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white/5">
+                      <p className="text-xs text-slate-500 mb-2">Конверсия (Л - П)</p>
                       <p className="text-2xl font-bold text-violet-400 font-mono">
                         {((reportData.totals.sales / (reportData.totals.leads || 1)) * 100).toFixed(1)}%
                       </p>
                     </div>
-                    <div className="p-4 rounded-xl border border-white/10 bg-white/5">
-                      <p className="text-xs text-white/40 mb-2">Стоимость лида</p>
+                    <div className="p-4 rounded-xl border border-slate-200 bg-white/5">
+                      <p className="text-xs text-slate-500 mb-2">Стоимость лида</p>
                       <p className="text-2xl font-bold text-white font-mono">{computedMetrics.leadCost ? formatCurrency(computedMetrics.leadCost) : '—'}</p>
                     </div>
                   </div>
@@ -1079,7 +1079,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
-          <div className="interstellar-glass border border-white/5 p-8 rounded-2xl max-w-2xl mx-auto">
+          <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-2xl max-w-2xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <div className="p-3 rounded-full bg-primary/20 text-primary">
                 <Bell className="w-6 h-6" />
@@ -1103,7 +1103,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                 <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="space-y-4">
                   <div className="space-y-2">
                     <Label>Канал отправки</Label>
-                    <div className="flex bg-black/50 p-1 rounded-lg border border-white/10">
+                    <div className="flex bg-black/50 p-1 rounded-lg border border-slate-200">
                       <button
                         onClick={() => setReportChannel('telegram')}
                         className={cn(
@@ -1131,7 +1131,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                       value={telegramChatId}
                       onChange={e => setTelegramChatId(e.target.value)}
                       placeholder={reportChannel === 'telegram' ? "-100xxxxxxxxx" : "7701xxxxxxx"}
-                      className="bg-black/50 border-white/10 text-mono"
+                      className="bg-black/50 border-slate-200 text-mono"
                     />
                     <p className="text-xs text-muted-foreground">
                       {reportChannel === 'telegram'

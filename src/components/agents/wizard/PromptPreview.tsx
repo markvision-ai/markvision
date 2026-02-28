@@ -45,7 +45,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
                 {/* Content */}
                 <div className="relative z-10 space-y-4">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2 text-sm text-white/40">
+                        <div className="flex items-center gap-2 text-sm text-slate-500">
                             <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
                             Системный промпт
                         </div>
@@ -54,7 +54,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
                             size="sm"
                             onClick={handleCopy}
                             className={cn(
-                                'text-white/60 hover:text-white hover:bg-white/5 rounded-lg transition-all',
+                                'text-slate-600 hover:text-white hover:bg-white/5 rounded-lg transition-all',
                                 copied && 'text-blue-400'
                             )}
                         >
@@ -73,7 +73,7 @@ export const PromptPreview: React.FC<PromptPreviewProps> = ({ prompt }) => {
                     </div>
 
                     <div className="bg-[#050505]/80 rounded-xl p-6 border border-white/5">
-                        <pre className="text-sm text-white/80 whitespace-pre-wrap font-mono leading-relaxed">
+                        <pre className="text-sm text-slate-700 whitespace-pre-wrap font-mono leading-relaxed">
                             {prompt}
                         </pre>
                     </div>

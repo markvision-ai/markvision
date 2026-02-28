@@ -29,7 +29,7 @@ const formatCurrency = (value: number): string => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-[#0B0C15]/90 backdrop-blur-xl rounded-xl p-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-white/10 ring-1 ring-white/5">
+      <div className="bg-[#0B0C15]/90 backdrop-blur-xl rounded-xl p-4 shadow-[0_0_30px_rgba(0,0,0,0.5)] border border-slate-200 ring-1 ring-white/5">
         <p className="font-mono text-xs text-white/50 mb-3 border-b border-white/5 pb-2 uppercase tracking-widest">{label}</p>
 
         <div className="space-y-2">
@@ -40,7 +40,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
                   className="w-2 h-2 rounded-full shadow-[0_0_8px_currentColor]"
                   style={{ backgroundColor: entry.color, color: entry.color }}
                 />
-                <span className="text-xs text-white/70 font-medium">
+                <span className="text-xs text-slate-600 font-medium">
                   {entry.name}
                 </span>
               </div>
@@ -93,13 +93,13 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
 
   if (chartData.length === 0) {
     return (
-      <div className="interstellar-card border border-white/10 rounded-2xl p-8 min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden group">
+      <div className="interstellar-card border border-slate-200 rounded-2xl p-8 min-h-[400px] flex flex-col items-center justify-center relative overflow-hidden group">
         <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
         <div className="relative z-10 flex flex-col items-center">
           <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-4 ring-1 ring-white/10 group-hover:scale-110 transition-transform duration-500">
             <Activity className="w-8 h-8 text-white/20" />
           </div>
-          <h3 className="text-sm font-bold text-white/60 uppercase tracking-widest mb-2">Нет данных</h3>
+          <h3 className="text-sm font-bold text-slate-600 uppercase tracking-widest mb-2">Нет данных</h3>
           <p className="text-xs text-white/30">За выбранный период активность не зафиксирована</p>
         </div>
       </div>
@@ -107,7 +107,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
   }
 
   return (
-    <div className="interstellar-card border border-white/10 rounded-2xl p-0 relative overflow-hidden flex flex-col min-h-[420px] bg-[#0B0C15]">
+    <div className="interstellar-card border border-slate-200 rounded-2xl p-0 relative overflow-hidden flex flex-col min-h-[420px] bg-[#0B0C15]">
       {/* Ambient Background */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-purple-600/5 rounded-full blur-[80px] pointer-events-none" />
@@ -116,7 +116,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
       {/* Header */}
       <div className="relative p-5 border-b border-white/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white/[0.02]">
         <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-white/10 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
+          <div className="p-2 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg border border-slate-200 shadow-[0_0_15px_rgba(59,130,246,0.1)]">
             <BarChart3 className="w-5 h-5 text-blue-400" />
           </div>
           <div>
@@ -127,12 +127,12 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
               </span>
             </h3>
-            <p className="text-[10px] uppercase tracking-widest text-white/40 font-semibold mt-0.5">Live Analytics • 24h Update</p>
+            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-semibold mt-0.5">Live Analytics • 24h Update</p>
           </div>
         </div>
 
         {/* Custom Tabs Toggle */}
-        <div className="bg-[#0f111a] p-1 rounded-lg border border-white/10 flex relative">
+        <div className="bg-[#0f111a] p-1 rounded-lg border border-slate-200 flex relative">
           <div
             className={cn(
               "absolute top-1 bottom-1 w-[calc(50%-4px)] bg-white/10 rounded-md transition-all duration-300 ease-out border border-white/5 shadow-inner",
@@ -143,7 +143,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             onClick={() => setActiveTab('finance')}
             className={cn(
               "relative z-10 px-4 py-1.5 text-xs font-bold transition-colors w-24 text-center rounded-md",
-              activeTab === 'finance' ? "text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.2)]" : "text-white/40 hover:text-white/70"
+              activeTab === 'finance' ? "text-blue-200 shadow-[0_0_10px_rgba(59,130,246,0.2)]" : "text-slate-500 hover:text-slate-600"
             )}
           >
             Финансы
@@ -152,7 +152,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
             onClick={() => setActiveTab('funnel')}
             className={cn(
               "relative z-10 px-4 py-1.5 text-xs font-bold transition-colors w-24 text-center rounded-md",
-              activeTab === 'funnel' ? "text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-white/40 hover:text-white/70"
+              activeTab === 'funnel' ? "text-purple-200 shadow-[0_0_10px_rgba(168,85,247,0.2)]" : "text-slate-500 hover:text-slate-600"
             )}
           >
             Воронка
@@ -165,13 +165,13 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
         {activeTab === 'finance' ? (
           <>
             <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-blue-400 transition-colors">Выручка</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1 group-hover:text-blue-400 transition-colors">Выручка</div>
               <div className="text-xl font-bold font-mono text-blue-400 drop-shadow-[0_0_8px_rgba(16,185,129,0.3)]">
                 {formatCurrency(totals.revenue)} <span className="text-xs text-white/30">₸</span>
               </div>
             </div>
             <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-              <div className="text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 group-hover:text-red-400 transition-colors">Расходы</div>
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1 group-hover:text-red-400 transition-colors">Расходы</div>
               <div className="text-xl font-bold font-mono text-red-400 drop-shadow-[0_0_8px_rgba(239,68,68,0.3)]">
                 {formatCurrency(totals.spend)} <span className="text-xs text-white/30">₸</span>
               </div>
@@ -192,7 +192,7 @@ export const RevenueChart = ({ data, daysInMonth }: RevenueChartProps) => {
               { label: "Конверсия", value: `${totals.leads > 0 ? ((totals.sales / totals.leads) * 100).toFixed(1) : 0}%`, color: "text-white", border: "group-hover:text-white" }
             ].map((stat) => (
               <div key={stat.label} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:bg-white/[0.04] transition-colors group">
-                <div className={cn("text-[10px] text-white/40 uppercase tracking-wider font-bold mb-1 transition-colors", stat.border)}>{stat.label}</div>
+                <div className={cn("text-[10px] text-slate-500 uppercase tracking-wider font-bold mb-1 transition-colors", stat.border)}>{stat.label}</div>
                 <div className={cn("text-xl font-bold font-mono drop-shadow-[0_0_5px_rgba(255,255,255,0.1)]", stat.color)}>
                   {stat.value}
                 </div>

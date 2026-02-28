@@ -211,7 +211,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
   return (
     <div className={cn(
       "transition-all duration-300 ease-in-out",
-      isExpanded ? "fixed inset-4 z-50 bg-background rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
+      isExpanded ? "fixed inset-4 z-50 bg-slate-50 rounded-xl border shadow-2xl p-6 overflow-y-auto" : "w-full"
     )}>
       <div className="flex flex-col gap-6">
         {/* Header Section */}
@@ -404,7 +404,7 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
               </div>
 
               {/* Main Chart */}
-              <Card className="flex-1 border-white/50 bg-card shadow-sm">
+              <Card className="flex-1 border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2 text-base">
                     <BarChart3 className="w-4 h-4 text-primary" />
@@ -482,10 +482,10 @@ export const AIAssistant = ({ context, hideDashboard = false }: AIAssistantProps
 // --- Subcomponents ---
 
 const MetricCard = ({ title, value, trend, trendUp, icon: Icon, color }: any) => (
-  <Card className="border-white/50 bg-card shadow-sm hover:shadow-md transition-shadow">
+  <Card className="border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm hover:shadow-md transition-shadow">
     <CardContent className="p-4">
       <div className="flex justify-between items-start mb-2">
-        <div className={cn("p-1.5 rounded-lg bg-background border", color)}>
+        <div className={cn("p-1.5 rounded-lg bg-slate-50 border", color)}>
           <Icon className="w-4 h-4" />
         </div>
         <Badge variant={trendUp ? "default" : "destructive"} className="text-[10px] px-1.5 h-5">
@@ -629,7 +629,7 @@ const ChatInterface = ({ context, suggestedQuestions }: any) => {
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Введите ваш вопрос..."
-            className="pr-10 bg-background"
+            className="pr-10 bg-slate-50"
             disabled={isLoading}
           />
           <Button
@@ -672,7 +672,7 @@ const LogViewer = ({ logs }: { logs: string[] }) => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mt-2"
           >
-            <div className="bg-[#1e1e1e] text-green-400 p-3 text-[10px] font-mono leading-relaxed rounded-lg shadow-inner max-h-[200px] overflow-y-auto border border-white/10">
+            <div className="bg-[#1e1e1e] text-green-400 p-3 text-[10px] font-mono leading-relaxed rounded-lg shadow-inner max-h-[200px] overflow-y-auto border border-slate-200">
               {logs.map((log, i) => (
                 <div key={i} className="flex gap-2 border-b border-white/5 last:border-0 py-1">
                   <span className="opacity-40 select-none text-gray-500">
@@ -710,7 +710,7 @@ const StatsCard = ({ data }: { data: any }) => {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
       {metrics.map((m, i) => (
-        <div key={i} className="relative overflow-hidden group bg-card border border-white/50 rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
+        <div key={i} className="relative overflow-hidden group bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-3 flex flex-col items-center text-center shadow-sm hover:shadow-md transition-all duration-300">
           <span className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 relative z-10">{m.label}</span>
           <span className="text-lg font-bold text-foreground relative z-10">{formatValue(m.value, m.format)}</span>
         </div>
@@ -805,7 +805,7 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
       <div className={cn("flex gap-3 max-w-[90%]", isUser ? "flex-row-reverse" : "flex-row")}>
         <div className={cn(
           "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border shadow-sm h-fit",
-          isUser ? "bg-background" : "bg-primary/10 border-primary/20"
+          isUser ? "bg-slate-50" : "bg-primary/10 border-primary/20"
         )}>
           {isUser ? <User className="w-4 h-4" /> : <Bot className="w-4 h-4 text-primary" />}
         </div>
@@ -816,7 +816,7 @@ const MessageBubble = forwardRef<HTMLDivElement, { message: ChatMessage }>(({ me
               "rounded-2xl px-4 py-3 text-sm shadow-sm",
               isUser
                 ? "bg-primary text-primary-foreground rounded-tr-sm"
-                : "bg-card border rounded-tl-sm"
+                : "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border rounded-tl-sm"
             )}>
               {isUser ? (
                 <p className="whitespace-pre-wrap">{message.content}</p>

@@ -88,7 +88,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="w-full max-w-4xl bg-black/60 border border-white/10 rounded-[32px] overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row h-[85vh] md:h-auto md:min-h-[600px]"
+                className="w-full max-w-4xl bg-black/60 border border-slate-200 rounded-[32px] overflow-hidden shadow-2xl relative z-10 flex flex-col md:flex-row h-[85vh] md:h-auto md:min-h-[600px]"
             >
                 {/* Sidebar Status */}
                 <div className="w-full md:w-64 bg-white/5 border-r border-white/5 p-8 flex flex-col gap-8">
@@ -112,7 +112,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                         "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-500",
                                         isActive ? "bg-cyan-500/20 border-cyan-500/50 text-cyan-400 scale-110 shadow-[0_0_20px_rgba(6,182,212,0.3)]" :
                                             isCompleted ? "bg-blue-500/20 border-blue-500/50 text-blue-400" :
-                                                "bg-white/5 border-white/10 text-white/30"
+                                                "bg-white/5 border-slate-200 text-white/30"
                                     )}>
                                         {isCompleted ? <Check className="w-5 h-5" /> : <s.icon className="w-5 h-5" />}
                                     </div>
@@ -123,7 +123,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                         )}>Шаг 0{idx + 1}</span>
                                         <span className={cn(
                                             "text-sm font-bold tracking-tight",
-                                            isActive ? "text-white" : "text-white/40"
+                                            isActive ? "text-white" : "text-slate-500"
                                         )}>{s.label}</span>
                                     </div>
                                 </div>
@@ -137,7 +137,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                 <Sparkles className="w-3 h-3" />
                                 ИИ-Помощник
                             </div>
-                            <p className="text-[11px] text-white/40 leading-relaxed">
+                            <p className="text-[11px] text-slate-500 leading-relaxed">
                                 ИИ готов оптимизировать ваш контент для максимального охвата и вовлеченности.
                             </p>
                         </div>
@@ -177,7 +177,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                         "p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-4 group relative overflow-hidden",
                                                         selectedPlatform === p.id
                                                             ? "bg-white/10 border-white/20 shadow-[0_8px_30px_rgb(0,0,0,0.04)]"
-                                                            : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-white/10"
+                                                            : "bg-white/5 border-white/5 hover:bg-white/10 hover:border-slate-200"
                                                     )}
                                                 >
                                                     {selectedPlatform === p.id && (
@@ -204,7 +204,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                         "px-6 py-4 rounded-xl border transition-all duration-300 flex items-center gap-3 group",
                                                         selectedType === t.id
                                                             ? "bg-cyan-500 text-black border-cyan-400 shadow-[0_0_20px_rgba(6,182,212,0.3)]"
-                                                            : "bg-white/5 border-white/5 hover:bg-white/10 text-white/40 hover:text-white"
+                                                            : "bg-white/5 border-white/5 hover:bg-white/10 text-slate-500 hover:text-white"
                                                     )}
                                                 >
                                                     <t.icon className="w-5 h-5" />
@@ -228,7 +228,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                         <label className="text-xs font-bold text-white/30 uppercase tracking-[0.3em] font-mono">Медиафайлы</label>
                                         <div className="relative group">
                                             <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500 to-purple-500 rounded-2xl opacity-20 group-hover:opacity-40 blur transition duration-500" />
-                                            <div className="relative h-48 rounded-2xl border-2 border-dashed border-white/10 bg-white/5 flex flex-col items-center justify-center p-8 transition-colors group-hover:bg-white/10 group-hover:border-white/20">
+                                            <div className="relative h-48 rounded-2xl border-2 border-dashed border-slate-200 bg-white/5 flex flex-col items-center justify-center p-8 transition-colors group-hover:bg-white/10 group-hover:border-white/20">
                                                 <UploadCloud className="w-12 h-12 text-cyan-400 mb-4 animate-bounce" />
                                                 <p className="text-sm font-bold text-white mb-2">Перетяните файлы сюда</p>
                                                 <p className="text-xs text-white/30">Поддерживаются MP4, MOV, PNG, JPG (Макс 50МБ)</p>
@@ -236,7 +236,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                             </div>
                                         </div>
                                         {media && (
-                                            <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-xl">
+                                            <div className="flex items-center justify-between p-4 bg-white/5 border border-slate-200 rounded-xl">
                                                 <div className="flex items-center gap-3">
                                                     <div className="p-2 rounded-lg bg-cyan-500/20 text-cyan-400">
                                                         {media.type.includes('video') ? <FileVideo className="w-4 h-4" /> : <FileImage className="w-4 h-4" />}
@@ -261,7 +261,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                 value={caption}
                                                 onChange={(e) => setCaption(e.target.value)}
                                                 placeholder="Введите текст вашего сообщения..."
-                                                className="relative min-h-[150px] bg-black/40 border-white/10 focus:border-cyan-500/50 rounded-2xl text-white placeholder:text-white/10 resize-none transition-all p-6"
+                                                className="relative min-h-[150px] bg-black/40 border-slate-200 focus:border-cyan-500/50 rounded-2xl text-white placeholder:text-white/10 resize-none transition-all p-6"
                                             />
                                         </div>
                                     </div>
@@ -281,7 +281,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                             <Clock className="w-10 h-10" />
                                         </div>
                                         <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Выбор времени</h4>
-                                        <p className="text-white/40 max-w-sm mx-auto text-sm font-light leading-relaxed">
+                                        <p className="text-slate-500 max-w-sm mx-auto text-sm font-light leading-relaxed">
                                             Выберите точное время для выхода публикации в эфир.
                                         </p>
                                     </div>
@@ -294,7 +294,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                     type="datetime-local"
                                                     value={scheduledAt}
                                                     onChange={(e) => setScheduledAt(e.target.value)}
-                                                    className="h-14 pl-12 bg-white/5 border-white/10 focus:border-cyan-500 focus:ring-cyan-500/20 rounded-xl text-white font-mono"
+                                                    className="h-14 pl-12 bg-white/5 border-slate-200 focus:border-cyan-500 focus:ring-cyan-500/20 rounded-xl text-white font-mono"
                                                 />
                                             </div>
                                             <div className="flex items-center gap-2 px-2">
@@ -306,7 +306,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                         <div className="h-px w-full max-w-[100px] bg-white/10" />
 
                                         <Button
-                                            className="bg-white/5 hover:bg-white/10 text-white border border-white/10 h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                                            className="bg-white/5 hover:bg-white/10 text-white border border-slate-200 h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-[10px]"
                                             onClick={() => setScheduledAt(new Date().toISOString().slice(0, 16))}
                                         >
                                             Опубликовать сейчас

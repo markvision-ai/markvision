@@ -74,7 +74,7 @@ const FileAttachment = ({
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10 animate-pulse">
+      <div className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-slate-200 animate-pulse">
         <Loader2 className="w-5 h-5 animate-spin text-primary" />
         <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Encryption in progress...</span>
       </div>
@@ -98,7 +98,7 @@ const FileAttachment = ({
         rel="noopener noreferrer"
         initial={{ scale: 0.95, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        className="block group relative overflow-hidden rounded-[2rem] border border-white/10 shadow-2xl"
+        className="block group relative overflow-hidden rounded-[2rem] border border-slate-200 shadow-2xl"
       >
         <img
           src={signedUrl}
@@ -279,7 +279,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse" />
-                <div className="w-24 h-24 rounded-[2.5rem] interstellar-glass border-white/10 flex items-center justify-center relative z-10">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 flex items-center justify-center relative z-10">
                   <Sparkles className="w-12 h-12 text-primary" />
                 </div>
               </div>
@@ -315,7 +315,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                           "absolute w-10 h-10 rounded-2xl flex items-center justify-center text-[10px] font-black border",
                           isOwn
                             ? "bg-primary/20 border-primary/30 text-primary"
-                            : "bg-white/10 border-white/10 text-white"
+                            : "bg-white/10 border-slate-200 text-white"
                         )}>
                           {isOwn ? 'YOU' : (msg.user_name?.[0] || 'U').toUpperCase()}
                         </div>
@@ -341,7 +341,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                             'relative p-4 rounded-[1.75rem] text-sm group transition-all duration-300',
                             isOwn
                               ? 'bg-primary text-white shadow-2xl shadow-primary/20 rounded-tr-none'
-                              : 'interstellar-glass border-white/5 text-white/90 rounded-tl-none hover:border-white/20'
+                              : 'bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 text-white/90 rounded-tl-none hover:border-white/20'
                           )}
                         >
                           {/* Secure File Handling */}
@@ -397,7 +397,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                 initial={{ opacity: 0, scale: 0.9, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                className="interstellar-glass p-3 rounded-2xl border-primary/20 bg-primary/5 flex items-center justify-between group"
+                className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-3 rounded-2xl border-primary/20 bg-primary/5 flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
@@ -432,7 +432,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-14 w-14 rounded-2xl bg-white/5 border border-white/10 hover:bg-primary/10 hover:text-primary transition-all duration-300"
+                className="h-14 w-14 rounded-2xl bg-white/5 border border-slate-200 hover:bg-primary/10 hover:text-primary transition-all duration-300"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={uploading}
               >
@@ -446,7 +446,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={handleKeyDown}
                 placeholder="Secure message command..."
-                className="interstellar-input min-h-[56px] max-h-[200px] py-4 px-6 text-base font-bold tracking-tight resize-none rounded-[1.75rem] border-white/10 focus:border-primary/50"
+                className="interstellar-input min-h-[56px] max-h-[200px] py-4 px-6 text-base font-bold tracking-tight resize-none rounded-[1.75rem] border-slate-200 focus:border-primary/50"
                 rows={1}
               />
               <div className="absolute right-4 bottom-4 flex items-center gap-2">

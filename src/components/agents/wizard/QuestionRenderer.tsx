@@ -43,7 +43,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     {question.required && <span className="text-red-400">*</span>}
                 </Label>
                 {question.description && (
-                    <p className="text-sm text-white/40">{question.description}</p>
+                    <p className="text-sm text-slate-500">{question.description}</p>
                 )}
             </div>
 
@@ -91,10 +91,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
             {/* Select */}
             {question.type === 'select' && (
                 <Select value={value} onValueChange={onChange}>
-                    <SelectTrigger className="bg-[#050505]/80 border-white/10 h-12 rounded-xl text-white focus:ring-cyan-500/50">
+                    <SelectTrigger className="bg-[#050505]/80 border-slate-200 h-12 rounded-xl text-white focus:ring-cyan-500/50">
                         <SelectValue placeholder="Выберите вариант..." />
                     </SelectTrigger>
-                    <SelectContent className="bg-[#0a0a0a] border-white/10 text-white">
+                    <SelectContent className="bg-[#0a0a0a] border-slate-200 text-white">
                         {question.options?.map((option) => (
                             <SelectItem key={option.value} value={option.value}>
                                 {option.label}
@@ -133,7 +133,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                                 <Badge
                                     key={index}
                                     variant="outline"
-                                    className="bg-white/5 text-white border-white/10 px-3 py-1 flex items-center gap-2"
+                                    className="bg-white/5 text-white border-slate-200 px-3 py-1 flex items-center gap-2"
                                 >
                                     {tag}
                                     <X
@@ -152,7 +152,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                 <div className="space-y-4">
                     {question.fields?.map((field) => (
                         <div key={field.key} className="space-y-2">
-                            <Label className="text-sm text-white/60">{field.label}</Label>
+                            <Label className="text-sm text-slate-600">{field.label}</Label>
                             <Input
                                 value={value?.[field.key] || ''}
                                 onChange={(e) =>
@@ -172,7 +172,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                     <div className="flex items-center justify-between p-4 bg-white/[0.02] rounded-xl border border-white/5">
                         <div>
                             <div className="text-white font-medium">Работает 24/7</div>
-                            <div className="text-sm text-white/40">Агент отвечает круглосуточно</div>
+                            <div className="text-sm text-slate-500">Агент отвечает круглосуточно</div>
                         </div>
                         <Switch
                             checked={value?.is24_7 || false}
@@ -184,10 +184,10 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
 
                     {!value?.is24_7 && (
                         <div className="space-y-3">
-                            <Label className="text-sm text-white/60">Рабочие часы</Label>
+                            <Label className="text-sm text-slate-600">Рабочие часы</Label>
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-white/40">Начало</Label>
+                                    <Label className="text-xs text-slate-500">Начало</Label>
                                     <Input
                                         type="time"
                                         value={value?.workingHours?.start || '09:00'}
@@ -204,7 +204,7 @@ export const QuestionRenderer: React.FC<QuestionRendererProps> = ({
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label className="text-xs text-white/40">Конец</Label>
+                                    <Label className="text-xs text-slate-500">Конец</Label>
                                     <Input
                                         type="time"
                                         value={value?.workingHours?.end || '18:00'}

@@ -407,7 +407,7 @@ export const AppSidebar = ({
 
       {/* Create Project Dialog - still kept for Header access if needed via logic, but UI hidden from Sidebar */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="bg-background border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <DialogContent className="bg-slate-50 border-white/50 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           <DialogHeader>
             <DialogTitle className="text-foreground">Создать новый проект</DialogTitle>
           </DialogHeader>
@@ -420,7 +420,7 @@ export const AppSidebar = ({
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-white/10 hover:bg-white/5">
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="border-slate-200 hover:bg-white/5">
               Отмена
             </Button>
             <Button onClick={handleCreateProject} disabled={isCreating || !newProjectName.trim()}>

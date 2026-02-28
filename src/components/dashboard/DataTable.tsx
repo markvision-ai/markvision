@@ -493,7 +493,7 @@ export const DataTable = React.memo(({
                   >
                     <td className={cn(
                       "p-2 md:p-3 sticky left-0 z-20 backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                      isToday ? "bg-primary/5" : isWeekend ? "bg-muted/10" : "bg-card"
+                      isToday ? "bg-primary/5" : isWeekend ? "bg-muted/10" : "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60"
                     )}>
                       <div className="flex flex-col">
                         <span className={cn(
@@ -512,7 +512,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.spend}
                           onSave={(val) => onDataChange(dateKey, 'spend', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatCurrency(dayData?.spend || 0)}
                     </td>
@@ -521,7 +521,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.impressions}
                           onSave={(val) => onDataChange(dateKey, 'impressions', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.impressions || 0)}
                     </td>
@@ -530,7 +530,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.clicks}
                           onSave={(val) => onDataChange(dateKey, 'clicks', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.clicks || 0)}
                     </td>
@@ -539,7 +539,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.leads}
                           onSave={(val) => onDataChange(dateKey, 'leads', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
                         />
                       ) : formatNumber(dayData?.leads || 0)}
                     </td>
@@ -548,7 +548,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.followers}
                           onSave={(val) => onDataChange(dateKey, 'followers', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.followers || 0)}
                     </td>
@@ -557,7 +557,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.visits}
                           onSave={(val) => onDataChange(dateKey, 'visits', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground"
                         />
                       ) : formatNumber(dayData?.visits || 0)}
                     </td>
@@ -566,7 +566,7 @@ export const DataTable = React.memo(({
                         <EditableCell
                           value={dayData?.sales}
                           onSave={(val) => onDataChange(dateKey, 'sales', val)}
-                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
+                          className="w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 text-foreground font-medium"
                         />
                       ) : formatNumber(dayData?.sales || 0)}
                     </td>
@@ -579,7 +579,7 @@ export const DataTable = React.memo(({
                           value={dayData?.revenue}
                           onSave={(val) => onDataChange(dateKey, 'revenue', val)}
                           className={cn(
-                            "w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-background focus:ring-1 focus:ring-primary/20 rounded px-1 font-semibold",
+                            "w-full text-right bg-transparent border-none hover:bg-muted/50 focus:bg-slate-50 focus:ring-1 focus:ring-primary/20 rounded px-1 font-semibold",
                             isRevenueAboveAverage ? "text-blue-600" : "text-foreground"
                           )}
                         />

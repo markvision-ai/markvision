@@ -157,7 +157,7 @@ export const ReferralsList = ({ leadId, projectId }: ReferralsListProps) => {
               transition={{ delay: index * 0.05 }}
               className={cn(
                 "relative overflow-hidden rounded-xl p-4 border transition-all",
-                "bg-card hover:border-primary/30"
+                "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:border-primary/30"
               )}
             >
               {/* Background decoration */}

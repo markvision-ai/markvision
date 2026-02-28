@@ -79,7 +79,7 @@ export const BulkActionsBar = ({
       initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -12, scale: 0.98 }}
-      className="rounded-2xl p-4 bg-card border border-white/50 shadow-md"
+      className="rounded-2xl p-4 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-md"
     >
       <div className="flex flex-wrap items-center justify-between gap-4">
         {/* Selection Info */}
@@ -142,7 +142,7 @@ export const BulkActionsBar = ({
                 Изменить статус
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-card border border-white/50">
+            <DropdownMenuContent align="end" className="w-56 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
               <DropdownMenuLabel className="font-bold">Новый статус</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {statusOptions.map((status) => (
@@ -195,7 +195,7 @@ export const BulkActionsBar = ({
                 )}
               </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="bg-card border border-white/50">
+            <AlertDialogContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
               <AlertDialogHeader>
                 <AlertDialogTitle className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center">

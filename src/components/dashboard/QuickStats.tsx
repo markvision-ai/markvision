@@ -38,7 +38,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
     return 'Ключевой показатель';
   };
   return (
-    <div className="bg-card border border-white/50 rounded-xl p-4 shadow-sm">
+    <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-4 shadow-sm">
       <div className="flex items-center justify-between mb-3">
         <div>
           <h3 className="font-semibold text-xs sm:text-sm text-foreground">Сравнение с прошлой неделей</h3>
@@ -57,7 +57,7 @@ export const QuickStats = ({ stats }: QuickStatsProps) => {
           return (
             <div 
               key={stat.label} 
-              className="relative bg-card rounded-lg p-3 overflow-hidden border border-white/50 transition-all duration-200 hover:border-primary/30 hover:shadow-sm group"
+              className="relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-lg p-3 overflow-hidden border border-white/50 transition-all duration-200 hover:border-primary/30 hover:shadow-sm group"
             >
               {/* Accent bar */}
               <div 

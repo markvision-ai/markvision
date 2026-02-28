@@ -100,7 +100,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl bg-background border-white/50 sm:max-w-[700px]">
+            <DialogContent className="max-w-2xl bg-slate-50 border-white/50 sm:max-w-[700px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
                         <FlaskConical className="w-5 h-5 text-primary" />
@@ -139,7 +139,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                             "p-4 rounded-xl border-2 transition-all text-left flex flex-col gap-3 group hover:scale-[1.02]",
                                             isSelected
                                                 ? "border-primary bg-primary/10 shadow-sm"
-                                                : "border-white/50 bg-card hover:bg-accent hover:border-white/50"
+                                                : "border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:bg-accent hover:border-white/50"
                                         )}
                                     >
                                         <div className={cn("p-2 rounded-lg w-fit transition-colors", isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground group-hover:bg-muted/80")}>
@@ -164,7 +164,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                     value={formData.name}
                                     onChange={e => updateField('name', e.target.value)}
                                     placeholder="Например: Тест заголовка на главной"
-                                    className="bg-background border-input text-foreground focus:border-primary/50"
+                                    className="bg-slate-50 border-input text-foreground focus:border-primary/50"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -173,7 +173,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                     value={formData.hypothesis}
                                     onChange={e => updateField('hypothesis', e.target.value)}
                                     placeholder="Если мы изменим X, то метрика Y увеличится, потому что Z..."
-                                    className="bg-background border-input text-foreground focus:border-primary/50 min-h-[100px]"
+                                    className="bg-slate-50 border-input text-foreground focus:border-primary/50 min-h-[100px]"
                                 />
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Sparkles className="w-3 h-3 text-primary" />
@@ -188,7 +188,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                         <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
                             <div className="grid grid-cols-2 gap-6">
                                 {/* Variant A */}
-                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-card">
+                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-6 h-6 rounded bg-blue-500/10 text-blue-500 flex items-center justify-center text-xs font-bold border border-blue-500/20">A</div>
                                         <h4 className="font-bold text-foreground">Контроль</h4>
@@ -198,7 +198,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                         <Input
                                             value={formData.variant_a_name}
                                             onChange={e => updateField('variant_a_name', e.target.value)}
-                                            className="bg-background border-input text-foreground h-9"
+                                            className="bg-slate-50 border-input text-foreground h-9"
                                         />
                                         {formData.test_category === 'page' && (
                                             <>
@@ -206,7 +206,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                 <Input
                                                     value={formData.variant_a_title}
                                                     onChange={e => updateField('variant_a_title', e.target.value)}
-                                                    className="bg-background border-input text-foreground h-9"
+                                                    className="bg-slate-50 border-input text-foreground h-9"
                                                 />
                                             </>
                                         )}
@@ -217,7 +217,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                     value={formData.test_category === 'creative' ? formData.facebook_ad_a_id : formData.facebook_adset_a_id}
                                                     onChange={e => updateField(formData.test_category === 'creative' ? 'facebook_ad_a_id' : 'facebook_adset_a_id', e.target.value)}
                                                     placeholder="123456..."
-                                                    className="bg-background border-input text-foreground h-9 font-mono"
+                                                    className="bg-slate-50 border-input text-foreground h-9 font-mono"
                                                 />
                                             </>
                                         )}
@@ -225,7 +225,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                 </div>
 
                                 {/* Variant B */}
-                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-card">
+                                <div className="space-y-4 p-4 rounded-xl border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-6 h-6 rounded bg-purple-500/10 text-purple-500 flex items-center justify-center text-xs font-bold border border-purple-500/20">B</div>
                                         <h4 className="font-bold text-foreground">Вариант</h4>
@@ -235,7 +235,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                         <Input
                                             value={formData.variant_b_name}
                                             onChange={e => updateField('variant_b_name', e.target.value)}
-                                            className="bg-background border-input text-foreground h-9"
+                                            className="bg-slate-50 border-input text-foreground h-9"
                                         />
                                         {formData.test_category === 'page' && (
                                             <>
@@ -243,7 +243,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                 <Input
                                                     value={formData.variant_b_title}
                                                     onChange={e => updateField('variant_b_title', e.target.value)}
-                                                    className="bg-background border-input text-foreground h-9"
+                                                    className="bg-slate-50 border-input text-foreground h-9"
                                                 />
                                             </>
                                         )}
@@ -254,7 +254,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                     value={formData.test_category === 'creative' ? formData.facebook_ad_b_id : formData.facebook_adset_b_id}
                                                     onChange={e => updateField(formData.test_category === 'creative' ? 'facebook_ad_b_id' : 'facebook_adset_b_id', e.target.value)}
                                                     placeholder="123456..."
-                                                    className="bg-background border-input text-foreground h-9 font-mono"
+                                                    className="bg-slate-50 border-input text-foreground h-9 font-mono"
                                                 />
                                             </>
                                         )}
@@ -279,7 +279,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                 type="number"
                                                 value={formData.auto_winner_threshold}
                                                 onChange={e => updateField('auto_winner_threshold', e.target.value)}
-                                                className="bg-black/20 border-white/10 text-white pr-8"
+                                                className="bg-black/20 border-slate-200 text-white pr-8"
                                             />
                                             <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">%</span>
                                         </div>
@@ -290,7 +290,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                             type="number"
                                             value={formData.min_sample_size}
                                             onChange={e => updateField('min_sample_size', e.target.value)}
-                                            className="bg-background border-input text-foreground"
+                                            className="bg-slate-50 border-input text-foreground"
                                         />
                                     </div>
                                 </div>

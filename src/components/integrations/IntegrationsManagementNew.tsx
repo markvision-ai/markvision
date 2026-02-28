@@ -402,7 +402,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
           variant="outline"
           size="lg"
           onClick={handleRefresh}
-          className="bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl backdrop-blur-xl transition-all duration-300 group"
+          className="bg-white/5 border-slate-200 hover:bg-white/10 text-white rounded-xl backdrop-blur-xl transition-all duration-300 group"
         >
           <RefreshCw className={cn("w-4 h-4 mr-2 transition-transform duration-500", loading && "animate-spin")} />
           Обновить данные
@@ -412,7 +412,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
       {/* Top Section: Two Premium Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Facebook Marketing Card */}
-        <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none -mr-24 -mt-24 group-hover:bg-blue-500/20 transition-colors duration-500" />
 
           <div className="flex items-center justify-between mb-8">
@@ -457,13 +457,13 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             <div className="space-y-6">
               <div className="grid gap-3">
                 {selectedPageName ? (
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 group/item hover:border-blue-500/30 transition-colors">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200 group/item hover:border-blue-500/30 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-blue-500/10">
                         <Layout className="w-4 h-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="text-xs text-white/40 font-medium">Страница</p>
+                        <p className="text-xs text-slate-500 font-medium">Страница</p>
                         <p className="text-sm font-semibold text-white">{selectedPageName}</p>
                       </div>
                     </div>
@@ -471,13 +471,13 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                   </div>
                 ) : null}
                 {selectedAdAccountName ? (
-                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10 group/item hover:border-blue-500/30 transition-colors">
+                  <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200 group/item hover:border-blue-500/30 transition-colors">
                     <div className="flex items-center gap-3">
                       <div className="p-2 rounded-lg bg-blue-500/10">
                         <Target className="w-4 h-4 text-blue-500" />
                       </div>
                       <div>
-                        <p className="text-xs text-white/40 font-medium">Рекламный кабинет</p>
+                        <p className="text-xs text-slate-500 font-medium">Рекламный кабинет</p>
                         <p className="text-sm font-semibold text-white">{selectedAdAccountName}</p>
                       </div>
                     </div>
@@ -488,7 +488,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               <Button
                 variant="outline"
                 onClick={() => handleOpenModal('facebook')}
-                className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl transition-all"
+                className="w-full h-12 bg-white/5 border-slate-200 hover:bg-white/10 text-white rounded-xl transition-all"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Версия настроек
@@ -498,7 +498,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
         </div>
 
         {/* Instagram Business Card */}
-        <div className="interstellar-glass border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none -mr-24 -mt-24 group-hover:bg-purple-500/20 transition-colors duration-500" />
 
           <div className="flex items-center justify-between mb-8">
@@ -541,7 +541,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             </div>
           ) : (
             <div className="space-y-6">
-              <div className="flex items-center gap-5 p-4 rounded-2xl bg-white/5 border border-white/10 group-hover:border-purple-500/30 transition-colors">
+              <div className="flex items-center gap-5 p-4 rounded-2xl bg-white/5 border border-slate-200 group-hover:border-purple-500/30 transition-colors">
                 <div className="relative">
                   {(selectedInstagramAvatar ?? '') ? (
                     <img
@@ -578,7 +578,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               <Button
                 variant="outline"
                 onClick={() => handleOpenModal('instagram')}
-                className="w-full h-12 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-xl transition-all"
+                className="w-full h-12 bg-white/5 border-slate-200 hover:bg-white/10 text-white rounded-xl transition-all"
               >
                 <Settings className="w-4 h-4 mr-2" />
                 Изменить аккаунт
@@ -623,7 +623,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             icon: <Video className="w-5 h-5" />,
             color: 'from-gray-500/10 to-black/30',
             border: 'border-white/5',
-            iconColor: 'text-white/60'
+            iconColor: 'text-slate-600'
           },
           {
             id: 'whatsapp',
@@ -652,8 +652,8 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
           >
             <div
               className={cn(
-                "interstellar-glass border border-white/5 p-6 rounded-3xl h-full",
-                "hover:border-white/10 transition-all duration-300 relative",
+                "bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl h-full",
+                "hover:border-slate-200 transition-all duration-300 relative",
                 integration.action && "cursor-pointer"
               )}
               onClick={integration.action}
@@ -675,7 +675,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                       variant="secondary"
                       className={cn(
                         "text-[10px] uppercase tracking-widest font-bold px-2 py-0.5 rounded-md",
-                        integration.status === 'Coming Soon' ? "bg-white/5 text-white/40" : "bg-primary/20 text-primary border border-primary/20"
+                        integration.status === 'Coming Soon' ? "bg-white/5 text-slate-500" : "bg-primary/20 text-primary border border-primary/20"
                       )}
                     >
                       {integration.status}
@@ -708,7 +708,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                   Настройка сквозных сценариев и обработки данных
                 </DialogDescription>
               </div>
-              <Button variant="outline" size="icon" onClick={() => setIsAutomationOpen(false)} className="rounded-full bg-white/5 border-white/10 hover:bg-white/10">
+              <Button variant="outline" size="icon" onClick={() => setIsAutomationOpen(false)} className="rounded-full bg-white/5 border-slate-200 hover:bg-white/10">
                 <RefreshCw className="w-4 h-4" />
               </Button>
             </div>
@@ -718,7 +718,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
             </div>
 
             <div className="p-6 border-t border-white/5 bg-black/40 backdrop-blur-md flex justify-end gap-3">
-              <Button variant="outline" onClick={() => setIsAutomationOpen(false)} className="bg-white/5 border-white/10 hover:bg-white/10 text-white min-w-[120px]">
+              <Button variant="outline" onClick={() => setIsAutomationOpen(false)} className="bg-white/5 border-slate-200 hover:bg-white/10 text-white min-w-[120px]">
                 Закрыть
               </Button>
             </div>
@@ -740,7 +740,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
               <DialogTitle className="text-xl font-bold text-white">
                 {modalType === 'facebook' ? 'Выбор ресурсов Facebook' : 'Выбор Instagram профиля'}
               </DialogTitle>
-              <DialogDescription className="text-white/40">
+              <DialogDescription className="text-slate-500">
                 {modalType === 'facebook'
                   ? 'Выберите рекламный кабинет и бизнес-страницу'
                   : 'Подключите ваш бизнес-аккаунт Instagram'}
@@ -764,7 +764,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                           <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                         </div>
                       ) : availableAdAccounts.length === 0 ? (
-                        <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-white/10">
+                        <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-slate-200">
                           <Info className="w-8 h-8 mx-auto text-white/10 mb-3" />
                           <p className="text-sm text-muted-foreground">Доступные кабинеты не найдены</p>
                         </div>
@@ -777,7 +777,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                               "w-full text-left p-4 rounded-2xl border transition-all duration-300 relative group",
                               modalSelectedAdAccount === account.id
                                 ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                                : "bg-white/5 border-white/5 hover:border-white/10"
+                                : "bg-white/5 border-white/5 hover:border-slate-200"
                             )}
                           >
                             <div className="flex items-center justify-between">
@@ -790,7 +790,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                                 </div>
                                 <div>
                                   <p className="font-bold text-white">{account.name ?? '—'}</p>
-                                  <p className="text-[10px] text-white/40 uppercase font-bold tracking-widest mt-0.5">ID: {account.account_id ?? '—'}</p>
+                                  <p className="text-[10px] text-slate-500 uppercase font-bold tracking-widest mt-0.5">ID: {account.account_id ?? '—'}</p>
                                 </div>
                               </div>
                               {modalSelectedAdAccount === account.id && <Check className="w-4 h-4 text-primary" />}
@@ -809,7 +809,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                     </div>
                     <div className="grid gap-2">
                       {availablePages.length === 0 && !modalLoading ? (
-                        <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-white/10">
+                        <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-slate-200">
                           <Info className="w-8 h-8 mx-auto text-white/10 mb-3" />
                           <p className="text-sm text-muted-foreground">Доступные страницы не найдены</p>
                         </div>
@@ -822,7 +822,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                               "w-full text-left p-4 rounded-2xl border transition-all duration-300 relative group",
                               modalSelectedPage === page.id
                                 ? "bg-primary/20 border-primary shadow-[0_0_20px_rgba(var(--primary),0.1)]"
-                                : "bg-white/5 border-white/5 hover:border-white/10"
+                                : "bg-white/5 border-white/5 hover:border-slate-200"
                             )}
                           >
                             <div className="flex items-center justify-between">
@@ -856,7 +856,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                         <Loader2 className="w-8 h-8 animate-spin text-primary/40" />
                       </div>
                     ) : availableInstagramAccounts.length === 0 ? (
-                      <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-white/10">
+                      <div className="p-12 text-center rounded-2xl bg-white/5 border border-dashed border-slate-200">
                         <Info className="w-8 h-8 mx-auto text-white/10 mb-3" />
                         <p className="text-sm text-muted-foreground">Бизнес-аккаунты не найдены</p>
                         <p className="text-[10px] text-white/30 mt-2">Убедитесь, что ваш Instagram привязан к Facebook странице</p>
@@ -870,7 +870,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
                             "w-full text-left p-4 rounded-2xl border transition-all duration-300 relative group",
                             modalSelectedInstagram === account.id
                               ? "bg-purple-500/20 border-purple-500 shadow-[0_0_20px_rgba(168,85,247,0.1)]"
-                              : "bg-white/5 border-white/5 hover:border-white/10"
+                              : "bg-white/5 border-white/5 hover:border-slate-200"
                           )}
                         >
                           <div className="flex items-center justify-between">
@@ -909,7 +909,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
           </ScrollArea>
 
           <div className="p-8 border-t border-white/5 bg-black/40 backdrop-blur-md flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="bg-white/5 border-white/10 hover:bg-white/10 text-white min-w-[120px] rounded-xl">
+            <Button variant="outline" onClick={() => setIsModalOpen(false)} className="bg-white/5 border-slate-200 hover:bg-white/10 text-white min-w-[120px] rounded-xl">
               Отмена
             </Button>
             <Button onClick={handleSaveModal} className="bg-primary hover:bg-primary/90 text-white min-w-[150px] rounded-xl shadow-2xl shadow-blue-900/5 shadow-primary/20">

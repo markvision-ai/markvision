@@ -2,7 +2,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export const LeadCardSkeleton = () => {
   return (
-    <div className="bg-background border rounded-lg p-2 sm:p-3">
+    <div className="bg-slate-50 border rounded-lg p-2 sm:p-3">
       {/* Header with grip and name */}
       <div className="flex items-center gap-1.5 sm:gap-2 mb-1.5 sm:mb-2">
         <Skeleton className="w-3.5 h-3.5 sm:w-4 sm:h-4 rounded" />

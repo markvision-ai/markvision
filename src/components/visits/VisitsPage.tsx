@@ -123,7 +123,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   return (
     <div className="space-y-8">
       {/* Visit Types Selection */}
-      <div className="bg-card border border-white/50 rounded-2xl p-6">
+      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-6">
         <div className="flex items-center gap-3 mb-4">
           <div className="p-2 rounded-xl bg-primary/10">
             <FileText className="w-6 h-6 text-primary" />
@@ -138,7 +138,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       </div>
 
       {/* Results Table */}
-      <div className="bg-card border border-white/50 rounded-2xl p-6">
+      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-6">
         <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты визитов</h3>
         
         {!visitResults || visitResults.length === 0 ? (

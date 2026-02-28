@@ -73,7 +73,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
             className="w-full"
         >
             <BackgroundGradient className="rounded-3xl p-[1px]">
-                <Card className="border-0 bg-card shadow-2xl shadow-blue-900/5 rounded-3xl overflow-hidden relative">
+                <Card className="border-0 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-2xl shadow-blue-900/5 rounded-3xl overflow-hidden relative">
 
                     {/* Header */}
                     <CardHeader className="relative z-10 border-b border-white/50 pb-6">
@@ -155,7 +155,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
                         {/* AI INSIGHTS FOOTER */}
                         <div className="mt-12 p-6 rounded-2xl bg-muted/30 border border-white/50 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
                             <div className="absolute inset-0 bg-background/50 translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
-                            <div className="p-4 rounded-full bg-background border border-white/50 relative z-10">
+                            <div className="p-4 rounded-full bg-slate-50 border border-white/50 relative z-10">
                                 <BrainCircuit className="w-8 h-8 text-primary" />
                             </div>
                             <div className="flex-1 relative z-10 text-center md:text-left">
@@ -184,7 +184,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
 const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color }: any) => {
     const isGreen = isLeader;
     const borderColor = isLeader ? 'border-blue-500/50' : 'border-white/50';
-    const bgColor = isLeader ? 'bg-blue-500/5' : 'bg-card';
+    const bgColor = isLeader ? 'bg-blue-500/5' : 'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60';
     const shadow = isLeader ? 'shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)]' : '';
 
     // Lift calculation

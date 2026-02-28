@@ -17,7 +17,7 @@ export default function HealthCheck() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground p-6">
+    <div className="min-h-screen bg-slate-50 text-foreground p-6">
       <h1 className="text-2xl font-bold mb-4">Health Check</h1>
       <div className="space-y-2">
         <div>Client ENV: URL {env.VITE_SUPABASE_URL ? 'OK' : 'Missing'} / KEY {env.VITE_SUPABASE_ANON_KEY ? 'OK' : 'Missing'}</div>

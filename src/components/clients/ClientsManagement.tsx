@@ -381,7 +381,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
   if (!projectId) {
     return (
-      <div className="bg-card border rounded-xl p-12 text-center">
+      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border rounded-xl p-12 text-center">
         <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Выберите проект</h3>
         <p className="text-muted-foreground">Для просмотра клиентов выберите проект в боковом меню</p>

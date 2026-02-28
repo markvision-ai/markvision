@@ -55,7 +55,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, color, delay }: any) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
   >
-    <Card className={cn("interstellar-glass border-white/5 overflow-hidden relative group", color)}>
+    <Card className={cn("bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 overflow-hidden relative group", color)}>
       <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
         <Icon className="w-16 h-16" />
       </div>
@@ -64,11 +64,11 @@ const KPICard = ({ title, value, subtext, icon: Icon, color, delay }: any) => (
           <div className="p-2 rounded-lg bg-white/10 backdrop-blur-md">
             <Icon className="w-6 h-6 text-white" />
           </div>
-          {subtext && <Badge variant="outline" className="bg-white/5 border-white/10 text-white/70">{subtext}</Badge>}
+          {subtext && <Badge variant="outline" className="bg-white/5 border-slate-200 text-slate-600">{subtext}</Badge>}
         </div>
         <div className="mt-4">
           <h3 className="text-3xl font-bold tracking-tight text-white mb-1">{value}</h3>
-          <p className="text-sm font-medium text-white/60">{title}</p>
+          <p className="text-sm font-medium text-slate-600">{title}</p>
         </div>
       </CardContent>
     </Card>
@@ -191,7 +191,7 @@ export const AgencyAnalytics = () => {
       </div>
 
       {/* 2. Controls & List */}
-      <Card className="interstellar-glass border-white/5 shadow-2xl backdrop-blur-xl">
+      <Card className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 shadow-2xl backdrop-blur-xl">
         <div className="p-6 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 className="text-xl font-bold text-white">Портфель проектов</h3>
@@ -204,7 +204,7 @@ export const AgencyAnalytics = () => {
                 placeholder="Поиск..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 bg-white/5 border-white/10 text-sm focus:bg-white/10"
+                className="pl-9 bg-white/5 border-slate-200 text-sm focus:bg-white/10"
               />
             </div>
             <Button
@@ -243,7 +243,7 @@ export const AgencyAnalytics = () => {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05 }}
-                  className="group relative rounded-2xl bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/5 p-5 hover:border-white/10 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-black/20"
+                  className="group relative rounded-2xl bg-gradient-to-r from-white/5 to-white/[0.02] border border-white/5 p-5 hover:border-slate-200 transition-all hover:shadow-2xl shadow-blue-900/5 hover:shadow-black/20"
                 >
                   <div className="flex flex-col md:flex-row items-center gap-6">
                     {/* Project Identity */}
@@ -257,7 +257,7 @@ export const AgencyAnalytics = () => {
                       <div>
                         <h4 className="font-bold text-base text-white group-hover:text-primary transition-colors">{project.project_name}</h4>
                         <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-white/5 border-white/10 text-muted-foreground uppercase tracking-wider">
+                          <Badge variant="outline" className="text-[10px] h-5 px-1.5 bg-white/5 border-slate-200 text-muted-foreground uppercase tracking-wider">
                             {project.tier}
                           </Badge>
                           {savingIds.has(project.project_id) && <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />}
@@ -290,7 +290,7 @@ export const AgencyAnalytics = () => {
                         <p className="text-xs text-muted-foreground mb-1">Маржинальность</p>
                         <div className="flex items-center gap-2">
                           <Progress value={margin} className="h-2 w-16 bg-white/10" indicatorClassName={margin > 40 ? "bg-blue-500" : "bg-amber-500"} />
-                          <span className="text-xs font-medium text-white/70">{margin.toFixed(0)}%</span>
+                          <span className="text-xs font-medium text-slate-600">{margin.toFixed(0)}%</span>
                         </div>
                       </div>
                     </div>
@@ -328,7 +328,7 @@ export const AgencyAnalytics = () => {
                             <MoreVertical className="w-4 h-4 text-muted-foreground" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-40 bg-black/90 border-white/10 backdrop-blur-xl">
+                        <DropdownMenuContent align="end" className="w-40 bg-black/90 border-slate-200 backdrop-blur-xl">
                           <DropdownMenuItem onClick={() => handleEdit(project)} className="text-white hover:bg-white/10 cursor-pointer">
                             Редактировать
                           </DropdownMenuItem>
@@ -359,7 +359,7 @@ export const AgencyAnalytics = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] interstellar-glass border-white/10 bg-black/80 backdrop-blur-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[500px] bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/80 backdrop-blur-2xl p-0 overflow-hidden">
           <DialogHeader className="p-6 border-b border-white/5 bg-white/[0.02]">
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {editingProject ? 'Редактировать проект' : 'Новый проект'}
@@ -374,7 +374,7 @@ export const AgencyAnalytics = () => {
               <Input
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="bg-white/5 border-white/10"
+                className="bg-white/5 border-slate-200"
                 placeholder="Например: Стоматология Vali"
               />
             </div>
@@ -387,7 +387,7 @@ export const AgencyAnalytics = () => {
                     type="number"
                     value={formData.revenue || ''}
                     onChange={(e) => setFormData({ ...formData, revenue: Number(e.target.value) })}
-                    className="bg-white/5 border-white/10 pl-8"
+                    className="bg-white/5 border-slate-200 pl-8"
                     placeholder="0"
                   />
                   <Wallet className="absolute left-2.5 top-2.5 w-4 h-4 text-muted-foreground" />
@@ -399,7 +399,7 @@ export const AgencyAnalytics = () => {
                   type="date"
                   value={formData.payment_date}
                   onChange={(e) => setFormData({ ...formData, payment_date: e.target.value })}
-                  className="bg-white/5 border-white/10"
+                  className="bg-white/5 border-slate-200"
                 />
               </div>
             </div>
@@ -413,7 +413,7 @@ export const AgencyAnalytics = () => {
                     type="number"
                     value={formData.team_salaries || ''}
                     onChange={(e) => setFormData({ ...formData, team_salaries: Number(e.target.value) })}
-                    className="bg-white/5 border-white/10 h-8 text-sm"
+                    className="bg-white/5 border-slate-200 h-8 text-sm"
                   />
                 </div>
                 <div className="space-y-1.5">
@@ -422,7 +422,7 @@ export const AgencyAnalytics = () => {
                     type="number"
                     value={formData.software_costs || ''}
                     onChange={(e) => setFormData({ ...formData, software_costs: Number(e.target.value) })}
-                    className="bg-white/5 border-white/10 h-8 text-sm"
+                    className="bg-white/5 border-slate-200 h-8 text-sm"
                   />
                 </div>
                 <div className="space-y-1.5 col-span-2">
@@ -431,7 +431,7 @@ export const AgencyAnalytics = () => {
                     type="number"
                     value={formData.other_expenses || ''}
                     onChange={(e) => setFormData({ ...formData, other_expenses: Number(e.target.value) })}
-                    className="bg-white/5 border-white/10 h-8 text-sm"
+                    className="bg-white/5 border-slate-200 h-8 text-sm"
                   />
                 </div>
               </div>

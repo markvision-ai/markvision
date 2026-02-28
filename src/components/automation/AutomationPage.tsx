@@ -268,7 +268,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             void handleRefresh();
           }}
           disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-background hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-slate-50 hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
         >
           <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
           {refreshing ? 'Обновление…' : 'Обновить'}

@@ -128,7 +128,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
   const activeConfig = platformConfig[currentPlatform];
 
   return (
-    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-background font-sans">
+    <div className="h-full flex flex-col p-8 space-y-10 overflow-y-auto bg-slate-50 font-sans">
 
       {/* Header */}
       <div className="flex flex-col gap-3 max-w-4xl mx-auto w-full text-center items-center">
@@ -147,7 +147,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
       {/* Scanner Input Section */}
       <div className="max-w-2xl mx-auto w-full">
         <div className="relative group">
-          <div className="relative flex items-center bg-card rounded-xl shadow-2xl shadow-blue-900/5 border border-white/50 p-2 pl-4 h-16 transition-all duration-300">
+          <div className="relative flex items-center bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-xl shadow-2xl shadow-blue-900/5 border border-white/50 p-2 pl-4 h-16 transition-all duration-300">
 
             {/* Platform Icon Indicator */}
             <div className={cn(
@@ -210,7 +210,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  "group relative bg-card rounded-2xl border border-white/50 shadow-sm hover:shadow-2xl shadow-blue-900/5 transition-all duration-300 overflow-hidden flex flex-col"
+                  "group relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-2xl border border-white/50 shadow-sm hover:shadow-2xl shadow-blue-900/5 transition-all duration-300 overflow-hidden flex flex-col"
                 )}
               >
                 {/* Node Status Line */}
@@ -304,7 +304,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                           Report
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-background border border-white/50 p-0 gap-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-slate-50 border border-white/50 p-0 gap-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                         {/* Header */}
                         <DialogHeader className="p-6 border-b border-white/50 bg-muted/20">
                           <DialogTitle className="flex items-center gap-3 text-xl text-foreground font-mono">
@@ -358,7 +358,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                               </h4>
                               <div className="grid grid-cols-1 gap-3">
                                 {analysis.ideas?.map((idea: any, i: number) => (
-                                  <div key={i} className="group bg-card p-4 rounded-xl border border-white/50 hover:border-primary/50 hover:bg-muted/30 transition-all flex gap-4">
+                                  <div key={i} className="group bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 p-4 rounded-xl border border-white/50 hover:border-primary/50 hover:bg-muted/30 transition-all flex gap-4">
                                     <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-muted border border-white/50 w-12 h-12 text-muted-foreground font-mono font-bold text-lg group-hover:text-primary transition-colors">
                                       {i + 1}
                                     </div>

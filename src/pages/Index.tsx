@@ -65,7 +65,7 @@ const Index = () => {
 
   if (loading || checkingProjects) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
@@ -73,7 +73,7 @@ const Index = () => {
 
   if (projectCheckError) {
     return (
-      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4 text-center">
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center gap-4 p-4 text-center">
         <div className="text-destructive font-semibold">Ошибка загрузки</div>
         <p className="text-muted-foreground max-w-md">{projectCheckError}</p>
         <button
@@ -90,7 +90,7 @@ const Index = () => {
   if (!user) {
     return (
       <Suspense fallback={
-        <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
         </div>
       }>
@@ -103,7 +103,7 @@ const Index = () => {
   // Если авторизован и прошёл онбординг — показываем платформу
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     }>

@@ -33,7 +33,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
     };
 
     return (
-        <Card className="bg-card border border-white/50 overflow-hidden shadow-sm relative">
+        <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 overflow-hidden shadow-sm relative">
             <CardHeader className="pb-6">
                 <CardTitle className="text-lg font-bold text-foreground">
                     Путь клиента: Показы → Прибыль

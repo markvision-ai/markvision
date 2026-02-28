@@ -475,7 +475,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="h-10 px-6 rounded-2xl border-white/50 bg-card text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm"
+            className="h-10 px-6 rounded-2xl border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm"
           >
             <Download className="w-4 h-4 mr-2" />
             Экспорт данных
@@ -485,7 +485,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:h-[700px]">
         {/* Main Funnel Visualization */}
-        <div className="rounded-[2.5rem] border border-white/50 bg-card shadow-sm p-0 flex flex-col overflow-hidden group">
+        <div className="rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm p-0 flex flex-col overflow-hidden group">
           <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <Filter className="w-4 h-4 text-primary" />
@@ -509,7 +509,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
                     <motion.div
                       whileHover={{ x: 10, scale: 1.02 }}
-                      className="relative overflow-hidden rounded-[2rem] border border-white/50 bg-background transition-all duration-500 hover:border-primary/30 hover:bg-muted p-1 shadow-sm"
+                      className="relative overflow-hidden rounded-[2rem] border border-white/50 bg-slate-50 transition-all duration-500 hover:border-primary/30 hover:bg-muted p-1 shadow-sm"
                     >
                       <div className="p-5 flex items-center gap-6">
                         <div className={cn(
@@ -587,17 +587,17 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         {/* Channel Efficiency Chart */}
-        <div className="rounded-[2.5rem] border border-white/50 bg-card shadow-sm p-0 flex flex-col h-full overflow-hidden group">
+        <div className="rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm p-0 flex flex-col h-full overflow-hidden group">
           <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <BarChart3 className="w-4 h-4 text-primary" />
               Распределение источников
             </h3>
             <Select value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
-              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-background border-white/50 rounded-xl focus:ring-primary">
+              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-slate-50 border-white/50 rounded-xl focus:ring-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-card border-white/50 rounded-xl">
+              <SelectContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 rounded-xl">
                 <SelectItem value="cpl" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость лида (CPL)</SelectItem>
                 <SelectItem value="cpc" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость клика (CPC)</SelectItem>
                 <SelectItem value="ctr" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Кликабельность (CTR)</SelectItem>

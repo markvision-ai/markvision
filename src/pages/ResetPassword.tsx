@@ -79,14 +79,14 @@ export default function ResetPassword() {
 
   if (!sessionChecked) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
@@ -94,18 +94,18 @@ export default function ResetPassword() {
             <MarkVisionLogo className="w-10 h-10" />
           </div>
           <h1 className="text-2xl font-bold">MarkVision AI</h1>
-          <p className="text-muted-foreground mt-1">Восстановление доступа</p>
+          <p className="text-slate-500 mt-1">Восстановление доступа</p>
         </div>
 
         {/* Form Card */}
-        <div className="bg-card border rounded-2xl p-6 shadow-2xl shadow-blue-900/5">
+        <div className="bg-white/60 backdrop-blur-3xl border rounded-2xl p-6 shadow-2xl shadow-blue-900/5">
           {success ? (
             <div className="text-center py-8">
               <div className="w-16 h-16 rounded-full bg-success/10 mx-auto flex items-center justify-center mb-4">
                 <CheckCircle className="w-8 h-8 text-success" />
               </div>
               <h2 className="text-xl font-semibold mb-2">Пароль изменён!</h2>
-              <p className="text-muted-foreground">
+              <p className="text-slate-500">
                 Перенаправляем вас на главную страницу...
               </p>
             </div>
@@ -114,7 +114,7 @@ export default function ResetPassword() {
               <h2 className="text-xl font-semibold text-center mb-2">
                 Установка нового пароля
               </h2>
-              <p className="text-sm text-muted-foreground text-center mb-6">
+              <p className="text-sm text-slate-500 text-center mb-6">
                 Введите новый пароль для вашего аккаунта
               </p>
 
@@ -122,7 +122,7 @@ export default function ResetPassword() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Новый пароль</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Минимум 6 символов"
@@ -133,7 +133,7 @@ export default function ResetPassword() {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
                     >
                       {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -143,7 +143,7 @@ export default function ResetPassword() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Подтвердите пароль</label>
                   <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
                     <Input
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="Повторите пароль"
@@ -154,7 +154,7 @@ export default function ResetPassword() {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
                     >
                       {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>

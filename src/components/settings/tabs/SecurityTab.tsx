@@ -109,7 +109,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
             <Shield className="w-10 h-10 text-red-400" />
           </div>
           <h3 className="text-xl font-bold text-white mb-2">Доступ ограничен</h3>
-          <p className="text-white/40">Только администраторы могут управлять настройками безопасности</p>
+          <p className="text-slate-500">Только администраторы могут управлять настройками безопасности</p>
         </motion.div>
       </div>
     );
@@ -132,7 +132,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-white tracking-tight">Безопасность</h2>
-                <p className="text-white/40 mt-1">Управление доступом и защита данных</p>
+                <p className="text-slate-500 mt-1">Управление доступом и защита данных</p>
               </div>
             </div>
           </div>
@@ -145,7 +145,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
 
       {/* Navigation Tabs */}
       <Tabs value={activeSection} onValueChange={setActiveSection} className="space-y-6">
-        <TabsList className="bg-white/5 border border-white/10 p-1 rounded-2xl backdrop-blur-xl">
+        <TabsList className="bg-white/5 border border-slate-200 p-1 rounded-2xl backdrop-blur-xl">
           <TabsTrigger value="sessions" className="rounded-xl data-[state=active]:bg-white/10 data-[state=active]:text-white gap-2">
             <Monitor className="w-4 h-4" />
             Сессии
@@ -198,7 +198,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                         "p-4 rounded-2xl border transition-all",
                         session.isCurrent
                           ? "bg-blue-500/10 border-blue-500/20"
-                          : "bg-white/5 border-white/10 hover:bg-white/10"
+                          : "bg-white/5 border-slate-200 hover:bg-white/10"
                       )}
                     >
                       <div className="flex items-center justify-between">
@@ -207,7 +207,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                             "p-3 rounded-xl",
                             session.isCurrent ? "bg-blue-500/20" : "bg-white/10"
                           )}>
-                            <Monitor className={cn("w-5 h-5", session.isCurrent ? "text-blue-400" : "text-white/60")} />
+                            <Monitor className={cn("w-5 h-5", session.isCurrent ? "text-blue-400" : "text-slate-600")} />
                           </div>
                           <div>
                             <div className="flex items-center gap-2">
@@ -218,8 +218,8 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                                 </Badge>
                               )}
                             </div>
-                            <p className="text-sm text-white/40">{session.browser}</p>
-                            <div className="flex items-center gap-4 mt-2 text-xs text-white/40">
+                            <p className="text-sm text-slate-500">{session.browser}</p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
                               <span className="flex items-center gap-1">
                                 <Globe className="w-3 h-3" />
                                 {session.ip}
@@ -275,7 +275,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                       key={apiKey.id}
                       initial={{ opacity: 0, x: -20 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all"
+                      className="p-4 rounded-2xl bg-white/5 border border-slate-200 hover:bg-white/10 transition-all"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-4 flex-1">
@@ -290,7 +290,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2 mb-2">
-                              <code className="text-sm text-white/60 font-mono bg-black/40 px-3 py-1 rounded-lg">
+                              <code className="text-sm text-slate-600 font-mono bg-black/40 px-3 py-1 rounded-lg">
                                 {apiKey.key}
                               </code>
                               <Button
@@ -306,7 +306,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                                 )}
                               </Button>
                             </div>
-                            <div className="flex items-center gap-4 text-xs text-white/40">
+                            <div className="flex items-center gap-4 text-xs text-slate-500">
                               <span>Создан: {format(apiKey.created, 'dd MMM yyyy', { locale: ru })}</span>
                               <span>Последнее использование: {format(apiKey.lastUsed, 'dd MMM HH:mm', { locale: ru })}</span>
                               <span className="flex items-center gap-1">
@@ -340,17 +340,17 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                 <CardDescription>Дополнительный уровень защиты вашего аккаунта</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200">
                   <div className="flex items-center gap-4">
                     <div className={cn(
                       "p-3 rounded-xl",
                       twoFactorEnabled ? "bg-blue-500/20" : "bg-white/10"
                     )}>
-                      <Smartphone className={cn("w-5 h-5", twoFactorEnabled ? "text-blue-400" : "text-white/60")} />
+                      <Smartphone className={cn("w-5 h-5", twoFactorEnabled ? "text-blue-400" : "text-slate-600")} />
                     </div>
                     <div>
                       <p className="font-semibold text-white">Статус 2FA</p>
-                      <p className="text-sm text-white/40">
+                      <p className="text-sm text-slate-500">
                         {twoFactorEnabled ? 'Включена' : 'Отключена'}
                       </p>
                     </div>
@@ -375,7 +375,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                         <QrCode className="w-5 h-5 text-primary" />
                         <div>
                           <p className="font-semibold text-white">Настройка аутентификатора</p>
-                          <p className="text-sm text-white/40">Отсканируйте QR-код в приложении Google Authenticator</p>
+                          <p className="text-sm text-slate-500">Отсканируйте QR-код в приложении Google Authenticator</p>
                         </div>
                       </div>
                       <div className="flex justify-center p-6 bg-white rounded-2xl">
@@ -412,7 +412,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <Label className="text-white">Минимальная длина пароля</Label>
-                      <span className="text-sm text-white/60">{passwordPolicy.minLength} символов</span>
+                      <span className="text-sm text-slate-600">{passwordPolicy.minLength} символов</span>
                     </div>
                     <Slider
                       value={[passwordPolicy.minLength]}
@@ -425,9 +425,9 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200">
                       <div className="flex items-center gap-3">
-                        <Lock className="w-4 h-4 text-white/60" />
+                        <Lock className="w-4 h-4 text-slate-600" />
                         <span className="text-sm text-white">Специальные символы</span>
                       </div>
                       <Switch
@@ -436,9 +436,9 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200">
                       <div className="flex items-center gap-3">
-                        <Lock className="w-4 h-4 text-white/60" />
+                        <Lock className="w-4 h-4 text-slate-600" />
                         <span className="text-sm text-white">Цифры</span>
                       </div>
                       <Switch
@@ -447,9 +447,9 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200">
                       <div className="flex items-center gap-3">
-                        <Lock className="w-4 h-4 text-white/60" />
+                        <Lock className="w-4 h-4 text-slate-600" />
                         <span className="text-sm text-white">Заглавные буквы</span>
                       </div>
                       <Switch
@@ -458,9 +458,9 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                       />
                     </div>
 
-                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/10">
+                    <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-slate-200">
                       <div className="flex items-center gap-3">
-                        <Clock className="w-4 h-4 text-white/60" />
+                        <Clock className="w-4 h-4 text-slate-600" />
                         <span className="text-sm text-white">Срок действия: {passwordPolicy.expiryDays} дней</span>
                       </div>
                     </div>
@@ -511,8 +511,8 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                     className="space-y-3"
                   >
                     {whitelistedIps.map((ip, index) => (
-                      <div key={index} className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-white/10">
-                        <Globe className="w-4 h-4 text-white/60" />
+                      <div key={index} className="flex items-center gap-3 p-4 rounded-2xl bg-white/5 border border-slate-200">
+                        <Globe className="w-4 h-4 text-slate-600" />
                         <code className="flex-1 text-sm text-white font-mono">{ip}</code>
                         <Button variant="ghost" size="icon" className="h-8 w-8 text-red-400 hover:text-red-300 hover:bg-red-500/10">
                           <Trash2 className="w-4 h-4" />
@@ -520,7 +520,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                       </div>
                     ))}
 
-                    <Button className="w-full gap-2 bg-white/5 hover:bg-white/10 border border-white/10">
+                    <Button className="w-full gap-2 bg-white/5 hover:bg-white/10 border border-slate-200">
                       <Plus className="w-4 h-4" />
                       Добавить IP адрес
                     </Button>

@@ -75,7 +75,7 @@ const COLUMN_HINTS: Record<string, string> = {
 const ColHead = ({
   label, hint, align = 'right'
 }: { label: string; hint?: string; align?: 'left' | 'right' }) => (
-  <TableHead className={cn('text-white/60 whitespace-nowrap', align === 'right' && 'text-right')}>
+  <TableHead className={cn('text-slate-600 whitespace-nowrap', align === 'right' && 'text-right')}>
     <div className={cn('flex items-center gap-1', align === 'right' && 'justify-end')}>
       <span>{label}</span>
       {hint && (
@@ -118,11 +118,11 @@ const KpiCard = ({ label, value, icon, glow }: KpiCardProps) => {
 
   return (
     <div className={cn(
-      'interstellar-glass rounded-2xl p-4 border transition-all duration-300',
+      'bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl rounded-2xl p-4 border transition-all duration-300',
       glowClass
     )}>
       <div className="flex items-center gap-2 text-white/50 text-xs mb-2">
-        <span className="text-white/40">{icon}</span>
+        <span className="text-slate-500">{icon}</span>
         {label}
       </div>
       <div className={cn('text-xl font-bold tracking-tight', textClass)}>{value}</div>
@@ -215,7 +215,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
                   'px-3 py-1.5 text-xs font-medium rounded-lg transition-all duration-200',
                   activePreset === p.key
                     ? 'bg-primary text-primary-foreground shadow'
-                    : 'text-white/60 hover:text-white hover:bg-white/8'
+                    : 'text-slate-600 hover:text-white hover:bg-white/8'
                 )}
               >
                 {p.label}
@@ -230,7 +230,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
             size="icon"
             onClick={refetch}
             title="Обновить"
-            className="border-white/10 hover:bg-white/5"
+            className="border-slate-200 hover:bg-white/5"
           >
             <RefreshCcw className={cn('h-4 w-4', loading && 'animate-spin')} />
           </Button>
@@ -252,7 +252,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
       </div>
 
       {/* Table Card */}
-      <div className="interstellar-glass border border-white/5 rounded-3xl overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-3xl overflow-hidden">
         {/* Table Header Bar */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-5 border-b border-white/5">
           <div className="flex items-start gap-3">
@@ -267,7 +267,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="bg-white/5 border-white/10 text-white/70 text-xs">
+            <Badge variant="outline" className="bg-white/5 border-slate-200 text-slate-600 text-xs">
               {totalAccounts} кабинет{totalAccounts === 1 ? '' : totalAccounts < 5 ? 'а' : 'ов'}
             </Badge>
             <Badge
@@ -276,7 +276,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
                 'text-xs',
                 hasAccounts
                   ? 'bg-blue-500/15 border-blue-500/30 text-blue-400'
-                  : 'bg-white/5 border-white/10 text-white/50'
+                  : 'bg-white/5 border-slate-200 text-white/50'
               )}
             >
               {hasAccounts ? '● Meta подключён' : '● Нет подключения'}
@@ -286,7 +286,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
 
         {/* States */}
         {loading ? (
-          <div className="flex items-center justify-center py-24 text-white/60 gap-3">
+          <div className="flex items-center justify-center py-24 text-slate-600 gap-3">
             <Loader2 className="w-5 h-5 animate-spin" />
             <span className="text-sm">Загружаем аналитику Meta…</span>
           </div>
@@ -296,7 +296,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
               <PlugZap className="w-7 h-7 text-blue-400" />
             </div>
             <p className="text-base font-semibold text-white mb-2">Нет данных по кабинетам</p>
-            <p className="text-sm text-white/40 mb-6 max-w-sm mx-auto">
+            <p className="text-sm text-slate-500 mb-6 max-w-sm mx-auto">
               Подключите Meta Ads в настройках интеграций, чтобы начать получать данные о расходах и метриках.
             </p>
             <Button variant="default" onClick={() => navigate('/integrations')}>
@@ -339,32 +339,32 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
                       </div>
                     </TableCell>
 
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.spend)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatNumber(row.leads)}
                     </TableCell>
                     {/* CPL — computed in row */}
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.cpl ?? (row.leads > 0 ? row.spend / row.leads : null))}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatPercent(row.lqr)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.cpql)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatNumber(row.visits)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.cpv)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.cac)}
                     </TableCell>
-                    <TableCell className="text-right text-white/80 font-mono text-sm">
+                    <TableCell className="text-right text-slate-700 font-mono text-sm">
                       {formatCurrency(row.revenue)}
                     </TableCell>
                     <TableCell className={cn('text-right font-mono text-sm', romiClass(row.romi))}>
@@ -417,7 +417,7 @@ export const MetaAccountAnalytics = ({ projectId }: MetaAccountAnalyticsProps) =
         )}
 
         {error && (
-          <div className="px-6 py-3 border-t border-white/10 text-rose-300 text-sm flex items-center gap-2">
+          <div className="px-6 py-3 border-t border-slate-200 text-rose-300 text-sm flex items-center gap-2">
             <span className="text-rose-400">⚠</span> {error}
           </div>
         )}

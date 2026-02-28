@@ -228,7 +228,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
   return createPortal(
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-[100] bg-background flex flex-col"
+        className="fixed inset-0 z-[100] bg-slate-50 flex flex-col"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -249,7 +249,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-primary/10 transition-all"
+                className="h-12 w-12 rounded-2xl bg-white/5 border border-slate-200 hover:bg-primary/10 transition-all"
               >
                 <ArrowLeft className="w-6 h-6" />
               </Button>
@@ -280,7 +280,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     )}
                   </div>
                   <div className="flex items-center gap-2 mt-2">
-                    <Badge className={cn('font-black uppercase tracking-[0.1em] text-[10px] px-3 py-1 rounded-lg border-white/10 shadow-2xl shadow-blue-900/5', currentStatusStyle.bg, currentStatusStyle.text)}>
+                    <Badge className={cn('font-black uppercase tracking-[0.1em] text-[10px] px-3 py-1 rounded-lg border-slate-200 shadow-2xl shadow-blue-900/5', currentStatusStyle.bg, currentStatusStyle.text)}>
                       {statusLabels[formData.status]}
                     </Badge>
                     <span className="text-muted-foreground/60 text-xs font-bold px-2">•</span>
@@ -315,7 +315,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                className="h-12 w-12 rounded-2xl bg-white/5 border border-slate-200 hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
               >
                 <X className="w-6 h-6" />
               </Button>
@@ -335,7 +335,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
-                    className="md:col-span-2 interstellar-glass p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden group"
+                    className="md:col-span-2 bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5 relative overflow-hidden group"
                   >
                     <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 blur-[100px] -z-10 group-hover:bg-primary/10 transition-colors duration-700" />
 
@@ -379,7 +379,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.3 }}
-                    className="interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                    className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5"
                   >
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
@@ -401,7 +401,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           <SelectTrigger className="interstellar-input h-14 font-black">
                             <SelectValue />
                           </SelectTrigger>
-                          <SelectContent className="interstellar-glass border-white/10">
+                          <SelectContent className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200">
                             {Object.entries(statusLabels).map(([key, label]) => (
                               <SelectItem key={key} value={key} className="focus:bg-primary/20 focus:text-primary transition-colors cursor-pointer">
                                 <div className="flex items-center gap-3">
@@ -434,7 +434,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                           className={cn(
                             'h-14 rounded-2xl font-black uppercase tracking-widest transition-all shadow-2xl',
                             isVisitDone
-                              ? 'interstellar-glass bg-violet-600/20 text-violet-400 hover:bg-violet-600/30'
+                              ? 'bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl bg-violet-600/20 text-violet-400 hover:bg-violet-600/30'
                               : 'bg-primary text-primary-foreground hover:scale-[1.02]'
                           )}
                         >
@@ -459,7 +459,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                    className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5"
                   >
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-12 h-12 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-500">
@@ -481,7 +481,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="md:col-span-2 interstellar-glass p-8 rounded-[2.5rem] border-white/5"
+                    className="md:col-span-2 bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5"
                   >
                     <div className="flex items-center gap-4 mb-8">
                       <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
@@ -503,7 +503,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                       ].map(item => (
                         <div key={item.key} className={cn(
                           "p-4 rounded-[1.5rem] transition-all duration-500",
-                          item.value ? "bg-white/5 border border-white/10 shadow-2xl shadow-blue-900/5" : "bg-black/20 border border-white/5 opacity-40"
+                          item.value ? "bg-white/5 border border-slate-200 shadow-2xl shadow-blue-900/5" : "bg-black/20 border border-white/5 opacity-40"
                         )}>
                           <div className="flex items-center gap-2 mb-2">
                             <div className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-muted-foreground">
@@ -520,7 +520,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                   {/* Secondary Views: History, Referrals, etc */}
                   <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-6">
                     <div className="md:col-span-2 space-y-6">
-                      <div className="interstellar-glass p-8 rounded-[2.5rem] border-white/5">
+                      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5">
                         <div className="flex items-center gap-4 mb-8">
                           <div className="w-12 h-12 rounded-2xl bg-success/10 border border-success/20 flex items-center justify-center text-success">
                             <Activity className="w-6 h-6" />
@@ -547,7 +547,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     </div>
 
                     <div className="space-y-6">
-                      <div className="interstellar-glass p-8 rounded-[2.5rem] border-white/5">
+                      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5">
                         <div className="flex items-center gap-4 mb-8">
                           <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
                             <History className="w-5 h-5" />

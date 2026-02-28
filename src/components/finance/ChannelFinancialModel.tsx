@@ -95,7 +95,7 @@ export const ChannelFinancialModel = ({
               value={cpl || ''}
               onChange={(e) => onCplChange(Number(e.target.value) || 0)}
               placeholder="0"
-              className="h-9 text-right text-sm font-mono w-full min-w-[72px] bg-background border-white/50"
+              className="h-9 text-right text-sm font-mono w-full min-w-[72px] bg-slate-50 border-white/50"
             />
           </TableCell>
           <TableCell className="text-right py-3 px-3 font-mono text-sm tabular-nums text-foreground align-middle">{leadsNeeded}</TableCell>
@@ -120,7 +120,7 @@ export const ChannelFinancialModel = ({
   };
 
   return (
-    <Card className="bg-card border border-white/50 shadow-sm overflow-hidden">
+    <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
       <CardContent className="p-0">
         {/* Параметры */}
         <div className="p-5 sm:p-6 border-b border-white/50 bg-muted/20">
@@ -147,7 +147,7 @@ export const ChannelFinancialModel = ({
                   handleChange('calcMode', 'goal');
                 }}
                 placeholder="500 000"
-                className="h-10 font-mono bg-background"
+                className="h-10 font-mono bg-slate-50"
               />
             </div>
             <div className="space-y-1.5">
@@ -160,7 +160,7 @@ export const ChannelFinancialModel = ({
                 value={data.avgCheck || ''}
                 onChange={(e) => handleChange('avgCheck', Number(e.target.value) || 0)}
                 placeholder="100 000"
-                className="h-10 font-mono bg-background"
+                className="h-10 font-mono bg-slate-50"
               />
             </div>
             <div className="space-y-1.5">
@@ -172,7 +172,7 @@ export const ChannelFinancialModel = ({
                 value={data.crVisitToSale ?? ''}
                 onChange={(e) => handleChange('crVisitToSale', Number(e.target.value) || 0)}
                 placeholder="50"
-                className="h-10 font-mono bg-background"
+                className="h-10 font-mono bg-slate-50"
               />
             </div>
             <div className="space-y-1.5">
@@ -184,7 +184,7 @@ export const ChannelFinancialModel = ({
                 value={data.crLeadToVisit ?? ''}
                 onChange={(e) => handleChange('crLeadToVisit', Number(e.target.value) || 0)}
                 placeholder="50"
-                className="h-10 font-mono bg-background"
+                className="h-10 font-mono bg-slate-50"
               />
             </div>
           </div>

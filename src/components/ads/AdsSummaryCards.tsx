@@ -35,7 +35,7 @@ const GlassMetricCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-[2rem] p-4 bg-card border border-white/50 shadow-sm transition-all duration-300"
+      className="relative group overflow-hidden rounded-[2rem] p-4 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm transition-all duration-300"
     >
       {/* Subtle Background Glow */}
       <div className={cn(

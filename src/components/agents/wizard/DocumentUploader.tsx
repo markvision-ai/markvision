@@ -136,16 +136,16 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
                     'cursor-pointer group',
                     isDragging
                         ? 'border-cyan-400 bg-cyan-500/10'
-                        : 'border-white/10 bg-white/5 hover:border-white/20 hover:bg-white/10'
+                        : 'border-slate-200 bg-white/5 hover:border-white/20 hover:bg-white/10'
                 )}
             >
                 <div className="flex flex-col items-center space-y-2">
                     <Upload className={cn(
                         'w-8 h-8 transition-colors',
-                        isDragging ? 'text-cyan-400' : 'text-white/40 group-hover:text-cyan-400'
+                        isDragging ? 'text-cyan-400' : 'text-slate-500 group-hover:text-cyan-400'
                     )} />
                     <div className="text-center">
-                        <span className="text-sm text-white/40 group-hover:text-white">
+                        <span className="text-sm text-slate-500 group-hover:text-white">
                             Загрузите документы для базы знаний
                         </span>
                         <p className="text-xs text-white/30 mt-1">
@@ -178,11 +178,11 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
             {documents.length > 0 && (
                 <div className="space-y-2">
                     <div className="flex justify-between items-center">
-                        <p className="text-xs font-semibold text-white/60 uppercase tracking-widest">
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-widest">
                             Загруженные документы ({documents.length}/{maxFiles})
                         </p>
                         {documents.length > 0 && (
-                            <p className="text-xs text-white/40">
+                            <p className="text-xs text-slate-500">
                                 {documents.reduce((sum, doc) => sum + doc.size, 0) > 0 ?
                                     `Всего: ${formatFileSize(documents.reduce((sum, doc) => sum + doc.size, 0))}` : ''
                                 }
@@ -194,7 +194,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
                         {documents.map((doc) => (
                             <div
                                 key={doc.id}
-                                className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/10 hover:border-white/20 transition-colors"
+                                className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-slate-200 hover:border-white/20 transition-colors"
                             >
                                 <div className="flex items-center gap-3 flex-1 min-w-0">
                                     <File className="w-5 h-5 text-cyan-400 flex-shrink-0" />
@@ -202,7 +202,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
                                         <p className="text-sm text-white truncate">
                                             {doc.filename}
                                         </p>
-                                        <p className="text-xs text-white/40">
+                                        <p className="text-xs text-slate-500">
                                             {formatFileSize(doc.size)} • {doc.content.length} символов
                                         </p>
                                     </div>
@@ -212,7 +212,7 @@ export const DocumentUploader: React.FC<DocumentUploaderProps> = ({
                                     variant="ghost"
                                     size="sm"
                                     onClick={() => handleRemove(doc.id)}
-                                    className="text-white/40 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0 ml-2"
+                                    className="text-slate-500 hover:text-red-400 hover:bg-red-500/10 flex-shrink-0 ml-2"
                                 >
                                     <X className="w-4 h-4" />
                                 </Button>

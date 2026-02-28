@@ -94,7 +94,7 @@ const STATIC_RECOMMENDATIONS = [
 // --- Subcomponents ---
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }: any) => (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-white/10 transition-colors">
+    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-slate-200 transition-colors">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div>
@@ -272,7 +272,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                     <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                     <input
                                         placeholder="Поиск по клиенту или менеджеру..."
-                                        className="w-full bg-background/50 border border-white/10 rounded-lg pl-8 p-2 text-sm focus:outline-none focus:border-primary/50"
+                                        className="w-full bg-background/50 border border-slate-200 rounded-lg pl-8 p-2 text-sm focus:outline-none focus:border-primary/50"
                                     />
                                 </div>
                             </div>
@@ -280,7 +280,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                         <CardContent>
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="border-white/10 hover:bg-transparent">
+                                    <TableRow className="border-slate-200 hover:bg-transparent">
                                         <TableHead>Менеджер</TableHead>
                                         <TableHead>Клиент</TableHead>
                                         <TableHead>Дата</TableHead>

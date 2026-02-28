@@ -330,7 +330,7 @@ export const KnowledgeBase = ({ projectId }: KnowledgeBaseProps) => {
             <div className="space-y-2">
               <Label>Категория</Label>
               <select
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                className="w-full rounded-md border border-input bg-slate-50 px-3 py-2"
                 value={newDoc.category}
                 onChange={(e) => setNewDoc({ ...newDoc, category: e.target.value })}
               >

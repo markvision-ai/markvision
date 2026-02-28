@@ -302,11 +302,11 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="bg-transparent text-foreground text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
                 >
-                  <option value="date" className="bg-background">Дата</option>
-                  <option value="reach" className="bg-background">Охват</option>
-                  <option value="leads" className="bg-background">Лиды</option>
-                  <option value="revenue" className="bg-background">Доход</option>
-                  <option value="comments" className="bg-background">Комменты</option>
+                  <option value="date" className="bg-slate-50">Дата</option>
+                  <option value="reach" className="bg-slate-50">Охват</option>
+                  <option value="leads" className="bg-slate-50">Лиды</option>
+                  <option value="revenue" className="bg-slate-50">Доход</option>
+                  <option value="comments" className="bg-slate-50">Комменты</option>
                 </select>
                 <Button
                   variant="ghost"
@@ -505,7 +505,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         <div className="flex justify-end relative z-10">
                           <Button
                             onClick={() => handlePromoteClick(post)}
-                            className="h-10 px-6 bg-white/5 hover:bg-cyan-500 hover:text-black border border-white/10 hover:border-cyan-400 rounded-xl transition-all duration-300 group/btn"
+                            className="h-10 px-6 bg-white/5 hover:bg-cyan-500 hover:text-black border border-slate-200 hover:border-cyan-400 rounded-xl transition-all duration-300 group/btn"
                           >
                             <Zap className="w-4 h-4 mr-2 group-hover/btn:fill-current" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Продвигать</span>
@@ -536,7 +536,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
       {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-card border-white/50 text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
+        <DialogContent className="sm:max-w-[480px] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
           <DialogHeader className="space-y-4">
             <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
               <Rocket className="w-8 h-8" />

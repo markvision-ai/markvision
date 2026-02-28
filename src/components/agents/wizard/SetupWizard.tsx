@@ -192,7 +192,7 @@ ${Object.entries(answers.knowledge_base || {}).map(([key, value]) => `- ${key}: 
                         variant="ghost"
                         size="sm"
                         onClick={() => navigate('/agents')}
-                        className="text-white/40 hover:text-white hover:bg-white/5 rounded-xl"
+                        className="text-slate-500 hover:text-white hover:bg-white/5 rounded-xl"
                     >
                         <ArrowLeft className="w-4 h-4 mr-2" />
                         Назад к агентам
@@ -213,7 +213,7 @@ ${Object.entries(answers.knowledge_base || {}).map(([key, value]) => `- ${key}: 
                     {step === 'questions' && (
                         <div className="space-y-2">
                             <div className="flex justify-between text-sm">
-                                <span className="text-white/40">
+                                <span className="text-slate-500">
                                     Вопрос {currentQuestionIndex + 1} из {totalQuestions}
                                 </span>
                                 <span className="text-cyan-400 font-bold">{Math.round(progress)}%</span>
@@ -307,7 +307,7 @@ ${Object.entries(answers.knowledge_base || {}).map(([key, value]) => `- ${key}: 
                             {isGenerating ? (
                                 <div className="flex flex-col items-center justify-center py-20 space-y-4">
                                     <Loader2 className="w-12 h-12 text-cyan-400 animate-spin" />
-                                    <p className="text-white/60 text-lg">Генерация нейронных связей...</p>
+                                    <p className="text-slate-600 text-lg">Генерация нейронных связей...</p>
                                 </div>
                             ) : (
                                 <>

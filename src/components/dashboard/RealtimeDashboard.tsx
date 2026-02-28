@@ -470,7 +470,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                 {sourceStats.map(s => (
                   <tr key={s.source} className="group hover:bg-muted/30 transition-colors">
                     <td className="px-5 py-4 flex items-center gap-3">
-                      <div className={cn("p-1.5 rounded-lg bg-card border border-white/50 shadow-sm", s.color)}>{s.icon}</div>
+                      <div className={cn("p-1.5 rounded-lg bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm", s.color)}>{s.icon}</div>
                       <span className="font-bold text-foreground">{s.label}</span>
                     </td>
                     <td className="px-5 py-4 text-right font-mono font-bold text-foreground">{s.leads}</td>
