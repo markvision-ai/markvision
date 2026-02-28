@@ -371,11 +371,11 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 bg-primary/10 rounded-2xl text-primary border border-primary/20 shadow-inner">
+          <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl text-white shadow-lg shadow-blue-500/20">
             <Radio className="w-6 h-6 animate-pulse" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold tracking-tight text-foreground uppercase">Контроль трафика</h2>
+            <h2 className="text-2xl font-black tracking-tight uppercase bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">Контроль трафика</h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-ping" />
               <span className="text-xs text-muted-foreground font-medium uppercase tracking-wider">System Operational</span>
@@ -407,7 +407,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* TOP METRICS */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {metrics.map((m, idx) => (
-          <GlassCard key={m.label} className="p-6 transition-all hover:translate-y-[-2px] hover:shadow-2xl shadow-blue-900/5 border-white/50">
+          <GlassCard key={m.label} className="p-6 transition-all hover:-translate-y-1 rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-blue-500/10 group relative overflow-hidden">
             <div className="flex justify-between items-start mb-4">
               <div className={cn("p-2.5 rounded-xl shadow-sm", m.bgColor)}>
                 <div className={cn(m.color)}>{m.icon}</div>
@@ -415,7 +415,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
               <Badge variant="secondary" className="bg-muted/50 text-muted-foreground text-[10px] uppercase font-bold tracking-widest">{m.subValue}</Badge>
             </div>
             <div className="space-y-1">
-              <div className="text-3xl font-black text-foreground tracking-tighter">
+              <div className="text-4xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-br from-slate-900 to-slate-700">
                 {formatValue(m.value, m.format)}
               </div>
               <div className="text-sm font-semibold text-muted-foreground/80">{m.label}</div>
@@ -427,8 +427,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* MIDDLE SECTION: SOURCES & CAMPAIGNS */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Source Performance */}
-        <GlassCard className="lg:col-span-2 p-0 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between">
+        <GlassCard className="lg:col-span-2 p-0 flex flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-blue-500/10 transition-all relative group">
+          <div className="p-5 border-b border-white/80 bg-slate-50/50 flex items-center justify-between backdrop-blur-md">
             <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
               <Target className="w-4 h-4 text-primary" />
               Эффективность каналов <span className="text-[10px] font-normal text-muted-foreground font-mono ml-2">MTD</span>
@@ -474,7 +474,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       <span className="font-bold text-foreground">{s.label}</span>
                     </td>
                     <td className="px-5 py-4 text-right font-mono font-bold text-foreground">{s.leads}</td>
-                    <td className="px-5 py-4 text-right font-mono text-blue-500 font-bold">{s.revenue > 0 ? formatValue(s.revenue, 'currency') : '—'}</td>
+                    <td className="px-5 py-4 text-right font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{s.revenue > 0 ? formatValue(s.revenue, 'currency') : '—'}</td>
                     <td className="px-5 py-4 text-right">
                       <span className={cn("px-2 py-1 rounded-lg font-black text-[10px] shadow-sm", s.conversion > 10 ? "bg-blue-500/10 text-blue-500 border border-blue-500/20" : "bg-muted text-muted-foreground")}>
                         {s.conversion.toFixed(1)}%
@@ -491,8 +491,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         </GlassCard>
 
         {/* Top Campaigns */}
-        <GlassCard className="p-0 flex flex-col overflow-hidden">
-          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between">
+        <GlassCard className="p-0 flex flex-col overflow-hidden rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-amber-500/10 transition-all relative group">
+          <div className="p-5 border-b border-white/80 bg-slate-50/50 flex items-center justify-between backdrop-blur-md">
             <div className="flex items-center gap-2 font-bold text-foreground uppercase tracking-tight text-xs">
               <Zap className="w-4 h-4 text-amber-500" />
               Топ кампаний
@@ -521,7 +521,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                       initial={{ width: 0 }}
                       animate={{ width: `${(c.leads / Math.max(...campaignStats.map(s => s.leads))) * 100}%` }}
                       transition={{ duration: 1, ease: 'easeOut' }}
-                      className="h-full bg-gradient-to-r from-primary to-blue-400 rounded-full"
+                      className="h-full bg-gradient-to-r from-cyan-400 to-blue-600 rounded-full"
                     />
                   </div>
                 </div>
@@ -534,8 +534,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
       {/* ACTIVITY FEED */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Leads Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-white/50 shadow-sm relative">
-          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-blue-500/10 transition-all relative group">
+          <div className="p-5 border-b border-white/80 bg-slate-50/80 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
             <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
               <Users className="w-4 h-4 text-blue-500" />
               Поток лидов
@@ -556,12 +556,12 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   initial={{ opacity: 0, x: -20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between p-4 rounded-2xl border border-white/50 bg-card/30 backdrop-blur-sm hover:bg-white/70 transition-all group shadow-sm hover:shadow-md"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-white/50 backdrop-blur-md hover:bg-white/90 transition-all group shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn("w-2.5 h-2.5 rounded-full shadow-sm shadow-black/20", getStatusColor(lead.status))} />
                     <div>
-                      <div className="text-sm font-black text-foreground group-hover:text-primary transition-colors">{lead.name || 'Аноним'}</div>
+                      <div className="text-sm font-black text-slate-800 group-hover:text-blue-600 transition-colors">{lead.name || 'Аноним'}</div>
                       <div className="flex items-center gap-2 mt-1">
                         <div className="text-[10px] font-bold text-muted-foreground uppercase">{lead.status === 'new' ? 'Новый' : lead.status}</div>
                         <span className="text-xs text-muted-foreground/30">•</span>
@@ -585,8 +585,8 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         </GlassCard>
 
         {/* Transactions Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden border-white/50 shadow-sm relative">
-          <div className="p-5 border-b border-white/50 bg-muted/20 flex items-center justify-between sticky top-0 z-10 backdrop-blur-md">
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-blue-500/10 transition-all relative group">
+          <div className="p-5 border-b border-white/80 bg-slate-50/80 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
             <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
               <DollarSign className="w-4 h-4 text-blue-500" />
               Транзакции
@@ -607,7 +607,7 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between p-4 rounded-2xl border border-white/50 bg-card/30 backdrop-blur-sm hover:bg-white/70 transition-all shadow-sm hover:shadow-md"
+                  className="flex items-center justify-between p-4 rounded-2xl border border-slate-100 bg-white/50 backdrop-blur-md hover:bg-white/90 transition-all shadow-sm hover:shadow-md"
                 >
                   <div className="flex items-center gap-4">
                     <div className={cn(
