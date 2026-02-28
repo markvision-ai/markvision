@@ -58,22 +58,21 @@ const formatTenge = (value: number) => {
 };
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color }: any) => (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/5 hover:border-slate-200 transition-colors">
+    <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
-                <div>
-                    <p className="text-sm font-medium text-muted-foreground">{title}</p>
-                    <h3 className="text-2xl font-bold mt-2">{value}</h3>
-                    <div className={cn("flex items-center gap-1 mt-1 text-xs",
-                        trend === 'up' ? "text-blue-500" : "text-red-500"
+                <div className="space-y-1">
+                    <p className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60 group-hover:opacity-100 transition-opacity">{title}</p>
+                    <h3 className="text-2xl font-black text-foreground uppercase tracking-tight group-hover:scale-105 transition-transform origin-left">{value}</h3>
+                    <div className={cn("flex items-center gap-1.5 mt-2 px-2 py-0.5 rounded-full w-fit text-[10px] font-black uppercase tracking-widest",
+                        trend === 'up' ? "bg-emerald-50 text-emerald-600 border border-emerald-100/50" : "bg-rose-50 text-rose-600 border border-rose-100/50"
                     )}>
-                        {trend === 'up' ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                        {trend === 'up' ? <ArrowUpRight className="w-3 h-3 stroke-[3]" /> : <ArrowDownRight className="w-3 h-3 stroke-[3]" />}
                         <span>{change}</span>
-                        <span className="text-muted-foreground ml-1">vs прошлый период</span>
                     </div>
                 </div>
-                <div className={cn("p-3 rounded-xl", color)}>
-                    <Icon className="w-5 h-5 text-white" />
+                <div className={cn("p-4 rounded-[20px] shadow-lg group-hover:rotate-6 transition-transform", color)}>
+                    <Icon className="w-6 h-6 text-white" />
                 </div>
             </div>
         </CardContent>
@@ -258,19 +257,20 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
     return (
         <div className="space-y-6 animate-in fade-in duration-500">
             {/* Header Controls */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
                 <div>
-                    <h2 className="text-2xl font-bold tracking-tight">Обзор показателей</h2>
-                    <p className="text-muted-foreground">Ключевые метрики эффективности отдела продаж</p>
+                    <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Обзор показателей</h2>
+                    <p className="text-xs font-medium uppercase tracking-widest opacity-40 mt-1">Ключевые метрики эффективности отдела продаж</p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                    <div className="flex bg-muted/50 p-1 rounded-lg border border-white/50">
+                <div className="flex flex-wrap items-center gap-3">
+                    <div className="flex bg-slate-100/50 backdrop-blur-md p-1 rounded-2xl border border-slate-200/50">
                         <Button
                             variant={activeFilter === 'today' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => handleQuickFilter('today')}
-                            className="h-8 px-3 text-xs"
+                            className={cn("h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                activeFilter === 'today' ? "bg-white shadow-sm text-blue-600" : "text-muted-foreground hover:bg-white/50")}
                         >
                             Сегодня
                         </Button>
@@ -278,7 +278,8 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                             variant={activeFilter === 'yesterday' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => handleQuickFilter('yesterday')}
-                            className="h-8 px-3 text-xs"
+                            className={cn("h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                activeFilter === 'yesterday' ? "bg-white shadow-sm text-blue-600" : "text-muted-foreground hover:bg-white/50")}
                         >
                             Вчера
                         </Button>
@@ -286,15 +287,17 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                             variant={activeFilter === 'week' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => handleQuickFilter('week')}
-                            className="h-8 px-3 text-xs"
+                            className={cn("h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                activeFilter === 'week' ? "bg-white shadow-sm text-blue-600" : "text-muted-foreground hover:bg-white/50")}
                         >
-                            7 дней
+                            7 Дней
                         </Button>
                         <Button
                             variant={activeFilter === 'month' ? 'secondary' : 'ghost'}
                             size="sm"
                             onClick={() => handleQuickFilter('month')}
-                            className="h-8 px-3 text-xs"
+                            className={cn("h-9 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all",
+                                activeFilter === 'month' ? "bg-white shadow-sm text-blue-600" : "text-muted-foreground hover:bg-white/50")}
                         >
                             Месяц
                         </Button>
@@ -302,8 +305,8 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
 
                     <Popover>
                         <PopoverTrigger asChild>
-                            <Button variant="outline" size="sm" className="h-[36px] gap-2 border-white/50">
-                                <CalendarIcon className="w-4 h-4" />
+                            <Button variant="outline" size="lg" className="h-[46px] rounded-2xl gap-3 border-slate-200 bg-white/50 shadow-sm font-black uppercase tracking-widest text-[10px] px-6">
+                                <CalendarIcon className="w-4 h-4 text-blue-600" />
                                 {date?.from ? (
                                     date.to ? (
                                         <>
@@ -318,7 +321,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                                 )}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0" align="end">
+                        <PopoverContent className="w-auto p-0 rounded-[32px] border-white/80 overflow-hidden shadow-2xl" align="end">
                             <Calendar
                                 initialFocus
                                 mode="range"
@@ -334,8 +337,8 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                         </PopoverContent>
                     </Popover>
 
-                    <Button onClick={onRefresh} variant="outline" size="sm" className="gap-2 border-white/50 h-[36px]">
-                        <RefreshCw className="w-4 h-4" />
+                    <Button onClick={onRefresh} variant="outline" size="icon" className="w-[46px] h-[46px] rounded-2xl border-slate-200 bg-white/50 shadow-sm transition-all hover:rotate-180 duration-500">
+                        <RefreshCw className="w-4 h-4 text-blue-600" />
                     </Button>
                 </div>
             </div>
@@ -357,70 +360,108 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
             {/* Main Charts Section */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Activity Chart — реальные лиды и продажи по дням */}
-                <Card className="lg:col-span-2 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
-                    <CardHeader>
-                        <CardTitle className="text-foreground">Лиды и продажи по дням</CardTitle>
-                        <CardDescription className="text-muted-foreground">Динамика за выбранный период по данным CRM</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[300px] w-full">
-                            {activityData.length === 0 && !loading ? (
-                                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Нет данных за период</div>
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <AreaChart data={activityData}>
-                                        <defs>
-                                            <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0} />
-                                            </linearGradient>
-                                            <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
-                                                <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
-                                                <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
-                                            </linearGradient>
-                                        </defs>
-                                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" vertical={false} />
-                                        <XAxis dataKey="name" className="text-muted-foreground" fontSize={12} tickLine={false} axisLine={false} />
-                                        <YAxis className="text-muted-foreground" fontSize={12} tickLine={false} axisLine={false} />
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                                            labelStyle={{ color: 'hsl(var(--foreground))' }}
-                                        />
-                                        <Area type="monotone" dataKey="leads" name="Лиды" stroke="hsl(var(--chart-1))" fillOpacity={1} fill="url(#colorLeads)" />
-                                        <Area type="monotone" dataKey="sales" name="Продажи" stroke="hsl(var(--chart-2))" fillOpacity={1} fill="url(#colorSales)" />
-                                    </AreaChart>
-                                </ResponsiveContainer>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                {/* Main Charts Section */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-                {/* Sales Funnel — по статусам лидов */}
-                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
-                    <CardHeader>
-                        <CardTitle className="text-foreground">Воронка продаж</CardTitle>
-                        <CardDescription className="text-muted-foreground">По статусам лидов за период</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-[300px] w-full">
-                            {funnelData.length === 0 && !loading ? (
-                                <div className="flex items-center justify-center h-full text-sm text-muted-foreground">Нет данных</div>
-                            ) : (
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <FunnelChart>
-                                        <Tooltip
-                                            contentStyle={{ backgroundColor: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: '8px' }}
-                                        />
-                                        <Funnel dataKey="value" data={funnelData} isAnimationActive>
-                                            <LabelList position="right" className="fill-foreground" stroke="none" dataKey="name" />
-                                        </Funnel>
-                                    </FunnelChart>
-                                </ResponsiveContainer>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
+                    {/* Activity Chart — реальные лиды и продажи по дням */}
+                    <Card className="lg:col-span-2 bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
+                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+                            <CardTitle className="text-base font-black flex items-center gap-2 text-foreground uppercase tracking-tight">
+                                <span className="opacity-40">📈</span> Лиды и продажи по дням
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                Динамика за выбранный период по данным CRM
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                            <div className="h-[320px] w-full">
+                                {activityData.length === 0 && !loading ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground uppercase tracking-widest font-black opacity-20">
+                                        <TrendingUp className="w-12 h-12 mb-4" />
+                                        Нет данных за период
+                                    </div>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={activityData}>
+                                            <defs>
+                                                <linearGradient id="colorLeads" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                                                </linearGradient>
+                                                <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                    <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                                </linearGradient>
+                                            </defs>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" vertical={false} />
+                                            <XAxis dataKey="name" className="text-[10px] font-black uppercase tracking-widest text-slate-400" fontSize={10} tickLine={false} axisLine={false} dy={10} />
+                                            <YAxis className="text-[10px] font-black uppercase tracking-widest text-slate-400" fontSize={10} tickLine={false} axisLine={false} />
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                    backdropFilter: 'blur(20px)',
+                                                    border: '1px solid #f1f5f9',
+                                                    borderRadius: '16px',
+                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                                    fontSize: '10px',
+                                                    fontWeight: '900',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em'
+                                                }}
+                                                labelStyle={{ color: '#000', marginBottom: '8px' }}
+                                            />
+                                            <Area type="monotone" dataKey="leads" name="Лиды" stroke="#3b82f6" strokeWidth={3} fillOpacity={1} fill="url(#colorLeads)" />
+                                            <Area type="monotone" dataKey="sales" name="Продажи" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorSales)" />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    {/* Sales Funnel — по статусам лидов */}
+                    <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
+                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+                            <CardTitle className="text-base font-black flex items-center gap-2 text-foreground uppercase tracking-tight">
+                                <span className="opacity-40">🌪️</span> Воронка продаж
+                            </CardTitle>
+                            <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-40">
+                                По статусам лидов за период
+                            </CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-8">
+                            <div className="h-[320px] w-full">
+                                {funnelData.length === 0 && !loading ? (
+                                    <div className="flex flex-col items-center justify-center h-full text-sm text-muted-foreground uppercase tracking-widest font-black opacity-20">
+                                        <Target className="w-12 h-12 mb-4" />
+                                        Нет данных
+                                    </div>
+                                ) : (
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <FunnelChart>
+                                            <Tooltip
+                                                contentStyle={{
+                                                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                                    backdropFilter: 'blur(20px)',
+                                                    border: '1px solid #f1f5f9',
+                                                    borderRadius: '16px',
+                                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                                                    fontSize: '10px',
+                                                    fontWeight: '900',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.05em'
+                                                }}
+                                            />
+                                            <Funnel dataKey="value" data={funnelData} isAnimationActive>
+                                                <LabelList position="right" className="fill-foreground text-[8px] font-black uppercase tracking-widest opacity-60" stroke="none" dataKey="name" />
+                                            </Funnel>
+                                        </FunnelChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
+                        </CardContent>
+                    </Card>
+                </div>
             </div>
         </div>
     );

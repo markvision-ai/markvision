@@ -4,6 +4,7 @@ import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2, CheckCi
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
@@ -56,12 +57,12 @@ const getStatusConfig = (status: string | null) => {
 export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   const pid = projectId ?? null;
   const [selectedType, setSelectedType] = useState<string | null>(null);
-  
+
   const { data: visitResults, isLoading } = useQuery({
     queryKey: ['visit-results', pid],
     queryFn: async () => {
       if (!pid) return [];
-      
+
       // First try to get from visit_results table
       const { data: visitResultsData, error: visitError } = await (supabase as any)
         .from('visit_results')
@@ -72,11 +73,11 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
         .eq('project_id', pid)
         .order('created_at', { ascending: false })
         .limit(50);
-      
+
       if (!visitError && visitResultsData && visitResultsData.length > 0) {
         return visitResultsData;
       }
-      
+
       // Fallback to leads with diagnostic-related statuses
       const { data: leads, error: leadsError } = await (supabase as any)
         .from('leads')
@@ -85,7 +86,7 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
         .in('status', ['appointment', 'visit_completed', 'paid', 'cancelled'])
         .order('created_at', { ascending: false })
         .limit(50);
-      
+
       if (leadsError) throw leadsError;
       return (leads || []).map(lead => ({
         id: lead.id,
@@ -123,31 +124,35 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   return (
     <div className="space-y-8">
       {/* Visit Types Selection */}
-      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-6">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="p-2 rounded-xl bg-primary/10">
-            <FileText className="w-6 h-6 text-primary" />
+      <div className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] p-8 overflow-hidden">
+        <div className="flex items-center gap-4 mb-6">
+          <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm">
+            <FileText className="w-6 h-6 text-blue-600" />
           </div>
           <div>
-            <h2 className="text-xl font-bold text-foreground">Типы визитов</h2>
-            <p className="text-muted-foreground text-sm">Выберите тип анкеты для отправки клиенту</p>
+            <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Типы визитов</h2>
+            <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest text-[10px] opacity-60">Выберите тип анкеты для отправки клиенту</p>
           </div>
         </div>
-        
+
         <HoverEffect items={hoverItems} />
       </div>
 
       {/* Results Table */}
-      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-6">
-        <h3 className="text-lg font-semibold text-foreground mb-4">📊 Результаты визитов</h3>
-        
+      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
+        <div className="p-6 border-b border-slate-50 bg-slate-50/30">
+          <h3 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+            <span className="opacity-40">📊</span> Результаты визитов
+          </h3>
+        </div>
+
         {!visitResults || visitResults.length === 0 ? (
-          <div className="bg-muted/30 rounded-xl p-12 text-center">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <ClipboardCheck className="w-8 h-8 text-primary" />
+          <div className="py-24 text-center">
+            <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-sm">
+              <ClipboardCheck className="w-10 h-10 text-slate-200" />
             </div>
-            <h4 className="text-foreground font-medium mb-2">Нет результатов визитов</h4>
-            <p className="text-muted-foreground text-sm">
+            <h4 className="text-foreground font-black uppercase tracking-tight mb-2 opacity-60">Нет результатов визитов</h4>
+            <p className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 max-w-[280px] mx-auto">
               Данные появятся здесь после прохождения визитов клиентами
             </p>
           </div>
@@ -155,35 +160,37 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/50">
-                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Клиент</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Тип</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Дата</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Сумма</th>
-                  <th className="text-left py-3 px-4 text-muted-foreground text-sm font-medium">Статус</th>
+                <tr className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
+                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Клиент</th>
+                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Тип визита</th>
+                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Дата завершения</th>
+                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Сумма сделки</th>
+                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Статус</th>
                 </tr>
               </thead>
               <tbody>
                 {visitResults.map((result: any) => {
                   const lead = result.lead || result;
                   const statusConfig = getStatusConfig(lead.status);
-                  
+
                   return (
-                    <tr key={result.id} className="border-b border-white/50 hover:bg-muted/30 transition-colors">
-                      <td className="py-3 px-4 text-foreground font-medium">
-                        {lead.name || lead.phone || 'Без имени'}
+                    <tr key={result.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
+                      <td className="py-5 px-6 font-black text-sm text-foreground uppercase tracking-tighter">
+                        {lead.name || lead.phone || <span className="opacity-30">БЕЗ ИМЕНИ</span>}
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground">
-                        {result.visit_type || 'Визит'}
+                      <td className="py-5 px-6">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-200 text-muted-foreground px-2 py-0.5 rounded-md">
+                          {result.visit_type || 'СТАНДАРТ'}
+                        </Badge>
                       </td>
-                      <td className="py-3 px-4 text-muted-foreground">
+                      <td className="py-5 px-6 text-xs font-bold text-muted-foreground">
                         {new Date(result.created_at || lead.created_at).toLocaleDateString('ru-RU')}
                       </td>
-                      <td className="py-3 px-4 text-foreground">
-                        {lead.deal_amount ? `${Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸` : '—'}
+                      <td className="py-5 px-6 font-black text-sm text-foreground">
+                        {lead.deal_amount ? `${Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸` : <span className="opacity-20">—</span>}
                       </td>
-                      <td className="py-3 px-4">
-                        <Badge className={`gap-1 ${statusConfig.className}`}>
+                      <td className="py-5 px-6">
+                        <Badge className={`gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border-0 ${statusConfig.className}`}>
                           {statusConfig.icon}
                           {statusConfig.label}
                         </Badge>
@@ -195,31 +202,34 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
             </table>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Type Details Dialog */}
       <Dialog open={!!selectedType} onOpenChange={() => setSelectedType(null)}>
-        <DialogContent>
+        <DialogContent className="max-w-lg border-white/80 bg-white/95 backdrop-blur-3xl shadow-2xl rounded-[32px]">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground">
               {visitTypes.find(t => t.id === selectedType)?.title}
             </DialogTitle>
           </DialogHeader>
-          <div className="py-4 space-y-4">
-            <p className="text-muted-foreground">
+          <div className="py-6 space-y-6">
+            <p className="text-muted-foreground font-medium leading-relaxed">
               {visitTypes.find(t => t.id === selectedType)?.description}
             </p>
-            <div className="bg-muted/50 rounded-lg p-4">
-              <p className="text-sm text-foreground/80">
-                📎 Ссылка для клиента будет сгенерирована автоматически при создании лида в CRM.
+            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex gap-4 items-start">
+              <div className="p-2 bg-blue-100 rounded-xl text-blue-600">
+                <ClipboardCheck className="w-5 h-5" />
+              </div>
+              <p className="text-xs font-bold text-blue-800/80 leading-snug">
+                Ссылка для клиента будет сгенерирована автоматически при создании лида в CRM и отправлена выбранным способом связи.
               </p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <Button variant="outline" onClick={() => setSelectedType(null)} className="flex-1">
+          <div className="flex gap-4">
+            <Button variant="outline" onClick={() => setSelectedType(null)} className="flex-1 rounded-2xl py-6 font-bold border-slate-200">
               Закрыть
             </Button>
-            <Button className="flex-1">
+            <Button className="flex-1 rounded-2xl py-6 font-bold bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20">
               Создать анкету
             </Button>
           </div>

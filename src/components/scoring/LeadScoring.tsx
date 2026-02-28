@@ -12,31 +12,31 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { 
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from '@/components/ui/dialog';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
-import { 
-  Target, 
-  Plus, 
+import {
+  Target,
+  Plus,
   Flame,
   Snowflake,
   ThermometerSun,
@@ -290,7 +290,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       } as any]);
 
       if (error) throw error;
-      
+
       toast.success('Правило добавлено');
       setIsAddDialogOpen(false);
       setNewRule({ name: '', field: 'utm_source', operator: 'equals', value: '', score_delta: 10 });
@@ -328,7 +328,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         .eq('id', ruleId);
 
       if (error) throw error;
-      
+
       toast.success('Правило удалено');
       await fetchRules();
       // Пересчитываем баллы после удаления правила
@@ -345,7 +345,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       // Получаем все активные правила с учётом приоритета
       const base = orderedRules.length ? orderedRules : rules;
       const activeRules = base.filter(r => r.is_active);
-      
+
       if (activeRules.length === 0) {
         toast.info('Нет активных правил для пересчета');
         setIsRecalculating(false);
@@ -368,7 +368,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       // Пересчитываем баллы для каждого лида
       const updates = leads.map(lead => {
         let score = 0;
-        
+
         activeRules.forEach(rule => {
           const fieldValue = (lead as any)[rule.field];
           let matches = false;
@@ -411,14 +411,14 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
         };
       });
 
-          // Обновляем лиды батчами по 100
+      // Обновляем лиды батчами по 100
       for (let i = 0; i < updates.length; i += 100) {
         const batch = updates.slice(i, i + 100);
         const promises = batch.map(update =>
           supabase
             .from('leads')
-            .update({ 
-              lead_score: update.lead_score, 
+            .update({
+              lead_score: update.lead_score,
             })
             .eq('id', update.id)
         );
@@ -458,7 +458,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       // Обновляем статус инсайта
       const { error: insightError } = await supabase
         .from('scoring_insights')
-        .update({ 
+        .update({
           status: 'applied',
           applied_at: new Date().toISOString(),
         })
@@ -492,64 +492,54 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div className="flex flex-col sm:flex-row justify-between gap-6 items-start sm:items-center">
         <div>
-          <h2 className="text-xl sm:text-2xl font-bold flex items-center gap-2 text-foreground">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Target className="w-5 h-5 text-primary" />
+          <h2 className="text-2xl sm:text-3xl font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+            <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm">
+              <Target className="w-6 h-6 text-blue-600" />
             </div>
             Рейтинг заявок
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">Автоматическая оценка качества лидов по правилам</p>
+          <p className="text-sm text-muted-foreground mt-2 font-medium">Автоматическая оценка качества лидов на базе ИИ и правил</p>
         </div>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" size="sm" onClick={recalculateScores} disabled={isRecalculating}>
-            <RefreshCw className={cn("w-4 h-4 mr-2", isRecalculating && "animate-spin")} />
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" size="lg" onClick={recalculateScores} disabled={isRecalculating} className="border-slate-200 hover:bg-slate-50 font-bold px-6 py-6 rounded-2xl h-auto shadow-sm">
+            <RefreshCw className={cn("w-5 h-5 mr-2", isRecalculating && "animate-spin")} />
             Пересчитать баллы
           </Button>
-          <Button size="sm" onClick={() => setIsAddDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
+          <Button size="lg" onClick={() => setIsAddDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-6 rounded-2xl h-auto shadow-lg shadow-blue-500/20">
+            <Plus className="w-5 h-5 mr-2" />
             Добавить правило
           </Button>
         </div>
       </div>
 
       {/* KPI */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums text-foreground">{scoreStats.avg}</p>
-            <p className="text-xs font-medium text-muted-foreground">Средний балл</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-red-500">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums text-red-600 dark:text-red-400">{scoreStats.hot}</p>
-            <p className="text-xs font-medium text-muted-foreground">Горячие (80–100)</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-amber-500">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums text-amber-600 dark:text-amber-400">{scoreStats.warm}</p>
-            <p className="text-xs font-medium text-muted-foreground">Тёплые (50–79)</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden border-l-4 border-l-blue-500">
-          <CardContent className="p-4">
-            <p className="text-2xl font-bold tabular-nums text-blue-600 dark:text-blue-400">{scoreStats.cold}</p>
-            <p className="text-xs font-medium text-muted-foreground">Холодные (0–49)</p>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[
+          { label: 'Средний балл', value: scoreStats.avg, color: 'text-foreground', border: 'border-slate-100' },
+          { label: 'Горячие (80–100)', value: scoreStats.hot, color: 'text-red-500', border: 'border-red-100' },
+          { label: 'Тёплые (50–79)', value: scoreStats.warm, color: 'text-amber-500', border: 'border-amber-100' },
+          { label: 'Холодные (0–49)', value: scoreStats.cold, color: 'text-blue-500', border: 'border-blue-100' },
+        ].map((kpi, idx) => (
+          <Card key={idx} className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[24px] overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+            <CardContent className="p-6">
+              <p className={cn("text-3xl font-black tracking-tighter mb-1", kpi.color)}>{kpi.value}</p>
+              <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">{kpi.label}</p>
+              <div className={cn("absolute bottom-0 left-0 h-1 w-full bg-current opacity-20", kpi.color)} />
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Distribution & Filters */}
-      <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-foreground">Распределение и фильтры</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">Фильтруйте по источнику и статусу</CardDescription>
+      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
+        <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+          <CardTitle className="text-lg font-black text-foreground uppercase tracking-tight">Аналитика распределения</CardTitle>
+          <CardDescription className="text-sm text-muted-foreground font-medium uppercase tracking-widest text-[10px] opacity-60">Фильтрация и сегментация по источникам</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex flex-col md:flex-row gap-6">
+        <CardContent className="p-8">
+          <div className="flex flex-col md:flex-row gap-10 items-center">
             <div className="w-full md:w-2/3">
               <ChartContainer
                 config={{
@@ -557,7 +547,7 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                   warm: { label: 'Тёплые', color: 'hsl(40 90% 60%)' },
                   cold: { label: 'Холодные', color: 'hsl(220 90% 60%)' },
                 }}
-                className="h-64"
+                className="h-72"
               >
                 <PieChart>
                   <ChartTooltip content={<ChartTooltipContent />} />
@@ -565,40 +555,41 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                     data={distributionData}
                     dataKey="value"
                     nameKey="name"
-                    innerRadius={60}
-                    outerRadius={100}
-                    paddingAngle={4}
+                    innerRadius={70}
+                    outerRadius={110}
+                    paddingAngle={6}
+                    strokeWidth={0}
                   />
                   <ChartLegend content={<ChartLegendContent />} />
                 </PieChart>
               </ChartContainer>
             </div>
-            <div className="w-full md:w-1/3 space-y-3">
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Источник</Label>
+            <div className="w-full md:w-1/3 space-y-5">
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1">Источник трафика</Label>
                 <Select value={selectedSource || 'all'} onValueChange={(v) => setSelectedSource(v || 'all')}>
-                  <SelectTrigger className="bg-slate-50 border-white/50 text-foreground">
-                    <SelectValue placeholder="Все" />
+                  <SelectTrigger className="bg-slate-50/80 border-slate-100 rounded-2xl h-12 font-bold focus:ring-blue-500/20">
+                    <SelectValue placeholder="Все источники" />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Все</SelectItem>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                    <SelectItem value="all">Все (Global)</SelectItem>
                     {sourceOptions.length > 0
-                      ? sourceOptions.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)
-                      : ['yandex','google','vk','facebook','instagram','telegram','whatsapp','manual','website','referral'].map(s => (
-                          <SelectItem key={s} value={s}>{s}</SelectItem>
-                        ))}
+                      ? sourceOptions.map(s => <SelectItem key={s} value={s} className="uppercase font-bold text-xs">{s}</SelectItem>)
+                      : ['yandex', 'google', 'vk', 'facebook', 'instagram', 'telegram', 'whatsapp', 'manual', 'website', 'referral'].map(s => (
+                        <SelectItem key={s} value={s} className="uppercase font-bold text-xs">{s}</SelectItem>
+                      ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Статус</Label>
+              <div className="space-y-2">
+                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1">Текущий статус</Label>
                 <Select value={selectedStatus || 'all'} onValueChange={(v) => setSelectedStatus(v || 'all')}>
-                  <SelectTrigger className="bg-slate-50 border-white/50 text-foreground">
-                    <SelectValue placeholder="Все" />
+                  <SelectTrigger className="bg-slate-50/80 border-slate-100 rounded-2xl h-12 font-bold focus:ring-blue-500/20">
+                    <SelectValue placeholder="Все статусы" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
                     {Object.entries(statusLabels).map(([value, label]) => (
-                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                      <SelectItem key={value} value={value} className="font-bold text-xs">{label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -609,34 +600,22 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       </Card>
 
       {/* Score Legend */}
-      <div className="flex flex-wrap gap-3">
-        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 px-4 py-2.5">
-          <div className="p-1.5 rounded-full bg-red-500/15">
-            <Flame className="w-4 h-4 text-red-500" />
+      <div className="flex flex-wrap gap-4">
+        {[
+          { label: 'Горячие', range: '80–100', icon: Flame, color: 'bg-red-500/10 text-red-500' },
+          { label: 'Тёплые', range: '50–79', icon: ThermometerSun, color: 'bg-amber-500/10 text-amber-500' },
+          { label: 'Холодные', range: '0–49', icon: Snowflake, color: 'bg-blue-500/10 text-blue-500' },
+        ].map((item, idx) => (
+          <div key={idx} className="flex items-center gap-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/80 px-6 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
+            <div className={cn("p-2 rounded-xl", item.color)}>
+              <item.icon className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-xs font-black uppercase tracking-widest text-foreground opacity-80">{item.label}</p>
+              <p className="text-sm font-black text-foreground opacity-40">{item.range}</p>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Горячие</p>
-            <p className="text-xs text-muted-foreground">80–100</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 px-4 py-2.5">
-          <div className="p-1.5 rounded-full bg-amber-500/15">
-            <ThermometerSun className="w-4 h-4 text-amber-500" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Тёплые</p>
-            <p className="text-xs text-muted-foreground">50–79</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 rounded-lg border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 px-4 py-2.5">
-          <div className="p-1.5 rounded-full bg-blue-500/15">
-            <Snowflake className="w-4 h-4 text-blue-500" />
-          </div>
-          <div>
-            <p className="text-sm font-medium text-foreground">Холодные</p>
-            <p className="text-xs text-muted-foreground">0–49</p>
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Упрощение: AI Insights убран */}
@@ -644,77 +623,84 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Упрощение: убрана визуализация весов */}
 
       {/* Rules Table */}
-      <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-base font-semibold text-foreground">Правила скоринга</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground">Настройте правила для автоматической оценки лидов</CardDescription>
+      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
+        <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+          <CardTitle className="text-lg font-black text-foreground uppercase tracking-tight">Настройка логики</CardTitle>
+          <CardDescription className="text-sm font-medium uppercase tracking-widest text-[10px] opacity-60">Управление правилами автоматического скоринга</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="rounded-lg border border-white/50 overflow-hidden">
+        <CardContent className="p-0">
+          <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-muted/50 hover:bg-muted/50">
-                  <TableHead className="text-xs font-medium text-muted-foreground">Правило</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground">Поле</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground">Условие</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground">Баллы</TableHead>
-                  <TableHead className="text-xs font-medium text-muted-foreground">Вкл.</TableHead>
-                  <TableHead className="w-20" />
+                <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-6 py-4">Название правила</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Параметр</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Условие</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Воздействие</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4 text-center">Статус</TableHead>
+                  <TableHead className="w-24 pr-6 py-4" />
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {loading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
-                      Загрузка...
+                    <TableCell colSpan={6} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-3">
+                        <RefreshCw className="w-8 h-8 animate-spin text-blue-500/20" />
+                        <span className="text-xs font-black uppercase tracking-widest opacity-40">Синхронизация...</span>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : rules.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-sm text-muted-foreground">
-                      Правила не настроены. Добавьте первое правило.
+                    <TableCell colSpan={6} className="text-center py-20">
+                      <div className="flex flex-col items-center gap-3">
+                        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 mb-2">
+                          <Target className="w-8 h-8 text-slate-200" />
+                        </div>
+                        <span className="text-sm font-black uppercase tracking-tight text-foreground opacity-60">Правила не найдены</span>
+                        <Button variant="link" onClick={() => setIsAddDialogOpen(true)} className="text-blue-600 font-bold p-0 h-auto">Создать первое правило</Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   rules.map((rule) => (
-                    <TableRow key={rule.id} className="hover:bg-muted/30">
-                      <TableCell className="font-medium text-sm text-foreground">{rule.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary" className="text-xs font-normal">
+                    <TableRow key={rule.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
+                      <TableCell className="font-black text-sm text-foreground pl-6 py-4 uppercase tracking-tighter">{rule.name}</TableCell>
+                      <TableCell className="py-4">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-200 text-muted-foreground px-2 py-0.5 rounded-md">
                           {fields.find(f => f.value === rule.field)?.label || rule.field}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-sm text-muted-foreground">
-                        {operators.find(o => o.value === rule.operator)?.label} {rule.value && `"${rule.value}"`}
+                      <TableCell className="text-xs font-bold text-muted-foreground py-4">
+                        <span className="opacity-60">{operators.find(o => o.value === rule.operator)?.label}</span> {rule.value && <span className="text-foreground ml-1">«{rule.value}»</span>}
                       </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant="outline"
-                          className={cn(
-                            "text-xs font-medium",
-                            rule.score_delta > 0
-                              ? 'border-green-500/50 text-green-600 dark:text-green-400'
-                              : 'border-red-500/50 text-red-600 dark:text-red-400'
-                          )}
-                        >
+                      <TableCell className="py-4">
+                        <div className={cn(
+                          "inline-flex items-center px-3 py-1 rounded-full text-xs font-black shadow-sm",
+                          rule.score_delta > 0
+                            ? "bg-blue-600 text-white shadow-blue-500/20"
+                            : "bg-red-500 text-white shadow-red-500/20"
+                        )}>
                           {rule.score_delta > 0 ? '+' : ''}{rule.score_delta}
-                        </Badge>
+                        </div>
                       </TableCell>
-                      <TableCell>
+                      <TableCell className="text-center py-4">
                         <Switch
                           checked={rule.is_active}
                           onCheckedChange={(checked) => handleToggleRule(rule.id, checked)}
+                          className="data-[state=checked]:bg-blue-600"
                         />
                       </TableCell>
-                      <TableCell>
-                        <div className="flex gap-0.5">
-                          <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                      <TableCell className="pr-6 py-4">
+                        <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600">
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            className="h-9 w-9 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500"
                             onClick={() => handleDeleteRule(rule.id)}
                           >
                             <Trash2 className="w-4 h-4" />

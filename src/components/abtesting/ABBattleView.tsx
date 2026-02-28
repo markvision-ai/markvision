@@ -72,120 +72,118 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
             transition={{ duration: 0.5 }}
             className="w-full"
         >
-            <BackgroundGradient className="rounded-3xl p-[1px]">
-                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden relative">
+            <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden relative">
 
-                    {/* Header */}
-                    <CardHeader className="relative z-10 border-b border-white/50 pb-6">
-                        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                {/* Header */}
+                <CardHeader className="relative z-10 bg-slate-50/50 border-b border-slate-100 p-8">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+                        <div className="flex items-center gap-4">
+                            <div className="p-3 rounded-2xl bg-blue-500/10 text-blue-500 border border-blue-100/50 shadow-sm">
+                                <Swords className="w-6 h-6" />
+                            </div>
                             <div>
-                                <CardTitle className="text-2xl flex items-center gap-3 text-foreground">
-                                    <Swords className="w-6 h-6 text-primary" />
-                                    <span className="text-foreground font-bold">
-                                        {test.name}
-                                    </span>
+                                <CardTitle className="text-2xl font-black tracking-tight text-foreground uppercase">
+                                    {test.name}
                                 </CardTitle>
-                                <CardDescription className="text-muted-foreground mt-1 flex items-center gap-2">
-                                    <Target className="w-4 h-4" />
+                                <CardDescription className="text-sm font-medium text-muted-foreground mt-0.5 flex items-center gap-2">
+                                    <Target className="w-4 h-4 text-blue-400" />
                                     {test.description || 'Оптимизация конверсии'}
                                 </CardDescription>
                             </div>
-                            <div className="flex flex-wrap items-center gap-3">
-                                {/* AI Score Badge */}
-                                <Badge variant="outline" className="border-purple-500/30 text-purple-400 bg-purple-500/10 gap-1.5 px-3 py-1">
-                                    <Zap className="w-4 h-4" />
-                                    Достоверность: {reliability.toFixed(1)}%
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Badge variant="outline" className="border-purple-200 text-purple-600 bg-purple-50/50 gap-2 px-4 py-2 rounded-full font-bold text-xs">
+                                <Zap className="w-3.5 h-3.5" />
+                                Достоверность: {reliability.toFixed(1)}%
+                            </Badge>
+
+                            {reliability < targetReliability && (
+                                <Badge variant="outline" className="border-cyan-200 text-cyan-600 bg-cyan-50/50 gap-2 px-4 py-2 rounded-full font-bold text-xs">
+                                    <Clock className="w-3.5 h-3.5" />
+                                    ~{daysRemaining} дн. до финала
                                 </Badge>
+                            )}
 
-                                {reliability < targetReliability && (
-                                    <Badge variant="outline" className="border-cyan-500/30 text-cyan-400 bg-cyan-500/10 gap-1.5 px-3 py-1">
-                                        <Clock className="w-4 h-4" />
-                                        ~{daysRemaining} дн. до финала
-                                    </Badge>
-                                )}
-
-                                {getStatusBadge(test.status)}
-                            </div>
+                            {getStatusBadge(test.status)}
                         </div>
-                    </CardHeader>
+                    </div>
+                </CardHeader>
 
-                    <CardContent className="p-6 md:p-8 relative">
-                        {/* Background VS Logo */}
-                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block pointer-events-none z-0 opacity-20">
-                            <motion.div
-                                animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
-                                transition={{ duration: 3, repeat: Infinity }}
-                                className="text-[120px] font-black text-muted/20"
-                            >
-                                VS
-                            </motion.div>
-                        </div>
+                <CardContent className="p-6 md:p-8 relative">
+                    {/* Background VS Logo */}
+                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 hidden md:block pointer-events-none z-0 opacity-20">
+                        <motion.div
+                            animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.6, 0.3] }}
+                            transition={{ duration: 3, repeat: Infinity }}
+                            className="text-[120px] font-black text-muted/20"
+                        >
+                            VS
+                        </motion.div>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 relative z-10">
 
-                            {/* VARIANT A */}
-                            <VariantCard
-                                name={test.variant_a_name}
-                                type="Контроль"
-                                isLeader={leader === 'a'}
-                                stats={stats.variantA}
-                                total={stats.totalLeads}
-                                opponentStats={stats.variantB}
-                                color="blue"
-                            />
+                        {/* VARIANT A */}
+                        <VariantCard
+                            name={test.variant_a_name}
+                            type="Контроль"
+                            isLeader={leader === 'a'}
+                            stats={stats.variantA}
+                            total={stats.totalLeads}
+                            opponentStats={stats.variantB}
+                            color="blue"
+                        />
 
-                            {/* VS Divider Mobile */}
-                            <div className="md:hidden flex items-center justify-center py-2">
-                                <span className="text-xl font-bold text-muted-foreground/50">ПРОТИВ</span>
-                            </div>
-
-                            {/* VARIANT B */}
-                            <VariantCard
-                                name={test.variant_b_name}
-                                type="Вариант"
-                                isLeader={leader === 'b'}
-                                stats={stats.variantB}
-                                total={stats.totalLeads}
-                                opponentStats={stats.variantA}
-                                color="purple"
-                            />
-
+                        {/* VS Divider Mobile */}
+                        <div className="md:hidden flex items-center justify-center py-2">
+                            <span className="text-xl font-bold text-muted-foreground/50">ПРОТИВ</span>
                         </div>
 
-                        {/* AI INSIGHTS FOOTER */}
-                        <div className="mt-12 p-6 rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
-                            <div className="absolute inset-0 bg-white/40 translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
-                            <div className="p-4 rounded-full bg-slate-50 border border-white/50 relative z-10">
-                                <BrainCircuit className="w-8 h-8 text-primary" />
-                            </div>
-                            <div className="flex-1 relative z-10 text-center md:text-left">
-                                <h4 className="text-foreground font-bold mb-1 flex items-center justify-center md:justify-start gap-2">
-                                    AI Recommendation
-                                    <Badge className="bg-primary/20 text-primary border-primary/20 text-[10px] py-0">LIVE FEED</Badge>
-                                </h4>
-                                <p className="text-sm text-muted-foreground leading-relaxed">
-                                    {reliability >= targetReliability
-                                        ? `Эксперимент достиг значимости. Вариант "${leader === 'a' ? test.variant_a_name : test.variant_b_name}" лидирует с приростом ${Math.abs(stats.variantA.conversionRate - stats.variantB.conversionRate).toFixed(1)}%. Можно внедрять.`
-                                        : `Слишком малая выборка для финала. Текущая достоверность ${reliability.toFixed(1)}%. Рекомендуем подождать еще ~${daysRemaining} дн. или получить +${leadsRemaining} лидов.`
-                                    }
-                                </p>
-                            </div>
-                            <Button variant="outline" className="border-white/50 hover:bg-accent relative z-10">
-                                <Info className="w-4 h-4 mr-2" /> Детали отчета
-                            </Button>
+                        {/* VARIANT B */}
+                        <VariantCard
+                            name={test.variant_b_name}
+                            type="Вариант"
+                            isLeader={leader === 'b'}
+                            stats={stats.variantB}
+                            total={stats.totalLeads}
+                            opponentStats={stats.variantA}
+                            color="purple"
+                        />
+
+                    </div>
+
+                    {/* AI INSIGHTS FOOTER */}
+                    <div className="mt-12 p-8 rounded-[24px] bg-slate-50/50 border border-slate-100 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden group/insights">
+                        <div className="p-5 rounded-2xl bg-white border border-slate-100 shadow-sm relative z-10 text-blue-500">
+                            <BrainCircuit className="w-10 h-10" />
                         </div>
-                    </CardContent>
-                </Card>
-            </BackgroundGradient>
+                        <div className="flex-1 relative z-10 text-center md:text-left">
+                            <h4 className="text-lg font-black text-foreground mb-1 flex items-center justify-center md:justify-start gap-2 uppercase tracking-tight">
+                                AI Резюме
+                                <Badge className="bg-blue-500 text-white border-none text-[10px] font-bold px-2 h-5">LIVE</Badge>
+                            </h4>
+                            <p className="text-sm text-muted-foreground leading-relaxed font-medium">
+                                {reliability >= targetReliability
+                                    ? `Эксперимент достиг значимости. Вариант "${leader === 'a' ? test.variant_a_name : test.variant_b_name}" лидирует с приростом ${Math.abs(stats.variantA.conversionRate - stats.variantB.conversionRate).toFixed(1)}%. Можно внедрять.`
+                                    : `Слишком малая выборка для финала. Текущая достоверность ${reliability.toFixed(1)}%. Рекомендуем подождать еще ~${daysRemaining} дн. или получить +${leadsRemaining} лидов.`
+                                }
+                            </p>
+                        </div>
+                        <Button variant="outline" className="bg-white border-slate-200 hover:bg-slate-50 relative z-10 px-6 py-5 rounded-xl font-bold text-sm">
+                            <Info className="w-4 h-4 mr-2" /> Детали отчета
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
         </motion.div>
     );
 };
 
 const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color }: any) => {
     const isGreen = isLeader;
-    const borderColor = isLeader ? 'border-primary/50' : 'border-white/60';
-    const bgColor = isLeader ? 'bg-primary/5' : 'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60';
-    const shadow = isLeader ? 'shadow-[0_0_30px_-5px_rgba(var(--primary),0.2)]' : '';
+    const borderColor = isLeader ? 'border-blue-200' : 'border-slate-100';
+    const bgColor = isLeader ? 'bg-blue-50/30' : 'bg-white';
+    const shadow = isLeader ? 'shadow-[0_20px_40px_rgba(59,130,246,0.1)]' : 'shadow-sm';
 
     // Lift calculation
     const cr = stats.conversionRate;
@@ -205,7 +203,7 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
                     <motion.div
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
-                        className="bg-blue-500 text-white p-2 rounded-full shadow-2xl shadow-blue-900/5 shadow-blue-500/40"
+                        className="bg-blue-600 text-white p-2.5 rounded-full shadow-lg shadow-blue-500/40"
                     >
                         <Trophy className="w-5 h-5" />
                     </motion.div>
@@ -213,14 +211,14 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-white/50 pb-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-5">
                 <div>
-                    <p className={cn("text-xs font-bold uppercase tracking-widest mb-1", color === 'blue' ? 'text-blue-500' : 'text-purple-500')}>{type}</p>
-                    <h3 className="text-xl font-bold text-foreground tracking-tight">{name}</h3>
+                    <p className={cn("text-[10px] font-black uppercase tracking-[0.2em] mb-1.5", color === 'blue' ? 'text-blue-500' : 'text-purple-500')}>{type}</p>
+                    <h3 className="text-xl font-black text-foreground tracking-tight uppercase">{name}</h3>
                 </div>
                 {isLeader && (
-                    <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                        ЛИДИРУЕТ
+                    <Badge className="bg-blue-600 text-white border-none font-black text-[10px] px-3 py-1 rounded-full uppercase tracking-tighter">
+                        ЛИДЕР
                     </Badge>
                 )}
             </div>
@@ -229,30 +227,30 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
             <div className="space-y-5">
 
                 {/* Conversion Rate */}
-                <div>
-                    <div className="flex justify-between items-end mb-2">
-                        <span className="text-sm text-muted-foreground font-medium">Конверсия</span>
+                <div className="bg-slate-50/50 p-4 rounded-2xl border border-slate-100/50">
+                    <div className="flex justify-between items-end mb-3">
+                        <span className="text-[10px] text-muted-foreground font-black uppercase tracking-widest">Конверсия</span>
                         <div className="text-right">
-                            <span className="text-2xl font-bold font-mono text-foreground">{cr.toFixed(2)}%</span>
+                            <span className="text-3xl font-black tracking-tighter text-foreground">{cr.toFixed(2)}%</span>
                             {lift !== 0 && (
-                                <div className={cn("text-xs font-bold flex items-center justify-end gap-1", lift > 0 ? "text-blue-400" : "text-red-400")}>
+                                <div className={cn("text-[10px] font-black flex items-center justify-end gap-1 mt-0.5", lift > 0 ? "text-blue-500" : "text-red-500")}>
                                     {lift > 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
-                                    {Math.abs(lift).toFixed(1)}% Прирост
+                                    {Math.abs(lift).toFixed(1)}% ПРИРОСТ
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="h-2 w-full bg-muted rounded-full overflow-hidden relative">
+                    <div className="h-2.5 w-full bg-slate-200/50 rounded-full overflow-hidden relative">
                         {/* Confidence Band Visual */}
-                        <div className="absolute inset-0 bg-background/50 animate-pulse" style={{ left: '10%', right: '10%' }} title="Доверительный интервал" />
+                        <div className="absolute inset-0 bg-white/40 animate-pulse" style={{ left: '10%', right: '10%' }} title="Доверительный интервал" />
 
                         <motion.div
-                            className={cn("h-full rounded-full relative overflow-hidden", isLeader ? "bg-blue-500" : (color === 'blue' ? "bg-blue-500" : "bg-purple-500"))}
+                            className={cn("h-full rounded-full relative overflow-hidden", isLeader ? "bg-blue-600" : (color === 'blue' ? "bg-blue-500" : "bg-purple-500"))}
                             initial={{ width: 0 }}
                             animate={{ width: `${Math.min(cr * 4, 100)}%` }} // Scaling for visual better visible
-                            transition={{ duration: 1, delay: 0.2 }}
+                            transition={{ duration: 1.2, ease: "circOut" }}
                         >
-                            <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-[shimmer_2s_infinite]" />
                         </motion.div>
                     </div>
                 </div>
@@ -269,8 +267,8 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
 };
 
 const StatBox = ({ label, value, suffix }: any) => (
-    <div className="bg-white/50 backdrop-blur-xl rounded-xl p-3 border border-white/60 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
-        <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
-        <p className="text-lg font-bold font-mono text-foreground">{value} <span className="text-sm text-muted-foreground font-normal">{suffix}</span></p>
+    <div className="bg-white rounded-2xl p-4 border border-slate-100 shadow-sm group-hover:bg-slate-50/50 transition-colors">
+        <p className="text-[10px] text-muted-foreground font-black uppercase tracking-widest mb-1.5 opacity-70">{label}</p>
+        <p className="text-xl font-black tracking-tight text-foreground">{value} <span className="text-[10px] text-muted-foreground font-bold tracking-normal align-top ml-0.5">{suffix}</span></p>
     </div>
 );

@@ -486,87 +486,95 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
   return (
     <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <ShieldCheck className="w-6 h-6 text-primary" />
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm relative group">
+            <div className="absolute inset-0 bg-blue-500/10 rounded-[20px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
+            <ShieldCheck className="w-8 h-8 text-blue-600 relative z-10" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold">ИИ-РОП</h1>
-            <p className="text-sm text-muted-foreground">Контроль системы, анализ эффективности и рекомендации</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
+              ИИ-РОП <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-600 bg-blue-50/50">Core V2.5</Badge>
+            </h1>
+            <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest text-[10px] opacity-60 mt-1">Контроль системы, анализ эффективности и AI-аудит</p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-2">
+        <Button variant="outline" size="lg" onClick={() => refetch()} className="gap-2 rounded-2xl border-slate-200 hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] px-6 py-6 h-auto shadow-sm">
           <RefreshCw className="w-4 h-4" />
-          Обновить
+          Синхронизировать
         </Button>
       </div>
 
       {/* Task Input */}
-      <Card className="bg-white/70 backdrop-blur-sm border-white/50">
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Bot className="w-5 h-5" />
+      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-white rounded-[32px] overflow-hidden group">
+        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+          <CardTitle className="text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
+            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+              <Bot className="w-5 h-5" />
+            </div>
             Дать задание ИИ-РОПу
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-xs font-medium uppercase tracking-widest opacity-60 pl-11">
             Например: "Проверь работу бота под Рилсом про виниры" или "Проанализируй конверсию за неделю"
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex gap-3">
+        <CardContent className="p-8">
+          <div className="flex flex-col sm:flex-row gap-4">
             <Textarea
               placeholder="Опишите задачу для ИИ-РОПа..."
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[80px] bg-background/50"
+              className="min-h-[100px] bg-slate-50/50 border-slate-100 rounded-2xl p-4 font-bold text-sm focus:ring-blue-500/20 resize-none"
             />
             <Button
               onClick={handleSubmitTask}
               disabled={submitting || !taskInput.trim()}
-              className="self-end gap-2"
+              className="sm:w-40 h-auto self-stretch rounded-2xl gap-3 font-black uppercase tracking-widest text-[10px] bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
             >
               {submitting ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Send className="w-4 h-4" />
+                <Send className="w-5 h-5" />
               )}
               Отправить
             </Button>
           </div>
-          <p className="text-xs text-muted-foreground mt-2">
-            Ctrl+Enter для отправки
-          </p>
+          <div className="flex items-center gap-2 mt-4 px-1 opacity-40">
+            <Terminal className="w-3 h-3" />
+            <p className="text-[10px] font-black uppercase tracking-widest">
+              Ctrl + Enter для мгновенной отправки в ядро анализа
+            </p>
+          </div>
         </CardContent>
       </Card>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-6 h-auto">
-          <TabsTrigger value="overview" className="gap-2 py-2.5">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="flex w-full overflow-x-auto bg-white/60 backdrop-blur-xl border border-white p-1.5 rounded-[24px] shadow-sm hide-scrollbar">
+          <TabsTrigger value="overview" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <BarChart3 className="w-4 h-4" />
-            <span className="hidden sm:inline">Обзор</span>
+            <span className="hidden lg:inline">Обзор системы</span>
           </TabsTrigger>
-          <TabsTrigger value="calls" className="gap-2 py-2.5">
+          <TabsTrigger value="calls" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <Phone className="w-4 h-4" />
-            <span className="hidden sm:inline">Звонки</span>
+            <span className="hidden lg:inline">Анализ звонков</span>
           </TabsTrigger>
-          <TabsTrigger value="chats" className="gap-2 py-2.5">
+          <TabsTrigger value="chats" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <MessageSquare className="w-4 h-4" />
-            <span className="hidden sm:inline">Чаты</span>
+            <span className="hidden lg:inline">Анализ чатов</span>
           </TabsTrigger>
-          <TabsTrigger value="managers" className="gap-2 py-2.5">
+          <TabsTrigger value="managers" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Команда</span>
+            <span className="hidden lg:inline">Команда РОП</span>
           </TabsTrigger>
-          <TabsTrigger value="recommendations" className="gap-2 py-2.5">
+          <TabsTrigger value="recommendations" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <Lightbulb className="w-4 h-4" />
-            <span className="hidden sm:inline">Рекомендации</span>
+            <span className="hidden lg:inline">Точки роста</span>
           </TabsTrigger>
-          <TabsTrigger value="training" className="gap-2 py-2.5">
+          <TabsTrigger value="training" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
             <Brain className="w-4 h-4" />
-            <span className="hidden sm:inline">Обучение</span>
+            <span className="hidden lg:inline">Обучение ИИ</span>
           </TabsTrigger>
         </TabsList>
 

@@ -146,7 +146,6 @@ export const AnalyticsPlatform = () => {
       'quantom-ads': '/quantum-ads',
       'factory': '/content-factory',
       'e2e-analytics': '/analytics',
-      'meta-analytics': '/meta-analytics',
       'agency-accounts': '/agency-accounts',
     };
     const path = tabToUrl[tab] || `/${tab}`;
@@ -390,7 +389,6 @@ export const AnalyticsPlatform = () => {
       case 'factory': return '🎬 Центр контента';
       case 'publications': return '🚀 Публикации';
       case 'e2e-analytics': return '📊 Сквозная аналитика';
-      case 'meta-analytics': return '📈 Meta аналитика';
       case 'reports': return '📄 Отчёты';
       case 'team': return '👥 Сотрудники и доступ';
       case 'integrations': return '🔌 Подключения';
@@ -629,12 +627,6 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'meta-analytics' && currentProjectId && (
-        <Suspense fallback={<ModuleLoader />}>
-          <MetaAccountAnalytics projectId={currentProjectId} />
-        </Suspense>
-      )}
-
       {activeTab === 'reports' && currentProjectId && (
         <Suspense fallback={<ModuleLoader />}>
           <ReportGenerator data={{
@@ -754,7 +746,7 @@ export const AnalyticsPlatform = () => {
         </div>
       )}
 
-      {!['dashboard', 'table', 'quantom-ads', 'agency-accounts', 'crm', 'e2e-analytics', 'meta-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
+      {!['dashboard', 'table', 'quantom-ads', 'agency-accounts', 'crm', 'e2e-analytics', 'reports', 'team', 'integrations', 'settings', 'audit', 'factory', 'publications', 'staff', 'inbox', 'finance', 'scoring', 'ab-testing', 'knowledge', 'health', 'realtime', 'visits', 'calendar', 'help', 'automation', 'rop'].includes(activeTab) && (
         <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-12 text-center">
           <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
             <Target className="w-8 h-8 text-primary" />
