@@ -175,22 +175,12 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
         };
 
         try {
-            const webhookUrl = import.meta.env.VITE_N8N_CONTENT_WEBHOOK_URL;
-
-            if (!webhookUrl) {
-                throw new Error('URL вебхука n8n не настроен (VITE_N8N_CONTENT_WEBHOOK_URL)');
-            }
-
-            const response = await fetch(webhookUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(payload),
+            const { data: responseData, error: functionError } = await supabase.functions.invoke('trigger-n8n-content', {
+                body: payload,
             });
 
-            if (!response.ok) {
-                throw new Error(`Ошибка сервера: ${response.statusText}`);
+            if (functionError) {
+                throw new Error(functionError.message || 'Ошибка вызова функции');
             }
 
             toast.success('Задание отправлено на Контент-Завод!', {
