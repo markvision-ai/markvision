@@ -238,7 +238,7 @@ export default function Signup() {
         <div className="bg-white/80 backdrop-blur-3xl rounded-3xl p-8 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           {/* Logo */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 mx-auto flex items-center justify-center mb-4 shadow-xl shadow-primary/10">
+            <div className="w-20 h-20 mx-auto relative flex items-center justify-center mb-4">
               <MarkVisionLogo className="w-8 h-8" />
             </div>
             <h1 className="text-2xl font-bold text-slate-900">Создайте аккаунт</h1>

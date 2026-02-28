@@ -258,7 +258,7 @@ export default function Auth() {
           transition={{ delay: 0.1, duration: 0.5 }}
           className="text-center mb-8"
         >
-          <div className="w-20 h-20 mx-auto relative flex items-center justify-center overflow-hidden rounded-2xl bg-slate-900 shadow-2xl shadow-slate-900/20 mb-4">
+          <div className="w-20 h-20 mx-auto relative flex items-center justify-center mb-4">
             <img src={markvisionLogo} alt="MarkVision AI" className="w-full h-full object-contain scale-110" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-bold">
