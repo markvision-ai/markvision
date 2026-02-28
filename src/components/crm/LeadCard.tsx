@@ -303,7 +303,7 @@ export const LeadCard = ({
             scoreTier.tier === 'WARM' && "text-amber-600 dark:text-amber-400",
             scoreTier.tier === 'COLD' && "text-blue-600 dark:text-blue-400",
             scoreTier.tier === 'MEGA' && "text-amber-700 dark:text-amber-400",
-            scoreTier.tier === 'HIGH' && "text-orange-600 dark:text-orange-400",
+            scoreTier.tier === 'HIGH' && "text-primary dark:text-primary",
             scoreTier.tier === 'MEDIUM' && "text-foreground"
           )}>
             {scoreTier.label || scoreTier.tier}

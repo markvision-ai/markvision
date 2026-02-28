@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { 
-  Shield, 
-  User, 
-  Clock, 
-  Filter, 
+import {
+  Shield,
+  User,
+  Clock,
+  Filter,
   Search,
   ChevronDown,
   ChevronUp,
@@ -68,7 +68,7 @@ const actionIcons: Record<string, React.ReactNode> = {
   login: <LogIn className="w-4 h-4 text-green-500" />,
   logout: <LogOut className="w-4 h-4 text-yellow-500" />,
   create: <Plus className="w-4 h-4 text-blue-500" />,
-  update: <Pencil className="w-4 h-4 text-orange-500" />,
+  update: <Pencil className="w-4 h-4 text-[#B57170]" />,
   delete: <Trash2 className="w-4 h-4 text-red-500" />,
   view: <Eye className="w-4 h-4 text-muted-foreground" />,
   export: <Download className="w-4 h-4 text-purple-500" />,
@@ -230,7 +230,7 @@ export const AuditLogViewer = () => {
             />
           </div>
         </div>
-        
+
         <Select value={actionFilter} onValueChange={setActionFilter}>
           <SelectTrigger className="w-[180px]">
             <Filter className="w-4 h-4 mr-2" />

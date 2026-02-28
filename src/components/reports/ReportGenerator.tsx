@@ -425,7 +425,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     { label: 'Показы', value: reportData.totals.impressions, color: 'bg-blue-500' },
     { label: 'Клики', value: reportData.totals.clicks, color: 'bg-blue-500' },
     { label: 'Лиды', value: reportData.totals.leads, color: 'bg-violet-500' },
-    { label: 'Диагностика', value: reportData.totals.visits, color: 'bg-orange-500' },
+    { label: 'Диагностика', value: reportData.totals.visits, color: 'bg-[#955251]' },
     { label: 'Продажи', value: reportData.totals.sales, color: 'bg-green-600' },
   ], [reportData.totals]);
 

@@ -19,8 +19,8 @@
     --popover-foreground: 210 40% 98%;
 
     /* Dual Accents */
-    --primary: 24 95% 53%;
-    /* Omni Orange #f97316 */
+    --primary: 1 30% 45%;
+    /* Marsala #955251 */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217 91% 60%;
@@ -38,7 +38,7 @@
 
     --border: 217 33% 17%;
     --input: 217 33% 17%;
-    --ring: 24 95% 53%;
+    --ring: 1 30% 45%;
 
     --radius: 0.75rem;
 
@@ -50,10 +50,10 @@
   .dark {
     --background: 222 47% 4%;
     --foreground: 210 40% 98%;
-    --primary: 24 95% 53%;
+    --primary: 1 30% 45%;
     --secondary: 217 91% 60%;
     --border: 217 33% 17%;
-    --ring: 24 95% 53%;
+    --ring: 1 30% 45%;
   }
 }
 
@@ -68,7 +68,7 @@
     font-family: 'Inter', sans-serif;
     background-image:
       radial-gradient(circle at 0% 0%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
-      radial-gradient(circle at 100% 100%, rgba(249, 115, 22, 0.05) 0%, transparent 50%);
+      radial-gradient(circle at 100% 100%, rgba(149, 82, 81, 0.05) 0%, transparent 50%);
     background-attachment: fixed;
   }
 }
@@ -113,7 +113,7 @@
 
   /* Gradient text - Upgraded */
   .gradient-text-primary {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-orange-400 font-bold;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-primary to-[#B57170] font-bold;
   }
 }
 

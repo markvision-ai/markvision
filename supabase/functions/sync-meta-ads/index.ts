@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     // Verify JWT and get user
     const token = authHeader.replace("Bearer ", "");
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
-    
+
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Invalid token" }), {
         status: 401,
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     if (!accessToken) accessToken = Deno.env.get("META_ACCESS_TOKEN");
 
     if (!accessToken) {
-      return new Response(JSON.stringify({ 
+      return new Response(JSON.stringify({
         error: "Meta token not found",
         details: "Проверьте: integrations, ad_accounts, projects.meta_access_token, pixel_configs.fb_access_token или META_ACCESS_TOKEN в секретах Edge Function"
       }), {
@@ -151,8 +151,8 @@ Deno.serve(async (req) => {
 
     console.log(`Sync completed for project ${projectId}:`, result);
 
-    return new Response(JSON.stringify({ 
-      success: true, 
+    return new Response(JSON.stringify({
+      success: true,
       ...result,
       synced_at: new Date().toISOString()
     }), {
@@ -162,9 +162,9 @@ Deno.serve(async (req) => {
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error("Sync error:", error);
-    return new Response(JSON.stringify({ 
-      error: "Sync failed", 
-      details: errorMessage 
+    return new Response(JSON.stringify({
+      error: "Sync failed",
+      details: errorMessage
     }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -173,8 +173,8 @@ Deno.serve(async (req) => {
 });
 
 async function syncFacebookAds(
-  supabase: any, 
-  projectId: string, 
+  supabase: any,
+  projectId: string,
   accessToken: string
 ): Promise<{ campaigns: number; totalSpend: number }> {
   // Get ad accounts
@@ -196,46 +196,47 @@ async function syncFacebookAds(
   const endDate = new Date();
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - 30);
-  
+
   const dateRange = {
     since: startDate.toISOString().split("T")[0],
     until: endDate.toISOString().split("T")[0],
   };
 
-  // Filter for specific account if requested
-  let targetAccount = null;
-  const targetKeywords = ['стоматология', 'уали', 'uali'];
-  
-  // 1. Try to find specific account "Стоматология Уали"
-  targetAccount = adAccounts.find((acc: any) => {
+  // 1. Fetch linked ad accounts for this project from Supabase
+  const { data: linkedAccounts } = await supabase
+    .from("ad_accounts")
+    .select("ad_account_id, name")
+    .eq("project_id", projectId)
+    .eq("platform", "facebook");
+
+  const linkedIds = linkedAccounts?.map(a => a.ad_account_id) || [];
+
+  // 2. Filter Meta API results to matches our database OR fallback if none linked
+  let accountsToSync = adAccounts.filter((acc: any) => linkedIds.includes(acc.id));
+
+  // 3. Fallback: if no accounts linked in DB yet, use the heuristic or first active
+  if (accountsToSync.length === 0) {
+    console.log("No specifically linked accounts found in DB, using heuristic fallback...");
+    const targetKeywords = ['стоматология', 'уали', 'uali'];
+    const targetAccount = adAccounts.find((acc: any) => {
       const name = (acc.name || '').toLowerCase();
       return targetKeywords.some(kw => name.includes(kw));
-  });
+    }) || adAccounts.find((acc: any) => acc.account_status === 1) || adAccounts[0];
 
-  // 2. If not found, use the first ACTIVE account
-  if (!targetAccount) {
-      targetAccount = adAccounts.find((acc: any) => acc.account_status === 1);
+    if (targetAccount) accountsToSync = [targetAccount];
   }
 
-  // 3. Fallback to first available
-  if (!targetAccount && adAccounts.length > 0) {
-      targetAccount = adAccounts[0];
+  if (accountsToSync.length === 0) {
+    console.log("No ad accounts found to sync.");
+    return { campaigns: 0, totalSpend: 0 };
   }
 
-  if (!targetAccount) {
-      console.log("No ad accounts found.");
-      return { campaigns: 0, totalSpend: 0 };
-  }
-  
-  console.log(`Syncing ad account: ${targetAccount.name} (${targetAccount.id})`);
-
-  // Only process this specific account
-  const accountsToSync = [targetAccount];
+  console.log(`Syncing ${accountsToSync.length} ad accounts: ${accountsToSync.map(a => a.name).join(', ')}`);
 
   for (const account of accountsToSync) {
-    if (account.account_status !== 1) {
-        console.log(`Skipping inactive account: ${account.name}`);
-        continue; 
+    if (account.account_status !== 1 && accountsToSync.length > 1) {
+      console.log(`Skipping inactive account: ${account.name}`);
+      continue;
     }
 
     // Sync Campaigns Structure
@@ -243,30 +244,32 @@ async function syncFacebookAds(
       const campaignsRes = await fetch(
         `https://graph.facebook.com/v21.0/${account.id}/campaigns?` +
         `access_token=${accessToken}&` +
-        `fields=id,name,status,daily_budget,lifetime_budget,updated_time&` +
+        `fields=id,name,status,daily_budget,lifetime_budget,updated_time,currency&` +
         `effective_status=['ACTIVE','PAUSED']&` +
-        `limit=50`
+        `limit=100`
       );
       const campaignsData = await campaignsRes.json();
-      
+
       if (!campaignsData.error && campaignsData.data) {
-           for (const campaign of campaignsData.data) {
-               await supabase.from("campaigns").upsert({
-                   project_id: projectId,
-                   external_id: campaign.id,
-                   name: campaign.name,
-                   status: campaign.status === 'ACTIVE',
-                   budget: parseFloat(campaign.daily_budget || campaign.lifetime_budget || '0') / 100, // Meta API returns budget in cents usually, need to check. 
-                   // Actually Meta returns "1000" for 10.00 usually? No, it depends on currency.
-                   // Let's assume raw value for now or standard /100?
-                   // Usually Meta Ads API returns "min_daily_budget" in cents. 
-                   // Let's keep it safe: parseFloat.
-                   // platform: 'facebook', // Omitted to avoid schema error
-                   updated_at: new Date().toISOString()
-               }, {
-                   onConflict: "project_id,external_id"
-               });
-           }
+        for (const campaign of campaignsData.data) {
+          // Meta budget handling: 
+          // For most currencies (USD, EUR, KZT), budget is returned in sub-units (cents).
+          // For others like JPY, it might be different. 
+          // Standard rule is /100 for cents-based currencies.
+          const rawBudget = parseFloat(campaign.daily_budget || campaign.lifetime_budget || '0');
+          const budget = rawBudget / 100;
+
+          await supabase.from("campaigns").upsert({
+            project_id: projectId,
+            external_id: campaign.id,
+            name: campaign.name,
+            status: campaign.status === 'ACTIVE',
+            budget: budget,
+            updated_at: new Date().toISOString()
+          }, {
+            onConflict: "project_id,external_id"
+          });
+        }
       }
     } catch (e) {
       console.error("Error syncing campaigns structure:", e);
@@ -281,16 +284,16 @@ async function syncFacebookAds(
       `time_range=${JSON.stringify(dateRange)}&` +
       `time_increment=1`
     );
-    
+
     const insightsData = await insightsRes.json();
-    
+
     if (insightsData.error) {
       console.error(`Error fetching insights for ${account.id}:`, insightsData.error);
       continue;
     }
 
     const insights: FacebookCampaignInsight[] = insightsData.data || [];
-    
+
     for (const insight of insights) {
       const spend = parseFloat(insight.spend) || 0;
       totalSpend += spend;
@@ -299,12 +302,12 @@ async function syncFacebookAds(
       // Extract conversions
       const actions = insight.actions || [];
       const actionValues = insight.action_values || [];
-      
+
       const leads = getActionCount(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
       const purchases = getActionCount(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
       const revenue = getActionValue(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
       const roas = parseFloat(insight.purchase_ros?.[0]?.value || '0');
-      
+
       // Calculate ROI manually if ROAS is missing but we have revenue/spend
       const roi = spend > 0 ? (revenue - spend) / spend : 0;
 
@@ -323,7 +326,7 @@ async function syncFacebookAds(
         leads: leads,
         purchases: purchases,
         revenue: revenue,
-        roi: roi, 
+        roi: roi,
         campaign_id: insight.campaign_id,
         campaign_name: insight.campaign_name,
         ad_account_id: account.id,
@@ -334,7 +337,7 @@ async function syncFacebookAds(
       });
 
       if (upsertError) {
-          console.error(`Error upserting stats for campaign ${insight.campaign_name}:`, upsertError);
+        console.error(`Error upserting stats for campaign ${insight.campaign_name}:`, upsertError);
       }
     }
   }
@@ -343,18 +346,18 @@ async function syncFacebookAds(
 }
 
 function getActionCount(actions: any[], types: string[]): number {
-    const action = actions.find((a: any) => types.includes(a.action_type));
-    return action ? parseInt(action.value) : 0;
+  const action = actions.find((a: any) => types.includes(a.action_type));
+  return action ? parseInt(action.value) : 0;
 }
 
 function getActionValue(actionValues: any[], types: string[]): number {
-    const action = actionValues.find((a: any) => types.includes(a.action_type));
-    return action ? parseFloat(action.value) : 0;
+  const action = actionValues.find((a: any) => types.includes(a.action_type));
+  return action ? parseFloat(action.value) : 0;
 }
 
 async function syncInstagramContent(
-  supabase: any, 
-  projectId: string, 
+  supabase: any,
+  projectId: string,
   accessToken: string
 ): Promise<{ posts: number; reels: number }> {
   // Get Instagram business account
@@ -382,9 +385,9 @@ async function syncInstagramContent(
       `fields=id,caption,media_type,permalink,thumbnail_url,timestamp,like_count,comments_count&` +
       `limit=50`
     );
-    
+
     const mediaData = await mediaRes.json();
-    
+
     if (mediaData.error) {
       console.error(`Error fetching Instagram media:`, mediaData.error);
       continue;
@@ -402,9 +405,9 @@ async function syncInstagramContent(
           `access_token=${accessToken}&` +
           `metric=impressions,reach,engagement${media.media_type === "REELS" ? ",plays" : ""}`
         );
-        
+
         const insightsData = await insightsRes.json();
-        
+
         if (!insightsData.error && insightsData.data) {
           for (const insight of insightsData.data as InstagramInsight[]) {
             if (insight.name === "plays" || insight.name === "impressions") {

@@ -55,7 +55,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                     agentType.color === 'cyan' && 'from-cyan-500/5 to-blue-500/5',
                     agentType.color === 'purple' && 'from-purple-500/5 to-fuchsia-500/5',
                     agentType.color === 'emerald' && 'from-blue-500/5 to-green-500/5',
-                    agentType.color === 'orange' && 'from-orange-500/5 to-amber-500/5'
+                    agentType.color === 'orange' && 'from-[#955251]/5 to-[#B57170]/5'
                 )}
             />
 
@@ -128,7 +128,7 @@ export const AgentCard: React.FC<AgentCardProps> = ({
                         agentType.color === 'cyan' && !isConfigured && 'from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500',
                         agentType.color === 'purple' && !isConfigured && 'from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500',
                         agentType.color === 'emerald' && !isConfigured && 'from-blue-600 to-green-600 hover:from-blue-500 hover:to-green-500',
-                        agentType.color === 'orange' && !isConfigured && 'from-orange-600 to-amber-600 hover:from-orange-500 hover:to-amber-500'
+                        agentType.color === 'orange' && !isConfigured && 'from-[#955251] to-[#B57170] hover:from-[#B57170] hover:to-[#955251]'
                     )}
                 >
                     {isConfigured ? 'Настроить' : 'Подключить'}

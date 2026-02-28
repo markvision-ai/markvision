@@ -250,7 +250,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
             change: "ожидают",
             trend: "up" as const,
             icon: Brain,
-            color: "bg-gradient-to-br from-amber-500 to-orange-600"
+            color: "bg-gradient-to-br from-[#955251] to-[#B57170]"
         }
     ];
 

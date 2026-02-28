@@ -18,8 +18,8 @@ const statusLabels: Record<string, string> = {
 
 const statusStyles: Record<string, { bg: string; text: string; gradient: string }> = {
   new: { bg: 'bg-blue-500/20', text: 'text-blue-500', gradient: 'from-blue-500 to-cyan-500' },
-  in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-orange-500' },
-  no_answer: { bg: 'bg-orange-500/20', text: 'text-orange-500', gradient: 'from-orange-500 to-red-500' },
+  in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-[#955251]' },
+  no_answer: { bg: 'bg-[#955251]/20', text: 'text-[#B57170]', gradient: 'from-[#955251] to-red-500' },
   appointment: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
   visit_completed: { bg: 'bg-purple-500/20', text: 'text-purple-500', gradient: 'from-purple-500 to-pink-500' },
   paid: { bg: 'bg-success/20', text: 'text-success', gradient: 'from-blue-500 to-green-500' },
@@ -57,7 +57,7 @@ export const LeadStatusHistory = ({ leadId }: LeadStatusHistoryProps) => {
       {history.map((item, index) => {
         const newStyle = statusStyles[item.new_status] || statusStyles.new;
         const oldStyle = item.old_status ? statusStyles[item.old_status] : null;
-        
+
         return (
           <motion.div
             key={item.id}
@@ -70,7 +70,7 @@ export const LeadStatusHistory = ({ leadId }: LeadStatusHistoryProps) => {
             {index < history.length - 1 && (
               <div className="absolute left-[7px] top-3 bottom-0 w-0.5 bg-gradient-to-b from-primary/50 to-primary/10" />
             )}
-            
+
             {/* Timeline dot */}
             <div className={cn(
               'absolute left-0 top-0 w-[15px] h-[15px] rounded-full bg-gradient-to-br flex items-center justify-center',
@@ -78,7 +78,7 @@ export const LeadStatusHistory = ({ leadId }: LeadStatusHistoryProps) => {
             )}>
               <div className="w-1.5 h-1.5 rounded-full bg-white/5" />
             </div>
-            
+
             <div className="space-y-2 ml-2">
               {/* Status change */}
               <div className="flex items-center gap-2 flex-wrap">

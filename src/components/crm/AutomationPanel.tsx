@@ -156,7 +156,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
         }),
         signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
 
       if (!response.ok) throw new Error('Ошибка активации шаблона');
@@ -233,8 +233,8 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
             >
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-orange-500/20 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-orange-500" />
+                  <div className="w-10 h-10 rounded-lg bg-[#955251]/20 flex items-center justify-center">
+                    <Clock className="w-5 h-5 text-[#B57170]" />
                   </div>
                   <div>
                     <h4 className="font-semibold text-sm">Дожим 24ч</h4>
@@ -247,7 +247,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               </p>
               <Button
                 size="sm"
-                className="w-full bg-orange-500/10 hover:bg-orange-500/20 text-orange-600 dark:text-orange-400 border border-orange-500/30"
+                className="w-full bg-[#955251]/10 hover:bg-[#955251]/20 text-[#B57170] border border-[#955251]/30"
                 onClick={() => handleActivateTemplate('followup_24h')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -334,32 +334,32 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                               <h4 className="font-medium truncate">{rule.name}</h4>
                               {getRuleStatusBadge(rule)}
                             </div>
-                            
+
                             {rule.description && (
                               <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
                                 {rule.description}
                               </p>
                             )}
-                            
+
                             <div className="flex flex-wrap gap-2 text-xs">
                               <Badge variant="outline" className="gap-1">
                                 <Play className="w-3 h-3" />
                                 {triggerTypeLabels[rule.trigger_type] || rule.trigger_type}
                               </Badge>
-                              
+
                               {rule.trigger_status && (
                                 <Badge variant="outline">
                                   Статус: {statusLabels[rule.trigger_status] || rule.trigger_status}
                                 </Badge>
                               )}
-                              
+
                               <Badge variant="outline" className="gap-1">
                                 {actionTypeIcons[rule.action_type]}
                                 {actionTypeLabels[rule.action_type] || rule.action_type}
                               </Badge>
                             </div>
                           </div>
-                          
+
                           <Switch
                             checked={rule.is_active}
                             onCheckedChange={(checked) => toggleRule(rule.id, checked)}
@@ -375,9 +375,9 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
 
           <TabsContent value="logs">
             <div className="flex justify-end mb-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={handleLoadLogs}
                 disabled={loadingLogs}
               >
@@ -385,7 +385,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                 Обновить
               </Button>
             </div>
-            
+
             <ScrollArea className="h-[350px] pr-4">
               {loadingLogs ? (
                 <div className="space-y-3">
@@ -418,7 +418,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                           {format(new Date(log.executed_at), 'dd HH:mm', { locale: ru })}
                         </span>
                       </div>
-                      
+
                       <div className="mt-1 text-muted-foreground text-xs">
                         {log.lead && (
                           <span>Лид: {log.lead.name || log.lead.phone || 'Без имени'}</span>
@@ -427,7 +427,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                           <span className="ml-2">• Правило: {log.rule.name}</span>
                         )}
                       </div>
-                      
+
                       {log.error_message && (
                         <p className="mt-1 text-xs text-destructive">{log.error_message}</p>
                       )}

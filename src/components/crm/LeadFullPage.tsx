@@ -79,8 +79,8 @@ const statusStyles: Record<string, { bg: string; text: string; gradient: string;
   paid: { bg: 'bg-blue-600/20', text: 'text-blue-400', gradient: 'from-blue-500 to-green-500', glow: 'shadow-blue-500/20' },
   appointment: { bg: 'bg-purple-600/20', text: 'text-purple-400', gradient: 'from-purple-500 to-pink-500', glow: 'shadow-purple-500/20' },
   visit_completed: { bg: 'bg-fuchsia-600/20', text: 'text-fuchsia-400', gradient: 'from-fuchsia-500 to-pink-500', glow: 'shadow-fuchsia-500/20' },
-  in_progress: { bg: 'bg-yellow-600/20', text: 'text-yellow-400', gradient: 'from-yellow-500 to-orange-500', glow: 'shadow-yellow-500/20' },
-  no_answer: { bg: 'bg-orange-600/20', text: 'text-orange-400', gradient: 'from-orange-500 to-red-500', glow: 'shadow-orange-500/20' },
+  in_progress: { bg: 'bg-yellow-500/20', text: 'text-yellow-500', gradient: 'from-yellow-500 to-[#955251]', glow: 'shadow-yellow-500/20' },
+  no_answer: { bg: 'bg-[#955251]/20', text: 'text-[#B57170]', gradient: 'from-[#955251] to-red-500', glow: 'shadow-[#955251]/20' },
   cancelled: { bg: 'bg-red-600/20', text: 'text-red-400', gradient: 'from-red-500 to-rose-500', glow: 'shadow-red-500/20' },
 };
 
@@ -484,7 +484,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     className="md:col-span-2 bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5"
                   >
                     <div className="flex items-center gap-4 mb-8">
-                      <div className="w-12 h-12 rounded-2xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+                      <div className="w-12 h-12 rounded-2xl bg-[#955251]/10 border border-[#955251]/20 flex items-center justify-center text-[#B57170]">
                         <Tag className="w-6 h-6" />
                       </div>
                       <div>
@@ -549,7 +549,7 @@ export const LeadFullPage = ({ lead, projectId, onClose, onUpdate }: LeadFullPag
                     <div className="space-y-6">
                       <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl p-8 rounded-[2.5rem] border-white/5">
                         <div className="flex items-center gap-4 mb-8">
-                          <div className="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center text-orange-500">
+                          <div className="w-10 h-10 rounded-xl bg-[#955251]/10 border border-[#955251]/20 flex items-center justify-center text-[#B57170]">
                             <History className="w-5 h-5" />
                           </div>
                           <h2 className="text-lg font-black tracking-tight text-white/90 uppercase">История</h2>

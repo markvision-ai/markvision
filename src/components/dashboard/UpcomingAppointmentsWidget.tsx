@@ -3,11 +3,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { 
-  Calendar, 
-  ArrowRight, 
-  Clock, 
-  User, 
+import {
+  Calendar,
+  ArrowRight,
+  Clock,
+  User,
   Phone,
   Crown,
   Flame,
@@ -104,7 +104,7 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
       return { tier: 'MEGA', color: 'bg-purple-500', emoji: '👑' };
     }
     if (budgetTier === 'HIGH' || leadScore >= 70) {
-      return { tier: 'HIGH', color: 'bg-orange-500', emoji: '🔥' };
+      return { tier: 'HIGH', color: 'bg-[#955251]', emoji: '🔥' };
     }
     if (budgetTier === 'MEDIUM' || leadScore >= 40) {
       return { tier: 'MEDIUM', color: 'bg-blue-500', emoji: '⚡️' };
@@ -197,7 +197,7 @@ export const UpcomingAppointmentsWidget = ({ projectId }: UpcomingAppointmentsWi
               Детали записи
             </SheetTitle>
           </SheetHeader>
-          
+
           {selectedAppointment && (
             <div className="mt-6 space-y-4">
               {getScoreTier(selectedAppointment) && (

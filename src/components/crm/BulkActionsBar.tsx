@@ -1,11 +1,11 @@
 import { Lead } from '@/hooks/useLeads';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Trash2, 
-  CheckSquare, 
-  XSquare, 
-  ArrowRight, 
+import {
+  Trash2,
+  CheckSquare,
+  XSquare,
+  ArrowRight,
   Loader2,
   MessageCircle,
   CheckCheck
@@ -34,8 +34,8 @@ import {
 
 const statusOptions = [
   { id: 'new', label: 'Новая', color: 'from-blue-500 to-cyan-500' },
-  { id: 'in_progress', label: 'В работе', color: 'from-yellow-500 to-orange-500' },
-  { id: 'no_answer', label: 'Недозвон', color: 'from-orange-500 to-red-500' },
+  { id: 'in_progress', label: 'В работе', color: 'from-yellow-500 to-[#955251]' },
+  { id: 'no_answer', label: 'Недозвон', color: 'from-[#955251] to-red-500' },
   { id: 'appointment', label: 'Записан', color: 'from-purple-500 to-pink-500' },
   { id: 'paid', label: 'Оплачено', color: 'from-blue-500 to-green-500' },
   { id: 'cancelled', label: 'Отказ', color: 'from-red-500 to-rose-500' },
@@ -204,7 +204,7 @@ export const BulkActionsBar = ({
                   Удалить лидов?
                 </AlertDialogTitle>
                 <AlertDialogDescription>
-                  Вы уверены, что хотите удалить <span className="font-bold text-foreground">{selectedCount}</span> лидов? 
+                  Вы уверены, что хотите удалить <span className="font-bold text-foreground">{selectedCount}</span> лидов?
                   Это действие нельзя отменить. Все данные, сообщения и история будут удалены безвозвратно.
                 </AlertDialogDescription>
               </AlertDialogHeader>
