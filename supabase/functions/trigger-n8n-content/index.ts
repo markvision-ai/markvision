@@ -15,7 +15,8 @@ serve(async (req) => {
         const payload = await req.json()
         const webhookUrl = "https://n8n.zapoinov.com/webhook/content-factory-v2"
 
-        console.log("Forwarding payload to n8n:", payload)
+        console.log(`Forwarding payload to n8n URL: ${webhookUrl}`)
+        console.log("Payload:", JSON.stringify(payload))
 
         const response = await fetch(webhookUrl, {
             method: 'POST',

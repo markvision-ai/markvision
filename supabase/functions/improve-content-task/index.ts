@@ -42,6 +42,9 @@ serve(async (req) => {
 
 Сделай текст максимально качественным и готовым к работе на "Контент-Заводе".`;
 
+        console.log(`Improving text for format: ${format}`)
+        console.log(`Input text: ${text.substring(0, 50)}...`)
+
         const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
             method: 'POST',
             headers: {
@@ -49,7 +52,7 @@ serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.0-flash-exp', // Using a fast, reliable model
+                model: 'google/gemini-2.0-flash', // Updated to a standard model name
                 messages: [
                     { role: 'user', content: prompt }
                 ],

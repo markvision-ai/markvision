@@ -21,6 +21,12 @@ verify_jwt = false
 [functions.crm-automation]
 verify_jwt = true
 
+[functions.trigger-n8n-content]
+verify_jwt = false
+
+[functions.improve-content-task]
+verify_jwt = false
+
 [functions.generate-ad-copy]
 verify_jwt = true
 
