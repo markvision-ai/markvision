@@ -325,9 +325,9 @@ export const DataTable = React.memo(({
           />
       </div>
 
-      <div className="glass-card border rounded-xl stripe-blue">
+      <div className="rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden group mb-6 hover:shadow-2xl hover:shadow-blue-500/10 transition-all duration-500">
         {/* Header with Date Range Selection */}
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-3 md:p-4 border-b gap-3 lg:gap-2">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between p-5 md:p-6 border-b border-white/80 bg-slate-50/50 backdrop-blur-md gap-3 lg:gap-2 relative z-10">
           
           {/* Controls Container */}
           <div className="flex items-center gap-2">
@@ -354,33 +354,34 @@ export const DataTable = React.memo(({
             </Button>
           </div>
           
-          <Button onClick={exportToCSV} variant="glow" size="sm" className="gap-2 self-end lg:self-auto">
+          <Button onClick={exportToCSV} className="gap-2 self-end lg:self-auto h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 rounded-xl transition-all">
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">Экспорт CSV</span>
           </Button>
         </div>
 
         {/* Table */}
-        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none" />
+        <div className="overflow-auto max-h-[75vh] data-table scrollbar-thin -mx-px relative z-10">
           <table className="w-full text-xs md:text-sm border-collapse">
-            <thead className="sticky top-0 z-50 glass-card">
-              <tr className="border-b border-white/50">
-                <th className="text-left p-2 md:p-3 font-semibold text-muted-foreground sticky left-0 bg-card/80 backdrop-blur-md min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">Дата</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[110px]">Расходы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[70px] md:min-w-[100px]">Показы</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[60px] md:min-w-[80px]">Клики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[60px] md:min-w-[80px]">Лиды</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[80px] md:min-w-[100px]">Подписчики</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[80px] md:min-w-[100px]">Диагностика</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[70px] md:min-w-[80px]">Продажи</th>
-                <th className="text-right p-2 md:p-3 font-semibold text-muted-foreground min-w-[90px] md:min-w-[120px]">Выручка</th>
+            <thead className="sticky top-0 z-50 bg-slate-50/80 backdrop-blur-xl">
+              <tr className="border-b border-slate-200/60">
+                <th className="text-left p-4 font-bold text-slate-600 sticky left-0 bg-slate-50/80 backdrop-blur-xl min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] uppercase text-[10px] tracking-wider">Дата</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[90px] md:min-w-[110px]">Расходы</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[70px] md:min-w-[100px]">Показы</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[80px] md:min-w-[100px]">Диагностика</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[70px] md:min-w-[80px]">Продажи</th>
+                <th className="text-right p-4 font-bold text-slate-600 uppercase text-[10px] tracking-wider min-w-[90px] md:min-w-[120px]">Выручка</th>
               </tr>
             </thead>
             <tbody>
               {/* Plan Row - editable at top */}
               {effectivePlanData && (
-                <tr className="bg-primary/10 font-semibold border-b border-primary/20 backdrop-blur-sm">
-                  <td className="p-2 md:p-4 sticky left-0 bg-primary/10 backdrop-blur-sm z-30 flex items-center gap-1 md:gap-2 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">
+                <tr className="bg-blue-500/5 font-bold border-b border-blue-500/10 backdrop-blur-md">
+                  <td className="p-4 sticky left-0 bg-blue-500/5 backdrop-blur-md z-30 flex items-center gap-2 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] text-blue-700">
                     <Target className="w-3 h-3 md:w-4 md:h-4 text-primary" />
                     <div className="flex flex-col">
                       <span>ПЛАН</span>
@@ -414,22 +415,22 @@ export const DataTable = React.memo(({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-white/80 backdrop-blur-sm font-semibold border-b border-white/50">
-                <td className="p-2 md:p-4 sticky left-0 bg-white/80 backdrop-blur-sm z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">ФАКТ</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatCurrency(totals.spend)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.impressions)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.clicks)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.leads)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.followers)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.visits)}</td>
-                <td className="p-2 md:p-4 text-right text-foreground font-mono">{formatNumber(totals.sales)}</td>
-                <td className="p-2 md:p-4 text-right text-blue-500 font-mono">{formatCurrency(totals.revenue)}</td>
+              <tr className="bg-white/90 backdrop-blur-xl font-bold border-b border-slate-200/60 shadow-sm">
+                <td className="p-4 sticky left-0 bg-white/90 backdrop-blur-xl z-30 shadow-[1px_0_0_0_rgba(0,0,0,0.05)] text-slate-900">ФАКТ</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatCurrency(totals.spend)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.impressions)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.clicks)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.leads)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.followers)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.visits)}</td>
+                <td className="p-2 md:p-4 text-right text-slate-900 font-mono font-bold">{formatNumber(totals.sales)}</td>
+                <td className="p-2 md:p-4 text-right font-mono font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{formatCurrency(totals.revenue)}</td>
               </tr>
 
               {/* Percentage Row - third */}
               {effectivePlanData && (
-                <tr className="bg-muted/90 backdrop-blur-sm border-b border-white/50 shadow-sm">
-                  <td className="p-2 md:p-4 sticky left-0 bg-muted/90 backdrop-blur-sm z-30 text-foreground/80  text-sm md:text-base font-semibold shadow-[1px_0_0_0_rgba(0,0,0,0.1)]">% выполн.</td>
+                <tr className="bg-slate-50/90 backdrop-blur-xl border-b border-slate-200/60 shadow-sm font-bold">
+                  <td className="p-4 sticky left-0 bg-slate-50/90 backdrop-blur-xl z-30 text-slate-700 text-sm font-bold shadow-[1px_0_0_0_rgba(0,0,0,0.05)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
@@ -485,16 +486,9 @@ export const DataTable = React.memo(({
                 return (
                   <tr 
                     key={dateKey} 
-                    className={cn(
-                      "border-b border-white/50 hover:bg-muted/30 transition-colors",
-                      isToday && "bg-primary/5",
-                      isWeekend && "bg-muted/10"
-                    )}
+                    className={cn("border-b border-slate-100 hover:bg-white/80 transition-all hover:shadow-sm group", isToday && "bg-blue-50/50", isWeekend && "bg-slate-50/50")}
                   >
-                    <td className={cn(
-                      "p-2 md:p-3 sticky left-0 z-20 backdrop-blur-sm shadow-[1px_0_0_0_rgba(0,0,0,0.1)]",
-                      isToday ? "bg-primary/5" : isWeekend ? "bg-muted/10" : "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60"
-                    )}>
+                    <td className={cn("p-2 md:p-4 sticky left-0 z-20 backdrop-blur-md shadow-[1px_0_0_0_rgba(0,0,0,0.05)] transition-all", isToday ? "bg-blue-50/80" : isWeekend ? "bg-slate-50/80" : "bg-white/60 group-hover:bg-white/90")}>
                       <div className="flex flex-col">
                         <span className={cn(
                           "font-medium",
