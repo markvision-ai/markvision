@@ -182,6 +182,7 @@ const App = () => (
         <Route path="/inbox" element={<Index />} />
         <Route path="/scoring" element={<Index />} />
         <Route path="/competitors" element={<Index />} />
+        <Route path="/ad-library" element={<Index />} />
 
         <Route path="/ab-testing" element={<Index />} />
         <Route path="/ab-tests" element={<Index />} />

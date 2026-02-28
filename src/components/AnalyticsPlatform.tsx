@@ -72,6 +72,7 @@ const CalendarPage = lazy(() => import('./calendar/CalendarPage').then(m => ({ d
 const VisitsPage = lazy(() => import('./visits/VisitsPage').then(m => ({ default: m.VisitsPage })));
 const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m => ({ default: m.AutomationPage })));
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
+const AdLibraryPage = lazy(() => import('./ads/AdLibraryPage').then(m => ({ default: m.AdLibraryPage })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -416,6 +417,9 @@ export const AnalyticsPlatform = () => {
       case 'calendar': return '📅 Календарь';
       case 'automation': return '🤖 Автоматизация';
       case 'agency-accounts': return 'Сводка по кабинетам';
+      case 'competitors': return 'Конкуренты';
+      case 'ad-library': return 'Библиотека рекламы';
+      case 'rop': return 'AI ROP';
       default: return 'Раздел в разработке';
     }
   };
@@ -674,10 +678,15 @@ export const AnalyticsPlatform = () => {
           <AdminHub projectId={currentProjectId} projects={projects} />
         </Suspense>
       )}
-
-      {activeTab === 'audit' && currentProjectId && (
+      {activeTab === 'competitors' && (
         <Suspense fallback={<ModuleLoader />}>
-          <AuditLogViewer />
+          <CompetitorsPage />
+        </Suspense>
+      )}
+
+      {activeTab === 'ad-library' && (
+        <Suspense fallback={<ModuleLoader />}>
+          <AdLibraryPage />
         </Suspense>
       )}
 

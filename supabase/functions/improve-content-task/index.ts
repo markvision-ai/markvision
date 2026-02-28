@@ -52,7 +52,7 @@ serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                model: 'google/gemini-2.0-flash', // Updated to a standard model name
+                model: 'google/gemini-1.5-flash', // Switched to a more stable model name
                 messages: [
                     { role: 'user', content: prompt }
                 ],
