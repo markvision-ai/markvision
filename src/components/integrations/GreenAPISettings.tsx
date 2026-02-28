@@ -8,6 +8,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { MessageCircle, CheckCircle, XCircle, Loader2, Settings, Save, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import { motion } from 'framer-motion';
 
 interface GreenAPISettingsProps {
   projectId: string;
@@ -19,7 +21,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
-  
+
   const [idInstance, setIdInstance] = useState('');
   const [apiToken, setApiToken] = useState('');
   const [integrationId, setIntegrationId] = useState<string | null>(null);
@@ -28,7 +30,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
   useEffect(() => {
     const loadIntegration = async () => {
       if (!projectId) return;
-      
+
       setLoading(true);
       try {
         const { data, error } = await supabase
@@ -42,9 +44,9 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
 
         if (data) {
           setIntegrationId(data.id);
-          const config = data.config as { id_instance?: string; api_token?: string } | null;
-          setIdInstance(config?.id_instance || '');
-          setApiToken(config?.api_token || '');
+          const settings = data.settings as { id_instance?: string; api_token?: string } | null;
+          setIdInstance(settings?.id_instance || '');
+          setApiToken(settings?.api_token || '');
           setIsConnected(data.status === 'active');
           onStatusChange?.(data.status === 'active');
         }
@@ -66,7 +68,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
 
     setSaving(true);
     try {
-      const config = {
+      const settings = {
         id_instance: idInstance.trim(),
         api_token: apiToken.trim(),
       };
@@ -76,7 +78,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
         const { error } = await supabase
           .from('integrations')
           .update({
-            config,
+            settings,
             status: 'active',
             updated_at: new Date().toISOString(),
           })
@@ -91,7 +93,7 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
             project_id: projectId,
             type: 'greenapi',
             name: 'WhatsApp (GreenAPI)',
-            config,
+            settings,
             status: 'active',
           })
           .select()
@@ -142,103 +144,122 @@ export const GreenAPISettings = ({ projectId, onStatusChange }: GreenAPISettings
 
   if (loading) {
     return (
-      <Card className="relative overflow-hidden">
-        <CardContent className="p-4 flex items-center justify-center">
-          <Loader2 className="w-5 h-5 animate-spin" />
+      <Card className="bg-[#020617]/40 backdrop-blur-3xl border-white/10 shadow-interstellar rounded-3xl relative overflow-hidden">
+        <CardContent className="p-8 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-blue-500/40" />
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className={`relative overflow-hidden transition-all hover:shadow-md ${isConnected ? 'ring-2 ring-green-500/30' : ''}`}>
-      <CardContent className="p-4">
+    <Card className={cn(
+      "bg-[#020617]/40 backdrop-blur-3xl border border-white/5 shadow-interstellar rounded-[32px] relative overflow-hidden group transition-all duration-500 hover:border-white/20",
+      isConnected && "border-emerald-500/20"
+    )}>
+      <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 blur-[40px] rounded-full -mr-16 -mt-16 group-hover:bg-white/10 transition-colors" />
+
+      <CardContent className="p-8">
         <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-green-500 text-white">
-              <MessageCircle className="w-5 h-5" />
+          <div className="flex items-center gap-5">
+            <div className={cn(
+              "w-16 h-16 rounded-2xl flex items-center justify-center border shadow-inner transition-transform duration-500 group-hover:scale-105",
+              isConnected ? "bg-emerald-500/20 border-emerald-500/20 text-emerald-400" : "bg-white/5 border-white/10 text-white/40"
+            )}>
+              <MessageCircle className="w-8 h-8" />
             </div>
             <div>
-              <h3 className="font-medium">WhatsApp (GreenAPI)</h3>
-              <p className="text-xs text-muted-foreground">Автоответчик и рассылки</p>
+              <h3 className="text-lg font-black text-white uppercase tracking-tight">WhatsApp (GreenAPI)</h3>
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mt-2 opacity-60">Автоответчик и рассылки</p>
             </div>
           </div>
         </div>
-        
-        <div className="mt-4 flex items-center justify-between">
-          <Badge 
-            variant={isConnected ? 'default' : 'secondary'}
-            className={isConnected ? 'bg-green-500/10 text-green-500 border-green-500/20' : ''}
-          >
-            {isConnected ? (
-              <><CheckCircle className="w-3 h-3 mr-1" /> Подключено</>
-            ) : (
-              <><XCircle className="w-3 h-3 mr-1" /> Отключено</>
+
+        <div className="mt-8 flex items-center justify-between gap-4">
+          <Badge
+            className={cn(
+              "text-[9px] uppercase tracking-[0.2em] font-black px-4 py-1.5 rounded-full border transition-all",
+              isConnected
+                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                : "bg-white/5 text-muted-foreground border-white/5"
             )}
+          >
+            {isConnected ? 'CONNECTED' : 'DISCONNECTED'}
           </Badge>
-          
+
           <Dialog open={isOpen} onOpenChange={setIsOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" variant={isConnected ? 'outline' : 'default'}>
-                {isConnected ? <><Settings className="w-4 h-4 mr-1" /> Настроить</> : 'Подключить'}
+              <Button
+                size="lg"
+                variant="outline"
+                className="h-12 bg-white/5 border-white/10 hover:bg-white/10 text-white rounded-2xl transition-all font-black uppercase tracking-widest text-[10px] px-6"
+              >
+                {isConnected ? <><Settings className="w-4 h-4 mr-2" /> Settings</> : 'Connect'}
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-md">
-              <DialogHeader>
-                <DialogTitle className="flex items-center gap-2">
-                  <MessageCircle className="w-5 h-5 text-green-500" />
-                  Настройка GreenAPI (WhatsApp)
-                </DialogTitle>
-              </DialogHeader>
-              
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="idInstance">IdInstance</Label>
+            <DialogContent className="max-w-md bg-[#020617]/90 backdrop-blur-3xl border-white/10 shadow-interstellar rounded-[40px] p-0 overflow-hidden">
+              <div className="p-10 border-b border-white/5 bg-white/5 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 blur-[80px] rounded-full -mr-24 -mt-24" />
+                <DialogHeader className="relative z-10">
+                  <DialogTitle className="text-2xl font-black text-white uppercase tracking-tight flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20 shadow-inner">
+                      <MessageCircle className="w-6 h-6 text-emerald-400" />
+                    </div>
+                    WhatsApp Setup
+                  </DialogTitle>
+                </DialogHeader>
+              </div>
+
+              <div className="p-10 space-y-8">
+                <div className="space-y-4">
+                  <Label htmlFor="idInstance" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">IdInstance</Label>
                   <Input
                     id="idInstance"
                     value={idInstance}
                     onChange={(e) => setIdInstance(e.target.value)}
-                    placeholder="Например: 1101234567"
-                    className="font-mono"
+                    placeholder="e.g. 1101234567"
+                    className="h-14 bg-white/5 border-white/10 rounded-2xl font-mono text-white focus:border-emerald-500/50 transition-all text-sm px-5"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Получите в <a href="https://console.green-api.com" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">консоли GreenAPI</a>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground/40 leading-relaxed">
+                    Get from <a href="https://console.green-api.com" target="_blank" rel="noopener noreferrer" className="text-emerald-400 hover:underline">GreenAPI Console</a>
                   </p>
                 </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="apiToken">ApiToken</Label>
+
+                <div className="space-y-4">
+                  <Label htmlFor="apiToken" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40">ApiToken</Label>
                   <Input
                     id="apiToken"
                     type="password"
                     value={apiToken}
                     onChange={(e) => setApiToken(e.target.value)}
-                    placeholder="Ваш API токен"
-                    className="font-mono"
+                    placeholder="Your API Token"
+                    className="h-14 bg-white/5 border-white/10 rounded-2xl font-mono text-white focus:border-emerald-500/50 transition-all text-sm px-5"
                   />
                 </div>
 
-                <div className="flex gap-2 pt-4">
+                <div className="flex gap-4 pt-6">
                   <Button
                     onClick={handleSave}
                     disabled={saving || !idInstance || !apiToken}
-                    className="flex-1"
+                    className="flex-1 h-14 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl shadow-lg shadow-emerald-500/20 transition-all font-black uppercase tracking-widest text-[10px] gap-3"
                   >
                     {saving ? (
-                      <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                      <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      <Save className="w-4 h-4 mr-2" />
+                      <Save className="w-4 h-4" />
                     )}
-                    Сохранить
+                    Save Configuration
                   </Button>
-                  
+
                   {isConnected && (
                     <Button
-                      variant="destructive"
+                      variant="outline"
+                      size="icon"
                       onClick={handleDisconnect}
                       disabled={saving}
+                      className="w-14 h-14 bg-red-500/10 border-red-500/20 text-red-400 hover:bg-red-500/20 rounded-2xl transition-all"
                     >
-                      <Trash2 className="w-4 h-4" />
+                      <Trash2 className="w-5 h-5" />
                     </Button>
                   )}
                 </div>
@@ -261,7 +282,7 @@ export const sendWhatsAppMessage = async (
     // Get GreenAPI credentials
     const { data: integration, error: intError } = await supabase
       .from('integrations')
-      .select('config')
+      .select('settings')
       .eq('project_id', projectId)
       .eq('type', 'greenapi')
       .eq('status', 'active')
@@ -272,8 +293,8 @@ export const sendWhatsAppMessage = async (
       return { success: false, error: 'GreenAPI не подключен' };
     }
 
-    const config = integration.config as { id_instance?: string; api_token?: string } | null;
-    if (!config?.id_instance || !config?.api_token) {
+    const settings = integration.settings as { id_instance?: string; api_token?: string } | null;
+    if (!settings?.id_instance || !settings?.api_token) {
       return { success: false, error: 'Некорректная конфигурация GreenAPI' };
     }
 
@@ -288,7 +309,7 @@ export const sendWhatsAppMessage = async (
 
     // Send message via GreenAPI
     const response = await fetch(
-      `https://api.green-api.com/waInstance${config.id_instance}/sendMessage/${config.api_token}`,
+      `https://api.green-api.com/waInstance${settings.id_instance}/sendMessage/${settings.api_token}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

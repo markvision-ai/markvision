@@ -276,7 +276,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             className="space-y-6"
           >
             <div className="text-center mb-8">
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-orange-500 to-pink-600 mx-auto flex items-center justify-center mb-4">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#955251] to-[#B57170] mx-auto flex items-center justify-center mb-4">
                 <Megaphone className="w-10 h-10 text-white" />
               </div>
               <h2 className="text-2xl font-bold text-foreground">Подключите рекламные площадки</h2>

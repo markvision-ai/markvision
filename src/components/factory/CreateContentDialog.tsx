@@ -346,7 +346,7 @@ export const CreateContentDialog = ({
                 <div
                   className={cn(
                     "h-full transition-all duration-700 ease-out",
-                    s <= step ? "bg-gradient-to-r from-primary to-orange-400 shadow-[0_0_10px_rgba(249,115,22,0.3)]" : "bg-transparent"
+                    s <= step ? "bg-gradient-to-r from-primary to-[#B57170] shadow-[0_0_10px_rgba(181,113,112,0.3)]" : "bg-transparent"
                   )}
                 />
               </div>
@@ -376,7 +376,7 @@ export const CreateContentDialog = ({
               <ChevronRight className="w-4 h-4" />
             </Button>
           ) : (
-            <Button onClick={handleCreate} disabled={isCreating} className="gap-3 bg-gradient-to-r from-primary to-orange-500 hover:from-primary/90 hover:to-orange-600 text-white shadow-interstellar h-12 px-10 rounded-xl uppercase tracking-widest text-[10px] font-black transition-all">
+            <Button onClick={handleCreate} disabled={isCreating} className="gap-3 bg-gradient-to-r from-primary to-[#955251] hover:from-primary/90 hover:to-[#B57170] text-white shadow-interstellar h-12 px-10 rounded-xl uppercase tracking-widest text-[10px] font-black transition-all">
               {isCreating ? 'Создаем...' : 'Запустить создание'}
               <Sparkles className="w-4 h-4" />
             </Button>
