@@ -60,6 +60,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
     const [designTemplateId, setDesignTemplateId] = useState('template_1');
 
     const [isLoading, setIsLoading] = useState(false);
+    const [isMagicLoading, setIsMagicLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -147,6 +148,40 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
         e.stopPropagation();
     };
 
+    const handleMagicAI = async () => {
+        if (!mainText) {
+            toast.error('Сначала введите описание или идею');
+            return;
+        }
+
+        setIsMagicLoading(true);
+        try {
+            const { data, error } = await supabase.functions.invoke('improve-content-task', {
+                body: { text: mainText, format: format }
+            });
+
+            if (error) throw error;
+
+            if (data?.success && data.text) {
+                setMainText(data.text);
+                setMagicGenerationNeeded(true);
+                toast.success('Магия AI сработала!', {
+                    description: 'Ваш текст преобразован в детальное ТЗ.',
+                    icon: <Sparkles className="w-5 h-5 text-primary" />
+                });
+            } else {
+                throw new Error('Не удалось получить ответ от AI');
+            }
+        } catch (error: any) {
+            console.error('Magic AI error:', error);
+            toast.error('Ошибка Магии AI', {
+                description: error.message || 'Не удалось улучшить текст.'
+            });
+        } finally {
+            setIsMagicLoading(false);
+        }
+    };
+
     const handleSubmit = async () => {
         if (sourceType === 'description' && !mainText && !magicGenerationNeeded) {
             toast.error('Введите описание или активируйте Магию AI');
@@ -180,7 +215,10 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
             });
 
             if (functionError) {
-                throw new Error(functionError.message || 'Ошибка вызова функции');
+                // Check if we have detailed error from our function
+                const errorMsg = responseData?.error || functionError.message || 'Ошибка вызова функции';
+                const errorDetails = responseData?.details || '';
+                throw new Error(`${errorMsg}${errorDetails ? ': ' + errorDetails : ''}`);
             }
 
             toast.success('Задание отправлено на Контент-Завод!', {
@@ -333,19 +371,25 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
 
                                 {sourceType === 'description' && (
                                     <button
-                                        onClick={() => setMagicGenerationNeeded(!magicGenerationNeeded)}
+                                        onClick={handleMagicAI}
+                                        disabled={isMagicLoading}
                                         className={cn(
                                             "relative overflow-hidden flex items-center gap-3 px-8 py-4 rounded-full transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em] outline-none shadow-lg",
                                             magicGenerationNeeded
                                                 ? "border border-primary/50 bg-primary/20 text-primary shadow-primary/20"
-                                                : "border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:shadow-xl"
+                                                : "border border-white/10 bg-white/5 text-white/40 hover:text-white hover:bg-white/10 hover:shadow-xl",
+                                            isMagicLoading && "cursor-not-allowed opacity-70"
                                         )}
                                     >
-                                        {magicGenerationNeeded && (
+                                        {isMagicLoading && (
                                             <div className="absolute inset-0 bg-primary/10 opacity-50 animate-pulse pointer-events-none" />
                                         )}
-                                        <Sparkles className={cn("w-5 h-5 z-10", magicGenerationNeeded ? "text-primary animate-pulse" : "text-white/40 group-hover:text-white/80")} />
-                                        <span className="z-10">{magicGenerationNeeded ? "Магия AI Активна" : "Магия AI ✨"}</span>
+                                        {isMagicLoading ? (
+                                            <Loader2 className="w-5 h-5 z-10 text-primary animate-spin" />
+                                        ) : (
+                                            <Sparkles className={cn("w-5 h-5 z-10", magicGenerationNeeded ? "text-primary animate-pulse" : "text-white/40 group-hover:text-white/80")} />
+                                        )}
+                                        <span className="z-10">{isMagicLoading ? "Магия в процессе..." : magicGenerationNeeded ? "Магия AI Активна" : "Магия AI ✨"}</span>
                                     </button>
                                 )}
                             </div>

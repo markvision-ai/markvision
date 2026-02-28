@@ -26,9 +26,17 @@ serve(async (req) => {
         })
 
         const result = await response.text()
+        console.log(`n8n response status: ${response.status}`)
 
         if (!response.ok) {
-            throw new Error(`n8n responded with ${response.status}: ${result}`)
+            console.error(`n8n error: ${response.status} - ${result}`)
+            return new Response(JSON.stringify({
+                error: `n8n error: ${response.status}`,
+                details: result
+            }), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+                status: response.status,
+            })
         }
 
         return new Response(JSON.stringify({ success: true, data: result }), {
@@ -40,7 +48,7 @@ serve(async (req) => {
         console.error("Error triggering n8n:", error)
         return new Response(JSON.stringify({ error: error.message }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-            status: 400,
+            status: 500,
         })
     }
 })
