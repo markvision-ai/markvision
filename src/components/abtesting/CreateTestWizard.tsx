@@ -100,7 +100,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-2xl bg-slate-50 border-white/50 sm:max-w-[700px]">
+            <DialogContent className="max-w-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 sm:max-w-[700px]">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2 text-xl text-foreground">
                         <FlaskConical className="w-5 h-5 text-primary" />
@@ -110,12 +110,12 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
 
                 {/* Progress Steps */}
                 <div className="flex items-center justify-between px-2 mb-6 relative">
-                    <div className="absolute left-0 top-1/2 -content-[''] w-full h-0.5 bg-white/10 -z-10" />
+                    <div className="absolute left-0 top-1/2 -content-[''] w-full h-0.5 bg-slate-200 -z-10" />
                     {STEPS.map((s, i) => (
-                        <div key={s.id} className="flex flex-col items-center gap-2 bg-black px-2 z-10">
+                        <div key={s.id} className="flex flex-col items-center gap-2 bg-transparent px-2 z-10">
                             <div className={cn(
                                 "w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all border-2",
-                                i <= step ? "bg-primary border-primary text-black" : "bg-black border-white/20 text-muted-foreground"
+                                i <= step ? "bg-primary border-primary text-primary-foreground shadow-lg shadow-primary/20" : "bg-white border-slate-200 text-muted-foreground"
                             )}>
                                 {i + 1}
                             </div>
@@ -164,7 +164,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                     value={formData.name}
                                     onChange={e => updateField('name', e.target.value)}
                                     placeholder="Например: Тест заголовка на главной"
-                                    className="bg-slate-50 border-input text-foreground focus:border-primary/50"
+                                    className="bg-white/50 backdrop-blur-sm border-white/60 text-foreground focus:border-primary/50"
                                 />
                             </div>
                             <div className="space-y-2">
@@ -173,7 +173,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                     value={formData.hypothesis}
                                     onChange={e => updateField('hypothesis', e.target.value)}
                                     placeholder="Если мы изменим X, то метрика Y увеличится, потому что Z..."
-                                    className="bg-slate-50 border-input text-foreground focus:border-primary/50 min-h-[100px]"
+                                    className="bg-white/50 backdrop-blur-sm border-white/60 text-foreground focus:border-primary/50 min-h-[100px]"
                                 />
                                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                                     <Sparkles className="w-3 h-3 text-primary" />
@@ -279,7 +279,7 @@ export const CreateTestWizard: React.FC<CreateTestWizardProps> = ({ open, onOpen
                                                 type="number"
                                                 value={formData.auto_winner_threshold}
                                                 onChange={e => updateField('auto_winner_threshold', e.target.value)}
-                                                className="bg-black/20 border-slate-200 text-white pr-8"
+                                                className="bg-white/50 backdrop-blur-sm border-white/60 text-foreground pr-8"
                                             />
                                             <span className="absolute right-3 top-2.5 text-xs text-muted-foreground">%</span>
                                         </div>

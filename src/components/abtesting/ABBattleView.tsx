@@ -73,7 +73,7 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
             className="w-full"
         >
             <BackgroundGradient className="rounded-3xl p-[1px]">
-                <Card className="border-0 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-2xl shadow-blue-900/5 rounded-3xl overflow-hidden relative">
+                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden relative">
 
                     {/* Header */}
                     <CardHeader className="relative z-10 border-b border-white/50 pb-6">
@@ -153,8 +153,8 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
                         </div>
 
                         {/* AI INSIGHTS FOOTER */}
-                        <div className="mt-12 p-6 rounded-2xl bg-muted/30 border border-white/50 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
-                            <div className="absolute inset-0 bg-background/50 translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
+                        <div className="mt-12 p-6 rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 flex flex-col md:flex-row items-center gap-6 relative overflow-hidden group/insights">
+                            <div className="absolute inset-0 bg-white/40 translate-x-full group-hover/insights:translate-x-0 transition-transform duration-1000" />
                             <div className="p-4 rounded-full bg-slate-50 border border-white/50 relative z-10">
                                 <BrainCircuit className="w-8 h-8 text-primary" />
                             </div>
@@ -183,9 +183,9 @@ export const ABBattleView: React.FC<ABBattleViewProps> = ({ test, stats }) => {
 
 const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color }: any) => {
     const isGreen = isLeader;
-    const borderColor = isLeader ? 'border-blue-500/50' : 'border-white/50';
-    const bgColor = isLeader ? 'bg-blue-500/5' : 'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60';
-    const shadow = isLeader ? 'shadow-[0_0_30px_-5px_rgba(16,185,129,0.2)]' : '';
+    const borderColor = isLeader ? 'border-primary/50' : 'border-white/60';
+    const bgColor = isLeader ? 'bg-primary/5' : 'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60';
+    const shadow = isLeader ? 'shadow-[0_0_30px_-5px_rgba(var(--primary),0.2)]' : '';
 
     // Lift calculation
     const cr = stats.conversionRate;
@@ -269,7 +269,7 @@ const VariantCard = ({ name, type, isLeader, stats, total, opponentStats, color 
 };
 
 const StatBox = ({ label, value, suffix }: any) => (
-    <div className="bg-muted/30 rounded-xl p-3 border border-white/50">
+    <div className="bg-white/50 backdrop-blur-xl rounded-xl p-3 border border-white/60 shadow-[0_4px_20px_rgb(0,0,0,0.02)]">
         <p className="text-xs text-muted-foreground uppercase tracking-wider mb-1">{label}</p>
         <p className="text-lg font-bold font-mono text-foreground">{value} <span className="text-sm text-muted-foreground font-normal">{suffix}</span></p>
     </div>

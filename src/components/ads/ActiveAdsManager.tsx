@@ -1321,7 +1321,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
                 <Settings2 className="w-4 h-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+            <DropdownMenuContent align="end" className="w-64 bg-white/70 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
               <DropdownMenuLabel className="px-4 py-3 text-xs font-bold uppercase tracking-widest text-muted-foreground">Видимость колонок</DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-white/5" />
               <div className="p-2 space-y-1">
@@ -1617,7 +1617,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Futuristic Summary Footer */}
       {!loading && visibleRows.length > 0 && (
-        <div className="mt-8 p-8 rounded-[2.5rem] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 shadow-sm">
+        <div className="mt-8 p-8 rounded-[2.5rem] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8">
           <div className="space-y-0.5">
             <p className="text-[9px] font-bold uppercase tracking-widest text-muted-foreground">Всего затрат</p>
             <p className="text-lg font-black text-slate-900">{formatCurrency(totals.totalSpendKZT)}</p>
@@ -1643,7 +1643,7 @@ export const ActiveAdsManager = ({ projectId, dateRange, refreshTrigger = 0 }: A
 
       {/* Facebook-style Edit Modal (Light themed) */}
       <Dialog open={!!editingEntity} onOpenChange={(open) => !open && setEditingEntity(null)}>
-        <DialogContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
+        <DialogContent className="bg-white/70 backdrop-blur-2xl border border-white/60 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] text-foreground max-w-md">
           <DialogHeader className="px-2">
             <DialogTitle className="text-2xl font-bold uppercase tracking-widest text-foreground">
               Редактировать

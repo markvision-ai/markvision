@@ -147,7 +147,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
       {/* Scanner Input Section */}
       <div className="max-w-2xl mx-auto w-full">
         <div className="relative group">
-          <div className="relative flex items-center bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-xl shadow-2xl shadow-blue-900/5 border border-white/50 p-2 pl-4 h-16 transition-all duration-300">
+          <div className="relative flex items-center bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-xl p-2 pl-4 h-16 transition-all duration-300">
 
             {/* Platform Icon Indicator */}
             <div className={cn(
@@ -210,7 +210,7 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                 exit={{ opacity: 0, scale: 0.9, filter: "blur(10px)" }}
                 transition={{ delay: index * 0.05 }}
                 className={cn(
-                  "group relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-2xl border border-white/50 shadow-sm hover:shadow-2xl shadow-blue-900/5 transition-all duration-300 overflow-hidden flex flex-col"
+                  "group relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-2xl hover:shadow-lg transition-all duration-300 overflow-hidden flex flex-col"
                 )}
               >
                 {/* Node Status Line */}
@@ -304,9 +304,9 @@ export const CompetitorMonitoring = ({ projectId }: CompetitorMonitoringProps) =
                           Report
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-slate-50 border border-white/50 p-0 gap-0 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                      <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col bg-white/95 backdrop-blur-3xl border border-white/80 p-0 gap-0 shadow-[0_8px_30px_rgb(0,0,0,0.08)] rounded-3xl">
                         {/* Header */}
-                        <DialogHeader className="p-6 border-b border-white/50 bg-muted/20">
+                        <DialogHeader className="p-6 border-b border-slate-100 bg-white/50">
                           <DialogTitle className="flex items-center gap-3 text-xl text-foreground font-mono">
                             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center border border-primary/20">
                               <Sparkles className="w-5 h-5 text-primary" />

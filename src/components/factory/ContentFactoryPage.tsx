@@ -26,18 +26,18 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
     <div className="h-[calc(100vh-4rem)] flex flex-col overflow-hidden font-sans">
 
       {/* Header & Tabs */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+      <div className="flex items-center justify-between px-6 py-4 bg-transparent absolute top-0 w-full z-20">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full max-w-xl">
-          <TabsList className="bg-muted border border-white/50">
-            <TabsTrigger value="v4" className="data-[state=active]:bg-slate-50 data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
+          <TabsList className="bg-white/50 backdrop-blur-xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] rounded-full p-1 h-auto">
+            <TabsTrigger value="v4" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
               <Rocket className="w-4 h-4 mr-2" />
               Контент-Завод
             </TabsTrigger>
-            <TabsTrigger value="competitors" className="data-[state=active]:bg-slate-50 data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
+            <TabsTrigger value="competitors" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
               <Eye className="w-4 h-4 mr-2" />
               Мониторинг конкурентов
             </TabsTrigger>
-            <TabsTrigger value="analysis" className="data-[state=active]:bg-slate-50 data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground">
+            <TabsTrigger value="analysis" className="rounded-full px-6 py-2.5 data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-primary text-muted-foreground transition-all">
               <Sparkles className="w-4 h-4 mr-2" />
               Анализ по ссылке
             </TabsTrigger>

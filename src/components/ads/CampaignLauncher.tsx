@@ -171,8 +171,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
     return (
         <Sheet open={isOpen} onOpenChange={onClose}>
             <SheetContent
-                side="right"
-                className="w-full sm:max-w-xl p-0 border-l border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-2xl overflow-hidden flex flex-col"
+                className="w-full sm:max-w-xl p-0 border-l border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 overflow-hidden flex flex-col"
             >
                 {/* Decorative Header Background */}
                 <div className="absolute top-0 inset-x-0 h-40 bg-gradient-to-b from-primary/10 to-transparent pointer-events-none" />
@@ -232,7 +231,7 @@ export const CampaignLauncher = ({ projectId, isOpen, onClose }: CampaignLaunche
                                         <SelectTrigger className="bg-muted border-white/50 h-14 rounded-[1.5rem] text-foreground font-medium shadow-sm">
                                             <SelectValue />
                                         </SelectTrigger>
-                                        <SelectContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                                        <SelectContent className="bg-white/70 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
                                             <SelectItem value="whatsapp" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-600">💬 Telegram/WA Директ</SelectItem>
                                             <SelectItem value="traffic" className="py-4 font-bold uppercase text-[10px] tracking-widest text-blue-600">🔗 Трафик на сайт</SelectItem>
                                         </SelectContent>

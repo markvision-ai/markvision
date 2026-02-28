@@ -127,6 +127,7 @@ export const AnalyticsPlatform = () => {
       'content-factory': 'factory',
       'analytics': 'e2e-analytics',
       'agency-accounts': 'agency-accounts',
+      'ab-tests': 'ab-testing',
     };
     return urlToTab[path] || path;
   };

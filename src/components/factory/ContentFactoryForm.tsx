@@ -217,12 +217,12 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
     };
 
     return (
-        <div className="relative min-h-full w-full bg-slate-50/50 font-sans text-slate-800 p-4 sm:p-8 overflow-hidden rounded-3xl border border-slate-200/50 shadow-sm">
+        <div className="relative min-h-full w-full bg-slate-50 font-sans text-slate-800 p-4 sm:p-8 pt-24 overflow-y-auto">
             {/* Ambient Background Glow for Premium Bright Glassmorphism Feel */}
             <div className="absolute top-[-10%] left-[20%] w-[60%] h-[400px] bg-blue-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
             <div className="absolute bottom-[-20%] right-[10%] w-[50%] h-[400px] bg-cyan-300/40 blur-[150px] rounded-full pointer-events-none z-0" />
 
-            <div className="relative z-10 max-w-[1200px] mx-auto space-y-8">
+            <div className="relative z-10 max-w-[1200px] mx-auto space-y-8 pb-32">
                 {/* Header Section */}
                 <div className="flex flex-col space-y-3 pb-4">
                     <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/60 border border-white/80 shadow-sm backdrop-blur-md w-fit">
@@ -242,7 +242,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                     <div className="xl:col-span-8 space-y-8">
 
                         {/* Block A: Source */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
+                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/60 flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:shadow-md hover:bg-white/80">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                                     <Type className="w-5 h-5 text-blue-600" />
@@ -285,7 +285,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                         </section>
 
                         {/* Block B: Format */}
-                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] shadow-slate-200/40 transition-all hover:bg-white/90">
+                        <section className="bg-white/70 backdrop-blur-2xl rounded-3xl p-6 md:p-8 border border-white/60 flex flex-col gap-6 shadow-[0_8px_30px_rgb(0,0,0,0.04)] transition-all hover:shadow-md hover:bg-white/80">
                             <div className="flex items-center gap-4">
                                 <div className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
                                     <Layout className="w-5 h-5 text-indigo-500" />

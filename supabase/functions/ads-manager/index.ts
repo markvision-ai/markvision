@@ -377,7 +377,7 @@ async function fetchAdsHierarchy(supabase: any, projectId: string, payload: any)
 
   const url = `https://graph.facebook.com/v21.0/${adAccountId}/campaigns?` +
     `access_token=${accessToken}&` +
-    `fields=${fields}` +
+    `fields=${encodeURIComponent(fields)}` +
     `&limit=250`;
 
   console.log(`Fetching hierarchy from: ${url.replace(accessToken, '***')}`);
@@ -738,7 +738,7 @@ async function fetchInsightsAction(supabase: any, projectId: string, payload: an
     const accessToken = await getAccessToken(supabase, projectId);
 
     // Meta expects: time_range={'since':'YYYY-MM-DD','until':'YYYY-MM-DD'}
-    const timeRangeStr = JSON.stringify(date_range);
+    const timeRangeStr = encodeURIComponent(JSON.stringify(date_range));
 
     const levels = ['campaign', 'adset', 'ad'];
     let totalProcessed = 0;
@@ -1036,7 +1036,7 @@ async function fetchDailyBreakdown(accessToken: string, adAccountId: string, dat
   else if (level === 'adset') fields += ',adset_id,adset_name,campaign_id,campaign_name';
   else fields += ',campaign_id,campaign_name';
 
-  const timeRangeStr = JSON.stringify(dateRange);
+  const timeRangeStr = encodeURIComponent(JSON.stringify(dateRange));
 
   let url = `https://graph.facebook.com/v21.0/${adAccountId}/insights?` +
     `access_token=${accessToken}&` +

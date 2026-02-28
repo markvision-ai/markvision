@@ -279,15 +279,15 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
           {/* Header with high-tech aesthetic */}
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative">
-            <div className="absolute -top-20 -left-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-[100px] pointer-events-none" />
+            <div className="absolute -top-20 -left-20 w-64 h-64 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
 
             <div className="relative z-10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 text-[10px] font-bold uppercase tracking-widest mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary border border-primary/20 text-[10px] font-bold uppercase tracking-widest mb-3">
                 <Rocket className="w-3 h-3" />
                 Автопостинг
               </div>
               <h1 className="text-4xl font-black text-foreground tracking-tighter uppercase transition-all">
-                Управление <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">Контентом</span>
+                Управление <span className="text-primary">Контентом</span>
               </h1>
               <p className="text-muted-foreground mt-1 text-sm font-light">
                 Планируйте и анализируйте ваши публикации во всех соцсетях.
@@ -295,18 +295,18 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 relative z-10">
-              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-muted/50 border border-white/50 h-12">
+              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-12">
                 <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-2">Сортировка:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
                   className="bg-transparent text-foreground text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
                 >
-                  <option value="date" className="bg-slate-50">Дата</option>
-                  <option value="reach" className="bg-slate-50">Охват</option>
-                  <option value="leads" className="bg-slate-50">Лиды</option>
-                  <option value="revenue" className="bg-slate-50">Доход</option>
-                  <option value="comments" className="bg-slate-50">Комменты</option>
+                  <option value="date" className="bg-slate-50 text-foreground">Дата</option>
+                  <option value="reach" className="bg-slate-50 text-foreground">Охват</option>
+                  <option value="leads" className="bg-slate-50 text-foreground">Лиды</option>
+                  <option value="revenue" className="bg-slate-50 text-foreground">Доход</option>
+                  <option value="comments" className="bg-slate-50 text-foreground">Комменты</option>
                 </select>
                 <Button
                   variant="ghost"
@@ -318,10 +318,10 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 </Button>
               </div>
 
-              <div className="p-1 rounded-2xl bg-muted/50 border border-white/50 flex items-center gap-1">
+              <div className="p-1 rounded-2xl bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-1">
                 <Button
                   onClick={() => setIsCreatorOpen(true)}
-                  className="h-12 px-8 bg-cyan-500 text-black hover:bg-cyan-400 font-bold uppercase tracking-widest rounded-xl transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] hover:shadow-[0_0_40px_rgba(6,182,212,0.5)] active:scale-95"
+                  className="h-12 px-8 bg-primary text-primary-foreground font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Создать пост
@@ -372,8 +372,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 className={cn(
                   "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-bold uppercase tracking-widest text-[10px]",
                   selectedChannel === channel.id
-                    ? "bg-muted border-white/50 text-foreground shadow-2xl shadow-blue-900/5"
-                    : "bg-muted/50 border-white/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    ? "bg-white/90 backdrop-blur-3xl border-white/80 text-foreground shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
+                    : "bg-white/50 border-white/60 shadow-sm text-muted-foreground hover:bg-white/70 hover:text-foreground hover:shadow-md"
                 )}
               >
                 {channel.id === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel.id} className="w-4 h-4" />}
@@ -384,21 +384,21 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
           {/* Analytics Table - Interstellar Redesign */}
           <div className="relative group">
-            <div className="absolute -inset-0.5 bg-gradient-to-r from-cyan-500/20 via-purple-500/20 to-cyan-500/20 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
+            <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
 
-            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/50 bg-card/80 backdrop-blur-2xl shadow-2xl">
+            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/80 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg transition-all">
 
               {/* Table Header Container */}
-              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-white/50 bg-muted/30 items-center">
+              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-slate-100 bg-white/50 items-center">
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-4 h-4 text-cyan-500" />
+                  <BarChart3 className="w-4 h-4 text-primary" />
                   <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Контент</span>
                 </div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Канал</div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Охват</div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Клики</div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Комменты</div>
-                <div className="text-[10px] font-black text-cyan-500 uppercase tracking-[0.3em] text-center border-b border-cyan-500/20 pb-1">Воронка</div>
+                <div className="text-[10px] font-black text-primary uppercase tracking-[0.3em] text-center border-b border-primary/20 pb-1">Воронка</div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right">Доход</div>
                 <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right whitespace-nowrap">Действие</div>
               </div>
@@ -407,8 +407,8 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
               <div className="divide-y divide-border">
                 {loading ? (
                   <div className="flex flex-col items-center justify-center py-40 gap-4">
-                    <Loader2 className="w-10 h-10 animate-spin text-cyan-500" />
-                    <span className="text-xs font-mono text-cyan-500/50 uppercase tracking-widest animate-pulse">Синхронизация данных...</span>
+                    <Loader2 className="w-10 h-10 animate-spin text-primary" />
+                    <span className="text-xs font-mono text-primary/50 uppercase tracking-widest animate-pulse">Синхронизация данных...</span>
                   </div>
                 ) : filteredPosts.length === 0 ? (
                   <div className="text-center py-40">
@@ -425,13 +425,13 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-muted/30 transition-all duration-300 relative overflow-hidden"
+                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-slate-50/50 transition-all duration-300 relative overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/0 to-cyan-500/0 group-hover:via-cyan-500/5 transition-all duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 group-hover:via-primary/5 transition-all duration-500" />
 
                         {/* Content */}
                         <div className="flex items-center gap-6 min-w-0 relative z-10">
-                          <div className="h-16 w-16 rounded-2xl bg-muted/50 border border-white/50 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+                          <div className="h-16 w-16 rounded-2xl bg-white/50 border border-white/60 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-sm">
                             {post.media_url ? (
                               <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
                             ) : (
@@ -439,13 +439,13 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                                 <Eye className="w-6 h-6" />
                               </div>
                             )}
-                            <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all" />
-                            <div className="absolute bottom-1 right-1 bg-background/90 backdrop-blur-md rounded-lg p-1 border border-white/50">
-                              {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-cyan-400" /> : <FileImage className="w-3 h-3 text-purple-400" />}
+                            <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-all" />
+                            <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur-md rounded-lg p-1 border border-white/60 shadow-sm">
+                              {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-primary" /> : <FileImage className="w-3 h-3 text-purple-500" />}
                             </div>
                           </div>
                           <div className="min-w-0 flex-1 space-y-1">
-                            <p className="text-sm font-bold text-foreground group-hover:text-cyan-500 transition-colors truncate pr-8" title={post.caption || ''}>
+                            <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate pr-8" title={post.caption || ''}>
                               {post.caption || 'Без названия'}
                             </p>
                             <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
@@ -457,7 +457,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Node (Channel) */}
                         <div className="flex justify-center relative z-10">
-                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-muted/50 border border-white/50 min-w-[80px] group-hover:border-white/50 transition-all">
+                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/50 border border-white/60 shadow-sm min-w-[80px] group-hover:border-primary/30 transition-all">
                             <ChannelIcon channel={post.channel} className="w-5 h-5 mb-1" />
                             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">{post.channel}</span>
                           </div>
@@ -476,14 +476,14 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Funnel Matrix */}
                         <div className="relative z-10">
-                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-cyan-500/10 border border-white/50 group-hover:bg-cyan-500/15 transition-all">
+                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-primary/5 border border-primary/10 group-hover:bg-primary/10 transition-all">
                             <div className="space-y-0.5">
                               <div className="text-[14px] font-black text-foreground">{post.leads_count}</div>
-                              <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Лиды</div>
+                              <div className="text-[9px] text-primary/80 uppercase tracking-widest font-bold">Лиды</div>
                             </div>
-                            <div className="space-y-0.5 border-l border-white/50">
+                            <div className="space-y-0.5 border-l border-primary/20">
                               <div className="text-[14px] font-black text-foreground">{post.visits_count}</div>
-                              <div className="text-[9px] text-cyan-500/70 uppercase tracking-widest font-bold">Визиты</div>
+                              <div className="text-[9px] text-primary/80 uppercase tracking-widest font-bold">Визиты</div>
                             </div>
                           </div>
                         </div>
@@ -491,10 +491,10 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         {/* Revenue */}
                         <div className="text-right relative z-10">
                           <div className="flex flex-col items-end">
-                            <span className="text-sm font-black text-blue-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)]">
+                            <span className="text-sm font-black text-blue-500">
                               {new Intl.NumberFormat('ru-RU').format(post.revenue)} ₸
                             </span>
-                            <div className="flex items-center gap-1 text-[10px] text-blue-400/40 font-mono">
+                            <div className="flex items-center gap-1 text-[10px] text-blue-500/60 font-mono">
                               <Target className="w-2.5 h-2.5" />
                               {post.sales_count} ПРОДАЖИ
                             </div>
@@ -505,7 +505,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         <div className="flex justify-end relative z-10">
                           <Button
                             onClick={() => handlePromoteClick(post)}
-                            className="h-10 px-6 bg-white/5 hover:bg-cyan-500 hover:text-black border border-slate-200 hover:border-cyan-400 rounded-xl transition-all duration-300 group/btn"
+                            className="h-10 px-6 bg-white/80 hover:bg-primary text-foreground hover:text-white border border-slate-200 hover:border-primary shadow-sm rounded-xl transition-all duration-300 group/btn hover:shadow-md"
                           >
                             <Zap className="w-4 h-4 mr-2 group-hover/btn:fill-current" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Продвигать</span>
@@ -536,9 +536,9 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
       {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 text-foreground backdrop-blur-3xl rounded-[32px] p-8 shadow-2xl">
+        <DialogContent className="sm:max-w-[480px] bg-white/95 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/80 text-foreground rounded-[32px] p-8">
           <DialogHeader className="space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.2)]">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
               <Rocket className="w-8 h-8" />
             </div>
             <div>
@@ -550,20 +550,20 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
           </DialogHeader>
 
           <div className="py-6 space-y-6">
-            <div className="p-5 rounded-[24px] bg-muted/50 border border-white/50 flex gap-5 items-center">
-              <div className="h-20 w-20 rounded-xl bg-muted overflow-hidden flex-shrink-0 border border-white/50 relative">
+            <div className="p-5 rounded-[24px] bg-white/60 backdrop-blur-xl border border-white/80 shadow-sm flex gap-5 items-center">
+              <div className="h-20 w-20 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200 relative">
                 {selectedPost?.media_url && (
                   <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
                 )}
-                <div className="absolute inset-0 bg-black/20" />
+                <div className="absolute inset-0 bg-black/5" />
               </div>
               <div className="min-w-0 flex-1 space-y-2">
                 <h4 className="font-bold text-sm text-foreground line-clamp-1">{selectedPost?.caption || 'Без названия'}</h4>
                 <div className="flex flex-wrap gap-2">
-                  <div className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[9px] font-black uppercase font-mono">
+                  <div className="px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-[9px] font-black uppercase font-mono">
                     ПОТЕНЦИАЛ: ВЫСОКИЙ
                   </div>
-                  <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-black uppercase font-mono">
+                  <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[9px] font-black uppercase font-mono">
                     CTR: 4.8%
                   </div>
                 </div>
@@ -571,12 +571,12 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[24px] bg-cyan-500/10 border border-white/50 text-center space-y-1">
-                <div className="text-[10px] text-cyan-500 font-black uppercase tracking-widest">Прогноз лидов</div>
+              <div className="p-6 rounded-[24px] bg-primary/5 border border-primary/10 text-center space-y-1">
+                <div className="text-[10px] text-primary font-black uppercase tracking-widest">Прогноз лидов</div>
                 <div className="text-3xl font-black text-foreground">+50</div>
                 <div className="text-[9px] text-muted-foreground uppercase">Ожидается</div>
               </div>
-              <div className="p-6 rounded-[24px] bg-purple-500/10 border border-white/50 text-center space-y-1">
+              <div className="p-6 rounded-[24px] bg-purple-500/5 border border-purple-500/10 text-center space-y-1">
                 <div className="text-[10px] text-purple-500 font-black uppercase tracking-widest">Бюджет</div>
                 <div className="text-3xl font-black text-foreground">20к</div>
                 <div className="text-[9px] text-muted-foreground uppercase text-center ml-4">₸</div>
@@ -586,7 +586,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
           <DialogFooter className="gap-3 sm:justify-center">
             <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-muted-foreground hover:text-foreground uppercase font-bold text-xs tracking-widest">Отмена</Button>
-            <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-cyan-500 text-black hover:bg-cyan-400 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02]">
+            <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-sm">
               {promoting ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <Rocket className="w-5 h-5 mr-3" />}
               Запустить рост
             </Button>

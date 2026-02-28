@@ -37,7 +37,7 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
 
     if (tests.length === 0) {
         return (
-            <Card className="border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm">
+            <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
                 <CardContent className="py-12 text-center flex flex-col items-center justify-center">
                     <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                         <FlaskConical className="w-8 h-8 text-muted-foreground/50" />
@@ -74,7 +74,7 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                     >
                         <BackgroundGradient containerClassName={isSelected ? "p-[1px]" : "p-0"} className="rounded-xl">
                             <Card className={cn(
-                                "border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm transition-colors",
+                                "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 transition-colors",
                                 isSelected ? "bg-accent/5 ring-1 ring-primary" : "hover:bg-accent/5"
                             )}>
                                 <div className="p-5 flex flex-col md:flex-row gap-4 md:items-center justify-between">

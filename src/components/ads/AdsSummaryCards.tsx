@@ -35,25 +35,24 @@ const GlassMetricCard = ({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -5, scale: 1.02 }}
-      className="relative group overflow-hidden rounded-[2rem] p-4 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm transition-all duration-300"
+      className="relative group overflow-hidden rounded-[2rem] p-6 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 transition-all duration-300"
     >
-      {/* Subtle Background Glow */}
       <div className={cn(
-        "absolute -right-10 -top-10 w-32 h-32 blur-[40px] opacity-10 group-hover:opacity-20 transition-opacity duration-500 rounded-full",
+        "absolute -right-10 -top-10 w-40 h-40 blur-[50px] opacity-10 group-hover:opacity-30 transition-opacity duration-500 rounded-full",
         gradient === 'red' && "bg-red-500",
         gradient === 'blue' && "bg-blue-500",
         gradient === 'purple' && "bg-purple-500",
-        gradient === 'emerald' && "bg-blue-500"
+        gradient === 'emerald' && "bg-emerald-500"
       )} />
 
       <div className="relative z-10 flex flex-col gap-4">
         <div className="flex items-center justify-between">
           <div className={cn(
-            "p-3 rounded-2xl border shadow-sm",
-            gradient === 'red' && "bg-red-50 border-red-100 text-red-500",
-            gradient === 'blue' && "bg-blue-50 border-blue-100 text-blue-500",
-            gradient === 'purple' && "bg-purple-50 border-purple-100 text-purple-500",
-            gradient === 'emerald' && "bg-blue-50 border-blue-100 text-blue-500"
+            "p-3.5 rounded-2xl border shadow-sm backdrop-blur-md",
+            gradient === 'red' && "bg-red-50/50 border-red-100 text-red-500",
+            gradient === 'blue' && "bg-blue-50/50 border-blue-100 text-blue-500",
+            gradient === 'purple' && "bg-purple-50/50 border-purple-100 text-purple-600",
+            gradient === 'emerald' && "bg-emerald-50/50 border-emerald-100 text-emerald-500"
           )}>
             <Icon className="w-5 h-5" />
           </div>
@@ -66,10 +65,10 @@ const GlassMetricCard = ({
         </div>
 
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground mb-1">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1.5 flex items-center gap-2">
             {label}
           </p>
-          <h3 className="text-2xl font-black tracking-tight text-foreground group-hover:text-primary transition-colors duration-300">
+          <h3 className="text-3xl font-black tracking-tighter text-slate-800 transition-colors duration-300">
             {formatValue(value)}
           </h3>
         </div>
