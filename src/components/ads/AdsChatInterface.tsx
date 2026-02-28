@@ -136,7 +136,7 @@ const ActionWidget = ({ data, onExecute }: { data: WidgetData; onExecute: (actio
             "h-10 px-6 rounded-2xl font-bold text-[10px] uppercase tracking-[0.2em] transition-all active:scale-95 group shadow-sm",
             action.style === 'destructive' ? "border-red-100 bg-red-50 text-red-600 hover:bg-red-100" :
               action.style === 'primary' ? "bg-primary border-primary/20 text-primary-foreground hover:bg-primary/90 shadow-md" :
-                "border-white/50 bg-slate-50 text-foreground hover:bg-muted"
+                "border-white/50 bg-white/5 text-foreground hover:bg-muted"
           )}
         >
           {action.label}
@@ -177,7 +177,7 @@ const ContentSelectionWidget = ({ data, onExecute }: { data: WidgetData; onExecu
             onClick={() => onExecute(action.action_id, action.label)}
             className="flex flex-col items-center justify-center gap-3 p-6 bg-muted hover:bg-muted/80 border border-white/50 hover:border-primary/40 rounded-[2rem] transition-all duration-300 group shadow-sm"
           >
-            <div className="p-4 rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 group-hover:border-primary/20 transition-colors">
+            <div className="p-4 rounded-2xl bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 group-hover:border-primary/20 transition-colors">
               {getIcon(action)}
             </div>
             <span className="text-[10px] font-bold uppercase tracking-widest text-foreground text-center">{action.label}</span>
@@ -443,14 +443,14 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
   ];
 
   return (
-    <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-slate-50">
+    <div className="flex flex-col h-full w-full text-foreground relative overflow-hidden bg-white/5">
       <div className="absolute inset-0 z-0">
         <BackgroundBeams className="opacity-5" />
         <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-background pointer-events-none" />
       </div>
 
       {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm min-h-[64px]">
+      <div className="relative z-10 flex items-center justify-between px-6 py-4 border-b border-white/50 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm min-h-[64px]">
         <div className="flex items-center gap-4">
           <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
             <Bot className="w-5 h-5 text-primary" />
@@ -468,7 +468,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
           size="sm"
           onClick={handleSync}
           disabled={isSyncing}
-          className="h-10 px-6 rounded-2xl border-white/50 bg-slate-50 text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm transition-all"
+          className="h-10 px-6 rounded-2xl border-white/50 bg-white/5 text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm transition-all"
         >
           <RefreshCw className={cn("w-4 h-4 mr-3", isSyncing && "animate-spin")} />
           СИНХРОНИЗАЦИЯ
@@ -505,7 +505,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                     ? "bg-primary text-primary-foreground border-primary/20 shadow-primary/10"
                     : msg.role === 'system'
                       ? "bg-muted border border-white/50 text-muted-foreground"
-                      : "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground"
+                      : "bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground"
                 )}>
                   {msg.role === 'user' ? <User className="w-6 h-6" /> : msg.role === 'system' ? <Terminal className="w-5 h-5" /> : <Bot className="w-6 h-6" />}
                 </div>
@@ -520,7 +520,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                       ? "bg-primary text-primary-foreground border-primary/10 rounded-[2rem] rounded-tr-none max-w-[80%]"
                       : msg.role === 'system'
                         ? "bg-muted/50 border border-white/50 rounded-[1.5rem] rounded-tl-none text-muted-foreground font-mono text-[10px] uppercase tracking-widest p-4"
-                        : "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-[2.5rem] rounded-tl-none text-foreground max-w-[90%]"
+                        : "bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-[2.5rem] rounded-tl-none text-foreground max-w-[90%]"
                   )}>
                     {msg.role === 'system' ? (
                       <div className="flex items-center gap-3">
@@ -547,7 +547,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                         {/* Widget Rendering */}
                         {msg.type === 'widget' && msg.widget_data && (
                           <div className="mt-8 pt-6 border-t border-white/50 relative">
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
+                            <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 px-4 py-1 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-full text-[8px] font-bold uppercase tracking-[0.2em] text-muted-foreground">
                               Инструмент ИИ
                             </div>
                             {msg.widget_type === 'audit_card' && <AuditWidget data={msg.widget_data} />}
@@ -580,7 +580,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
                   <Activity className="w-6 h-6 text-primary animate-pulse" />
                 </div>
                 <div className="flex flex-col gap-2">
-                  <div className="flex gap-2 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 px-6 py-4 rounded-[2rem] rounded-tl-none">
+                  <div className="flex gap-2 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 px-6 py-4 rounded-[2rem] rounded-tl-none">
                     <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '0ms' }} />
                     <span className="w-2 h-2 rounded-full bg-primary/40 animate-bounce" style={{ animationDelay: '150ms' }} />
                     <span className="w-2 h-2 rounded-full bg-primary/20 animate-bounce" style={{ animationDelay: '300ms' }} />
@@ -603,7 +603,7 @@ export const AdsChatInterface = ({ projectId, contextData }: AdsChatInterfacePro
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => setInputValue(cmd.label)}
-              className="flex items-center gap-3 px-6 py-2.5 rounded-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:bg-muted hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground whitespace-nowrap"
+              className="flex items-center gap-3 px-6 py-2.5 rounded-2xl bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:bg-muted hover:border-primary/40 transition-all text-[10px] font-bold uppercase tracking-widest text-muted-foreground hover:text-foreground whitespace-nowrap"
             >
               <cmd.icon className="w-4 h-4 text-primary/60" />
               {cmd.label}

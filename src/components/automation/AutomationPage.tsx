@@ -268,7 +268,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
             void handleRefresh();
           }}
           disabled={refreshing}
-          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-slate-50 hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
+          className="inline-flex items-center justify-center gap-2 shrink-0 h-10 px-4 rounded-md border border-input bg-white/5 hover:bg-accent hover:text-accent-foreground text-[15px] font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none"
         >
           <RefreshCw className={cn('w-4 h-4', refreshing && 'animate-spin')} />
           {refreshing ? 'Обновление…' : 'Обновить'}
@@ -372,7 +372,7 @@ export const AutomationPage = ({ projectId }: AutomationPageProps) => {
                       exit={{ opacity: 0, y: -20 }}
                       transition={{ delay: index * 0.05 }}
                       className={cn(
-                        'p-4 rounded-xl border bg-white/70 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-2xl shadow-blue-900/5',
+                        'p-4 rounded-xl border bg-white/10 backdrop-blur-sm transition-all hover:border-primary/30 hover:shadow-2xl shadow-blue-900/5',
                         isError && 'border-red-500/50 bg-red-500/5 animate-pulse shadow-2xl shadow-blue-900/5 shadow-red-500/20',
                         isActive && 'border-blue-500/30 bg-blue-500/5 shadow-2xl shadow-blue-900/5 shadow-blue-500/20 ring-2 ring-blue-500/20',
                       )}

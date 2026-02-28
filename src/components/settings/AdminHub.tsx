@@ -144,7 +144,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       {/* Premium Header */}
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden">
+      <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-primary/20 blur-[120px] rounded-full pointer-events-none -mr-48 -mt-48" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
           <div className="flex items-center gap-5">
@@ -200,7 +200,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
             {/* Tab 1: General Settings */}
             <TabsContent value="general" className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-0">
               <div className="lg:col-span-2 space-y-8">
-                <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl space-y-8">
+                <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl space-y-8">
                   <div className="flex items-center gap-3 border-b border-white/5 pb-6">
                     <Building2 className="w-6 h-6 text-primary" />
                     <div>
@@ -314,7 +314,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl flex items-center gap-4">
                     <div className="p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500">
                       <Bell className="w-6 h-6" />
                     </div>
@@ -323,7 +323,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                       <p className="text-xs text-muted-foreground">Настройте оповещения</p>
                     </div>
                   </div>
-                  <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl flex items-center gap-4">
+                  <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl flex items-center gap-4">
                     <div className="p-3 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-500">
                       <Clock className="w-6 h-6" />
                     </div>
@@ -336,7 +336,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
               </div>
 
               <div className="lg:col-span-1 space-y-6">
-                <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl bg-primary/5 relative overflow-hidden group">
+                <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl bg-primary/5 relative overflow-hidden group">
                   <div className="absolute top-0 right-0 w-32 h-32 bg-primary/20 blur-[60px] rounded-full group-hover:bg-primary/30 transition-colors" />
                   <div className="relative z-10 space-y-4">
                     <div className="w-12 h-12 rounded-2xl bg-primary text-white flex items-center justify-center">
@@ -354,7 +354,7 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
                   </div>
                 </div>
 
-                <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl text-center space-y-4">
+                <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl text-center space-y-4">
                   <AlertCircle className="w-10 h-10 mx-auto text-white/10" />
                   <div>
                     <p className="text-sm text-slate-500">Скоро здесь появится</p>
@@ -366,42 +366,42 @@ export const AdminHub = ({ projectId, projects }: AdminHubProps) => {
 
             {/* Tab 2: Team Management */}
             <TabsContent value="team" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <TeamManagement projects={projects} />
               </div>
             </TabsContent>
 
             {/* Tab 3: Integrations */}
             <TabsContent value="integrations" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <IntegrationsManagementNew projectId={projectId} />
               </div>
             </TabsContent>
 
             {/* Tab 4: Knowledge Base */}
             <TabsContent value="knowledge" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <KnowledgeBaseTab projectId={projectId} />
               </div>
             </TabsContent>
 
             {/* Tab 5: Security */}
             <TabsContent value="security" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <SecurityTab projectId={projectId} />
               </div>
             </TabsContent>
 
             {/* Tab 6: Technical Health */}
             <TabsContent value="health" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <TechnicalHealthTab projectId={projectId} />
               </div>
             </TabsContent>
 
             {/* Tab 7: Help */}
             <TabsContent value="help" className="mt-0">
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl min-h-[600px]">
                 <HelpTab projectId={projectId} />
               </div>
             </TabsContent>

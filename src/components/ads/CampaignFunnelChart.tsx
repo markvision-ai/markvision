@@ -467,15 +467,15 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         <div className="flex gap-4">
-          <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-muted/50 rounded-2xl border border-white/50">
-            <div className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-            <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600">Real-time данные</span>
+          <div className="hidden sm:flex items-center gap-3 px-4 py-2 bg-white/5 rounded-2xl border border-white/10">
+            <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(59,130,246,0.4)]" />
+            <span className="text-[10px] font-bold uppercase tracking-widest text-primary">Real-time данные</span>
           </div>
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCSV}
-            className="h-10 px-6 rounded-2xl border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground hover:bg-muted font-bold text-[10px] uppercase tracking-widest shadow-sm"
+            className="h-10 px-6 rounded-2xl border-white/10 bg-white/5 backdrop-blur-2xl shadow-interstellar border text-white hover:bg-white/10 font-bold text-[10px] uppercase tracking-widest shadow-sm"
           >
             <Download className="w-4 h-4 mr-2" />
             Экспорт данных
@@ -485,8 +485,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:h-[700px]">
         {/* Main Funnel Visualization */}
-        <div className="rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm p-0 flex flex-col overflow-hidden group">
-          <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
+        <div className="rounded-[2.5rem] border border-white/10 bg-[#020617]/40 backdrop-blur-2xl shadow-interstellar flex flex-col overflow-hidden group">
+          <div className="p-8 border-b border-white/10 bg-white/5 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <Filter className="w-4 h-4 text-primary" />
               Эффективность этапов
@@ -509,7 +509,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
                     <motion.div
                       whileHover={{ x: 10, scale: 1.02 }}
-                      className="relative overflow-hidden rounded-[2rem] border border-white/50 bg-slate-50 transition-all duration-500 hover:border-primary/30 hover:bg-muted p-1 shadow-sm"
+                      className="relative overflow-hidden rounded-[2rem] border border-white/10 bg-white/5 transition-all duration-500 hover:border-primary/30 hover:bg-white/10 p-1 shadow-sm"
                     >
                       <div className="p-5 flex items-center gap-6">
                         <div className={cn(
@@ -522,8 +522,8 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between mb-2">
-                            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground group-hover:text-foreground transition-colors">{step.name}</span>
-                            <span className="text-2xl font-bold text-foreground px-3 py-1 bg-muted rounded-xl border border-white/50">
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-hover:text-white transition-colors">{step.name}</span>
+                            <span className="text-2xl font-bold text-white px-3 py-1 bg-white/5 rounded-xl border border-white/10">
                               {step.name === 'Показы' || step.name === 'Клики' || step.name === 'Лиды'
                                 ? formatNumber(step.value)
                                 : step.value
@@ -587,17 +587,17 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
         </div>
 
         {/* Channel Efficiency Chart */}
-        <div className="rounded-[2.5rem] border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm p-0 flex flex-col h-full overflow-hidden group">
+        <div className="rounded-[2.5rem] border border-white/50 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm p-0 flex flex-col h-full overflow-hidden group">
           <div className="p-8 border-b border-white/50 bg-muted/30 flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-3">
               <BarChart3 className="w-4 h-4 text-primary" />
               Распределение источников
             </h3>
             <Select value={selectedMetric} onValueChange={(v) => setSelectedMetric(v as any)}>
-              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-slate-50 border-white/50 rounded-xl focus:ring-primary">
+              <SelectTrigger className="w-[180px] h-10 text-[10px] font-bold uppercase tracking-widest bg-white/5 border-white/50 rounded-xl focus:ring-primary">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 rounded-xl">
+              <SelectContent className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border-white/50 rounded-xl">
                 <SelectItem value="cpl" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость лида (CPL)</SelectItem>
                 <SelectItem value="cpc" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Стоимость клика (CPC)</SelectItem>
                 <SelectItem value="ctr" className="text-[10px] font-bold uppercase tracking-widest py-3 cursor-pointer">Кликабельность (CTR)</SelectItem>
@@ -643,7 +643,7 @@ export const CampaignFunnelChart = ({ campaigns = [], leads = [], adPerformance 
                             "h-full rounded-full transition-all duration-1000 shadow-sm",
                             index === 0 ? "bg-gradient-to-r from-blue-600 to-blue-400" :
                               index === 1 ? "bg-gradient-to-r from-blue-600 to-blue-400" :
-                                index === 2 ? "bg-gradient-to-r from-indigo-600 to-indigo-400" : "bg-slate-500"
+                                index === 2 ? "bg-gradient-to-r from-indigo-600 to-indigo-400" : "bg-white/50"
                           )}
                           initial={{ width: 0 }}
                           animate={{ width: `${percent}%` }}

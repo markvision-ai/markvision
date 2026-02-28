@@ -487,7 +487,7 @@ export const ContentFactoryForm: React.FC<ContentFactoryFormProps> = ({ projectI
                                 </label>
                                 <div className="grid grid-cols-1 gap-4">
                                     {[
-                                        { id: 'template_1', label: 'Минимализм (Clean)', color: 'bg-white/80 border-white/20' },
+                                        { id: 'template_1', label: 'Минимализм (Clean)', color: 'bg-white/10 border-white/20' },
                                         { id: 'template_2', label: 'Премиум Голд', color: 'bg-gradient-to-br from-amber-200 to-amber-500 border-amber-300/50' },
                                         { id: 'template_3', label: '3D Футуризм', color: 'bg-gradient-to-br from-secondary to-indigo-600 border-white/20' },
                                     ].map((t) => (

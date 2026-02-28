@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { HoverEffect } from '@/components/ui/card-hover-effect';
-import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2, CheckCircle, XCircle, Calendar, DollarSign } from 'lucide-react';
+import { FileText, Users, Building, TrendingUp, ClipboardCheck, Loader2, CheckCircle, XCircle, Calendar, DollarSign, BarChart3 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -107,8 +107,8 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
 
   if (!pid) {
     return (
-      <div className="flex items-center justify-center p-16 text-muted-foreground">
-        Выберите проект, чтобы открыть раздел визитов.
+      <div className="flex items-center justify-center p-16 bg-[#020617]/40 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-interstellar">
+        <p className="text-muted-foreground font-black uppercase tracking-widest text-[10px] opacity-60 text-center">Выберите проект, чтобы открыть раздел визитов.</p>
       </div>
     );
   }
@@ -124,14 +124,14 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
   return (
     <div className="space-y-8">
       {/* Visit Types Selection */}
-      <div className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] p-8 overflow-hidden">
+      <div className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] p-8 overflow-hidden">
         <div className="flex items-center gap-4 mb-6">
-          <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm">
-            <FileText className="w-6 h-6 text-blue-600" />
+          <div className="p-3.5 rounded-[20px] bg-white/5 border border-white/10 shadow-interstellar">
+            <FileText className="w-6 h-6 text-blue-400" />
           </div>
           <div>
             <h2 className="text-2xl font-black text-foreground uppercase tracking-tight">Типы визитов</h2>
-            <p className="text-muted-foreground text-sm font-medium uppercase tracking-widest text-[10px] opacity-60">Выберите тип анкеты для отправки клиенту</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mt-1">Выберите тип анкеты для отправки клиенту</p>
           </div>
         </div>
 
@@ -139,20 +139,21 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
       </div>
 
       {/* Results Table */}
-      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
-        <div className="p-6 border-b border-slate-50 bg-slate-50/30">
-          <h3 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-            <span className="opacity-40">📊</span> Результаты визитов
+      <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
+        <div className="p-6 px-10 border-b border-white/5 bg-white/5">
+          <h3 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-3">
+            <BarChart3 className="w-5 h-5 text-blue-400" />
+            Результаты визитов
           </h3>
         </div>
 
         {!visitResults || visitResults.length === 0 ? (
           <div className="py-24 text-center">
-            <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-sm">
-              <ClipboardCheck className="w-10 h-10 text-slate-200" />
+            <div className="w-24 h-24 bg-white/5 border border-white/10 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-interstellar">
+              <ClipboardCheck className="w-10 h-10 text-white/20" />
             </div>
             <h4 className="text-foreground font-black uppercase tracking-tight mb-2 opacity-60">Нет результатов визитов</h4>
-            <p className="text-muted-foreground text-xs uppercase tracking-widest font-black opacity-40 max-w-[280px] mx-auto">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-40 max-w-[280px] mx-auto">
               Данные появятся здесь после прохождения визитов клиентами
             </p>
           </div>
@@ -160,12 +161,12 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
-                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Клиент</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Тип визита</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Дата завершения</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Сумма сделки</th>
-                  <th className="text-left py-4 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-widest">Статус</th>
+                <tr className="bg-white/5 border-b border-white/5">
+                  <th className="text-left py-5 px-10 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Клиент</th>
+                  <th className="text-left py-5 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60 text-center">Тип визита</th>
+                  <th className="text-left py-5 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60 text-center">Дата завершения</th>
+                  <th className="text-left py-5 px-6 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60 text-right">Сумма сделки</th>
+                  <th className="text-right py-5 px-10 text-[10px] font-black text-muted-foreground uppercase tracking-[0.2em] opacity-60">Статус</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,23 +175,23 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
                   const statusConfig = getStatusConfig(lead.status);
 
                   return (
-                    <tr key={result.id} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors group">
-                      <td className="py-5 px-6 font-black text-sm text-foreground uppercase tracking-tighter">
-                        {lead.name || lead.phone || <span className="opacity-30">БЕЗ ИМЕНИ</span>}
+                    <tr key={result.id} className="border-b border-white/5 hover:bg-white/5 transition-all group">
+                      <td className="py-6 px-10 font-black text-sm text-foreground uppercase tracking-tight">
+                        {lead.name || lead.phone || <span className="opacity-20 font-mono text-[10px]">БЕЗ ИМЕНИ</span>}
                       </td>
-                      <td className="py-5 px-6">
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-200 text-muted-foreground px-2 py-0.5 rounded-md">
+                      <td className="py-6 px-6 text-center">
+                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-white/10 text-muted-foreground bg-white/5 px-2 py-0.5 rounded-lg">
                           {result.visit_type || 'СТАНДАРТ'}
                         </Badge>
                       </td>
-                      <td className="py-5 px-6 text-xs font-bold text-muted-foreground">
+                      <td className="py-6 px-6 text-center text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60">
                         {new Date(result.created_at || lead.created_at).toLocaleDateString('ru-RU')}
                       </td>
-                      <td className="py-5 px-6 font-black text-sm text-foreground">
+                      <td className="py-6 px-6 text-right font-black text-sm text-foreground">
                         {lead.deal_amount ? `${Math.round(lead.deal_amount).toLocaleString('ru-RU')} ₸` : <span className="opacity-20">—</span>}
                       </td>
-                      <td className="py-5 px-6">
-                        <Badge className={`gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm border-0 ${statusConfig.className}`}>
+                      <td className="py-6 px-10 text-right">
+                        <Badge className={`gap-2 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-sm border ${statusConfig.className}`}>
                           {statusConfig.icon}
                           {statusConfig.label}
                         </Badge>
@@ -206,30 +207,34 @@ export const VisitsPage = ({ projectId }: VisitsPageProps) => {
 
       {/* Type Details Dialog */}
       <Dialog open={!!selectedType} onOpenChange={() => setSelectedType(null)}>
-        <DialogContent className="max-w-lg border-white/80 bg-white/95 backdrop-blur-3xl shadow-2xl rounded-[32px]">
-          <DialogHeader>
+        <DialogContent className="max-w-lg bg-[#020617] border border-white/10 shadow-interstellar rounded-[32px] overflow-hidden p-0">
+          <DialogHeader className="p-8 pb-4 border-b border-white/5 bg-white/5">
             <DialogTitle className="text-xl font-black uppercase tracking-tight text-foreground">
               {visitTypes.find(t => t.id === selectedType)?.title}
             </DialogTitle>
           </DialogHeader>
-          <div className="py-6 space-y-6">
-            <p className="text-muted-foreground font-medium leading-relaxed">
+          <div className="p-8 space-y-8">
+            <p className="text-muted-foreground font-bold leading-relaxed text-sm">
               {visitTypes.find(t => t.id === selectedType)?.description}
             </p>
-            <div className="bg-blue-50/50 border border-blue-100 rounded-2xl p-4 flex gap-4 items-start">
-              <div className="p-2 bg-blue-100 rounded-xl text-blue-600">
+            <div className="bg-blue-500/5 border border-blue-500/20 rounded-2xl p-5 flex gap-4 items-start shadow-inner">
+              <div className="p-2.5 rounded-xl bg-blue-500/10 text-blue-400">
                 <ClipboardCheck className="w-5 h-5" />
               </div>
-              <p className="text-xs font-bold text-blue-800/80 leading-snug">
+              <p className="text-[10px] font-black uppercase tracking-widest text-blue-400/80 leading-relaxed">
                 Ссылка для клиента будет сгенерирована автоматически при создании лида в CRM и отправлена выбранным способом связи.
               </p>
             </div>
           </div>
-          <div className="flex gap-4">
-            <Button variant="outline" onClick={() => setSelectedType(null)} className="flex-1 rounded-2xl py-6 font-bold border-slate-200">
+          <div className="p-8 pt-0 flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => setSelectedType(null)}
+              className="flex-1 rounded-2xl py-6 h-auto font-black uppercase tracking-widest text-[10px] border-white/10 hover:bg-white/5 shadow-sm"
+            >
               Закрыть
             </Button>
-            <Button className="flex-1 rounded-2xl py-6 font-bold bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20">
+            <Button className="flex-1 rounded-2xl py-6 h-auto font-black uppercase tracking-widest text-[10px] bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-95 transition-all">
               Создать анкету
             </Button>
           </div>

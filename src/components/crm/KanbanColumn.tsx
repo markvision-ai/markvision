@@ -68,7 +68,7 @@ export const KanbanColumn = ({
     <div
       ref={setNodeRef}
       className={cn(
-        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm flex flex-col transition-all duration-200',
+        'flex-shrink-0 w-[300px] sm:w-[340px] rounded-2xl border border-white/50 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 shadow-sm flex flex-col transition-all duration-200',
         isHighlighted && 'ring-2 ring-primary/30 ring-offset-2 scale-[1.01]'
       )}
     >

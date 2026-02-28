@@ -30,7 +30,7 @@ interface DailyDataWithPlatforms {
 const PLATFORM_CONFIG = {
   facebook: { color: '#3b82f6', label: 'Meta Ads', icon: '📘', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
   google: { color: '#ef4444', label: 'Google Ads', icon: '🔍', bg: 'bg-red-500/10', border: 'border-red-500/20' },
-  tiktok: { color: '#000000', label: 'TikTok Ads', icon: '🎵', bg: 'bg-gray-500/10', border: 'border-gray-500/20' },
+  tiktok: { color: '#000000', label: 'TikTok Ads', icon: '🎵', bg: 'bg-white/50/10', border: 'border-gray-500/20' },
   other: { color: '#8b5cf6', label: 'Прочие', icon: '⚡', bg: 'bg-violet-500/10', border: 'border-violet-500/20' }
 };
 
@@ -120,7 +120,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
       const item = payload[0].payload;
       const percent = totalSpend > 0 ? ((item.value / totalSpend) * 100).toFixed(1) : '0';
       return (
-        <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-4 shadow-2xl shadow-blue-900/5">
+        <div className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-xl p-4 shadow-2xl shadow-blue-900/5">
           <p className="font-medium flex items-center gap-2 mb-2 text-foreground">
             <span className="text-xl">{item.icon}</span>
             <span className="text-lg">{item.label}</span>
@@ -168,7 +168,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
       {/* Pie Chart */}
-      <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm lg:col-span-2">
+      <Card className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm lg:col-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-foreground">
             <span className="w-2 h-6 bg-primary rounded-full" />
@@ -239,7 +239,7 @@ export const PlatformSpendChart = ({ projectId }: PlatformSpendChartProps) => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className={cn("bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
+              <Card className={cn("bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 transition-all hover:shadow-md cursor-default border-l-4", platform.border)} style={{ borderLeftColor: platform.color }}>
                 <CardContent className="p-5">
                   <div className="flex justify-between items-start mb-2">
                     <div className="flex items-center gap-3">

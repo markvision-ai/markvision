@@ -357,7 +357,7 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
                     return (
                       <div
                         key={member.id}
-                        className="p-4 rounded-xl border bg-white/70 hover:bg-card/80 transition-colors"
+                        className="p-4 rounded-xl border bg-white/10 hover:bg-card/80 transition-colors"
                       >
                         <div className="flex items-start gap-4">
                           <Avatar className="h-12 w-12">
@@ -452,7 +452,7 @@ export const StaffManagement = ({ projectId }: StaffManagementProps) => {
                       <div
                         key={member.id}
                         className={`flex items-center gap-4 p-4 rounded-lg border ${
-                          index < 3 ? 'bg-gradient-to-r from-yellow-500/5 to-transparent border-yellow-500/20' : 'bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60'
+                          index < 3 ? 'bg-gradient-to-r from-yellow-500/5 to-transparent border-yellow-500/20' : 'bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60'
                         }`}
                       >
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold ${

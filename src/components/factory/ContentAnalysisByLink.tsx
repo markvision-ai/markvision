@@ -160,7 +160,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
   };
 
   return (
-    <div className="flex-1 overflow-y-auto px-6 py-10 custom-scrollbar relative bg-slate-50">
+    <div className="flex-1 overflow-y-auto px-6 py-10 custom-scrollbar relative bg-white/5">
       {/* Background Ambience - Removed for clean look */}
 
       <div className="max-w-6xl mx-auto space-y-12 relative z-10">
@@ -183,7 +183,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
 
         {/* Diagnostic Port Input */}
         <div className="max-w-2xl mx-auto">
-          <div className="relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-[1.5rem] p-2 flex items-center overflow-hidden transition-all hover:shadow-lg hover:border-primary/50">
+          <div className="relative bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-[1.5rem] p-2 flex items-center overflow-hidden transition-all hover:shadow-lg hover:border-primary/50">
             <div className="flex-1 flex items-center px-4 relative z-10">
               <Search className="w-5 h-5 text-muted-foreground mr-3" />
               <input
@@ -230,7 +230,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="max-w-xl mx-auto bg-white/90 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/80 rounded-2xl p-6 font-mono text-xs space-y-2 relative overflow-hidden"
+              className="max-w-xl mx-auto bg-white/10 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/80 rounded-2xl p-6 font-mono text-xs space-y-2 relative overflow-hidden"
             >
               <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 to-cyan-500 animate-pulse" />
               <div className="flex items-center justify-between mb-4 pb-2 border-b border-white/50">
@@ -283,7 +283,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                   <h3 className="font-bold text-sm uppercase tracking-widest text-foreground">ДНК Видео</h3>
                 </div>
 
-                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden h-full flex flex-col hover:shadow-lg transition-all">
+                <Card className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden h-full flex flex-col hover:shadow-lg transition-all">
                   <CardContent className="p-6 space-y-6 flex-1">
                     <div className="space-y-3">
                       <div className="text-[10px] font-bold text-muted-foreground uppercase font-mono tracking-tighter">Transcription</div>
@@ -331,7 +331,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                   <h3 className="font-bold text-sm uppercase tracking-widest text-foreground">Виральные триггеры</h3>
                 </div>
 
-                <Card className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden h-full hover:shadow-lg transition-all">
+                <Card className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl overflow-hidden h-full hover:shadow-lg transition-all">
                   <CardContent className="p-6 space-y-8">
                     <div className="p-6 rounded-2xl bg-primary/5 border border-primary/10">
                       <h4 className="text-xs font-bold text-primary mb-3 uppercase tracking-wider">Главный секрет успеха</h4>
@@ -384,7 +384,7 @@ export const ContentAnalysisByLink = ({ projectId }: { projectId: string }) => {
                     <motion.div
                       key={i}
                       whileHover={{ scale: 1.02 }}
-                      className="group relative bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-2xl p-4 transition-all hover:shadow-lg"
+                      className="group relative bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-2xl p-4 transition-all hover:shadow-lg"
                     >
                       <div className="absolute top-0 right-0 p-2 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button

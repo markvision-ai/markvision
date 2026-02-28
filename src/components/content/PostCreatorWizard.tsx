@@ -88,10 +88,10 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
             <motion.div
                 initial={{ opacity: 0, scale: 0.9, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                className="w-full max-w-4xl bg-white/95 border border-white/80 rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-3xl relative z-10 flex flex-col md:flex-row h-[85vh] md:h-auto md:min-h-[600px]"
+                className="w-full max-w-4xl bg-white/10 border border-white/80 rounded-[32px] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.08)] backdrop-blur-3xl relative z-10 flex flex-col md:flex-row h-[85vh] md:h-auto md:min-h-[600px]"
             >
                 {/* Sidebar Status */}
-                <div className="w-full md:w-64 bg-slate-50/50 border-r border-slate-100 p-8 flex flex-col gap-8">
+                <div className="w-full md:w-64 bg-white/5/50 border-r border-slate-100 p-8 flex flex-col gap-8">
                     <div className="space-y-1">
                         <h2 className="text-xl font-black text-foreground uppercase tracking-tighter italic">Создание</h2>
                         <div className="h-0.5 w-12 bg-primary" />
@@ -151,7 +151,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                             <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                             {step === 'protocol' ? 'Выберите площадку' : step === 'payload' ? 'Подготовьте контент' : 'Настройка времени'}
                         </h3>
-                        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-slate-100 text-muted-foreground hover:text-foreground">
+                        <Button variant="ghost" size="icon" onClick={onClose} className="rounded-full hover:bg-white/10 text-muted-foreground hover:text-foreground">
                             <X className="w-5 h-5" />
                         </Button>
                     </div>
@@ -177,7 +177,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                         "p-6 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-4 group relative overflow-hidden",
                                                         selectedPlatform === p.id
                                                             ? "bg-primary/5 border-primary shadow-sm"
-                                                            : "bg-white border-slate-200 hover:bg-slate-50 hover:border-slate-300"
+                                                            : "bg-white border-slate-200 hover:bg-white/5 hover:border-slate-300"
                                                     )}
                                                 >
                                                     {selectedPlatform === p.id && (
@@ -204,7 +204,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                                         "px-6 py-4 rounded-xl border transition-all duration-300 flex items-center gap-3 group shadow-sm",
                                                         selectedType === t.id
                                                             ? "bg-primary text-primary-foreground border-primary shadow-md"
-                                                            : "bg-white border-slate-200 hover:bg-slate-50 text-muted-foreground hover:text-foreground"
+                                                            : "bg-white border-slate-200 hover:bg-white/5 text-muted-foreground hover:text-foreground"
                                                     )}
                                                 >
                                                     <t.icon className="w-5 h-5" />
@@ -228,7 +228,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                         <label className="text-xs font-bold text-muted-foreground uppercase tracking-[0.3em] font-mono">Медиафайлы</label>
                                         <div className="relative group">
                                             <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-blue-500/10 rounded-2xl opacity-0 group-hover:opacity-100 blur transition duration-500" />
-                                            <div className="relative h-48 rounded-2xl border-2 border-dashed border-slate-300/50 bg-slate-50 flex flex-col items-center justify-center p-8 transition-all group-hover:bg-slate-100/50 group-hover:border-primary/50 shadow-sm">
+                                            <div className="relative h-48 rounded-2xl border-2 border-dashed border-slate-300/50 bg-white/5 flex flex-col items-center justify-center p-8 transition-all group-hover:bg-white/10/50 group-hover:border-primary/50 shadow-sm">
                                                 <UploadCloud className="w-12 h-12 text-primary/60 mb-4 animate-bounce" />
                                                 <p className="text-sm font-bold text-foreground mb-2">Перетяните файлы сюда</p>
                                                 <p className="text-xs text-muted-foreground">Поддерживаются MP4, MOV, PNG, JPG (Макс 50МБ)</p>
@@ -303,10 +303,10 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                                             </div>
                                         </div>
 
-                                        <div className="h-px w-full max-w-[100px] bg-slate-200" />
+                                        <div className="h-px w-full max-w-[100px] bg-white/20" />
 
                                         <Button
-                                            className="bg-white hover:bg-slate-50 text-foreground border border-slate-200 shadow-sm h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-[10px]"
+                                            className="bg-white hover:bg-white/5 text-foreground border border-slate-200 shadow-sm h-12 px-8 rounded-xl font-bold uppercase tracking-widest text-[10px]"
                                             onClick={() => setScheduledAt(new Date().toISOString().slice(0, 16))}
                                         >
                                             Опубликовать сейчас
@@ -317,7 +317,7 @@ export const PostCreatorWizard = ({ onClose, onSuccess }: PostCreatorWizardProps
                         </AnimatePresence>
                     </div>
 
-                    <div className="p-8 border-t border-slate-100 flex items-center justify-between bg-slate-50/80 backdrop-blur-sm">
+                    <div className="p-8 border-t border-slate-100 flex items-center justify-between bg-white/5/80 backdrop-blur-sm">
                         <Button
                             variant="ghost"
                             onClick={step === 'protocol' ? onClose : handleBack}

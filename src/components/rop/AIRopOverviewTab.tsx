@@ -58,7 +58,7 @@ const formatTenge = (value: number) => {
 };
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color }: any) => (
-    <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+    <Card className="bg-white/10 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -264,7 +264,7 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex bg-slate-100/50 backdrop-blur-md p-1 rounded-2xl border border-slate-200/50">
+                    <div className="flex bg-white/10/50 backdrop-blur-md p-1 rounded-2xl border border-slate-200/50">
                         <Button
                             variant={activeFilter === 'today' ? 'secondary' : 'ghost'}
                             size="sm"
@@ -364,8 +364,8 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
                     {/* Activity Chart — реальные лиды и продажи по дням */}
-                    <Card className="lg:col-span-2 bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
-                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+                    <Card className="lg:col-span-2 bg-white/10 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
+                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-white/5/20">
                             <CardTitle className="text-base font-black flex items-center gap-2 text-foreground uppercase tracking-tight">
                                 <span className="opacity-40">📈</span> Лиды и продажи по дням
                             </CardTitle>
@@ -420,8 +420,8 @@ export const AIRopOverviewTab: React.FC<AIRopOverviewTabProps> = ({ tasks, proje
                     </Card>
 
                     {/* Sales Funnel — по статусам лидов */}
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
-                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden group">
+                        <CardHeader className="pb-4 border-b border-slate-50/50 bg-white/5/20">
                             <CardTitle className="text-base font-black flex items-center gap-2 text-foreground uppercase tracking-tight">
                                 <span className="opacity-40">🌪️</span> Воронка продаж
                             </CardTitle>

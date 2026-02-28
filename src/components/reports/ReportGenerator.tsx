@@ -675,7 +675,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
     <div className="space-y-6 animate-in fade-in duration-700">
 
       {/* Premium Header */}
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl relative overflow-hidden">
+      <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] rounded-full pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-6 relative z-10">
           <div>
@@ -700,7 +700,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
                   Сохранить шаблон
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/50 backdrop-blur-xl">
+              <DialogContent className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/50 backdrop-blur-xl">
                 <DialogHeader>
                   <DialogTitle>Сохранить шаблон</DialogTitle>
                 </DialogHeader>
@@ -1079,7 +1079,7 @@ export const ReportGenerator = ({ data }: ReportGeneratorProps) => {
         </TabsContent>
 
         <TabsContent value="settings" className="mt-6">
-          <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-2xl max-w-2xl mx-auto">
+          <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-2xl max-w-2xl mx-auto">
             <div className="flex items-center gap-4 mb-8">
               <div className="p-3 rounded-full bg-primary/20 text-primary">
                 <Bell className="w-6 h-6" />

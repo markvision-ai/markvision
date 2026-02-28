@@ -114,7 +114,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.3 + idx * 0.1, duration: 0.6, type: "spring" }}
                     >
-                        <Card className="group relative h-full bg-white/70 backdrop-blur-2xl border border-white/60 overflow-hidden hover:border-primary/30 transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg">
+                        <Card className="group relative h-full bg-white/10 backdrop-blur-2xl border border-white/60 overflow-hidden hover:border-primary/30 transition-all duration-500 shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg">
                             {/* Corner Glow */}
                             <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-all duration-500" />
 
@@ -141,7 +141,7 @@ export const AutoPostingOnboarding = ({ onConnect, onCreatePost }: OnboardingPro
 
                                 <Button
                                     onClick={step.action.onClick}
-                                    className="w-full h-14 bg-white/80 hover:bg-white text-foreground border border-white/60 rounded-xl group/btn overflow-hidden relative shadow-sm hover:shadow-md transition-all"
+                                    className="w-full h-14 bg-white/10 hover:bg-white text-foreground border border-white/60 rounded-xl group/btn overflow-hidden relative shadow-sm hover:shadow-md transition-all"
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover/btn:animate-shimmer" />
                                     <span className="relative z-10 flex items-center font-bold uppercase tracking-wider">

@@ -208,7 +208,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -229,7 +229,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-blue-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -253,7 +253,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
+          className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative overflow-hidden group"
         >
           <div className="absolute top-0 right-0 w-24 h-24 bg-purple-500/10 blur-3xl rounded-full" />
           <div className="flex items-center gap-4 relative z-10">
@@ -316,7 +316,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
               exit={{ opacity: 0 }}
               className="col-span-full"
             >
-              <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 border-dashed rounded-3xl py-20 text-center">
+              <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 border-dashed rounded-3xl py-20 text-center">
                 <div className="w-20 h-20 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-6">
                   <FileText className="w-10 h-10 text-white/20" />
                 </div>
@@ -343,7 +343,7 @@ export const KnowledgeBaseTab = ({ projectId }: KnowledgeBaseTabProps) => {
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-3xl blur-xl" />
 
-                  <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative h-full flex flex-col group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
+                  <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl relative h-full flex flex-col group-hover:border-primary/30 transition-all duration-500 overflow-hidden">
                     {/* Background decoration */}
                     <div className="absolute -top-12 -right-12 w-24 h-24 bg-primary/5 blur-2xl rounded-full group-hover:bg-primary/10 transition-colors" />
 

@@ -412,7 +412,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
       {/* Top Section: Two Premium Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Facebook Marketing Card */}
-        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none -mr-24 -mt-24 group-hover:bg-blue-500/20 transition-colors duration-500" />
 
           <div className="flex items-center justify-between mb-8">
@@ -498,7 +498,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
         </div>
 
         {/* Instagram Business Card */}
-        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-48 h-48 bg-purple-500/10 blur-[80px] rounded-full pointer-events-none -mr-24 -mt-24 group-hover:bg-purple-500/20 transition-colors duration-500" />
 
           <div className="flex items-center justify-between mb-8">
@@ -652,7 +652,7 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
           >
             <div
               className={cn(
-                "bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl h-full",
+                "bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-3xl h-full",
                 "hover:border-slate-200 transition-all duration-300 relative",
                 integration.action && "cursor-pointer"
               )}

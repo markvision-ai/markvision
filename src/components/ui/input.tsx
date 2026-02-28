@@ -12,7 +12,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       default:
         "interstellar-input border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0",
       interstellar:
-        "bg-white/50 backdrop-blur-xl border-white/60 text-slate-800 placeholder:text-slate-400 focus-visible:bg-white/80 focus-visible:border-blue-400 focus-visible:ring-blue-200 focus-visible:shadow-[0_0_20px_rgba(59,130,246,0.15)] shadow-inner",
+        "bg-white/50 backdrop-blur-xl border-white/60 text-slate-800 placeholder:text-slate-400 focus-visible:bg-white/10 focus-visible:border-blue-400 focus-visible:ring-blue-200 focus-visible:shadow-[0_0_20px_rgba(59,130,246,0.15)] shadow-inner",
     };
 
     return (

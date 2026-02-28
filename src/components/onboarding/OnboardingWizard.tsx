@@ -261,7 +261,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                 value={clinicName}
                 onChange={(e) => setClinicName(e.target.value)}
                 placeholder="Клиника «Здоровье»"
-                className="h-14 text-lg rounded-2xl text-center bg-slate-50 border-white/50"
+                className="h-14 text-lg rounded-2xl text-center bg-white/5 border-white/10 text-white placeholder:text-white/20 focus:border-primary/50 transition-all font-bold"
               />
             </div>
           </motion.div>
@@ -285,7 +285,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 
             <div className="max-w-lg mx-auto space-y-4">
               {/* Facebook */}
-              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
+              <div className="bg-[#020617]/40 backdrop-blur-xl rounded-2xl p-6 border border-white/10 group hover:border-primary/30 transition-all cursor-pointer shadow-interstellar">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-2xl">
@@ -314,7 +314,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
               </div>
 
               {/* Google */}
-              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 via-green-500 to-yellow-500 flex items-center justify-center text-white text-2xl">
                     🔍
@@ -331,12 +331,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     google: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-slate-50 border-white/50"
+                  className="rounded-xl bg-white/5 border-white/50"
                 />
               </div>
 
               {/* TikTok */}
-              <div className="bg-white/70 rounded-2xl p-4 border border-white/50">
+              <div className="bg-white/10 rounded-2xl p-4 border border-white/50">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-12 h-12 rounded-xl bg-black flex items-center justify-center text-white text-2xl">
                     🎵
@@ -353,7 +353,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     tiktok: { token: e.target.value }
                   })}
                   placeholder="API Token"
-                  className="rounded-xl bg-slate-50 border-white/50"
+                  className="rounded-xl bg-white/5 border-white/50"
                 />
               </div>
             </div>
@@ -377,7 +377,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
             </div>
 
             <div className="max-w-md mx-auto space-y-4">
-              <div className="bg-white/70 rounded-2xl p-6 border border-white/50">
+              <div className="bg-white/10 rounded-2xl p-6 border border-white/50">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-12 h-12 rounded-xl bg-green-500 flex items-center justify-center text-white text-2xl">
                     💬
@@ -398,7 +398,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                         instanceId: e.target.value
                       })}
                       placeholder="1101234567"
-                      className="rounded-xl bg-slate-50 border-white/50"
+                      className="rounded-xl bg-white/5 border-white/50"
                     />
                   </div>
                   <div>
@@ -411,7 +411,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                       })}
                       placeholder="abc123def456..."
                       type="password"
-                      className="rounded-xl bg-slate-50 border-white/50"
+                      className="rounded-xl bg-white/5 border-white/50"
                     />
                   </div>
                 </div>
@@ -447,12 +447,12 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
                     value={member.name}
                     onChange={(e) => updateStaffMember(index, 'name', e.target.value)}
                     placeholder="Имя менеджера"
-                    className="rounded-xl flex-1 bg-slate-50 border-white/50"
+                    className="rounded-xl flex-1 bg-white/5 border-white/50"
                   />
                   <select
                     value={member.position}
                     onChange={(e) => updateStaffMember(index, 'position', e.target.value)}
-                    className="h-10 px-3 rounded-xl border border-white/50 bg-slate-50 text-foreground"
+                    className="h-10 px-3 rounded-xl border border-white/50 bg-white/5 text-foreground"
                   >
                     <option value="Менеджер">Менеджер</option>
                     <option value="Администратор">Администратор</option>
@@ -517,7 +517,7 @@ export const OnboardingWizard = ({ projectId, projectName, onComplete }: Onboard
 2. Уточнить проблему
 3. Предложить бесплатный визит
 4. Записать на удобное время`}
-                className="min-h-[300px] rounded-2xl text-base bg-slate-50 border-white/50"
+                className="min-h-[300px] rounded-2xl text-base bg-white/5 border-white/50"
               />
               <p className="text-sm text-muted-foreground mt-2 text-center">
                 Чем больше информации вы предоставите, тем умнее будет ваш ИИ

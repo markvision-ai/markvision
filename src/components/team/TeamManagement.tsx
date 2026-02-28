@@ -305,7 +305,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
       {/* Admin-only notice */}
       {!isAdmin && (
-        <Alert className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-amber-500/20 bg-amber-500/5">
+        <Alert className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-amber-500/20 bg-amber-500/5">
           <AlertCircle className="h-4 w-4 text-amber-500" />
           <AlertTitle className="text-amber-500 font-bold">Ограниченный доступ</AlertTitle>
           <AlertDescription className="text-amber-500/80">
@@ -360,7 +360,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       <p className="text-lg font-bold text-white">Выполнено успешно</p>
                     </div>
 
-                    <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl space-y-4">
+                    <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-6 rounded-2xl space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-sm text-slate-500">Email:</span>
                         <div className="flex items-center gap-2">
@@ -481,7 +481,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
                       {newMember.role === 'manager' && (
                         <div className="space-y-3">
                           <Label className="text-slate-600 text-xs uppercase tracking-widest font-bold">Доступ к проектам</Label>
-                          <div className="space-y-2 max-h-48 overflow-y-auto bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-2xl p-4 custom-scrollbar">
+                          <div className="space-y-2 max-h-48 overflow-y-auto bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-2xl p-4 custom-scrollbar">
                             {projects.map(project => (
                               <label key={project.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-white/5 cursor-pointer transition-colors group">
                                 <Checkbox
@@ -531,7 +531,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
       </div>
 
       {/* Team Member List */}
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-3xl overflow-hidden">
+      <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 rounded-3xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left">
             <thead>
@@ -716,7 +716,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
 
       {/* Access Cards Legend */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
             <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary shadow-2xl shadow-blue-900/5 shadow-primary/10 transition-transform group-hover:scale-110">
@@ -734,7 +734,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
           </div>
         </div>
 
-        <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+        <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
           <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 blur-3xl rounded-full -mr-16 -mt-16 pointer-events-none" />
           <div className="flex items-start gap-5">
             <div className="w-12 h-12 rounded-2xl bg-blue-500/20 flex items-center justify-center text-blue-500 shadow-2xl shadow-blue-900/5 shadow-blue-500/10 transition-transform group-hover:scale-110">
@@ -754,7 +754,7 @@ export const TeamManagement = ({ projects }: TeamManagementProps) => {
       </div>
 
       {/* Permissions List Legend */}
-      <div className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl">
+      <div className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border border-white/5 p-8 rounded-3xl">
         <div className="flex items-center gap-3 mb-6">
           <h4 className="text-sm font-bold text-slate-600 uppercase tracking-widest">Детальные возможности менеджера</h4>
           <div className="h-px flex-1 bg-gradient-to-r from-white/10 to-transparent" />

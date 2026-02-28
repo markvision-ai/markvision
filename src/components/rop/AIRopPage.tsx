@@ -107,7 +107,7 @@ const TaskStatusBadge = ({ status }: { status: string }) => {
 };
 
 const TaskCard = ({ task }: { task: AIRopTask }) => (
-  <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+  <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-2xl overflow-hidden">
     <CardContent className="p-4">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
@@ -141,7 +141,7 @@ const TaskCard = ({ task }: { task: AIRopTask }) => (
 );
 
 const AuditCard = ({ audit }: { audit: AIRopAudit }) => (
-  <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+  <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
     <CardHeader className="pb-2">
       <div className="flex items-center justify-between">
         <CardTitle className="text-base">
@@ -205,30 +205,30 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
     : 0;
 
   return (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+    <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Bot className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Контроль ИИ-агента Марка</CardTitle>
+          <Bot className="w-5 h-5 text-blue-400" />
+          <CardTitle className="text-lg font-black uppercase tracking-tight text-foreground">Контроль ИИ-агента Марка</CardTitle>
         </div>
-        <CardDescription>Статистика работы чат-бота</CardDescription>
+        <CardDescription className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Статистика работы чат-бота</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-3 gap-4">
-          <div className="text-center p-3 bg-muted/30 rounded-lg">
-            <MessageSquare className="w-5 h-5 mx-auto mb-1 text-primary" />
-            <div className="text-2xl font-bold">{totalDialogs}</div>
-            <div className="text-xs text-muted-foreground">Всего диалогов</div>
+          <div className="text-center p-4 bg-white/5 border border-white/5 rounded-2xl">
+            <MessageSquare className="w-5 h-5 mx-auto mb-1 text-blue-400" />
+            <div className="text-2xl font-black">{totalDialogs}</div>
+            <div className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Всего диалогов</div>
           </div>
-          <div className="text-center p-3 bg-destructive/10 rounded-lg">
-            <AlertCircle className="w-5 h-5 mx-auto mb-1 text-destructive" />
-            <div className="text-2xl font-bold text-destructive">{logicErrors}</div>
-            <div className="text-xs text-muted-foreground">Ошибки логики</div>
+          <div className="text-center p-4 bg-rose-500/10 border border-rose-500/10 rounded-2xl">
+            <AlertCircle className="w-5 h-5 mx-auto mb-1 text-rose-500" />
+            <div className="text-2xl font-black text-rose-500">{logicErrors}</div>
+            <div className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Ошибки логики</div>
           </div>
-          <div className="text-center p-3 bg-success/10 rounded-lg">
-            <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-success" />
-            <div className="text-2xl font-bold text-success">{successfulBookings}</div>
-            <div className="text-xs text-muted-foreground">Успешные записи</div>
+          <div className="text-center p-4 bg-emerald-500/10 border border-emerald-500/10 rounded-2xl">
+            <CheckCircle2 className="w-5 h-5 mx-auto mb-1 text-emerald-500" />
+            <div className="text-2xl font-black text-emerald-500">{successfulBookings}</div>
+            <div className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Успешные записи</div>
           </div>
         </div>
 
@@ -242,7 +242,7 @@ const BotStatsWidget = ({ audits }: { audits: AIRopAudit[] }) => {
 
         <Button
           variant="outline"
-          className="w-full gap-2"
+          className="w-full gap-2 rounded-xl border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest py-6 h-auto"
           onClick={() => navigate('/knowledge')}
         >
           <BookOpen className="w-4 h-4" />
@@ -279,13 +279,13 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
   };
 
   return (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+    <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <Users className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Оценка работы менеджеров</CardTitle>
+          <Users className="w-5 h-5 text-blue-400" />
+          <CardTitle className="text-lg font-black uppercase tracking-tight text-foreground">Оценка работы менеджеров</CardTitle>
         </div>
-        <CardDescription>Рейтинг эффективности команды</CardDescription>
+        <CardDescription className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Рейтинг эффективности команды</CardDescription>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -299,11 +299,11 @@ const ManagerEvaluationCard = ({ projectId }: { projectId: string | null }) => {
             {staff.map((member, idx) => {
               const score = getPerformanceScore(member.xp_points || 0, member.level || 1);
               return (
-                <div key={member.id} className="flex items-center gap-3 p-2 rounded-lg bg-muted/30">
-                  <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${idx === 0 ? 'bg-yellow-500 text-yellow-950' :
-                    idx === 1 ? 'bg-slate-400 text-slate-950' :
-                      idx === 2 ? 'bg-orange-500 text-orange-950' :
-                        'bg-muted text-muted-foreground'
+                <div key={member.id} className="flex items-center gap-3 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${idx === 0 ? 'bg-yellow-400 text-yellow-950' :
+                    idx === 1 ? 'bg-slate-300 text-slate-950' :
+                      idx === 2 ? 'bg-orange-400 text-orange-950' :
+                        'bg-white/10 text-white/60'
                     }`}>
                     {idx + 1}
                   </div>
@@ -331,7 +331,8 @@ const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
   const growthPoints = latestAudit?.growth_points || [];
 
   return (
-    <Card className="bg-gradient-to-br from-primary/5 to-accent/5 border-primary/20">
+    <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-blue-500/20 rounded-[32px] overflow-hidden relative">
+      <div className="absolute inset-0 bg-blue-500/5 pointer-events-none" />
       <CardHeader>
         <div className="flex items-center gap-2">
           <Lightbulb className="w-5 h-5 text-primary" />
@@ -342,7 +343,7 @@ const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
       <CardContent className="space-y-4">
         {growthPoints.length > 0 ? (
           growthPoints.map((point, idx) => (
-            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-white/70 border border-white/50 hover:border-primary/30 transition-colors">
+            <div key={idx} className="flex gap-3 p-3 rounded-lg bg-white/10 border border-white/50 hover:border-primary/30 transition-colors">
               <div className="shrink-0 text-primary">
                 <Target className="w-5 h-5" />
               </div>
@@ -364,14 +365,21 @@ const RevenueRecommendationsCard = ({ audits }: { audits: AIRopAudit[] }) => {
 
 // Компонент терминального вывода
 const TerminalResponse = ({ text, isTyping }: { text: string; isTyping?: boolean }) => (
-  <div className="mt-4 rounded-lg bg-black p-4 font-mono text-sm text-green-400 border border-green-900 shadow-inner overflow-hidden">
-    <div className="flex items-center gap-2 border-b border-green-900/50 pb-2 mb-2">
-      <Terminal className="w-3 h-3" />
-      <span className="text-xs opacity-50">MARK_VISION_AI_CORE_V2.5</span>
+  <div className="mt-4 rounded-2xl bg-black/80 p-5 font-mono text-sm text-cyan-400 border border-cyan-500/20 shadow-inner overflow-hidden backdrop-blur-xl">
+    <div className="flex items-center justify-between border-b border-cyan-500/10 pb-3 mb-3">
+      <div className="flex items-center gap-2">
+        <Terminal className="w-4 h-4 text-cyan-500" />
+        <span className="text-[10px] font-black tracking-widest opacity-50 uppercase">MARK_VISION_AI_CORE_V2.5</span>
+      </div>
+      <div className="flex gap-1.5">
+        <div className="w-2 h-2 rounded-full bg-rose-500/50" />
+        <div className="w-2 h-2 rounded-full bg-amber-500/50" />
+        <div className="w-2 h-2 rounded-full bg-emerald-500/50" />
+      </div>
     </div>
-    <div className="whitespace-pre-wrap leading-relaxed">
-      {text || <span className="text-green-400/30">Ожидание ответа от ядра...</span>}
-      {isTyping && <span className="animate-pulse ml-1">_</span>}
+    <div className="whitespace-pre-wrap leading-relaxed min-h-[60px]">
+      {text || <span className="text-cyan-400/20 animate-pulse">Ожидание ответа от аналитического ядра...</span>}
+      {isTyping && <span className="animate-pulse ml-1 inline-block w-2 h-4 bg-cyan-400 align-middle" />}
     </div>
   </div>
 );
@@ -403,13 +411,13 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
   };
 
   return (
-    <Card className="bg-white/70 backdrop-blur-sm border-white/50">
+    <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
       <CardHeader>
         <div className="flex items-center gap-2">
-          <MessageCircle className="w-5 h-5 text-primary" />
-          <CardTitle className="text-lg">Обучение ИИ-Марка возражениям</CardTitle>
+          <MessageCircle className="w-5 h-5 text-blue-400" />
+          <CardTitle className="text-lg font-black uppercase tracking-tight text-foreground">Обучение ИИ-Марка возражениям</CardTitle>
         </div>
-        <CardDescription>Введите возражение, чтобы получить разбор от ИИ-РОПа</CardDescription>
+        <CardDescription className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">Введите возражение, чтобы получить разбор от ИИ-РОПа</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
@@ -433,9 +441,9 @@ const ObjectionsTrainerCard = ({ onCreateTask, isSubmitting, tasks }: { onCreate
         <Button
           onClick={handleSave}
           disabled={isSubmitting || !objection.trim()}
-          className="w-full gap-2"
+          className="w-full gap-3 rounded-2xl py-6 h-auto font-black uppercase tracking-widest text-[10px] bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-500/20 transition-all"
         >
-          {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Brain className="w-4 h-4" />}
+          {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : <Brain className="w-5 h-5" />}
           Получить разбор от ИИ
         </Button>
 
@@ -488,33 +496,33 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm relative group">
+          <div className="p-3 rounded-[20px] bg-white/5 border border-white/10 shadow-interstellar relative group">
             <div className="absolute inset-0 bg-blue-500/10 rounded-[20px] blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-            <ShieldCheck className="w-8 h-8 text-blue-600 relative z-10" />
+            <ShieldCheck className="w-8 h-8 text-blue-400 relative z-10" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-black text-foreground uppercase tracking-tight flex items-center gap-2">
-              ИИ-РОП <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-blue-200 text-blue-600 bg-blue-50/50">Core V2.5</Badge>
+              ИИ-РОП <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-blue-500/20 text-blue-400 bg-blue-500/5">Core V2.5</Badge>
             </h1>
             <p className="text-sm text-muted-foreground font-medium uppercase tracking-widest text-[10px] opacity-60 mt-1">Контроль системы, анализ эффективности и AI-аудит</p>
           </div>
         </div>
-        <Button variant="outline" size="lg" onClick={() => refetch()} className="gap-2 rounded-2xl border-slate-200 hover:bg-slate-50 font-black uppercase tracking-widest text-[10px] px-6 py-6 h-auto shadow-sm">
+        <Button variant="outline" size="lg" onClick={() => refetch()} className="gap-2 rounded-2xl border-white/10 hover:bg-white/5 font-black uppercase tracking-widest text-[10px] px-6 py-6 h-auto shadow-sm">
           <RefreshCw className="w-4 h-4" />
           Синхронизировать
         </Button>
       </div>
 
       {/* Task Input */}
-      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_40px_rgba(0,0,0,0.03)] border border-white rounded-[32px] overflow-hidden group">
-        <CardHeader className="pb-4 border-b border-slate-50/50 bg-slate-50/20">
+      <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden group">
+        <CardHeader className="pb-4 border-b border-white/5 bg-white/5">
           <CardTitle className="text-base font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-            <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+            <div className="p-2.5 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-400 shadow-lg shadow-blue-500/5">
               <Bot className="w-5 h-5" />
             </div>
             Дать задание ИИ-РОПу
           </CardTitle>
-          <CardDescription className="text-xs font-medium uppercase tracking-widest opacity-60 pl-11">
+          <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-60 pl-14">
             Например: "Проверь работу бота под Рилсом про виниры" или "Проанализируй конверсию за неделю"
           </CardDescription>
         </CardHeader>
@@ -525,7 +533,7 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
               value={taskInput}
               onChange={(e) => setTaskInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="min-h-[100px] bg-slate-50/50 border-slate-100 rounded-2xl p-4 font-bold text-sm focus:ring-blue-500/20 resize-none"
+              className="min-h-[120px] bg-white/5 border-white/10 rounded-2xl p-5 font-bold text-sm focus:ring-blue-500/20 resize-none shadow-inner"
             />
             <Button
               onClick={handleSubmitTask}
@@ -551,28 +559,28 @@ export const AIRopPage: React.FC<AIRopPageProps> = ({ projectId }) => {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="flex w-full overflow-x-auto bg-white/60 backdrop-blur-xl border border-white p-1.5 rounded-[24px] shadow-sm hide-scrollbar">
-          <TabsTrigger value="overview" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+        <TabsList className="flex w-full overflow-x-auto bg-[#020617]/40 backdrop-blur-3xl border border-white/10 p-1.5 rounded-[24px] shadow-interstellar hide-scrollbar">
+          <TabsTrigger value="overview" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <BarChart3 className="w-4 h-4" />
             <span className="hidden lg:inline">Обзор системы</span>
           </TabsTrigger>
-          <TabsTrigger value="calls" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+          <TabsTrigger value="calls" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <Phone className="w-4 h-4" />
             <span className="hidden lg:inline">Анализ звонков</span>
           </TabsTrigger>
-          <TabsTrigger value="chats" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+          <TabsTrigger value="chats" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <MessageSquare className="w-4 h-4" />
             <span className="hidden lg:inline">Анализ чатов</span>
           </TabsTrigger>
-          <TabsTrigger value="managers" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+          <TabsTrigger value="managers" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <Users className="w-4 h-4" />
             <span className="hidden lg:inline">Команда РОП</span>
           </TabsTrigger>
-          <TabsTrigger value="recommendations" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+          <TabsTrigger value="recommendations" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <Lightbulb className="w-4 h-4" />
             <span className="hidden lg:inline">Точки роста</span>
           </TabsTrigger>
-          <TabsTrigger value="training" className="flex-1 gap-2 py-3 px-6 rounded-2xl data-[state=active]:bg-white data-[state=active]:shadow-lg data-[state=active]:text-blue-600 font-black uppercase tracking-widest text-[10px] transition-all">
+          <TabsTrigger value="training" className="flex-1 gap-2 py-3.5 px-6 rounded-2xl data-[state=active]:bg-white/10 data-[state=active]:shadow-lg data-[state=active]:text-blue-400 data-[state=active]:border data-[state=active]:border-white/10 font-black uppercase tracking-widest text-[10px] transition-all text-muted-foreground">
             <Brain className="w-4 h-4" />
             <span className="hidden lg:inline">Обучение ИИ</span>
           </TabsTrigger>

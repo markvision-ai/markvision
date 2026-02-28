@@ -31,16 +31,16 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
             case 'running': return "text-green-500 bg-green-500/10 border-green-500/20";
             case 'paused': return "text-yellow-500 bg-yellow-500/10 border-yellow-500/20";
             case 'completed': return "text-blue-500 bg-blue-500/10 border-blue-500/20";
-            default: return "text-muted-foreground bg-muted/20 border-white/50";
+            default: return "text-muted-foreground bg-white/5 border-white/10";
         }
     };
 
     if (tests.length === 0) {
         return (
-            <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px]">
+            <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px]">
                 <CardContent className="py-16 text-center flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 rounded-3xl bg-slate-50 border border-slate-100 flex items-center justify-center mb-6 shadow-sm">
-                        <FlaskConical className="w-10 h-10 text-slate-300" />
+                    <div className="w-20 h-20 rounded-3xl bg-white/5 border border-white/10 flex items-center justify-center mb-6 shadow-sm">
+                        <FlaskConical className="w-10 h-10 text-slate-500" />
                     </div>
                     <h3 className="text-xl font-black text-foreground mb-2 uppercase tracking-tight">Нет активных тестов</h3>
                     <p className="text-muted-foreground font-medium max-w-sm">
@@ -75,8 +75,8 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                         className={cn("cursor-pointer transition-all duration-500", isSelected ? "scale-[1.02]" : "hover:scale-[1.01]")}
                     >
                         <Card className={cn(
-                            "bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[24px] transition-all duration-500 overflow-hidden relative",
-                            isSelected ? "ring-2 ring-blue-500/50 shadow-[0_20px_40px_rgba(59,130,246,0.15)]" : "hover:shadow-[0_15px_35px_rgba(0,0,0,0.08)]"
+                            "bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[24px] transition-all duration-500 overflow-hidden relative",
+                            isSelected ? "ring-2 ring-blue-500/50 shadow-[0_20px_40px_rgba(59,130,246,0.15)]" : "hover:shadow-2xl"
                         )}>
                             {isSelected && (
                                 <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/5 to-transparent pointer-events-none" />
@@ -91,7 +91,7 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                     <div>
                                         <h4 className="font-black text-foreground text-lg mb-1 uppercase tracking-tight">{test.name}</h4>
                                         <div className="flex flex-wrap items-center gap-3">
-                                            <Badge variant="outline" className="text-[10px] font-black border-slate-200 text-muted-foreground uppercase tracking-widest px-2 py-0.5 rounded-md">
+                                            <Badge variant="outline" className="text-[10px] font-black border-white/10 text-muted-foreground uppercase tracking-widest px-2 py-0.5 rounded-md bg-white/5">
                                                 {test.test_category}
                                             </Badge>
                                             <span className="text-xs text-muted-foreground font-medium">{test.description || 'Оптимизация трафика'}</span>
@@ -100,7 +100,7 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                 </div>
 
                                 {/* Middle: Stats Preview */}
-                                <div className="flex items-center gap-10 px-8 py-2 md:border-x border-slate-100">
+                                <div className="flex items-center gap-10 px-8 py-2 md:border-x border-white/5">
                                     <div className="text-center group-hover:scale-105 transition-transform">
                                         <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest mb-1.5 opacity-60">A</p>
                                         <p className="font-black text-xl tracking-tighter text-foreground">{crA.toFixed(1)}%</p>
@@ -120,15 +120,15 @@ export const ABTestList: React.FC<ABTestListProps> = ({ tests, onStart, onPause,
                                 {/* Right: Actions */}
                                 <div className="flex items-center gap-3 pl-4" onClick={(e) => e.stopPropagation()}>
                                     {test.status === 'running' ? (
-                                        <Button size="sm" variant="outline" className="border-slate-200 hover:bg-slate-50 font-bold px-4 py-5 rounded-xl h-auto" onClick={() => onPause(test.id)}>
+                                        <Button size="sm" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/10 font-bold px-4 py-5 rounded-xl h-auto" onClick={() => onPause(test.id)}>
                                             <Pause className="w-4 h-4 mr-2" /> Стоп
                                         </Button>
                                     ) : test.status !== 'completed' ? (
-                                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-5 rounded-xl h-auto shadow-md" onClick={() => onStart(test.id)}>
+                                        <Button size="sm" className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 py-5 rounded-xl h-auto shadow-lg shadow-blue-500/20" onClick={() => onStart(test.id)}>
                                             <Play className="w-4 h-4 mr-2" /> Старт
                                         </Button>
                                     ) : (
-                                        <Badge variant="outline" className="font-black text-[10px] uppercase tracking-widest opacity-40 bg-slate-50 border-slate-200 px-3 py-1.5 rounded-lg">
+                                        <Badge variant="outline" className="font-black text-[10px] uppercase tracking-widest opacity-40 bg-white/5 border-white/10 px-3 py-1.5 rounded-lg">
                                             АРХИВ
                                         </Badge>
                                     )}

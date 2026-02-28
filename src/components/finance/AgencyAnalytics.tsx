@@ -55,7 +55,7 @@ const KPICard = ({ title, value, subtext, icon: Icon, color, delay }: any) => (
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay }}
   >
-    <Card className={cn("bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 overflow-hidden relative group", color)}>
+    <Card className={cn("bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 overflow-hidden relative group", color)}>
       <div className="absolute right-0 top-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity">
         <Icon className="w-16 h-16" />
       </div>
@@ -191,7 +191,7 @@ export const AgencyAnalytics = () => {
       </div>
 
       {/* 2. Controls & List */}
-      <Card className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 shadow-2xl backdrop-blur-xl">
+      <Card className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 shadow-2xl backdrop-blur-xl">
         <div className="p-6 border-b border-white/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h3 className="text-xl font-bold text-white">Портфель проектов</h3>
@@ -359,7 +359,7 @@ export const AgencyAnalytics = () => {
 
       {/* Add/Edit Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="sm:max-w-[500px] bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/80 backdrop-blur-2xl p-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[500px] bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 bg-black/80 backdrop-blur-2xl p-0 overflow-hidden">
           <DialogHeader className="p-6 border-b border-white/5 bg-white/[0.02]">
             <DialogTitle className="text-xl font-bold flex items-center gap-2">
               {editingProject ? 'Редактировать проект' : 'Новый проект'}

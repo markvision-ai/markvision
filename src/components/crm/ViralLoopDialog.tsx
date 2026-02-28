@@ -160,7 +160,7 @@ export const ViralLoopDialog = ({
               transition={{ delay: 0.2 + index * 0.1 }}
               className={cn(
                 "relative overflow-hidden rounded-xl p-4 border transition-all",
-                "bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:border-primary/30",
+                "bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:border-primary/30",
                 friend.name && friend.phone && "border-primary/50 bg-primary/5"
               )}
             >

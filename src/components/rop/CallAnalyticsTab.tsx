@@ -83,8 +83,8 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
 
     return (
         <Dialog open={open} onOpenChange={onClose}>
-            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-white/80 bg-white/95 backdrop-blur-3xl shadow-2xl rounded-[40px] p-0 overflow-hidden">
-                <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto border-white/80 bg-white/10 backdrop-blur-3xl shadow-2xl rounded-[40px] p-0 overflow-hidden">
+                <div className="p-8 border-b border-slate-50 bg-white/5/30">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-4 text-2xl font-black uppercase tracking-tight">
                             <div className="p-3 rounded-2xl bg-white shadow-sm border border-slate-100">
@@ -148,7 +148,7 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
                         {call.scores && (
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 px-1">Метрики качества</h4>
-                                <Card className="bg-slate-50/50 border-slate-100 rounded-[32px] p-6 space-y-5">
+                                <Card className="bg-white/5/50 border-slate-100 rounded-[32px] p-6 space-y-5">
                                     {Object.entries(call.scores).map(([key, value]) => {
                                         const labels: Record<string, string> = {
                                             greeting: 'Приветствие',
@@ -164,7 +164,7 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
                                                     <span className="text-muted-foreground">{labels[key]}</span>
                                                     <span className="text-foreground">{value}%</span>
                                                 </div>
-                                                <div className="h-2 w-full bg-slate-200/50 rounded-full overflow-hidden">
+                                                <div className="h-2 w-full bg-white/20/50 rounded-full overflow-hidden">
                                                     <motion.div
                                                         initial={{ width: 0 }}
                                                         animate={{ width: `${value}%` }}
@@ -183,7 +183,7 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
                         {call.sentiment_data && (
                             <div className="space-y-4">
                                 <h4 className="text-[10px] font-black uppercase tracking-widest opacity-40 px-1">Тональность диалога</h4>
-                                <Card className="bg-slate-50/50 border-slate-100 rounded-[32px] p-6">
+                                <Card className="bg-white/5/50 border-slate-100 rounded-[32px] p-6">
                                     <div className="grid grid-cols-3 gap-4">
                                         <div className="text-center p-5 rounded-2xl bg-white border border-emerald-50 shadow-sm relative overflow-hidden group">
                                             <div className="absolute inset-0 bg-emerald-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -191,7 +191,7 @@ const CallDetailsModal = ({ call, open, onClose }: { call: CallAnalytic; open: b
                                             <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mt-1">Позитив</p>
                                         </div>
                                         <div className="text-center p-5 rounded-2xl bg-white border border-slate-50 shadow-sm relative overflow-hidden group">
-                                            <div className="absolute inset-0 bg-slate-500/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 bg-white/50/5 opacity-0 group-hover:opacity-100 transition-opacity" />
                                             <p className="text-2xl font-black text-slate-500 tracking-tighter">{call.sentiment_data.neutral}%</p>
                                             <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mt-1">Нейтрал</p>
                                         </div>
@@ -287,7 +287,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.1 }}
                 >
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -299,7 +299,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                         <span className="text-rose-500 flex items-center gap-1"><XCircle className="w-2.5 h-2.5" /> {stats.missedCalls}</span>
                                     </div>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 group-hover:rotate-6 transition-transform">
+                                <div className="p-4 rounded-2xl bg-white/5 border border-slate-100 group-hover:rotate-6 transition-transform">
                                     <Phone className="w-6 h-6 text-blue-600" />
                                 </div>
                             </div>
@@ -312,7 +312,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.2 }}
                 >
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -320,7 +320,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                     <p className="text-3xl font-black text-foreground tracking-tighter">{formatDuration(Math.round(stats.avgDuration))}</p>
                                     <p className="text-[8px] font-black text-muted-foreground uppercase tracking-widest mt-2 flex items-center gap-1"><Clock className="w-2.5 h-2.5" /> Минуты диалога</p>
                                 </div>
-                                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100 group-hover:rotate-6 transition-transform text-indigo-600">
+                                <div className="p-4 rounded-2xl bg-white/5 border border-slate-100 group-hover:rotate-6 transition-transform text-indigo-600">
                                     <Clock className="w-6 h-6" />
                                 </div>
                             </div>
@@ -333,7 +333,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.3 }}
                 >
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -357,7 +357,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.3, delay: 0.4 }}
                 >
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
                         <CardContent className="p-6">
                             <div className="flex items-center justify-between">
                                 <div className="space-y-1">
@@ -378,8 +378,8 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
             </div>
 
             {/* Calls Table */}
-            <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
-                <div className="p-6 border-b border-slate-50 bg-slate-50/30">
+            <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
+                <div className="p-6 border-b border-slate-50 bg-white/5/30">
                     <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <h3 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-2">
                             <span className="opacity-40">📜</span> История звонков
@@ -408,7 +408,7 @@ export const CallAnalyticsTab: React.FC<CallAnalyticsTabProps> = ({ projectId })
                                     transition={{ duration: 0.3, delay: index * 0.05 }}
                                 >
                                     <div
-                                        className="group p-5 rounded-[24px] border border-slate-100 hover:border-blue-200 hover:bg-slate-50/50 transition-all duration-300 cursor-pointer flex items-center justify-between gap-6"
+                                        className="group p-5 rounded-[24px] border border-slate-100 hover:border-blue-200 hover:bg-white/5/50 transition-all duration-300 cursor-pointer flex items-center justify-between gap-6"
                                         onClick={() => handleViewCall(call)}
                                     >
                                         <div className="flex items-center gap-5 flex-1 min-w-0">

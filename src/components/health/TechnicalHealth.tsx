@@ -211,7 +211,7 @@ export const TechnicalHealth = ({ projectId }: TechnicalHealthProps) => {
               return (
                 <div
                   key={integration.id || i}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4">
                     {getStatusIcon(integration.status)}

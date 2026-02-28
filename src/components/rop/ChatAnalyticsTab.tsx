@@ -94,7 +94,7 @@ const STATIC_RECOMMENDATIONS = [
 // --- Subcomponents ---
 
 const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }: any) => (
-    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
+    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[28px] overflow-hidden group hover:shadow-xl transition-all duration-500">
         <CardContent className="p-6">
             <div className="flex justify-between items-start">
                 <div className="space-y-1">
@@ -108,7 +108,7 @@ const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }
                         <span>{change}</span>
                     </div>
                 </div>
-                <div className={cn("p-4 rounded-2xl border bg-slate-50 border-slate-100 group-hover:rotate-6 transition-transform shadow-sm", color)}>
+                <div className={cn("p-4 rounded-2xl border bg-white/5 border-slate-100 group-hover:rotate-6 transition-transform shadow-sm", color)}>
                     <Icon className="w-6 h-6" />
                 </div>
             </div>
@@ -119,7 +119,7 @@ const KPICard = ({ title, value, change, icon: Icon, trend, color, suffix = "" }
 const SentimentBadge = ({ sentiment }: { sentiment: string }) => {
     const configs: any = {
         positive: { label: 'Pozitiv', color: 'bg-emerald-50 text-emerald-600 border-emerald-100/50' },
-        neutral: { label: 'Neutral', color: 'bg-slate-50 text-slate-500 border-slate-100/50' },
+        neutral: { label: 'Neutral', color: 'bg-white/5 text-slate-500 border-slate-100/50' },
         negative: { label: 'Negative', color: 'bg-rose-50 text-rose-600 border-rose-100/50' },
     };
     const config = configs[sentiment] || configs.neutral;
@@ -131,7 +131,7 @@ const StatusBadge = ({ status }: { status: string }) => {
         deal: { label: 'Сделка', color: 'bg-blue-50 text-blue-600 border-blue-100/50' },
         meeting: { label: 'Встреча', color: 'bg-indigo-50 text-indigo-600 border-indigo-100/50' },
         pending: { label: 'В работе', color: 'bg-amber-50 text-amber-600 border-amber-100/50' },
-        closed: { label: 'Закрыто', color: 'bg-slate-50 text-slate-500 border-slate-100/50' },
+        closed: { label: 'Закрыто', color: 'bg-white/5 text-slate-500 border-slate-100/50' },
     };
     const config = configs[status] || configs.pending;
     return <Badge variant="outline" className={cn("px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border shadow-sm", config.color)}>{config.label}</Badge>;
@@ -172,7 +172,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
-                    <div className="flex bg-slate-100/50 p-1.5 rounded-2xl border border-slate-100 backdrop-blur-md">
+                    <div className="flex bg-white/10/50 p-1.5 rounded-2xl border border-slate-100 backdrop-blur-md">
                         {['Сегодня', 'Вчера', '7 дней', 'Месяц'].map((f) => (
                             <Button
                                 key={f}
@@ -204,7 +204,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                 ) : <span>Выбрать период</span>}
                             </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-auto p-0 border-white/80 bg-white/95 backdrop-blur-3xl shadow-2xl rounded-[32px] overflow-hidden" align="end">
+                        <PopoverContent className="w-auto p-0 border-white/80 bg-white/10 backdrop-blur-3xl shadow-2xl rounded-[32px] overflow-hidden" align="end">
                             <Calendar
                                 initialFocus
                                 mode="range"
@@ -222,7 +222,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
 
             {/* --- Tabs --- */}
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-                <TabsList className="bg-slate-100/50 p-1.5 rounded-[22px] border border-slate-100 backdrop-blur-md mb-8 w-fit">
+                <TabsList className="bg-white/10/50 p-1.5 rounded-[22px] border border-slate-100 backdrop-blur-md mb-8 w-fit">
                     <TabsTrigger value="managers" className="rounded-[18px] px-8 py-2.5 text-xs font-black uppercase tracking-widest gap-2 data-[state=active]:bg-white data-[state=active]:text-blue-600 data-[state=active]:shadow-xl data-[state=active]:shadow-blue-500/10 transition-all duration-300">
                         <User className="w-4 h-4" /> Менеджеры
                     </TabsTrigger>
@@ -242,8 +242,8 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
 
                     {/* Charts */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <Card className="lg:col-span-2 bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
-                            <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+                        <Card className="lg:col-span-2 bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
+                            <div className="p-8 border-b border-slate-50 bg-white/5/30">
                                 <h4 className="text-sm font-black text-foreground uppercase tracking-tight">Динамика сообщений</h4>
                                 <p className="text-[10px] font-black text-muted-foreground uppercase opacity-40 tracking-widest mt-1">Объем переписки по дням</p>
                             </div>
@@ -293,8 +293,8 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                             </CardContent>
                         </Card>
 
-                        <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
-                            <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+                        <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
+                            <div className="p-8 border-b border-slate-50 bg-white/5/30">
                                 <h4 className="text-sm font-black text-foreground uppercase tracking-tight">Время ответа</h4>
                                 <p className="text-[10px] font-black text-muted-foreground uppercase opacity-40 tracking-widest mt-1">Распределение по часам</p>
                             </div>
@@ -338,8 +338,8 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                     </div>
 
                     {/* Dialogs Table */}
-                    <Card className="bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
-                        <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+                    <Card className="bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
+                        <div className="p-8 border-b border-slate-50 bg-white/5/30">
                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
                                 <h4 className="text-lg font-black text-foreground uppercase tracking-tight flex items-center gap-2">
                                     <span className="opacity-40">📜</span> Активные диалоги
@@ -348,7 +348,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                     <SearchIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
                                     <input
                                         placeholder="ПОИСК ПО КЛИЕНТУ ИЛИ МЕНЕДЖЕРУ..."
-                                        className="w-full bg-slate-100/50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all shadow-inner"
+                                        className="w-full bg-white/10/50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-[10px] font-black uppercase tracking-widest focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:bg-white transition-all shadow-inner"
                                     />
                                 </div>
                             </div>
@@ -356,7 +356,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                         <CardContent className="p-0">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="border-slate-100 hover:bg-transparent bg-slate-50/20">
+                                    <TableRow className="border-slate-100 hover:bg-transparent bg-white/5/20">
                                         <TableHead className="text-[10px] font-black uppercase tracking-widest px-8 h-12">Менеджер</TableHead>
                                         <TableHead className="text-[10px] font-black uppercase tracking-widest px-8">Клиент</TableHead>
                                         <TableHead className="text-[10px] font-black uppercase tracking-widest px-8">Дата</TableHead>
@@ -368,7 +368,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                 </TableHeader>
                                 <TableBody>
                                     {STATIC_DIALOGS.map((dialog) => (
-                                        <TableRow key={dialog.id} className="border-slate-50 hover:bg-slate-50/50 group transition-all">
+                                        <TableRow key={dialog.id} className="border-slate-50 hover:bg-white/5/50 group transition-all">
                                             <TableCell className="px-8 py-4">
                                                 <div className="flex items-center gap-3">
                                                     <Avatar className="h-9 w-9 border-2 border-white shadow-sm ring-1 ring-slate-100">
@@ -386,7 +386,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                                 <span className="text-[10px] font-bold text-muted-foreground uppercase opacity-60">{dialog.date}</span>
                                             </TableCell>
                                             <TableCell className="px-8 py-4 text-center">
-                                                <Badge variant="secondary" className="bg-slate-100/50 text-slate-600 rounded-lg text-[10px] font-black">{dialog.messages}</Badge>
+                                                <Badge variant="secondary" className="bg-white/10/50 text-slate-600 rounded-lg text-[10px] font-black">{dialog.messages}</Badge>
                                             </TableCell>
                                             <TableCell className="px-8 py-4 text-center">
                                                 <span className="text-[10px] font-black text-slate-600">{Math.floor(dialog.duration / 60)}м {dialog.duration % 60}с</span>
@@ -417,8 +417,8 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
 
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         {/* Bot Trend Chart */}
-                        <Card className="lg:col-span-2 bg-white/80 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
-                            <div className="p-8 border-b border-slate-50 bg-slate-50/30">
+                        <Card className="lg:col-span-2 bg-white/10 backdrop-blur-3xl shadow-sm border border-white rounded-[32px] overflow-hidden">
+                            <div className="p-8 border-b border-slate-50 bg-white/5/30">
                                 <h4 className="text-sm font-black text-foreground uppercase tracking-tight">Нагрузка на бота</h4>
                                 <p className="text-[10px] font-black text-muted-foreground uppercase opacity-40 tracking-widest mt-1">Количество автоматических диалогов</p>
                             </div>
@@ -509,7 +509,7 @@ export const ChatAnalyticsTab: React.FC<ChatAnalyticsTabProps> = ({ projectId })
                                                 </span>
                                             </div>
                                             <h4 className="text-xs font-black uppercase tracking-widest text-foreground mb-2">{err.type}</h4>
-                                            <div className="p-3 bg-slate-50 rounded-xl border border-slate-100 italic">
+                                            <div className="p-3 bg-white/5 rounded-xl border border-slate-100 italic">
                                                 <p className="text-[10px] text-muted-foreground leading-relaxed">"{err.example}"</p>
                                             </div>
                                         </CardContent>

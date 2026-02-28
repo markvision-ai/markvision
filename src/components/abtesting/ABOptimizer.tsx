@@ -172,11 +172,11 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
   const activeTest = tests.find(t => t.id === selectedTestId);
 
   return (
-    <div className="space-y-8 min-h-screen p-4 md:p-8 relative z-10 bg-slate-50/50">
+    <div className="space-y-8 min-h-screen p-4 md:p-8 relative z-10">
       {/* Header Section */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-8 bg-white/80 backdrop-blur-3xl rounded-[32px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center p-8 bg-[#020617]/40 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-interstellar gap-6">
         <div className="flex items-center gap-5">
-          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 text-blue-600 shadow-inner border border-white/50">
+          <div className="p-4 rounded-2xl bg-gradient-to-br from-blue-500/10 to-indigo-500/10 text-blue-400 shadow-inner border border-white/10">
             <FlaskConical className="w-8 h-8" />
           </div>
           <div>
@@ -215,10 +215,10 @@ export const ABOptimizer = ({ projectId }: ABOptimizerProps) => {
       )}
 
       {/* Tests List Section */}
-      <div className="bg-white/80 backdrop-blur-3xl rounded-[32px] border border-white shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
-        <div className="flex items-center justify-between mb-8 border-b border-slate-100 pb-6">
+      <div className="bg-[#020617]/40 backdrop-blur-3xl rounded-[32px] border border-white/10 shadow-interstellar p-8 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-200">
+        <div className="flex items-center justify-between mb-8 border-b border-white/5 pb-6">
           <h3 className="text-xl font-black text-foreground uppercase tracking-tight flex items-center gap-3">
-            <Target className="w-6 h-6 text-blue-500" />
+            <Target className="w-6 h-6 text-blue-400" />
             История экспериментов
           </h3>
         </div>

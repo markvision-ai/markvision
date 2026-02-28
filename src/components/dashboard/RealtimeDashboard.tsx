@@ -594,16 +594,16 @@ export const RealtimeDashboard = ({ projectId }: RealtimeDashboardProps) => {
         </GlassCard>
 
         {/* Transactions Feed */}
-        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-2xl hover:shadow-blue-500/10 transition-all relative group">
-          <div className="p-5 border-b border-white/80 bg-slate-50/80 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
-            <div className="flex items-center gap-2 font-black text-foreground uppercase tracking-tight text-xs">
-              <DollarSign className="w-4 h-4 text-blue-500" />
+        <GlassCard className="flex flex-col h-[450px] p-0 overflow-hidden rounded-3xl border border-white/10 bg-[#020617]/60 backdrop-blur-3xl shadow-interstellar hover:shadow-2xl hover:shadow-primary/10 transition-all relative group">
+          <div className="p-5 border-b border-white/5 bg-white/5 flex items-center justify-between sticky top-0 z-10 backdrop-blur-xl">
+            <div className="flex items-center gap-2 font-black text-white/90 uppercase tracking-tight text-xs">
+              <DollarSign className="w-4 h-4 text-primary" />
               Транзакции
             </div>
-            <div className="flex items-center gap-2 font-mono text-[10px] text-blue-500">
+            <div className="flex items-center gap-2 font-mono text-[10px] text-primary">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary/40 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
               </span>
               CASHFLOW
             </div>

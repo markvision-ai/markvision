@@ -295,44 +295,44 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="flex flex-wrap items-center gap-4 relative z-10">
-              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] h-12">
-                <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mr-2">Сортировка:</span>
+              <div className="flex items-center gap-2 p-1 px-3 rounded-2xl bg-[#020617]/40 backdrop-blur-3xl border border-white/10 shadow-interstellar h-12">
+                <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest mr-2 opacity-60">Сортировка:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent text-foreground text-xs font-bold uppercase tracking-widest outline-none cursor-pointer"
+                  className="bg-transparent text-foreground text-xs font-black uppercase tracking-widest outline-none cursor-pointer"
                 >
-                  <option value="date" className="bg-slate-50 text-foreground">Дата</option>
-                  <option value="reach" className="bg-slate-50 text-foreground">Охват</option>
-                  <option value="leads" className="bg-slate-50 text-foreground">Лиды</option>
-                  <option value="revenue" className="bg-slate-50 text-foreground">Доход</option>
-                  <option value="comments" className="bg-slate-50 text-foreground">Комменты</option>
+                  <option value="date" className="bg-[#020617] text-foreground">Дата</option>
+                  <option value="reach" className="bg-[#020617] text-foreground">Охват</option>
+                  <option value="leads" className="bg-[#020617] text-foreground">Лиды</option>
+                  <option value="revenue" className="bg-[#020617] text-foreground">Доход</option>
+                  <option value="comments" className="bg-[#020617] text-foreground">Комменты</option>
                 </select>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-muted-foreground hover:text-foreground"
+                  className="h-8 w-8 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl"
                   onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')}
                 >
                   {sortOrder === 'desc' ? <ChevronDown className="w-4 h-4" /> : <ChevronDown className="w-4 h-4 rotate-180" />}
                 </Button>
               </div>
 
-              <div className="p-1 rounded-2xl bg-white/70 backdrop-blur-2xl border border-white/60 shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex items-center gap-1">
+              <div className="p-1 rounded-2xl bg-[#020617]/40 backdrop-blur-3xl border border-white/10 shadow-interstellar flex items-center gap-1">
                 <Button
                   onClick={() => setIsCreatorOpen(true)}
-                  className="h-12 px-8 bg-primary text-primary-foreground font-bold uppercase tracking-widest rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
+                  className="h-12 px-8 bg-blue-600 hover:bg-blue-700 text-white font-black uppercase tracking-widest rounded-xl transition-all shadow-lg shadow-blue-500/20 active:scale-95"
                 >
                   <Plus className="w-5 h-5 mr-2" />
                   Создать пост
                 </Button>
-                <div className="w-px h-8 bg-border mx-1" />
+                <div className="w-px h-8 bg-white/5 mx-1" />
                 <div className="flex items-center gap-1">
                   <Button
                     variant="ghost"
                     size="icon"
                     onClick={handlePrevMonth}
-                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
+                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl"
                   >
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
@@ -345,7 +345,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                     variant="ghost"
                     size="icon"
                     onClick={handleNextMonth}
-                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-muted rounded-xl"
+                    className="h-10 w-10 text-muted-foreground hover:text-foreground hover:bg-white/5 rounded-xl"
                   >
                     <ChevronRight className="w-4 h-4" />
                   </Button>
@@ -370,10 +370,10 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                 variant="ghost"
                 onClick={() => setSelectedChannel(channel.id)}
                 className={cn(
-                  "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-bold uppercase tracking-widest text-[10px]",
+                  "h-12 px-6 gap-3 border transition-all duration-300 rounded-2xl font-black uppercase tracking-widest text-[10px]",
                   selectedChannel === channel.id
-                    ? "bg-white/90 backdrop-blur-3xl border-white/80 text-foreground shadow-[0_8px_30px_rgb(0,0,0,0.06)]"
-                    : "bg-white/50 border-white/60 shadow-sm text-muted-foreground hover:bg-white/70 hover:text-foreground hover:shadow-md"
+                    ? "bg-white/10 backdrop-blur-3xl border-white/10 text-foreground shadow-interstellar"
+                    : "bg-white/5 border-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground"
                 )}
               >
                 {channel.id === 'all' ? <LayoutGrid className="w-4 h-4" /> : <ChannelIcon channel={channel.id} className="w-4 h-4" />}
@@ -386,21 +386,21 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
           <div className="relative group">
             <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 via-blue-500/10 to-primary/10 rounded-[32px] blur opacity-20 group-hover:opacity-40 transition duration-1000" />
 
-            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/80 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg transition-all">
+            <div className="relative w-full overflow-hidden rounded-[32px] border border-white/80 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-lg transition-all">
 
               {/* Table Header Container */}
-              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-slate-100 bg-white/50 items-center">
+              <div className="grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 border-b border-white/5 bg-white/5 items-center">
                 <div className="flex items-center gap-3">
-                  <BarChart3 className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em]">Контент</span>
+                  <BarChart3 className="w-4 h-4 text-blue-400" />
+                  <span className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] opacity-60">Контент</span>
                 </div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Канал</div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Охват</div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Клики</div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center">Комменты</div>
-                <div className="text-[10px] font-black text-primary uppercase tracking-[0.3em] text-center border-b border-primary/20 pb-1">Воронка</div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right">Доход</div>
-                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right whitespace-nowrap">Действие</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center opacity-60">Канал</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center opacity-60">Охват</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center opacity-60">Клики</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-center opacity-60">Комменты</div>
+                <div className="text-[10px] font-black text-blue-400 uppercase tracking-[0.3em] text-center border-b border-blue-500/20 pb-1">Воронка</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right opacity-60">Доход</div>
+                <div className="text-[10px] font-black text-muted-foreground uppercase tracking-[0.3em] text-right whitespace-nowrap opacity-60">Действие</div>
               </div>
 
               {/* Table Body */}
@@ -425,13 +425,13 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: idx * 0.05 }}
-                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-slate-50/50 transition-all duration-300 relative overflow-hidden"
+                        className="group grid grid-cols-[1fr_120px_80px_80px_110px_160px_100px_140px] gap-6 px-10 py-6 items-center hover:bg-[#020617]/20 transition-all duration-300 relative overflow-hidden"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/0 to-primary/0 group-hover:via-primary/5 transition-all duration-500" />
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/0 via-blue-500/0 to-blue-500/0 group-hover:via-blue-500/5 transition-all duration-500" />
 
                         {/* Content */}
                         <div className="flex items-center gap-6 min-w-0 relative z-10">
-                          <div className="h-16 w-16 rounded-2xl bg-white/50 border border-white/60 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-sm">
+                          <div className="h-16 w-16 rounded-2xl bg-[#020617]/20 border border-white/10 overflow-hidden flex-shrink-0 relative group-hover:scale-105 transition-transform duration-500 shadow-interstellar">
                             {post.media_url ? (
                               <img src={post.media_url} alt="Post" className="h-full w-full object-cover" />
                             ) : (
@@ -440,15 +440,15 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                               </div>
                             )}
                             <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-all" />
-                            <div className="absolute bottom-1 right-1 bg-white/90 backdrop-blur-md rounded-lg p-1 border border-white/60 shadow-sm">
-                              {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-primary" /> : <FileImage className="w-3 h-3 text-purple-500" />}
+                            <div className="absolute bottom-1 right-1 bg-white/10 backdrop-blur-md rounded-lg p-1 border border-white/10 shadow-sm">
+                              {post.media_type === 'VIDEO' ? <FileVideo className="w-3 h-3 text-blue-400" /> : <FileImage className="w-3 h-3 text-purple-400" />}
                             </div>
                           </div>
                           <div className="min-w-0 flex-1 space-y-1">
-                            <p className="text-sm font-bold text-foreground group-hover:text-primary transition-colors truncate pr-8" title={post.caption || ''}>
+                            <p className="text-sm font-black text-foreground group-hover:text-blue-400 transition-colors truncate pr-8" title={post.caption || ''}>
                               {post.caption || 'Без названия'}
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-mono uppercase tracking-tighter">
+                            <div className="flex items-center gap-2 text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">
                               <CalendarIcon className="w-3 h-3" />
                               {post.posted_at ? format(parseISO(post.posted_at), 'dd MMM yyyy, HH:mm', { locale: ru }) : 'Недавно'}
                             </div>
@@ -457,9 +457,9 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Node (Channel) */}
                         <div className="flex justify-center relative z-10">
-                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/50 border border-white/60 shadow-sm min-w-[80px] group-hover:border-primary/30 transition-all">
+                          <div className="flex flex-col items-center gap-1 p-2 rounded-xl bg-white/5 border border-white/10 shadow-inner min-w-[80px] group-hover:border-blue-500/30 transition-all">
                             <ChannelIcon channel={post.channel} className="w-5 h-5 mb-1" />
-                            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">{post.channel}</span>
+                            <span className="text-[10px] font-black text-muted-foreground uppercase tracking-widest opacity-60">{post.channel}</span>
                           </div>
                         </div>
 
@@ -476,14 +476,14 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
                         {/* Funnel Matrix */}
                         <div className="relative z-10">
-                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-primary/5 border border-primary/10 group-hover:bg-primary/10 transition-all">
+                          <div className="grid grid-cols-2 gap-2 text-center p-3 rounded-2xl bg-blue-500/5 border border-blue-500/10 group-hover:bg-blue-500/10 transition-all">
                             <div className="space-y-0.5">
                               <div className="text-[14px] font-black text-foreground">{post.leads_count}</div>
-                              <div className="text-[9px] text-primary/80 uppercase tracking-widest font-bold">Лиды</div>
+                              <div className="text-[9px] text-blue-400 font-black uppercase tracking-widest">Лиды</div>
                             </div>
-                            <div className="space-y-0.5 border-l border-primary/20">
+                            <div className="space-y-0.5 border-l border-white/5">
                               <div className="text-[14px] font-black text-foreground">{post.visits_count}</div>
-                              <div className="text-[9px] text-primary/80 uppercase tracking-widest font-bold">Визиты</div>
+                              <div className="text-[9px] text-blue-400 font-black uppercase tracking-widest">Визиты</div>
                             </div>
                           </div>
                         </div>
@@ -505,7 +505,7 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
                         <div className="flex justify-end relative z-10">
                           <Button
                             onClick={() => handlePromoteClick(post)}
-                            className="h-10 px-6 bg-white/80 hover:bg-primary text-foreground hover:text-white border border-slate-200 hover:border-primary shadow-sm rounded-xl transition-all duration-300 group/btn hover:shadow-md"
+                            className="h-10 px-6 bg-white/5 hover:bg-blue-600 text-foreground hover:text-white border border-white/10 hover:border-blue-500 shadow-sm rounded-xl transition-all duration-300 group/btn hover:shadow-lg hover:shadow-blue-500/20 active:scale-95"
                           >
                             <Zap className="w-4 h-4 mr-2 group-hover/btn:fill-current" />
                             <span className="text-[10px] font-black uppercase tracking-widest">Продвигать</span>
@@ -536,34 +536,34 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
 
       {/* Promote Dialog - Refined for Interstellar */}
       <Dialog open={promoteDialogOpen} onOpenChange={setPromoteDialogOpen}>
-        <DialogContent className="sm:max-w-[480px] bg-white/95 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white/80 text-foreground rounded-[32px] p-8">
-          <DialogHeader className="space-y-4">
-            <div className="w-16 h-16 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm">
+        <DialogContent className="sm:max-w-[480px] bg-[#020617] border border-white/10 shadow-interstellar text-foreground rounded-[32px] p-0 overflow-hidden">
+          <DialogHeader className="p-8 pb-4 border-b border-white/5 bg-white/5 space-y-4">
+            <div className="w-16 h-16 rounded-2xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 shadow-interstellar">
               <Rocket className="w-8 h-8" />
             </div>
             <div>
               <DialogTitle className="text-2xl font-black text-foreground uppercase tracking-tight">ИИ-Продвижение</DialogTitle>
-              <DialogDescription className="text-muted-foreground mt-1 font-light">
+              <DialogDescription className="text-[10px] font-black uppercase tracking-widest text-muted-foreground opacity-60 mt-1">
                 Нейронный анализ рекомендует этот пост для масштабирования.
               </DialogDescription>
             </div>
           </DialogHeader>
 
           <div className="py-6 space-y-6">
-            <div className="p-5 rounded-[24px] bg-white/60 backdrop-blur-xl border border-white/80 shadow-sm flex gap-5 items-center">
-              <div className="h-20 w-20 rounded-xl bg-slate-100 overflow-hidden flex-shrink-0 border border-slate-200 relative">
+            <div className="p-5 rounded-[24px] bg-white/5 border border-white/10 shadow-inner flex gap-5 items-center">
+              <div className="h-20 w-20 rounded-xl bg-white/5 overflow-hidden flex-shrink-0 border border-white/10 relative">
                 {selectedPost?.media_url && (
                   <img src={selectedPost.media_url} alt="Preview" className="h-full w-full object-cover" />
                 )}
                 <div className="absolute inset-0 bg-black/5" />
               </div>
               <div className="min-w-0 flex-1 space-y-2">
-                <h4 className="font-bold text-sm text-foreground line-clamp-1">{selectedPost?.caption || 'Без названия'}</h4>
+                <h4 className="font-black text-sm text-foreground line-clamp-1 uppercase tracking-tight">{selectedPost?.caption || 'Без названия'}</h4>
                 <div className="flex flex-wrap gap-2">
-                  <div className="px-2 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 text-[9px] font-black uppercase font-mono">
+                  <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[9px] font-black uppercase tracking-widest">
                     ПОТЕНЦИАЛ: ВЫСОКИЙ
                   </div>
-                  <div className="px-2 py-1 rounded-lg bg-blue-500/10 text-blue-500 border border-blue-500/20 text-[9px] font-black uppercase font-mono">
+                  <div className="px-2 py-1 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[9px] font-black uppercase tracking-widest">
                     CTR: 4.8%
                   </div>
                 </div>
@@ -571,22 +571,22 @@ export const PublicationsPage = ({ projectId }: PublicationsPageProps) => {
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className="p-6 rounded-[24px] bg-primary/5 border border-primary/10 text-center space-y-1">
-                <div className="text-[10px] text-primary font-black uppercase tracking-widest">Прогноз лидов</div>
+              <div className="p-6 rounded-[24px] bg-blue-500/5 border border-blue-500/10 text-center space-y-1">
+                <div className="text-[10px] text-blue-400 font-black uppercase tracking-widest opacity-60">Прогноз лидов</div>
                 <div className="text-3xl font-black text-foreground">+50</div>
-                <div className="text-[9px] text-muted-foreground uppercase">Ожидается</div>
+                <div className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-40">Ожидается</div>
               </div>
               <div className="p-6 rounded-[24px] bg-purple-500/5 border border-purple-500/10 text-center space-y-1">
-                <div className="text-[10px] text-purple-500 font-black uppercase tracking-widest">Бюджет</div>
+                <div className="text-[10px] text-purple-400 font-black uppercase tracking-widest opacity-60">Бюджет</div>
                 <div className="text-3xl font-black text-foreground">20к</div>
-                <div className="text-[9px] text-muted-foreground uppercase text-center ml-4">₸</div>
+                <div className="text-[9px] text-muted-foreground font-black uppercase tracking-widest opacity-40">Тенге / ₸</div>
               </div>
             </div>
           </div>
 
-          <DialogFooter className="gap-3 sm:justify-center">
-            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-muted-foreground hover:text-foreground uppercase font-bold text-xs tracking-widest">Отмена</Button>
-            <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-primary text-primary-foreground hover:bg-primary/90 rounded-2xl font-black uppercase tracking-widest transition-all hover:scale-[1.02] shadow-sm">
+          <DialogFooter className="gap-3 sm:justify-center p-8 pt-0">
+            <Button variant="ghost" onClick={() => setPromoteDialogOpen(false)} className="h-14 px-8 rounded-2xl text-muted-foreground hover:text-foreground uppercase font-black text-[10px] tracking-[0.2em] opacity-60 hover:opacity-100">Отмена</Button>
+            <Button onClick={confirmPromote} disabled={promoting} className="h-14 px-10 bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/20 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all hover:scale-[1.02] active:scale-95">
               {promoting ? <Loader2 className="w-5 h-5 animate-spin mr-3" /> : <Rocket className="w-5 h-5 mr-3" />}
               Запустить рост
             </Button>

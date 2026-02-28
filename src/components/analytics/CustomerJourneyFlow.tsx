@@ -33,8 +33,8 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
     };
 
     return (
-        <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden relative">
-            <CardHeader className="bg-slate-50/50 border-b border-slate-100 p-8">
+        <Card className="bg-white/10 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.06)] border border-white rounded-[32px] overflow-hidden relative">
+            <CardHeader className="bg-white/5/50 border-b border-slate-100 p-8">
                 <CardTitle className="text-xl font-black uppercase tracking-tight text-foreground flex items-center gap-3">
                     <div className="p-2 rounded-xl bg-blue-500/10 text-blue-500">
                         <TrendingDown className="w-5 h-5 -scale-y-100" />
@@ -45,7 +45,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
             <CardContent className="relative p-8 overflow-x-auto min-h-[300px] flex items-center justify-center">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4 relative min-w-max w-full">
                     {/* Animated Flow Line */}
-                    <div className="absolute top-[50%] left-16 right-16 h-1.5 bg-slate-100 hidden lg:block -z-10 translate-y-[-50%] rounded-full overflow-hidden">
+                    <div className="absolute top-[50%] left-16 right-16 h-1.5 bg-white/10 hidden lg:block -z-10 translate-y-[-50%] rounded-full overflow-hidden">
                         <motion.div
                             className="h-full bg-gradient-to-r from-transparent via-primary/40 to-transparent w-1/3"
                             animate={{ x: ['-200%', '300%'] }}
@@ -76,7 +76,7 @@ export const CustomerJourneyFlow = ({ metrics }: CustomerJourneyFlowProps) => {
                                 {index < steps.length - 1 && (
                                     <div className="flex flex-col items-center justify-center py-2 lg:py-0 lg:px-3 z-10">
                                         {conversion !== null && (
-                                            <div className="flex flex-col items-center bg-white/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
+                                            <div className="flex flex-col items-center bg-white/10 backdrop-blur-md px-3 py-1.5 rounded-full border border-slate-100 shadow-sm">
                                                 <span className="text-[10px] font-black tracking-wider text-primary">{conversion < 100 ? `${conversion.toFixed(1)}%` : ''}</span>
                                             </div>
                                         )}

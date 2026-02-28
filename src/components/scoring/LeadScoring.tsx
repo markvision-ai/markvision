@@ -495,19 +495,19 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       <div className="flex flex-col sm:flex-row justify-between gap-6 items-start sm:items-center">
         <div>
           <h2 className="text-2xl sm:text-3xl font-black flex items-center gap-3 text-foreground uppercase tracking-tight">
-            <div className="p-3 rounded-[20px] bg-slate-50 border border-slate-100 shadow-sm">
-              <Target className="w-6 h-6 text-blue-600" />
+            <div className="p-3 rounded-[20px] bg-white/5 border border-white/10 shadow-interstellar">
+              <Target className="w-6 h-6 text-blue-400" />
             </div>
             Рейтинг заявок
           </h2>
           <p className="text-sm text-muted-foreground mt-2 font-medium">Автоматическая оценка качества лидов на базе ИИ и правил</p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <Button variant="outline" size="lg" onClick={recalculateScores} disabled={isRecalculating} className="border-slate-200 hover:bg-slate-50 font-bold px-6 py-6 rounded-2xl h-auto shadow-sm">
+          <Button variant="outline" size="lg" onClick={recalculateScores} disabled={isRecalculating} className="border-white/10 bg-white/5 hover:bg-white/10 font-bold px-6 py-6 rounded-2xl h-auto shadow-sm">
             <RefreshCw className={cn("w-5 h-5 mr-2", isRecalculating && "animate-spin")} />
             Пересчитать баллы
           </Button>
-          <Button size="lg" onClick={() => setIsAddDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-6 py-6 rounded-2xl h-auto shadow-lg shadow-blue-500/20">
+          <Button size="lg" onClick={() => setIsAddDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest px-8 py-6 rounded-2xl h-auto shadow-lg shadow-blue-500/20">
             <Plus className="w-5 h-5 mr-2" />
             Добавить правило
           </Button>
@@ -517,26 +517,26 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* KPI */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
-          { label: 'Средний балл', value: scoreStats.avg, color: 'text-foreground', border: 'border-slate-100' },
-          { label: 'Горячие (80–100)', value: scoreStats.hot, color: 'text-red-500', border: 'border-red-100' },
-          { label: 'Тёплые (50–79)', value: scoreStats.warm, color: 'text-amber-500', border: 'border-amber-100' },
-          { label: 'Холодные (0–49)', value: scoreStats.cold, color: 'text-blue-500', border: 'border-blue-100' },
+          { label: 'Средний балл', value: scoreStats.avg, color: 'text-foreground', line: 'bg-blue-500' },
+          { label: 'Горячие (80–100)', value: scoreStats.hot, color: 'text-rose-500', line: 'bg-rose-500' },
+          { label: 'Тёплые (50–79)', value: scoreStats.warm, color: 'text-amber-500', line: 'bg-amber-500' },
+          { label: 'Холодные (0–49)', value: scoreStats.cold, color: 'text-cyan-500', line: 'bg-cyan-500' },
         ].map((kpi, idx) => (
-          <Card key={idx} className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[24px] overflow-hidden group hover:scale-[1.02] transition-transform duration-500">
+          <Card key={idx} className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[24px] overflow-hidden group hover:scale-[1.02] transition-transform duration-500 relative">
             <CardContent className="p-6">
-              <p className={cn("text-3xl font-black tracking-tighter mb-1", kpi.color)}>{kpi.value}</p>
+              <p className={cn("text-4xl font-black tracking-tighter mb-1", kpi.color)}>{kpi.value}</p>
               <p className="text-[10px] uppercase font-black text-muted-foreground tracking-widest opacity-60">{kpi.label}</p>
-              <div className={cn("absolute bottom-0 left-0 h-1 w-full bg-current opacity-20", kpi.color)} />
+              <div className={cn("absolute bottom-0 left-0 h-1 w-full opacity-30", kpi.line)} />
             </CardContent>
           </Card>
         ))}
       </div>
 
       {/* Distribution & Filters */}
-      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
-        <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+      <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
+        <CardHeader className="pb-4 border-b border-white/5 bg-white/5">
           <CardTitle className="text-lg font-black text-foreground uppercase tracking-tight">Аналитика распределения</CardTitle>
-          <CardDescription className="text-sm text-muted-foreground font-medium uppercase tracking-widest text-[10px] opacity-60">Фильтрация и сегментация по источникам</CardDescription>
+          <CardDescription className="text-[10px] text-muted-foreground font-black uppercase tracking-widest opacity-60">Фильтрация и сегментация по источникам</CardDescription>
         </CardHeader>
         <CardContent className="p-8">
           <div className="flex flex-col md:flex-row gap-10 items-center">
@@ -566,13 +566,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
             </div>
             <div className="w-full md:w-1/3 space-y-5">
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1">Источник трафика</Label>
+                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1 opacity-60">Источник трафика</Label>
                 <Select value={selectedSource || 'all'} onValueChange={(v) => setSelectedSource(v || 'all')}>
-                  <SelectTrigger className="bg-slate-50/80 border-slate-100 rounded-2xl h-12 font-bold focus:ring-blue-500/20">
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-2xl h-12 font-black focus:ring-blue-500/20 text-xs">
                     <SelectValue placeholder="Все источники" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
-                    <SelectItem value="all">Все (Global)</SelectItem>
+                  <SelectContent className="rounded-2xl border-white/10 bg-[#020617]/95 backdrop-blur-xl shadow-interstellar">
+                    <SelectItem value="all" className="font-black text-xs uppercase">Все (Global)</SelectItem>
                     {sourceOptions.length > 0
                       ? sourceOptions.map(s => <SelectItem key={s} value={s} className="uppercase font-bold text-xs">{s}</SelectItem>)
                       : ['yandex', 'google', 'vk', 'facebook', 'instagram', 'telegram', 'whatsapp', 'manual', 'website', 'referral'].map(s => (
@@ -582,12 +582,12 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1">Текущий статус</Label>
+                <Label className="text-[10px] uppercase font-black text-muted-foreground tracking-widest ml-1 opacity-60">Текущий статус</Label>
                 <Select value={selectedStatus || 'all'} onValueChange={(v) => setSelectedStatus(v || 'all')}>
-                  <SelectTrigger className="bg-slate-50/80 border-slate-100 rounded-2xl h-12 font-bold focus:ring-blue-500/20">
+                  <SelectTrigger className="bg-white/5 border-white/10 rounded-2xl h-12 font-black focus:ring-blue-500/20 text-xs">
                     <SelectValue placeholder="Все статусы" />
                   </SelectTrigger>
-                  <SelectContent className="rounded-2xl border-slate-100 shadow-xl">
+                  <SelectContent className="rounded-2xl border-white/10 bg-[#020617]/95 backdrop-blur-xl shadow-interstellar">
                     {Object.entries(statusLabels).map(([value, label]) => (
                       <SelectItem key={value} value={value} className="font-bold text-xs">{label}</SelectItem>
                     ))}
@@ -602,12 +602,12 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Score Legend */}
       <div className="flex flex-wrap gap-4">
         {[
-          { label: 'Горячие', range: '80–100', icon: Flame, color: 'bg-red-500/10 text-red-500' },
-          { label: 'Тёплые', range: '50–79', icon: ThermometerSun, color: 'bg-amber-500/10 text-amber-500' },
-          { label: 'Холодные', range: '0–49', icon: Snowflake, color: 'bg-blue-500/10 text-blue-500' },
+          { label: 'Горячие', range: '80–100', icon: Flame, color: 'bg-rose-500/10 text-rose-400', border: 'border-rose-500/20' },
+          { label: 'Тёплые', range: '50–79', icon: ThermometerSun, color: 'bg-amber-500/10 text-amber-400', border: 'border-amber-500/20' },
+          { label: 'Холодные', range: '0–49', icon: Snowflake, color: 'bg-cyan-500/10 text-cyan-400', border: 'border-cyan-500/20' },
         ].map((item, idx) => (
-          <div key={idx} className="flex items-center gap-4 rounded-2xl bg-white/60 backdrop-blur-xl border border-white/80 px-6 py-3 shadow-[0_4px_20px_rgba(0,0,0,0.02)]">
-            <div className={cn("p-2 rounded-xl", item.color)}>
+          <div key={idx} className={cn("flex items-center gap-4 rounded-2xl bg-white/5 backdrop-blur-xl border px-6 py-3 shadow-interstellar", item.border)}>
+            <div className={cn("p-2.5 rounded-xl border", item.color, item.border)}>
               <item.icon className="w-5 h-5" />
             </div>
             <div>
@@ -623,22 +623,22 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
       {/* Упрощение: убрана визуализация весов */}
 
       {/* Rules Table */}
-      <Card className="bg-white/80 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white rounded-[32px] overflow-hidden">
-        <CardHeader className="pb-4 border-b border-slate-50 bg-slate-50/50">
+      <Card className="bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/10 rounded-[32px] overflow-hidden">
+        <CardHeader className="pb-4 border-b border-white/5 bg-white/5">
           <CardTitle className="text-lg font-black text-foreground uppercase tracking-tight">Настройка логики</CardTitle>
-          <CardDescription className="text-sm font-medium uppercase tracking-widest text-[10px] opacity-60">Управление правилами автоматического скоринга</CardDescription>
+          <CardDescription className="text-[10px] font-black uppercase tracking-widest opacity-60">Управление правилами автоматического скоринга</CardDescription>
         </CardHeader>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
-                <TableRow className="bg-slate-50/50 hover:bg-slate-50/50 border-b border-slate-100">
-                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-6 py-4">Название правила</TableHead>
-                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Параметр</TableHead>
-                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Условие</TableHead>
-                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4">Воздействие</TableHead>
-                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-4 text-center">Статус</TableHead>
-                  <TableHead className="w-24 pr-6 py-4" />
+                <TableRow className="bg-white/5 hover:bg-white/5 border-b border-white/5">
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest pl-6 py-5">Название правила</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-5">Параметр</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-5">Условие</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-5">Воздействие</TableHead>
+                  <TableHead className="text-[10px] font-black text-muted-foreground uppercase tracking-widest py-5 text-center">Статус</TableHead>
+                  <TableHead className="w-24 pr-6 py-5 text-right">Действия</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -653,22 +653,22 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                   </TableRow>
                 ) : rules.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-20">
-                      <div className="flex flex-col items-center gap-3">
-                        <div className="p-4 rounded-3xl bg-slate-50 border border-slate-100 mb-2">
-                          <Target className="w-8 h-8 text-slate-200" />
+                    <TableCell colSpan={6} className="text-center py-24">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="p-5 rounded-[24px] bg-white/5 border border-white/10 mb-2 shadow-inner">
+                          <Target className="w-10 h-10 text-white/20" />
                         </div>
-                        <span className="text-sm font-black uppercase tracking-tight text-foreground opacity-60">Правила не найдены</span>
-                        <Button variant="link" onClick={() => setIsAddDialogOpen(true)} className="text-blue-600 font-bold p-0 h-auto">Создать первое правило</Button>
+                        <span className="text-xs font-black uppercase tracking-widest text-foreground opacity-40">Правила не найдены</span>
+                        <Button variant="link" onClick={() => setIsAddDialogOpen(true)} className="text-blue-400 font-black uppercase text-[10px] tracking-widest p-0 h-auto">Создать первое правило</Button>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
                   rules.map((rule) => (
-                    <TableRow key={rule.id} className="hover:bg-slate-50/50 transition-colors border-b border-slate-50 group">
-                      <TableCell className="font-black text-sm text-foreground pl-6 py-4 uppercase tracking-tighter">{rule.name}</TableCell>
-                      <TableCell className="py-4">
-                        <Badge variant="outline" className="text-[10px] font-black uppercase tracking-widest border-slate-200 text-muted-foreground px-2 py-0.5 rounded-md">
+                    <TableRow key={rule.id} className="hover:bg-white/5 transition-colors border-b border-white/5 group">
+                      <TableCell className="font-black text-sm text-foreground pl-6 py-5 uppercase tracking-tighter">{rule.name}</TableCell>
+                      <TableCell className="py-5">
+                        <Badge variant="outline" className="text-[9px] font-black uppercase tracking-widest border-white/10 bg-white/5 text-muted-foreground px-2 py-0.5 rounded-md">
                           {fields.find(f => f.value === rule.field)?.label || rule.field}
                         </Badge>
                       </TableCell>
@@ -694,13 +694,13 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
                       </TableCell>
                       <TableCell className="pr-6 py-4">
                         <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600">
+                          <Button variant="ghost" size="icon" className="h-9 w-9 rounded-xl hover:bg-white/10 text-white/40 hover:text-white">
                             <Edit2 className="w-4 h-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-9 w-9 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-500"
+                            className="h-9 w-9 rounded-xl hover:bg-rose-500/10 text-white/40 hover:text-rose-500"
                             onClick={() => handleDeleteRule(rule.id)}
                           >
                             <Trash2 className="w-4 h-4" />
@@ -722,80 +722,80 @@ export const LeadScoring = ({ projectId }: LeadScoringProps) => {
 
       {/* Add Rule Dialog */}
       <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-        <DialogContent className="max-w-lg border-white/50 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60">
+        <DialogContent className="max-w-lg bg-[#020617]/95 backdrop-blur-2xl border border-white/10 shadow-interstellar rounded-[32px] overflow-hidden">
           <DialogHeader>
-            <DialogTitle className="text-base font-semibold text-foreground">Добавить правило скоринга</DialogTitle>
+            <DialogTitle className="text-xl font-black text-foreground uppercase tracking-tight">Добавить правило скоринга</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">Название правила *</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 opacity-60">Название правила *</Label>
               <Input
                 value={newRule.name}
                 onChange={(e) => setNewRule({ ...newRule, name: e.target.value })}
                 placeholder="Например: Лид с Google Ads"
-                className="bg-slate-50 border-white/50 text-foreground"
+                className="bg-white/5 border-white/10 text-foreground h-12 rounded-xl"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Поле</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 opacity-60">Поле</Label>
                 <Select
                   value={newRule.field}
                   onValueChange={(value) => setNewRule({ ...newRule, field: value })}
                 >
-                  <SelectTrigger className="bg-slate-50 border-white/50 text-foreground">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-foreground h-12 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#020617]/95 border-white/10 rounded-xl">
                     {fields.map(f => (
-                      <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      <SelectItem key={f.value} value={f.value} className="text-xs font-bold">{f.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label className="text-sm font-medium text-foreground">Условие</Label>
+                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 opacity-60">Условие</Label>
                 <Select
                   value={newRule.operator}
                   onValueChange={(value) => setNewRule({ ...newRule, operator: value })}
                 >
-                  <SelectTrigger className="bg-slate-50 border-white/50 text-foreground">
+                  <SelectTrigger className="bg-white/5 border-white/10 text-foreground h-12 rounded-xl">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-[#020617]/95 border-white/10 rounded-xl">
                     {operators.map(o => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      <SelectItem key={o.value} value={o.value} className="text-xs font-bold">{o.label}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">Значение</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 opacity-60">Значение</Label>
               <Input
                 value={newRule.value}
                 onChange={(e) => setNewRule({ ...newRule, value: e.target.value })}
                 placeholder="google"
-                className="bg-slate-50 border-white/50 text-foreground"
+                className="bg-white/5 border-white/10 text-foreground h-12 rounded-xl"
                 disabled={newRule.operator === 'is_not_empty' || newRule.operator === 'is_empty'}
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-sm font-medium text-foreground">Баллы (+ добавить / − отнять)</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground px-1 opacity-60">Баллы (+ добавить / − отнять)</Label>
               <Input
                 type="number"
                 value={newRule.score_delta}
                 onChange={(e) => setNewRule({ ...newRule, score_delta: Number(e.target.value) })}
                 placeholder="10"
-                className="bg-slate-50 border-white/50 text-foreground"
+                className="bg-white/5 border-white/10 text-foreground h-12 rounded-xl"
               />
             </div>
           </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)}>
+          <DialogFooter className="gap-3 pt-6 border-t border-white/5">
+            <Button variant="outline" onClick={() => setIsAddDialogOpen(false)} className="border-white/10 hover:bg-white/5 font-black uppercase text-[10px] tracking-widest rounded-xl px-6 py-5 h-auto">
               Отмена
             </Button>
-            <Button onClick={handleAddRule} disabled={!newRule.name}>
+            <Button onClick={handleAddRule} disabled={!newRule.name} className="bg-blue-600 hover:bg-blue-700 text-white font-black uppercase text-[10px] tracking-widest rounded-xl px-8 py-5 h-auto shadow-lg shadow-blue-500/20">
               Добавить
             </Button>
           </DialogFooter>

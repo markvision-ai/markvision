@@ -141,7 +141,7 @@ export const DateRangePicker = ({ dateRange, onDateRangeChange, onPresetChange, 
         <Button 
           variant="outline" 
           className={cn(
-            "h-10 justify-between text-left font-normal bg-slate-50 hover:bg-accent hover:text-accent-foreground border-input",
+            "h-10 justify-between text-left font-normal bg-white/5 hover:bg-accent hover:text-accent-foreground border-input",
             !dateRange && "text-muted-foreground",
             "min-w-[240px]"
           )}

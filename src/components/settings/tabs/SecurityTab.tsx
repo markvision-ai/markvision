@@ -379,7 +379,7 @@ export const SecurityTab = ({ projectId }: SecurityTabProps) => {
                         </div>
                       </div>
                       <div className="flex justify-center p-6 bg-white rounded-2xl">
-                        <div className="w-48 h-48 bg-gray-200 flex items-center justify-center">
+                        <div className="w-48 h-48 bg-white/20 flex items-center justify-center">
                           <QrCode className="w-24 h-24 text-gray-400" />
                         </div>
                       </div>

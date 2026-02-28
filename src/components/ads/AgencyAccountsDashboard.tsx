@@ -104,7 +104,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
         const isActive = sortField === field;
         return (
             <TableHead
-                className={cn("font-semibold text-slate-600 cursor-pointer select-none hover:bg-slate-100/50 transition-colors whitespace-nowrap py-4", align === "right" && "text-right")}
+                className={cn("font-semibold text-white/40 cursor-pointer select-none hover:bg-white/5 transition-colors whitespace-nowrap py-4", align === "right" && "text-right")}
                 onClick={() => handleSort(field)}
             >
                 <div className={cn("flex items-center gap-1", align === 'right' ? "justify-end" : "justify-start")}>
@@ -122,7 +122,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
     };
 
     return (
-        <div className="rounded-3xl border border-white/80 bg-white/60 backdrop-blur-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 space-y-8 mb-6 relative overflow-hidden group">
+        <div className="rounded-3xl border border-white/10 bg-[#020617]/60 backdrop-blur-3xl shadow-interstellar p-6 sm:p-8 space-y-8 mb-6 relative overflow-hidden group">
             <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl group-hover:bg-blue-400/20 transition-all duration-700 pointer-events-none" />
             {/* HEADER */}
             <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between gap-4">
@@ -131,8 +131,8 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         <Activity className="w-5 h-5" />
                     </div>
                     <div>
-                        <h2 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">Сводка по рекламным кабинетам Meta</h2>
-                        <p className="text-sm font-medium text-slate-500 mt-1">
+                        <h2 className="text-2xl font-black tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/60">Сводка по рекламным кабинетам Meta</h2>
+                        <p className="text-sm font-medium text-white/40 mt-1">
                             Энд-ту-энд аналитика от клика до выручки
                         </p>
                     </div>
@@ -140,7 +140,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
                 <div className="flex items-center gap-3">
                     {/* Month Selector */}
-                    <div className="flex items-center bg-white/80 backdrop-blur-3xl border border-slate-200/60 rounded-xl shadow-sm overflow-hidden h-11">
+                    <div className="flex items-center bg-white/5 backdrop-blur-3xl border border-white/10 rounded-xl shadow-sm overflow-hidden h-11">
                         <Button
                             variant="ghost"
                             size="icon"
@@ -172,7 +172,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         <RefreshCw className={cn('w-4 h-4', syncing && 'animate-spin')} />
                     </Button>
 
-                    <Button className="h-11 px-6 bg-slate-900 hover:bg-slate-800 text-white shadow-lg shadow-slate-900/20 rounded-xl transition-all" onClick={() => setIsConnectModalOpen(true)}>
+                    <Button className="h-11 px-6 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg shadow-blue-500/20 rounded-xl transition-all border-0" onClick={() => setIsConnectModalOpen(true)}>
                         <Plus className="w-4 h-4 mr-2" />
                         Подключить кабинет
                     </Button>
@@ -180,10 +180,10 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             </div>
 
             {/* METRICS TABLE */}
-            <div className="rounded-2xl border border-slate-100 bg-white/50 backdrop-blur-md shadow-sm overflow-hidden">
+            <div className="rounded-2xl border border-white/5 bg-[#020617]/40 backdrop-blur-md shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-slate-50/80">
+                        <TableRow className="bg-white/5 border-b border-white/5">
                             <SortableTableHead field="accountName" label="Название кабинета" align="left" />
                             <SortableTableHead field="spend" label="Расходы (Spend)" />
                             <SortableTableHead field="metaLeads" label="Лиды (Meta)" />
@@ -208,7 +208,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                             <TableRow>
                                 <TableCell colSpan={11} className="h-32 text-center">
                                     <div className="flex flex-col items-center justify-center text-muted-foreground">
-                                        <div className="p-3 bg-muted rounded-full mb-3">
+                                        <div className="p-3 bg-white/5 rounded-full mb-3 border border-white/5">
                                             <Plus className="w-6 h-6" />
                                         </div>
                                         <span>Нет подключенных кабинетов.</span>
@@ -222,33 +222,33 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                             sortedMetrics.map((m) => {
                                 const isRomiNegative = m.romi < 100;
                                 return (
-                                    <TableRow key={m.accountId} className="group hover:bg-white/80 transition-all hover:shadow-sm">
+                                    <TableRow key={m.accountId} className="group hover:bg-white/[0.02] border-white/5 transition-all">
                                         <TableCell>
-                                            <div className="font-medium text-foreground">{m.accountName}</div>
+                                            <div className="font-bold text-white/90">{m.accountName}</div>
                                         </TableCell>
-                                        <TableCell className="text-right font-medium">{formatMoney(m.spend)}</TableCell>
-                                        <TableCell className="text-right">
+                                        <TableCell className="text-right font-bold text-white/90 tabular-nums">{formatMoney(m.spend)}</TableCell>
+                                        <TableCell className="text-right text-white/90 font-medium">
                                             {m.metaLeads}
-                                            {m.crmLeads > 0 && <span className="text-xs text-muted-foreground block">CRM: {m.crmLeads}</span>}
+                                            {m.crmLeads > 0 && <span className="text-[10px] text-white/40 block font-black uppercase tracking-widest mt-1">CRM: {m.crmLeads}</span>}
                                         </TableCell>
-                                        <TableCell className="text-right">{formatMoney(m.cpl)}</TableCell>
+                                        <TableCell className="text-right font-bold text-white/90 tabular-nums">{formatMoney(m.cpl)}</TableCell>
                                         <TableCell className="text-right">
-                                            <div className={cn("px-2.5 py-1 rounded-full inline-block text-xs font-bold", m.lqr > 30 ? "bg-cyan-500/10 text-cyan-600 ring-1 ring-cyan-500/20" : "bg-slate-100 text-slate-500")}>
+                                            <div className={cn("px-2.5 py-1 rounded-full inline-block text-[10px] font-black uppercase tracking-widest", m.lqr > 30 ? "bg-primary/20 text-primary border border-primary/20" : "bg-white/5 text-white/40")}>
                                                 {formatPercent(m.lqr)}
                                             </div>
-                                            <div className="text-[10px] text-muted-foreground mt-0.5">{m.qualifiedLeads} квал.</div>
+                                            <div className="text-[10px] text-white/40 mt-1 font-black uppercase tracking-widest">{m.qualifiedLeads} квал.</div>
                                         </TableCell>
-                                        <TableCell className="text-right text-muted-foreground">{formatMoney(m.cpql)}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">{m.visits}</TableCell>
-                                        <TableCell className="text-right text-muted-foreground">{formatMoney(m.cpv)}</TableCell>
-                                        <TableCell className="text-right font-medium">{formatMoney(m.cac)}</TableCell>
+                                        <TableCell className="text-right text-white/40 font-medium tabular-nums">{formatMoney(m.cpql)}</TableCell>
+                                        <TableCell className="text-right text-white/40 font-medium tabular-nums">{m.visits}</TableCell>
+                                        <TableCell className="text-right text-white/40 font-medium tabular-nums">{formatMoney(m.cpv)}</TableCell>
+                                        <TableCell className="text-right font-medium text-white/90 tabular-nums">{formatMoney(m.cac)}</TableCell>
                                         <TableCell className="text-right font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">{formatMoney(m.revenue)}</TableCell>
                                         <TableCell className="text-right">
                                             <div className={cn(
                                                 "font-bold text-sm px-2.5 py-1 rounded-md inline-block",
                                                 isRomiNegative
                                                     ? "bg-red-500/10 text-red-500"
-                                                    : m.romi > 200 ? "bg-green-500/10 text-green-600 ring-1 ring-green-500/30 shadow-[0_0_15px_rgba(16,185,129,0.2)]" : "bg-blue-500/10 text-blue-600 ring-1 ring-blue-500/20"
+                                                    : m.romi > 200 ? "bg-primary/20 text-primary border border-primary/20 ring-1 ring-primary/30 shadow-[0_0_15px_rgba(59,130,246,0.2)]" : "bg-primary/10 text-primary border border-primary/10"
                                             )}>
                                                 {formatPercent(m.romi)}
                                             </div>
@@ -263,10 +263,10 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
             {/* CONNECT MODAL */}
             <Dialog open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen}>
-                <DialogContent className="sm:max-w-[425px]">
+                <DialogContent className="sm:max-w-[425px] bg-[#020617]/90 backdrop-blur-3xl border-white/10 text-white shadow-interstellar">
                     <DialogHeader>
                         <DialogTitle>Подключение Agency Кабинета</DialogTitle>
-                        <DialogDescription>
+                        <DialogDescription className="text-white/40">
                             Введите системный токен и ID кабинета (act_XXX), чтобы собирать статистику напрямую из Meta Graph API.
                         </DialogDescription>
                     </DialogHeader>
@@ -294,12 +294,13 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                             />
                         </div>
                         <div className="grid gap-2">
-                            <label htmlFor="token" className="text-sm font-medium">
+                            <label htmlFor="token" className="text-sm font-black uppercase tracking-widest text-white/40">
                                 System Access Token
                             </label>
                             <Input
                                 id="token"
                                 type="password"
+                                className="bg-white/5 border-white/10 text-white placeholder:text-white/20 h-12 rounded-xl"
                                 placeholder="EAAGm0P..."
                                 value={newAccountToken}
                                 onChange={(e) => setNewAccountToken(e.target.value)}
@@ -317,6 +318,6 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
-        </div>
+        </div >
     );
 };

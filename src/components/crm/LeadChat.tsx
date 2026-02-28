@@ -279,7 +279,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
             <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
               <div className="relative mb-8">
                 <div className="absolute inset-0 bg-primary/20 blur-3xl animate-pulse" />
-                <div className="w-24 h-24 rounded-[2.5rem] bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 flex items-center justify-center relative z-10">
+                <div className="w-24 h-24 rounded-[2.5rem] bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-slate-200 flex items-center justify-center relative z-10">
                   <Sparkles className="w-12 h-12 text-primary" />
                 </div>
               </div>
@@ -341,7 +341,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                             'relative p-4 rounded-[1.75rem] text-sm group transition-all duration-300',
                             isOwn
                               ? 'bg-primary text-white shadow-2xl shadow-primary/20 rounded-tr-none'
-                              : 'bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 text-white/90 rounded-tl-none hover:border-white/20'
+                              : 'bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl border-white/5 text-white/90 rounded-tl-none hover:border-white/20'
                           )}
                         >
                           {/* Secure File Handling */}
@@ -397,7 +397,7 @@ export const LeadChat = ({ leadId }: LeadChatProps) => {
                 initial={{ opacity: 0, scale: 0.9, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                className="bg-white/70 backdrop-blur-3xl border border-white/60 shadow-xl p-3 rounded-2xl border-primary/20 bg-primary/5 flex items-center justify-between group"
+                className="bg-white/10 backdrop-blur-3xl border border-white/60 shadow-xl p-3 rounded-2xl border-primary/20 bg-primary/5 flex items-center justify-between group"
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">

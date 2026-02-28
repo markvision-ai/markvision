@@ -167,7 +167,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className={cn("backdrop-blur-xl bg-white/70 border shadow-sm", stat.border)}>
+            <Card className={cn("backdrop-blur-xl bg-white/10 border shadow-sm", stat.border)}>
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
                   <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
@@ -184,7 +184,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Funnel Visualization */}
-        <Card className="lg:col-span-2 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
+        <Card className="lg:col-span-2 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-foreground">
               <Sparkles className="w-5 h-5 text-primary" />

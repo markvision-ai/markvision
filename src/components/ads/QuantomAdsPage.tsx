@@ -462,7 +462,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
               </button>
 
               {datePickerOpen && (
-                <div className="absolute top-full right-0 mt-4 z-50 bg-white/70 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex overflow-hidden min-w-[540px]">
+                <div className="absolute top-full right-0 mt-4 z-50 bg-white/10 backdrop-blur-2xl border border-white/60 rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] flex overflow-hidden min-w-[540px]">
                   <div className="w-[180px] border-r border-white/50 p-4 space-y-1 bg-muted/30">
                     {presets.map(p => (
                       <button
@@ -480,7 +480,7 @@ export const QuantomAdsPage = ({ projectId }: QuantomAdsPageProps) => {
                     ))}
                   </div>
 
-                  <div className="p-6 bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground">
+                  <div className="p-6 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 text-foreground">
                     <DayPicker
                       mode="range"
                       selected={dateRange}

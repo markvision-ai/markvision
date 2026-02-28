@@ -381,7 +381,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
   if (!projectId) {
     return (
-      <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border rounded-xl p-12 text-center">
+      <div className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border rounded-xl p-12 text-center">
         <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
         <h3 className="text-lg font-semibold mb-2">Выберите проект</h3>
         <p className="text-muted-foreground">Для просмотра клиентов выберите проект в боковом меню</p>
@@ -459,7 +459,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       </div>
 
       {/* Table - Glassmorphism */}
-      <div className="backdrop-blur-sm bg-white/70 border border-white/50 rounded-xl overflow-hidden">
+      <div className="backdrop-blur-sm bg-white/10 border border-white/50 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="backdrop-blur-sm bg-secondary/50 border-b border-white/50">
@@ -752,7 +752,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       {/* Detail Dialog - Glassmorphism */}
       <Dialog open={isDetailOpen} onOpenChange={setIsDetailOpen}>
-        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-white/70 border border-white/50">
+        <DialogContent className="sm:max-w-lg backdrop-blur-sm bg-white/10 border border-white/50">
           <DialogHeader>
             <DialogTitle>Карточка клиента</DialogTitle>
           </DialogHeader>

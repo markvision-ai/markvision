@@ -290,7 +290,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="https://..."
                                     value={state.linkUrl}
                                     onChange={(e) => updateState({ linkUrl: e.target.value })}
-                                    className="bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
+                                    className="bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                                 <div className="flex flex-wrap gap-2 mt-3">
                                     <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/20">Wildberries</Badge>
@@ -306,7 +306,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                                 <Button variant="ghost" size="sm" className="text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-500/10">
                                     <Mic className="w-4 h-4 mr-2" />
@@ -338,7 +338,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
+                                    className="bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
@@ -349,7 +349,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                             </div>
                         </>
@@ -377,7 +377,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
+                                    className="bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
@@ -388,7 +388,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                             </div>
                         </>
@@ -451,7 +451,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Например: Увлажнитель воздуха, Кроссовки Nike..."
                                     value={state.productName}
                                     onChange={(e) => updateState({ productName: e.target.value })}
-                                    className="bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
+                                    className="bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all rounded-xl"
                                 />
                             </div>
                             <div className="space-y-3">
@@ -462,7 +462,7 @@ export const ContentFactoryWizard = () => {
                                     placeholder="Добавьте детали: акцент на преимуществах, яркие цвета, строгий стиль..."
                                     value={state.additionalInstructions}
                                     onChange={(e) => updateState({ additionalInstructions: e.target.value })}
-                                    className="min-h-[120px] bg-slate-50 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
+                                    className="min-h-[120px] bg-white/5 border-input text-foreground p-4 focus:ring-primary/20 transition-all resize-none rounded-xl"
                                 />
                                 <Button variant="ghost" size="sm" className="text-fuchsia-400 hover:text-fuchsia-300 hover:bg-fuchsia-500/10">
                                     <Mic className="w-4 h-4 mr-2" />
@@ -533,7 +533,7 @@ export const ContentFactoryWizard = () => {
                                 key={ratio}
                                 onClick={() => updateState({ aspectRatio: ratio })}
                                 className={cn(
-                                    "relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 group hover:shadow-md bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60",
+                                    "relative p-6 rounded-2xl border cursor-pointer transition-all duration-300 group hover:shadow-md bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60",
                                     state.aspectRatio === ratio
                                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                                         : "border-white/50 hover:border-primary/50"
@@ -643,7 +643,7 @@ export const ContentFactoryWizard = () => {
                             <div className="relative group overflow-hidden rounded-2xl">
                                 <Textarea
                                     placeholder="Например: Сделай серию сторис о профессиональной чистке зубов для клиники в Москве..."
-                                    className="relative min-h-[160px] bg-slate-50 border-input text-foreground p-6 focus:ring-primary/20 transition-all resize-none rounded-2xl leading-relaxed text-base"
+                                    className="relative min-h-[160px] bg-white/5 border-input text-foreground p-6 focus:ring-primary/20 transition-all resize-none rounded-2xl leading-relaxed text-base"
                                     value={state.description}
                                     onChange={(e) => updateState({ description: e.target.value })}
                                 />
@@ -701,7 +701,7 @@ export const ContentFactoryWizard = () => {
 
                 {/* Right Column: Parameters */}
                 <div className="lg:col-span-5 flex flex-col">
-                    <div className="bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl p-8 border border-white/50 flex-1 flex flex-col shadow-sm">
+                    <div className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 rounded-3xl p-8 border border-white/50 flex-1 flex flex-col shadow-sm">
                         <h3 className="text-sm font-bold text-foreground uppercase tracking-[0.3em] border-b border-white/50 pb-6 mb-8 flex items-center gap-3">
                             <Cpu className="w-4 h-4 text-primary" />
                             Настройки
@@ -743,7 +743,7 @@ export const ContentFactoryWizard = () => {
                                     <div className="space-y-4">
                                         <Label className="text-xs font-bold text-muted-foreground uppercase tracking-widest">Объем контента</Label>
                                         <Select value={state.carouselCount} onValueChange={(v) => updateState({ carouselCount: v })}>
-                                            <SelectTrigger className="bg-slate-50 border-input h-10 rounded-xl focus:ring-primary/50">
+                                            <SelectTrigger className="bg-white/5 border-input h-10 rounded-xl focus:ring-primary/50">
                                                 <SelectValue />
                                             </SelectTrigger>
                                             <SelectContent className="bg-popover border-white/50 text-popover-foreground">
@@ -763,7 +763,7 @@ export const ContentFactoryWizard = () => {
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'feed'
                                                         ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                        : "bg-slate-50 border-white/50 text-muted-foreground hover:bg-accent"
+                                                        : "bg-white/5 border-white/50 text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'feed' })}
                                             >
@@ -775,7 +775,7 @@ export const ContentFactoryWizard = () => {
                                                     "h-12 rounded-xl border text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3",
                                                     state.carouselFormat === 'story'
                                                         ? "bg-primary/10 border-primary text-primary shadow-sm"
-                                                        : "bg-slate-50 border-white/50 text-muted-foreground hover:bg-accent"
+                                                        : "bg-white/5 border-white/50 text-muted-foreground hover:bg-accent"
                                                 )}
                                                 onClick={() => updateState({ carouselFormat: 'story' })}
                                             >
@@ -839,7 +839,7 @@ export const ContentFactoryWizard = () => {
     );
 
     return (
-        <div className="w-full min-h-[calc(100vh-8rem)] bg-slate-50 text-foreground p-6 relative overflow-hidden font-sans">
+        <div className="w-full min-h-[calc(100vh-8rem)] bg-white/5 text-foreground p-6 relative overflow-hidden font-sans">
             {/* Ambient Background
             <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[150px] pointer-events-none" />
             <div className="absolute bottom-0 left-0 w-[800px] h-[800px] bg-purple-500/5 rounded-full blur-[150px] pointer-events-none" /> */}
@@ -937,7 +937,7 @@ const ProductionFloor = ({ onCancel }: { onCancel: () => void }) => {
             </div>
 
             {/* Production Console */}
-            <div className="w-full max-w-2xl bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
+            <div className="w-full max-w-2xl bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-3xl p-8 shadow-sm relative overflow-hidden">
                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/50 to-transparent" />
 
                 <div className="flex items-center justify-between mb-6">
@@ -1021,7 +1021,7 @@ const SourceCard = ({ icon, title, description, color, active, onClick }: any) =
             data-active={active}
             onClick={onClick}
             className={cn(
-                "group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:shadow-md",
+                "group relative flex flex-col items-center justify-center p-8 rounded-2xl border transition-all duration-300 cursor-pointer overflow-hidden bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 hover:shadow-md",
                 active ? "border-primary bg-primary/5 ring-1 ring-primary" : "border-white/50 hover:border-primary/50",
                 "h-[320px]"
             )}
@@ -1063,7 +1063,7 @@ const TypeSelectionCard = ({ icon, title, description, active, onClick, color }:
         <div
             onClick={onClick}
             className={cn(
-                "flex items-center gap-4 p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group cursor-pointer bg-white/70 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60",
+                "flex items-center gap-4 p-5 rounded-xl border transition-all duration-300 relative overflow-hidden group cursor-pointer bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60",
                 active
                     ? "border-primary bg-primary/5 shadow-sm"
                     : "border-white/50 hover:border-primary/50 hover:bg-muted/50"
