@@ -16,7 +16,6 @@ interface FinancialDecompositionProps {
 export const FinancialDecomposition = ({ projectId }: FinancialDecompositionProps) => {
   const [selectedMonth, setSelectedMonth] = useState<Date>(new Date());
   const { loading: dataLoading, plan, fact, savePlan } = useFinancialMonthData(projectId, selectedMonth);
-  const { loading: dataLoading, plan, fact, savePlan } = useFinancialMonthData(projectId, selectedMonth);
 
   const handleMonthChange = (direction: 'prev' | 'next') => {
     setSelectedMonth(current =>
