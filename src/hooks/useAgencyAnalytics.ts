@@ -116,17 +116,25 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             // Find metrics for this specific account in the view results
             const row = viewData?.find((r: any) => r.account_id === config.ad_account_id);
 
-            const baseLeads = row ? Math.max(Number(row.meta_leads) || 0, Number(row.crm_leads) || 0) : 0;
+            // Calculation Logic:
+            // We use metaLeads as the primary source for ad performance (CPL),
+            // but for business metrics (LQR, Sales), we rely on CRM data.
+            const metaLeads = row ? Number(row.meta_leads) || 0 : 0;
+            const crmLeadsArr = row ? Number(row.crm_leads) || 0 : 0;
             const qualifiedLeads = row ? Number(row.qualified_leads) || 0 : 0;
-            const lqr = baseLeads > 0 ? (qualifiedLeads / baseLeads) * 100 : 0;
+
+            // LQR should ideally be based on Meta Leads if we talk about Ads Quality,
+            // or based on total CRM leads if we talk about CRM quality.
+            // Using Meta Leads as denominator for Marketing funnel context.
+            const lqr = metaLeads > 0 ? (qualifiedLeads / metaLeads) * 100 : 0;
 
             return {
                 accountId: config.ad_account_id || '',
                 accountName: config.client_name || 'Неизвестный кабинет',
                 status: true,
                 spend: row ? Number(row.spend) || 0 : 0,
-                metaLeads: row ? Number(row.meta_leads) || 0 : 0,
-                crmLeads: row ? Number(row.crm_leads) || 0 : 0,
+                metaLeads: metaLeads,
+                crmLeads: crmLeadsArr,
                 qualifiedLeads: qualifiedLeads,
                 visits: row ? Number(row.visits) || 0 : 0,
                 paidCustomers: row ? Number(row.sales) || 0 : 0,
