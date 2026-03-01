@@ -6,8 +6,7 @@ import { Plus, Eye, Sparkles, Rocket } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
-import { ContentFactoryForm } from './ContentFactoryForm';
-import { ContentFactoryWizard } from './wizard/ContentFactoryWizard';
+import { UnifiedContentFactory } from './UnifiedContentFactory';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -60,7 +59,7 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
 
         {/* Content Factory V4 Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'v4' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'} overflow-y-auto`}>
-          <ContentFactoryWizard projectId={projectId} />
+          <UnifiedContentFactory projectId={projectId} />
         </div>
 
         {/* Competitors Tab Content */}
