@@ -416,8 +416,8 @@ export const DataTable = React.memo(({
               )}
 
               {/* Fact Totals Row - second */}
-              <tr className="bg-white/5 backdrop-blur-xl font-bold border-b border-white/10 shadow-sm">
-                <td className="p-4 sticky left-0 bg-[#020617]/90 backdrop-blur-xl z-30 shadow-[1px_0_0_0_rgba(255,255,255,0.05)] text-white">ФАКТ</td>
+              <tr className="bg-white/5 backdrop-blur-xl font-bold border-b border-white/5 shadow-sm">
+                <td className="p-4 sticky left-0 bg-[#020617]/90 backdrop-blur-xl z-30 shadow-[1px_0_0_0_rgba(255,255,255,0.02)] text-white/90">ФАКТ</td>
                 <td className="p-2 md:p-4 text-right text-white font-mono font-bold">{formatCurrency(totals.spend)}</td>
                 <td className="p-2 md:p-4 text-right text-white font-mono font-bold">{formatNumber(totals.impressions)}</td>
                 <td className="p-2 md:p-4 text-right text-white font-mono font-bold">{formatNumber(totals.clicks)}</td>
@@ -430,8 +430,8 @@ export const DataTable = React.memo(({
 
               {/* Percentage Row - third */}
               {effectivePlanData && (
-                <tr className="bg-white/[0.02] backdrop-blur-xl border-b border-white/5 shadow-sm font-bold">
-                  <td className="p-4 sticky left-0 bg-[#020617]/90 backdrop-blur-xl z-30 text-white/40 text-sm font-bold shadow-[1px_0_0_0_rgba(255,255,255,0.05)]">% выполн.</td>
+                <tr className="bg-white/[0.02] backdrop-blur-xl border-b border-white/[0.02] shadow-sm font-bold">
+                  <td className="p-4 sticky left-0 bg-[#020617]/90 backdrop-blur-xl z-30 text-white/40 text-sm font-black uppercase tracking-widest shadow-[1px_0_0_0_rgba(255,255,255,0.02)]">% выполн.</td>
                   {(['spend', 'impressions', 'clicks', 'leads', 'followers', 'visits', 'sales', 'revenue'] as const).map(field => {
                     const fact = totals[field];
                     const plan = effectivePlanData[field];
@@ -487,9 +487,16 @@ export const DataTable = React.memo(({
                 return (
                   <tr
                     key={dateKey}
-                    className={cn("border-b border-slate-100 hover:bg-white/10 transition-all hover:shadow-sm group", isToday && "bg-blue-50/50", isWeekend && "bg-white/5/50")}
+                    className={cn(
+                      "border-b border-white/[0.02] hover:bg-white/[0.03] transition-all group",
+                      isToday && "bg-primary/[0.03]",
+                      isWeekend && "bg-white/[0.01]"
+                    )}
                   >
-                    <td className={cn("p-2 md:p-4 sticky left-0 z-20 backdrop-blur-md shadow-[1px_0_0_0_rgba(255,255,255,0.05)] transition-all", isToday ? "bg-primary/10" : isWeekend ? "bg-white/[0.02]" : "bg-[#020617]/90 group-hover:bg-white/5")}>
+                    <td className={cn(
+                      "p-2 md:p-4 sticky left-0 z-20 backdrop-blur-md shadow-[1px_0_0_0_rgba(255,255,255,0.02)] transition-all",
+                      isToday ? "bg-primary/20" : isWeekend ? "bg-white/[0.01]" : "bg-[#020617]/95 group-hover:bg-white/[0.02]"
+                    )}>
                       <div className="flex flex-col">
                         <span className={cn(
                           "font-bold text-white/90",

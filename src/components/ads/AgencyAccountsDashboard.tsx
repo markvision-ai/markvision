@@ -144,15 +144,15 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-full rounded-none hover:bg-accent border-r border-white/50"
+                            className="h-full rounded-none hover:bg-white/5 border-r border-white/10"
                             onClick={prevMonth}
                         >
                             <ChevronLeft className="w-4 h-4" />
                         </Button>
 
                         <div className="px-4 flex items-center gap-2 min-w-[140px] justify-center">
-                            <CalendarDays className="w-4 h-4 text-muted-foreground" />
-                            <span className="text-sm font-semibold capitalize">
+                            <CalendarDays className="w-4 h-4 text-white/30" />
+                            <span className="text-sm font-semibold capitalize text-white/90">
                                 {monthLabel}
                             </span>
                         </div>
@@ -160,7 +160,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         <Button
                             variant="ghost"
                             size="icon"
-                            className="h-full rounded-none hover:bg-accent border-l border-white/50"
+                            className="h-full rounded-none hover:bg-white/5 border-l border-white/10"
                             onClick={nextMonth}
                             disabled={currentMonth >= startOfMonth(new Date())}
                         >
@@ -183,7 +183,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             <div className="rounded-2xl border border-white/5 bg-[#020617]/40 backdrop-blur-md shadow-sm overflow-hidden">
                 <Table>
                     <TableHeader>
-                        <TableRow className="bg-white/5 border-b border-white/5">
+                        <TableRow className="bg-white/[0.03] border-b border-white/[0.02] hover:bg-white/[0.03]">
                             <SortableTableHead field="accountName" label="Название кабинета" align="left" />
                             <SortableTableHead field="spend" label="Расходы (Spend)" />
                             <SortableTableHead field="metaLeads" label="Лиды (Meta)" />
@@ -222,7 +222,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                             sortedMetrics.map((m) => {
                                 const isRomiNegative = m.romi < 100;
                                 return (
-                                    <TableRow key={m.accountId} className="group hover:bg-white/[0.02] border-white/5 transition-all">
+                                    <TableRow key={m.accountId} className="group hover:bg-white/[0.02] border-b border-white/[0.02] transition-all">
                                         <TableCell>
                                             <div className="font-bold text-white/90">{m.accountName}</div>
                                         </TableCell>
