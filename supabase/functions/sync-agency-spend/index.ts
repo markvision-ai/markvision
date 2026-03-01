@@ -29,6 +29,18 @@ async function getExchangeRate(dateStr: string): Promise<number> {
     }
 }
 
+function getDatesInRange(startDate: string, endDate: string) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const dates = [];
+    let current = new Date(start);
+    while (current <= end) {
+        dates.push(current.toISOString().split('T')[0]);
+        current.setDate(current.getDate() + 1);
+    }
+    return dates;
+}
+
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response('ok', { headers: corsHeaders })
@@ -42,16 +54,21 @@ serve(async (req) => {
 
         const payload = await req.json().catch(() => ({}));
 
-        // Default to yesterday
-        let targetDate = payload.date;
-        if (!targetDate) {
+        // Default to yesterday and today
+        let startDate = payload.startDate;
+        let endDate = payload.endDate;
+
+        if (!startDate) {
             const yesterday = new Date();
             yesterday.setDate(yesterday.getDate() - 1);
-            targetDate = yesterday.toISOString().split('T')[0];
+            startDate = yesterday.toISOString().split('T')[0];
+        }
+        if (!endDate) {
+            endDate = new Date().toISOString().split('T')[0];
         }
 
-        const exchangeRate = await getExchangeRate(targetDate);
-        console.log(`Syncing for ${targetDate}, exchange rate: ${exchangeRate}`);
+        const datesToSync = getDatesInRange(startDate, endDate);
+        console.log(`Syncing for range ${startDate} to ${endDate}, dates:`, datesToSync);
 
         const { data: accounts, error: fetchError } = await supabaseClient
             .from('clients_config')
@@ -59,69 +76,75 @@ serve(async (req) => {
 
         if (fetchError) throw fetchError;
 
-        let successCount = 0;
-        let errorCount = 0;
-        const results = [];
-        const errors = [];
+        let totalSuccess = 0;
+        const syncDetails = [];
 
-        for (const account of accounts) {
-            try {
-                const plainAccountId = account.ad_account_id.replace('act_', '');
-                const timeRange = JSON.stringify({ since: targetDate, until: targetDate });
-                const insightsUrl = `https://graph.facebook.com/v19.0/act_${plainAccountId}/insights?fields=spend,actions&time_range=${encodeURIComponent(timeRange)}&access_token=${account.fb_token}`;
+        for (const date of datesToSync) {
+            const exchangeRate = await getExchangeRate(date);
+            console.log(`Processing date: ${date}, rate: ${exchangeRate}`);
 
-                const response = await fetch(insightsUrl);
-                const data = await response.json();
+            for (const account of accounts) {
+                try {
+                    const plainAccountId = account.ad_account_id.replace('act_', '');
+                    const timeRange = JSON.stringify({ since: date, until: date });
+                    const insightsUrl = `https://graph.facebook.com/v19.0/act_${plainAccountId}/insights?fields=spend,actions&time_range=${encodeURIComponent(timeRange)}&access_token=${account.fb_token}`;
 
-                let spendValKZT = 0;
-                let metaLeads = 0;
+                    const response = await fetch(insightsUrl);
+                    const data = await response.json();
 
-                if (data.data && data.data.length > 0) {
-                    const row = data.data[0];
-                    const spendUSD = parseFloat(row.spend || '0');
-                    spendValKZT = spendUSD * exchangeRate;
+                    if (data.error) {
+                        console.error(`FB Error for ${account.ad_account_id} on ${date}:`, data.error);
+                        continue;
+                    }
 
-                    if (row.actions) {
-                        for (const action of row.actions) {
-                            const type = action.action_type || '';
-                            if (
-                                type === 'lead' ||
-                                type === 'onsite_conversion.lead_grouped' ||
-                                type === 'offsite_conversion.fb_pixel_lead' ||
-                                type === 'onsite_conversion.messaging_conversation_started_7d' ||
-                                type === 'omni_lead'
-                            ) {
-                                metaLeads += parseInt(action.value || '0', 10);
+                    let spendValKZT = 0;
+                    let metaLeads = 0;
+
+                    if (data.data && data.data.length > 0) {
+                        const row = data.data[0];
+                        const spendUSD = parseFloat(row.spend || '0');
+                        spendValKZT = spendUSD * exchangeRate;
+
+                        if (row.actions) {
+                            for (const action of row.actions) {
+                                const type = action.action_type || '';
+                                if (
+                                    type === 'lead' ||
+                                    type === 'onsite_conversion.lead_grouped' ||
+                                    type === 'offsite_conversion.fb_pixel_lead' ||
+                                    type === 'onsite_conversion.messaging_conversation_started_7d' ||
+                                    type === 'omni_lead'
+                                ) {
+                                    metaLeads += parseInt(action.value || '0', 10);
+                                }
                             }
                         }
                     }
+
+                    // Upsert into daily_ad_metrics
+                    const { error: upsertError } = await supabaseClient
+                        .from('daily_ad_metrics')
+                        .upsert({
+                            ad_account_id: account.ad_account_id,
+                            date: date,
+                            spend: spendValKZT,
+                            meta_leads: metaLeads
+                        }, { onConflict: 'ad_account_id,date' });
+
+                    if (upsertError) throw upsertError;
+
+                    totalSuccess++;
+                    syncDetails.push({ id: account.id, date, spendKZT: spendValKZT, leads: metaLeads });
+                } catch (err) {
+                    console.error(`Failed to sync ${account.ad_account_id} on ${date}:`, err.message);
                 }
-
-                // 1. Upsert into daily_ad_metrics
-                const { error: upsertError } = await supabaseClient
-                    .from('daily_ad_metrics')
-                    .upsert({
-                        ad_account_id: account.ad_account_id,
-                        date: targetDate,
-                        spend: spendValKZT,
-                        meta_leads: metaLeads
-                    }, { onConflict: 'ad_account_id,date' });
-
-                if (upsertError) throw upsertError;
-
-                successCount++;
-                results.push({ id: account.id, date: targetDate, spendKZT: spendValKZT, leads: metaLeads });
-            } catch (err) {
-                errors.push({ id: account.id, error: err.message });
-                errorCount++;
             }
         }
 
         return new Response(JSON.stringify({
             success: true,
-            date: targetDate,
-            exchange_rate: exchangeRate,
-            details: { successful: successCount, failed: errorCount, results, errors }
+            synced_count: totalSuccess,
+            details: syncDetails
         }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
             status: 200,

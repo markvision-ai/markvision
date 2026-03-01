@@ -104,7 +104,11 @@ const INITIAL_STATE: WizardState = {
     isGenerating: false,
 };
 
-export const ContentFactoryWizard = () => {
+interface ContentFactoryWizardProps {
+    projectId?: string;
+}
+
+export const ContentFactoryWizard = ({ projectId }: ContentFactoryWizardProps) => {
     const [state, setState] = useState<WizardState>(INITIAL_STATE);
 
     // Ref to always hold latest description — avoids stale closures in setTimeout
@@ -164,15 +168,19 @@ export const ContentFactoryWizard = () => {
 
         updateState({ isGenerating: true });
 
-        const mainText = (state.mainDescription?.trim() || state.description?.trim()) || 'magic_generation_needed';
+        const userText = (state.mainDescription?.trim() || state.description?.trim()) || '';
+        const isMagicMode = !userText;
+        const mainText = isMagicMode ? 'magic_generation_needed' : userText;
 
         const payload = {
             source_type: state.source,
             format: FORMAT_MAP[state.category],
             main_text: mainText,
+            magic_generation_needed: isMagicMode,
             visual_instructions: state.additionalInstructions || '',
             aspect_ratio: state.aspectRatio || '1:1',
             design_template_id: state.designStyle || 'default',
+            project_id: projectId || '',
         };
 
         try {
