@@ -77,16 +77,20 @@ const CompetitorMonitoring = lazy(() => import('./factory/CompetitorMonitoring')
 
 // Loading fallback component
 const ModuleLoader = () => (
-  <div className="flex flex-col items-center justify-center py-40 gap-6">
+  <div className="flex flex-col items-center justify-center py-40 gap-8 animate-in fade-in duration-700">
     <div className="relative">
-      <div className="w-20 h-20 rounded-3xl border-2 border-primary/20 animate-spin" />
+      <div className="absolute -inset-4 bg-[#955251]/20 rounded-full blur-2xl animate-pulse" />
+      <div className="w-20 h-20 rounded-[2rem] border-2 border-[#955251]/20 animate-spin transition-all duration-1000" />
       <div className="absolute inset-0 flex items-center justify-center">
-        <Loader2 className="w-10 h-10 text-primary animate-pulse" />
+        <Loader2 className="w-10 h-10 text-[#955251] animate-pulse" />
       </div>
     </div>
-    <div className="flex flex-col items-center gap-2">
-      <p className="text-[10px] font-black uppercase tracking-[0.4em] text-primary animate-pulse">Neural Link Established</p>
-      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-white/20">Calibrating Architecture...</p>
+    <div className="flex flex-col items-center gap-3">
+      <div className="flex items-center gap-2">
+        <div className="w-1 h-3 bg-[#955251] rounded-full animate-pulse" />
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white animate-pulse">Neural Link Established</p>
+      </div>
+      <p className="text-[9px] font-black uppercase tracking-[0.2em] text-[#955251]/60">Calibrating Architecture...</p>
     </div>
   </div>
 );

@@ -57,30 +57,22 @@ export const MetricCard = memo(({
 
   return (
     <div
-      className={cn("group relative overflow-hidden rounded-xl animate-in fade-in slide-in-from-bottom-2 duration-300", className)}
+      className={cn("group relative animate-in fade-in slide-in-from-bottom-2 duration-500", className)}
     >
       <GlassCard
-        stripe={
-          variant === 'primary'
-            ? 'blue'
-            : variant === 'success'
-              ? 'emerald'
-              : variant === 'warning'
-                ? 'gold'
-                : 'cyan'
-        }
-        className="p-4"
+        stripe={variant === 'primary' ? 'marsala' : 'none'}
+        className="p-5 sm:p-6"
       >
-        <div className="space-y-2.5">
+        <div className="space-y-4">
           {/* Header */}
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               {icon && (
-                <div className="text-primary/80 w-4 h-4">
+                <div className="text-[#955251] w-5 h-5 transition-transform group-hover:scale-110 group-hover:rotate-3 duration-500">
                   {icon}
                 </div>
               )}
-              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+              <span className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">
                 {label}
               </span>
             </div>
@@ -91,30 +83,35 @@ export const MetricCard = memo(({
           </div>
 
           {/* Main Content */}
-          <div className="flex items-end justify-between gap-3">
-            <div className="space-y-0.5 flex-1 min-w-0">
-              <p className="text-3xl font-bold text-foreground tracking-tighter leading-none font-mono group-hover:text-primary transition-colors">
+          <div className="flex items-end justify-between gap-4">
+            <div className="space-y-1 flex-1 min-w-0">
+              <p className="text-3xl sm:text-4xl font-black text-white tracking-tighter leading-none transition-transform duration-500 origin-left group-hover:scale-[1.02]">
                 {formattedValue}
               </p>
               {subValue && (
-                <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider opacity-60">
+                <p className="text-[10px] text-white/20 font-black uppercase tracking-[0.2em]">
                   {subValue}
                 </p>
               )}
             </div>
 
             {sparklineData && sparklineData.length > 1 && (
-              <div className="flex-shrink-0">
+              <div className="flex-shrink-0 pb-1">
                 <Sparkline
                   data={sparklineData}
-                  width={50}
-                  height={20}
-                  color="hsl(var(--primary))"
+                  width={60}
+                  height={24}
+                  color="#955251"
                 />
               </div>
             )}
           </div>
         </div>
+
+        {/* Decorative Glow for primary variant */}
+        {variant === 'primary' && (
+          <div className="absolute -right-8 -top-8 w-24 h-24 bg-[#955251] rounded-full blur-3xl opacity-5 transition-opacity group-hover:opacity-15" />
+        )}
       </GlassCard>
     </div>
   );

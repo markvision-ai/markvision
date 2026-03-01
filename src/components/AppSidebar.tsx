@@ -453,21 +453,21 @@ const Logo = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-4 text-sm text-sidebar-foreground py-4 relative z-20 px-4"
     >
       <div className="relative group">
-        <div className="absolute -inset-2 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
+        <div className="absolute -inset-2 bg-gradient-to-r from-[#955251]/30 to-[#955251]/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
         <MarkVisionLogo size={42} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-1 -right-1 w-4 h-4 rounded-full border-2 border-[#020617] shadow-lg",
-          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-primary shadow-primary/50"
+          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-[#955251] shadow-[#955251]/50"
         )}>
           {!hasErrors && (
-            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
+            <div className="absolute inset-0 rounded-full bg-[#955251] animate-ping opacity-75" />
           )}
         </div>
       </div>
       <div className="flex flex-col">
         <span className="text-xl font-black text-white uppercase tracking-[0.2em]">
-          MARK<span className="text-primary italic">VISION</span>
+          MARK<span className="text-[#955251] italic">VISION</span>
         </span>
         <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.4em] mt-0.5">
           Neural OS
@@ -485,15 +485,15 @@ const LogoIcon = ({ hasErrors }: LogoProps) => {
       className="font-bold flex items-center gap-2 text-sm text-sidebar-foreground py-2 relative z-20 px-4"
     >
       <div className="relative group">
-        <div className="absolute -inset-2 bg-gradient-to-r from-primary/30 to-secondary/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
+        <div className="absolute -inset-2 bg-gradient-to-r from-[#955251]/30 to-[#955251]/30 rounded-2xl blur-xl group-hover:opacity-100 opacity-50 transition-all duration-1000" />
         <MarkVisionLogo size={36} />
         {/* Global Health Indicator */}
         <div className={cn(
           "absolute -top-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#020617]",
-          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-primary shadow-primary/50"
+          hasErrors ? "bg-red-500 shadow-red-500/50" : "bg-[#955251] shadow-[#955251]/50"
         )}>
           {!hasErrors && (
-            <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-75" />
+            <div className="absolute inset-0 rounded-full bg-[#955251] animate-ping opacity-75" />
           )}
         </div>
       </div>

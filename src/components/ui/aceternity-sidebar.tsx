@@ -75,12 +75,12 @@ export const Sidebar = ({
   );
 };
 
-export const SidebarBody = ({ 
-  className, 
-  children 
-}: { 
-  className?: string; 
-  children?: React.ReactNode 
+export const SidebarBody = ({
+  className,
+  children
+}: {
+  className?: string;
+  children?: React.ReactNode
 }) => {
   return (
     <>
@@ -99,7 +99,7 @@ export const DesktopSidebar = ({
   children?: React.ReactNode;
 }) => {
   const { open, setOpen, animate } = useSidebar();
-  
+
   return (
     <motion.aside
       className={cn(
@@ -155,19 +155,19 @@ export const SidebarLink = ({
       onClick={handleClick}
       className={cn(
         "relative flex items-center justify-start gap-3 group/sidebar py-2.5 px-3 rounded-xl transition-all duration-200",
-        isActive 
-          ? "bg-blue-500/10 text-blue-500 border border-blue-500/30 shadow-[0_0_18px_rgba(16,185,129,0.25)] ring-1 ring-blue-500/20" 
+        isActive
+          ? "bg-[#955251]/10 text-[#955251] border border-[#955251]/30 shadow-[0_0_18px_rgba(149,82,81,0.25)] ring-1 ring-[#955251]/20"
           : "hover:bg-sidebar-muted text-sidebar-foreground/70 hover:text-sidebar-foreground",
         className
       )}
       {...props}
     >
       {isActive && (
-        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-blue-500 shadow-[0_0_20px_rgba(16,185,129,0.6)]" />
+        <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r-md bg-[#955251] shadow-[0_0_20px_rgba(149,82,81,0.6)]" />
       )}
       <div className={cn(
         "flex-shrink-0 transition-colors duration-200",
-        isActive ? "text-blue-500" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
+        isActive ? "text-[#955251]" : "text-sidebar-foreground/70 group-hover/sidebar:text-sidebar-foreground"
       )}>
         {link.icon}
       </div>
@@ -179,7 +179,7 @@ export const SidebarLink = ({
         }}
         className={cn(
           "text-sm font-medium whitespace-pre transition-colors duration-200",
-          isActive ? "text-blue-500" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
+          isActive ? "text-[#955251]" : "text-sidebar-foreground/80 group-hover/sidebar:text-sidebar-foreground"
         )}
       >
         {link.label}

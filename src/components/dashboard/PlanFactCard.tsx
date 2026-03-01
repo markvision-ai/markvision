@@ -50,27 +50,14 @@ export const PlanFactCard = ({
   const percentage = plan && plan > 0 && fact !== undefined ? (fact / plan) * 100 : 0;
   const isOnTrack = percentage >= 100;
 
-  const accentColor =
-    label.toLowerCase().includes('показ') ? 'blue' :
-      label.toLowerCase().includes('лид') ? 'cyan' :
-        label.toLowerCase().includes('визит') || label.toLowerCase().includes('диагност') ? 'emerald' :
-          label.toLowerCase().includes('продаж') ? 'gold' :
-            'primary';
+  const accentColor = 'marsala';
 
   const colorMap = {
-    blue: 'text-blue-400 bg-blue-500/10 border-blue-500/20 glow-blue',
-    cyan: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20 glow-cyan',
-    emerald: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20 glow-emerald',
-    gold: 'text-amber-400 bg-amber-500/10 border-amber-500/20 glow-amber',
-    primary: 'text-primary bg-primary/10 border-primary/20 glow-primary'
+    marsala: 'text-[#955251] bg-[#955251]/10 border-[#955251]/20 glow-marsala',
   };
 
   const barColorMap = {
-    blue: 'bg-blue-500',
-    cyan: 'bg-cyan-500',
-    emerald: 'bg-emerald-500',
-    gold: 'bg-amber-500',
-    primary: 'bg-primary'
+    marsala: 'bg-[#955251]',
   };
 
   return (
@@ -108,8 +95,8 @@ export const PlanFactCard = ({
 
           {plan !== undefined && (
             <div className={cn(
-              "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-white/5 transition-all",
-              isOnTrack ? "bg-primary/20 text-primary shadow-[0_0_15px_rgba(249,115,22,0.1)]" : "bg-white/5 text-white/20"
+              "text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest border border-white/5 transition-all text-[#955251]",
+              isOnTrack ? "bg-[#955251]/20 shadow-[0_0_15px_rgba(149,82,81,0.1)]" : "bg-white/5 opacity-40 text-white"
             )}>
               {percentage.toFixed(0)}%
             </div>
