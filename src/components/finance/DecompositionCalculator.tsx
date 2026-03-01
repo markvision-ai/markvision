@@ -15,7 +15,8 @@ import {
     PieChart,
     Settings2,
     ChevronDown,
-    LayoutDashboard
+    LayoutDashboard,
+    Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -199,24 +200,38 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                 <button
                                     onClick={() => updateState({ mode: 'revenue' })}
                                     className={cn(
-                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-700 relative overflow-hidden group/btn",
                                         state.mode === 'revenue'
-                                            ? "bg-gradient-to-br from-primary to-[#B57170] text-white shadow-xl shadow-primary/40 ring-1 ring-white/20"
+                                            ? "text-white shadow-2xl shadow-primary/40 ring-1 ring-white/20"
                                             : "text-white/30 hover:text-white/60 hover:bg-white/5"
                                     )}
                                 >
-                                    От Выручки
+                                    {state.mode === 'revenue' && (
+                                        <motion.div
+                                            layoutId="mode-bg"
+                                            className="absolute inset-0 bg-gradient-to-br from-primary to-[#B57170]"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                    <span className="relative z-10">От Выручки</span>
                                 </button>
                                 <button
                                     onClick={() => updateState({ mode: 'profit' })}
                                     className={cn(
-                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-700 relative overflow-hidden group/btn",
                                         state.mode === 'profit'
-                                            ? "bg-gradient-to-br from-primary to-[#B57170] text-white shadow-xl shadow-primary/40 ring-1 ring-white/20"
+                                            ? "text-white shadow-2xl shadow-primary/40 ring-1 ring-white/20"
                                             : "text-white/30 hover:text-white/60 hover:bg-white/5"
                                     )}
                                 >
-                                    От Прибыли
+                                    {state.mode === 'profit' && (
+                                        <motion.div
+                                            layoutId="mode-bg"
+                                            className="absolute inset-0 bg-gradient-to-br from-primary to-[#B57170]"
+                                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                        />
+                                    )}
+                                    <span className="relative z-10">От Прибыли</span>
                                 </button>
                             </div>
                         </div>
@@ -238,7 +253,7 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                     onChange={(e) => updateState({ targetValue: Number(e.target.value) })}
                                     className="h-20 bg-black/40 border-white/10 rounded-[1.5rem] text-3xl font-black tabular-nums tracking-tighter focus:border-secondary/50 group-hover:border-white/20 transition-all text-white px-8 pr-12"
                                 />
-                                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black tracking-widest text-xs">₸</div>
+                                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black tracking-widest text-xs group-hover:text-secondary/40 transition-colors">₸</div>
                             </div>
                         </div>
 
@@ -476,7 +491,7 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                 {/* Key Metrics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15">
+                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15 shadow-interstellar-glow-strong">
                         <CardContent className="p-10 space-y-8">
                             <div className="flex justify-between items-start">
                                 <div className="p-4 rounded-[1.5rem] bg-secondary/20 border border-secondary/30 shadow-2xl shadow-secondary/10 group-hover:scale-110 transition-transform duration-500">
@@ -484,7 +499,7 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                 </div>
                                 <div className="text-right">
                                     <LabelCaps className="text-white/20">Чистая прибыль</LabelCaps>
-                                    <p className="text-4xl font-black tabular-nums tracking-tight text-white mt-2 drop-shadow-glow-secondary">
+                                    <p className="text-4xl font-black tabular-nums tracking-tight text-white mt-2 drop-shadow-[0_0_15px_rgba(59,130,246,0.3)]">
                                         {formatCurrency(results.netProfit)}
                                     </p>
                                 </div>
@@ -499,7 +514,7 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15">
+                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15 shadow-interstellar-glow">
                         <CardContent className="p-10 space-y-8">
                             <div className="flex justify-between items-start">
                                 <div className="p-4 rounded-[1.5rem] bg-primary/20 border border-primary/30 shadow-2xl shadow-primary/10 group-hover:scale-110 transition-transform duration-500">
