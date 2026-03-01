@@ -10,8 +10,8 @@ interface AuroraTextProps {
   colors?: string[];
 }
 
-export function AuroraText({ 
-  children, 
+export function AuroraText({
+  children,
   className,
   colors = ["#3b82f6", "#06b6d4", "#6366f1", "#3b82f6"]
 }: AuroraTextProps) {
@@ -44,9 +44,9 @@ export function AuroraText({
       >
         {children}
       </motion.span>
-      {/* Glow effect */}
+      {/* Refined Glow effect */}
       <motion.span
-        className="absolute inset-0 blur-lg opacity-50 pointer-events-none"
+        className="absolute inset-0 blur-2xl opacity-30 pointer-events-none select-none"
         style={{
           backgroundImage: `linear-gradient(90deg, ${colors.join(", ")})`,
           backgroundSize: "300% 100%",

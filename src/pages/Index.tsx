@@ -65,8 +65,8 @@ const Index = () => {
 
   if (loading || checkingProjects) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
       </div>
     );
   }
@@ -90,8 +90,8 @@ const Index = () => {
   if (!user) {
     return (
       <Suspense fallback={
-        <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-white/20" />
         </div>
       }>
         <LandingPage />
@@ -103,8 +103,8 @@ const Index = () => {
   // Если авторизован и прошёл онбординг — показываем платформу
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-white/20" />
       </div>
     }>
       <AnalyticsPlatform />

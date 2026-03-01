@@ -70,7 +70,7 @@ const socialLinks = [{
   href: "https://tiktok.com/@markvision.ai"
 }];
 export const Footer = () => {
-  return <footer className="relative bg-white/10 border-t border-slate-200">
+  return <footer className="relative bg-[#020617] border-t border-white/10">
     {/* Main Footer Content */}
     <div className="max-w-7xl mx-auto px-6 lg:px-12 py-12 lg:py-16">
       {/* Desktop: 2-column grid, Mobile: stacked */}
@@ -160,7 +160,7 @@ export const Footer = () => {
     </div>
 
     {/* Divider */}
-    <div className="border-t border-white/50" />
+    <div className="border-t border-white/5" />
 
     {/* Bottom Bar */}
     <div className="max-w-7xl mx-auto px-6 lg:px-12 py-5">
@@ -183,7 +183,7 @@ export const Footer = () => {
             scale: 1.1
           }} whileTap={{
             scale: 0.95
-          }} className="w-9 h-9 rounded-full bg-muted hover:bg-primary/20 flex items-center justify-center text-muted-foreground hover:text-primary transition-all" aria-label={social.name}>
+          }} className="w-9 h-9 rounded-full bg-white/5 hover:bg-primary/20 flex items-center justify-center text-white/40 hover:text-primary transition-all" aria-label={social.name}>
             <social.icon className="w-4 h-4" />
           </motion.a>)}
         </div>
