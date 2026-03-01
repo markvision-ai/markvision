@@ -28,9 +28,24 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
     const [syncing, setSyncing] = useState(false);
     const queryClient = useQueryClient();
 
+    // Fetch actual configuration to ensure we show accounts even without metrics
+    const { data: configs, isLoading: configsLoading } = useQuery({
+        queryKey: ['clients-config', projectId],
+        queryFn: async () => {
+            if (!projectId) return [];
+            const { data, error } = await supabase
+                .from('clients_config')
+                .select('id, ad_account_id, client_name')
+                .eq('project_id', projectId);
+            if (error) throw error;
+            return data || [];
+        },
+        enabled: !!projectId,
+    });
+
     // Fetch Aggregated Metrics from the SQL View
     const { data: viewData, isLoading: metricsLoading, refetch: refetchMetrics } = useQuery({
-        queryKey: ['agency-metrics-view', projectId],
+        queryKey: ['agency-metrics-view', projectId, dateRange?.from?.toISOString()],
         queryFn: async () => {
             if (!projectId) return [];
 
@@ -84,35 +99,47 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
         };
     }, [projectId, queryClient]);
 
-    // Format metrics to the expected interface
+    // Format metrics to the expected interface, merging config with metrics
     const metrics: AgencyMetrics[] = useMemo(() => {
-        if (!viewData) return [];
+        if (import.meta.env.DEV) {
+            console.log('📊 DATA DEBUG:', {
+                projectId,
+                configsCount: configs?.length,
+                viewDataCount: viewData?.length,
+                dateFrom: dateRange?.from?.toISOString()
+            });
+        }
 
-        return viewData.map((row: any) => {
-            const baseLeads = Math.max(Number(row.meta_leads) || 0, Number(row.crm_leads) || 0);
-            const qualifiedLeads = Number(row.qualified_leads) || 0;
+        if (!configs) return [];
+
+        return configs.map((config: any) => {
+            // Find metrics for this specific account in the view results
+            const row = viewData?.find((r: any) => r.account_id === config.ad_account_id);
+
+            const baseLeads = row ? Math.max(Number(row.meta_leads) || 0, Number(row.crm_leads) || 0) : 0;
+            const qualifiedLeads = row ? Number(row.qualified_leads) || 0 : 0;
             const lqr = baseLeads > 0 ? (qualifiedLeads / baseLeads) * 100 : 0;
 
             return {
-                accountId: row.account_id || '',
-                accountName: row.account_name || 'Неизвестный кабинет',
-                status: true, // Configs in clients_config are assumed active by default
-                spend: Number(row.spend) || 0,
-                metaLeads: Number(row.meta_leads) || 0,
-                crmLeads: Number(row.crm_leads) || 0,
+                accountId: config.ad_account_id || '',
+                accountName: config.client_name || 'Неизвестный кабинет',
+                status: true,
+                spend: row ? Number(row.spend) || 0 : 0,
+                metaLeads: row ? Number(row.meta_leads) || 0 : 0,
+                crmLeads: row ? Number(row.crm_leads) || 0 : 0,
                 qualifiedLeads: qualifiedLeads,
-                visits: Number(row.visits) || 0,
-                paidCustomers: Number(row.sales) || 0,
-                revenue: Number(row.revenue) || 0,
-                cpl: Number(row.cpl) || 0,
+                visits: row ? Number(row.visits) || 0 : 0,
+                paidCustomers: row ? Number(row.sales) || 0 : 0,
+                revenue: row ? Number(row.revenue) || 0 : 0,
+                cpl: row ? Number(row.cpl) || 0 : 0,
                 lqr: lqr,
-                cpql: Number(row.cpql) || 0,
-                cpv: Number(row.cpv) || 0,
-                cac: Number(row.cac) || 0,
-                romi: Number(row.romi) || 0,
+                cpql: row ? Number(row.cpql) || 0 : 0,
+                cpv: row ? Number(row.cpv) || 0 : 0,
+                cac: row ? Number(row.cac) || 0 : 0,
+                romi: row ? Number(row.romi) || 0 : 0,
             };
         });
-    }, [viewData]);
+    }, [configs, viewData, projectId, dateRange?.from]);
 
     // Force Edge Function Meta Sync
     const triggerSync = useCallback(async () => {
@@ -163,7 +190,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
 
     return {
         metrics,
-        isLoading: metricsLoading,
+        isLoading: metricsLoading || configsLoading,
         syncing,
         triggerSync,
         connectAccount,
