@@ -70,6 +70,12 @@ const formatCurrency = (val: number) =>
 const formatNumber = (val: number) =>
     new Intl.NumberFormat('ru-RU').format(Math.round(val));
 
+const LabelCaps = ({ children, className }: { children: React.ReactNode, className?: string }) => (
+    <Label className={cn("text-[9px] font-black uppercase tracking-[0.25em] text-white/30", className)}>
+        {children}
+    </Label>
+);
+
 export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ projectId }) => {
     const [state, setState] = useState<CalculatorState>(DEFAULT_STATE);
 
@@ -174,27 +180,29 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
     };
 
     return (
-        <div className="flex flex-col xl:flex-row gap-6 p-1 md:p-6 w-full animate-in fade-in duration-700">
+        <div className="flex flex-col xl:flex-row gap-8 p-1 md:p-8 w-full animate-in fade-in duration-700 max-w-[1600px] mx-auto">
 
             {/* Sidebar Controls */}
-            <div className="w-full xl:w-[380px] space-y-4 shrink-0">
-                <Card className="bg-white/5 backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden shadow-interstellar">
-                    <CardContent className="p-6 md:p-8 space-y-8">
+            <div className="w-full xl:w-[420px] space-y-6 shrink-0">
+                <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden shadow-interstellar border-t-white/20">
+                    <CardContent className="p-8 md:p-10 space-y-10">
 
                         {/* Mode Selection */}
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                                <div className="p-2.5 rounded-2xl bg-primary/20 border border-primary/30 shadow-lg shadow-primary/10">
                                     <Settings2 className="w-4 h-4 text-primary" />
                                 </div>
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Режим расчета</Label>
+                                <LabelCaps>Режим расчета</LabelCaps>
                             </div>
-                            <div className="grid grid-cols-2 gap-2 p-1 bg-white/5 rounded-2xl border border-white/5">
+                            <div className="grid grid-cols-2 gap-2.5 p-1.5 bg-black/40 rounded-3xl border border-white/5">
                                 <button
                                     onClick={() => updateState({ mode: 'revenue' })}
                                     className={cn(
-                                        "py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300",
-                                        state.mode === 'revenue' ? "bg-primary text-white shadow-lg shadow-primary/25" : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                                        state.mode === 'revenue'
+                                            ? "bg-gradient-to-br from-primary to-[#B57170] text-white shadow-xl shadow-primary/40 ring-1 ring-white/20"
+                                            : "text-white/30 hover:text-white/60 hover:bg-white/5"
                                     )}
                                 >
                                     От Выручки
@@ -202,8 +210,10 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                 <button
                                     onClick={() => updateState({ mode: 'profit' })}
                                     className={cn(
-                                        "py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-300",
-                                        state.mode === 'profit' ? "bg-primary text-white shadow-lg shadow-primary/25" : "text-white/40 hover:text-white/60 hover:bg-white/5"
+                                        "py-3.5 px-4 rounded-[1.25rem] text-[10px] font-black uppercase tracking-widest transition-all duration-500",
+                                        state.mode === 'profit'
+                                            ? "bg-gradient-to-br from-primary to-[#B57170] text-white shadow-xl shadow-primary/40 ring-1 ring-white/20"
+                                            : "text-white/30 hover:text-white/60 hover:bg-white/5"
                                     )}
                                 >
                                     От Прибыли
@@ -212,23 +222,23 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                         </div>
 
                         {/* Target Input */}
-                        <div className="space-y-4">
+                        <div className="space-y-5">
                             <div className="flex items-center gap-3 text-secondary">
-                                <div className="p-2 rounded-xl bg-secondary/10 border border-secondary/20">
+                                <div className="p-2.5 rounded-2xl bg-secondary/20 border border-secondary/30 shadow-lg shadow-secondary/10">
                                     <Target className="w-4 h-4" />
                                 </div>
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-secondary/60">
+                                <LabelCaps className="text-secondary/80">
                                     {state.mode === 'revenue' ? 'Целевая выручка' : 'Целевая чистая прибыль'}
-                                </Label>
+                                </LabelCaps>
                             </div>
                             <div className="relative group">
                                 <Input
                                     type="number"
                                     value={state.targetValue}
                                     onChange={(e) => updateState({ targetValue: Number(e.target.value) })}
-                                    className="h-14 bg-white/5 border-white/10 rounded-2xl text-xl font-black tabular-nums focus:border-secondary/50 group-hover:border-white/20 transition-all text-white px-6"
+                                    className="h-20 bg-black/40 border-white/10 rounded-[1.5rem] text-3xl font-black tabular-nums tracking-tighter focus:border-secondary/50 group-hover:border-white/20 transition-all text-white px-8 pr-12"
                                 />
-                                <div className="absolute right-6 top-1/2 -translate-y-1/2 text-white/20 font-black tracking-widest text-[10px]">₸</div>
+                                <div className="absolute right-8 top-1/2 -translate-y-1/2 text-white/10 font-black tracking-widest text-xs">₸</div>
                             </div>
                         </div>
 
@@ -237,43 +247,43 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                         {/* Marketing Metrics */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <div className="p-2 rounded-xl bg-white/5 border border-white/10 text-white/40">
+                                <div className="p-2.5 rounded-2xl bg-white/5 border border-white/10 text-white/40">
                                     <TrendingUp className="w-4 h-4" />
                                 </div>
-                                <Label className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Маркетинг и Воронка</Label>
+                                <LabelCaps>Маркетинг и Воронка</LabelCaps>
                             </div>
 
                             <div className="grid gap-6">
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center px-1">
-                                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/30">CPL (₸ за лид)</Label>
-                                        <span className="text-[10px] font-black text-white/60 tabular-nums">{formatCurrency(state.cpl)}</span>
+                                        <LabelCaps className="text-white/20">CPL (₸ за лид)</LabelCaps>
+                                        <span className="text-[10px] font-black text-white/50 tabular-nums">{formatCurrency(state.cpl)}</span>
                                     </div>
                                     <Input
                                         type="number"
                                         value={state.cpl}
                                         onChange={(e) => updateState({ cpl: Number(e.target.value) })}
-                                        className="h-11 bg-white/5 border-white/10 rounded-xl font-black tabular-nums transition-all focus:border-primary/50 text-white"
+                                        className="h-12 bg-black/40 border-white/10 rounded-2xl font-black tabular-nums transition-all focus:border-primary/50 text-white"
                                     />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="space-y-3">
-                                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/30 px-1">CR1 (Визит → Лид) %</Label>
+                                        <LabelCaps className="text-white/20 px-1">CR1 (Визит → Лид) %</LabelCaps>
                                         <Input
                                             type="number"
                                             value={state.cr1}
                                             onChange={(e) => updateState({ cr1: Number(e.target.value) })}
-                                            className="h-11 bg-white/5 border-white/10 rounded-xl font-black tabular-nums transition-all focus:border-white/30 text-white"
+                                            className="h-12 bg-black/40 border-white/10 rounded-2xl font-black tabular-nums transition-all focus:border-white/30 text-white"
                                         />
                                     </div>
                                     <div className="space-y-3">
-                                        <Label className="text-[9px] font-black uppercase tracking-widest text-white/30 px-1">CR2 (Лид → Продажа) %</Label>
+                                        <LabelCaps className="text-white/20 px-1">CR2 (Лид → Продажа) %</LabelCaps>
                                         <Input
                                             type="number"
                                             value={state.cr2}
                                             onChange={(e) => updateState({ cr2: Number(e.target.value) })}
-                                            className="h-11 bg-white/5 border-white/10 rounded-xl font-black tabular-nums transition-all focus:border-white/30 text-white"
+                                            className="h-12 bg-black/40 border-white/10 rounded-2xl font-black tabular-nums transition-all focus:border-white/30 text-white"
                                         />
                                     </div>
                                 </div>
@@ -330,18 +340,18 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                                         type="number"
                                                         value={product.price}
                                                         onChange={(e) => updateProduct(product.id, 'price', Number(e.target.value))}
-                                                        className="h-9 bg-white/5 border-white/10 rounded-xl text-[11px] font-black tabular-nums pl-6 text-white"
+                                                        className="h-10 bg-black/40 border-white/10 rounded-xl text-[11px] font-black tabular-nums pl-8 text-white"
                                                     />
-                                                    <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[9px] text-white/20">₸</span>
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[9px] text-white/20">₸</span>
                                                 </div>
                                                 <div className="relative">
                                                     <Input
                                                         type="number"
                                                         value={product.share}
                                                         onChange={(e) => updateProduct(product.id, 'share', Number(e.target.value))}
-                                                        className="h-9 bg-white/5 border-white/10 rounded-xl text-[11px] font-black tabular-nums pr-6 text-right text-white"
+                                                        className="h-10 bg-black/40 border-white/10 rounded-xl text-[11px] font-black tabular-nums pr-8 text-right text-white"
                                                     />
-                                                    <span className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[9px] text-white/20">%</span>
+                                                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[9px] text-white/20">%</span>
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -377,28 +387,30 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                                         <Plus className="w-4 h-4" />
                                     </Button>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {state.fixedExpenses.map((exp) => (
-                                        <div key={exp.id} className="flex gap-2 group">
-                                            <Input
-                                                value={exp.name}
-                                                onChange={(e) => updateExpense('fixed', exp.id, 'name', e.target.value)}
-                                                className="h-10 bg-white/5 border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60"
-                                            />
-                                            <div className="relative w-32 shrink-0">
+                                        <div key={exp.id} className="flex gap-3 group items-center">
+                                            <div className="flex-1 relative">
+                                                <Input
+                                                    value={exp.name}
+                                                    onChange={(e) => updateExpense('fixed', exp.id, 'name', e.target.value)}
+                                                    className="h-12 bg-black/40 border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 focus:border-white/30"
+                                                />
+                                            </div>
+                                            <div className="relative w-40 shrink-0">
                                                 <Input
                                                     type="number"
                                                     value={exp.value}
                                                     onChange={(e) => updateExpense('fixed', exp.id, 'value', Number(e.target.value))}
-                                                    className="h-10 bg-white/5 border-white/10 rounded-xl text-[11px] font-black tabular-nums text-right text-white pr-6"
+                                                    className="h-12 bg-black/40 border-white/10 rounded-2xl text-xs font-black tabular-nums text-right text-white pr-10"
                                                 />
-                                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-white/20">₸</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] text-white/20">₸</span>
                                             </div>
                                             <button
                                                 onClick={() => removeExpense('fixed', exp.id)}
-                                                className="p-2.5 hover:bg-white/10 text-primary transition-all rounded-xl"
+                                                className="p-3 hover:bg-primary/10 text-primary transition-all rounded-2xl border border-transparent hover:border-primary/20"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ))}
@@ -406,45 +418,47 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                             </div>
 
                             {/* Variable */}
-                            <div className="space-y-4">
+                            <div className="space-y-6">
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3 text-white/40">
-                                        <div className="p-2 rounded-xl bg-white/5 border border-white/10">
+                                        <div className="p-2.5 rounded-2xl bg-white/5 border border-white/10">
                                             <PieChart className="w-4 h-4" />
                                         </div>
-                                        <Label className="text-[10px] font-black uppercase tracking-[0.2em]">Переменные (Var)</Label>
+                                        <LabelCaps>Переменные (Var)</LabelCaps>
                                     </div>
                                     <Button
                                         onClick={() => addExpense('variable')}
                                         variant="ghost"
                                         size="icon"
-                                        className="w-8 h-8 rounded-lg hover:bg-white/5 text-primary"
+                                        className="w-10 h-10 rounded-xl hover:bg-white/5 text-primary border border-white/5"
                                     >
-                                        <Plus className="w-4 h-4" />
+                                        <Plus className="w-5 h-5" />
                                     </Button>
                                 </div>
-                                <div className="space-y-2">
+                                <div className="space-y-3">
                                     {state.variableExpenses.map((exp) => (
-                                        <div key={exp.id} className="flex gap-2 group">
-                                            <Input
-                                                value={exp.name}
-                                                onChange={(e) => updateExpense('variable', exp.id, 'name', e.target.value)}
-                                                className="h-10 bg-white/5 border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60"
-                                            />
-                                            <div className="relative w-32 shrink-0">
+                                        <div key={exp.id} className="flex gap-3 group items-center">
+                                            <div className="flex-1 relative">
+                                                <Input
+                                                    value={exp.name}
+                                                    onChange={(e) => updateExpense('variable', exp.id, 'name', e.target.value)}
+                                                    className="h-12 bg-black/40 border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/60 focus:border-white/30"
+                                                />
+                                            </div>
+                                            <div className="relative w-40 shrink-0">
                                                 <Input
                                                     type="number"
                                                     value={exp.value}
                                                     onChange={(e) => updateExpense('variable', exp.id, 'value', Number(e.target.value))}
-                                                    className="h-10 bg-white/5 border-white/10 rounded-xl text-[11px] font-black tabular-nums text-right text-white pr-6"
+                                                    className="h-12 bg-black/40 border-white/10 rounded-2xl text-xs font-black tabular-nums text-right text-white pr-10"
                                                 />
-                                                <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[9px] text-white/20">%</span>
+                                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[9px] text-white/20">%</span>
                                             </div>
                                             <button
                                                 onClick={() => removeExpense('variable', exp.id)}
-                                                className="p-2.5 hover:bg-white/10 text-primary transition-all rounded-xl"
+                                                className="p-3 hover:bg-primary/10 text-primary transition-all rounded-2xl border border-transparent hover:border-primary/20"
                                             >
-                                                <Trash2 className="w-3.5 h-3.5" />
+                                                <Trash2 className="w-4 h-4" />
                                             </button>
                                         </div>
                                     ))}
@@ -462,56 +476,65 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                 {/* Key Metrics Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-                    <Card className="bg-white/5 backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.07] transition-all duration-500">
-                        <CardContent className="p-8 space-y-6">
+                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15">
+                        <CardContent className="p-10 space-y-8">
                             <div className="flex justify-between items-start">
-                                <div className="p-3 rounded-2xl bg-secondary/10 border border-secondary/20 shadow-lg shadow-secondary/5 group-hover:scale-110 transition-transform">
-                                    <DollarSign className="w-6 h-6 text-secondary" />
+                                <div className="p-4 rounded-[1.5rem] bg-secondary/20 border border-secondary/30 shadow-2xl shadow-secondary/10 group-hover:scale-110 transition-transform duration-500">
+                                    <DollarSign className="w-8 h-8 text-secondary" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Чистая прибыль</p>
-                                    <p className="text-3xl font-black tabular-nums text-white mt-1">{formatCurrency(results.netProfit)}</p>
+                                    <LabelCaps className="text-white/20">Чистая прибыль</LabelCaps>
+                                    <p className="text-4xl font-black tabular-nums tracking-tight text-white mt-2 drop-shadow-glow-secondary">
+                                        {formatCurrency(results.netProfit)}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Рентабельность</span>
-                                <span className="text-secondary font-black tabular-nums text-lg">{results.margin.toFixed(1)}%</span>
+                            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                <LabelCaps>Рентабельность</LabelCaps>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-secondary font-black tabular-nums text-2xl tracking-tighter">{results.margin.toFixed(1)}</span>
+                                    <span className="text-[10px] font-black text-secondary/40">%</span>
+                                </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.07] transition-all duration-500">
-                        <CardContent className="p-8 space-y-6">
+                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15">
+                        <CardContent className="p-10 space-y-8">
                             <div className="flex justify-between items-start">
-                                <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 shadow-lg shadow-primary/5 group-hover:scale-110 transition-transform">
-                                    <Target className="w-6 h-6 text-primary" />
+                                <div className="p-4 rounded-[1.5rem] bg-primary/20 border border-primary/30 shadow-2xl shadow-primary/10 group-hover:scale-110 transition-transform duration-500">
+                                    <Target className="w-8 h-8 text-primary" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Необходимая выручка</p>
-                                    <p className="text-3xl font-black tabular-nums text-white mt-1">{formatCurrency(results.revenue)}</p>
+                                    <LabelCaps className="text-white/20">Необходимая выручка</LabelCaps>
+                                    <p className="text-4xl font-black tabular-nums tracking-tight text-white mt-2">
+                                        {formatCurrency(results.revenue)}
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/20">Продаж (шт)</span>
-                                <span className="text-primary font-black tabular-nums text-lg">{formatNumber(results.sales)}</span>
+                            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                <LabelCaps>Продаж (шт)</LabelCaps>
+                                <span className="text-primary font-black tabular-nums text-2xl tracking-tighter">{formatNumber(results.sales)}</span>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card className="bg-white/5 backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.07] transition-all duration-500">
-                        <CardContent className="p-8 space-y-6">
+                    <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden group hover:bg-white/[0.08] transition-all duration-700 border-t-white/15">
+                        <CardContent className="p-10 space-y-8">
                             <div className="flex justify-between items-start">
-                                <div className="p-3 rounded-2xl bg-white/10 border border-white/20 shadow-lg group-hover:scale-110 transition-transform">
-                                    <TrendingUp className="w-6 h-6 text-white" />
+                                <div className="p-4 rounded-[1.5rem] bg-white/10 border border-white/20 shadow-2xl group-hover:scale-110 transition-transform duration-500">
+                                    <TrendingUp className="w-8 h-8 text-white" />
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/40">Окупаемость (ROI)</p>
-                                    <p className="text-3xl font-black tabular-nums text-white mt-1">{Math.round(results.roi)}%</p>
+                                    <LabelCaps className="text-white/20">Окупаемость (ROI)</LabelCaps>
+                                    <p className="text-4xl font-black tabular-nums tracking-tight text-white mt-2">
+                                        {Math.round(results.roi)}%
+                                    </p>
                                 </div>
                             </div>
-                            <div className="flex items-center justify-between pt-4 border-t border-white/5">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white/20">ROMI (Маркетинг)</span>
-                                <span className="text-white/80 font-black tabular-nums text-lg">{Math.round(results.romi)}%</span>
+                            <div className="flex items-center justify-between pt-6 border-t border-white/5">
+                                <LabelCaps>ROMI (Маркетинг)</LabelCaps>
+                                <span className="text-white/80 font-black tabular-nums text-2xl tracking-tighter">{Math.round(results.romi)}%</span>
                             </div>
                         </CardContent>
                     </Card>
@@ -519,72 +542,87 @@ export const DecompositionCalculator: React.FC<{ projectId: string }> = ({ proje
                 </div>
 
                 {/* Funnel Visualization */}
-                <Card className="bg-white/5 backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden">
-                    <CardContent className="p-8 md:p-12">
-                        <div className="flex items-center gap-4 mb-12">
-                            <div className="p-3 rounded-2xl bg-white/5 border border-white/10">
-                                <Users className="w-6 h-6 text-white/60" />
+                <Card className="bg-white/[0.03] backdrop-blur-3xl border-white/10 rounded-[2.5rem] overflow-hidden border-t-white/15">
+                    <CardContent className="p-10 md:p-14">
+                        <div className="flex items-center gap-5 mb-14">
+                            <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 shadow-xl">
+                                <Users className="w-6 h-6 text-white/40" />
                             </div>
                             <div>
-                                <h3 className="text-xl font-black uppercase tracking-[0.2em] text-white">Воронка продаж</h3>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mt-1">От охватов до реальной прибыли</p>
+                                <h3 className="text-2xl font-black uppercase tracking-[0.2em] text-white">Воронка продаж</h3>
+                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 mt-2">От охватов до чистой прибыли</p>
                             </div>
                         </div>
 
-                        <div className="flex flex-col md:flex-row items-center gap-6 justify-between relative px-4">
+                        <div className="flex flex-col md:flex-row items-center gap-4 justify-between relative px-6">
 
-                            <div className="flex flex-col items-center gap-4 group">
-                                <div className="w-32 h-32 rounded-[2.5rem] bg-white/5 border border-white/10 flex flex-col items-center justify-center group-hover:bg-primary/5 transition-colors duration-500">
-                                    <span className="text-2xl font-black tabular-nums text-white">{formatNumber(results.views)}</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Просмотры</span>
-                                </div>
-                                <div className="px-3 py-1 bg-white/5 rounded-full border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <span className="text-[8px] font-black uppercase tracking-wider text-white/40">Органика + Платное</span>
+                            <div className="flex flex-col items-center gap-5 group">
+                                <div className="w-36 h-36 rounded-[3rem] glass-morphism border-white/10 flex flex-col items-center justify-center group-hover:bg-white/10 transition-all duration-700 group-hover:scale-105 shadow-2xl">
+                                    <span className="text-3xl font-black tabular-nums text-white tracking-tighter">{formatNumber(results.views)}</span>
+                                    <LabelCaps className="mt-1 opacity-50">Просмотры</LabelCaps>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-center">
-                                <ArrowRight className="w-6 h-6 text-white/10 hidden md:block" />
-                                <ChevronDown className="w-6 h-6 text-white/10 md:hidden" />
-                                <span className="text-[10px] font-black text-primary mt-2">{state.cr1}%</span>
+                            <div className="flex flex-col items-center z-10">
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ repeat: Infinity, duration: 2 }}
+                                    className="hidden md:block"
+                                >
+                                    <ArrowRight className="w-8 h-8 text-primary/40" />
+                                </motion.div>
+                                <ChevronDown className="w-8 h-8 text-primary/40 md:hidden" />
+                                <span className="text-xs font-black text-primary mt-1 tabular-nums">{state.cr1}%</span>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4 group">
-                                <div className="w-32 h-32 rounded-[2.5rem] bg-primary/10 border border-primary/20 flex flex-col items-center justify-center group-hover:scale-105 transition-all duration-500">
-                                    <span className="text-2xl font-black tabular-nums text-white">{formatNumber(results.leads)}</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Лиды (Спрос)</span>
+                            <div className="flex flex-col items-center gap-5 group">
+                                <div className="w-36 h-36 rounded-[3rem] bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/30 flex flex-col items-center justify-center group-hover:scale-110 transition-all duration-700 shadow-2xl shadow-primary/20 ring-1 ring-primary/20">
+                                    <span className="text-3xl font-black tabular-nums text-white tracking-tighter">{formatNumber(results.leads)}</span>
+                                    <LabelCaps className="mt-1 opacity-50">Лиды</LabelCaps>
                                 </div>
-                                <div className="px-3 py-1 bg-primary/5 rounded-full border border-primary/10">
-                                    <span className="text-[8px] font-black uppercase tracking-wider text-primary">CPL: {formatCurrency(state.cpl)}</span>
-                                </div>
-                            </div>
-
-                            <div className="flex flex-col items-center">
-                                <ArrowRight className="w-6 h-6 text-white/10 hidden md:block" />
-                                <ChevronDown className="w-6 h-6 text-white/10 md:hidden" />
-                                <span className="text-[10px] font-black text-secondary mt-2">{state.cr2}%</span>
-                            </div>
-
-                            <div className="flex flex-col items-center gap-4 group">
-                                <div className="w-32 h-32 rounded-[2.5rem] bg-secondary/10 border border-secondary/20 flex flex-col items-center justify-center group-hover:scale-105 transition-all duration-500">
-                                    <span className="text-2xl font-black tabular-nums text-white">{formatNumber(results.sales)}</span>
-                                    <span className="text-[8px] font-black uppercase tracking-widest text-white/20">Продажи</span>
-                                </div>
-                                <div className="px-3 py-1 bg-secondary/5 rounded-full border border-secondary/10">
-                                    <span className="text-[8px] font-black uppercase tracking-wider text-secondary">Чек: {formatCurrency(results.avgCheck)}</span>
+                                <div className="px-4 py-1.5 bg-primary/10 rounded-full border border-primary/20 shadow-lg">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-primary">CPL: {formatCurrency(state.cpl)}</span>
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-center">
-                                <ArrowRight className="w-6 h-6 text-white/10 hidden md:block" />
-                                <ChevronDown className="w-6 h-6 text-white/10 md:hidden" />
-                                <span className="text-[10px] font-black text-white/40 mt-2">Деньги</span>
+                            <div className="flex flex-col items-center z-10">
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ repeat: Infinity, duration: 2, delay: 0.5 }}
+                                    className="hidden md:block"
+                                >
+                                    <ArrowRight className="w-8 h-8 text-secondary/40" />
+                                </motion.div>
+                                <ChevronDown className="w-8 h-8 text-secondary/40 md:hidden" />
+                                <span className="text-xs font-black text-secondary mt-1 tabular-nums">{state.cr2}%</span>
                             </div>
 
-                            <div className="flex flex-col items-center gap-4 group">
-                                <div className="w-32 h-32 rounded-[2.5rem] bg-white/10 border border-white/20 flex flex-col items-center justify-center shadow-2xl">
-                                    <span className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Выручка</span>
-                                    <span className="text-xl font-black tabular-nums text-white">{formatCurrency(results.revenue)}</span>
+                            <div className="flex flex-col items-center gap-5 group">
+                                <div className="w-36 h-36 rounded-[3rem] bg-gradient-to-br from-secondary/20 to-secondary/5 border border-secondary/30 flex flex-col items-center justify-center group-hover:scale-110 transition-all duration-700 shadow-2xl shadow-secondary/20 ring-1 ring-secondary/20">
+                                    <span className="text-3xl font-black tabular-nums text-white tracking-tighter">{formatNumber(results.sales)}</span>
+                                    <LabelCaps className="mt-1 opacity-50">Продажи</LabelCaps>
+                                </div>
+                                <div className="px-4 py-1.5 bg-secondary/10 rounded-full border border-secondary/20 shadow-lg">
+                                    <span className="text-[9px] font-black uppercase tracking-widest text-secondary">Чек: {formatCurrency(results.avgCheck)}</span>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col items-center z-10">
+                                <motion.div
+                                    animate={{ x: [0, 5, 0] }}
+                                    transition={{ repeat: Infinity, duration: 2, delay: 1 }}
+                                    className="hidden md:block"
+                                >
+                                    <ArrowRight className="w-8 h-8 text-white/20" />
+                                </motion.div>
+                                <ChevronDown className="w-8 h-8 text-white/20 md:hidden" />
+                                <span className="text-[9px] font-black text-white/20 mt-1 uppercase tracking-widest">Итог</span>
+                            </div>
+
+                            <div className="flex flex-col items-center gap-5 group">
+                                <div className="w-40 h-40 rounded-[3.5rem] bg-gradient-to-br from-white/15 to-white/5 border border-white/20 flex flex-col items-center justify-center shadow-interstellar transition-all duration-700 hover:scale-105 group-hover:border-white/40">
+                                    <LabelCaps className="mb-2 opacity-40">Выручка</LabelCaps>
+                                    <span className="text-xl font-black tabular-nums text-white tracking-tighter">{formatCurrency(results.revenue)}</span>
                                 </div>
                             </div>
                         </div>
