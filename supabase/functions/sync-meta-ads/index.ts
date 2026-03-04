@@ -298,10 +298,12 @@ async function syncFacebookAds(
       const actions = insight.actions || [];
       const actionValues = insight.action_values || [];
 
-      // IMPORTANT: sum ALL matching action types (don't stop at first match)
-      const leads = getActionCountSum(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
-      const purchases = getActionCountSum(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
-      const revenue = getActionValueSum(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      // Use priority-based counting to match Facebook Ads Manager deduplication.
+      // 'lead' (Lead Ads) and 'offsite_conversion.fb_pixel_lead' (Pixel) can represent the same lead — don't sum them.
+      const leads = getActionCountPriority(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
+      // For purchases: prefer purchase, fallback to pixel purchase
+      const purchases = getActionCountPriority(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      const revenue = getActionValuePriority(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
       const roas = parseFloat(insight.purchase_ros?.[0]?.value || '0');
 
       // Calculate ROI manually if ROAS is missing but we have revenue/spend
@@ -342,17 +344,25 @@ async function syncFacebookAds(
   return { campaigns: totalCampaigns, totalSpend };
 }
 
-// Sum ALL matching action types (e.g. both 'lead' and 'offsite_conversion.fb_pixel_lead' may appear simultaneously)
-function getActionCountSum(actions: any[], types: string[]): number {
-  return actions
-    .filter((a: any) => types.includes(a.action_type))
-    .reduce((sum: number, a: any) => sum + (parseInt(a.value) || 0), 0);
+// Priority-based counting: returns count from the FIRST matching type that has a value > 0.
+// This matches Facebook Ads Manager deduplication logic.
+// e.g. if 'lead'=30, 'offsite_conversion.fb_pixel_lead'=30 — they're the same 30 leads, not 60.
+function getActionCountPriority(actions: any[], types: string[]): number {
+  for (const type of types) {
+    const action = actions.find((a: any) => a.action_type === type);
+    const val = action ? (parseInt(action.value) || 0) : 0;
+    if (val > 0) return val;
+  }
+  return 0;
 }
 
-function getActionValueSum(actionValues: any[], types: string[]): number {
-  return actionValues
-    .filter((a: any) => types.includes(a.action_type))
-    .reduce((sum: number, a: any) => sum + (parseFloat(a.value) || 0), 0);
+function getActionValuePriority(actionValues: any[], types: string[]): number {
+  for (const type of types) {
+    const action = actionValues.find((a: any) => a.action_type === type);
+    const val = action ? (parseFloat(action.value) || 0) : 0;
+    if (val > 0) return val;
+  }
+  return 0;
 }
 
 async function syncInstagramContent(
