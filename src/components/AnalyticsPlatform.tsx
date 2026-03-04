@@ -74,6 +74,7 @@ const AutomationPage = lazy(() => import('./automation/AutomationPage').then(m =
 const AIRopPage = lazy(() => import('./rop/AIRopPage').then(m => ({ default: m.AIRopPage })));
 const AdLibraryPage = lazy(() => import('./ads/AdLibraryPage').then(m => ({ default: m.AdLibraryPage })));
 const CompetitorMonitoring = lazy(() => import('./factory/CompetitorMonitoring').then(m => ({ default: m.CompetitorMonitoring })));
+const CRMPage = lazy(() => import('./crm/CRMPage').then(m => ({ default: m.CRMPage })));
 
 // Loading fallback component
 const ModuleLoader = () => (
@@ -638,14 +639,10 @@ export const AnalyticsPlatform = () => {
         </Suspense>
       )}
 
-      {activeTab === 'crm' && (
-        <div className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 rounded-2xl p-12 text-center">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Target className="w-8 h-8 text-primary" />
-          </div>
-          <h3 className="text-lg font-semibold mb-2">CRM в разработке</h3>
-          <p className="text-muted-foreground">Этот функционал скоро будет доступен</p>
-        </div>
+      {activeTab === 'crm' && currentProjectId && (
+        <Suspense fallback={<ModuleLoader />}>
+          <CRMPage projectId={currentProjectId} />
+        </Suspense>
       )}
 
       {activeTab === 'e2e-analytics' && currentProjectId && (
