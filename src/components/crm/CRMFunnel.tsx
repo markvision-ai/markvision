@@ -167,14 +167,14 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: idx * 0.1 }}
           >
-            <Card className={cn("backdrop-blur-xl bg-white/10 border shadow-sm", stat.border)}>
+            <Card className={cn("backdrop-blur-2xl bg-white/5 border-white/10 shadow-interstellar hover:bg-white/10 transition-all", stat.border)}>
               <CardContent className="p-5 flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-muted-foreground font-medium">{stat.label}</p>
-                  <p className="text-2xl font-bold mt-1 tracking-tight">{stat.value}</p>
+                  <p className="text-xs font-bold uppercase tracking-widest text-white/50">{stat.label}</p>
+                  <p className="text-2xl font-black mt-1 tracking-tight text-white">{stat.value}</p>
                 </div>
-                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center", stat.bg)}>
-                  <stat.icon className={cn("w-6 h-6", stat.color)} />
+                <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border border-white/5", stat.bg)}>
+                  <stat.icon className={cn("w-6 h-6 drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]", stat.color)} />
                 </div>
               </CardContent>
             </Card>
@@ -184,11 +184,12 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Main Funnel Visualization */}
-        <Card className="lg:col-span-2 bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm overflow-hidden">
+        <Card className="lg:col-span-2 bg-[#020617]/40 backdrop-blur-3xl shadow-interstellar border border-white/5 overflow-hidden relative">
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5 pointer-events-none" />
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-foreground">
-              <Sparkles className="w-5 h-5 text-primary" />
-              Воронка продаж
+            <CardTitle className="flex items-center gap-3 text-white font-black uppercase tracking-widest">
+              <Sparkles className="w-5 h-5 text-primary drop-shadow-[0_0_8px_rgba(255,255,255,0.3)]" />
+              ВОРОНКА ПРОДАЖ
             </CardTitle>
           </CardHeader>
           <CardContent className="flex justify-center py-6 relative">
@@ -295,7 +296,7 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
 
         {/* Legend / Detailed List */}
         <div className="space-y-4">
-          <h3 className="text-lg font-semibold px-1">Этапы воронки</h3>
+          <h3 className="text-xs font-black uppercase tracking-widest text-white/50 px-1">ЭТАПЫ ВОРОНКИ</h3>
           <AnimatePresence>
             {funnelData.map((step, index) => (
               <motion.div
@@ -310,33 +311,33 @@ export const CRMFunnel = ({ leads, loading }: CRMFunnelProps) => {
                 transition={{ duration: 0.2, delay: index * 0.1 }}
                 onMouseEnter={() => setHoveredStep(step.id)}
                 onMouseLeave={() => setHoveredStep(null)}
-                className="flex items-center gap-4 p-3 rounded-xl border border-transparent hover:border-slate-200 transition-colors cursor-pointer"
+                className="flex items-center gap-4 p-3 rounded-2xl border border-white/5 bg-white/5 hover:bg-white/10 hover:border-white/10 transition-all cursor-pointer backdrop-blur-md"
               >
                 <div
-                  className={cn("w-10 h-10 rounded-lg flex items-center justify-center shadow-2xl shadow-blue-900/5")}
-                  style={{ background: step.color }}
+                  className={cn("w-12 h-12 rounded-xl flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.2)]")}
+                  style={{ background: `linear-gradient(135deg, ${step.color}aa, ${step.color}ff)` }}
                 >
                   <step.icon className="w-5 h-5 text-white" />
                 </div>
                 <div className="flex-1">
                   <div className="flex justify-between items-center">
-                    <p className="font-semibold text-sm">{step.label}</p>
-                    <span className="font-bold text-sm">{step.count}</span>
+                    <p className="font-bold text-sm text-white">{step.label}</p>
+                    <span className="font-black text-sm text-white">{step.count}</span>
                   </div>
                   <div className="flex justify-between items-center mt-1">
-                    <p className="text-xs text-muted-foreground">
-                      {step.percentage}% от общего
+                    <p className="text-xs font-medium text-white/50">
+                      {step.percentage}% ОТ ОБЩЕГО
                     </p>
                     {step.amount > 0 && (
-                      <span className="text-xs font-medium text-blue-500">
+                      <span className="text-xs font-bold text-primary">
                         {formatMoney(step.amount)}
                       </span>
                     )}
                   </div>
                   {/* Mini Progress Bar */}
-                  <div className="h-1 mt-2 bg-muted/30 rounded-full overflow-hidden">
+                  <div className="h-1.5 mt-2 bg-black/40 rounded-full overflow-hidden shadow-inner">
                     <motion.div
-                      className="h-full rounded-full"
+                      className="h-full rounded-full shadow-[0_0_10px_rgba(255,255,255,0.5)]"
                       style={{ background: step.color }}
                       initial={{ width: 0 }}
                       animate={{ width: `${step.percentage}%` }}

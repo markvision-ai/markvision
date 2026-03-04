@@ -351,29 +351,38 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
     <div className="space-y-6 relative min-h-screen">
       <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none -z-10" />
 
-      {/* Header — чёткий блок */}
+      {/* Header — чёткий блок с неоновым свечением */}
       <motion.div
-        className="rounded-2xl bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm p-6 flex flex-col md:flex-row md:items-center justify-between gap-6"
+        className="relative rounded-[2rem] bg-[#020617]/40 backdrop-blur-3xl border border-white/5 shadow-interstellar p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 overflow-hidden"
         initial={{ opacity: 0, y: -12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
       >
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center">
-            <Zap className="w-7 h-7 text-primary" />
+        {/* Glow effect */}
+        <div className="absolute top-0 right-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="flex items-center gap-5 relative z-10">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-tr from-primary/40 to-accent/40 rounded-[1.2rem] blur-xl opacity-50" />
+            <div className="relative w-16 h-16 rounded-[1.2rem] bg-gradient-to-br from-[#020617] to-white/5 border border-white/10 flex items-center justify-center">
+              <Zap className="w-8 h-8 text-primary drop-shadow-[0_0_10px_rgba(255,255,255,0.3)]" />
+            </div>
           </div>
           <div>
-            <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-foreground">
-              CRM
+            <h2 className="text-3xl md:text-4xl font-black uppercase tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-white via-white/90 to-white/60">
+              CRM <span className="text-primary italic">SYSTEM</span>
             </h2>
-            <p className="text-muted-foreground text-sm flex items-center gap-2 mt-0.5">
-              <span className="flex h-2 w-2 rounded-full bg-blue-500" />
-              {filteredLeads.length} из {leads.length} лидов
+            <p className="font-medium text-xs uppercase tracking-[0.2em] text-white/40 flex items-center gap-2 mt-1">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+              </span>
+              АКТИВНЫЕ ЛИДЫ: <span className="text-white/80">{filteredLeads.length}</span> ИЗ {leads.length}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+        <div className="flex items-center gap-3 overflow-x-auto pb-1 md:pb-0 scrollbar-none relative z-10 w-full md:w-auto">
           {projectId && (
             <AddLeadDialog
               projectId={projectId}
@@ -386,22 +395,21 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
             size="sm"
             onClick={toggleSelectionMode}
             className={cn(
-              "h-11 px-5 rounded-xl font-semibold transition-all",
-              selectionMode && "shadow-md"
+              "h-12 px-6 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all border-white/10 bg-white/5 hover:bg-white/10 text-white",
+              selectionMode && "bg-primary border-primary text-white shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:bg-primary/90"
             )}
           >
             <CheckSquare className="w-4 h-4 mr-2" />
-            <span>{selectionMode ? 'Завершить' : 'Выбрать'}</span>
+            <span>{selectionMode ? 'ЗАВЕРШИТЬ' : 'ВЫБРАТЬ'}</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
             onClick={handleRefresh}
             disabled={isRefreshing}
-            className="h-11 px-5 rounded-xl font-semibold"
+            className="h-12 w-12 rounded-xl flex items-center justify-center border-white/10 bg-white/5 hover:bg-white/10 text-white p-0 flex-shrink-0"
           >
-            <RefreshCw className={cn("w-4 h-4 mr-2", isRefreshing && "animate-spin")} />
-            <span>Обновить</span>
+            <RefreshCw className={cn("w-4 h-4 text-white/70", isRefreshing && "animate-spin")} />
           </Button>
         </div>
       </motion.div>
@@ -620,23 +628,26 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            {/* LTV Sort Button */}
-            <Button
-              variant="outline"
-              onClick={toggleLtvSort}
-              className={cn(
-                "h-12 px-4 bg-white/5 border-white/50 hover:border-primary/50 transition-all rounded-xl",
-                sortByLtv && "border-amber-500 bg-amber-500/10"
-              )}
-            >
-              <ArrowUpDown className="w-4 h-4 mr-2" />
-              <span className="hidden sm:inline">LTV</span>
-              {sortByLtv && (
-                <Badge className="ml-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0">
-                  {sortByLtv === 'desc' ? '↓' : '↑'}
-                </Badge>
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={toggleLtvSort}
+                  className={cn(
+                    "h-12 px-5 bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10 transition-all rounded-xl text-white font-medium",
+                    sortByLtv && "border-primary/50 bg-primary/10 shadow-[0_0_15px_rgba(255,255,255,0.1)]"
+                  )}
+                >
+                  <ArrowUpDown className="w-4 h-4 mr-2 text-white/50" />
+                  <span className="hidden sm:inline">LTV</span>
+                  {sortByLtv && (
+                    <Badge className="ml-2 bg-gradient-to-r from-primary to-[#955251] text-white border-0 shadow-sm">
+                      {sortByLtv === 'desc' ? '↓' : '↑'}
+                    </Badge>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -739,35 +750,35 @@ export const CRMPage = ({ projectId }: CRMPageProps) => {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="flex justify-center sm:justify-start"
         >
-          <TabsList className="w-full sm:w-auto grid grid-cols-4 sm:flex p-1.5 gap-1.5 rounded-2xl bg-muted/50 border border-white/50">
+          <TabsList className="w-full sm:w-auto flex p-1.5 gap-2 rounded-2xl bg-[#020617]/60 backdrop-blur-xl border border-white/5">
             <TabsTrigger
               value="kanban"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-xl border-0 data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-interstellar data-[state=inactive]:text-white/40 hover:text-white/80"
             >
               <Kanban className="w-4 h-4" />
-              <span className="hidden sm:inline">Канбан</span>
+              <span className="hidden sm:inline">КАНБАН</span>
             </TabsTrigger>
 
             <TabsTrigger
               value="clients"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-xl border-0 data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-interstellar data-[state=inactive]:text-white/40 hover:text-white/80"
             >
               <Users className="w-4 h-4" />
-              <span className="hidden sm:inline">База клиентов</span>
+              <span className="hidden sm:inline">БАЗА КЛИЕНТОВ</span>
             </TabsTrigger>
             <TabsTrigger
               value="funnel"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-xl border-0 data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-interstellar data-[state=inactive]:text-white/40 hover:text-white/80"
             >
               <TrendingUp className="w-4 h-4" />
-              <span className="hidden sm:inline">Воронка</span>
+              <span className="hidden sm:inline">ВОРОНКА</span>
             </TabsTrigger>
             <TabsTrigger
               value="automation"
-              className="gap-2 px-4 sm:px-6 py-2.5 text-sm font-semibold data-[state=active]:bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 data-[state=active]:text-foreground data-[state=active]:shadow-sm rounded-xl border-0 transition-all"
+              className="gap-2 px-5 py-3 text-xs font-black uppercase tracking-widest transition-all rounded-xl border-0 data-[state=active]:bg-white/10 data-[state=active]:text-white data-[state=active]:shadow-interstellar data-[state=inactive]:text-white/40 hover:text-white/80"
             >
               <Bot className="w-4 h-4" />
-              <span className="hidden sm:inline">Автоматизация</span>
+              <span className="hidden sm:inline">AI АГЕНТЫ</span>
             </TabsTrigger>
           </TabsList>
         </motion.div>

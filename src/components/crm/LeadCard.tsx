@@ -227,15 +227,15 @@ export const LeadCard = ({
       {...(selectionMode ? {} : { ...listeners, ...attributes })}
       className={cn(
         'rounded-2xl p-4 sm:p-5 group touch-none relative overflow-hidden transition-all duration-200',
-        'bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50 shadow-sm hover:shadow-md',
-        needsAttention && 'border-red-300 ring-1 ring-red-200',
-        isMegaTier && !needsAttention && 'border-amber-300 bg-amber-50/50 dark:bg-amber-950/20',
-        hasHighScore && !needsAttention && 'border-red-200 ring-1 ring-red-100',
-        isGoldenLead && !needsAttention && 'border-amber-300 bg-amber-50/30 dark:bg-amber-950/15',
+        'bg-white/5 backdrop-blur-2xl shadow-interstellar border border-white/10 hover:shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:border-white/20 hover:-translate-y-1 hover:bg-white/10',
+        needsAttention && 'border-red-500/50 shadow-[0_0_20px_rgba(239,68,68,0.2)]',
+        isMegaTier && !needsAttention && 'border-amber-500/50 shadow-[0_0_30px_rgba(245,158,11,0.2)] bg-amber-500/5 glow-pulse',
+        hasHighScore && !needsAttention && 'border-red-500/30 shadow-[0_0_20px_rgba(239,68,68,0.15)] glow-pulse',
+        isGoldenLead && !needsAttention && 'border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.1)]',
 
         selectionMode ? 'cursor-pointer' : 'cursor-pointer active:cursor-grabbing',
-        showDragging && 'shadow-2xl shadow-blue-900/5 z-50 scale-[1.02] border-primary',
-        isSelected && 'ring-2 ring-primary ring-offset-2 bg-primary/5 border-primary',
+        showDragging && 'shadow-[0_0_30px_rgba(var(--primary),0.3)] z-50 scale-[1.02] border-primary/50 bg-white/10',
+        isSelected && 'ring-2 ring-primary ring-offset-2 ring-offset-[#020617] bg-primary/10 border-primary',
         !isGoldenLead && !needsAttention && scoreTier.color
       )}
       onClick={handleCardClick}
@@ -262,7 +262,7 @@ export const LeadCard = ({
       {/* NEW Badge */}
       {isNewLead && (
         <div className="absolute top-3 right-3 z-10">
-          <Badge className="bg-blue-500 text-white border-0 font-semibold text-[10px]">
+          <Badge className="bg-primary/20 text-primary border border-primary/30 font-black tracking-widest text-[10px] shadow-[0_0_10px_rgba(var(--primary),0.3)]">
             NEW
           </Badge>
         </div>
@@ -289,22 +289,22 @@ export const LeadCard = ({
       {/* Score tier — компактная полоска */}
       {scoreTier.tier && (
         <div className={cn(
-          "flex items-center gap-2 mb-2 px-2.5 py-1.5 rounded-lg border w-fit",
-          scoreTier.tier === 'HOT' && "bg-red-500/10 border-red-500/20",
+          "flex items-center gap-2 mb-3 px-2.5 py-1.5 rounded-lg border w-fit backdrop-blur-sm",
+          scoreTier.tier === 'HOT' && "bg-red-500/10 border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.2)]",
           scoreTier.tier === 'WARM' && "bg-amber-500/10 border-amber-500/20",
           scoreTier.tier === 'COLD' && "bg-blue-500/10 border-blue-500/20",
-          scoreTier.tier === 'MEGA' && "bg-amber-500/15 border-amber-500/30",
-          (scoreTier.tier === 'HIGH' || scoreTier.tier === 'MEDIUM') && "bg-muted/50 border-white/50"
+          scoreTier.tier === 'MEGA' && "bg-amber-500/15 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)]",
+          (scoreTier.tier === 'HIGH' || scoreTier.tier === 'MEDIUM') && "bg-white/5 border-white/10"
         )}>
           {scoreTier.icon}
           <span className={cn(
-            "text-xs font-semibold",
-            scoreTier.tier === 'HOT' && "text-red-600 dark:text-red-400",
-            scoreTier.tier === 'WARM' && "text-amber-600 dark:text-amber-400",
-            scoreTier.tier === 'COLD' && "text-blue-600 dark:text-blue-400",
-            scoreTier.tier === 'MEGA' && "text-amber-700 dark:text-amber-400",
-            scoreTier.tier === 'HIGH' && "text-primary dark:text-primary",
-            scoreTier.tier === 'MEDIUM' && "text-foreground"
+            "text-[10px] font-black uppercase tracking-widest",
+            scoreTier.tier === 'HOT' && "text-red-400",
+            scoreTier.tier === 'WARM' && "text-amber-400",
+            scoreTier.tier === 'COLD' && "text-blue-400",
+            scoreTier.tier === 'MEGA' && "text-amber-400",
+            scoreTier.tier === 'HIGH' && "text-primary",
+            scoreTier.tier === 'MEDIUM' && "text-white/70"
           )}>
             {scoreTier.label || scoreTier.tier}
           </span>
@@ -319,33 +319,33 @@ export const LeadCard = ({
       <div className="flex items-start gap-3 mb-3 relative z-10">
         {selectionMode ? (
           <div
-            className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0 border border-white/50"
+            className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center flex-shrink-0 border border-white/10"
             onClick={(e) => e.stopPropagation()}
           >
             <Checkbox
               checked={isSelected}
               onCheckedChange={(checked) => onSelect?.(!!checked)}
-              className="data-[state=checked]:bg-primary"
+              className="data-[state=checked]:bg-primary border-white/20"
             />
           </div>
         ) : (
-          <div className="w-9 h-9 rounded-lg bg-muted/50 border border-white/50 flex items-center justify-center flex-shrink-0 group-hover:bg-muted transition-colors">
-            <GripVertical className="w-4 h-4 text-muted-foreground" />
+          <div className="w-9 h-9 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:bg-white/10 transition-colors">
+            <GripVertical className="w-4 h-4 text-white/40" />
           </div>
         )}
         <div className="flex-1 min-w-0">
           {clinicName && (
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-0.5">
+            <p className="text-[10px] font-black uppercase tracking-widest text-primary mb-0.5 opacity-80">
               {clinicName}
             </p>
           )}
           <div className="flex items-center gap-2 flex-wrap">
-            <h4 className="text-base leading-tight truncate font-semibold text-foreground">
+            <h4 className="text-base leading-tight truncate font-bold text-white group-hover:text-primary transition-colors">
               {displayName}
             </h4>
             {lead.ltv && lead.ltv > 0 && (
-              <Badge variant="secondary" className="text-[10px] font-semibold px-1.5 py-0 h-5 flex-shrink-0 bg-blue-500/15 text-blue-700 dark:text-blue-400 border-0">
-                <DollarSign className="w-2.5 h-3 mr-0.5" />
+              <Badge className="text-[10px] font-bold px-1.5 py-0 h-5 flex-shrink-0 bg-success/20 text-success border-success/30">
+                <DollarSign className="w-2.5 h-3 mr-0.5 text-success/70" />
                 {new Intl.NumberFormat('ru-RU', { notation: 'compact' }).format(lead.ltv)}
               </Badge>
             )}
@@ -353,17 +353,16 @@ export const LeadCard = ({
         </div>
       </div>
 
-      {/* Info */}
-      <div className="space-y-1.5 mb-3 pl-0 relative z-10">
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1">
-          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
-          <span className="truncate font-medium">
+      <div className="space-y-1.5 mb-4 pl-0 relative z-10 w-full">
+        <div className="flex items-center gap-2.5 text-xs text-white/50 py-1 font-medium">
+          <Phone className="w-3.5 h-3.5 flex-shrink-0 text-primary/70" />
+          <span className="truncate group-hover:text-white/80 transition-colors">
             {lead.phone || 'Нет телефона'}
           </span>
         </div>
 
-        <div className="flex items-center gap-2.5 text-xs text-muted-foreground py-1">
-          <Calendar className="w-3.5 h-3.5 flex-shrink-0 text-muted-foreground" />
+        <div className="flex items-center gap-2.5 text-[11px] text-white/40 font-medium py-1">
+          <Calendar className="w-3 h-3 flex-shrink-0 text-white/30" />
           <span className="truncate">
             {safeFormat(lead.created_at, 'd MMM yyyy, HH:mm', '—')}
           </span>
@@ -416,30 +415,30 @@ export const LeadCard = ({
       {marketingBudget > 0 && (
         <div className="mb-4 relative z-10">
           <div className={cn(
-            "p-3 rounded-xl border",
+            "p-3 rounded-xl border backdrop-blur-sm",
             isGoldenLead
-              ? "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800"
-              : "bg-muted/50 border-white/50"
+              ? "bg-amber-500/10 border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.15)]"
+              : "bg-white/5 border-white/10"
           )}>
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className={cn(
-                "w-3.5 h-3.5",
-                isGoldenLead ? "text-amber-600" : "text-primary"
+                "w-3 h-3",
+                isGoldenLead ? "text-amber-400" : "text-primary/70"
               )} />
-              <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                Квалификация
+              <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
+                КВАЛИФИКАЦИЯ
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Текущий</p>
-                <p className="text-sm font-semibold text-foreground">
+                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-0.5">Текущий</p>
+                <p className="text-sm font-black text-white">
                   {new Intl.NumberFormat('ru-RU').format(Math.round(marketingBudget))} ₸
                 </p>
               </div>
-              <div className="text-right border-l border-white/50 pl-3">
-                <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide mb-0.5">Потенциал x3</p>
-                <p className="text-sm font-semibold text-primary">
+              <div className="text-right border-l border-white/10 pl-3">
+                <p className="text-[9px] font-bold text-white/30 uppercase tracking-widest mb-0.5">Потенциал x3</p>
+                <p className="text-sm font-black text-primary">
                   {new Intl.NumberFormat('ru-RU').format(Math.round(growthPotential))} ₸
                 </p>
               </div>
@@ -450,7 +449,7 @@ export const LeadCard = ({
 
       {/* Quick Actions */}
       <div
-        className="flex gap-2 mt-auto pt-2 border-t border-white/50 relative z-10"
+        className="flex gap-2 mt-auto pt-3 border-t border-white/10 relative z-10"
         onPointerDown={(e) => e.stopPropagation()}
       >
         <TooltipProvider delayDuration={300}>
@@ -460,10 +459,10 @@ export const LeadCard = ({
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-9 flex-1 rounded-lg border",
+                  "h-9 flex-1 rounded-xl border transition-all",
                   lead.phone
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
-                    : "opacity-50 cursor-not-allowed"
+                    ? "bg-green-500/10 hover:bg-green-500/20 text-green-400 border-green-500/20 hover:border-green-500/40"
+                    : "opacity-30 cursor-not-allowed bg-white/5 border-white/10 text-white/40"
                 )}
                 onClick={(e) => {
                   e.stopPropagation();
@@ -486,10 +485,10 @@ export const LeadCard = ({
                 variant="outline"
                 size="sm"
                 className={cn(
-                  "h-9 flex-1 rounded-lg border",
+                  "h-9 flex-1 rounded-xl border transition-all",
                   lead.phone
-                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-700 dark:text-blue-400 border-blue-500/30"
-                    : "opacity-50 cursor-not-allowed"
+                    ? "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20 hover:border-blue-500/40"
+                    : "opacity-30 cursor-not-allowed bg-white/5 border-white/10 text-white/40"
                 )}
                 onClick={(e) => handleQuickAction(e, 'call')}
                 disabled={!lead.phone}
@@ -505,7 +504,7 @@ export const LeadCard = ({
               <Button
                 variant="outline"
                 size="sm"
-                className="h-9 flex-1 rounded-lg border bg-violet-500/10 hover:bg-violet-500/20 text-violet-700 dark:text-violet-400 border-violet-500/30"
+                className="h-9 flex-1 rounded-xl border bg-primary/10 hover:bg-primary/20 text-primary border-primary/20 hover:border-primary/40 transition-all"
                 onClick={(e) => {
                   e.stopPropagation();
                   onClick?.();

@@ -57,9 +57,9 @@ export const KanbanColumn = ({
   };
 
   const getHeaderBg = () => {
-    if (status.color === 'success') return 'bg-success text-success-foreground';
-    if (status.color === 'destructive') return 'bg-destructive text-destructive-foreground';
-    return 'bg-primary/10 text-foreground';
+    if (status.color === 'success') return 'bg-success/20 text-success';
+    if (status.color === 'destructive') return 'bg-destructive/20 text-destructive';
+    return 'bg-primary/20 text-primary';
   };
 
   const isHighlighted = isOver || isDropTarget;
@@ -74,10 +74,10 @@ export const KanbanColumn = ({
     >
       {/* Column Header */}
       <div className={cn(
-        "p-4 rounded-t-2xl flex flex-col gap-2",
-        status.color === 'success' && "bg-blue-500/10",
+        "p-4 rounded-[1.2rem] flex flex-col gap-2 mx-2 mt-2 backdrop-blur-md shadow-sm border border-white/5",
+        status.color === 'success' && "bg-success/10",
         status.color === 'destructive' && "bg-destructive/10",
-        !status.color && "bg-muted/30"
+        !status.color && "bg-white/5"
       )}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2.5">
@@ -88,11 +88,11 @@ export const KanbanColumn = ({
                 className="data-[state=checked]:bg-primary"
               />
             )}
-            <h3 className="font-semibold text-sm text-foreground">
+            <h3 className={cn("font-black text-xs uppercase tracking-widest", status.color === 'success' ? 'text-success' : status.color === 'destructive' ? 'text-destructive' : 'text-white/80')}>
               {status.label}
             </h3>
           </div>
-          <Badge variant="secondary" className="rounded-md h-6 px-2 font-semibold text-xs">
+          <Badge className="rounded-lg bg-white/10 text-white border border-white/10 h-6 px-3 font-black">
             {leads.length}
           </Badge>
         </div>
@@ -104,25 +104,25 @@ export const KanbanColumn = ({
             className="flex items-center gap-2"
           >
             <div className={cn(
-              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-semibold",
+              "flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold",
               status.color === 'success'
-                ? 'bg-blue-500/15 text-blue-700 dark:text-blue-400'
-                : 'bg-primary/10 text-primary'
+                ? 'bg-success/20 text-success'
+                : 'bg-primary/20 text-primary'
             )}>
-              <DollarSign className="w-3 h-3" />
+              <DollarSign className="w-3.5 h-3.5" />
               <span>{formatRevenue(totalAmount)}</span>
             </div>
-            <span className="text-[10px] text-muted-foreground uppercase tracking-wide">
-              Оборот
+            <span className="text-[10px] text-white/40 uppercase tracking-widest font-black">
+              ОБОРОТ
             </span>
           </motion.div>
         )}
       </div>
 
-      <Separator className="bg-border" />
+      <Separator className="bg-white/10 my-2 mx-4 w-auto" />
 
       {/* Cards */}
-      <div className="space-y-3 min-h-[200px] p-4 scrollbar-none overflow-y-auto">
+      <div className="space-y-3 min-h-[200px] p-2 flex-col flex overflow-y-auto scrollbar-none pb-4 relative z-10">
         <AnimatePresence mode="popLayout">
           {leads.map((lead) => (
             <motion.div
