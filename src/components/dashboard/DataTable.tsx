@@ -368,14 +368,14 @@ export const DataTable = React.memo(({
             <thead className="sticky top-0 z-50 bg-[#020617]/80 backdrop-blur-3xl">
               <tr className="border-b border-white/5">
                 <th className="text-left p-5 font-black text-white/30 sticky left-0 bg-[#020617]/90 backdrop-blur-3xl min-w-[90px] md:min-w-[120px] z-40 shadow-[1px_0_0_0_rgba(255,255,255,0.05)] uppercase text-[10px] tracking-[0.2em]">Временная Метка</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[110px]">Ресурс</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[110px]">Расходы</th>
                 <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[70px] md:min-w-[100px]">Охват</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Интеракции</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Лидогенерация</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Аудитория</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Диагностика</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[70px] md:min-w-[80px]">Транзакции</th>
-                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[120px]">Капитал</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Клики</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[60px] md:min-w-[80px]">Лиды</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Подписчики</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[80px] md:min-w-[100px]">Визит</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[70px] md:min-w-[80px]">Оплат</th>
+                <th className="text-right p-5 font-black text-white/30 uppercase text-[10px] tracking-[0.2em] min-w-[90px] md:min-w-[120px]">Продажи</th>
               </tr>
             </thead>
             <tbody>
