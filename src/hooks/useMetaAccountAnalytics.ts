@@ -225,7 +225,9 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
       const spendRaw = stats.spend;
       const spend = detectedCurrency === 'USD' ? spendRaw * KZT_RATE : spendRaw;
 
-      const totalLeads = stats.leadsMeta > 0 ? Math.max(stats.leadsMeta, crm.total) : crm.total;
+      // Use leadsMeta as the primary source of truth (from Meta API).
+      // leadsCrm is shown separately for comparison — don't merge them with Math.max.
+      const totalLeads = stats.leadsMeta > 0 ? stats.leadsMeta : crm.total;
       const cpl = totalLeads > 0 ? spend / totalLeads : null;
       const lqr = totalLeads > 0 ? (crm.qualified / totalLeads) * 100 : null;
       const cpql = crm.qualified > 0 ? spend / crm.qualified : null;

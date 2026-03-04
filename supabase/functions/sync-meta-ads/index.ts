@@ -214,15 +214,10 @@ async function syncFacebookAds(
   // 2. Filter Meta API results to matches our database OR fallback if none linked
   let accountsToSync = adAccounts.filter((acc: any) => linkedIds.includes(acc.id));
 
-  // 3. Fallback: if no accounts linked in DB yet, use the heuristic or first active
+  // 3. Fallback: if no accounts linked in DB yet, use the first active account (no hardcoded keywords)
   if (accountsToSync.length === 0) {
-    console.log("No specifically linked accounts found in DB, using heuristic fallback...");
-    const targetKeywords = ['стоматология', 'уали', 'uali'];
-    const targetAccount = adAccounts.find((acc: any) => {
-      const name = (acc.name || '').toLowerCase();
-      return targetKeywords.some(kw => name.includes(kw));
-    }) || adAccounts.find((acc: any) => acc.account_status === 1) || adAccounts[0];
-
+    console.log("No specifically linked accounts found in DB, falling back to first active account...");
+    const targetAccount = adAccounts.find((acc: any) => acc.account_status === 1) || adAccounts[0];
     if (targetAccount) accountsToSync = [targetAccount];
   }
 
@@ -303,9 +298,10 @@ async function syncFacebookAds(
       const actions = insight.actions || [];
       const actionValues = insight.action_values || [];
 
-      const leads = getActionCount(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
-      const purchases = getActionCount(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
-      const revenue = getActionValue(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      // IMPORTANT: sum ALL matching action types (don't stop at first match)
+      const leads = getActionCountSum(actions, ['lead', 'offsite_conversion.fb_pixel_lead', 'contact']);
+      const purchases = getActionCountSum(actions, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
+      const revenue = getActionValueSum(actionValues, ['purchase', 'offsite_conversion.fb_pixel_purchase']);
       const roas = parseFloat(insight.purchase_ros?.[0]?.value || '0');
 
       // Calculate ROI manually if ROAS is missing but we have revenue/spend
@@ -333,7 +329,8 @@ async function syncFacebookAds(
         raw_data: insight,
         synced_at: new Date().toISOString(),
       }, {
-        onConflict: "project_id,source,date,campaign_id",
+        // Include ad_account_id to prevent merging stats from different accounts with the same campaign_id
+        onConflict: "project_id,source,date,campaign_id,ad_account_id",
       });
 
       if (upsertError) {
@@ -345,14 +342,17 @@ async function syncFacebookAds(
   return { campaigns: totalCampaigns, totalSpend };
 }
 
-function getActionCount(actions: any[], types: string[]): number {
-  const action = actions.find((a: any) => types.includes(a.action_type));
-  return action ? parseInt(action.value) : 0;
+// Sum ALL matching action types (e.g. both 'lead' and 'offsite_conversion.fb_pixel_lead' may appear simultaneously)
+function getActionCountSum(actions: any[], types: string[]): number {
+  return actions
+    .filter((a: any) => types.includes(a.action_type))
+    .reduce((sum: number, a: any) => sum + (parseInt(a.value) || 0), 0);
 }
 
-function getActionValue(actionValues: any[], types: string[]): number {
-  const action = actionValues.find((a: any) => types.includes(a.action_type));
-  return action ? parseFloat(action.value) : 0;
+function getActionValueSum(actionValues: any[], types: string[]): number {
+  return actionValues
+    .filter((a: any) => types.includes(a.action_type))
+    .reduce((sum: number, a: any) => sum + (parseFloat(a.value) || 0), 0);
 }
 
 async function syncInstagramContent(
