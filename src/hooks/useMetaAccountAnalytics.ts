@@ -78,6 +78,10 @@ const VISIT_STATUSES = ['visit_completed', 'qualified', 'proposal', 'purchased']
 const PAID_STATUSES = ['purchased'];
 
 const normalizePlatform = (value: string | null) => (value || '').toLowerCase();
+// Meta returns ad_account_id as 'act_XXXXXXXX' but our DB stores them without 'act_' prefix (and vice versa).
+// Normalize both sides to be without prefix for comparison.
+const normalizeAccountId = (id: string | null | undefined): string =>
+  (id || '').replace(/^act_/, '');
 
 export const useMetaAccountAnalytics = (projectId: string | null, dateRange: DateRange | null) => {
   const [accounts, setAccounts] = useState<MetaAdAccount[]>([]);
@@ -158,10 +162,11 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
 
   const { rows, totals, hasAccounts, currency } = useMemo(() => {
     const accountInfo = new Map<string, { name: string; status: string | null; currency: string | null }>();
-    let detectedCurrency = 'USD'; // Default fallback
+    let detectedCurrency = 'KZT'; // Data from Meta API is stored in KZT (already converted)
 
     accounts.forEach((account) => {
-      const accountId = account.ad_account_id || account.id;
+      // Normalize: strip 'act_' prefix so 'act_123' and '123' map to the same account
+      const accountId = normalizeAccountId(account.ad_account_id || account.id);
       if (!accountId) return;
       const name = account.selected_ad_account_name || account.ad_account_name || account.ad_account_id || 'Meta Account';
 
@@ -180,7 +185,8 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
 
     const statsByAccount = new Map<string, { spend: number; leadsMeta: number }>();
     marketingStats.forEach((stat) => {
-      const accountId = stat.ad_account_id || (stat.campaign_id ? campaignToAccount.get(stat.campaign_id) : null);
+      // Normalize account ID from stats (Meta stores as 'act_XXXX')
+      const accountId = normalizeAccountId(stat.ad_account_id || (stat.campaign_id ? campaignToAccount.get(stat.campaign_id) : null));
       if (!accountId) return;
       const current = statsByAccount.get(accountId) || { spend: 0, leadsMeta: 0 };
       current.spend += Number(stat.spend || 0);
@@ -190,8 +196,9 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
 
     const leadsByAccount = new Map<string, { total: number; qualified: number; visits: number; paid: number; revenue: number }>();
     leads.forEach((lead) => {
-      const accountId = lead.fb_ad_account_id || (lead.fb_campaign_id ? campaignToAccount.get(lead.fb_campaign_id) : null);
-      if (!accountId) return;
+      // Normalize account ID; if lead has no account attribution, group under unattributed
+      const rawId = lead.fb_ad_account_id || (lead.fb_campaign_id ? campaignToAccount.get(lead.fb_campaign_id) : null);
+      const accountId = rawId ? normalizeAccountId(rawId) : '__unattributed__';
 
       const current = leadsByAccount.get(accountId) || { total: 0, qualified: 0, visits: 0, paid: 0, revenue: 0 };
       current.total += 1;
@@ -223,7 +230,8 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
       const crm = leadsByAccount.get(accountId) || { total: 0, qualified: 0, visits: 0, paid: 0, revenue: 0 };
 
       const spendRaw = stats.spend;
-      const spend = detectedCurrency === 'USD' ? spendRaw * KZT_RATE : spendRaw;
+      // Currency is already KZT (synced from Meta with KZT conversion applied server-side)
+      const spend = spendRaw;
 
       // Use leadsMeta as the primary source of truth (from Meta API).
       // leadsCrm is shown separately for comparison — don't merge them with Math.max.
