@@ -84,7 +84,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
 
   if (loading) {
     return (
-      <Card className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border border-white/50">
+      <Card className="bg-white/5 backdrop-blur-2xl shadow-interstellar border border-white/10">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Zap className="w-5 h-5 text-primary" />
@@ -173,9 +173,9 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
   };
 
   return (
-    <Card className="backdrop-blur-sm bg-white/10 border border-white/50">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+    <Card className="bg-white/5 backdrop-blur-2xl shadow-interstellar border border-white/10 relative z-10 overflow-hidden rounded-2xl">
+      <CardHeader className="pb-4 border-b border-white/5">
+        <CardTitle className="flex items-center gap-2 text-white">
           <motion.div
             animate={{ rotate: [0, 10, -10, 0] }}
             transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
@@ -183,7 +183,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
             <Zap className="w-5 h-5 text-primary" />
           </motion.div>
           Автоматизация CRM
-          <Badge className="ml-auto bg-gradient-to-r from-primary/20 to-accent/20 text-primary border-0">
+          <Badge className="ml-auto bg-primary/20 text-primary border border-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.2)] font-black">
             {rules.filter(r => r.is_active).length} активных
           </Badge>
         </CardTitle>
@@ -198,25 +198,25 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="backdrop-blur-sm bg-white/10 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all group"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
-                    <MessageCircle className="w-5 h-5 text-green-500" />
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-green-500/10 border border-green-500/20 flex items-center justify-center group-hover:bg-green-500/20 group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(34,197,94,0.15)]">
+                    <MessageCircle className="w-6 h-6 text-green-400 drop-shadow-[0_0_10px_rgba(34,197,94,0.5)]" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm">Мгновенный WhatsApp</h4>
-                    <p className="text-xs text-muted-foreground">Отправка при новом лиде</p>
+                    <h4 className="font-bold text-white group-hover:text-green-400 transition-colors">Мгновенный WhatsApp</h4>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-white/40 mt-0.5">При новом лиде</p>
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+              <p className="text-xs text-white/50 mb-4 line-clamp-2 leading-relaxed">
                 Автоматическая отправка приветственного сообщения в WhatsApp при поступлении нового лида
               </p>
               <Button
                 size="sm"
-                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 border border-green-500/30"
+                className="w-full bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/20 hover:border-green-500/40 rounded-xl transition-all font-semibold"
                 onClick={() => handleActivateTemplate('instant_whatsapp')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -229,25 +229,25 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="backdrop-blur-sm bg-white/10 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all group"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-[#955251]/20 flex items-center justify-center">
-                    <Clock className="w-5 h-5 text-[#B57170]" />
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center group-hover:bg-amber-500/20 group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                    <Clock className="w-6 h-6 text-amber-400 drop-shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm">Дожим 24ч</h4>
-                    <p className="text-xs text-muted-foreground">Напоминание через 24 часа</p>
+                    <h4 className="font-bold text-white group-hover:text-amber-400 transition-colors">Дожим 24ч</h4>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-white/40 mt-0.5">Напоминание</p>
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+              <p className="text-xs text-white/50 mb-4 line-clamp-2 leading-relaxed">
                 Автоматическое напоминание лидам, которые не ответили в течение 24 часов
               </p>
               <Button
                 size="sm"
-                className="w-full bg-[#955251]/10 hover:bg-[#955251]/20 text-[#B57170] border border-[#955251]/30"
+                className="w-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 hover:border-amber-500/40 rounded-xl transition-all font-semibold"
                 onClick={() => handleActivateTemplate('followup_24h')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -260,25 +260,25 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="backdrop-blur-sm bg-white/10 border border-white/50 rounded-xl p-4 hover:border-primary/30 transition-all"
+              className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5 hover:bg-white/10 hover:border-white/20 hover:shadow-[0_0_20px_rgba(255,255,255,0.05)] transition-all group"
             >
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
-                    <TrendingUp className="w-5 h-5 text-purple-500" />
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center group-hover:bg-purple-500/20 group-hover:scale-110 transition-all shadow-[0_0_15px_rgba(168,85,247,0.15)]">
+                    <TrendingUp className="w-6 h-6 text-purple-400 drop-shadow-[0_0_10px_rgba(168,85,247,0.5)]" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-sm">LTV-контроль</h4>
-                    <p className="text-xs text-muted-foreground">Мониторинг ценности клиента</p>
+                    <h4 className="font-bold text-white group-hover:text-purple-400 transition-colors">LTV-контроль</h4>
+                    <p className="text-[10px] uppercase font-black tracking-widest text-white/40 mt-0.5">Мониторинг ценности</p>
                   </div>
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+              <p className="text-xs text-white/50 mb-4 line-clamp-2 leading-relaxed">
                 Автоматический расчет и отслеживание LTV клиентов с уведомлениями о высокоценных лидах
               </p>
               <Button
                 size="sm"
-                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-600 dark:text-purple-400 border border-purple-500/30"
+                className="w-full bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/20 hover:border-purple-500/40 rounded-xl transition-all font-semibold"
                 onClick={() => handleActivateTemplate('ltv_control')}
               >
                 <Sparkles className="w-3.5 h-3.5 mr-1.5" />
@@ -317,9 +317,9 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ delay: index * 0.05 }}
                         className={cn(
-                          "p-4 rounded-xl border backdrop-blur-sm bg-white/10 border-white/50",
-                          "hover:border-primary/30 hover:bg-card/70 transition-all",
-                          rule.is_active && "border-primary/20 bg-primary/5"
+                          "p-4 rounded-xl border backdrop-blur-sm bg-white/5 border-white/10",
+                          "hover:border-white/20 hover:bg-white/10 transition-all group",
+                          rule.is_active && "border-primary/30 bg-primary/10 shadow-[0_0_15px_rgba(var(--primary),0.1)]"
                         )}
                       >
                         <div className="flex items-start justify-between gap-4">
@@ -342,18 +342,18 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                             )}
 
                             <div className="flex flex-wrap gap-2 text-xs">
-                              <Badge variant="outline" className="gap-1">
-                                <Play className="w-3 h-3" />
+                              <Badge className="bg-white/10 text-white/70 border border-white/10 text-[10px] uppercase font-black tracking-widest gap-1 py-1">
+                                <Play className="w-3 h-3 text-white/50" />
                                 {triggerTypeLabels[rule.trigger_type] || rule.trigger_type}
                               </Badge>
 
                               {rule.trigger_status && (
-                                <Badge variant="outline">
-                                  Статус: {statusLabels[rule.trigger_status] || rule.trigger_status}
+                                <Badge className="bg-white/5 text-white/60 border border-white/10 text-[10px] uppercase font-black tracking-widest py-1">
+                                  {statusLabels[rule.trigger_status] || rule.trigger_status}
                                 </Badge>
                               )}
 
-                              <Badge variant="outline" className="gap-1">
+                              <Badge className="bg-primary/10 text-primary border border-primary/20 text-[10px] uppercase font-black tracking-widest gap-1 py-1">
                                 {actionTypeIcons[rule.action_type]}
                                 {actionTypeLabels[rule.action_type] || rule.action_type}
                               </Badge>
@@ -405,7 +405,7 @@ export const AutomationPanel = ({ projectId }: AutomationPanelProps) => {
                       initial={{ opacity: 0, x: -10 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.02 }}
-                      className="p-3 rounded-lg border backdrop-blur-sm bg-white/10 border-white/50 text-sm"
+                      className="p-4 rounded-xl border backdrop-blur-sm bg-white/5 border-white/10 text-sm hover:bg-white/10 transition-colors"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">

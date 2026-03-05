@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { 
-  Users, 
-  Phone, 
+import {
+  Users,
+  Phone,
   Mail,
   Calendar,
   Search,
@@ -47,6 +47,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+import { cn } from '@/lib/utils';
 
 interface Lead {
   id: string;
@@ -85,7 +86,7 @@ const STATUS_OPTIONS = [
 // Определение источника по utm_source
 const getSourceInfo = (source: string): { label: string; color: string; icon: string } => {
   const s = source.toLowerCase();
-  
+
   if (s.includes('google') || s.includes('gclid')) {
     return { label: 'Google', color: 'bg-red-500/20 text-red-500 border-red-500/30', icon: '🔍' };
   }
@@ -113,7 +114,7 @@ const getSourceInfo = (source: string): { label: string; color: string; icon: st
   if (s.includes('email') || s.includes('mail')) {
     return { label: 'Email', color: 'bg-blue-500/20 text-blue-500 border-blue-500/30', icon: '✉️' };
   }
-  
+
   return { label: source, color: 'bg-muted text-muted-foreground border-white/50', icon: '🔗' };
 };
 
@@ -232,8 +233,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
       if (error) throw error;
 
-      setLeads(prev => 
-        prev.map(lead => 
+      setLeads(prev =>
+        prev.map(lead =>
           lead.id === leadId ? { ...lead, status: newStatus } : lead
         )
       );
@@ -267,22 +268,22 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
     if (sortField !== field) {
       return <ArrowUpDown className="w-3.5 h-3.5 ml-1 opacity-50" />;
     }
-    return sortDirection === 'asc' 
+    return sortDirection === 'asc'
       ? <ArrowUp className="w-3.5 h-3.5 ml-1 text-primary" />
       : <ArrowDown className="w-3.5 h-3.5 ml-1 text-primary" />;
   };
 
   const filteredLeads = leads.filter(lead => {
-    const matchesSearch = !searchQuery || 
+    const matchesSearch = !searchQuery ||
       lead.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       lead.phone?.includes(searchQuery) ||
       lead.email?.toLowerCase().includes(searchQuery.toLowerCase());
-    
+
     const matchesStatus = statusFilter === 'all' || lead.status === statusFilter;
-    
+
     const leadSourceCategory = getSourceCategory(lead.utm_source);
     const matchesSource = sourceFilter === 'all' || leadSourceCategory === sourceFilter;
-    
+
     return matchesSearch && matchesStatus && matchesSource;
   });
 
@@ -347,7 +348,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       purchased: 'Купил',
       rejected: 'Отказ'
     };
-    
+
     const rows = filteredLeads.map(lead => [
       lead.name || '',
       lead.phone || '',
@@ -359,12 +360,12 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       statusLabels[lead.status || 'new'] || lead.status || '',
       lead.deal_amount ? lead.deal_amount.toString() : ''
     ]);
-    
+
     const csvContent = [
       headers.join(';'),
       ...rows.map(row => row.map(cell => `"${cell}"`).join(';'))
     ].join('\n');
-    
+
     const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -381,10 +382,10 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
 
   if (!projectId) {
     return (
-      <div className="bg-white/10 backdrop-blur-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/60 border rounded-xl p-12 text-center">
-        <Users className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-        <h3 className="text-lg font-semibold mb-2">Выберите проект</h3>
-        <p className="text-muted-foreground">Для просмотра клиентов выберите проект в боковом меню</p>
+      <div className="bg-white/5 backdrop-blur-2xl shadow-interstellar border border-white/10 rounded-xl p-12 text-center">
+        <Users className="w-12 h-12 text-white/30 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2 text-white">Выберите проект</h3>
+        <p className="text-white/50">Для просмотра клиентов выберите проект в боковом меню</p>
       </div>
     );
   }
@@ -423,7 +424,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       <div className="flex flex-wrap gap-4">
         <div className="relative flex-1 min-w-[200px] max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input 
+          <Input
             placeholder="Поиск по имени, телефону, email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -459,13 +460,13 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
       </div>
 
       {/* Table - Glassmorphism */}
-      <div className="backdrop-blur-sm bg-white/10 border border-white/50 rounded-xl overflow-hidden">
-        <div className="overflow-x-auto">
+      <div className="bg-white/5 backdrop-blur-2xl shadow-interstellar border border-white/10 rounded-2xl overflow-hidden relative z-10 w-full mb-6">
+        <div className="overflow-x-auto scrollbar-thin">
           <table className="w-full">
-            <thead className="backdrop-blur-sm bg-secondary/50 border-b border-white/50">
+            <thead className="bg-white/5 border-b border-white/10">
               <tr>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('name')}
                 >
                   <div className="flex items-center">
@@ -473,8 +474,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="name" />
                   </div>
                 </th>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('phone')}
                 >
                   <div className="flex items-center">
@@ -482,8 +483,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="phone" />
                   </div>
                 </th>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('created_at')}
                 >
                   <div className="flex items-center">
@@ -491,9 +492,9 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="created_at" />
                   </div>
                 </th>
-                <th className="text-left p-4 text-sm font-medium text-muted-foreground">UTM</th>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 whitespace-nowrap">UTM</th>
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('utm_source')}
                 >
                   <div className="flex items-center">
@@ -501,8 +502,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="utm_source" />
                   </div>
                 </th>
-                <th 
-                  className="text-right p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-right p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('deal_amount')}
                 >
                   <div className="flex items-center justify-end">
@@ -510,8 +511,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="deal_amount" />
                   </div>
                 </th>
-                <th 
-                  className="text-right p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-right p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('ltv')}
                 >
                   <div className="flex items-center justify-end">
@@ -519,8 +520,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="ltv" />
                   </div>
                 </th>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('lead_score')}
                 >
                   <div className="flex items-center">
@@ -528,8 +529,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="lead_score" />
                   </div>
                 </th>
-                <th 
-                  className="text-left p-4 text-sm font-medium text-muted-foreground cursor-pointer hover:text-foreground transition-colors"
+                <th
+                  className="text-left p-4 text-[10px] uppercase font-black tracking-widest text-white/40 cursor-pointer hover:text-white transition-colors whitespace-nowrap"
                   onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center">
@@ -537,7 +538,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <SortIcon field="status" />
                   </div>
                 </th>
-                <th className="text-right p-4 text-sm font-medium text-muted-foreground">Действия</th>
+                <th className="text-right p-4 text-[10px] uppercase font-black tracking-widest text-white/40 whitespace-nowrap">Действия</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -552,19 +553,19 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                 </tr>
               ) : (
                 sortedLeads.map(lead => (
-                  <tr key={lead.id} className="hover:bg-foreground/[0.05] transition-colors border-b border-white/50">
+                  <tr key={lead.id} className="hover:bg-white/5 transition-colors border-b border-white/10 group">
                     {/* Имя */}
                     <td className="p-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-full bg-primary/20 flex items-center justify-center flex-shrink-0">
-                          <span className="text-sm font-medium text-primary">
+                        <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-center flex-shrink-0 group-hover:bg-primary/20 group-hover:border-primary/40 transition-colors shadow-[0_0_15px_rgba(var(--primary),0.1)]">
+                          <span className="text-sm font-black text-primary">
                             {(lead.name || 'К').charAt(0).toUpperCase()}
                           </span>
                         </div>
                         <div className="min-w-0">
-                          <p className="font-medium truncate">{lead.name || 'Без имени'}</p>
+                          <p className="font-semibold truncate text-white group-hover:text-primary transition-colors">{lead.name || 'Без имени'}</p>
                           {lead.email && (
-                            <p className="text-xs text-muted-foreground truncate">{lead.email}</p>
+                            <p className="text-xs text-white/50 truncate font-medium">{lead.email}</p>
                           )}
                         </div>
                       </div>
@@ -572,7 +573,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     {/* Телефон */}
                     <td className="p-4">
                       {lead.phone ? (
-                        <a 
+                        <a
                           href={`tel:${lead.phone}`}
                           className="flex items-center gap-2 text-primary hover:underline whitespace-nowrap"
                         >
@@ -586,10 +587,10 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     {/* Дата заявки */}
                     <td className="p-4">
                       <div className="flex items-center gap-2 text-sm whitespace-nowrap">
-                        <Calendar className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                        <span>{format(new Date(lead.created_at), 'dd.MM.yyyy')}</span>
+                        <Calendar className="w-4 h-4 text-white/30 flex-shrink-0" />
+                        <span className="font-medium text-white/80">{format(new Date(lead.created_at), 'dd.MM.yyyy')}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-0.5">
+                      <p className="text-xs text-white/40 mt-0.5 ml-6 font-semibold">
                         {format(new Date(lead.created_at), 'HH:mm')}
                       </p>
                     </td>
@@ -597,27 +598,27 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     <td className="p-4">
                       <div className="flex flex-wrap gap-1.5">
                         {lead.utm_source && (
-                          <Badge className="bg-blue-500/20 text-blue-600 dark:text-blue-400 border-blue-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-blue-500/10 text-blue-400 border border-blue-500/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5 shadow-[0_0_10px_rgba(59,130,246,0.1)]">
                             {lead.utm_source}
                           </Badge>
                         )}
                         {lead.utm_medium && (
-                          <Badge className="bg-purple-500/20 text-purple-600 dark:text-purple-400 border-purple-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-purple-500/10 text-purple-400 border border-purple-500/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5 shadow-[0_0_10px_rgba(168,85,247,0.1)]">
                             {lead.utm_medium}
                           </Badge>
                         )}
                         {lead.utm_campaign && (
-                          <Badge className="bg-green-500/20 text-green-600 dark:text-green-400 border-green-500/30 text-xs px-2 py-0.5">
+                          <Badge className="bg-green-500/10 text-green-400 border border-green-500/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5 shadow-[0_0_10px_rgba(34,197,94,0.1)]">
                             {lead.utm_campaign}
                           </Badge>
                         )}
                         {lead.utm_content && (
-                          <Badge className="bg-orange-500/20 text-orange-600 dark:text-orange-400 border-orange-500/30 text-xs px-2 py-0.5 truncate max-w-[100px]" title={lead.utm_content}>
+                          <Badge className="bg-orange-500/10 text-orange-400 border border-orange-500/20 text-[10px] uppercase font-black tracking-widest px-2 py-0.5 shadow-[0_0_10px_rgba(249,115,22,0.1)] truncate max-w-[100px]" title={lead.utm_content}>
                             {lead.utm_content}
                           </Badge>
                         )}
                         {!lead.utm_source && !lead.utm_medium && !lead.utm_campaign && !lead.utm_content && (
-                          <span className="text-muted-foreground text-xs">—</span>
+                          <span className="text-white/30 text-xs">—</span>
                         )}
                       </div>
                     </td>
@@ -626,7 +627,7 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                       {lead.utm_source ? (
                         <SourceBadge source={lead.utm_source} />
                       ) : (
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-[10px] font-black uppercase tracking-widest bg-white/5 border border-white/10 text-white/40">
                           Прямой
                         </Badge>
                       )}
@@ -687,19 +688,19 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
                     </td>
                     {/* Статус */}
                     <td className="p-4">
-                      <Select 
-                        value={lead.status || 'new'} 
+                      <Select
+                        value={lead.status || 'new'}
                         onValueChange={(value) => updateLeadStatus(lead.id, value)}
                       >
-                        <SelectTrigger className="w-36 h-8">
+                        <SelectTrigger className="w-40 h-8 bg-black/20 border-white/10 text-xs font-semibold hover:bg-white/5 transition-colors">
                           <SelectValue>
                             {getStatusBadge(lead.status)}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent className="bg-[#0B0F19]/95 backdrop-blur-xl border-white/10">
                           {STATUS_OPTIONS.map(status => (
-                            <SelectItem key={status.value} value={status.value}>
-                              <Badge className={status.color}>{status.label}</Badge>
+                            <SelectItem key={status.value} value={status.value} className="focus:bg-white/5 cursor-pointer">
+                              <Badge className={cn(status.color, "text-[10px] uppercase font-black tracking-widest")}>{status.label}</Badge>
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -784,8 +785,8 @@ export const ClientsManagement = ({ projectId }: ClientsManagementProps) => {
               {/* Status */}
               <div className="space-y-3">
                 <h4 className="font-medium text-sm text-muted-foreground">Статус</h4>
-                <Select 
-                  value={selectedLead.status || 'new'} 
+                <Select
+                  value={selectedLead.status || 'new'}
                   onValueChange={(value) => {
                     updateLeadStatus(selectedLead.id, value);
                     setSelectedLead({ ...selectedLead, status: value });
