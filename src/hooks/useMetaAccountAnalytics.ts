@@ -108,11 +108,17 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
     const toDateTime = format(endOfDay(dateRange.to), "yyyy-MM-dd'T'HH:mm:ssXXX");
 
     try {
-      const [accountsRes, statsRes, leadsRes] = await Promise.all([
+      const [accountsRes, personalConfigsRes, statsRes, leadsRes] = await Promise.all([
         supabase
           .from('ad_accounts')
           .select('id, ad_account_id, ad_account_name, selected_ad_account_name, status, platform')
           .eq('project_id', projectId),
+        // Also load personal accounts from clients_config (account_type = 'personal')
+        supabase
+          .from('clients_config')
+          .select('ad_account_id, client_name')
+          .eq('project_id', projectId)
+          .eq('account_type', 'personal'),
         (supabase as any)
           .from('marketing_stats')
           .select('ad_account_id, campaign_id, spend, clicks, impressions, leads, date')
@@ -147,7 +153,21 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
         return !platform || platform.includes('facebook') || platform.includes('meta');
       });
 
-      setAccounts(metaAccounts as MetaAdAccount[]);
+      // Merge personal accounts from clients_config (account_type='personal') into metaAccounts
+      const personalConfigs = (personalConfigsRes.data || []) as Array<{ ad_account_id: string; client_name: string | null }>;
+      const existingIds = new Set(metaAccounts.map(a => normalizeAccountId(a.ad_account_id)));
+      const extraAccounts: MetaAdAccount[] = personalConfigs
+        .filter(c => c.ad_account_id && !existingIds.has(normalizeAccountId(c.ad_account_id)))
+        .map(c => ({
+          id: c.ad_account_id,
+          ad_account_id: c.ad_account_id,
+          ad_account_name: c.client_name,
+          selected_ad_account_name: c.client_name,
+          status: 'ACTIVE',
+          platform: 'facebook',
+        }));
+
+      setAccounts([...metaAccounts, ...extraAccounts] as MetaAdAccount[]);
       setLeads((leadsRes.data || []) as LeadRecord[]);
     } catch (fetchError: any) {
       setError(fetchError?.message || 'Ошибка загрузки данных');
@@ -218,11 +238,9 @@ export const useMetaAccountAnalytics = (projectId: string | null, dateRange: Dat
       leadsByAccount.set(accountId, current);
     });
 
-    const accountIds = new Set<string>([
-      ...accountInfo.keys(),
-      ...statsByAccount.keys(),
-      ...leadsByAccount.keys(),
-    ]);
+    // Only show accounts explicitly connected to this project (from ad_accounts).
+    // Agency clients live in clients_config and are shown in AgencyAccountsDashboard only.
+    const accountIds = new Set<string>(accountInfo.keys());
 
     const rows = Array.from(accountIds).map((accountId) => {
       const info = accountInfo.get(accountId);

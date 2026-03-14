@@ -1,7 +1,8 @@
-import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAgencyAnalytics } from '@/hooks/useAgencyAnalytics';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
 import {
     Table,
     TableBody,
@@ -18,19 +19,192 @@ import {
     DialogDescription,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { format, subDays, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
+import { format, startOfMonth, endOfMonth, subMonths, addMonths } from 'date-fns';
 import { ru } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Copy, Plus, RefreshCw, CalendarDays, ChevronDown, CheckCircle2, Activity } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, RefreshCw, CalendarDays, ChevronDown, CheckCircle2, Activity, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 
-import { AgencyMetrics } from '@/hooks/useAgencyAnalytics';
+const FB_API = 'https://graph.facebook.com/v22.0';
+const LEAD_TYPES = ['onsite_conversion.lead_grouped', 'onsite_conversion.messaging_conversation_started_7d'];
+
+interface FbCampaign {
+    id: string;
+    name: string;
+    status: string;
+    effective_status: string;
+    daily_budget?: string;
+    lifetime_budget?: string;
+    insights?: {
+        data: Array<{
+            spend: string;
+            impressions: string;
+            clicks: string;
+            cpm: string;
+            ctr: string;
+            actions?: Array<{ action_type: string; value: string }>;
+        }>;
+    };
+}
+
+const AccountCampaigns = ({ accountId, fbToken }: { accountId: string; fbToken: string }) => {
+    const [campaigns, setCampaigns] = useState<FbCampaign[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [toggling, setToggling] = useState<Record<string, boolean>>({});
+
+    const fetchCampaigns = useCallback(async () => {
+        setLoading(true);
+        try {
+            const url = `${FB_API}/act_${accountId}/campaigns?fields=id,name,status,effective_status,daily_budget,lifetime_budget,insights.date_preset(today){spend,impressions,clicks,cpm,ctr,actions}&limit=50&filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&access_token=${fbToken}`;
+            const resp = await fetch(url);
+            const json = await resp.json();
+            if (json.error) throw new Error(json.error.message);
+            setCampaigns(json.data || []);
+        } catch (e: any) {
+            toast.error(`Ошибка загрузки кампаний: ${e.message}`);
+        } finally {
+            setLoading(false);
+        }
+    }, [accountId, fbToken]);
+
+    useEffect(() => { fetchCampaigns(); }, [fetchCampaigns]);
+
+    const toggleCampaign = async (campaign: FbCampaign) => {
+        const newStatus = campaign.effective_status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+        setToggling(prev => ({ ...prev, [campaign.id]: true }));
+        try {
+            const resp = await fetch(`${FB_API}/${campaign.id}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus, access_token: fbToken }),
+            });
+            const json = await resp.json();
+            if (json.error) throw new Error(json.error.message);
+            toast.success(`${campaign.name}: ${newStatus === 'ACTIVE' ? 'запущена' : 'поставлена на паузу'}`);
+            setCampaigns(prev => prev.map(c => c.id === campaign.id ? { ...c, status: newStatus, effective_status: newStatus } : c));
+        } catch (e: any) {
+            toast.error(`Ошибка: ${e.message}`);
+        } finally {
+            setToggling(prev => ({ ...prev, [campaign.id]: false }));
+        }
+    };
+
+    const getLeads = (campaign: FbCampaign) => {
+        const actions = campaign.insights?.data?.[0]?.actions || [];
+        return actions.filter(a => LEAD_TYPES.includes(a.action_type)).reduce((s, a) => s + Number(a.value), 0);
+    };
+
+    if (loading) return (
+        <div className="flex items-center justify-center py-8 gap-2 text-white/40">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            <span className="text-sm">Загрузка кампаний из Meta...</span>
+        </div>
+    );
+
+    if (!campaigns.length) return (
+        <div className="py-6 text-center text-white/30 text-sm">Нет активных или приостановленных кампаний</div>
+    );
+
+    return (
+        <div className="px-2 pb-3">
+            <div className="flex items-center justify-between mb-3 px-2">
+                <span className="text-xs font-black uppercase tracking-widest text-white/30">
+                    Кампании ({campaigns.length})
+                </span>
+                <Button variant="ghost" size="sm" className="h-7 text-white/40 hover:text-white/70 text-xs" onClick={fetchCampaigns}>
+                    <RefreshCw className="w-3 h-3 mr-1" />
+                    Обновить
+                </Button>
+            </div>
+            <div className="rounded-xl border border-white/5 overflow-hidden">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="bg-white/[0.02] border-b border-white/[0.02] hover:bg-white/[0.02]">
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 pl-4">Кампания</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">Бюджет/день</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">Расход сегодня</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">Показы</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">Клики</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">CTR</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">Лиды</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-right">CPL</TableHead>
+                            <TableHead className="text-white/30 font-semibold text-xs py-2 text-center w-20">Статус</TableHead>
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {campaigns.map(c => {
+                            const ins = c.insights?.data?.[0];
+                            const spend = Number(ins?.spend || 0);
+                            const impressions = Number(ins?.impressions || 0);
+                            const clicks = Number(ins?.clicks || 0);
+                            const ctr = Number(ins?.ctr || 0);
+                            const leads = getLeads(c);
+                            const cpl = leads > 0 ? spend / leads : 0;
+                            const budget = c.daily_budget ? Number(c.daily_budget) / 100 : null;
+                            const isActive = c.effective_status === 'ACTIVE';
+                            return (
+                                <TableRow key={c.id} className="border-b border-white/[0.02] hover:bg-white/[0.01]">
+                                    <TableCell className="pl-4 py-3">
+                                        <div className="flex items-center gap-2">
+                                            <div className={cn("w-1.5 h-1.5 rounded-full flex-shrink-0", isActive ? "bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.6)]" : "bg-white/20")} />
+                                            <span className="text-sm text-white/80 font-medium">{c.name}</span>
+                                        </div>
+                                    </TableCell>
+                                    <TableCell className="text-right text-white/50 text-sm tabular-nums">
+                                        {budget != null ? `$${budget.toFixed(0)}` : '—'}
+                                    </TableCell>
+                                    <TableCell className="text-right text-white/80 text-sm tabular-nums font-medium">
+                                        {spend > 0 ? `$${spend.toFixed(2)}` : '—'}
+                                    </TableCell>
+                                    <TableCell className="text-right text-white/50 text-sm tabular-nums">
+                                        {impressions > 0 ? impressions.toLocaleString('ru-RU') : '—'}
+                                    </TableCell>
+                                    <TableCell className="text-right text-white/50 text-sm tabular-nums">
+                                        {clicks > 0 ? clicks : '—'}
+                                    </TableCell>
+                                    <TableCell className="text-right text-white/50 text-sm tabular-nums">
+                                        {ctr > 0 ? `${ctr.toFixed(2)}%` : '—'}
+                                    </TableCell>
+                                    <TableCell className="text-right text-sm font-bold tabular-nums">
+                                        {leads > 0 ? <span className="text-green-400">{leads}</span> : <span className="text-white/30">0</span>}
+                                    </TableCell>
+                                    <TableCell className="text-right text-sm tabular-nums">
+                                        {cpl > 0 ? (
+                                            <span className={cn("font-bold", cpl < 2 ? "text-green-400" : cpl > 3 ? "text-red-400" : "text-yellow-400")}>
+                                                ${cpl.toFixed(2)}
+                                            </span>
+                                        ) : <span className="text-white/30">—</span>}
+                                    </TableCell>
+                                    <TableCell className="text-center">
+                                        {toggling[c.id] ? (
+                                            <Loader2 className="w-4 h-4 animate-spin mx-auto text-white/40" />
+                                        ) : (
+                                            <Switch
+                                                checked={isActive}
+                                                onCheckedChange={() => toggleCampaign(c)}
+                                                className={cn(isActive ? "data-[state=checked]:bg-green-500" : "")}
+                                            />
+                                        )}
+                                    </TableCell>
+                                </TableRow>
+                            );
+                        })}
+                    </TableBody>
+                </Table>
+            </div>
+        </div>
+    );
+};
 
 export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | null }) => {
     const [currentMonth, setCurrentMonth] = useState(new Date());
     const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
     const [sortField, setSortField] = useState<keyof AgencyMetrics | null>('spend');
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+    const [expandedAccountId, setExpandedAccountId] = useState<string | null>(null);
+    const [accountTokens, setAccountTokens] = useState<Record<string, string>>({});
+    const [tokenLoading, setTokenLoading] = useState<Record<string, boolean>>({});
 
     const dateRange = useMemo(() => ({
         from: startOfMonth(currentMonth),
@@ -41,6 +215,7 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
     const [newAccountId, setNewAccountId] = useState('');
     const [newAccountToken, setNewAccountToken] = useState('');
     const [newAccountName, setNewAccountName] = useState('');
+    const [newAccountType, setNewAccountType] = useState<'personal' | 'agency'>('agency');
 
     const { metrics, isLoading, syncing, triggerSync, connectAccount } = useAgencyAnalytics(projectId, dateRange || {});
 
@@ -51,7 +226,6 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
 
     // Formatting helpers
     const formatMoney = (val: number) => Math.round(val).toLocaleString('ru-RU') + ' ₸';
-    const formatNum = (val: number) => Math.round(val).toLocaleString('ru-RU');
     const formatPercent = (val: number) => val.toFixed(1) + '%';
 
     const handleConnect = async () => {
@@ -60,17 +234,42 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             return;
         }
         const cleanId = newAccountId.replace('act_', '');
-        await connectAccount(cleanId, newAccountName, newAccountToken);
+        await connectAccount(cleanId, newAccountName, newAccountToken, newAccountType);
         setIsConnectModalOpen(false);
         setNewAccountId('');
         setNewAccountToken('');
         setNewAccountName('');
+        setNewAccountType('agency');
     };
 
-    const copyToClipboard = (text: string) => {
-        navigator.clipboard.writeText(text);
-        toast.success('Скопировано в буфер обмена');
-    };
+    const handleAccountClick = useCallback(async (accountId: string) => {
+        if (expandedAccountId === accountId) {
+            setExpandedAccountId(null);
+            return;
+        }
+        setExpandedAccountId(accountId);
+        if (!accountTokens[accountId]) {
+            setTokenLoading(prev => ({ ...prev, [accountId]: true }));
+            try {
+                const { data } = await supabase
+                    .from('clients_config')
+                    .select('fb_token')
+                    .eq('ad_account_id', accountId)
+                    .maybeSingle();
+                if (data?.fb_token) {
+                    setAccountTokens(prev => ({ ...prev, [accountId]: data.fb_token }));
+                } else {
+                    toast.error('Токен Facebook не найден для этого кабинета');
+                    setExpandedAccountId(null);
+                }
+            } catch {
+                toast.error('Ошибка загрузки токена');
+                setExpandedAccountId(null);
+            } finally {
+                setTokenLoading(prev => ({ ...prev, [accountId]: false }));
+            }
+        }
+    }, [expandedAccountId, accountTokens]);
 
     const handleSort = (field: keyof AgencyMetrics) => {
         if (sortField === field) {
@@ -221,10 +420,23 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                         ) : (
                             sortedMetrics.map((m) => {
                                 const isRomiNegative = m.romi < 100;
+                                const isExpanded = expandedAccountId === m.accountId;
+                                const isTokenLoading = tokenLoading[m.accountId];
                                 return (
+                                    <>
                                     <TableRow key={m.accountId} className="group hover:bg-white/[0.02] border-b border-white/[0.02] transition-all">
                                         <TableCell>
-                                            <div className="font-bold text-white/90">{m.accountName}</div>
+                                            <button
+                                                onClick={() => handleAccountClick(m.accountId)}
+                                                className="flex items-center gap-2 font-bold text-white/90 hover:text-white transition-colors text-left"
+                                            >
+                                                {isTokenLoading ? (
+                                                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white/40" />
+                                                ) : (
+                                                    <ChevronDown className={cn("w-3.5 h-3.5 text-white/30 transition-transform flex-shrink-0", isExpanded && "rotate-180")} />
+                                                )}
+                                                {m.accountName}
+                                            </button>
                                         </TableCell>
                                         <TableCell className="text-right font-bold text-white/90 tabular-nums">{formatMoney(m.spend)}</TableCell>
                                         <TableCell className="text-right text-white/90 font-medium">
@@ -254,6 +466,14 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
                                             </div>
                                         </TableCell>
                                     </TableRow>
+                                    {isExpanded && accountTokens[m.accountId] && (
+                                        <TableRow key={`${m.accountId}-campaigns`} className="border-b border-white/[0.02] bg-white/[0.01]">
+                                            <TableCell colSpan={11} className="p-0">
+                                                <AccountCampaigns accountId={m.accountId} fbToken={accountTokens[m.accountId]} />
+                                            </TableCell>
+                                        </TableRow>
+                                    )}
+                                    </>
                                 );
                             })
                         )}
@@ -265,12 +485,44 @@ export const AgencyAccountsDashboard = ({ projectId }: { projectId: string | nul
             <Dialog open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen}>
                 <DialogContent className="sm:max-w-[425px] bg-[#020617]/90 backdrop-blur-3xl border-white/10 text-white shadow-interstellar">
                     <DialogHeader>
-                        <DialogTitle>Подключение Agency Кабинета</DialogTitle>
+                        <DialogTitle>Подключить рекламный кабинет</DialogTitle>
                         <DialogDescription className="text-white/40">
-                            Введите системный токен и ID кабинета (act_XXX), чтобы собирать статистику напрямую из Meta Graph API.
+                            Введите системный токен и ID кабинета (act_XXX). Выберите тип: личный кабинет виден во всей аналитике, агентский — только в разделе "Агентские кабинеты".
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                        {/* Account type selector */}
+                        <div className="grid gap-2">
+                            <label className="text-sm font-medium">Тип кабинета</label>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => setNewAccountType('personal')}
+                                    className={cn(
+                                        "flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all",
+                                        newAccountType === 'personal'
+                                            ? "border-blue-500/60 bg-blue-500/10 text-white"
+                                            : "border-white/10 bg-white/5 text-white/50 hover:border-white/20"
+                                    )}
+                                >
+                                    <span className="text-sm font-bold">Личный</span>
+                                    <span className="text-[11px] text-white/40">Виден во всей аналитике</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setNewAccountType('agency')}
+                                    className={cn(
+                                        "flex flex-col items-start gap-1 p-3 rounded-xl border text-left transition-all",
+                                        newAccountType === 'agency'
+                                            ? "border-purple-500/60 bg-purple-500/10 text-white"
+                                            : "border-white/10 bg-white/5 text-white/50 hover:border-white/20"
+                                    )}
+                                >
+                                    <span className="text-sm font-bold">Агентский</span>
+                                    <span className="text-[11px] text-white/40">Только в агент. кабинетах</span>
+                                </button>
+                            </div>
+                        </div>
                         <div className="grid gap-2">
                             <label htmlFor="name" className="text-sm font-medium">
                                 Название кабинета

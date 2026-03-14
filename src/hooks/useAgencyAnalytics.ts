@@ -35,10 +35,12 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
             if (!projectId) return [];
             const { data, error } = await supabase
                 .from('clients_config')
-                .select('id, ad_account_id, client_name')
-                .eq('project_id', projectId);
+                .select('id, ad_account_id, client_name, account_type')
+                .eq('project_id', projectId)
+                .in('account_type', ['agency', null] as any);
             if (error) throw error;
-            return data || [];
+            // Show only agency accounts (or legacy accounts without type)
+            return (data || []).filter((r: any) => !r.account_type || r.account_type === 'agency');
         },
         enabled: !!projectId,
     });
@@ -172,7 +174,7 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
     }, [projectId, refetchMetrics]);
 
     // Connect Account (Manual entry into clients_config)
-    const connectAccount = useCallback(async (accountId: string, accountName: string, accessToken: string) => {
+    const connectAccount = useCallback(async (accountId: string, accountName: string, accessToken: string, accountType: 'personal' | 'agency' = 'agency') => {
         if (!projectId) return;
         try {
             // Use upsert to handle both insert and update automatically based on ad_account_id.
@@ -183,7 +185,8 @@ export const useAgencyAnalytics = (projectId: string | null, dateRange: { from?:
                     project_id: projectId,
                     ad_account_id: accountId,
                     client_name: accountName,
-                    fb_token: accessToken
+                    fb_token: accessToken,
+                    account_type: accountType
                 }, {
                     onConflict: 'ad_account_id'
                 });
