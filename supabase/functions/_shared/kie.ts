@@ -183,6 +183,47 @@ export async function persistVideo(
 }
 
 /**
+ * Кладёт готовый ролик в карточку контент-завода.
+ *
+ * В таблице реальная колонка одна — video_url. Поля конвейера карточки
+ * (sora_status, sora_url и прочие) живут ключами внутри JSONB body, поэтому
+ * body читается и дописывается, а не перезаписывается. Колонку status не
+ * трогаем: там свой набор значений, и 'ready' в него не входит.
+ */
+export async function attachVideoToContentCard(
+  supabase: SupabaseClient,
+  contentFactoryId: string,
+  videoUrl: string,
+): Promise<void> {
+  const { data: card, error: readError } = await supabase
+    .from('content_factory')
+    .select('body')
+    .eq('id', contentFactoryId)
+    .maybeSingle();
+
+  if (readError) {
+    console.error('Не удалось прочитать карточку контента:', readError.message);
+    return;
+  }
+  if (!card) {
+    console.warn('Карточка контента не найдена:', contentFactoryId);
+    return;
+  }
+
+  const body = (card.body && typeof card.body === 'object') ? card.body as Record<string, unknown> : {};
+
+  const { error } = await supabase
+    .from('content_factory')
+    .update({
+      video_url: videoUrl,
+      body: { ...body, sora_status: 'ready', sora_url: videoUrl },
+    })
+    .eq('id', contentFactoryId);
+
+  if (error) console.error('Не удалось обновить карточку контента:', error.message);
+}
+
+/**
  * Отдаёт готовый ролик в автопостинг. Адрес и ключ берём из окружения:
  * не настроены — шаг тихо пропускается, генерация от этого не ломается.
  */

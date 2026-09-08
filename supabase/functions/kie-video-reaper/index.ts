@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   adminClient,
+  attachVideoToContentCard,
   callKie,
   corsHeaders,
   dispatchToPublishing,
@@ -126,11 +127,7 @@ serve(async (req) => {
         .eq('task_id', task.task_id);
 
       if (task.content_factory_id) {
-        const videoUrl = storedUrl ?? urls[0];
-        await supabaseAdmin
-          .from('content_factory')
-          .update({ video_url: videoUrl, sora_url: videoUrl, sora_status: 'ready' })
-          .eq('id', task.content_factory_id);
+        await attachVideoToContentCard(supabaseAdmin, task.content_factory_id, storedUrl ?? urls[0]);
       }
 
       if (task.auto_publish && !task.published_at) {

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import {
   adminClient,
+  attachVideoToContentCard,
   corsHeaders,
   dispatchToPublishing,
   extractResultUrls,
@@ -98,15 +99,8 @@ serve(async (req) => {
       .eq('task_id', taskId);
 
     // Готовый ролик кладём в карточку контента, если задача пришла оттуда.
-    // Пишем в слот AI-видео (sora_url/sora_status), а поле status не трогаем:
-    // там свой набор значений конвейера карточки, и 'ready' в него не входит.
     if (task.content_factory_id) {
-      const videoUrl = storedUrl ?? urls[0];
-      const { error } = await supabaseAdmin
-        .from('content_factory')
-        .update({ video_url: videoUrl, sora_url: videoUrl, sora_status: 'ready' })
-        .eq('id', task.content_factory_id);
-      if (error) console.error('Не удалось обновить content_factory:', error.message);
+      await attachVideoToContentCard(supabaseAdmin, task.content_factory_id, storedUrl ?? urls[0]);
     }
 
     let published = false;
