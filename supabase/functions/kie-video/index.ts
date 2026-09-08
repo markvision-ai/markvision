@@ -114,11 +114,14 @@ async function finalizeTask(taskId: string, record: Record<string, unknown>) {
     .maybeSingle();
 
   if (state !== 'success') {
-    const patch = state === 'failed'
-      ? { state, error: String(record.failMsg ?? record.failureReason ?? 'Генерация не удалась') }
-      : { state };
-    await supabaseAdmin.from('kie_video_tasks').update(patch).eq('task_id', taskId);
-    return { taskId, state, videoUrls: [], storedUrl: null, error: patch.error ?? null };
+    const error = state === 'failed'
+      ? String(record.failMsg ?? record.failureReason ?? 'Генерация не удалась')
+      : null;
+    await supabaseAdmin
+      .from('kie_video_tasks')
+      .update(error === null ? { state } : { state, error })
+      .eq('task_id', taskId);
+    return { taskId, state, videoUrls: [], storedUrl: null, error };
   }
 
   const urls = extractResultUrls(record);
