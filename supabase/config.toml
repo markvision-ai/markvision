@@ -41,6 +41,10 @@ verify_jwt = true
 [functions.kie-video-callback]
 verify_jwt = false
 
+# Сборщик зависших задач: дёргается по расписанию, доступ по x-automation-key.
+[functions.kie-video-reaper]
+verify_jwt = false
+
 [functions.check-db]
 enabled = true
 verify_jwt = true
