@@ -33,6 +33,9 @@ verify_jwt = true
 [functions.check-integrations]
 verify_jwt = false
 
+[functions.kie-video]
+verify_jwt = true
+
 [functions.check-db]
 enabled = true
 verify_jwt = true
