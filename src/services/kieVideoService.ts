@@ -40,6 +40,12 @@ export interface KieVideoModel {
     label: string;
     kind: 'text-to-video' | 'image-to-video';
     description: string;
+    /**
+     * true — слаг взят из работающей интеграции, а не из документации.
+     * У непроверенных kie.ai может ответить «модель не найдена»: сверяйте
+     * на https://kie.ai/market и правьте здесь.
+     */
+    verified: boolean;
 }
 
 /**
@@ -48,39 +54,55 @@ export interface KieVideoModel {
  * Каталог у kie.ai живёт на https://kie.ai/market и меняется по мере
  * подключения новых провайдеров, отдельного эндпоинта со списком нет.
  * Поэтому это подсказка, а не белый список: `createVideoTask` примет любой
- * слаг, и новая модель заработает без правок кода. Актуальные слаги и набор
- * полей `input` у каждой модели — на странице модели в Market и в Playground.
+ * слаг, и новая модель заработает без правок кода.
+ *
+ * Слаги делятся на два сорта. `verified: true` — встречены в работающей
+ * интеграции. `verified: false` — выписаны из документации и вживую не
+ * проверялись: kie.ai может ответить «модель не найдена». Сверяйте на
+ * странице модели в Market, там же смотрите набор полей `input`.
  */
 export const KIE_VIDEO_MODELS: KieVideoModel[] = [
+    {
+        slug: 'kling-2.6/text-to-video',
+        label: 'Kling 2.6',
+        kind: 'text-to-video',
+        description: 'Используется в рабочей интеграции соседнего проекта — начинайте с неё.',
+        verified: true,
+    },
     {
         slug: 'veo3_fast',
         label: 'Veo 3 Fast',
         kind: 'text-to-video',
-        description: 'Быстрая и дешёвая Veo 3. Рабочая лошадка для черновиков креативов.',
+        description: 'Быстрая и дешёвая Veo 3. Слаг из документации, вживую не проверен.',
+        verified: false,
     },
     {
         slug: 'veo3',
         label: 'Veo 3',
         kind: 'text-to-video',
-        description: 'Полная Veo 3 со звуком. Дороже и медленнее, качество выше.',
+        description: 'Полная Veo 3 со звуком. Слаг из документации, вживую не проверен.',
+        verified: false,
     },
     {
         slug: 'sora-2-text-to-video',
         label: 'Sora 2',
         kind: 'text-to-video',
-        description: 'Sora 2 из текста. Сильная физика и связность сцены.',
+        description: 'Sora 2 из текста. Слаг из документации, вживую не проверен.',
+        verified: false,
     },
     {
         slug: 'sora-2-image-to-video',
         label: 'Sora 2 (из картинки)',
         kind: 'image-to-video',
-        description: 'Оживляет статичный кадр — например, готовый баннер продукта.',
+        description: 'Оживляет готовый кадр. Слаг из документации, вживую не проверен.',
+        verified: false,
     },
     {
         slug: 'runway-gen4-turbo',
         label: 'Runway Gen-4 Turbo',
         kind: 'image-to-video',
-        description: 'Быстрая анимация кадра, хорошо держит идентичность объекта.',
+        description: 'Быстрая анимация кадра. Слаг из документации, вживую не проверен.',
+        verified: false,
     },
 ];
 

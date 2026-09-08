@@ -209,6 +209,7 @@ export const VideoStudio = ({ projectId }: VideoStudioProps) => {
                                     {KIE_VIDEO_MODELS.map((m) => (
                                         <SelectItem key={m.slug} value={m.slug}>
                                             {m.label}
+                                            {!m.verified && ' · не проверена'}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
@@ -249,6 +250,16 @@ export const VideoStudio = ({ projectId }: VideoStudioProps) => {
                         </div>
                         <Switch checked={autoPublish} onCheckedChange={setAutoPublish} />
                     </div>
+
+                    {selectedModel && !selectedModel.verified && (
+                        <div className="flex gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-white/50 text-[11px]">
+                            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                            <span>
+                                Слаг {selectedModel.label} взят из документации и вживую не проверялся.
+                                Если kie.ai ответит «модель не найдена» — сверьте название на kie.ai/market.
+                            </span>
+                        </div>
+                    )}
 
                     {needsImage && (
                         <div className="flex gap-2 rounded-2xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-amber-200 text-[11px]">
