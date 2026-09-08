@@ -30,12 +30,11 @@ describe('createVideoTask', () => {
 
         const result = await createVideoTask({ model: 'veo3_fast', prompt: '  кот в скафандре  ' });
 
-        expect(invoke).toHaveBeenCalledWith('kie-video', {
-            body: {
-                action: 'create',
-                model: 'veo3_fast',
-                input: { prompt: 'кот в скафандре' },
-            },
+        expect(invoke.mock.calls[0][1].body).toMatchObject({
+            action: 'create',
+            model: 'veo3_fast',
+            prompt: 'кот в скафандре',
+            input: { prompt: 'кот в скафандре' },
         });
         expect(result.taskId).toBe('task-1');
     });

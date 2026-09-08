@@ -36,6 +36,11 @@ verify_jwt = false
 [functions.kie-video]
 verify_jwt = true
 
+# Колбэк дёргает kie.ai со своих серверов — JWT у него нет.
+# Доступ закрыт секретом KIE_CALLBACK_SECRET в query-строке.
+[functions.kie-video-callback]
+verify_jwt = false
+
 [functions.check-db]
 enabled = true
 verify_jwt = true

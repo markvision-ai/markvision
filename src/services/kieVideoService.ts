@@ -1,11 +1,10 @@
 import { supabase } from '@/integrations/supabase/client';
 
 /**
- * Client for kie.ai video generation.
+ * Клиент генерации видео через kie.ai.
  *
- * The API key never reaches the browser — every call goes through the
- * `kie-video` edge function, which holds KIE_API_KEY and talks to
- * https://api.kie.ai on our behalf.
+ * Ключ в браузер не попадает: всё идёт через edge-функцию `kie-video`,
+ * которая держит KIE_API_KEY и ходит на https://api.kie.ai.
  */
 
 export type KieTaskState = 'pending' | 'running' | 'success' | 'failed';
@@ -14,34 +13,50 @@ export interface KieVideoTask {
     taskId: string;
     model: string | null;
     state: KieTaskState;
+    /** Временные ссылки kie.ai — живут 14 дней */
     videoUrls: string[];
+    /** Постоянная ссылка в нашем хранилище, появляется после успеха */
+    storedUrl?: string | null;
     error?: string | null;
+    /** true — kie.ai сам сообщит о готовности, поллинг не обязателен */
+    callbackEnabled?: boolean;
+}
+
+export interface KieTaskRow {
+    task_id: string;
+    model: string;
+    prompt: string | null;
+    state: KieTaskState;
+    stored_url: string | null;
+    source_url: string | null;
+    error: string | null;
+    auto_publish: boolean;
+    published_at: string | null;
+    created_at: string;
 }
 
 export interface KieVideoModel {
-    /** Model slug passed to kie.ai as `model` */
     slug: string;
     label: string;
-    /** Whether the model needs a source image */
     kind: 'text-to-video' | 'image-to-video';
     description: string;
 }
 
 /**
- * Known kie.ai video models.
+ * Известные модели kie.ai для выпадашек в UI.
  *
- * kie.ai has no public "list models" endpoint — the catalogue lives in their
- * docs and changes as providers are added. Treat this as a convenience list,
- * not a hard whitelist: `createVideoTask` accepts any slug, so a new model
- * works without a code change. Verify the current slugs at
- * https://docs.kie.ai before relying on one in production.
+ * Каталог у kie.ai живёт на https://kie.ai/market и меняется по мере
+ * подключения новых провайдеров, отдельного эндпоинта со списком нет.
+ * Поэтому это подсказка, а не белый список: `createVideoTask` примет любой
+ * слаг, и новая модель заработает без правок кода. Актуальные слаги и набор
+ * полей `input` у каждой модели — на странице модели в Market и в Playground.
  */
 export const KIE_VIDEO_MODELS: KieVideoModel[] = [
     {
         slug: 'veo3_fast',
         label: 'Veo 3 Fast',
         kind: 'text-to-video',
-        description: 'Быстрая и дешёвая версия Veo 3. Рабочая лошадка для черновиков креативов.',
+        description: 'Быстрая и дешёвая Veo 3. Рабочая лошадка для черновиков креативов.',
     },
     {
         slug: 'veo3',
@@ -70,17 +85,20 @@ export const KIE_VIDEO_MODELS: KieVideoModel[] = [
 ];
 
 export interface CreateVideoParams {
-    /** Model slug, e.g. 'veo3_fast'. See KIE_VIDEO_MODELS. */
+    /** Слаг модели, например 'veo3_fast'. См. KIE_VIDEO_MODELS. */
     model: string;
     prompt: string;
-    /** Aspect ratio understood by the model, e.g. '16:9' or '9:16' */
     aspectRatio?: string;
-    /** Source image URL for image-to-video models */
+    /** Исходная картинка для image-to-video моделей */
     imageUrls?: string[];
-    /** Extra model-specific fields merged into the kie.ai `input` object */
+    /** Доп. поля конкретной модели, подмешиваются в `input` для kie.ai */
     extraInput?: Record<string, unknown>;
-    /** Optional webhook kie.ai calls when the task finishes */
-    callBackUrl?: string;
+    /** Проект MarkVision, к которому относится ролик */
+    projectId?: string;
+    /** Карточка контент-завода: в неё запишется video_url по готовности */
+    contentFactoryId?: string;
+    /** Отдать готовый ролик в автопостинг */
+    autoPublish?: boolean;
 }
 
 interface EdgeResponse {
@@ -93,36 +111,27 @@ async function invokeKie<T>(payload: Record<string, unknown>): Promise<T> {
         body: payload,
     });
 
-    if (error) {
-        throw new Error(error.message || 'kie-video function call failed');
-    }
-    if (data?.error) {
-        throw new Error(String(data.error));
-    }
-    if (!data) {
-        throw new Error('kie-video returned an empty response');
-    }
+    if (error) throw new Error(error.message || 'Вызов функции kie-video не удался');
+    if (data?.error) throw new Error(String(data.error));
+    if (!data) throw new Error('kie-video вернул пустой ответ');
 
     return data as T;
 }
 
-/** Remaining kie.ai credits. Doubles as a key/connectivity check. */
+/** Остаток кредитов kie.ai. Заодно проверяет, что ключ рабочий. */
 export async function getKieCredits(): Promise<number | null> {
     const data = await invokeKie<{ credits: number | null }>({ action: 'credits' });
     return data.credits;
 }
 
-/** Queue a generation and return immediately with a task id. */
+/** Ставит генерацию в очередь и сразу возвращает taskId. */
 export async function createVideoTask(params: CreateVideoParams): Promise<KieVideoTask> {
-    if (!params.model) {
-        throw new Error('Не выбрана модель генерации');
-    }
-    if (!params.prompt?.trim()) {
-        throw new Error('Промпт не может быть пустым');
-    }
+    if (!params.model) throw new Error('Не выбрана модель генерации');
+    if (!params.prompt?.trim()) throw new Error('Промпт не может быть пустым');
 
+    const prompt = params.prompt.trim();
     const input: Record<string, unknown> = {
-        prompt: params.prompt.trim(),
+        prompt,
         ...(params.aspectRatio ? { aspect_ratio: params.aspectRatio } : {}),
         ...(params.imageUrls?.length ? { image_urls: params.imageUrls } : {}),
         ...params.extraInput,
@@ -132,22 +141,29 @@ export async function createVideoTask(params: CreateVideoParams): Promise<KieVid
         action: 'create',
         model: params.model,
         input,
-        ...(params.callBackUrl ? { callBackUrl: params.callBackUrl } : {}),
+        prompt,
+        projectId: params.projectId,
+        contentFactoryId: params.contentFactoryId,
+        autoPublish: params.autoPublish,
     });
 }
 
-/** One-shot status read for an existing task. */
+/** Разовое чтение статуса задачи. */
 export async function getVideoTask(taskId: string): Promise<KieVideoTask> {
-    if (!taskId) {
-        throw new Error('Не передан taskId');
-    }
+    if (!taskId) throw new Error('Не передан taskId');
     return invokeKie<KieVideoTask>({ action: 'status', taskId });
 }
 
+/** История задач текущего пользователя. */
+export async function listVideoTasks(limit = 20): Promise<KieTaskRow[]> {
+    const data = await invokeKie<{ tasks: KieTaskRow[] }>({ action: 'list', limit });
+    return data.tasks;
+}
+
 export interface WaitOptions {
-    /** How often to poll, ms. Default 5s — video jobs run for minutes. */
+    /** Интервал опроса, мс. По умолчанию 5с — генерация идёт минутами. */
     pollIntervalMs?: number;
-    /** Give up after this long, ms. Default 10 min. */
+    /** Сдаться через столько мс. По умолчанию 10 минут. */
     timeoutMs?: number;
     onProgress?: (task: KieVideoTask) => void;
     signal?: AbortSignal;
@@ -166,34 +182,31 @@ const sleep = (ms: number, signal?: AbortSignal) =>
         signal?.addEventListener('abort', onAbort, { once: true });
     });
 
-/** Poll a queued task until it succeeds, fails, or the timeout runs out. */
+/** Опрашивает задачу до успеха, ошибки или истечения таймаута. */
 export async function waitForVideoTask(
     taskId: string,
-    options: WaitOptions = {}
+    options: WaitOptions = {},
 ): Promise<KieVideoTask> {
     const { pollIntervalMs = 5000, timeoutMs = 10 * 60 * 1000, onProgress, signal } = options;
     const deadline = Date.now() + timeoutMs;
 
     while (true) {
-        if (signal?.aborted) {
-            throw new Error('Генерация отменена');
-        }
+        if (signal?.aborted) throw new Error('Генерация отменена');
 
         const task = await getVideoTask(taskId);
         onProgress?.(task);
 
         if (task.state === 'success') {
-            if (task.videoUrls.length === 0) {
+            if (!task.videoUrls.length && !task.storedUrl) {
                 throw new Error('kie.ai вернул успех, но без ссылки на видео');
             }
             return task;
         }
-        if (task.state === 'failed') {
-            throw new Error(task.error || 'Генерация не удалась');
-        }
+        if (task.state === 'failed') throw new Error(task.error || 'Генерация не удалась');
+
         if (Date.now() + pollIntervalMs > deadline) {
             throw new Error(
-                `Превышено время ожидания (${Math.round(timeoutMs / 1000)}с). Задача ${taskId} может ещё выполняться.`
+                `Превышено время ожидания (${Math.round(timeoutMs / 1000)}с). Задача ${taskId} может ещё выполняться.`,
             );
         }
 
@@ -201,12 +214,17 @@ export async function waitForVideoTask(
     }
 }
 
-/** Create a task and wait for the finished video in one call. */
+/** Создаёт задачу и дожидается готового видео. */
 export async function generateVideo(
     params: CreateVideoParams,
-    options: WaitOptions = {}
+    options: WaitOptions = {},
 ): Promise<KieVideoTask> {
     const task = await createVideoTask(params);
     options.onProgress?.(task);
     return waitForVideoTask(task.taskId, options);
+}
+
+/** Ссылка, которую стоит отдавать наружу: постоянная, если она уже есть. */
+export function permanentUrl(task: KieVideoTask): string | null {
+    return task.storedUrl || task.videoUrls[0] || null;
 }
