@@ -6,6 +6,26 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Собирает все страницы списочного ответа Graph API (paging.next).
+// Без этого me/adaccounts отдаёт лишь первые ~25 кабинетов, и привязанный
+// в БД кабинет со второй страницы молча выпадает из синка.
+// Бросает на error в теле — как и прежняя проверка accountsData.error.
+async function fetchAllGraphData(url: string): Promise<any[]> {
+  const out: any[] = [];
+  let next: string | null = url;
+  while (next) {
+    const res = await fetch(next);
+    const json = await res.json();
+    if (json.error) {
+      console.error("Facebook API error:", json.error);
+      throw new Error(json.error.message);
+    }
+    if (Array.isArray(json.data)) out.push(...json.data);
+    next = json.paging?.next || null;
+  }
+  return out;
+}
+
 interface FacebookCampaignInsight {
   campaign_id: string;
   campaign_name: string;
@@ -177,18 +197,11 @@ async function syncFacebookAds(
   projectId: string,
   accessToken: string
 ): Promise<{ campaigns: number; totalSpend: number }> {
-  // Get ad accounts
-  const accountsRes = await fetch(
-    `https://graph.facebook.com/v21.0/me/adaccounts?access_token=${accessToken}&fields=id,name,account_status`
+  // Get ad accounts (все страницы: у пользователя может быть >25 рекламных кабинетов)
+  const adAccounts = await fetchAllGraphData(
+    `https://graph.facebook.com/v21.0/me/adaccounts?access_token=${accessToken}&fields=id,name,account_status&limit=100`
   );
-  const accountsData = await accountsRes.json();
 
-  if (accountsData.error) {
-    console.error("Facebook API error:", accountsData.error);
-    throw new Error(accountsData.error.message);
-  }
-
-  const adAccounts = accountsData.data || [];
   let totalCampaigns = 0;
   let totalSpend = 0;
 
