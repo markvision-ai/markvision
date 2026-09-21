@@ -383,21 +383,15 @@ async function syncInstagramContent(
   projectId: string,
   accessToken: string
 ): Promise<{ posts: number; reels: number }> {
-  // Get Instagram business account
-  const pagesRes = await fetch(
-    `https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}&fields=instagram_business_account`
+  // Get Instagram business accounts (все страницы: у пользователя может быть >25 Pages)
+  const pages = await fetchAllGraphData(
+    `https://graph.facebook.com/v21.0/me/accounts?access_token=${accessToken}&fields=instagram_business_account&limit=100`
   );
-  const pagesData = await pagesRes.json();
-
-  if (pagesData.error) {
-    console.error("Facebook Pages API error:", pagesData.error);
-    throw new Error(pagesData.error.message);
-  }
 
   let postsCount = 0;
   let reelsCount = 0;
 
-  for (const page of pagesData.data || []) {
+  for (const page of pages) {
     const igAccountId = page.instagram_business_account?.id;
     if (!igAccountId) continue;
 
