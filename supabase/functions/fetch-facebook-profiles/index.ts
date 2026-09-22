@@ -32,7 +32,7 @@ serve(async (req) => {
 
     // 1. Получаем Facebook профиль
     const fbResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me?fields=id,name,picture&access_token=${accessToken}`
+      `https://graph.facebook.com/v21.0/me?fields=id,name,picture&access_token=${accessToken}`
     )
 
     let facebookProfile = null
@@ -47,43 +47,46 @@ serve(async (req) => {
 
     console.log('📄 Fetching Pages...')
 
-    // 2. Получаем Instagram аккаунты через Pages
-    const pagesResponse = await fetch(
-      `https://graph.facebook.com/v18.0/me/accounts?fields=id,name,instagram_business_account&access_token=${accessToken}`
-    )
-
+    // 2. Получаем Instagram аккаунты через Pages.
+    // Детали IG (username, аватар) тянем прямо в списке через field expansion,
+    // чтобы не делать по отдельному запросу на каждый аккаунт (N+1 при 100 аккаунтах).
+    // limit=100 + проход по paging.next — иначе Graph API отдаёт лишь первые 25 страниц.
     const instagramAccounts: any[] = []
+    let pagesUrl: string | null =
+      `https://graph.facebook.com/v21.0/me/accounts` +
+      `?fields=id,name,instagram_business_account{id,username,profile_picture_url}` +
+      `&limit=100&access_token=${accessToken}`
+    let pageNo = 0
 
-    if (pagesResponse.ok) {
+    while (pagesUrl) {
+      const pagesResponse = await fetch(pagesUrl)
+
+      if (!pagesResponse.ok) {
+        const error = await pagesResponse.text()
+        console.error('❌ Pages error:', error)
+        break
+      }
+
       const pagesData = await pagesResponse.json()
-      console.log('✅ Found pages:', pagesData.data?.length || 0)
+      pageNo += 1
+      console.log(`✅ Pages batch ${pageNo}:`, pagesData.data?.length || 0)
 
-      // Собираем Instagram аккаунты
       for (const page of pagesData.data || []) {
-        if (page.instagram_business_account) {
-          const igId = page.instagram_business_account.id
-
-          console.log('📸 Fetching Instagram account:', igId)
-
-          // Получаем детали Instagram аккаунта
-          const igResponse = await fetch(
-            `https://graph.facebook.com/v18.0/${igId}?fields=id,username,profile_picture_url&access_token=${accessToken}`
-          )
-
-          if (igResponse.ok) {
-            const igData = await igResponse.json()
-            console.log('✅ Instagram account:', igData.username)
-            instagramAccounts.push(igData)
-          } else {
-            const error = await igResponse.text()
-            console.error('❌ Instagram account error:', error)
-          }
+        const ig = page.instagram_business_account
+        if (ig && ig.id) {
+          instagramAccounts.push({
+            id: ig.id,
+            username: ig.username,
+            profile_picture_url: ig.profile_picture_url,
+          })
         }
       }
-    } else {
-      const error = await pagesResponse.text()
-      console.error('❌ Pages error:', error)
+
+      // Следующая страница списка Pages (не самих IG-аккаунтов)
+      pagesUrl = pagesData.paging?.next || null
     }
+
+    console.log('✅ Total Instagram accounts:', instagramAccounts.length)
 
     return new Response(
       JSON.stringify({

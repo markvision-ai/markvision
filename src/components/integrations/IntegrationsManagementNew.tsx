@@ -37,6 +37,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { AutomationPage } from '../automation/AutomationPage';
+import { fetchAllGraphPages } from '@/lib/graphApi';
 
 interface AdAccount {
   id: string;
@@ -217,73 +218,58 @@ const IntegrationsManagementNew = ({ projectId }: { projectId: string | null }) 
     setModalLoading(true);
     try {
       if (type === 'facebook') {
-        // Fetch Facebook Pages
-        const pagesResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture&access_token=${connectedAccount.access_token}`,
-          { signal }
+        // Fetch Facebook Pages (все страницы, не только первые 25)
+        const pages = await fetchAllGraphPages<FacebookPage>(
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture&limit=100&access_token=${connectedAccount.access_token}`,
+          signal
         );
+        setAvailablePages(pages);
 
-        if (pagesResponse.ok) {
-          const pagesData = await pagesResponse.json();
-          setAvailablePages(pagesData.data || []);
-        }
-
-        // Fetch Ad Accounts
-        const adAccountsResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&access_token=${connectedAccount.access_token}`,
-          { signal }
+        // Fetch Ad Accounts (все страницы)
+        const adAccounts = await fetchAllGraphPages<AdAccount>(
+          `https://graph.facebook.com/v21.0/me/adaccounts?fields=id,name,account_id&limit=100&access_token=${connectedAccount.access_token}`,
+          signal
         );
-
-        if (adAccountsResponse.ok) {
-          const adAccountsData = await adAccountsResponse.json();
-          setAvailableAdAccounts(adAccountsData.data || []);
-        }
+        setAvailableAdAccounts(adAccounts);
       } else if (type === 'instagram') {
-        // Fetch Facebook Pages with Instagram accounts
-        const pagesResponse = await fetch(
-          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account&access_token=${connectedAccount.access_token}`,
-          { signal }
+        // Fetch Facebook Pages with Instagram accounts (все страницы).
+        // Детали IG (username, аватар, подписчики) тянем прямо в списке через
+        // field expansion — без отдельного запроса на каждый аккаунт (N+1 при 100 IG).
+        type PageWithIG = FacebookPage & {
+          instagram_business_account?: {
+            id: string;
+            username?: string;
+            profile_picture_url?: string;
+            followers_count?: number;
+          };
+        };
+
+        const pagesWithIG = await fetchAllGraphPages<PageWithIG>(
+          `https://graph.facebook.com/v21.0/me/accounts?fields=id,name,picture,instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100&access_token=${connectedAccount.access_token}`,
+          signal
         );
 
-        if (pagesResponse.ok) {
-          const pagesData = await pagesResponse.json();
-          // Filter only pages with Instagram accounts
-          const pagesWithIG = pagesData.data?.filter((page: FacebookPage & { instagram_business_account?: { id: string } }) =>
-            page.instagram_business_account
-          ) || [];
+        const igAccounts: InstagramAccount[] = pagesWithIG
+          .filter((page) => page.instagram_business_account?.id)
+          .map((page) => ({
+            id: page.instagram_business_account!.id,
+            username: page.instagram_business_account!.username || '',
+            profile_picture_url: page.instagram_business_account!.profile_picture_url,
+            followers_count: page.instagram_business_account!.followers_count,
+            page_id: page.id, // ссылка на Page
+            page_name: page.name,
+          }));
 
-          // Fetch Instagram accounts from pages
-          const igAccounts: InstagramAccount[] = [];
-          for (const page of pagesWithIG) {
-            if (page.instagram_business_account) {
-              const igId = page.instagram_business_account.id;
-              try {
-                const igResponse = await fetch(
-                  `https://graph.facebook.com/v21.0/${igId}?fields=id,username,profile_picture_url,followers_count&access_token=${connectedAccount.access_token}`,
-                  { signal }
-                );
-                if (igResponse.ok) {
-                  const igData = await igResponse.json();
-                  igAccounts.push({
-                    ...igData,
-                    page_id: page.id, // Store page ID for reference
-                    page_name: page.name // Store page name
-                  });
-                }
-              } catch (err: any) {
-                if (err.name !== 'AbortError') {
-                  console.warn('Could not fetch Instagram account:', igId);
-                }
-              }
-            }
-          }
-          setAvailableInstagramAccounts(igAccounts);
-        }
+        setAvailableInstagramAccounts(igAccounts);
       }
     } catch (error: any) {
       if (error.name === 'AbortError') return;
       console.error('Error fetching resources:', error);
-      toast.error('Ошибка загрузки ресурсов');
+      toast.error(
+        error?.name === 'GraphError'
+          ? `Meta API: ${error.message}. Возможно, токен устарел — переподключите аккаунт.`
+          : 'Ошибка загрузки ресурсов',
+      );
     } finally {
       setModalLoading(false);
     }
