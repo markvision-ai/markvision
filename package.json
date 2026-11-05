@@ -107,13 +107,13 @@
     "lovable-tagger": "^1.1.13",
     "pg": "^8.13.1",
     "postcss": "^8.5.6",
-    "sharp": "^0.34.5",
+    "sharp": "^0.35.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.38.0",
     "vercel": "^50.15.1",
     "vite": "^6.4.1",
-    "vite-imagetools": "^9.0.2",
+    "vite-imagetools": "^12.0.1",
     "vite-plugin-compression": "^0.5.1",
     "vitest": "^4.0.18"
   }
