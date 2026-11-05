@@ -2,11 +2,12 @@ import { useState, useEffect } from 'react';
 import { useContentFactory } from '@/hooks/useContentFactory';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { Plus, Eye, Sparkles, Rocket } from 'lucide-react';
+import { Plus, Eye, Sparkles, Rocket, Film } from 'lucide-react';
 import { CreateContentDialog } from './CreateContentDialog';
 import { CompetitorMonitoring } from './CompetitorMonitoring';
 import { ContentAnalysisByLink } from './ContentAnalysisByLink';
 import { UnifiedContentFactory } from './UnifiedContentFactory';
+import { VideoStudio } from './VideoStudio';
 
 interface ContentFactoryPageProps {
   projectId?: string | null;
@@ -41,6 +42,10 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
               <Sparkles className="w-4 h-4" />
               Анализ
             </TabsTrigger>
+            <TabsTrigger value="video" className="rounded-full px-8 py-3 data-[state=active]:bg-primary data-[state=active]:shadow-lg data-[state=active]:text-white text-white/40 transition-all font-black uppercase tracking-widest text-[10px] gap-2">
+              <Film className="w-4 h-4" />
+              Видео
+            </TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -70,6 +75,11 @@ export const ContentFactoryPage = ({ projectId: propProjectId }: ContentFactoryP
         {/* Analysis Tab Content */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'analysis' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
           <ContentAnalysisByLink projectId={projectId} />
+        </div>
+
+        {/* Video Studio Tab Content */}
+        <div className={`absolute inset-0 transition-opacity duration-300 ${activeTab === 'video' ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}>
+          <VideoStudio projectId={projectId} />
         </div>
 
       </div>
